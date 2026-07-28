@@ -97,12 +97,12 @@ describe('SummoningCommand live Mansion and Fortress boundary bridge', () => {
     }))
     expect(servants.every(servant => (servant.abilities || []).length === 0)).toBe(true)
 
-    const afterUtility = utilityCommand!.execute(afterSummon)
+    const afterUtility = await utilityCommand!.execute(afterSummon)
     const mansionBoundaryEntry = afterUtility.combatLog.find(entry =>
-      entry.data?.utilityEffect?.description === utilityEffect?.description
+      (entry.data?.utilityEffect as any)?.description === utilityEffect?.description
     )
 
-    expect(mansionBoundaryEntry?.data?.utilityEffect?.createdResource).toEqual(expect.objectContaining({
+    expect((mansionBoundaryEntry?.data?.utilityEffect as any)?.createdResource).toEqual(expect.objectContaining({
       food: 'sufficient_for_nine_course_banquet_for_up_to_100_people',
       servants: '100_near_transparent_servants_can_serve_food_and_pour_wine',
       scope: 'exists_only_inside_extradimensional_mansion',
@@ -273,7 +273,7 @@ describe('SummoningCommand live Mansion and Fortress boundary bridge', () => {
 
     expect(commandExecutable).toHaveLength(1)
 
-    const afterCommand = commandExecutable[0].execute(afterSummon)
+    const afterCommand = await commandExecutable[0].execute(afterSummon)
     const updatedServant = afterCommand.characters.find(character => character.id === servants[0]?.id)
 
     expect(updatedServant?.summonMetadata?.commandsUsedThisTurn).toBe(1)
@@ -282,12 +282,12 @@ describe('SummoningCommand live Mansion and Fortress boundary bridge', () => {
       entry.data?.commandsUsedThisTurn === 1
     )).toBe(true)
 
-    const afterUtility = utilityCommand!.execute(afterCommand)
+    const afterUtility = await utilityCommand!.execute(afterCommand)
     const fortressBoundaryEntry = afterUtility.combatLog.find(entry =>
-      entry.data?.utilityEffect?.description === utilityEffect?.description
+      (entry.data?.utilityEffect as any)?.description === utilityEffect?.description
     )
 
-    expect(fortressBoundaryEntry?.data?.utilityEffect).toEqual(expect.objectContaining({
+    expect((fortressBoundaryEntry?.data?.utilityEffect as any)).toEqual(expect.objectContaining({
       createdObjects: expect.arrayContaining([
         expect.objectContaining({
           kind: 'stone_fortress_structure',
@@ -407,15 +407,15 @@ describe('SummoningCommand live Mansion and Fortress boundary bridge', () => {
     )).toBe(true)
 
     const permanent = Array.from({ length: 52 }).reduce(
-      nextState => advanceMightyFortressPermanence(nextState, fortress!.id, { x: 30, y: 30 }),
-      immuneDamage
+      (nextState: any) => advanceMightyFortressPermanence(nextState, fortress!.id, { x: 30, y: 30 }),
+      immuneDamage as any
     )
-    const permanentFortress = permanent.activeSpellStructures?.find(structure => structure.id === fortress?.id)
+    const permanentFortress = (permanent as any).activeSpellStructures?.find((structure: any) => structure.id === fortress?.id)
 
     expect(permanentFortress?.permanent).toBe(true)
-    expect(permanentFortress?.lifecycle.sameLocationCastCount).toBe(52)
+    expect(permanentFortress?.lifecycle?.sameLocationCastCount).toBe(52)
 
-    const crumbled = crumbleMightyFortress(permanent, fortress!.id, 'duration_expired')
+    const crumbled = crumbleMightyFortress(permanent as any, fortress!.id, 'duration_expired')
 
     expect(crumbled.activeSpellStructures?.some(structure => structure.id === fortress?.id)).toBe(false)
     expect(crumbled.combatLog.some(entry =>

@@ -103,7 +103,7 @@ function addProxyDiagnostics(
   return {
     ...config,
     configure: (proxy, _options) => {
-      proxy.on('error', (err, req: IncomingMessage, res: ServerResponse) => {
+      proxy.on('error', (err: Error, req: IncomingMessage, res: any) => {
         const target = formatProxyTarget(config.target);
         if (err.message.includes('ECONNREFUSED')) {
           console.error(`\n[proxy] ${route} -> ${target} connection refused.`);
@@ -113,15 +113,18 @@ function addProxyDiagnostics(
         // Let the startup dependency check fail softly. This keeps the browser
         // console from reporting an internal server error for an optional local
         // service, while the client still sees "no models available" and opens
-        // the existing Ollama dependency modal.
-        if (route === '/api/ollama' && req.url === '/tags' && !res.headersSent) {
-          res.statusCode = 200;
-          res.setHeader('Content-Type', 'application/json');
-          res.end(JSON.stringify({ models: [] }));
-          return;
+        // the setup modal as expected.
+        if (res && typeof res.writeHead === 'function' && !res.headersSent) {
+          res.writeHead(502, { 'Content-Type': 'application/json' });
+          res.end(
+            JSON.stringify({
+              error: 'LOCAL_SERVICE_UNAVAILABLE',
+              message: `Proxy target ${target} refused connection. ${hint}`,
+            })
+          );
         }
       });
-    }
+    },
   };
 }
 
@@ -396,7 +399,7 @@ export default defineConfig(async ({ mode, command }) => {
             : {})
         },
         output: {
-          manualChunks(id) {
+          manualChunks(id: string) {
             // Isolate Vite's __vitePreload helper into its own ~1KB chunk.
             // Otherwise Rollup parks it inside whichever vendor chunk it likes
             // (here: vendor-react-three, which statically pulls vendor-three).

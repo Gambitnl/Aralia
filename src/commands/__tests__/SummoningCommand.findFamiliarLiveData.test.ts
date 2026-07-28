@@ -19,7 +19,7 @@ import findFamiliar from '../../../public/data/spells/level-1/find-familiar.json
  */
 
 describe('SummoningCommand live Find Familiar metadata bridge', () => {
-  it('exposes live dismiss and recall commands on the caster after Find Familiar is summoned', () => {
+  it('exposes live dismiss and recall commands on the caster after Find Familiar is summoned', async () => {
     const caster = {
       id: 'find-familiar-caster',
       name: 'Find Familiar Caster',
@@ -29,7 +29,7 @@ describe('SummoningCommand live Find Familiar metadata bridge', () => {
       maxHP: 20,
       stats: { size: 'medium' }
     } as unknown as CombatCharacter;
-    const summonEffect = findFamiliar.effects.find(effect => effect.type === 'SUMMONING') as SummoningEffect;
+    const summonEffect = findFamiliar.effects.find(effect => effect.type === 'SUMMONING') as unknown as SummoningEffect;
     const context = {
       spellId: findFamiliar.id,
       spellName: findFamiliar.name,
@@ -38,7 +38,7 @@ describe('SummoningCommand live Find Familiar metadata bridge', () => {
       targets: [],
       playerInput: 'Owl',
       gameState: {}
-    } as CommandContext;
+    } as unknown as CommandContext;
     const state = {
       characters: [caster],
       currentTurn: 1,
@@ -51,9 +51,9 @@ describe('SummoningCommand live Find Familiar metadata bridge', () => {
         actionsThisTurn: []
       },
       combatLog: []
-    } as CombatState;
+    } as unknown as CombatState;
 
-    const summonedState = new SummoningCommand(summonEffect, context).execute(state);
+    const summonedState = await new SummoningCommand(summonEffect, context).execute(state);
     const updatedCaster = summonedState.characters.find(character => character.id === caster.id);
     const summonedFamiliar = summonedState.characters.find(character =>
       character.isSummon &&
@@ -78,12 +78,12 @@ describe('SummoningCommand live Find Familiar metadata bridge', () => {
       {} as never
     );
 
-    const dismissedState = dismissCommands[0].execute({
+    const dismissedState = await dismissCommands[0].execute({
       ...summonedState,
       turnState: state.turnState
     });
     expect(dismissedState.characters.some(character => character.id === summonedFamiliar?.id)).toBe(false);
-    expect(dismissedState.pocketedSummons?.map(entry => entry.summon.id)).toEqual([summonedFamiliar!.id]);
+    expect((dismissedState as any).pocketedSummons?.map((entry: any) => entry.summon.id)).toEqual([summonedFamiliar!.id]);
 
     const recallCommands = AbilityCommandFactory.createCommands(
       recallAbility!,
@@ -92,11 +92,11 @@ describe('SummoningCommand live Find Familiar metadata bridge', () => {
       {} as never
     );
 
-    const recalledState = recallCommands[0].execute({
+    const recalledState = await recallCommands[0].execute({
       ...dismissedState,
       turnState: state.turnState
     });
     expect(recalledState.characters.some(character => character.id === summonedFamiliar?.id)).toBe(true);
-    expect(recalledState.pocketedSummons).toEqual([]);
+    expect((recalledState as any).pocketedSummons).toEqual([]);
   });
 });

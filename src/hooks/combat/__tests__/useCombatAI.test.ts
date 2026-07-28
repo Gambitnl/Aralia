@@ -103,7 +103,7 @@ const mockMapData: BattleMapData = {
       Array.from({ length: 4 }, (_, y) => ({ x, y })).map(({ x, y }) => ({
         id: `${x}-${y}`,
         coordinates: { x, y },
-        terrain: 'floor',
+        terrain: 'floor' as const,
         elevation: 0,
         movementCost: 1,
         blocksMovement: false,

@@ -19,7 +19,7 @@ describe('UtilityCommand', () => {
             spellName: 'Minor Illusion',
             targets: [],
             selectedSpellTargets: [illusionPoint],
-            effectDuration: { type: 'minutes', value: 1, concentration: false }
+            effectDuration: { type: 'minutes', value: 1, concentration: false } as any
         }
 
         const runMinorIllusion = (playerInput: string, state: CombatState = mockState) => {

@@ -125,7 +125,7 @@ interface GameModalsProps {
     onFixMissingChoice: (character: PlayerCharacter, missing: MissingChoice) => void;
     handleCloseCharacterSheet: () => void;
     handleClosePartyOverlay: () => void;
-    handleDismissMember: (id: string) => void;
+    handleDismissMember?: (id: string) => void;
     handleDevMenuAction: (action: string) => void;
     handleModelChange: (model: string | null) => void;
     handleNavigateToGlossaryFromTooltip: (termId: string) => void;
@@ -1131,7 +1131,7 @@ const GameModals: React.FC<GameModalsProps> = ({
                                 type: 'LONG_REST',
                                 label: 'Long Rest',
                                 payload: { racialRestChoices: choices },
-                            });
+                            } as unknown as Action);
                         }}
                     />
                 </ErrorBoundary>

@@ -221,7 +221,7 @@ export class WeaponAttackCommand implements SpellCommand {
     }).spellcastingAbility || 'wisdom').toLowerCase() as keyof CombatCharacter['stats'];
     const score = caster.stats[spellcastingAbility] || 10;
 
-    return Math.floor((score - 10) / 2);
+    return Math.floor(((score as number) - 10) / 2);
   }
 
   private getHeldWeaponDamageDice(augment: HeldWeaponAugment): string {
@@ -342,7 +342,7 @@ export class WeaponAttackCommand implements SpellCommand {
         };
 
         return String(spellOption.castingTime?.unit ?? '').toLowerCase().includes('reaction') &&
-          spellOption.effects.some(effect =>
+          spellOption.effects.some((effect: any) =>
             effect.type === 'DEFENSIVE' &&
             effect.reactionTrigger?.event === 'when_hit'
           ) &&
@@ -883,7 +883,7 @@ export class WeaponAttackCommand implements SpellCommand {
         matchingHitRiders = riderSystem.getMatchingRiders(newState, attackContext);
         attackPayloadIsReplaced = matchingHitRiders.some(rider =>
           isDamageEffect(rider.effect) &&
-          rider.effect.objectTransformation?.sourceObject === 'weapon_or_ammunition_used_for_attack'
+          (rider.effect as any).objectTransformation?.sourceObject === 'weapon_or_ammunition_used_for_attack'
         );
       }
 
@@ -947,14 +947,14 @@ export class WeaponAttackCommand implements SpellCommand {
           this.ability.greenFlameBladeSecondaryTargetId
         ) {
           const secondaryTarget = newState.characters.find(character =>
-            character.id === this.ability.greenFlameBladeSecondaryTargetId
+            character.id === (this.ability as any).greenFlameBladeSecondaryTargetId
           );
 
           if (secondaryTarget) {
             // The leap spends only after the weapon hit lands, and it keeps the
             // secondary damage on the chosen adjacent creature instead of the
             // primary weapon target.
-            const secondaryCommand = new DamageCommand(this.ability.greenFlameBladeSecondaryEffect, {
+            const secondaryCommand = new DamageCommand(this.ability.greenFlameBladeSecondaryEffect as any, {
               ...this.context,
               targets: [secondaryTarget],
               isCritical,

@@ -9,7 +9,7 @@
 import React from 'react';
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
-import { createMockGameState, createMockPlayerCharacter } from '../../../utils/core/factories';
+import { createMockGameState, createMockPlayerCharacter, createMockCombatCharacter } from '../../../utils/core/factories';
 import { characterReducer } from '../../../state/reducers/characterReducer';
 import type { Companion, GameState, Location, TempPartyMember } from '../../../types';
 import type { ComponentType } from 'react';
@@ -115,14 +115,14 @@ type RenderOverrides = {
 const createProps = (gameState: GameState, overrides: RenderOverrides = {}) => {
     const props = createGameModalsProps(gameState, overrides);
 
-    return render(<GameModals {...props} />);
+    return render(<GameModals {...(props as any)} />);
 };
 
 const createGameModalsProps = (gameState: GameState, overrides: RenderOverrides = {}) => {
     const props = {
         gameState,
-        dispatch: vi.fn(),
-        onAction: vi.fn(),
+        dispatch: vi.fn() as any,
+        onAction: vi.fn() as any,
         onTileClick: vi.fn(),
         onEnter3DAtCell: vi.fn(),
         playerWorldPos: null,
@@ -158,10 +158,11 @@ const createGameModalsProps = (gameState: GameState, overrides: RenderOverrides 
 
     return {
         ...props,
+        ...overrides,
         dispatch: overrides.dispatch ?? props.dispatch,
         onAction: overrides.onAction ?? props.onAction,
         onCloseMissingChoice: overrides.handleCloseMissingChoice ?? props.onCloseMissingChoice,
-    };
+    } as unknown as any;
 };
 
 const baseGameState = createMockGameState({
@@ -222,7 +223,7 @@ describe('GameModals focus-trap coverage', () => {
     it('passes active combat state into the Party Overlay rest gate', async () => {
         const modalState = withOpenModal({
             isPartyOverlayVisible: true,
-            currentEnemies: [createMockPlayerCharacter({ id: 'enemy-1', name: 'Training Dummy' })],
+            currentEnemies: [createMockCombatCharacter({ id: 'enemy-1', name: 'Training Dummy' })],
         });
 
         createProps(modalState);
@@ -359,13 +360,13 @@ describe('GameModals focus-trap coverage', () => {
             party: [sheetCharacter],
         } as GameState, {
             type: 'SET_FULL_PARTY',
-            payload: rebuiltParty,
+            payload: rebuiltParty as any,
         });
         const rebuiltState = {
             ...baseGameState,
             ...reducerState,
             companions: { [companionId]: companion } as GameState['companions'],
-            characterSheetModal: { isOpen: true, character: reducerState.party[0] },
+            characterSheetModal: { isOpen: true, character: (reducerState.party as any)?.[0] },
         } as GameState;
 
         createProps(rebuiltState);
@@ -394,7 +395,7 @@ describe('GameModals focus-trap coverage', () => {
             ...baseGameState,
             ...reducerState,
             companions: { [companionId]: companion } as GameState['companions'],
-            characterSheetModal: { isOpen: true, character: reducerState.party[0] },
+            characterSheetModal: { isOpen: true, character: (reducerState.party as any)?.[0] },
         } as GameState;
 
         createProps(rebuiltState);

@@ -42,6 +42,7 @@ import { handleGroundChunkRequest } from "./groundChunkWorkerCore";
 import {
   WORLD3D_CONFIG,
   heightToMeters,
+  metersToHeight,
   resolutionForLod,
 } from "../../world3d/config";
 import { BATTLE_MAP_ELEVATION_METERS_PER_UNIT } from "../../../config/mapConfig";
@@ -219,8 +220,34 @@ const RIVER_SURFACE_BANK_OVERDRAW_M = GROUND_METERS_PER_CELL;
 /** A filled town water body (river channel / harbour apron), ground meters. */
 export interface GroundWaterBody {
   pointsM: Array<{ x: number; z: number }>;
-  /** Flat water-surface Y in world meters (set by the terrain-carve pass). */
+  /**
+   * What this body IS. The three kinds cannot share a height rule: the sea is
+   * flat at zero by definition, a lake is flat at its own elevation, and a
+   * river surface DESCENDS along its course — it stands above sea level
+   * everywhere but its mouth. One flat height for all three is what drew burg
+   * Hajdured's river 15 m below the ground it runs through.
+   */
+  kind: "sea" | "lake" | "river";
+  /**
+   * Reference water height in world meters (set by the terrain-carve pass).
+   * Flat for sea and lake. For a river this is its LOWEST point — the single
+   * number decks and crossings reference — while the surface itself comes from
+   * `centerlineM`.
+   */
   surfaceY: number;
+  /**
+   * Rivers only: the ordered centerline with a resolved height per point. Chunk
+   * clipping invents new polygon vertices, so a per-vertex height array cannot
+   * survive it; the renderer projects each surviving vertex onto this line and
+   * interpolates instead.
+   */
+  centerlineM?: Array<{ x: number; z: number; surfaceY: number }>;
+  /**
+   * Sea aprons only: the shoreline segment this apron extends from, in ground
+   * meters. The apron's outer corners reach far offshore and sample ground that
+   * says nothing about the waterline, so the height comes from here instead.
+   */
+  shoreEdgeM?: Array<{ x: number; z: number }>;
 }
 
 /** A dock pier / bridge span deck (convex quad), ground meters. */
@@ -2003,8 +2030,13 @@ function flattenBuildingTerrainPads(
 }
 
 /** Encoded-height drops (0..100 domain) that shape town water + its banks. */
-const WATER_SURFACE_DROP_ENC = 1.5; // water surface sits this far below the shore
-const WATER_BED_DROP_ENC = 4; // carved bed sits this far below the shore
+// Water depths are authored in METERS. They used to be encoded-height units,
+// which the ×VERTICAL_EXAGGERATION conversion multiplied by 18: a "shallow"
+// 1.5-unit surface drop became 27 m and the 4-unit bed became a 72 m pit. Any
+// town standing lower than 27 m then clamped its water to absolute sea level,
+// which is what opened a 15 m chasm through burg Hajdured.
+const WATER_SURFACE_DROP_M = 1.5; // water surface sits this far below its shore
+const WATER_BED_DROP_M = 4; // carved bed sits this far below the water surface
 const DECK_CLEARANCE_M = 0.4; // deck top stands this far above the water
 
 /**
@@ -2098,27 +2130,84 @@ function carveTownWaterBasins(
       protectedCells.add(idx);
   }
 
+  const surfaceDropEnc = metersToHeight(WATER_SURFACE_DROP_M);
+  const bedDropEnc = metersToHeight(WATER_BED_DROP_M);
+  // One centroid sample cannot describe a polygon that spans real relief — a
+  // harbour apron reaches 40% of the town's width. Take the lowest sample
+  // around the ring so the surface never floats above ground on the low side.
+  const lowestShoreEnc = (pts: Array<{ x: number; z: number }>): number => {
+    let lowest = sampleEncodedHeight(original, cols, rows, ...(() => {
+      const c = centroidOf(pts);
+      return [c.x, c.z] as const;
+    })());
+    for (const p of pts) {
+      lowest = Math.min(lowest, sampleEncodedHeight(original, cols, rows, p.x, p.z));
+    }
+    return lowest;
+  };
+
   for (const body of waterBodies) {
     if (body.pointsM.length < 3) continue;
-    const c = centroidOf(body.pointsM);
-    const shoreEnc = sampleEncodedHeight(original, cols, rows, c.x, c.z);
-    body.surfaceY = heightToMeters(
-      Math.max(0, shoreEnc - WATER_SURFACE_DROP_ENC),
-    );
-    const bedEnc = Math.max(0, shoreEnc - WATER_BED_DROP_ENC);
+
+    if (body.kind === "sea") {
+      // NOT zero. "Sea level is zero" holds in the world frame, but these
+      // heights are the town artifact's LOCAL 0..100 grid, where one burg's
+      // shore sits at ~16 m — pinning the apron to zero buried it 16 m under its
+      // own beach (measured in-game: water quads at worldY 0 beneath terrain at
+      // 16.4). Take the waterline from the shore edge the apron extends from,
+      // never from its offshore corners, which sample ground far from the water.
+      const shore = body.shoreEdgeM?.length ? body.shoreEdgeM : body.pointsM;
+      let shoreEnc = Infinity;
+      for (const p of shore) {
+        shoreEnc = Math.min(shoreEnc, sampleEncodedHeight(original, cols, rows, p.x, p.z));
+      }
+      body.surfaceY = heightToMeters(Math.max(0, shoreEnc - surfaceDropEnc));
+    } else if (body.kind === "river" && body.centerlineM?.length) {
+      // A river descends. Resolve a height per centerline point from the land it
+      // runs through, then force the series non-increasing downstream so the
+      // surface can never flow uphill on an interpolation wobble.
+      let ceiling = Infinity;
+      for (const p of body.centerlineM) {
+        const shoreEnc = sampleEncodedHeight(original, cols, rows, p.x, p.z);
+        ceiling = Math.min(ceiling, Math.max(0, shoreEnc - surfaceDropEnc));
+        p.surfaceY = heightToMeters(ceiling);
+      }
+      body.surfaceY = body.centerlineM.reduce((lo, p) => Math.min(lo, p.surfaceY), Infinity);
+    } else {
+      // Lake: one flat surface, at its OWN elevation rather than sea level.
+      body.surfaceY = heightToMeters(
+        Math.max(0, lowestShoreEnc(body.pointsM) - surfaceDropEnc),
+      );
+    }
+
+    // Carve the bed under the body so the surface reads with a shoreline. The
+    // reference is the body's own resolved water height, not a re-sampled shore,
+    // so bed and surface can never disagree.
+    const bedEnc = Math.max(0, metersToHeight(body.surfaceY) - bedDropEnc);
     for (const idx of polygonCellIndices(cols, rows, body.pointsM)) {
       if (protectedCells.has(idx)) continue; // buildings win — keep their level pad
       heights[idx] = Math.min(heights[idx], bedEnc); // lower only — never raise land
     }
   }
 
+  // A deck spans water, so it must clear the water it spans rather than a shore
+  // sample that can disagree with the resolved water height.
   for (const deck of decks) {
     if (deck.cornersM.length < 3) continue;
     const c = centroidOf(deck.cornersM);
-    const shoreEnc = sampleEncodedHeight(original, cols, rows, c.x, c.z);
-    deck.topY =
-      heightToMeters(Math.max(0, shoreEnc - WATER_SURFACE_DROP_ENC)) +
-      DECK_CLEARANCE_M;
+    let nearest: { d2: number; y: number } | null = null;
+    for (const body of waterBodies) {
+      for (const p of body.pointsM) {
+        const d2 = (p.x - c.x) ** 2 + (p.z - c.z) ** 2;
+        if (!nearest || d2 < nearest.d2) nearest = { d2, y: body.surfaceY };
+      }
+    }
+    const waterY = nearest
+      ? nearest.y
+      : heightToMeters(
+          Math.max(0, sampleEncodedHeight(original, cols, rows, c.x, c.z) - surfaceDropEnc),
+        );
+    deck.topY = waterY + DECK_CLEARANCE_M;
   }
 }
 
@@ -2405,9 +2494,22 @@ export function canonicalTownWaterAndDecks(
     channelHalfWidth: spanFt * 0.03,
     apronDepth: spanFt * 0.4,
   });
-  const waterBodies: GroundWaterBody[] = bodiesFt.map((poly) => ({
-    pointsM: poly.map(([fx, fy]) => toM(fx, fy)),
+  // Heights stay 0 here; carveTownWaterBasins resolves them from the shore.
+  const waterBodies: GroundWaterBody[] = bodiesFt.map((body) => ({
+    pointsM: body.points.map(([fx, fy]) => toM(fx, fy)),
+    kind: body.kind,
     surfaceY: 0,
+    ...(body.kind === "river" && body.centerline
+      ? {
+          centerlineM: body.centerline.map(([fx, fy]) => {
+            const m = toM(fx, fy);
+            return { x: m.x, z: m.z, surfaceY: 0 };
+          }),
+        }
+      : {}),
+    ...(body.shoreEdge
+      ? { shoreEdgeM: body.shoreEdge.map(([fx, fy]) => toM(fx, fy)) }
+      : {}),
   }));
 
   // The burg's architecture family (same resolution as canonicalArtifactTownForSite)
@@ -3298,14 +3400,22 @@ export function sampleGroundChunk(
     // Both clipped to the chunk rectangle and emitted in pseudo-grid (meters/M).
     lakes: ground.waterBodies.flatMap((b) => {
       const clipped = clipPolygonToChunk(b.pointsM, cx, cy);
-      return clipped.length >= 3
-        ? [
-            {
-              points: clipped.map((p) => pseudoGrid(p.x, p.z)),
-              surfaceY: b.surfaceY,
-            },
-          ]
-        : [];
+      if (clipped.length < 3) return [];
+      // The centerline is NOT clipped: a chunk can hold a slice of channel whose
+      // nearest centerline points lie in the neighbouring chunk, and dropping
+      // them would step the water height at every chunk seam.
+      const centerline = b.centerlineM?.map((p) => {
+        const g = pseudoGrid(p.x, p.z);
+        return { x: g.x, y: g.y, surfaceY: p.surfaceY };
+      });
+      return [
+        {
+          points: clipped.map((p) => pseudoGrid(p.x, p.z)),
+          surfaceY: b.surfaceY,
+          kind: b.kind,
+          ...(centerline?.length ? { centerline } : {}),
+        },
+      ];
     }),
     decks: ground.decks.flatMap((d) => {
       const clipped = clipPolygonToChunk(d.cornersM, cx, cy);

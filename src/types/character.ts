@@ -209,6 +209,7 @@ export interface Race {
   knownSpells?: RacialSpell[];
   modernizationStatus?: 'official_2024' | 'modified_legacy';
   languages?: Language[];
+  restChoices?: any;
 }
 
 
@@ -500,6 +501,7 @@ export interface RacialRestChoiceData {
   toolIds?: string[];
   weaponIds?: string[];
   selectedSpellIds?: string[];
+  season?: string;
 }
 
 export type TransportMode = 'foot' | 'mounted';

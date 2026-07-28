@@ -127,9 +127,10 @@ async function generateText(
         return fallback;
       }
 
-      const errorMessage = result.error === 'NO_MODEL'
+      const errStr = 'error' in result && typeof result.error === 'string' ? result.error : 'Ollama request failed';
+      const errorMessage = errStr === 'NO_MODEL'
         ? 'No Ollama model available'
-        : result.error;
+        : errStr;
       return {
         success: false,
         error: errorMessage,

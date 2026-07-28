@@ -5,6 +5,7 @@ import { createAbilityFromSpell } from '@/utils/character/spellAbilityFactory'
 import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '@/utils/factories'
 import { Ability, SelectedSpellTarget } from '@/types/combat'
 import type { Spell } from '@/types/spells'
+import type { PlayerCharacter } from '@/types/character'
 import * as combatUtils from '@/utils/combatUtils'
 import produceFlame from '../../../../public/data/spells/level-0/produce-flame.json'
 
@@ -62,7 +63,7 @@ describe('Produce Flame bridge', () => {
   }
 
   const createProduceFlameAbility = (): Ability => {
-    const baseAbility = createAbilityFromSpell(spell, caster)
+    const baseAbility = createAbilityFromSpell(spell, caster as unknown as PlayerCharacter)
     const grantedAction = baseAbility.grantedActions?.[0]
     if (!grantedAction) {
       throw new Error('Produce Flame is expected to expose one granted action.')
@@ -103,7 +104,7 @@ describe('Produce Flame bridge', () => {
   })
 
   it('keeps Produce Flame attached to the caster when it is cast and preserves the self-cast light payload', async () => {
-    const ability = createAbilityFromSpell(spell, caster)
+    const ability = createAbilityFromSpell(spell, caster as unknown as PlayerCharacter)
 
     expect(ability.grantedActions).toHaveLength(1)
     expect(ability.grantedActions?.[0]).toMatchObject({

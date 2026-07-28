@@ -224,7 +224,7 @@ describe('useActionExecutor', () => {
                 description: 'A ranged spell attack.',
                 attackType: 'ranged'
             } as NonNullable<Ability['spell']>,
-            effects: [{ type: 'damage', value: 1, damageType: 'cold', dice: '1' }]
+            effects: [{ type: 'damage', value: 1, damageType: 'ice', dice: '1' }]
         };
         const spellAttacker: CombatCharacter = {
             ...mockCharacter,

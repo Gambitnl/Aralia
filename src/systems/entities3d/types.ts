@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
+ *
+ * Last Sync: 27/07/2026, 22:30:18
+ * Dependents: components/BattleMap/characters/characterActor/CharacterActor.tsx, components/BattleMap/characters/characterActor/EntityModel.tsx, components/DesignPreview/steps/EntityDebugScene.tsx, components/DesignPreview/steps/EntityForgeScene.tsx, components/DesignPreview/steps/PreviewEntityDebug.tsx, components/DesignPreview/steps/PreviewEntityForge.tsx, components/World3D/PlayerAvatar.tsx, components/World3D/SceneCast.tsx, systems/entities3d/classKits.ts, systems/entities3d/creaturePlans.ts, systems/entities3d/creatureProfiles.ts, systems/entities3d/generateEntityBlueprint.ts, systems/entities3d/library/acceptedEntities.ts, systems/entities3d/parts/chainParts.ts, systems/entities3d/parts/gearArmor.ts, systems/entities3d/parts/gearWeapons.ts, systems/entities3d/parts/headParts.ts, systems/entities3d/parts/organicParts.ts, systems/entities3d/parts/wingParts.ts, systems/entities3d/raceMap.ts, systems/entities3d/recipeFromCharacter.ts, systems/entities3d/recipeFromCombatant.ts, systems/entities3d/recipeFromOccupant.ts, systems/entities3d/registry.ts, systems/entities3d/speciesProfiles.ts, systems/entities3d/textPlan/compilePlan.ts, systems/entities3d/textPlan/planSize.ts, systems/entities3d/three/Entity3D.tsx, systems/entities3d/three/assembleEntity.ts, systems/entities3d/three/crowdBake.ts, systems/entities3d/three/gaits.ts, systems/entities3d/three/segmentBody.ts, systems/entities3d/three/skeletonBuilder.ts, systems/entities3d/three/skinnedBody.ts
+ * Imports: None
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file types.ts — contracts for the procedural 3D entity generator.
  *
@@ -126,7 +142,7 @@ export interface PlanSpec {
   bodyLenM: number;
   /** Base body radius; chain link radii are fractions of this. */
   bodyRadM: number;
-  spine: { segments: number; taper: number; arch: number; shape?: 'round' | 'box'; bulge?: number };
+  spine: { segments: number; taper: number; arch: number; shape?: 'round' | 'box'; bulge?: number; mass?: [number, number, number] };
   /** Body translucency (ghosts, oozes); eyes stay solid. */
   opacity?: number;
   /** Creature-level junction softness (0–1) as authored; slice 2 (fused skin)

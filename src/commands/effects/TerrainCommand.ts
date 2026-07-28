@@ -79,7 +79,7 @@ export class TerrainCommand extends BaseEffectCommand {
             message: `${this.context.caster.name} creates ${effect.terrainType} terrain`,
             characterId: this.context.caster.id,
             data: {
-                terrainEffect: effect,
+                terrainEffect: effect as unknown as EnvironmentalEffect,
                 affectedPositions: affectedTiles
             }
         })
@@ -386,7 +386,7 @@ export class TerrainCommand extends BaseEffectCommand {
             message,
             characterId: this.context.caster.id,
             data: {
-                terrainEffect: effect,
+                terrainEffect: effect as unknown as EnvironmentalEffect,
                 manipulation: manip,
                 affectedPositions: affectedTiles,
                 surfaceMark: nextState.activeMoldEarthSurfaceMarks?.at(-1)
@@ -418,7 +418,7 @@ export class TerrainCommand extends BaseEffectCommand {
     }
 
     private getCurrentTurn(state: CombatState): number {
-        return state.turnState?.currentTurn ?? state.round ?? 0
+        return state.turnState?.currentTurn ?? (state as any).round ?? 0
     }
 
     private resolveExpiryRound(duration: EffectDuration | undefined, currentTurn: number): number | undefined {

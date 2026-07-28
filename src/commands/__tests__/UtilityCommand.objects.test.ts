@@ -78,7 +78,7 @@ describe('UtilityCommand', () => {
             })
             expect(newState.combatLog.some(entry => (
                 entry.data?.sourceSpellId === 'mending' &&
-                entry.data?.objectRepair?.outcome === 'repaired'
+                (entry.data?.objectRepair as any)?.outcome === 'repaired'
             ))).toBe(true)
         })
 
@@ -238,7 +238,7 @@ describe('UtilityCommand', () => {
             })
             expect(newState.combatLog.some(entry => (
                 entry.data?.sourceSpellId === 'knock' &&
-                entry.data?.objectAccessChange?.outcome === 'suppressed_magical_lock'
+                (entry.data?.objectAccessChange as any)?.outcome === 'suppressed_magical_lock'
             ))).toBe(true)
         })
 
@@ -301,7 +301,7 @@ describe('UtilityCommand', () => {
             })
             expect(newState.combatLog.some(entry => (
                 entry.data?.sourceSpellId === 'arcane-lock' &&
-                entry.data?.objectAccessChange?.outcome === 'magically_locked'
+                (entry.data?.objectAccessChange as any)?.outcome === 'magically_locked'
             ))).toBe(true)
         })
     });

@@ -596,7 +596,9 @@ export interface CombatCharacter {
   position: Position;
   stats: CharacterStats;
   abilities: Ability[];
-  team: "player" | "enemy";
+  team: "player" | "enemy" | "neutral";
+  spellcastingAbility?: AbilityScoreName | 'wisdom' | 'charisma' | 'intelligence' | 'strength' | 'dexterity' | 'constitution' | string;
+  equippedItems?: any[];
   worldSource?: WorldforgeCombatantSource;
   currentHP: number;
   maxHP: number;
@@ -2137,6 +2139,7 @@ export interface ActiveAnimatedObject {
   sizeCost: number;
   creatureType: string;
   allegiance: "ally" | "enemy" | "neutral" | string;
+  spellcastingAbility?: AbilityScoreName;
   initiativePolicy: "immediate" | "rolled" | "shared" | string;
   armorClass: number;
   maxHitPoints: number;
@@ -3432,6 +3435,7 @@ export interface SummonCombatLogData extends CommonCombatLogData {
   trueNameSpoken?: boolean;
   truePolymorphTransformation?: ActiveTruePolymorphTransformation;
   wardSurface?: string;
+  lockoutExpiresAtTimestamp?: number;
 }
 
 /** Records for map movement emitted by guardian and forced-movement systems. */

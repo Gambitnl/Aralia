@@ -131,7 +131,7 @@ describe('True Strike bridge', () => {
     const selectedSpellTargets = createTrueStrikeSelectedTarget(target.id)
 
     const commands = await SpellCommandFactory.createCommands(
-      trueStrike,
+      trueStrike as any,
       caster,
       [caster, target],
       0,
@@ -188,7 +188,7 @@ describe('True Strike bridge', () => {
     const selectedSpellTargets = createTrueStrikeSelectedTarget(target.id)
 
     const commands = await SpellCommandFactory.createCommands(
-      trueStrike,
+      trueStrike as any,
       caster,
       [caster, target],
       0,
@@ -232,7 +232,7 @@ describe('True Strike bridge', () => {
     const target = createTrueStrikeTarget()
 
     const commands = await SpellCommandFactory.createCommands(
-      trueStrike,
+      trueStrike as any,
       caster,
       [caster, target],
       0,

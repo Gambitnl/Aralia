@@ -5,8 +5,8 @@
  */
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { StatusConditionCommand } from '../StatusConditionCommand';
-import { BattleMapData, CombatState } from '@/types/combat';
-import { StatusConditionEffect, SpellEffect } from '@/types/spells';
+import { BattleMapData, BattleMapTile, CombatState } from '@/types/combat';
+import { StatusConditionEffect, SpellEffect, DamageEffect } from '@/types/spells';
 import { createMockCombatCharacter, createMockCombatState } from '@/utils/factories';
 import { CommandContext } from '../../base/SpellCommand';
 import * as savingThrowUtils from '@/utils/savingThrowUtils';
@@ -300,7 +300,7 @@ describe('StatusConditionCommand', () => {
         name: 'Target',
         conditions: [],
         statusEffects: [],
-        stateTags: ['wet']
+        stateTags: ['wet' as any]
       });
 
       state = {
@@ -311,7 +311,7 @@ describe('StatusConditionCommand', () => {
       const effect: StatusConditionEffect = {
         type: 'STATUS_CONDITION',
         statusCondition: {
-          name: 'Chilled',
+          name: 'Chilled' as any,
           duration: { type: 'rounds', value: 1 },
           level: 0
         },
@@ -336,7 +336,7 @@ describe('StatusConditionCommand', () => {
   });
 
   describe('Friends lifecycle', () => {
-    const friendsEffect = (friends as { effects: StatusConditionEffect[] }).effects[0];
+    const friendsEffect = (friends as unknown as { effects: StatusConditionEffect[] }).effects[0];
 
     function buildFriendsContext(caster = state.characters[0], target = state.characters[1]): CommandContext {
       return {
@@ -409,7 +409,7 @@ describe('StatusConditionCommand', () => {
         name: 'Target',
         conditions: [],
         statusEffects: [],
-        ...targetPatch
+        ...(targetPatch as any)
       });
       state = { ...state, characters: [state.characters[0], autoTarget] };
 
@@ -532,7 +532,7 @@ describe('StatusConditionCommand', () => {
             effect: { id: 'web-status', name: 'Difficult Terrain', type: 'debuff', duration: 10, effect: { type: 'condition' } }
           }
         ]
-      } as BattleMapData['tiles'] extends Map<string, infer Tile> ? Tile : never;
+      } as unknown as BattleMapTile;
       const mapData = {
         tiles: new Map([['2-2', terrainTile]]),
         dimensions: { width: 3, height: 3 },
@@ -602,7 +602,7 @@ describe('StatusConditionCommand', () => {
         damage: { dice: '1d1', type: 'Force' },
         trigger: { type: 'immediate' },
         condition: { type: 'always' }
-      } as SpellEffect;
+      } as unknown as DamageEffect;
 
       const command = new DamageCommand(damageEffect, {
         ...context,
@@ -661,7 +661,7 @@ describe('StatusConditionCommand', () => {
         damage: { dice: '1d1', type: 'Force' },
         trigger: { type: 'immediate' },
         condition: { type: 'always' }
-      } as SpellEffect;
+      } as unknown as DamageEffect;
 
       const command = new DamageCommand(damageEffect, {
         ...context,

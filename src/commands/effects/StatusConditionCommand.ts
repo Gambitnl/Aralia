@@ -411,7 +411,7 @@ export class StatusConditionCommand extends BaseEffectCommand {
       // Chill Touch stores its "cannot regain Hit Points" rule as structured
       // hit-point metadata on the status effect. Preserve that fact on both
       // runtime mirrors so every healing path can check it without parsing text.
-      ...(this.effect.hitPointState ? { hitPointState: this.effect.hitPointState } : {}),
+      ...((this.effect as any).hitPointState ? { hitPointState: (this.effect as any).hitPointState } : {}),
       ...(this.isFriendsCharmedEffect()
         ? {
           socialLifecycle: {
@@ -439,9 +439,9 @@ export class StatusConditionCommand extends BaseEffectCommand {
         ? {
           socialLifecycle: {
             kind: 'awaken_charm',
-            durationDays: this.effect.socialEffect?.durationDays ?? 30,
-            endsIfDamagedByCasterOrAllies: this.effect.socialEffect?.endsIfDamagedByCasterOrAllies === true,
-            targetChoosesAttitudeOnEnd: this.effect.socialEffect?.targetChoosesAttitudeAfterCharmedEnds === true
+            durationDays: (this.effect as any).socialEffect?.durationDays ?? 30,
+            endsIfDamagedByCasterOrAllies: (this.effect as any).socialEffect?.endsIfDamagedByCasterOrAllies === true,
+            targetChoosesAttitudeOnEnd: (this.effect as any).socialEffect?.targetChoosesAttitudeAfterCharmedEnds === true
           }
         }
         : {})
@@ -540,7 +540,7 @@ export class StatusConditionCommand extends BaseEffectCommand {
       return undefined;
     }
 
-    const duration = typeof embedded.duration === 'object'
+    const duration = embedded && typeof embedded.duration === 'object'
       ? embedded.duration
       : { type: 'special' as const };
 
@@ -714,7 +714,7 @@ export class StatusConditionCommand extends BaseEffectCommand {
   ): CombatState {
     if (
       this.context.spellId !== 'chill-touch' ||
-      this.effect.statusCondition.name !== 'Disadvantage on attacks vs. caster'
+      (this.effect as any).statusCondition?.name !== 'Disadvantage on attacks vs. caster'
     ) {
       return state;
     }
@@ -773,6 +773,8 @@ export class StatusConditionCommand extends BaseEffectCommand {
       case 'until_end_of_current_turn':
       case 'turn_end':
         return Math.max(1, val);
+      default:
+        return val;
     }
   }
 

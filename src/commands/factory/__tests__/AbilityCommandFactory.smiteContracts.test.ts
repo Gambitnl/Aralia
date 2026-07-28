@@ -160,7 +160,7 @@ describe('after-hit smite data contracts', () => {
         currentTurn: 1,
         round: 1,
         combatLog: []
-      } as CombatState;
+      } as unknown as CombatState;
       const stateWithRiders = riderCommands.reduce(
         (nextState, command) => command.execute(nextState),
         state

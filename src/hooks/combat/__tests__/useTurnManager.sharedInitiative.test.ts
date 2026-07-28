@@ -45,7 +45,7 @@ describe('useTurnManager shared-initiative summon scheduling', () => {
       targets: [],
       playerInput: 'Air',
       gameState: {}
-    } as CommandContext;
+    } as unknown as CommandContext;
     const initialState = {
       isActive: true,
       characters: [caster],

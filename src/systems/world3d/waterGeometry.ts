@@ -80,15 +80,56 @@ export function buildWaterMesh(data: ChunkData): ChunkGeometryArrays {
   };
 }
 
+/**
+ * Water height for one polygon vertex.
+ *
+ * Sea and lake are flat, so they use the body's single height. A river is not
+ * flat: its surface descends, so the vertex is projected onto the centerline and
+ * the height interpolated between the two points it falls between. Clipping to a
+ * chunk invents vertices, which is why this is computed per vertex here instead
+ * of being carried as an array from the loader.
+ */
+export function waterSurfaceYAt(
+  body: NonNullable<ChunkData['lakes']>[number],
+  gx: number,
+  gy: number,
+): number {
+  const line = body.centerline;
+  if (body.kind !== 'river' || !line || line.length === 0) return body.surfaceY;
+  if (line.length === 1) return line[0].surfaceY;
+
+  let best = { d2: Infinity, y: line[0].surfaceY };
+  for (let i = 0; i < line.length - 1; i++) {
+    const a = line[i];
+    const b = line[i + 1];
+    const dx = b.x - a.x;
+    const dy = b.y - a.y;
+    const lenSq = dx * dx + dy * dy;
+    // Where along a→b the vertex projects, clamped to the segment.
+    const t = lenSq === 0 ? 0 : Math.max(0, Math.min(1, ((gx - a.x) * dx + (gy - a.y) * dy) / lenSq));
+    const px = a.x + dx * t;
+    const py = a.y + dy * t;
+    const d2 = (gx - px) ** 2 + (gy - py) ** 2;
+    if (d2 < best.d2) {
+      best = { d2, y: a.surfaceY + (b.surfaceY - a.surfaceY) * t };
+    }
+  }
+  return best.y;
+}
+
 function emitLake(
   lake: NonNullable<ChunkData['lakes']>[number],
   data: ChunkData,
   positions: number[],
   normals: number[],
 ): void {
+  // Sea surfaces are already AT their true height (zero) and must not be pushed
+  // under their own floor; the legacy buried offset applies to the old flat
+  // lake path only.
+  const drop = lake.kind === 'sea' || lake.kind === 'river' ? 0 : LAKE_DROP_M;
   for (const p of lake.points) {
     const local = gridPointToLocal(p.x, p.y, data.cx, data.cy);
-    positions.push(local.x, lake.surfaceY - LAKE_DROP_M, local.z);
+    positions.push(local.x, waterSurfaceYAt(lake, p.x, p.y) - drop, local.z);
     normals.push(0, 1, 0);
   }
 }

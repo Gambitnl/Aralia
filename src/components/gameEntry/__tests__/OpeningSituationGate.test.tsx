@@ -18,13 +18,13 @@ import type { AppAction } from '../../../state/actionTypes';
 
 describe('OpeningSituationGate', () => {
     it('keeps the failed-opening blocker honest and exposes retry only', () => {
-        const dispatch = vi.fn<[AppAction], void>();
+        const dispatch = vi.fn() as any;
         const state = {
             ...createMockGameState(),
-            gameEntry: { status: 'model-unavailable' as const, situation: null, error: 'NO_MODEL' },
+            gameEntry: { status: 'model-unavailable' as const, situation: null, sceneImage: null, error: 'NO_MODEL' },
         };
 
-        render(<OpeningSituationGate gameState={state} dispatch={dispatch} />);
+        render(<OpeningSituationGate gameState={state as any} dispatch={dispatch} />);
 
         // The opening scene is not currently optional in the live main view.
         // A Dismiss button used to clear this blocker, then the game crashed

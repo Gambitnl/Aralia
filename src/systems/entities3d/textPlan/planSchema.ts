@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 27/07/2026, 22:31:36
+ * Dependents: components/DesignPreview/steps/PreviewEntityDebug.tsx, components/DesignPreview/steps/PreviewEntityForge.tsx, systems/entities3d/creaturePlans.ts, systems/entities3d/library/acceptedEntities.ts, systems/entities3d/textPlan/compilePlan.ts, systems/entities3d/textPlan/fixtures.ts, systems/entities3d/textPlan/heroImagePrompt.ts, systems/entities3d/textPlan/planSize.ts
+ * Imports: None
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file planSchema.ts — the body-plan language for text-to-creature.
  *
@@ -69,8 +85,12 @@ export interface CreaturePlan {
     stance: 'upright' | 'horizontal' | 'serpentine' | 'floating';
   };
   /** shape 'box' renders the body as rectangular slabs (cubes, chests, golems);
-   * bulge 0–1 swells the mid-body (muscle mass). */
-  spine: { segments: number; taper: number; arch: number; shape?: 'round' | 'box'; bulge?: number };
+   * bulge 0–1 swells the mid-body (muscle mass).
+   * mass [chest, waist, hips] (each 0.5–1.6 of bodyRadM) replaces the
+   * single-sine bulge with a three-lobe profile — predators get a deep chest,
+   * tucked waist, and strong hips instead of a sausage. Omit for the
+   * historical taper+bulge tube. */
+  spine: { segments: number; taper: number; arch: number; shape?: 'round' | 'box'; bulge?: number; mass?: [number, number, number] };
   appendages: PlanAppendage[];
   heads: PlanHead[];
   /** opacity < 1 = translucent body (ghosts, oozes); eyes stay solid. */
@@ -92,6 +112,7 @@ export const PLAN_LIMITS = {
   spineTaper: [0.3, 1],
   spineArch: [-0.5, 0.5],
   spineBulge: [0, 1],
+  spineMass: [0.5, 1.6],
   appendages: [0, 12],
   attach: [0, 1],
   heightFrac: [0, 1],
@@ -213,13 +234,20 @@ export function validateCreaturePlan(input: unknown, knownPartIds: ReadonlySet<s
     errs.push('spine must be an object');
   } else {
     const s = input.spine;
-    checkKeys(errs, s, ['segments', 'taper', 'arch', 'shape', 'bulge'], 'spine');
+    checkKeys(errs, s, ['segments', 'taper', 'arch', 'shape', 'bulge', 'mass'], 'spine');
     if (checkRange(errs, s.segments, PLAN_LIMITS.spineSegments, 'spine.segments') && !Number.isInteger(s.segments)) {
       errs.push('spine.segments must be an integer');
     }
     checkRange(errs, s.taper, PLAN_LIMITS.spineTaper, 'spine.taper');
     checkRange(errs, s.arch, PLAN_LIMITS.spineArch, 'spine.arch');
     if (s.bulge !== undefined) checkRange(errs, s.bulge, PLAN_LIMITS.spineBulge, 'spine.bulge');
+    if (s.mass !== undefined) {
+      if (!Array.isArray(s.mass) || s.mass.length !== 3) {
+        errs.push('spine.mass must be [chest, waist, hips]');
+      } else {
+        s.mass.forEach((m: number, i: number) => checkRange(errs, m, PLAN_LIMITS.spineMass, `spine.mass[${i}]`));
+      }
+    }
     if (s.shape !== undefined && s.shape !== 'round' && s.shape !== 'box') {
       errs.push(`spine.shape must be 'round' or 'box'`);
     }

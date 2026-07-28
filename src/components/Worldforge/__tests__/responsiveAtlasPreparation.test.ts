@@ -104,14 +104,14 @@ describe('responsive atlas preparation', () => {
       atlas: transferred.atlas,
       transferProperties: transferred.transferProperties,
     };
-    responseHandler?.({ data: atlasResponse } as MessageEvent<ResponsiveAtlasResponse>);
+    (responseHandler as any)({ data: atlasResponse } as MessageEvent<ResponsiveAtlasResponse>);
     expect(settled).toBe(false);
 
     const modelResponse: ResponsiveAtlasResponse = {
       type: 'model',
       model: transferred.model,
     };
-    responseHandler?.({ data: modelResponse } as MessageEvent<ResponsiveAtlasResponse>);
+    (responseHandler as any)({ data: modelResponse } as MessageEvent<ResponsiveAtlasResponse>);
     const result = await resultPromise;
 
     expect(result.model).toEqual(prepared.model);

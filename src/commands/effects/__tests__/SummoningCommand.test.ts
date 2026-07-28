@@ -15,11 +15,11 @@ describe('SummoningCommand', () => {
       initiative: 14
     });
     const state = createMockCombatState({ characters: [caster] });
-    const effect = conjureAnimals.effects.find((entry): entry is SummoningEffect => entry.type === 'SUMMONING');
+    const effect = conjureAnimals.effects.find((entry: any) => entry.type === 'SUMMONING') as unknown as SummoningEffect;
 
     expect(effect).toBeDefined();
 
-    const command = new SummoningCommand(effect!, {
+    const command = new SummoningCommand(effect, {
       spellId: conjureAnimals.id,
       spellName: conjureAnimals.name,
       castAtLevel: 3,
@@ -44,11 +44,11 @@ describe('SummoningCommand', () => {
     const state = createMockCombatState({
       characters: [caster]
     });
-    const effect = simulacrum.effects.find((entry): entry is SummoningEffect => entry.type === 'SUMMONING');
+    const effect = simulacrum.effects.find((entry: any) => entry.type === 'SUMMONING') as unknown as SummoningEffect;
 
     expect(effect).toBeDefined();
 
-    const command = new SummoningCommand(effect!, {
+    const command = new SummoningCommand(effect, {
       spellId: simulacrum.id,
       spellName: simulacrum.name,
       castAtLevel: 7,
@@ -110,7 +110,7 @@ describe('SummoningCommand', () => {
     const state = createMockCombatState({
       characters: [caster, existingSimulacrum]
     });
-    const effect = simulacrum.effects.find((entry): entry is SummoningEffect => entry.type === 'SUMMONING');
+    const effect = simulacrum.effects.find((entry: any) => entry.type === 'SUMMONING') as unknown as SummoningEffect;
 
     expect(effect).toBeDefined();
 

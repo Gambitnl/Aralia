@@ -152,7 +152,7 @@ describe('PixiBattleBoard fog cadence', () => {
     vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(400);
     vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockReturnValue(300);
     vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockImplementation(
-      (() => canvasContext) as typeof HTMLCanvasElement.prototype.getContext,
+      (() => canvasContext) as any,
     );
 
     const initialVisibleTiles = new Set(['0-0']);

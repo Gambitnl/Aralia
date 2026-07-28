@@ -185,7 +185,7 @@ describe('TerrainCommand', () => {
       casterId: 'caster'
     }))
     expect(greaseResult.combatLog.at(-1)?.data?.affectedPositions).toEqual(
-      expect.arrayContaining(greaseTiles.map(tile => tile.position))
+      expect.arrayContaining(greaseTiles.map(tile => tile.coordinates))
     )
 
     expect(entangleTiles.length).toBeGreaterThan(greaseTiles.length)
@@ -197,7 +197,7 @@ describe('TerrainCommand', () => {
       casterId: 'caster'
     }))
     expect(entangleResult.combatLog.at(-1)?.data?.affectedPositions).toEqual(
-      expect.arrayContaining(entangleTiles.map(tile => tile.position))
+      expect.arrayContaining(entangleTiles.map(tile => tile.coordinates))
     )
   })
 

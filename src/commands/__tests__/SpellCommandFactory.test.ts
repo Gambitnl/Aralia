@@ -385,7 +385,7 @@ describe('SpellCommandFactory', () => {
         targeting: { type: 'single', range: 60, validTargets: ['objects', 'point'] },
         effects: [{
           type: 'UTILITY',
-          utilityType: 'object_interaction',
+          utilityType: 'object_interaction' as any,
           description: 'Moves a loose object from a chosen point.',
           trigger: { type: 'immediate' },
           condition: { type: 'always' }

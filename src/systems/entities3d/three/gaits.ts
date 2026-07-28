@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 27/07/2026, 22:34:42
+ * Dependents: components/BattleMap/characters/characterActor/EntityModel.tsx, components/DesignPreview/steps/EntityDebugScene.tsx, components/World3D/OccupantFigure.tsx, components/World3D/PlayerAvatar.tsx, systems/entities3d/three/Entity3D.tsx, systems/entities3d/three/assembleEntity.ts, systems/entities3d/three/crowdBake.ts
+ * Imports: 4 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file gaits.ts — the six locomotion drivers, generalized from the blobfolk
  * prototype's hardcoded critters to any Frame.
@@ -15,6 +31,7 @@ import type { Anchor, Frame, Gait, PlanSpec, SegmentSink } from '../types';
 import { ANCHORS, FT_TO_M, headRadiusM, heightM } from '../types';
 import { smooth, solveKnee } from './ik';
 import { TreadmillLeg } from './legs';
+import { spineRadiusAt } from '../textPlan/spineProfile';
 
 export interface LocomotionState {
   position: Vector3;
@@ -61,6 +78,10 @@ export interface GaitDriver {
    * bodies — the assembler only applies flap to parts with wingL/wingR
    * groups); hopper stays 0 (no winged hopper profiles exist). */
   readonly flap: number;
+  /** 0 spread … 1 folded along the body. Grounded winged gaits fold at rest
+   * (idle dragons carry wings swept back, not vertical sails) and open as
+   * speed builds; flyers stay 0. The assembler sweeps wingL/wingR by this. */
+  readonly wingFold: number;
   /** Extra body lift (hopper airtime, flyer altitude), applied by the assembler. */
   readonly verticalOffsetM: number;
   /** Plan-driven bodies: live head positions for per-socket eye placement. */
@@ -88,6 +109,7 @@ abstract class BaseDriver implements GaitDriver {
   readonly pose = makePose();
   gaitPhase = 0;
   flap = 0;
+  wingFold = 0;
   verticalOffsetM = 0;
   protected t = 0;
   protected speed = 0;
@@ -143,6 +165,13 @@ abstract class BaseDriver implements GaitDriver {
     return Math.sin(this.t * 6) * (0.25 + 0.45 * this.speedFactor);
   }
 
+  /** Rest fold for grounded winged walkers: folded at idle, fully open by
+   * ~30% speed. Harmless on wingless bodies (assembler no-ops without
+   * wingL/wingR groups). */
+  protected groundedWingFold(): number {
+    return Math.min(1, Math.max(0, 1 - this.speedFactor * 3.5));
+  }
+
   /** Standard head-cluster anchors around a head center. */
   protected setHeadAnchors(hx: number, hy: number, hz: number): void {
     const r = this.hr;
@@ -180,6 +209,7 @@ class BipedDriver extends BaseDriver {
     for (const leg of this.legs) leg.update(this.gaitPhase, stride);
     // grounded wing beat (celestial, fiend, fairy, aarakocra carry wing parts)
     this.flap = this.groundedWingBeat();
+    this.wingFold = this.groundedWingFold();
     this.bob = Math.sin(this.gaitPhase * Math.PI * 4) * this.hM * 0.014 * (0.4 + this.speedFactor);
     this.sway = Math.sin(this.gaitPhase * Math.PI * 2) * this.hM * 0.011;
     this.pelvisY = this.legLenM * 1.0 + this.bob;
@@ -293,6 +323,7 @@ class MultiLegDriver extends BaseDriver {
     for (const leg of this.legs) leg.update(this.gaitPhase, stride);
     // grounded wing beat (the quad dragon carries membrane wing parts)
     this.flap = this.groundedWingBeat();
+    this.wingFold = this.groundedWingFold();
     this.bob = Math.sin(this.gaitPhase * Math.PI * 4) * this.hM * 0.02;
     this.bodyY = this.hM * (this.isHexa ? 0.55 : 0.8) + this.bob;
     const headZ = this.bodyLen * 0.55;
@@ -522,6 +553,7 @@ class PlanDriver extends BaseDriver {
     const stride = this.strideHalf();
     for (const tread of this.legTreads.values()) tread.update(this.gaitPhase, stride);
     this.flap = this.winged ? this.groundedWingBeat() : 0;
+    this.wingFold = this.winged ? this.groundedWingFold() : 0;
 
     // spine joints front→rear
     const y0 = this.bodyY();
@@ -568,7 +600,10 @@ class PlanDriver extends BaseDriver {
     const first = this.sockets[0];
     this.setHeadAnchors(first.x, first.y, first.z);
     this.setAnchor('chest', front.x, front.y + s.bodyRadM * 0.3, front.z);
-    this.setAnchor('back', mid.x, mid.y + s.bodyRadM * 0.8, mid.z);
+    // wings/back gear ride the SHOULDERS on horizontal bodies (u≈0.3, the
+    // chest mass) — mid-body mounting put dragon wings at the waist
+    const backPt = s.stance === 'horizontal' ? this.spinePts[Math.max(1, Math.round(n * 0.3))] : mid;
+    this.setAnchor('back', backPt.x, backPt.y + s.bodyRadM * 0.8, backPt.z);
     this.setAnchor('hips', rear.x, rear.y, rear.z);
     this.setAnchor('tailRoot', rear.x, rear.y + s.bodyRadM * 0.15, rear.z);
     const armTips = this.chainTips('arm');
@@ -630,7 +665,9 @@ class PlanDriver extends BaseDriver {
       const tread = this.legTreads.get(chain.id)!;
       const foot = new Vector3(tread.pos.x, tread.pos.y, tread.pos.z);
       if (chain.links.length === 2) {
-        V_BEND.set(chain.side * 0.25, 0, 1).normalize();
+        // hind legs (rooted rear-half) bend their hocks BACKWARD like real
+        // digitigrade haunches; forelegs keep the forward knee
+        V_BEND.set(chain.side * 0.25, 0, chain.attach > 0.5 ? -1 : 1).normalize();
         solveKnee(root, foot, chain.links[0].lenM, chain.links[1].lenM, V_BEND, V_KNEE);
         pts.push(V_KNEE.clone(), foot);
       } else {
@@ -825,18 +862,15 @@ class PlanDriver extends BaseDriver {
     // segments — the layered pale look reads as mist, while a translucent
     // tube + ink shell reads as carved stone.
     const smooth = !boxBody && (s.opacity === undefined || s.opacity >= 1) && typeof sink.tube === 'function';
-    const bulge = s.spine.bulge ?? 0;
-    // spine: rear-thick per taper, front toward heads; bulge swells mid-body
+    // spine radius: THE shared profile (spineProfile.spineRadiusAt) — taper+bulge
+    // for legacy plans, three-lobe chest/waist/hips when spine.mass is set
     if (smooth) {
       const flat: number[] = [];
       const radii: number[] = [];
       for (let i = 0; i <= n; i++) {
         const p = this.spinePts[i];
         flat.push(p.x, p.y, p.z);
-        const u = i / n;
-        const base = Math.max(0.01, s.bodyRadM * (s.spine.taper + (1 - s.spine.taper) * u));
-        const muscle = 1 + bulge * Math.sin(Math.min(1, Math.max(0, (u - 0.08) / 0.84)) * Math.PI) * 0.55;
-        radii.push(base * muscle);
+        radii.push(spineRadiusAt(s, i / n));
       }
       sink.tube!('spine', flat, radii);
     } else {
@@ -845,8 +879,10 @@ class PlanDriver extends BaseDriver {
         const b = this.spinePts[i + 1];
         const uA = i / n;
         const uB = (i + 1) / n;
-        const rA = Math.max(0.01, s.bodyRadM * (s.spine.taper + (1 - s.spine.taper) * uA));
-        const rB = Math.max(0.01, s.bodyRadM * (s.spine.taper + (1 - s.spine.taper) * uB));
+        // rigid fallback now honors the same profile (bulge included) — the
+        // crowd bake silhouette finally matches the smooth tube
+        const rA = spineRadiusAt(s, uA);
+        const rB = spineRadiusAt(s, uB);
         if (boxBody) {
           const side = Math.max(rA, rB) * 2.15;
           sink.box!(`spine.${i}`, a.x, a.y, a.z, b.x, b.y, b.z, side, side);

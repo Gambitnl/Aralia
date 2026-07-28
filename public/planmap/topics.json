@@ -129,6 +129,10 @@
           "title": "Broadleaf canopy clamp (no roof-swallow near buildings)",
           "status": "done",
           "open": 0
+        },
+        {
+          "title": "Tree batching: 379 instanced meshes -> 16, scene draw calls 571 -> 208, render 3.3ms -> 1.2ms (2026-07-27)",
+          "status": "done"
         }
       ],
       "history": {
@@ -136,7 +140,7 @@
         "built": "2026-07-04"
       },
       "tier": "strategic",
-      "updated": "2026-07-04"
+      "updated": "2026-07-27"
     },
     {
       "id": "perf-campaign",
@@ -5658,10 +5662,25 @@
       "id": "ground3d-water-surface",
       "title": "Ground 3D real water surface",
       "campaign": "world",
-      "status": "specced",
+      "status": "done",
       "sub": "Rivers in ground 3D have no water surface: the ribbon mesh hides 0.5 m under the carved bed, so water is just blue-tinted terrain and nothing can read as submerged (found during the 3D ford + bridge-burial work 2026-07-17/18). Plan: one shared per-river waterline computed in the ground loader, ribbon rendered AT it and widened to the water-biome extent, and a riverWaterlineAt(x,z) query that fords, bridges, and docks anchor to. Fixes ford, bridge, and riverbank reads in one move.",
       "link": "docs/superpowers/specs/2026-07-18-ground3d-water-surface-design.md",
-      "open": 4
+      "open": 8,
+      "updated": "2026-07-27",
+      "features": [
+        {
+          "title": "Rivers can be above sea level: sea/lake/river kinds + descending river surface; meters-not-encoded depths (2026-07-27)",
+          "status": "done"
+        },
+        {
+          "title": "Sea aprons take the local shore height, not a global zero (buried 16m under the beach) (2026-07-28)",
+          "status": "done"
+        },
+        {
+          "title": "Water bodies get one flat level each: findWaterRegions flood-fill + rim-spill height (foundation, 2026-07-28)",
+          "status": "done"
+        }
+      ]
     },
     {
       "id": "lot-dressing-yards-commons",

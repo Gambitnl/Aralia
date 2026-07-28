@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 27/07/2026, 22:33:27
+ * Dependents: systems/entities3d/generateEntityBlueprint.ts
+ * Imports: 2 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file creatureProfiles.ts — body plans for monsters: creature type × size,
  * steered by name cues ('spider', 'wolf', 'bird'…).
@@ -120,7 +136,9 @@ const TYPE_SPECS: Record<CreatureType, CreatureTypeSpec> = {
     headScale: 1.1,
     parts: [
       { partId: 'snout', anchor: 'jaw', params: { lengthScale: 1.3 } },
-      { partId: 'wingsMembrane', anchor: 'back' },
+      // scale 2.2: span keys off frame HEIGHT but a dragon body is 2.8x its
+      // height — scale-1 wings were a suitcase handle on the hot dog
+      { partId: 'wingsMembrane', anchor: 'back', params: { scale: 2.2 } },
       { partId: 'tailThick', anchor: 'tailRoot', params: { lengthScale: 1.5, droop: 0.1, arc: 0.7 } },
       { partId: 'hornsStraight', anchor: 'head' },
       { partId: 'crest', anchor: 'crown' },

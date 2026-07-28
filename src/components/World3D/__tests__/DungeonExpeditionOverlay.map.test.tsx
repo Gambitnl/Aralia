@@ -57,7 +57,7 @@ const PLAN = generateDungeon({ seed: 42, seedPath: SEED_PATH, params: { theme: '
 const ENTRANCE_KEYS = revealedDungeonCellKeys(PLAN, dungeonEntrancePlayerCell(PLAN));
 const ENTRY: ActiveDungeonEntry = {
   identity: IDENTITY,
-  entranceKind: 'dungeon',
+  entranceKind: 'ruin-door',
   plan: PLAN,
   returnContext: {
     worldSeed: 42,

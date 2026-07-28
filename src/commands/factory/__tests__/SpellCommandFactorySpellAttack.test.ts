@@ -175,7 +175,7 @@ describe('SpellCommandFactory spell attack execution', () => {
     const starryLight = result.activeLightSources.find(light => light.sourceSpellId === 'starry-wisp')
     const suppression = targetAfterHit?.statusEffects.find(status =>
       status.source === 'Starry Wisp' &&
-      status.suppressedConditionBenefit === 'Invisible'
+      (status as any).suppressedConditionBenefit === 'Invisible'
     )
 
     // A hit should run both effect rows from the live Starry Wisp JSON: radiant
@@ -224,7 +224,7 @@ describe('SpellCommandFactory spell attack execution', () => {
     expect(commands).toHaveLength(1)
     expect(targetAfterMiss?.currentHP).toBe(target.currentHP)
     expect(result.activeLightSources.filter(light => light.sourceSpellId === 'starry-wisp')).toHaveLength(0)
-    expect(targetAfterMiss?.statusEffects.some(status => status.suppressedConditionBenefit === 'Invisible')).toBe(false)
+    expect(targetAfterMiss?.statusEffects.some(status => (status as any).suppressedConditionBenefit === 'Invisible')).toBe(false)
     expect(result.combatLog.some(entry => entry.data?.spellId === 'starry-wisp' && entry.data?.isHit === false)).toBe(true)
   })
 
@@ -945,7 +945,7 @@ describe('SpellCommandFactory spell attack execution', () => {
     expect(targetAfterHits?.currentHP).toBeLessThan(ogre.currentHP)
     expect(attackLogs).toHaveLength(2)
     expect(attackLogs.map(entry => entry.data?.spellAttackInstanceIndex)).toEqual([0, 1])
-    expect(attackLogs.every(entry => entry.targetIds.includes(ogre.id))).toBe(true)
+    expect(attackLogs.every(entry => entry.targetIds?.includes(ogre.id))).toBe(true)
     expect(attackLogs.every(entry => entry.data?.spellAttackInstanceCount === 2)).toBe(true)
   })
 
@@ -1012,7 +1012,7 @@ describe('SpellCommandFactory spell attack execution', () => {
     expect(firstAfter?.currentHP).toBeLessThan(firstTarget.currentHP)
     expect(secondAfter?.currentHP).toBe(secondTarget.currentHP)
     expect(attackLogs).toHaveLength(2)
-    expect(attackLogs.map(entry => entry.targetIds[0])).toEqual([firstTarget.id, secondTarget.id])
+    expect(attackLogs.map(entry => entry.targetIds?.[0])).toEqual([firstTarget.id, secondTarget.id])
     expect(attackLogs.map(entry => entry.data?.isHit)).toEqual([true, false])
   })
 

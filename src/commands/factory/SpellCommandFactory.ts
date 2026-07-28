@@ -623,19 +623,19 @@ class SpellAttackCommand implements SpellCommand {
         const target = liveTarget ?? snapshotTarget
         return target ? { target } : null
       })
-      .filter((instance): instance is SpellAttackInstance => instance !== null)
+      .filter((instance): instance is any => instance !== null)
 
     const baseInstances = selectedInstances.length > 0
       ? selectedInstances
       : this.targets.map(target => ({ target }))
 
     if (!this.usesBeamAttackAllocation() || baseInstances.length === 0) {
-      return baseInstances.slice(0, 1)
+      return baseInstances.slice(0, 1) as SpellAttackInstance[]
     }
 
     const beamCount = this.resolveBeamCount()
     if (baseInstances.length >= beamCount) {
-      return baseInstances.slice(0, beamCount)
+      return baseInstances.slice(0, beamCount) as SpellAttackInstance[]
     }
 
     // Eldritch Blast can assign multiple beam instances to the same target.
@@ -646,25 +646,26 @@ class SpellAttackCommand implements SpellCommand {
       paddedInstances.push(baseInstances[baseInstances.length - 1])
     }
 
-    return paddedInstances
+    return paddedInstances as SpellAttackInstance[]
   }
 
   private usesBeamAttackAllocation(): boolean {
-    return this.spell.targeting.type === 'multi' &&
+    return (this.spell.targeting.type as string) === 'multi' &&
       this.spell.targeting.instanceAllocation?.instanceType === 'beam' &&
       this.spell.targeting.instanceAllocation.assignment === 'same_or_different_targets'
   }
 
   private resolveBeamCount(): number {
-    const maxTargets = this.spell.targeting.type === 'multi'
-      ? this.spell.targeting.maxTargets
+    const maxTargets = (this.spell.targeting.type as string) === 'multi'
+      ? (this.spell.targeting as any).maxTargets
       : undefined
 
     if (maxTargets) {
       return Math.max(1, resolveScalableNumber(maxTargets, this.caster.level || 1))
     }
 
-    return Math.max(1, this.spell.targeting.instanceAllocation?.baseCount ?? 1)
+    const baseCount = (this.spell.targeting as any).instanceAllocation?.baseCount
+    return Math.max(1, typeof baseCount === 'number' ? baseCount : 1)
   }
 
   private resolveAttackInstanceType(): string {
@@ -777,7 +778,7 @@ class SpellAttackCommand implements SpellCommand {
     }
 
     const ignitionObject = damageEffect.createdObjects?.find(createdObject =>
-      createdObject.ignitesTouchedObjects === true &&
+      (createdObject as any).ignitesTouchedObjects === true &&
       createdObject.appearsIn === 'target_object'
     )
 
@@ -788,7 +789,7 @@ class SpellAttackCommand implements SpellCommand {
     const selectedObject = objectTarget.object
     const isWornOrCarried = selectedObject?.isWornOrCarried === true
 
-    if (ignitionObject.excludesWornOrCarriedObjects && isWornOrCarried) {
+    if ((ignitionObject as any).excludesWornOrCarriedObjects && isWornOrCarried) {
       return {
         ...state,
         combatLog: [
@@ -863,7 +864,7 @@ class SpellAttackCommand implements SpellCommand {
   }
 
   private resolveSpellAttackWeaponType(): 'melee' | 'ranged' {
-    if (this.spell.id === 'primal-savagery' || this.spell.attackType === 'melee' || this.spell.targeting.type === 'melee') {
+    if (this.spell.id === 'primal-savagery' || this.spell.attackType === 'melee' || (this.spell.targeting.type as string) === 'melee') {
       return 'melee'
     }
 
@@ -1235,9 +1236,9 @@ function resolveSpellDurationRounds(spell: Spell): number {
 
   switch (spell.duration.unit) {
     case 'round':
-      return spell.duration.value
+      return spell.duration.value ?? 1
     case 'minute':
-      return spell.duration.value * 10
+      return (spell.duration.value ?? 1) * 10
     default:
       return 1
   }
@@ -1624,8 +1625,8 @@ export class SpellCommandFactory {
       // Support for option-specific status payloads (e.g. Command's Grovel option)
       if (scaledEffect.type === 'UTILITY' && scaledEffect.controlOptions && playerInput) {
         const chosenOption = scaledEffect.controlOptions.find(opt =>
-          opt.name.toLowerCase() === playerInput.toLowerCase() ||
-          opt.effect.toLowerCase() === playerInput.toLowerCase()
+          (opt.name ?? '').toLowerCase() === playerInput.toLowerCase() ||
+          (opt.effect ?? '').toLowerCase() === playerInput.toLowerCase()
         );
         if (chosenOption && chosenOption.statusCondition) {
           const statusEffect: SpellEffect = {
@@ -1633,7 +1634,7 @@ export class SpellCommandFactory {
             type: 'STATUS_CONDITION',
             statusCondition: chosenOption.statusCondition
           } as StatusConditionEffect;
-          const statusCommand = this.createCommand(statusEffect, context);
+          const statusCommand = new StatusConditionCommand(statusEffect, context);
           if (statusCommand) {
             commands.push(statusCommand);
           }
@@ -1693,13 +1694,13 @@ export class SpellCommandFactory {
     // Legacy authored/test spells can predate structured targeting metadata.
     // Treat an absent targeting packet as "not explicitly melee" and let their
     // effects continue through the generic command path instead of crashing.
-    const hasMeleeHitTargeting = spell.targeting?.type === 'melee'
+    const hasMeleeHitTargeting = (spell.targeting?.type as string) === 'melee'
     const isPrimalSavagery = spell.id === 'primal-savagery'
     const hasObjectIgnitionHitRider = activeEffects.some(effect =>
       isDamageEffect(effect) &&
       effect.condition?.type === 'hit' &&
       effect.createdObjects?.some(createdObject =>
-        createdObject.ignitesTouchedObjects === true &&
+        (createdObject as any).ignitesTouchedObjects === true &&
         createdObject.appearsIn === 'target_object'
       )
     )
@@ -1773,7 +1774,7 @@ export class SpellCommandFactory {
     }
 
     if (['on_target_move', 'on_target_attack', 'on_target_cast', 'on_caster_action'].includes(effect.trigger.type)) {
-      return new ReactiveEffectCommand(effect, context)
+      return new ReactiveEffectCommand(effect as any, context)
     }
 
     if (effect.trigger.type === 'on_attack_hit') {
@@ -1870,7 +1871,7 @@ export class SpellCommandFactory {
 
     const diceMatch = bonusPerLevel.match(/\+(\d+)d(\d+)/)
 
-    if (diceMatch) {
+    if (diceMatch && isDamageEffect(effect)) {
       const [, count, size] = diceMatch
       const originalDice = effect.damage.dice || '0d0'
       const newDice = addDice(originalDice, `${count}d${size}`, levelsAbove)
@@ -1897,13 +1898,13 @@ export class SpellCommandFactory {
         createdObjects: effect.createdObjects.map(createdObject => ({
           ...createdObject,
           count: createdObject.countScaling?.type === 'slot_level'
-            ? createdObject.count + (createdObject.countScaling.bonusPerLevel * levelsAbove)
+            ? (createdObject.count ?? 1) + (createdObject.countScaling.bonusPerLevel * levelsAbove)
             : createdObject.count,
           levels: createdObject.levelScaling?.type === 'slot_level'
             ? (createdObject.levels ?? 0) + (createdObject.levelScaling.bonusPerLevel * levelsAbove)
             : createdObject.levels,
           inventoryQuantity: createdObject.inventoryQuantityScaling?.type === 'slot_level'
-            ? (createdObject.inventoryQuantity ?? createdObject.count) + (createdObject.inventoryQuantityScaling.bonusPerLevel * levelsAbove)
+            ? ((createdObject.inventoryQuantity ?? createdObject.count) ?? 1) + (createdObject.inventoryQuantityScaling.bonusPerLevel * levelsAbove)
             : createdObject.inventoryQuantity
         }))
       }
@@ -1925,7 +1926,7 @@ export class SpellCommandFactory {
       }
 
       const createdObject = effect.createdObjects?.find(object =>
-        object.ignitesTouchedObjects === true &&
+        (object as any).ignitesTouchedObjects === true &&
         object.appearsIn === 'spell_area'
       )
 
@@ -1972,7 +1973,7 @@ export class SpellCommandFactory {
 
     const diceMatch = bonusPerLevel.match(/\+(\d+)d(\d+)/)
 
-    if (diceMatch) {
+    if (diceMatch && isDamageEffect(effect)) {
       const [, count, size] = diceMatch
       const originalDice = effect.damage.dice || '0d0'
       const newDice = addDice(originalDice, `${count}d${size}`, tier)

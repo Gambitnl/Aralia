@@ -70,7 +70,7 @@ const validateSpells = (): void => {
       const spellContent = fs.readFileSync(spellFilePath, 'utf-8');
       const spellData = JSON.parse(spellContent);
       const parsedSpell = SpellValidator.parse(spellData);
-      const legacyIssues = LegacySpellValidator.validateSpell(parsedSpell);
+      const legacyIssues = LegacySpellValidator.validateSpell(parsedSpell as any);
       const legacyErrors = legacyIssues.filter(issue => issue.severity === 'error');
       const legacyWarnings = legacyIssues.filter(issue => issue.severity === 'warning');
 

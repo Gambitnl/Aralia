@@ -12074,3 +12074,4 @@
 {"at":1785103950209,"kind":"note","agent":"agora","title":"claude-tidy-auth-0727 released a lock","detail":"","source":"agora","eventType":"lock.release","seq":69841}
 {"at":1785103950212,"kind":"note","agent":"agora","title":"claude-tidy-auth-0727 released a lock","detail":"","source":"agora","eventType":"lock.release","seq":69843}
 {"at":1785103950213,"kind":"note","agent":"agora","title":"claude-tidy-auth-0727 released a lock","detail":"","source":"agora","eventType":"lock.release","seq":69845}
+{"at":1785190707276,"kind":"note","agent":"agora","title":"sync-surfaces joined the Agora","detail":"planning-surface sync (board tidy)","source":"agora","eventType":"agent.register","seq":69848}

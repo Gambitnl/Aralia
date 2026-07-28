@@ -109,7 +109,7 @@ const AgentSim3DPreview: React.FC = () => {
               <meshStandardMaterial color={b.market ? '#7a5a2a' : '#555a66'} />
             </mesh>
           ))}
-          <GroundAgents ground={ground} clock={clock} sceneOrigin={sceneOrigin} figureScale={figureScale} />
+          <GroundAgents ground={ground} clock={clock} sceneOrigin={sceneOrigin} figureScale={figureScale} loaded={[]} />
         </Canvas>
       </div>
       <div style={{ padding: '10px 20px', display: 'flex', flexDirection: 'column', gap: 8 }}>

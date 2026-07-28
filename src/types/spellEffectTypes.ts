@@ -1400,20 +1400,21 @@ export interface CreatedObject {
    * do not yet have dedicated runtime adapters, so the type preserves the
    * label instead of forcing an incorrect narrow union.
    */
-  objectType: string;
+  objectType?: string;
   /** Player-facing object name, for example "Goodberry". */
-  name: string;
+  name?: string;
   /** How many instances or units are created. */
-  count: number;
+  count?: number;
   /** Optional slot-level scaling for the created-object count, such as +10 gallons per slot. */
   countScaling?: {
     type: "slot_level";
     bonusPerLevel: number;
   };
   /** Unit used by the count, retained verbatim for source-specific units. */
-  countUnit: string;
+  countUnit?: string;
   /** Where the object appears relative to the cast, retained as source data. */
-  appearsIn: string;
+  appearsIn?: string;
+  excludesWornOrCarriedObjects?: boolean;
   /** Live fortress packets keep the 120-foot square placement rule here. */
   footprint?: string;
   /** Live fortress packets keep the permanence cadence summary here. */

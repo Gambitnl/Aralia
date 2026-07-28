@@ -21,14 +21,14 @@ const caster: CombatCharacter = {
   armorClass: 12,
   abilities: [],
   actionEconomy: { action: { used: false, remaining: 1 }, bonusAction: { used: false, remaining: 1 }, reaction: { used: false, remaining: 1 }, legendary: { used: 0, total: 0 }, movement: { used: 0, total: 30 }, freeActions: 1 }
-} as CombatCharacter;
+} as unknown as CombatCharacter;
 
 const swimmer: CombatCharacter = {
   ...caster,
   id: 'swimmer',
   name: 'Swimmer',
   position: { x: 2, y: 2 }
-} as CombatCharacter;
+} as unknown as CombatCharacter;
 
 const waterObjectTarget: SelectedSpellTarget = {
   kind: 'object',
@@ -80,7 +80,7 @@ const createState = (characters: CombatCharacter[] = [caster]): CombatState => (
     theme: 'forest',
     seed: 1
   }
-} as CombatState);
+} as unknown as CombatState);
 
 const castShapeWater = (
   state: CombatState,

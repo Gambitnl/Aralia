@@ -18,11 +18,11 @@ describe('Frostbite next-weapon-attack rider', () => {
     spellId: 'frostbite',
     casterId: 'caster',
     sourceName: 'Frostbite',
-    type: 'debuff',
+    type: 'debuff' as const,
     duration: { type: 'rounds', value: 2 },
     startTime: 1,
     mechanics: {
-      attackRollDirection: 'outgoing',
+      attackRollDirection: 'outgoing' as const,
       attackRollModifier: 'disadvantage' as const,
       attackRollKind: 'weapon' as const,
       attackRollConsumption: 'next_attack' as const
@@ -35,7 +35,7 @@ describe('Frostbite next-weapon-attack rider', () => {
       name: 'Attacker',
       attackBonus: 99,
       activeEffects: [createFrostbiteRider()]
-    });
+    } as any);
     const target = createMockCombatCharacter({
       id: 'target',
       name: 'Target'
@@ -73,12 +73,13 @@ describe('Frostbite next-weapon-attack rider', () => {
         mechanics: {
           attackRollDirection: 'outgoing' as const,
           attackRollModifier: 'disadvantage' as const,
-          attackRollKind: 'any' as const,
-          attackRollConsumption: 'while_active' as const,
-          attackRollTargetId: 'original-caster'
+          attackRollKind: 'all' as const,
+          attackRollConsumption: 'all_attacks' as const,
+          targetScope: 'defender_only' as const,
+          targetId: 'defender-1'
         }
       }]
-    });
+    } as any);
     const otherDefender = createMockCombatCharacter({
       id: 'other-defender',
       name: 'Other Defender'
@@ -111,7 +112,7 @@ describe('Frostbite next-weapon-attack rider', () => {
       name: 'Attacker',
       attackBonus: 99,
       activeEffects: [createFrostbiteRider()]
-    });
+    } as any);
     const target = createMockCombatCharacter({
       id: 'target',
       name: 'Target'

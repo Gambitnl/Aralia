@@ -48,6 +48,35 @@ test('run-twice golden: byte-identical outputs', async () => {
   assert.deepEqual(second, first);
 });
 
+test('a transient file lock does not lose the step', async () => {
+  // Something holds topics.json open for a few seconds at a time (reproduced
+  // 2026-07-28: two failures, then success). Giving up on the first failure is
+  // what froze health.json for three days.
+  const root = mkRepo();
+  const target = path.join(root, 'public', 'planmap', 'health.json');
+  const realWrite = fs.writeFileSync;
+  let failures = 0;
+  fs.writeFileSync = (file, ...rest) => {
+    if (String(file).includes('health.json') && failures < 2) {
+      failures++;
+      const e = new Error('UNKNOWN: unknown error, open');
+      e.code = 'UNKNOWN';
+      throw e;
+    }
+    return realWrite(file, ...rest);
+  };
+  try {
+    const res = await runSync({
+      repoRoot: root, now: new Date('2026-07-14'), steps: ['health'], tasksProvider: async () => [],
+    });
+    assert.equal(res.ok, true, 'the health step must survive a transient lock');
+    assert.equal(failures, 2, 'the write should have been retried past both failures');
+    assert.ok(fs.existsSync(target), 'health.json should exist after the retry');
+  } finally {
+    fs.writeFileSync = realWrite;
+  }
+});
+
 test('writes leave no .tmp files behind', async () => {
   const root = mkRepo();
   await runSync({ repoRoot: root, now: new Date('2026-07-14'), steps: ['board', 'health'], tasksProvider: async () => [] });

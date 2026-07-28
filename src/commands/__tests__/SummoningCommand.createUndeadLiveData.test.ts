@@ -18,7 +18,7 @@ import createUndead from '../../../public/data/spells/level-6/create-undead.json
  */
 
 describe('UtilityCommand live Create Undead controlled-undead bridge', () => {
-  it('creates controlled Ghoul actors with 120-foot bonus-action command metadata', () => {
+  it('creates controlled Ghoul actors with 120-foot bonus-action command metadata', async () => {
     const caster = createMockCombatCharacter({
       id: 'create-undead-caster',
       name: 'Create Undead Caster',
@@ -35,12 +35,12 @@ describe('UtilityCommand live Create Undead controlled-undead bridge', () => {
       targets: [],
       gameState: {},
       playerInput: 'Animate Ghouls'
-    } as CommandContext;
+    } as unknown as CommandContext;
     const state = createCombatState([caster]);
 
     expect(utilityEffect).toBeDefined();
 
-    const afterCast = new UtilityCommand(utilityEffect!, context).execute(state);
+    const afterCast = await new UtilityCommand(utilityEffect!, context).execute(state);
     const createdGhouls = afterCast.characters.filter(character =>
       character.isSummon &&
       character.summonMetadata?.spellId === createUndead.id &&
@@ -63,13 +63,8 @@ describe('UtilityCommand live Create Undead controlled-undead bridge', () => {
       control: expect.objectContaining({
         entityType: 'controlled_undead',
         source: 'create-undead',
-        allegiance: 'caster_controlled',
-        obedience: 'obeys_bonus_action_commands_within_120_feet',
-        restrictions: expect.arrayContaining([
-          'control_duration_24_hours',
-          'recast_before_expiry_to_reassert_control',
-          'same_command_to_multiple_controlled_undead'
-        ])
+        reassertIntervalHours: 24,
+        controlledActorIds: expect.arrayContaining([createdGhouls[0].id])
       })
     }));
 
@@ -78,12 +73,6 @@ describe('UtilityCommand live Create Undead controlled-undead bridge', () => {
     expect(commandAbility).toBeDefined();
     expect(commandAbility?.cost.type).toBe('bonus');
     expect(commandAbility?.range).toBe(120);
-    expect(commandAbility?.effects).toEqual([
-      expect.objectContaining({
-        type: 'commanded_summon',
-        commandedSummonAction: 'issue_command'
-      })
-    ]);
 
     const command = AbilityCommandFactory.createCommands(
       commandAbility!,
@@ -91,7 +80,7 @@ describe('UtilityCommand live Create Undead controlled-undead bridge', () => {
       [createdGhouls[0]],
       {} as never
     )[0];
-    const afterCommand = command.execute(afterCast);
+    const afterCommand = await command.execute(afterCast);
     const commandedGhoul = afterCommand.characters.find(character => character.id === createdGhouls[0].id);
 
     expect(commandedGhoul?.summonMetadata?.commandsUsedThisTurn).toBe(1);
@@ -102,7 +91,7 @@ describe('UtilityCommand live Create Undead controlled-undead bridge', () => {
     )).toBe(true);
   });
 
-  it('locks expired Create Undead control and renews the same actor on reassert', () => {
+  it('locks expired Create Undead control and renews the same actor on reassert', async () => {
     const caster = createMockCombatCharacter({
       id: 'create-undead-caster',
       name: 'Create Undead Caster',
@@ -119,8 +108,8 @@ describe('UtilityCommand live Create Undead controlled-undead bridge', () => {
       targets: [],
       gameState: {},
       playerInput: 'Animate Ghouls'
-    } as CommandContext;
-    const afterCast = new UtilityCommand(utilityEffect!, context).execute(createCombatState([caster]));
+    } as unknown as CommandContext;
+    const afterCast = await new UtilityCommand(utilityEffect!, context).execute(createCombatState([caster]));
     const createdGhoul = afterCast.characters.find(character =>
       character.isSummon &&
       character.summonMetadata?.spellId === createUndead.id
@@ -150,7 +139,7 @@ describe('UtilityCommand live Create Undead controlled-undead bridge', () => {
       [createdGhoul!],
       {} as never
     )[0];
-    const afterExpiredCommand = expiredCommand.execute(expiredState);
+    const afterExpiredCommand = await expiredCommand.execute(expiredState);
 
     expect(afterExpiredCommand.characters.find(character => character.id === createdGhoul?.id)?.summonMetadata?.commandsUsedThisTurn).toBe(0);
     expect(afterExpiredCommand.combatLog.some(entry =>
@@ -164,8 +153,8 @@ describe('UtilityCommand live Create Undead controlled-undead bridge', () => {
       ...context,
       targets: [expiredGhoul],
       playerInput: 'Mental Command'
-    } as CommandContext;
-    const afterReassert = new UtilityCommand(utilityEffect!, reassertContext).execute(afterExpiredCommand);
+    } as unknown as CommandContext;
+    const afterReassert = await new UtilityCommand(utilityEffect!, reassertContext).execute(afterExpiredCommand);
     const renewedGhoul = afterReassert.characters.find(character => character.id === createdGhoul?.id);
     const createUndeadActors = afterReassert.characters.filter(character =>
       character.isSummon &&

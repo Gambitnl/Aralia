@@ -96,6 +96,22 @@ export function heightToMeters(height: number): number {
 }
 
 /**
+ * Inverse of `heightToMeters`: world meters back into the 0..100 encoded grid.
+ *
+ * Exists so depths can be authored in meters and converted once. Writing them
+ * straight into the encoded grid silently multiplies them by
+ * MAX_TERRAIN_HEIGHT_M × VERTICAL_EXAGGERATION / 100 (×18 today), which turned
+ * a 4 m river bed into a 72 m canyon.
+ */
+export function metersToHeight(meters: number): number {
+  return (
+    (meters /
+      (WORLD3D_CONFIG.MAX_TERRAIN_HEIGHT_M * WORLD3D_CONFIG.VERTICAL_EXAGGERATION)) *
+    100
+  );
+}
+
+/**
  * Mesh resolution (vertices per chunk edge) for a given LOD tier. This is the
  * single source of truth the chunk loaders use to honor the requested tier
  * carried through the loader contract (W3D-G10 / T7). Falls back to the full

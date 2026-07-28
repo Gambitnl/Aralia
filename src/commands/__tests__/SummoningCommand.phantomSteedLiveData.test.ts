@@ -32,7 +32,7 @@ describe('SummoningCommand live Phantom Steed mount bridge', () => {
 
     // Use live spell data so stale bucket wording or synthetic fixtures cannot
     // hide missing runtime metadata on the spawned mount.
-    const summonEffect = phantomSteed.effects.find(effect => effect.type === 'SUMMONING') as SummoningEffect | undefined;
+    const summonEffect = phantomSteed.effects.find(effect => effect.type === 'SUMMONING') as unknown as SummoningEffect | undefined;
     const context = {
       spellId: phantomSteed.id,
       spellName: phantomSteed.name,
@@ -40,7 +40,7 @@ describe('SummoningCommand live Phantom Steed mount bridge', () => {
       caster,
       targets: [],
       gameState: {}
-    } as CommandContext;
+    } as unknown as CommandContext;
     const state = createCombatState([caster]);
 
     expect(summonEffect).toBeDefined();

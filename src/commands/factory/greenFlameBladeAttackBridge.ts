@@ -326,7 +326,7 @@ export const buildGreenFlameBladeAttack = (
         type: 'damage',
         value: 0,
         dice: weaponSnapshot.damageDice ? appendFlatModifierToDice(weaponSnapshot.damageDice, strengthModifier) : String(strengthModifier),
-        damageType: weaponSnapshot.damageType || 'slashing'
+        damageType: (weaponSnapshot.damageType || 'slashing') as any
       },
       ...(primaryDamageEffect
         ? [{

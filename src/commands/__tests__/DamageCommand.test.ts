@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { DamageCommand } from '../effects/DamageCommand';
 import { SummoningCommand } from '../effects/SummoningCommand';
 import { createMockCombatCharacter, createMockCombatState, createMockCommandContext, createMockGameState, createMockPlayerCharacter } from '../../utils/factories';
+import type { CommandContext } from '../base/SpellCommand';
 import type { DamageEffect } from '../../types/spells';
 import type { SummoningEffect } from '../../types/spells';
 import simulacrum from '../../../public/data/spells/level-7/simulacrum.json';
@@ -138,20 +139,20 @@ describe('DamageCommand', () => {
       team: 'enemy',
       featChoices: {}
     });
-    const summonEffect = simulacrum.effects.find((entry): entry is SummoningEffect => entry.type === 'SUMMONING');
+    const summonEffect = simulacrum.effects.find(entry => entry.type === 'SUMMONING') as unknown as SummoningEffect;
 
     expect(summonEffect).toBeDefined();
 
     // Build the summon through the real summon command so the proof uses the
     // live Simulacrum packet instead of a hand-written summon mock.
-    const summonedState = new SummoningCommand(summonEffect!, createMockCommandContext({
+    const summonedState = await new SummoningCommand(summonEffect!, createMockCommandContext({
       spellId: simulacrum.id,
       spellName: simulacrum.name,
       castAtLevel: 7,
       caster,
       targets: [],
       gameState: createMockGameState()
-    })).execute(createMockCombatState({
+    }) as unknown as CommandContext).execute(createMockCombatState({
       characters: [caster, enemy],
       combatLog: []
     }));

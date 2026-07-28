@@ -194,7 +194,7 @@ const openFloorMap = (width = 8, height = 8): BattleMapData => {
 const hiddenCreature = (overrides: Partial<CombatCharacter>) => createMockCombatCharacter({
   currentHP: 7,
   maxHP: 7,
-  statusEffects: [{ id: 'hidden', name: 'Hidden' }],
+  statusEffects: [{ id: 'hidden', name: 'Hidden', type: 'buff', duration: 1 }],
   ...overrides
 });
 

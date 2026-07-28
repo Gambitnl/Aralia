@@ -1,4 +1,5 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest'
+import type { BattleMapData } from '@/types/combat'
 import { SpellCommandFactory } from '../SpellCommandFactory'
 import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '@/utils/factories'
 import lightningLure from '../../../../public/data/spells/level-0/lightning-lure.json'
@@ -61,7 +62,7 @@ const makeMap = (blockedTile?: { x: number; y: number }) => {
     name: 'Lightning Lure Map',
     dimensions: { width: 4, height: 1 },
     tiles
-  } as const
+  } as unknown as BattleMapData
 }
 
 describe('Lightning Lure bridge', () => {
@@ -158,7 +159,7 @@ describe('Lightning Lure bridge', () => {
       const caster = makeCaster(level)
       const target = makeTarget()
       const commands = await SpellCommandFactory.createCommands(spell, caster, [target], 1, createMockGameState())
-      const bridge = commands[0] as LightningLureBridge
+      const bridge = commands[0] as unknown as LightningLureBridge
 
       expect(bridge.movementEffect.movementType).toBe('pull')
       expect(bridge.damageEffect.damage.dice).toBe(expectedDice[index])

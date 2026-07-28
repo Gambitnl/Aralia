@@ -9,7 +9,7 @@ import ErrorBoundary from './ErrorBoundary';
 import { Z_INDEX } from '../../styles/zIndex';
 
 class CrashingChild extends React.Component {
-  render() {
+  override render(): React.ReactNode {
     throw new Error('Test crash');
   }
 }

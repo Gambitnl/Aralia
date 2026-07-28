@@ -309,8 +309,8 @@ describe('buildBurgs', () => {
     expect(new Set(first.map((burg) => burg.id)).size).toBe(888);
     expect(second).toEqual(first);
     for (const burg of first) {
-      expect(burg.cell).toBe(atlas.pack.burgs[burg.id]?.cell);
-      expect(burg.name).toBe(atlas.pack.burgs[burg.id]?.name);
+      expect(burg.cell).toBe(atlas.pack.burgs?.[burg.id]?.cell);
+      expect(burg.name).toBe(atlas.pack.burgs?.[burg.id]?.name);
     }
   }, 30_000);
 });

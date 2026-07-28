@@ -4,6 +4,7 @@ import { handleSearchArea } from '../handleItemInteraction';
 import { forageWilderness } from '../../../systems/exploration/forage';
 import type { GameState } from '../../../types';
 import type { AppAction } from '../../../state/actionTypes';
+import type { AddMessageFn } from '../actionHandlerTypes';
 
 /**
  * "Search the Area" is the wilderness loot affordance for procedural coord_ tiles
@@ -25,11 +26,11 @@ const makeState = (overrides: Partial<GameState> = {}): GameState => ({
 
 describe('handleSearchArea (wilderness forage)', () => {
   let dispatch: ReturnType<typeof vi.fn>;
-  let addMessage: ReturnType<typeof vi.fn>;
+  let addMessage: AddMessageFn;
 
   beforeEach(() => {
     dispatch = vi.fn();
-    addMessage = vi.fn();
+    addMessage = vi.fn() as unknown as AddMessageFn;
   });
 
   it('refuses to forage at a named (non-coord) location', async () => {
@@ -38,7 +39,7 @@ describe('handleSearchArea (wilderness forage)', () => {
       dispatch: dispatch as unknown as Dispatch<AppAction>,
       addMessage,
     });
-    expect(addMessage.mock.calls.some(([m]) => /only forage out in the wilds/i.test(m))).toBe(true);
+    expect((addMessage as any).mock.calls.some(([m]: [string]) => /only forage out in the wilds/i.test(m))).toBe(true);
     expect(dispatch.mock.calls.some(([a]) => a.type === 'PLACE_AREA_ITEMS')).toBe(false);
   });
 
@@ -48,7 +49,7 @@ describe('handleSearchArea (wilderness forage)', () => {
       dispatch: dispatch as unknown as Dispatch<AppAction>,
       addMessage,
     });
-    expect(addMessage.mock.calls.some(([m]) => /already searched/i.test(m))).toBe(true);
+    expect((addMessage as any).mock.calls.some(([m]: [string]) => /already searched/i.test(m))).toBe(true);
     expect(dispatch.mock.calls.some(([a]) => a.type === 'PLACE_AREA_ITEMS')).toBe(false);
   });
 
@@ -68,10 +69,10 @@ describe('handleSearchArea (wilderness forage)', () => {
     expect(dispatch.mock.calls.some(([a]) => a.type === 'ADVANCE_TIME')).toBe(true);
 
     if (expected.itemIds.length > 0) {
-      expect(addMessage.mock.calls.some(([m]) => /uncover:/i.test(m))).toBe(true);
+      expect((addMessage as any).mock.calls.some(([m]: [string]) => /uncover:/i.test(m))).toBe(true);
       expect(dispatch.mock.calls.some(([a]) => a.type === 'ADD_DISCOVERY_ENTRY')).toBe(true);
     } else {
-      expect(addMessage.mock.calls.some(([m]) => /turn up nothing/i.test(m))).toBe(true);
+      expect((addMessage as any).mock.calls.some(([m]: [string]) => /turn up nothing/i.test(m))).toBe(true);
     }
   });
 

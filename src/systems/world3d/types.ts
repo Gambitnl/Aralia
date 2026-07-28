@@ -127,7 +127,24 @@ export interface ChunkData {
    * Lake polygons clipped to this chunk (grid space) with a shared flat water surface.
    * Lakes are filled meshes, not ribbons, so the builder can triangulate them directly.
    */
-  lakes?: { points: { x: number; y: number }[]; surfaceY: number }[];
+  lakes?: {
+    points: { x: number; y: number }[];
+    /** Flat surface height for sea/lake; a river's LOWEST point (see centerline). */
+    surfaceY: number;
+    /**
+     * What this body is. The three cannot share a height rule: the sea is flat
+     * at zero, a lake is flat at its own elevation, and a river descends along
+     * its course. Absent means a legacy continent lake (flat, as before).
+     */
+    kind?: "sea" | "lake" | "river";
+    /**
+     * Rivers only: ordered centerline (grid space) with a surface height per
+     * point. Chunk clipping invents polygon vertices, so the renderer projects
+     * each vertex onto this line and interpolates rather than carrying a
+     * per-vertex height array that clipping would invalidate.
+     */
+    centerline?: { x: number; y: number; surfaceY: number }[];
+  }[];
   /** Town road-gate gatehouse placements in this chunk (grid space), meshed by gateGeometry. */
   gatehouses?: Array<{
     x: number;

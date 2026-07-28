@@ -77,7 +77,16 @@ if (apply) {
     toolName: 'planmap-reconcile',
     force: process.argv.includes('--force-no-lock'),
   });
-  fs.writeFileSync(file, JSON.stringify(data, null, 2) + '\n');
+  // Write through a temp file and rename, never straight onto topics.json.
+  // Something keeps a read handle on it (the dev server's watcher over public/
+  // is the prime suspect): opening the target for WRITE fails for seconds at a
+  // time with libuv's UNKNOWN (-4094), while a rename over it succeeds
+  // immediately, because the holder permits delete but not write. Verified
+  // 2026-07-28 — four direct writes in a row failed, one rename went straight
+  // through. planmap-add.mjs has always done it this way; this was the outlier.
+  const tmp = `${file}.${process.pid}.tmp`;
+  fs.writeFileSync(tmp, JSON.stringify(data, null, 2) + '\n');
+  fs.renameSync(tmp, file);
   console.log('written. Re-run validate-planmap.mjs if you also hand-edited.');
 } else {
   console.log('re-run with --apply to write');

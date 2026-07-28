@@ -42,7 +42,7 @@ import InteriorOccupants from './InteriorOccupants';
 import { InteriorHourProvider, useInteriorHour, emissiveForPart } from './InteriorHourContext';
 import FreeRoamCameraController, { type CameraFrameRequest } from './FreeRoamCameraController';
 import { syncVegetationInstanceMatrices } from './vegetationInstanceMatrices';
-import { VegetationTrees } from './vegetation/VegetationTrees';
+import { VegetationTreeField } from './vegetation/VegetationTreeField';
 import { GrassLayer } from './vegetation/GrassLayer';
 import { useChunkStreaming } from './useChunkStreaming';
 import World3DNameplates from './World3DNameplates';
@@ -278,13 +278,19 @@ const WaterPiece: React.FC<{ chunk: LoadedChunk; origin: SceneOrigin }> = ({ chu
           that was the "dark pit" read (TG4). A brighter dielectric tint plus a
           small emissive lift keeps it reading as blue water from any angle,
           while a low roughness still gives the sun a specular sheen. */}
+      {/* Opacity was 0.86, which let the carved bed's faceted terrain read
+          straight through the sheet: an in-game look at a Hajdured lake showed
+          the bed's triangle creases as the dominant texture, so the water read
+          as slate or ice rather than liquid. Near-opaque hides the bed and lets
+          the low roughness carry a sun sheen instead. Kept just under 1 so a
+          shoreline still hints at the sand under the shallows. */}
       <meshStandardMaterial
         color="#2f78b4"
         emissive="#123a5c"
         emissiveIntensity={0.35}
         transparent
-        opacity={0.86}
-        roughness={0.22}
+        opacity={0.96}
+        roughness={0.18}
         metalness={0.0}
       />
     </mesh>
@@ -704,9 +710,9 @@ const VegetationPiece: React.FC<{
   const bushes = chunk.bundle.bushes;
   const bushRef = useRef<THREE.InstancedMesh>(null);
   // Track the last payload key so identical worker-cloned scatters do not
-  // rewrite every instance matrix again (W3D-G25). Trees moved to the
-  // procedural VegetationTrees layer (vegetation lift 2026-07-04); bushes
-  // remain a single instanced sphere layer with palette colors.
+  // rewrite every instance matrix again (W3D-G25). Trees moved out of the
+  // per-chunk path entirely (see VegetationTreeField); bushes remain a single
+  // instanced sphere layer with palette colors.
   const lastBushCacheKey = useRef<string | null>(null);
   useEffect(() => {
     if (!bushes || !bushRef.current) {
@@ -715,19 +721,18 @@ const VegetationPiece: React.FC<{
     }
     syncVegetationInstanceMatrices(bushRef.current, bushes, lastBushCacheKey, 'bush');
   }, [bushes?.cacheKey]);
-  const treeCount = veg ? veg.positions.length / 3 : 0;
   const bushCount = bushes ? bushes.positions.length / 3 : 0;
   // The lighting frustum follows the player, so vegetation beyond the adjacent
   // chunks cannot contribute a useful visible shadow. Keeping those instances
   // out of the shadow pass avoids replaying the whole 81-chunk forest.
   const castsNearbyShadow = SHADOWS
     && Math.max(Math.abs(chunk.cx - anchor.cx), Math.abs(chunk.cy - anchor.cy)) <= 1;
-  if (treeCount === 0 && bushCount === 0) return null;
+  // Trees are NOT drawn here any more: per-chunk instanced meshes fragmented the
+  // batching (2,340 trees across 379 meshes in a measured frame). They are
+  // batched field-wide by VegetationTreeField at the scene root instead.
+  if (bushCount === 0) return null;
   return (
     <group position={chunkScenePos(chunk.cx, chunk.cy, origin)}>
-      {/* Vegetation lift (beautification wave): procedural instanced trees
-          replace the old placeholder cones. Same scatter positions, new look. */}
-      {treeCount > 0 && veg && <VegetationTrees scatter={veg} castShadow={castsNearbyShadow} />}
       {bushCount > 0 && (
         <instancedMesh ref={bushRef} args={[undefined, undefined, bushCount]} castShadow={castsNearbyShadow}>
           <sphereGeometry args={[1, 6, 4]} />
@@ -1056,6 +1061,21 @@ const World3DScene: React.FC<World3DSceneProps> = ({
             />
           ))}
         </InteriorHourProvider>
+        {/* Every chunk's trees in one batch set (2026-07-27). Sits outside the
+            per-chunk groups because its instance positions are already scene
+            space — see treeBatching.ts for why per-chunk meshes were dropped. */}
+        <VegetationTreeField
+          inputs={loaded.flatMap((c) => {
+            const veg = c.bundle.vegetation;
+            if (!veg || veg.positions.length === 0) return [];
+            return [{
+              scatter: veg,
+              offset: chunkScenePos(c.cx, c.cy, sceneOrigin),
+              castShadow: SHADOWS
+                && Math.max(Math.abs(c.cx - anchorChunk.cx), Math.abs(c.cy - anchorChunk.cy)) <= 1,
+            }];
+          })}
+        />
         <GroundAgents
           ground={groundWorld}
           loaded={loaded}

@@ -1,5 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { mockCaster, mockTarget, mockContext, mockState, createMockCombatState, UtilityCommand, GrantedActionCommand, StartConcentrationCommand, BreakConcentrationCommand } from './UtilityCommand.testHelpers'
+import type { CommandContext } from '../base/SpellCommand'
+import type { CombatState } from '@/types/combat'
 import type { Spell, UtilityEffect, SelectedSpellTarget } from './UtilityCommand.testHelpers'
 import produceFlameJson from '../../../public/data/spells/level-0/produce-flame.json'
 import dancingLightsJson from '../../../public/data/spells/level-0/dancing-lights.json'
@@ -143,7 +145,7 @@ describe('UtilityCommand', () => {
             const targetInState = newState.characters.find(c => c.id === mockTarget.id)
             const suppression = targetInState?.statusEffects.find(status =>
                 status.source === 'Starry Wisp' &&
-                status.suppressedConditionBenefit === 'Invisible'
+                (status as any).suppressedConditionBenefit === 'Invisible'
             )
 
             // Starry Wisp is not a generic Light spell, but its hit rider must

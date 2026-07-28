@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 26/07/2026, 23:09:27
+ * Last Sync: 28/07/2026, 00:36:54
  * Dependents: components/BattleMap/characters/characterActor/EntityModel.tsx, components/DesignPreview/steps/EntityDebugScene.tsx, components/World3D/OccupantFigure.tsx, components/World3D/PlayerAvatar.tsx, systems/entities3d/three/Entity3D.tsx
  * Imports: 7 files
  *
@@ -35,6 +35,7 @@
  */
 import {
   CircleGeometry,
+  Color,
   Group,
   Material,
   Mesh,
@@ -232,19 +233,29 @@ export function assembleEntity(blueprint: EntityBlueprint, options: AssembleOpti
   }
 
   // --- eyes (the charm organ) — solid in both render modes
-  const eyeMaterial = new MeshBasicMaterial({ color: '#ffffff' });
-  const pupilMaterial = new MeshBasicMaterial({ color: palette.eyeHex });
+  // Warm off-white reads softer than pure #ffffff against toon skin; radius
+  // factors tuned down twice 2026-07-27 (0.32hr whites read "googly" on beast
+  // heads; still lemur-eyed at 0.27, so 0.24 planned / 0.25 legacy).
+  const eyeMaterial = new MeshBasicMaterial({ color: '#f4f1e6' });
+  // Contrast guard: a gold pupil on gold skin (forge-7 dragon) is invisible.
+  // When iris and skin luminance are too close, fall back to a dark pupil.
+  const lum = (hex: string) => {
+    const c = new Color(hex);
+    return 0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b;
+  };
+  const pupilHex = Math.abs(lum(palette.eyeHex) - lum(palette.skinHex)) < 0.12 ? '#1c1c22' : palette.eyeHex;
+  const pupilMaterial = new MeshBasicMaterial({ color: pupilHex });
   const eyes: Mesh[] = [];
   /** Planned bodies: eye i belongs to head socket plannedEyeHead[i], slot plannedEyeSlot[i]. */
   const plannedEyeHead: number[] = [];
   const plannedEyeSlot: number[] = [];
   if (blueprint.planSpec) {
     blueprint.planSpec.heads.forEach((headSpec, h) => {
-      const r = hr * headSpec.sizeScale * 0.32 * headSpec.eyes.sizeScale;
+      const r = hr * headSpec.sizeScale * 0.24 * headSpec.eyes.sizeScale;
       for (let k = 0; k < headSpec.eyes.count; k++) {
         const eye = new Mesh(new SphereGeometry(Math.max(0.008, r), 12, 10), eyeMaterial);
         eye.name = `eyeP${h}_${k}`;
-        const pupil = new Mesh(new SphereGeometry(Math.max(0.005, r * 0.55), 10, 8), pupilMaterial);
+        const pupil = new Mesh(new SphereGeometry(Math.max(0.005, r * 0.58), 10, 8), pupilMaterial);
         pupil.position.z = r * 0.72;
         // pupil character: slit (reptile) is tall-thin, goat is wide-flat
         const pupilShape = headSpec.eyes.pupil ?? 'round';
@@ -259,9 +270,9 @@ export function assembleEntity(blueprint: EntityBlueprint, options: AssembleOpti
     });
   } else {
     for (const name of ['eyeL', 'eyeR'] as const) {
-      const eye = new Mesh(new SphereGeometry(hr * 0.32, 12, 10), eyeMaterial);
+      const eye = new Mesh(new SphereGeometry(hr * 0.25, 12, 10), eyeMaterial);
       eye.name = name;
-      const pupil = new Mesh(new SphereGeometry(hr * 0.17, 10, 8), pupilMaterial);
+      const pupil = new Mesh(new SphereGeometry(hr * 0.16, 10, 8), pupilMaterial);
       pupil.position.z = hr * 0.24;
       eye.add(pupil);
       bodyRoot.add(eye);
@@ -320,8 +331,21 @@ export function assembleEntity(blueprint: EntityBlueprint, options: AssembleOpti
       const wingL = container.getObjectByName('wingL');
       const wingR = container.getObjectByName('wingR');
       if (wingL && wingR) {
-        wingL.rotation.z = driver.flap;
-        wingR.rotation.z = -driver.flap;
+        // rest fold (2026-07-27): idle wings sweep DOWN against the body and
+        // trail backward instead of standing as vertical sails; the beat
+        // calms to a breath while folded and opens with speed.
+        // Sign convention (from the original beat): +z-rotation on wingL and
+        // -z on wingR BOTH lower the tips symmetrically; ±y sweeps tips back.
+        const fold = driver.wingFold;
+        const beat = driver.flap * (1 - fold * 0.55);
+        // 2026-07-28: less straight-down drape (1.05 -> 0.88), much stronger
+        // backward sweep (0.55 -> 1.05) — folded membranes lie along the
+        // rear flank like a bird's parked wing instead of curtaining the legs
+        const dihedral = beat + fold * 1.32;
+        wingL.rotation.z = dihedral;
+        wingR.rotation.z = -dihedral;
+        wingL.rotation.y = -fold * 0.5;
+        wingR.rotation.y = fold * 0.5;
       }
     }
 

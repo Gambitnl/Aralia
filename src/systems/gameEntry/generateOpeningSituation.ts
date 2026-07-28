@@ -301,12 +301,19 @@ export async function generateOpeningSituation(
         format: 'json',
     });
 
+    // If the generation call failed, check the result error property strictly.
+    // If the result object is malformed or missing the error string, throw immediately so the failure is visible.
     if (!result.ok) {
+        const errorMsg = 'error' in result && typeof result.error === 'string' ? result.error : undefined;
+        if (!errorMsg) {
+            throw new OpeningSituationUnavailableError('Ollama call failed without providing an error message.');
+        }
+
         // NO_MODEL or any transport failure → honest block, never a canned scene.
         throw new OpeningSituationUnavailableError(
-            result.error === 'NO_MODEL'
+            errorMsg === 'NO_MODEL'
                 ? 'No Ollama model available to generate the opening situation.'
-                : `Ollama unavailable: ${result.error}`,
+                : `Ollama unavailable: ${errorMsg}`,
         );
     }
 

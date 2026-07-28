@@ -67,11 +67,11 @@ export class RegisterRiderCommand extends BaseEffectCommand {
             sourceName: this.context.spellName,
             targetId: this.getSpecificTargetId(),
             effect: this.effect,
-            consumption: this.effect.trigger.consumption || 'unlimited',
-            attackFilter: this.effect.trigger.attackFilter || {},
+            consumption: (this.effect.trigger as any).consumption || 'unlimited',
+            attackFilter: (this.effect.trigger as any).attackFilter || {},
             usedThisTurn: false,
             duration: {
-                type: this.context.effectDuration?.type ?? 'minutes',
+                type: (this.context.effectDuration?.type ?? 'minutes') as any,
                 value: this.context.effectDuration?.value ?? 1
             }
         };

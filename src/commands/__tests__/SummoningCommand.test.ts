@@ -364,7 +364,7 @@ describe('SummoningCommand', () => {
             gameState: {
                 ...createMockGameState({ currentLocationId: 'arena' }),
                 mapData: toWorldMapData(mapData)
-            }
+            } as any
         })
         const createMockState = (characters: CombatCharacter[] = [mockCaster], mapData?: SummoningMapData): CombatState => ({
             isActive: true,

@@ -12,6 +12,7 @@ import {
   BufferAttribute,
   BufferGeometry,
   CapsuleGeometry,
+  Color,
   CylinderGeometry,
   Group,
   Mesh,
@@ -21,6 +22,20 @@ import {
 } from 'three';
 import type { Frame, PartDef, PartMeshCtx } from '../types';
 import { FT_TO_M, heightM } from '../types';
+
+/** Dark shade of a palette tone as a hex string (membranes, spars, claws). */
+function shadeHex(hex: string, f: number): string {
+  return `#${new Color(hex).multiplyScalar(f).getHexString()}`;
+}
+/** Light tint of a palette tone (feathers). Keeps wings in the body palette
+ * instead of the old one-hex-fits-all cream/mauve that clashed with skin. */
+function tintHex(hex: string, f: number): string {
+  return `#${new Color(hex).lerp(new Color('#ffffff'), f).getHexString()}`;
+}
+/** Explicit params.colorHex always wins; otherwise derive from the skin tone. */
+function wingColor(ctx: PartMeshCtx, derived: string): string {
+  return typeof ctx.params.colorHex === 'string' ? ctx.params.colorHex : derived;
+}
 
 function span(frame: Frame): number {
   // Wingspan rivals body height — wings must read at a glance, even on quads
@@ -47,7 +62,7 @@ const wingsFeathered: PartDef = {
         // rounded feather board: a squashed capsule, longer toward the tip
         const len = s * (0.3 + u * 0.34);
         const rad = s * (0.055 - u * 0.018);
-        const feather = new Mesh(new CapsuleGeometry(rad, len, 3, 7), ctx.material('#e8e2d4'));
+        const feather = new Mesh(new CapsuleGeometry(rad, len, 3, 7), ctx.material(wingColor(ctx, tintHex(ctx.palette.skinHex, 0.72))));
         feather.scale.z = 0.35; // flatten into a vane
         // fan out from the shoulder: root near anchor, tips sweep out and back
         feather.position.set(sgn * (s * 0.16 + u * s * 0.36), s * 0.16 - u * s * 0.1, -u * s * 0.05);
@@ -111,7 +126,7 @@ const wingsMembrane: PartDef = {
     ] as const) {
       const wing = new Group();
       wing.name = name;
-      const sail = new Mesh(membraneSail(sgn, s), ctx.material('#5a4458'));
+      const sail = new Mesh(membraneSail(sgn, s), ctx.material(wingColor(ctx, shadeHex(ctx.palette.skinHex, 0.55))));
       wing.add(sail);
       // bone structure: arm spar to the wrist crest, then fingers fanning to
       // the rim's finger tips (Dragon Forge HO/fm)
@@ -127,7 +142,7 @@ const wingsMembrane: PartDef = {
       for (const [a, b] of spars) {
         const dir = new Vector3(b[0] - a[0], b[1] - a[1], b[2] - a[2]);
         const len = Math.max(dir.length(), 1e-4);
-        const spar = new Mesh(new CylinderGeometry(s * 0.014, s * 0.022, len, 5), ctx.material('#3a2f3c'));
+        const spar = new Mesh(new CylinderGeometry(s * 0.014, s * 0.022, len, 5), ctx.material(shadeHex(ctx.palette.skinHex, 0.32)));
         spar.position.set((a[0] + b[0]) / 2, (a[1] + b[1]) / 2, (a[2] + b[2]) / 2);
         spar.quaternion.setFromUnitVectors(SPAR_UP, dir.normalize());
         wing.add(spar);

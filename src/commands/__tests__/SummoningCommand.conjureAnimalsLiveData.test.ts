@@ -19,7 +19,7 @@ import conjureAnimals from '../../../public/data/spells/level-3/conjure-animals.
  */
 
 describe('SummoningCommand live Conjure Animals metadata bridge', () => {
-  it('creates the spectral pack actor with rolled initiative and command metadata', () => {
+  it('spawns a positioned spectral pack actor with live placement and proximity metadata', async () => {
     // The caster is a minimal combat participant because this proof only cares
     // about the spell-created pack and the metadata copied onto that pack.
     const caster = createMockCombatCharacter({
@@ -32,7 +32,7 @@ describe('SummoningCommand live Conjure Animals metadata bridge', () => {
 
     // Use the real spell packet so this test fails if the data stops exposing
     // Conjure Animals as a summon/control effect.
-    const summonEffect = conjureAnimals.effects.find(effect => effect.type === 'SUMMONING') as SummoningEffect | undefined;
+    const summonEffect = conjureAnimals.effects.find(effect => effect.type === 'SUMMONING') as unknown as SummoningEffect | undefined;
     const context = {
       spellId: conjureAnimals.id,
       spellName: conjureAnimals.name,
@@ -41,14 +41,14 @@ describe('SummoningCommand live Conjure Animals metadata bridge', () => {
       targets: [],
       playerInput: 'Wolf',
       gameState: {}
-    } as CommandContext;
+    } as unknown as CommandContext;
     const state = createCombatState([caster]);
 
     expect(summonEffect).toBeDefined();
 
     // Casting should turn the live packet into a positioned combat actor,
     // rather than leaving the spectral pack as prose in spell JSON.
-    const afterCast = new SummoningCommand(summonEffect!, context).execute(state);
+    const afterCast = await new SummoningCommand(summonEffect!, context).execute(state);
     const spectralPack = afterCast.characters.find(character =>
       character.isSummon &&
       character.summonMetadata?.spellId === conjureAnimals.id &&
@@ -72,11 +72,11 @@ describe('SummoningCommand live Conjure Animals metadata bridge', () => {
     // The authored packet says the pack can move when the caster moves and
     // threaten nearby creatures. That still lives in structured summon effect
     // data today, so this proof keeps the actor bridge tied to the same packet.
-    expect(summonEffect?.placementEligibility).toEqual(expect.objectContaining({
+    expect((summonEffect as any)?.placementEligibility).toEqual(expect.objectContaining({
       initialPlacement: 'visible_unoccupied_space_within_range',
       movementDistanceFeet: 30
     }));
-    expect(summonEffect?.recurringMechanics?.[0]).toEqual(expect.objectContaining({
+    expect(((summonEffect as any)?.recurringMechanics as any)?.[0]).toEqual(expect.objectContaining({
       timing: 'on_entity_proximity',
       saveType: 'Dexterity',
       failureOutcome: 'takes_damage'

@@ -68,7 +68,7 @@ const createCaster = (weapon: Item | undefined = club): CombatCharacter => ({
   actionEconomy: { action: { used: false, remaining: 1 }, bonusAction: { used: false, remaining: 1 }, reaction: { used: false, remaining: 1 }, legendary: { used: 0, total: 0 }, movement: { used: 0, total: 30 }, freeActions: 1 },
   activeEffects: [],
   equippedItems: weapon ? { MainHand: weapon } : {}
-} as CombatCharacter);
+} as unknown as CombatCharacter);
 
 const createTarget = (): CombatCharacter => ({
   id: 'target',
@@ -88,7 +88,7 @@ const createTarget = (): CombatCharacter => ({
   armorClass: 14,
   abilities: [],
   actionEconomy: { action: { used: false, remaining: 1 }, bonusAction: { used: false, remaining: 1 }, reaction: { used: false, remaining: 1 }, legendary: { used: 0, total: 0 }, movement: { used: 0, total: 30 }, freeActions: 1 }
-} as CombatCharacter);
+} as unknown as CombatCharacter);
 
 const createAllyWielder = (weapon: Item = club): CombatCharacter => ({
   ...createCaster(weapon),
@@ -96,7 +96,7 @@ const createAllyWielder = (weapon: Item = club): CombatCharacter => ({
   name: 'Ally Wielder',
   spellcastingAbility: undefined,
   activeEffects: []
-} as CombatCharacter);
+} as unknown as CombatCharacter);
 
 const createState = (caster: CombatCharacter, target = createTarget()): CombatState => ({
   characters: [caster, target],
@@ -108,7 +108,7 @@ const createState = (caster: CombatCharacter, target = createTarget()): CombatSt
     phase: 'action',
     actionsThisTurn: []
   }
-} as CombatState);
+} as unknown as CombatState);
 
 const createShillelaghCommand = (caster: CombatCharacter): UtilityCommand => {
   const effect = shillelagh.effects[0] as any;

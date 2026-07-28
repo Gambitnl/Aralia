@@ -53,7 +53,7 @@ describe('handleGeminiCustom', () => {
   const mockDispatch = vi.fn<Dispatch<AppAction>>();
   const mockAddMessage = vi.fn<AddMessageFn>();
   const mockAddGeminiLog = vi.fn<AddGeminiLogFn>();
-  const mockGetCurrentLocation = vi.fn<GetCurrentLocationFn>().mockReturnValue({ id: 'loc_1', npcIds: [] } as ReturnType<GetCurrentLocationFn>);
+  const mockGetCurrentLocation = vi.fn<GetCurrentLocationFn>().mockReturnValue({ id: 'loc_1', npcIds: [] } as unknown as ReturnType<GetCurrentLocationFn>);
   const mockGetCurrentNPCs = vi.fn<GetCurrentNPCsFn>().mockReturnValue([]);
   const mockedGenerateSocialCheckOutcome = vi.mocked(GeminiService.generateSocialCheckOutcome);
   const mockedGenerateActionOutcome = vi.mocked(GeminiService.generateActionOutcome);
@@ -95,12 +95,14 @@ describe('handleGeminiCustom', () => {
     mockedGenerateSocialCheckOutcome.mockResolvedValue({
       data: {
         text: 'The NPC softens.',
+        outcomeText: 'The NPC softens.',
         promptSent: 'prompt',
         rawResponse: 'response',
         dispositionChange: 3,
         memoryFactText: 'Test fact',
+        goalUpdate: null,
       },
-      metadata: {},
+      metadata: { promptSent: 'prompt', rawResponse: 'response' },
       error: null,
     });
     mockedHandleImmediateGossip.mockResolvedValue(undefined);
@@ -124,7 +126,10 @@ describe('handleGeminiCustom', () => {
       getCurrentNPCs: mockGetCurrentNPCs,
     });
 
-    const interactionTimestampCall = mockDispatch.mock.calls.find(([action]) => action.type === 'UPDATE_NPC_INTERACTION_TIMESTAMP');
+    const interactionTimestampCall = mockDispatch.mock.calls.find(
+      (call): call is [{ type: 'UPDATE_NPC_INTERACTION_TIMESTAMP'; payload: { npcId: string; timestamp: number } }] =>
+        call[0].type === 'UPDATE_NPC_INTERACTION_TIMESTAMP'
+    );
     expect(interactionTimestampCall).toBeDefined();
     expect(interactionTimestampCall?.[0].payload).toEqual({
       npcId: 'npc_1',
@@ -142,7 +147,7 @@ describe('handleGeminiCustom', () => {
         promptSent: 'prompt',
         rawResponse: 'response',
       },
-      metadata: {},
+      metadata: { promptSent: 'prompt', rawResponse: 'response' },
       error: null,
     });
 
@@ -166,7 +171,10 @@ describe('handleGeminiCustom', () => {
       getCurrentNPCs: mockGetCurrentNPCs,
     });
 
-    const interactionTimestampCall = mockDispatch.mock.calls.find(([action]) => action.type === 'UPDATE_NPC_INTERACTION_TIMESTAMP');
+    const interactionTimestampCall = mockDispatch.mock.calls.find(
+      (call): call is [{ type: 'UPDATE_NPC_INTERACTION_TIMESTAMP'; payload: { npcId: string; timestamp: number } }] =>
+        call[0].type === 'UPDATE_NPC_INTERACTION_TIMESTAMP'
+    );
     expect(interactionTimestampCall).toBeDefined();
     expect(interactionTimestampCall?.[0].payload).toEqual({
       npcId: 'npc_1',
@@ -183,7 +191,7 @@ describe('handleGeminiCustom', () => {
         promptSent: 'prompt',
         rawResponse: 'response',
       },
-      metadata: {},
+      metadata: { promptSent: 'prompt', rawResponse: 'response' },
       error: null,
     });
     mockGetCurrentNPCs.mockReturnValue([
@@ -223,7 +231,10 @@ describe('handleGeminiCustom', () => {
       'npc_1',
     );
 
-    const interactionTimestampCalls = mockDispatch.mock.calls.filter(([action]) => action.type === 'UPDATE_NPC_INTERACTION_TIMESTAMP');
+    const interactionTimestampCalls = mockDispatch.mock.calls.filter(
+      (call): call is [{ type: 'UPDATE_NPC_INTERACTION_TIMESTAMP'; payload: { npcId: string; timestamp: number } }] =>
+        call[0].type === 'UPDATE_NPC_INTERACTION_TIMESTAMP'
+    );
     expect(interactionTimestampCalls).toHaveLength(2);
     expect(interactionTimestampCalls.map(([action]) => action.payload.npcId).sort()).toEqual(['npc_1', 'npc_2']);
     expect(interactionTimestampCalls.every(([action]) => action.payload.timestamp === gameTime.getTime())).toBe(true);

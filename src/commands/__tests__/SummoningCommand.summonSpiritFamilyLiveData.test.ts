@@ -130,7 +130,7 @@ describe('SummoningCommand live summon spirit family metadata bridge', () => {
       currentHP: 30,
       maxHP: 30
     } as unknown as CombatCharacter;
-    const summonEffect = spell.effects.find(effect => effect.type === 'SUMMONING') as SummoningEffect;
+    const summonEffect = spell.effects.find(effect => effect.type === 'SUMMONING') as unknown as SummoningEffect;
     const context = {
       spellId: spell.id,
       spellName: spell.name,
@@ -139,13 +139,13 @@ describe('SummoningCommand live summon spirit family metadata bridge', () => {
       targets: [],
       playerInput: selectedForm,
       gameState: {}
-    } as CommandContext;
+    } as unknown as CommandContext;
     const state = {
       characters: [caster],
       currentTurn: 1,
       round: 1,
       combatLog: []
-    } as CombatState;
+    } as unknown as CombatState;
 
     const nextState = new SummoningCommand(summonEffect, context).execute(state);
     const summonedActor = nextState.characters.find(character =>

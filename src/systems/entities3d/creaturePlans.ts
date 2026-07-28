@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 28/07/2026, 00:35:43
+ * Dependents: systems/entities3d/generateEntityBlueprint.ts
+ * Imports: 3 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file creaturePlans.ts — creature type × size × cue → CreaturePlan.
  *
@@ -71,10 +87,23 @@ function varyPlan(creatureType: string, template: PlanTemplate, rng: PlanRng): P
   if (t.frame.lengthFt !== undefined) t.frame.lengthFt *= range(rng, 0.94, 1.08);
   if (t.spine.bulge !== undefined) t.spine.bulge = Math.min(1, Math.max(0, t.spine.bulge * range(rng, 0.8, 1.2)));
   t.spine.taper = Math.min(1, Math.max(0.2, t.spine.taper + range(rng, -0.05, 0.05)));
-  for (const a of t.appendages) {
+  for (const [ai, a] of t.appendages.entries()) {
     for (const l of a.chain) {
       l.lenFt *= range(rng, 0.88, 1.14);
       l.r *= range(rng, 0.9, 1.12);
+    }
+    // Budget-neutral lengths: per-link jitter above varies SEGMENTATION, but
+    // independent rolls stack multiplicatively down a chain — the 2026-07-27
+    // "giraffe dragon" (forge seed 1: all 3 neck links rolled long while the
+    // 2-link legs rolled short, a ~2x neck-vs-leg silhouette drift). Rescale
+    // each chain so its TOTAL length lands in a tight band around the
+    // template — individuals differ in build, species silhouettes stay sane.
+    const tpl = template.appendages[ai];
+    const tplTotal = tpl ? tpl.chain.reduce((s, l) => s + l.lenFt, 0) : 0;
+    const gotTotal = a.chain.reduce((s, l) => s + l.lenFt, 0);
+    if (tplTotal > 0 && gotTotal > 0) {
+      const k = (tplTotal * range(rng, 0.94, 1.08)) / gotTotal;
+      for (const l of a.chain) l.lenFt *= k;
     }
   }
   for (const h of t.heads) {
@@ -255,23 +284,30 @@ function spiderPlan(name: string, h: number, b: number): PlanTemplate {
 }
 
 function dragonPlan(h: number, b: number): PlanTemplate {
-  const reach = h * 0.95;
+  // 2026-07-28 "dachshund" fix: the torso was 2.8h long on 0.95h legs (~3:1 —
+  // literally dachshund ratio). Now ~2:1 with a taller stance, which reads
+  // big-cat/dragon instead of sausage-dog. Tail still supplies the length.
+  const reach = h * 1.02;
   return {
     name: 'Dragon',
-    frame: { heightFt: h, lengthFt: h * 2.8, bulk: Math.max(b, 0.55), stance: 'horizontal' },
-    spine: { segments: 5, taper: 0.7, arch: 0.08, bulge: 0.5 },
+    frame: { heightFt: h, lengthFt: h * 2.0, bulk: Math.max(b, 0.55), stance: 'horizontal' },
+    // three-lobe mass: deep chest (wings + forelegs), tucked waist, driving hips —
+    // the 2026-07-27 "hot dog dragon" was the old single-sine bulge sausage
+    spine: { segments: 5, taper: 0.7, arch: 0.08, bulge: 0.5, mass: [1.35, 0.78, 1.12] },
     appendages: [
-      ...quadLegs(reach, 0.42, 0.5),
-      // index 2 — the signature long neck the head rides
+      // heavier haunches than the generic quad — dragon hindquarters drive it
+      ...quadLegs(reach, 0.55, 0.72),
+      // index 2 — neck: shorter and base-thick (was 0.84h of garden hose);
+      // the head-carry pass in compilePlan still thickens it toward the head
       {
         kind: 'neck',
         attach: 0.04,
         perSide: false,
         count: 1,
         chain: [
-          { lenFt: h * 0.3, r: 0.5 },
-          { lenFt: h * 0.28, r: 0.42 },
-          { lenFt: h * 0.26, r: 0.36 },
+          { lenFt: h * 0.2, r: 0.66 },
+          { lenFt: h * 0.17, r: 0.52 },
+          { lenFt: h * 0.16, r: 0.4 },
         ],
       },
       tailChain([
@@ -285,7 +321,7 @@ function dragonPlan(h: number, b: number): PlanTemplate {
       {
         neckIndex: 2,
         form: 'beast',
-        sizeScale: 1.1,
+        sizeScale: 1.28, // a head big enough to justify the neck (was a knob)
         eyes: { count: 2, sizeScale: 0.9, pupil: 'slit' },
         snout: { lengthScale: 1.25, droop: 0.1 },
       },

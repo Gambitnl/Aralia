@@ -228,14 +228,14 @@ export const buildTrueStrikeAttack = (
         type: 'damage',
         value: 0,
         dice: baseDamageDice,
-        damageType: baseDamageType
+        damageType: baseDamageType as any
       },
       ...(scalingDice
         ? [{
             type: 'damage' as const,
             value: 0,
             dice: scalingDice,
-            damageType: 'Radiant'
+            damageType: 'radiant' as const
           }]
         : [])
     ],

@@ -160,7 +160,7 @@ const CombatRailResizeHandle: React.FC<CombatRailResizeHandleProps> = ({
         side === 'roster' ? 'right-0' : 'left-0'
       }`}
       onMouseDown={handleMouseDown}
-      onKeyDown={handleKeyDown}
+      onKeyDown={handleKeyDown as unknown as React.KeyboardEventHandler<HTMLButtonElement>}
       onDoubleClick={onReset}
       title="Drag or use arrow keys to resize. Double-click to reset."
     >

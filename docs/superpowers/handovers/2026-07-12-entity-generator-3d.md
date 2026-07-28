@@ -29,6 +29,50 @@ Hopper stays flap-0 (no winged hopper profiles exist). Pinned by driver
 tests (beat envelope, idle-vs-walk amplitude, hopper zero) and an end-to-end
 assembler test (walking Huge dragon: `wingL.rotation.z` sweeps ≈1.4 rad and
 mirrors `wingR`).
+**Update 2026-07-28 — "dachshund" proportion fix + wing-fold tune.**
+User verdict on the wave-5 dragon: "still looks like a long dachshund." Root cause
+was the ratio, not the lumps: torso `lengthFt 2.8h` on `reach 0.95h` legs ≈ 3:1
+torso:leg (dachshund territory; big cats sit ~1.3–1.6:1). Dragon template now
+2.0h torso on 1.02h legs (~2:1, taller stance; tail keeps the length). Idle wing
+fold retuned through three render iterations to a steep 1.32 dihedral + 0.5
+y-sweep — folded membranes hang vertical along the flank instead of curtaining
+the legs or hiding the haunches. Walking fold=0, gait byte-untouched. Suite
+416/416, tsc filtered clean, headers synced. Proof: `.agent/scratch/doxie4-*.png`
+(+ doxie/doxie2/doxie3 iteration trail). Residuals: folded wing can't shrink
+span (rigid rotation), neck-chest shelf remains, beast template keeps 2.3h torso
+(same ratio argument applies if flagged).
+**Update 2026-07-27 (late) — dragon body-plan rework: spine massing, hocks, wing fold.**
+A user side-view screenshot proved the forge-1 dragon was still a hot-dog torso +
+hose neck + suitcase-handle wings + bent-wire legs (prior "prettier" claims were
+single-angle renders — verification failure admitted; multi-angle proof is now
+standing policy). (1) Torso radius curve extracted from two duplicated copies into
+`textPlan/spineProfile.ts` (`spineRadiusAt`) with optional `spine.mass[chest,waist,
+hips]` three-lobe profile; dragon rolls [1.35, 0.78, 1.12], plans without mass stay
+byte-identical, and the rigid-seg crowd fallback now honors bulge (deliberate
+silhouette change). (2) Dragon neck 0.84h hose → 0.53h base-thick 3 links, head
+1.28x, legs `quadLegs(reach, 0.55, 0.72)` with hind V-bend flipped (digitigrade
+hocks), 'back' anchor moved waist→shoulders (u≈0.3). (3) Dragon wings scale 2.2
+(span keyed off height vs 2.8x-height body) and now FOLD at idle: `wingFold` on
+the drivers (`1 - speedFactor*3.5`, set at the three groundedWingBeat sites) maps
+to mirrored dihedral + backward sweep in the assembler; walking restores prior
+behavior byte-identical. Suite 416/416, tsc filtered clean, headers synced.
+Proof: `.agent/scratch/bodyplan-side90.png` / `fold-side90.png` vs
+`user-brutal-check.png`. Residuals: idle tips may clip short-legged winged bipeds
+(untested on celestial/fiend/fairy), neck-chest shelf remains, wing CHAINS
+(plan-language) don't fold, crowd-bake silhouette change unverified in-game.
+**Update 2026-07-27 (eve) — beauty pass: proportion budgets, wing harmony, eyes.**
+User-facing polish driven by rendered critique ("its ugly as F"). (1) The wave-3
+per-link chain jitter stacked multiplicatively — forge seed 1 produced a
+giraffe-necked dragon (~2x neck-vs-leg drift). `varyPlan` now renormalizes each
+chain's TOTAL length to ±8% of template (segmentation still varies); 200-seed
+budget test pins it, probe shows 0.88–1.14x. (2) Wing membranes/spars/feathers
+derive from the skin palette (x0.55 / x0.32 / 72%-to-white tint) instead of
+one-hex-fits-all mauve/cardboard; `params.colorHex` still overrides.
+(3) Eyes de-googled (0.24hr planned / 0.25 legacy, warm off-white) plus a
+luminance guard that darkens pupils when iris ≈ skin (gold-on-gold dragons).
+Suite 416/416. Residuals: s7's tilted-back idle pose hides its own face from
+the forge camera (pupil guard unit-proven, not pixel-proven); dragon necks are
+long BY DESIGN — budgets only stop compounding.
 **Update 2026-07-27 — beast head redesigned + seeded anatomy individuality.**
 Two generator upgrades in one pass. (1) The `beast` head form is no longer a
 featureless `BoxGeometry` crate that swallowed the eyes whole: it's now a

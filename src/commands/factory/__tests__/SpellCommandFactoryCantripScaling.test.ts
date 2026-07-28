@@ -28,7 +28,7 @@ const gameState = createMockGameState()
 
 function getAttackRollModifierCommand(commands: unknown[]) {
   return commands.find(
-    (c): c is TestCommandWithEffect => 'effect' in c && (c as TestCommandWithEffect).effect.type === 'ATTACK_ROLL_MODIFIER'
+    (c): c is TestCommandWithEffect => Boolean(c) && typeof c === 'object' && 'effect' in (c as object) && (c as TestCommandWithEffect).effect.type === 'ATTACK_ROLL_MODIFIER'
   )
 }
 

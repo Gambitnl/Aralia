@@ -120,7 +120,7 @@ describe('useAutoSave checkpoint tiers', () => {
     const { rerender } = renderHook(() => useAutoSave(state, true));
 
     for (let second = 1; second <= 30; second += 1) {
-      state = { ...state, gameTime: new Date(second * 1000).toISOString() };
+      state = { ...state, gameTime: new Date(second * 1000) };
       rerender();
       await act(async () => {
         await vi.advanceTimersByTimeAsync(1_000);

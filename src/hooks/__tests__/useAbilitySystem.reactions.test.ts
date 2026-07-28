@@ -208,7 +208,7 @@ describe('useAbilitySystem - Reactions', () => {
                 dimensions: { width: 10, height: 10 },
                 theme: 'dungeon',
                 seed: 1
-            } as BattleMapData,
+            } as unknown as BattleMapData,
             onExecuteAction: mockExecuteAction,
             onCharacterUpdate: mockCharacterUpdate,
             onLogEntry: mockLogEntry,
@@ -279,10 +279,10 @@ describe('useAbilitySystem - Reactions', () => {
         });
 
         expect(localExecuteAction).toHaveBeenCalledTimes(2);
-        expect(localExecuteAction.mock.calls[0][0]).toEqual(expect.objectContaining({
+        expect((localExecuteAction as any).mock.calls[0][0]).toEqual(expect.objectContaining({
             suppressAbilityEvents: true
         }));
-        expect(localExecuteAction.mock.calls[1][0]).toEqual(expect.objectContaining({
+        expect((localExecuteAction as any).mock.calls[1][0]).toEqual(expect.objectContaining({
             reactiveEventsOnly: true,
             attackResults: [{
                 targetId: defender.id,
@@ -947,7 +947,7 @@ describe('useAbilitySystem - Reactions', () => {
             onAbilityEffect: vi.fn()
         }));
 
-        let executionPromise: Promise<void>;
+        let executionPromise: Promise<boolean | undefined | void>;
         await act(async () => {
             executionPromise = result.current.executeSpell(
                 originalSpell,
@@ -1101,7 +1101,7 @@ describe('useAbilitySystem - Reactions', () => {
             onAbilityEffect: vi.fn()
         }));
 
-        let executionPromise: Promise<void>;
+        let executionPromise: Promise<boolean | undefined | void>;
         await act(async () => {
             executionPromise = result.current.executeAbility(
                 fireballAbility,
@@ -1241,7 +1241,7 @@ describe('useAbilitySystem - Reactions', () => {
             onAbilityEffect: vi.fn()
         }));
 
-        let executionPromise: Promise<void>;
+        let executionPromise: Promise<boolean | undefined | void>;
         await act(async () => {
             executionPromise = result.current.executeSpell(
                 originalSpell,

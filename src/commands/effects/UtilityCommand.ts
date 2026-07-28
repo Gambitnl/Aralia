@@ -2112,7 +2112,7 @@ export class UtilityCommand extends BaseEffectCommand {
             spellName: this.context.spellName,
             casterId: this.context.caster.id,
             kind: 'mage_hand',
-            entityType: controlledEntity.entityType,
+            entityType: controlledEntity.entityType ?? 'spectral_hand',
             position,
             size: 'Tiny',
             creature: false,
@@ -2178,7 +2178,7 @@ export class UtilityCommand extends BaseEffectCommand {
             spellName: this.context.spellName,
             casterId: this.context.caster.id,
             kind: 'spiritual_weapon',
-            entityType: controlledEntity.entityType,
+            entityType: controlledEntity.entityType ?? 'spectral_weapon',
             position,
             reachFeet: controlledEntity.reachFeet ?? 5,
             moveDistanceFeet: controlledEntity.moveDistanceFeet ?? grantedAction?.rangeLimit ?? 20,
@@ -2625,7 +2625,7 @@ export class UtilityCommand extends BaseEffectCommand {
             spellName: this.context.spellName,
             casterId: this.context.caster.id,
             kind: 'bigbys_hand',
-            entityType: controlledEntity.entityType,
+            entityType: controlledEntity.entityType ?? 'hand_of_force',
             position,
             size: createdHand?.size ?? 'Large',
             reachFeet: 5,
@@ -4616,13 +4616,14 @@ export class UtilityCommand extends BaseEffectCommand {
             return null
         }
 
-        const abilityId = `${this.context.spellId || 'created-object'}-${createdObject.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${index}`
+        const objName = createdObject.name ?? 'Created Object';
+        const abilityId = `${this.context.spellId || 'created-object'}-${objName.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${index}`
 
         return {
             id: abilityId,
             sourceSpellId: this.context.spellId,
-            name: `Eat ${createdObject.name}`,
-            description: createdObject.notes ?? `Consume one ${createdObject.name}.`,
+            name: `Eat ${objName}`,
+            description: createdObject.notes ?? `Consume one ${objName}.`,
             type: 'utility',
             cost: { type: actionCost },
             targeting: 'single_ally',
@@ -4631,9 +4632,9 @@ export class UtilityCommand extends BaseEffectCommand {
                 type: 'heal',
                 value: createdObject.healingPerItem
             }],
-            tags: ['spell-created-object', this.context.spellId || 'unknown-spell', createdObject.objectType],
-            maxUses: createdObject.count,
-            usesRemaining: createdObject.count,
+            tags: ['spell-created-object', this.context.spellId || 'unknown-spell', createdObject.objectType ?? 'created_object'],
+            maxUses: createdObject.count ?? 1,
+            usesRemaining: createdObject.count ?? 1,
             createdObjectExpiresAtRound: this.getCreatedObjectExpiresAtRound(currentTurn),
             createdObjectDuration: this.getCreatedObjectDuration(),
             icon: '*'
@@ -4690,6 +4691,7 @@ export class UtilityCommand extends BaseEffectCommand {
     private createSpellCreatedInventoryItems(
         createdObject: NonNullable<UtilityEffect['createdObjects']>[number]
     ): Item[] {
+        const objName = createdObject.name ?? 'Created Object';
         if (createdObject.inventoryItemId) {
             // Provisioning counts canonical inventory ids such as "rations" and
             // "water-day". Emit one stack with the requested resource-day
@@ -4697,10 +4699,10 @@ export class UtilityCommand extends BaseEffectCommand {
             // without parsing the spell name or prose.
             return [{
                 id: createdObject.inventoryItemId,
-                name: createdObject.name,
+                name: objName,
                 description: createdObject.notes ?? `Created by ${this.context.spellName}.`,
                 type: 'food_drink',
-                quantity: createdObject.inventoryQuantity ?? createdObject.count,
+                quantity: (createdObject.inventoryQuantity ?? createdObject.count) ?? 1,
                 isConsumed: true,
                 perishable: createdObject.perishable ?? createdObject.expiresWithSpell,
                 shelfLife: createdObject.shelfLife ?? this.describeCreatedObjectShelfLife(),
@@ -4716,9 +4718,9 @@ export class UtilityCommand extends BaseEffectCommand {
             return []
         }
 
-        return Array.from({ length: Math.max(0, createdObject.count) }, (_, index): Item => ({
-            id: `${this.context.spellId || 'spell'}-${createdObject.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${generateId()}-${index}`,
-            name: createdObject.name,
+        return Array.from({ length: Math.max(0, createdObject.count ?? 1) }, (_, index): Item => ({
+            id: `${this.context.spellId || 'spell'}-${objName.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${generateId()}-${index}`,
+            name: objName,
             description: createdObject.notes ?? `Created by ${this.context.spellName}.`,
             type: 'consumable',
             quantity: 1,

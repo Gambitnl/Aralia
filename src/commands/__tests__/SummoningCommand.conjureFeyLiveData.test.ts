@@ -20,7 +20,7 @@ import conjureFey from '../../../public/data/spells/level-6/conjure-fey.json';
  */
 
 describe('SummoningCommand live Conjure Fey metadata bridge', () => {
-  it('creates a Fey Spirit summon with preserved form, command, and lifecycle metadata', () => {
+  it('creates a Fey Spirit summon with preserved form, command, and lifecycle metadata', async () => {
     const caster = createMockCombatCharacter({
       id: 'conjure-fey-caster',
       name: 'Conjure Fey Caster',
@@ -39,7 +39,7 @@ describe('SummoningCommand live Conjure Fey metadata bridge', () => {
         cr: '0'
       }
     });
-    const summonEffect = conjureFey.effects.find(effect => effect.type === 'SUMMONING') as SummoningEffect;
+    const summonEffect = conjureFey.effects.find(effect => effect.type === 'SUMMONING') as unknown as SummoningEffect;
     const context = {
       spellId: conjureFey.id,
       spellName: conjureFey.name,
@@ -47,7 +47,7 @@ describe('SummoningCommand live Conjure Fey metadata bridge', () => {
       caster,
       targets: [],
       gameState: {}
-    } as CommandContext;
+    } as unknown as CommandContext;
     const state = {
       isActive: true,
       characters: [caster],
@@ -68,7 +68,7 @@ describe('SummoningCommand live Conjure Fey metadata bridge', () => {
       activeLightSources: []
     } as CombatState;
 
-    const summonedState = new SummoningCommand(summonEffect, context).execute(state);
+    const summonedState = await new SummoningCommand(summonEffect, context).execute(state);
     const summonedSpirit = summonedState.characters.find(character =>
       character.isSummon &&
       character.summonMetadata?.spellId === conjureFey.id &&
@@ -112,7 +112,7 @@ describe('SummoningCommand live Conjure Fey metadata bridge', () => {
 
     expect(firstCommands).toHaveLength(2);
 
-    const afterFirstCommand = firstCommands[0].execute(summonedState);
+    const afterFirstCommand = await firstCommands[0].execute(summonedState);
     const spiritAfterFirstCommand = afterFirstCommand.characters.find(character => character.id === summonedSpirit?.id);
 
     expect(spiritAfterFirstCommand?.summonMetadata?.commandsUsedThisTurn).toBe(1);
@@ -152,7 +152,7 @@ describe('SummoningCommand live Conjure Fey metadata bridge', () => {
         cr: '0'
       }
     });
-    const summonEffect = conjureFey.effects.find(effect => effect.type === 'SUMMONING') as SummoningEffect;
+    const summonEffect = conjureFey.effects.find(effect => effect.type === 'SUMMONING') as unknown as SummoningEffect;
     const context = {
       spellId: conjureFey.id,
       spellName: conjureFey.name,
@@ -160,7 +160,7 @@ describe('SummoningCommand live Conjure Fey metadata bridge', () => {
       caster,
       targets: [],
       gameState: {}
-    } as CommandContext;
+    } as unknown as CommandContext;
     const initialState = {
       isActive: true,
       characters: [caster],
@@ -248,7 +248,7 @@ describe('SummoningCommand live Conjure Fey metadata bridge', () => {
       caster,
       targets: [],
       gameState: {}
-    } as CommandContext;
+    } as unknown as CommandContext;
     const state = {
       isActive: true,
       characters: [caster, enemy],

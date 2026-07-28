@@ -91,7 +91,7 @@ describe('useTurnManager rolled summon scheduling', () => {
       targets: [],
       playerInput: 'Wolf',
       gameState: {}
-    } as CommandContext;
+    } as unknown as CommandContext;
     const summonState = new SummoningCommand(summonEffect, context).execute({
       isActive: true,
       characters: [caster],

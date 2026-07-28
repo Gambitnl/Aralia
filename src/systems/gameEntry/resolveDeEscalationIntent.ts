@@ -66,7 +66,13 @@ export async function resolveDeEscalationIntent(
     'Pick skills ONLY from the player\'s skill list names.';
 
   const result = await client.generateForTask({ taskType: 'opening_situation', prompt, format: 'json' });
-  if (!result.ok) throw new Error(`Could not read your intent (model unavailable: ${result.error}).`);
+  if (!result.ok) {
+    const errorMsg = 'error' in result && typeof result.error === 'string' ? result.error : undefined;
+    if (!errorMsg) {
+      throw new Error('Could not read your intent (model call failed without an error message).');
+    }
+    throw new Error(`Could not read your intent (model unavailable: ${errorMsg}).`);
+  }
 
   const raw = parseJsonRobustly<RawIntent>(result.data.response);
   if (!raw || typeof raw.kind !== 'string') {

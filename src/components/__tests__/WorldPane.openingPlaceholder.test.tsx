@@ -21,10 +21,10 @@ beforeAll(() => {
 });
 
 const msg = (text: string): GameMessage => ({
-  id: `m-${text}`,
+  id: `m-${text}` as any,
   text,
   sender: 'system',
-  timestamp: Date.now(),
+  timestamp: Date.now() as any,
 });
 
 const glossaryEntries: GlossaryEntry[] = [

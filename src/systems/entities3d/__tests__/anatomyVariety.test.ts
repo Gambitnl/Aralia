@@ -80,9 +80,10 @@ describe('seeded creature anatomy (the individuality pass)', () => {
     const b = planForCreature('Dragon', 'Huge', [], 12, 0.9);
     expect(a).toEqual(b);
     expect(a!.heads[0].form).toBe('beast'); // no identity rolls without a stream
-    // and the historical table values are untouched
+    // and the historical table values are untouched (2026-07-27: + three-lobe
+    // mass profile from the body-plan rework — chest/waist/hips, not sausage)
     expect(a!.appendages.map((x) => x.kind)).toEqual(['leg', 'leg', 'neck', 'tail']);
-    expect(a!.spine).toEqual({ segments: 5, taper: 0.7, arch: 0.08, bulge: 0.5 });
+    expect(a!.spine).toEqual({ segments: 5, taper: 0.7, arch: 0.08, bulge: 0.5, mass: [1.35, 0.78, 1.12] });
   });
 
   it('monstrosity pupils roll across seeds', () => {
@@ -100,6 +101,32 @@ describe('seeded creature anatomy (the individuality pass)', () => {
       const bp = generateEntityBlueprint({ kind: 'humanoid', raceId: 'infernal_tiefling', classId: 'fighter', seed: `indy-tief-${i}` });
       expect(bp.parts.some((p) => p.partId === 'hornsCurved')).toBe(true);
       expect(bp.parts.some((p) => p.partId === 'hornsStraight' || p.partId === 'hornsRam')).toBe(false);
+    }
+  });
+
+  it('chain totals stay budget-neutral across 200 seeds (no giraffe dragons)', () => {
+    // Regression for 2026-07-27: per-link length jitter stacked multiplicatively
+    // (forge seed 1 rolled long on all 3 neck links + short on both leg links,
+    // a ~2x neck-vs-leg silhouette drift). varyPlan now renormalizes each chain
+    // so its TOTAL length lands within a tight band of the template's.
+    const mulberry32 = (seed: number) => {
+      let a = seed >>> 0;
+      return { next() {
+        a |= 0; a = (a + 0x6D2B79F5) | 0;
+        let t = Math.imul(a ^ (a >>> 15), 1 | a);
+        t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+      } };
+    };
+    const tpl = planForCreature('Dragon', 'Huge', [], 12, 0.9)!;
+    const sum = (chain: ReadonlyArray<{ lenFt: number }>) => chain.reduce((s, l) => s + l.lenFt, 0);
+    for (let i = 1; i <= 200; i++) {
+      const v = planForCreature('Dragon', 'Huge', [], 12, 0.9, mulberry32(i * 7919))!;
+      v.appendages.forEach((a, ai) => {
+        const ratio = sum(a.chain) / sum(tpl.appendages[ai].chain);
+        expect(ratio, `${a.kind} chain total drifted out of band on seed ${i}`).toBeGreaterThanOrEqual(0.94 - 1e-9);
+        expect(ratio, `${a.kind} chain total drifted out of band on seed ${i}`).toBeLessThanOrEqual(1.08 + 1e-9);
+      });
     }
   });
 });

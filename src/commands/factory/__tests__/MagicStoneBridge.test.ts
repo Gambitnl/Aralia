@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { UtilityCommand } from '../../effects/UtilityCommand'
+import type { CharacterStats } from '@/types/core'
 import { WeaponAttackCommand } from '../AbilityCommandFactory'
 import magicStone from '../../../../public/data/spells/level-0/magic-stone.json'
 import { createMockCombatCharacter, createMockCombatState, createMockItem } from '@/utils/factories'
@@ -104,12 +105,11 @@ const createTarget = (armorClass = 14): CombatCharacter =>
       intelligence: 10,
       wisdom: 10,
       charisma: 10
-    }
+    } as unknown as CharacterStats
   })
 
 const createMagicStoneCommand = (caster: CombatCharacter): UtilityCommand => {
   const effect = magicStone.effects[0] as never
-
   return new UtilityCommand(effect, {
     spellId: magicStone.id,
     spellName: magicStone.name,
@@ -118,7 +118,7 @@ const createMagicStoneCommand = (caster: CombatCharacter): UtilityCommand => {
     targets: [caster],
     gameState: {} as never,
     effectDuration: magicStone.duration as never,
-    conditionalEndings: effect.conditionalEndings || (magicStone as never).conditionalEndings
+    conditionalEndings: (effect as any).conditionalEndings || (magicStone as any).conditionalEndings
   })
 }
 

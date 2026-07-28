@@ -11,6 +11,7 @@ import { handleLongRest, handleShortRest } from '../handleResourceActions';
 import { createMockGameState, createMockPlayerCharacter } from '../../../utils/factories';
 import { getGameDay } from '../../../utils/core';
 import type { GameState } from '../../../types';
+import type { AppAction } from '../../../state/actionTypes';
 import { createInitialJournalState } from '../../../types/journal';
 import type { AddMessageFn } from '../../actions/actionHandlerTypes';
 
@@ -115,7 +116,7 @@ describe('handleShortRest', () => {
       },
     };
 
-    handleShortRest({ gameState: state, dispatch: mockDispatch, addMessage: mockAddMessage as AddMessageFn });
+    handleShortRest({ gameState: state, dispatch: mockDispatch as unknown as React.Dispatch<AppAction>, addMessage: mockAddMessage as AddMessageFn });
 
     // Keep the mechanical rest update ahead of the authoritative clock update,
     // and prove the tracker uses the post-midnight day reached by that update.

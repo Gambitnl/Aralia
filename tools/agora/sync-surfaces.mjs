@@ -10,10 +10,43 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 const dayDiff = (now, d) => Math.max(0, Math.round((now - new Date(d)) / 86400000));
 
-const atomicWrite = (file, text) => {
-  const tmp = `${file}.tmp`;
-  fs.writeFileSync(tmp, text);
-  fs.renameSync(tmp, file);
+// Windows hands out the target file's handle to whoever else has it open — the
+// dev server's watcher over public/ is the prime suspect — and the write fails
+// for a few seconds at a time. Reproduced 2026-07-28: two consecutive failures,
+// then success on the third try about 4 s later. Seen as EPERM on the rename and
+// as libuv's UNKNOWN (-4094) on the open. Giving up on the first failure is what
+// froze health.json for three days (2026-07-23 → 26) with every age on the
+// plan-map page stale, so a transient lock must not lose the whole step.
+const WRITE_ATTEMPTS = 6;
+const WRITE_BACKOFF_MS = 250;
+
+/** Block the thread briefly — this is a one-shot batch program, not a server. */
+const sleepSync = (ms) => {
+  const until = Date.now() + ms;
+  while (Date.now() < until) { /* spin */ }
+};
+
+const atomicWrite = (file, text, { attempts = WRITE_ATTEMPTS, sleep = sleepSync } = {}) => {
+  // A pid-scoped tmp name means two concurrent writers cannot fight over one
+  // scratch path while they retry.
+  const tmp = `${file}.${process.pid}.tmp`;
+  let lastError;
+  for (let attempt = 1; attempt <= attempts; attempt++) {
+    try {
+      fs.writeFileSync(tmp, text);
+      fs.renameSync(tmp, file);
+      return { attempts: attempt };
+    } catch (e) {
+      lastError = e;
+      // Never leave scratch files behind for the next run to trip over.
+      try { fs.rmSync(tmp, { force: true }); } catch { /* ignore */ }
+      if (attempt < attempts) sleep(WRITE_BACKOFF_MS * attempt);
+    }
+  }
+  throw new Error(
+    `could not write ${path.basename(file)} after ${attempts} attempts — ` +
+    `something is holding it open (${lastError?.code ?? lastError?.message})`,
+  );
 };
 
 const readJson = (file) => JSON.parse(fs.readFileSync(file, 'utf8'));

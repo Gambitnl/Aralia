@@ -51,7 +51,7 @@ export function prepareResponsiveAtlasNow(
   // FMG's precipitation pass leaves deterministic non-index properties on its
   // typed array. They are part of the generated object but structured clone
   // silently drops them, so carry them explicitly for byte-exact restoration.
-  const gridPrecipitation = Object.entries(atlas.grid.cells.prec)
+  const gridPrecipitation = Object.entries(atlas.grid.cells.prec || {})
     .filter(([key]) => Number.isNaN(Number(key))) as Array<[string, number]>;
 
   const cloneableAtlas = {

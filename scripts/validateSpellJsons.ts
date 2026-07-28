@@ -14,7 +14,6 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type { ZodIssue } from 'zod';
-// @ts-expect-error -- tsx resolves local TS entrypoints at runtime; keep extensionless for script stability.
 import { SpellValidator } from '../src/systems/spells/validation/spellValidator';
 
 // ============================================================================

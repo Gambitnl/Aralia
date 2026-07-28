@@ -15,7 +15,7 @@
 // @dependencies-end
 
 import { SpellValidator } from "../src/systems/spells/validation/spellValidator";
-import { isAttackRollModifierEffect, type EffectDuration } from "../src/types/spells";
+import { isAttackRollModifierEffect, type EffectDuration, type SpellEffect } from "../src/types/spells";
 
 /**
  * Shared helpers for comparing spell attack-roll rider rows against runtime
@@ -228,10 +228,11 @@ export function formatRuntimeAttackRollRiders(spell: unknown): RuntimeAttackRoll
     return { value: "", riders: [] };
   }
 
-  const riders = parsed.data.effects
+  const riders = (parsed.data.effects as SpellEffect[])
     .filter(isAttackRollModifierEffect)
     .map((effect) => {
-      const rider = effect.attackRollModifier;
+      const rider = (effect as any).attackRollModifier;
+      if (!rider) return "";
       return formatAttackRollValue({
         modifier: rider.modifier,
         direction: rider.direction,
@@ -243,7 +244,8 @@ export function formatRuntimeAttackRollRiders(spell: unknown): RuntimeAttackRoll
         attackerFilter: rider.attackerFilter ? JSON.stringify(rider.attackerFilter) : "",
         notes: rider.notes || "",
       });
-    });
+    })
+    .filter(Boolean);
 
   return {
     value: riders.join(" | "),

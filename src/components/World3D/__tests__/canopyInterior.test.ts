@@ -78,7 +78,10 @@ describe('canopyInterior (canopy atmosphere modulation, forests Task 11)', () =>
       fogNear: GROUND_FOG_NEAR,
       fogFar: GROUND_FOG_FAR,
     });
-    expect(GROUND_FOG_NEAR).toBe(450);
-    expect(GROUND_FOG_FAR).toBe(2000);
+    // 2026-07-21 far-shells lift: open-air fog moved out from 450/2000 so the
+    // region ring and atlas horizon show through the haze. Canopy grades are
+    // absolute and unaffected — only these open-air values moved.
+    expect(GROUND_FOG_NEAR).toBe(600);
+    expect(GROUND_FOG_FAR).toBe(15000);
   });
 });

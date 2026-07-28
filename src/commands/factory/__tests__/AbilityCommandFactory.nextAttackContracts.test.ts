@@ -46,7 +46,7 @@ describe('next-attack rider data contracts', () => {
       currentTurn: 1,
       round: 1,
       combatLog: []
-    } as CombatState;
+    } as unknown as CombatState;
 
     // The hand-built hit/miss tests below prove rider behavior after the
     // riders exist. This live-data guard proves the actual spell-cast factory

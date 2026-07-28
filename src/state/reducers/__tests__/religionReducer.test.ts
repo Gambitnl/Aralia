@@ -56,7 +56,9 @@ describe('religionReducer', () => {
     it('hydrates legacy favor into the canonical religion state before PRAY updates', () => {
         const state = createInitialState({
             religion: {
-                divineFavor: {}
+                divineFavor: {},
+                discoveredDeities: [],
+                activeBlessings: [],
             },
             divineFavor: {
                 pelor: createFavor(12, 'Devotee')

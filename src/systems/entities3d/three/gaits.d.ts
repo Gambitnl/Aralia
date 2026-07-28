@@ -56,6 +56,9 @@ export interface GaitDriver {
      * bodies — the assembler only applies flap to parts with wingL/wingR
      * groups); hopper stays 0 (no winged hopper profiles exist). */
     readonly flap: number;
+    /** 0 spread … 1 folded along the body. Grounded winged gaits fold at rest
+     * and open with speed; flyers stay 0. The assembler sweeps wingL/wingR by this. */
+    readonly wingFold: number;
     /** Extra body lift (hopper airtime, flyer altitude), applied by the assembler. */
     readonly verticalOffsetM: number;
     /** Plan-driven bodies: live head positions for per-socket eye placement. */

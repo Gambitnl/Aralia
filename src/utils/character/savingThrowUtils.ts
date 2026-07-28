@@ -36,15 +36,15 @@ export interface SavingThrowResult {
     /** Whether the save was successful (total >= dc) */
     success: boolean;
     /** The raw d20 roll before modifiers */
-    roll: number;
+    roll?: number;
     /** Final total: roll + ability mod + proficiency + external modifiers */
     total: number;
     /** The difficulty class that needed to be met or exceeded */
-    dc: number;
+    dc?: number;
     /** True if the raw roll was 20 (auto-success in some contexts) */
-    natural20: boolean;
+    natural20?: boolean;
     /** True if the raw roll was 1 (auto-fail in some contexts) */
-    natural1: boolean;
+    natural1?: boolean;
     /** List of modifiers that were applied (e.g., Bless, Mind Sliver) */
     modifiersApplied?: { source: string; value: number }[];
 }

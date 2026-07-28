@@ -562,7 +562,7 @@ export class DamageCommand extends BaseEffectCommand<DamageEffect> {
           position: target.position,
           entityType: summonControl?.entityType ?? 'zombie_from_killed_target',
           timing: deathAnimation?.timing ?? 'start_of_caster_next_turn',
-          behavior: deathAnimation?.behavior ?? this.effect.aftermathState?.behavior,
+          behavior: (deathAnimation?.behavior ?? this.effect.aftermathState?.behavior) as any,
           statBlock: deathAnimation?.statBlock ?? summonControl?.statBlock
         }
       }
@@ -697,7 +697,7 @@ export class DamageCommand extends BaseEffectCommand<DamageEffect> {
       separationEnding: {
         trigger: separationEnding?.trigger,
         scope: separationEnding?.scope,
-        maxDistanceFeet: separationEnding?.distanceFeet
+        maxDistanceFeet: typeof separationEnding?.distanceFeet === 'number' ? separationEnding.distanceFeet : undefined
       }
     };
 
@@ -760,10 +760,10 @@ export class DamageCommand extends BaseEffectCommand<DamageEffect> {
         vanishWhenReached: false
       },
       elementalSpirit: {
-        origin: this.effect.controlledEntity.origin,
+        origin: (this.effect.controlledEntity as any)?.origin,
         element,
         damageType,
-        initialDamageDice: this.effect.damage.dice,
+        initialDamageDice: (this.effect as any).damage?.dice ?? '0d0',
         repeatDamageDice: repeatDamage?.dice,
         intangible: true,
         restrainedTargetId: undefined
@@ -1474,7 +1474,7 @@ export class DamageCommand extends BaseEffectCommand<DamageEffect> {
       isHit: true,
       isCrit: isCritical,
       attackType: 'spell',
-      weaponType: this.context.attackType
+      weaponType: (this.context.attackType as any) === 'none' ? undefined : (this.context.attackType as any)
     });
   }
 

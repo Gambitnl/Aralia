@@ -87,7 +87,7 @@ describe("occupantScenePosition", () => {
       ageBand: "adult",
       body: {} as never,
       stationsByHour: Array(24).fill(null),
-    } as BuildingOccupantRender;
+    } as unknown as BuildingOccupantRender;
     expect(
       occupantScenePosition(
         occ,
@@ -107,7 +107,7 @@ describe("occupantScenePosition", () => {
       ageBand: "adult",
       body: {} as never,
       stationsByHour: stations,
-    } as BuildingOccupantRender;
+    } as unknown as BuildingOccupantRender;
     // Center of a 20ft x 30ft frame → site-local (0,0) → scene (gx,gz).
     // y = surfaceY + level * STOREY_M = 1.0 + 0 * 3.
     const pos = occupantScenePosition(
@@ -128,7 +128,7 @@ describe("occupantScenePosition", () => {
       ageBand: "adult",
       body: {} as never,
       stationsByHour: stations,
-    } as BuildingOccupantRender;
+    } as unknown as BuildingOccupantRender;
     const pos = occupantScenePosition(
       occ,
       8,
@@ -148,7 +148,7 @@ describe("occupantScenePosition", () => {
       ageBand: "adult",
       body: {} as never,
       stationsByHour: stations,
-    } as BuildingOccupantRender;
+    } as unknown as BuildingOccupantRender;
     // 26 wraps to 2; -22 wraps to 2. Both resolve the 02:00 station.
     const placement = { gx: 5, gz: 7, rotationY: 0, doorZSign: -1 } as const;
     const frame = { widthFt: 20, depthFt: 30 };
@@ -173,7 +173,7 @@ describe("occupantScenePosition", () => {
       ageBand: "adult",
       body: {} as never,
       stationsByHour: stations,
-    } as BuildingOccupantRender;
+    } as unknown as BuildingOccupantRender;
     const FT = 0.3048;
     const pos = occupantScenePosition(
       occ,
@@ -201,7 +201,7 @@ describe("occupantMotionAtClock", () => {
       ageBand: "adult",
       body: {} as never,
       stationsByHour: stations,
-    } as BuildingOccupantRender;
+    } as unknown as BuildingOccupantRender;
   };
 
   const frame = { widthFt: 20, depthFt: 30 };
@@ -270,7 +270,7 @@ describe("occupantMotionAtClock", () => {
       xFt: 15,
       yFt: 15,
       level: 0,
-      activity: "home",
+      activity: "hearthside",
     };
     const door = occupantDoorScenePosition(frame, placement, 0);
     const leaving = occupantMotionAtClock(occ, 7.75, frame, placement, 0, door)!;

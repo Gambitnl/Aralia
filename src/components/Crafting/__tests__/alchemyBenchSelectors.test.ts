@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { PlayerCharacter } from '../../../types';
+import type { PlayerCharacter, Item } from '../../../types';
 import type { CraftingRecipe } from '../../../systems/crafting/alchemyRecipes';
 import type { RecipeCraftability } from '../../../systems/crafting/craftingEngine';
 import { checkRecipeCraftability } from '../../../systems/crafting/craftingEngine';
@@ -286,13 +286,13 @@ describe('alchemyBenchSelectors', () => {
         };
         const inventory = [
             {
-                id: 'rowan_berry',
+                id: 'rowan-berry',
                 name: 'Rowan Berry',
                 description: 'Stacked row used to prove quantity-aware batch previews.',
                 quantity: 4,
                 type: 'consumable'
             }
-        ];
+        ] as unknown as Item[];
         const selectedRecipe = checkRecipeCraftability(
             antitoxin,
             inventory,

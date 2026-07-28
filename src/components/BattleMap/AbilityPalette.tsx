@@ -83,7 +83,7 @@ const AbilityPalette: React.FC<AbilityPaletteProps> = ({
 
     return {
       shape,
-      size: Math.max(1, Math.floor(grantedAction.areaSize / 5))
+      size: Math.max(1, Math.floor((grantedAction.areaSize ?? 0) / 5))
     };
   };
 

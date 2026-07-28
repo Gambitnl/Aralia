@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 27/07/2026, 22:32:15
+ * Dependents: systems/entities3d/generateEntityBlueprint.ts
+ * Imports: 4 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file compilePlan.ts — CreaturePlan → blueprint fields + driver-ready PlanSpec.
  *
@@ -13,6 +29,7 @@ import { FT_TO_M, deriveFrame, headRadiusM } from '../types';
 import type { EntityBlueprint, PartInstance, PlanSpec } from '../types';
 import { getPart } from '../registry';
 import { PLAN_DEFAULT_BLEND, PLAN_DEFAULT_HEIGHT_FRAC, type CreaturePlan } from './planSchema';
+import { spineRadiusAt } from './spineProfile';
 
 /** Short chain-id stems per kind ('tent2', 'leg0L' …). */
 const KIND_STEM: Record<CreaturePlan['appendages'][number]['kind'], string> = {
@@ -50,11 +67,10 @@ export function compilePlan(
   const spineBulge = plan.spine.bulge ?? (plan.spine.shape === 'box' ? 0 : 0.3);
   const blendFrac = (a: CreaturePlan['appendages'][number]): number =>
     a.blend ?? plan.skin?.blend ?? PLAN_DEFAULT_BLEND[a.kind];
-  const hullRadiusAt = (attach: number): number => {
-    const base = Math.max(0.01, bodyRadM * (plan.spine.taper + (1 - plan.spine.taper) * attach));
-    const muscle = 1 + spineBulge * Math.sin(Math.min(1, Math.max(0, (attach - 0.08) / 0.84)) * Math.PI) * 0.55;
-    return base * muscle;
-  };
+  const hullRadiusAt = (attach: number): number =>
+    // THE shared profile (spineProfile.ts) — same curve the driver meshes,
+    // so blend collars hug the body the renderer actually draws
+    spineRadiusAt({ bodyRadM, spine: { taper: plan.spine.taper, bulge: spineBulge, mass: plan.spine.mass } }, attach);
 
   // Expand appendages into concrete chains with stable ids. Mirrored pairs
   // yield L before R; per-kind counters run in appendage order.
@@ -165,6 +181,7 @@ export function compilePlan(
       shape: plan.spine.shape,
       // muscle bulge: authored, or a gentle default on round bodies
       bulge: spineBulge,
+      ...(plan.spine.mass ? { mass: plan.spine.mass } : {}),
     },
     opacity: plan.palette.opacity,
     skinBlend: plan.skin?.blend,

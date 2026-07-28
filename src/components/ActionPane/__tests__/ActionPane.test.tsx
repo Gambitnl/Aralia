@@ -383,7 +383,7 @@ describe('ActionPane', () => {
     openSystemMenu();
     Object.defineProperty(window, 'scrollX', { configurable: true, value: 0 });
     Object.defineProperty(window, 'scrollY', { configurable: true, value: 285 });
-    deferredRestore?.(0);
+    (deferredRestore as unknown as FrameRequestCallback)?.(0);
 
     expect(scrollTo).toHaveBeenCalledWith(0, 0);
 

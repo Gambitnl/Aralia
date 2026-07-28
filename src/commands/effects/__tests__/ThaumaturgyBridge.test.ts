@@ -21,7 +21,7 @@ const caster: CombatCharacter = {
   armorClass: 12,
   abilities: [],
   actionEconomy: { action: { used: false, remaining: 1 }, bonusAction: { used: false, remaining: 1 }, reaction: { used: false, remaining: 1 }, legendary: { used: 0, total: 0 }, movement: { used: 0, total: 30 }, freeActions: 1 }
-} as CombatCharacter;
+} as unknown as CombatCharacter;
 
 const pointTarget: SelectedSpellTarget = {
   kind: 'point',

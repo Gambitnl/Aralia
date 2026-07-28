@@ -732,7 +732,7 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 questLog: loadedState.questLog || [],
                 isQuestLogVisible: false,
                 divineFavor: loadedState.divineFavor || INITIAL_DIVINE_FAVOR,
-                notoriety: loadedState.notoriety || { globalHeat: 0, localHeat: {}, knownCrimes: [] },
+                notoriety: loadedState.notoriety || { globalHeat: 0, localHeat: {}, knownCrimes: [], bounties: [] },
                 notifications: [],
                 // Use loaded or fallback
                 factions: loadedFactions,

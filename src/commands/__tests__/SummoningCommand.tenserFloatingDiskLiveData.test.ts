@@ -4,7 +4,7 @@ import { MovementCommand } from '../effects/MovementCommand'
 import { SummoningCommand } from '../effects/SummoningCommand'
 import { useActionExecutor } from '../../hooks/combat/useActionExecutor'
 import type { CommandContext } from '../base/SpellCommand'
-import type { BattleMapData, CombatAction, CombatCharacter, TurnState } from '@/types/combat'
+import type { BattleMapData, BattleMapTile, CombatAction, CombatCharacter, TurnState } from '@/types/combat'
 import type { MovementEffect, SummoningEffect } from '@/types/spells'
 import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '@/utils/factories'
 import tensersFloatingDisk from '../../../public/data/spells/level-1/tensers-floating-disk.json'
@@ -23,8 +23,8 @@ describe('SummoningCommand live Tenser Floating Disk travel bridge', () => {
     // Use the real spell packet so the proof fails if live JSON loses the
     // travel metadata or the summon bridge stops copying it into combat state.
     const summonEffect = tensersFloatingDisk.effects.find(
-      (effect): effect is SummoningEffect => effect.type === 'SUMMONING'
-    )
+      (effect: any) => effect.type === 'SUMMONING'
+    ) as unknown as SummoningEffect
 
     expect(summonEffect).toBeDefined()
 
@@ -37,7 +37,7 @@ describe('SummoningCommand live Tenser Floating Disk travel bridge', () => {
       initiative: 12
     }) as CombatCharacter
 
-    const command = new SummoningCommand(summonEffect!, {
+    const command = new SummoningCommand(summonEffect, {
       spellId: tensersFloatingDisk.id,
       spellName: tensersFloatingDisk.name,
       castAtLevel: 1,
@@ -79,12 +79,12 @@ describe('SummoningCommand live Tenser Floating Disk travel bridge', () => {
     }))
   })
 
-  it('removes the disk when movement puts the caster beyond the authored 100-foot separation limit', () => {
+  it('removes the disk when movement puts the caster beyond the authored 100-foot separation limit', async () => {
     // Use the real spell packet again so the execution proof depends on the
     // same metadata preservation that the first test guards.
     const summonEffect = tensersFloatingDisk.effects.find(
-      (effect): effect is SummoningEffect => effect.type === 'SUMMONING'
-    )
+      (effect: any) => effect.type === 'SUMMONING'
+    ) as unknown as SummoningEffect
 
     expect(summonEffect).toBeDefined()
 
@@ -95,7 +95,7 @@ describe('SummoningCommand live Tenser Floating Disk travel bridge', () => {
       initiative: 12
     }) as CombatCharacter
 
-    const summonCommand = new SummoningCommand(summonEffect!, {
+    const summonCommand = new SummoningCommand(summonEffect, {
       spellId: tensersFloatingDisk.id,
       spellName: tensersFloatingDisk.name,
       castAtLevel: 1,
@@ -104,7 +104,7 @@ describe('SummoningCommand live Tenser Floating Disk travel bridge', () => {
       gameState: createMockGameState()
     } satisfies CommandContext)
 
-    const summonedState = summonCommand.execute(createMockCombatState({
+    const summonedState = await summonCommand.execute(createMockCombatState({
       characters: [caster]
     }))
     const disk = summonedState.characters.find(character =>
@@ -123,7 +123,7 @@ describe('SummoningCommand live Tenser Floating Disk travel bridge', () => {
     // command that changes caster position and returns the whole combat state.
     // It deliberately proves only the max-distance ending, leaving load,
     // elevation, pit, and follow-path execution for later runtime slices.
-    const longMoveEffect: MovementEffect = {
+    const longMoveEffect = {
       type: 'MOVEMENT',
       trigger: { type: 'immediate' },
       condition: { type: 'always' },
@@ -131,7 +131,7 @@ describe('SummoningCommand live Tenser Floating Disk travel bridge', () => {
       distance: 200,
       destination: { x: 30, y: 4 },
       description: 'Move the caster far enough to trigger Tenser disk separation.'
-    }
+    } as unknown as MovementEffect
 
     const movementCommand = new MovementCommand(longMoveEffect, {
       spellId: 'tenser-distance-proof',
@@ -139,12 +139,12 @@ describe('SummoningCommand live Tenser Floating Disk travel bridge', () => {
       castAtLevel: 1,
       caster,
       targets: [caster],
-      gameState: {}
+      gameState: {} as any
     } satisfies CommandContext)
 
-    const afterMove = movementCommand.execute({
+    const afterMove = await movementCommand.execute({
       ...summonedState,
-      mapData: null
+      mapData: undefined
     })
     const movedCaster = afterMove.characters.find(character => character.id === caster.id)
 
@@ -153,14 +153,14 @@ describe('SummoningCommand live Tenser Floating Disk travel bridge', () => {
     expect(afterMove.combatLog.some(entry =>
       entry.data?.summonCondition === 'beyond_max_distance' &&
       Array.isArray(entry.data?.removedSummonIds) &&
-      entry.data.removedSummonIds.includes(disk?.id)
+      entry.data.removedSummonIds.includes(disk?.id ?? '')
     )).toBe(true)
   })
 
-  it('keeps an in-limit load and removes the disk when carried weight exceeds the authored limit', () => {
+  it('keeps an in-limit load and removes the disk when carried weight exceeds the authored limit', async () => {
     const summonEffect = tensersFloatingDisk.effects.find(
-      (effect): effect is SummoningEffect => effect.type === 'SUMMONING'
-    )
+      (effect: any) => effect.type === 'SUMMONING'
+    ) as unknown as SummoningEffect
 
     expect(summonEffect).toBeDefined()
 
@@ -171,7 +171,7 @@ describe('SummoningCommand live Tenser Floating Disk travel bridge', () => {
       initiative: 12
     }) as CombatCharacter
 
-    const summonCommand = new SummoningCommand(summonEffect!, {
+    const summonCommand = new SummoningCommand(summonEffect, {
       spellId: tensersFloatingDisk.id,
       spellName: tensersFloatingDisk.name,
       castAtLevel: 1,
@@ -180,7 +180,7 @@ describe('SummoningCommand live Tenser Floating Disk travel bridge', () => {
       gameState: createMockGameState()
     } satisfies CommandContext)
 
-    const summonedState = summonCommand.execute(createMockCombatState({
+    const summonedState = await summonCommand.execute(createMockCombatState({
       characters: [caster]
     }))
     const disk = summonedState.characters.find(character =>
@@ -206,7 +206,7 @@ describe('SummoningCommand live Tenser Floating Disk travel bridge', () => {
       )
     }
 
-    const shortMoveEffect: MovementEffect = {
+    const shortMoveEffect = {
       type: 'MOVEMENT',
       trigger: { type: 'immediate' },
       condition: { type: 'always' },
@@ -214,7 +214,7 @@ describe('SummoningCommand live Tenser Floating Disk travel bridge', () => {
       distance: 10,
       destination: { x: 5, y: 4 },
       description: 'Move the caster while the disk carries an in-limit load.'
-    }
+    } as unknown as MovementEffect
 
     const shortMoveCommand = new MovementCommand(shortMoveEffect, {
       spellId: 'tenser-load-proof',
@@ -222,12 +222,12 @@ describe('SummoningCommand live Tenser Floating Disk travel bridge', () => {
       castAtLevel: 1,
       caster,
       targets: [caster],
-      gameState: {}
+      gameState: {} as any
     } satisfies CommandContext)
 
-    const afterInLimitMove = shortMoveCommand.execute({
+    const afterInLimitMove = await shortMoveCommand.execute({
       ...loadedState,
-      mapData: null
+      mapData: undefined
     })
     const loadedDisk = afterInLimitMove.characters.find(character => character.id === disk?.id)
 
@@ -248,9 +248,9 @@ describe('SummoningCommand live Tenser Floating Disk travel bridge', () => {
       )
     }
 
-    const afterOverloadMove = shortMoveCommand.execute({
+    const afterOverloadMove = await shortMoveCommand.execute({
       ...overloadedState,
-      mapData: null
+      mapData: undefined
     })
 
     expect(afterOverloadMove.characters.some(character => character.id === disk?.id)).toBe(false)
@@ -260,7 +260,7 @@ describe('SummoningCommand live Tenser Floating Disk travel bridge', () => {
       entry.data?.carriedWeightPounds === 501 &&
       entry.data?.maxLoadPounds === 500 &&
       Array.isArray(entry.data?.removedSummonIds) &&
-      entry.data.removedSummonIds.includes(disk?.id)
+      entry.data.removedSummonIds.includes(disk?.id ?? '')
     )).toBe(true)
   })
 })
@@ -305,7 +305,7 @@ describe('Tenser Floating Disk runtime follow bridge', () => {
     dimensions: { width: 1, height: elevations.length },
     tiles: new Map(elevations.map((elevation, index) => {
       const tile = makeTile(0, index, elevation)
-      return [tile.id, tile] as const
+      return [tile.id, tile as unknown as BattleMapTile] as const
     })),
     theme: 'dungeon',
     seed: 1
@@ -320,8 +320,8 @@ describe('Tenser Floating Disk runtime follow bridge', () => {
 
   it('preserves in-limit carried weight on the same disk actor after the caster moves', async () => {
     const summonEffect = tensersFloatingDisk.effects.find(
-      (effect): effect is SummoningEffect => effect.type === 'SUMMONING'
-    )
+      (effect: any) => effect.type === 'SUMMONING'
+    ) as unknown as SummoningEffect
 
     expect(summonEffect).toBeDefined()
 
@@ -332,7 +332,7 @@ describe('Tenser Floating Disk runtime follow bridge', () => {
       initiative: 12
     }) as CombatCharacter
 
-    const summonCommand = new SummoningCommand(summonEffect!, {
+    const summonCommand = new SummoningCommand(summonEffect, {
       spellId: tensersFloatingDisk.id,
       spellName: tensersFloatingDisk.name,
       castAtLevel: 1,
@@ -341,7 +341,7 @@ describe('Tenser Floating Disk runtime follow bridge', () => {
       gameState: createMockGameState()
     } satisfies CommandContext)
 
-    const summonedState = summonCommand.execute(createMockCombatState({
+    const summonedState = await summonCommand.execute(createMockCombatState({
       characters: [caster]
     }))
     const weightedDisk = summonedState.characters.find(character =>
@@ -355,7 +355,7 @@ describe('Tenser Floating Disk runtime follow bridge', () => {
     const liveDisk: CombatCharacter = {
       ...weightedDisk!,
       summonMetadata: {
-        ...weightedDisk!.summonMetadata,
+        ...weightedDisk!.summonMetadata!,
         carriedWeightPounds: 320
       }
     }
@@ -402,8 +402,8 @@ describe('Tenser Floating Disk runtime follow bridge', () => {
 
   it('removes an overloaded disk and logs carried_weight_exceeds_limit', async () => {
     const summonEffect = tensersFloatingDisk.effects.find(
-      (effect): effect is SummoningEffect => effect.type === 'SUMMONING'
-    )
+      (effect: any) => effect.type === 'SUMMONING'
+    ) as unknown as SummoningEffect
 
     expect(summonEffect).toBeDefined()
 
@@ -414,7 +414,7 @@ describe('Tenser Floating Disk runtime follow bridge', () => {
       initiative: 12
     }) as CombatCharacter
 
-    const summonCommand = new SummoningCommand(summonEffect!, {
+    const summonCommand = new SummoningCommand(summonEffect, {
       spellId: tensersFloatingDisk.id,
       spellName: tensersFloatingDisk.name,
       castAtLevel: 1,
@@ -423,7 +423,7 @@ describe('Tenser Floating Disk runtime follow bridge', () => {
       gameState: createMockGameState()
     } satisfies CommandContext)
 
-    const summonedState = summonCommand.execute(createMockCombatState({
+    const summonedState = await summonCommand.execute(createMockCombatState({
       characters: [caster]
     }))
     const overloadedDisk = summonedState.characters.find(character =>
@@ -437,7 +437,7 @@ describe('Tenser Floating Disk runtime follow bridge', () => {
     const liveDisk: CombatCharacter = {
       ...overloadedDisk!,
       summonMetadata: {
-        ...overloadedDisk!.summonMetadata,
+        ...overloadedDisk!.summonMetadata!,
         carriedWeightPounds: 520
       }
     }
@@ -489,8 +489,8 @@ describe('Tenser Floating Disk runtime follow bridge', () => {
 
   it('ends a follow attempt across an elevation barrier using existing tile elevation data', async () => {
     const summonEffect = tensersFloatingDisk.effects.find(
-      (effect): effect is SummoningEffect => effect.type === 'SUMMONING'
-    )
+      (effect: any) => effect.type === 'SUMMONING'
+    ) as unknown as SummoningEffect
 
     expect(summonEffect).toBeDefined()
 
@@ -501,7 +501,7 @@ describe('Tenser Floating Disk runtime follow bridge', () => {
       initiative: 12
     }) as CombatCharacter
 
-    const summonCommand = new SummoningCommand(summonEffect!, {
+    const summonCommand = new SummoningCommand(summonEffect, {
       spellId: tensersFloatingDisk.id,
       spellName: tensersFloatingDisk.name,
       castAtLevel: 1,

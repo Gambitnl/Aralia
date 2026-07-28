@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { DamageCommand } from '../DamageCommand'
 import { CombatState, CombatCharacter } from '../../../types/combat'
 import { SpellEffect } from '../../../types/spells'
+import type { DamageEffect } from '../../../types/spellEffectTypes'
 import { CommandContext } from '../../base/SpellCommand'
 import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '../../../utils/core/factories'
 import * as combatUtils from '../../../utils/combat/combatUtils'
@@ -25,12 +26,12 @@ const sumFaces = (dice: string): number => {
   return count * sides
 }
 
-const alwaysDamage = (dice: string, type = 'Fire'): SpellEffect => ({
+const alwaysDamage = (dice: string, type = 'Fire'): DamageEffect => ({
   type: 'DAMAGE',
   damage: { dice, type },
   trigger: { type: 'immediate' },
   condition: { type: 'always' }
-})
+}) as unknown as DamageEffect
 
 describe("DamageCommand — Dark One's Blessing (Fiend warlock, level 3)", () => {
   let mockState: CombatState

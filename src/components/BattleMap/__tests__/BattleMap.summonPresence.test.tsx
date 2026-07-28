@@ -38,11 +38,11 @@ vi.mock('../../../hooks/combat/useVisibility', () => ({
 }));
 
 vi.mock('../CharacterToken', () => ({
-  default: (...args: unknown[]) => mockCharacterToken(...args)
+  default: (props: any) => mockCharacterToken(props)
 }));
 
 vi.mock('../BattleMapOverlay', () => ({
-  default: (...args: unknown[]) => mockBattleMapOverlay(...args)
+  default: () => mockBattleMapOverlay()
 }));
 
 const createTile = (x: number, y: number) => ({
@@ -108,7 +108,7 @@ describe('BattleMap summon presence proof', () => {
         cr: '0'
       }
     });
-    const summonEffect = summonBeast.effects.find(effect => effect.type === 'SUMMONING') as SummoningEffect;
+    const summonEffect = summonBeast.effects.find(effect => effect.type === 'SUMMONING') as unknown as SummoningEffect;
     const context = {
       spellId: summonBeast.id,
       spellName: summonBeast.name,
@@ -117,13 +117,13 @@ describe('BattleMap summon presence proof', () => {
       targets: [],
       playerInput: 'Air',
       gameState: {}
-    } as CommandContext;
+    } as unknown as CommandContext;
     const initialState = {
       characters: [caster],
       currentTurn: 1,
       round: 1,
       combatLog: [] as CombatLogEntry[]
-    } as CombatState;
+    } as unknown as CombatState;
 
     const summonState = new SummoningCommand(summonEffect, context).execute(initialState);
     const summoned = summonState.characters.find(character =>

@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { mockCaster, mockTarget, mockContext, mockState, createMockCombatState, UtilityCommand } from './UtilityCommand.testHelpers'
+import type { CombatState } from '@/types/combat'
 import type { Spell, UtilityEffect, SelectedSpellTarget } from './UtilityCommand.testHelpers'
 import prestidigitationJson from '../../../public/data/spells/level-0/prestidigitation.json'
 import druidcraftJson from '../../../public/data/spells/level-0/druidcraft.json'
@@ -79,7 +80,7 @@ describe('UtilityCommand', () => {
                 expiresAtRound: 9,
                 instantaneous: false,
                 harmless: true,
-                createdObject: (prestidigitationJson as Spell).effects[0].createdObjects?.[3] as NonNullable<UtilityEffect['createdObjects']>[number]
+                createdObject: ((prestidigitationJson as Spell).effects[0] as UtilityEffect).createdObjects?.[3] as NonNullable<UtilityEffect['createdObjects']>[number]
             }
 
             const seededState = createMockCombatState({

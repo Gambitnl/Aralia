@@ -2,6 +2,7 @@ import { BaseEffectCommand } from '../base/BaseEffectCommand'
 import { CommandContext } from '../base/SpellCommand'
 import { UtilityEffect } from '@/types/spells'
 import { CombatCharacter, CombatState, StatusEffect } from '@/types/combat'
+import type { AbilityScoreName } from '@/types/character'
 import { generateId } from '../../utils/idGenerator'
 
 /**
@@ -137,7 +138,7 @@ export class EnhanceAbilityCommand extends BaseEffectCommand {
       message: `${target.name} gains advantage on ${chosenAbility} ability checks from ${this.context.spellName}`,
       characterId: target.id,
       targetIds: [target.id],
-      data: { statusId: status.id, chosenAbility, advantageText }
+      data: { statusId: status.id, chosenAbility: chosenAbility as AbilityScoreName, advantageText }
     })
   }
 

@@ -64,7 +64,7 @@ describe('useTurnManager immediate summon scheduling', () => {
       caster,
       targets: [],
       gameState: {}
-    } as CommandContext;
+    } as unknown as CommandContext;
     const initialState = {
       isActive: true,
       characters: [caster, ally],

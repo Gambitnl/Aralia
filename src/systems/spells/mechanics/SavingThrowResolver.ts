@@ -9,11 +9,13 @@ export interface SavingThrowResult {
   /** Whether the save succeeded */
   success: boolean
   /** Raw d20 roll (1-20) */
-  roll: number
+  roll?: number
   /** Total after modifiers */
   total: number
   /** DC that was rolled against */
-  dc: number
+  dc?: number
+  /** Modifiers applied */
+  modifiersApplied?: unknown[]
 }
 
 /**

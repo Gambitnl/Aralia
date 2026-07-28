@@ -551,8 +551,7 @@ describe('characterReducer', () => {
         state = reduce(state, {
             type: 'SELL_ALL_JUNK',
             payload: {
-                items: [{ itemId: 'rusty_nail', value: 5 }],
-                totalGold: 5
+                items: [{ itemId: 'rusty_nail', value: 5 }]
             }
         });
         expect(state.inventory.some(item => item.id === 'rusty_nail')).toBe(false);
@@ -565,10 +564,10 @@ describe('characterReducer', () => {
             id: 'attune-char',
             equippedItems: {},
         });
-        const ring1: Item = { id: 'ring_1', name: 'Ring of Protection', type: 'ring', requiresAttunement: true };
-        const ring2: Item = { id: 'ring_2', name: 'Ring of Evasion', type: 'ring', requiresAttunement: true };
-        const ring3: Item = { id: 'ring_3', name: 'Ring of Regeneration', type: 'ring', requiresAttunement: true };
-        const ring4: Item = { id: 'ring_4', name: 'Ring of Power', type: 'ring', requiresAttunement: true };
+        const ring1: Item = { id: 'ring_1', name: 'Ring of Protection', description: 'Magic Ring', type: 'accessory', requiresAttunement: true };
+        const ring2: Item = { id: 'ring_2', name: 'Ring of Evasion', description: 'Magic Ring', type: 'accessory', requiresAttunement: true };
+        const ring3: Item = { id: 'ring_3', name: 'Ring of Regeneration', description: 'Magic Ring', type: 'accessory', requiresAttunement: true };
+        const ring4: Item = { id: 'ring_4', name: 'Ring of Power', description: 'Magic Ring', type: 'accessory', requiresAttunement: true };
 
         let state = {
             ...initialState,

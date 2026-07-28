@@ -11,7 +11,7 @@ import { render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import LockpickingModal from './LockpickingModal';
 import { createMockPlayerCharacter } from '../../utils/core/factories';
-import { Item } from '../../types';
+import { Item, Class } from '../../types';
 import { Lock } from '../../systems/puzzles/types';
 
 vi.mock('../../hooks/useFocusTrap', () => ({
@@ -36,7 +36,7 @@ describe('LockpickingModal', () => {
   const rogue = createMockPlayerCharacter({
     id: 'rogue-1',
     name: 'Ada',
-    class: { id: 'rogue', name: 'Rogue', hitDie: 8 },
+    class: { id: 'rogue', name: 'Rogue', hitDie: 8 } as unknown as Class,
   });
 
   const inventory = [{ id: 'thieves-tools', name: "Thieves' Tools" }] as Item[];
