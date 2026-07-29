@@ -33,7 +33,6 @@
  */
 
 import type { RegionArtifact } from "../../systems/worldforge/artifacts";
-import { smoothRegionRiverCenterline } from "../../systems/worldforge/region/riverCenterlineSmoothing";
 
 // ============================================================================
 // Types
@@ -338,9 +337,9 @@ export function drawRegion(
     const { centerline, widthFt } = river;
     if (centerline.length < 2) continue;
 
-    // WF-G5: render the same smoothed river band that the generator carves
-    // into terrain, so tight bends no longer show water beside its channel.
-    const drawCenterline = smoothRegionRiverCenterline(centerline);
+    // The artifact's centerline IS the carved course (2026-07-29 region rivers
+    // pass). Smoothing here would draw a different river than the terrain holds.
+    const drawCenterline = centerline;
     const w = Math.max(1.5, widthFt * scale);
     const trace = () => {
       ctx.beginPath();
