@@ -51,14 +51,67 @@ export function makeRegionBaseField(
   idwRadiusFt: number,
 ): (x: Feet, y: Feet) => number {
   const radiusSq = idwRadiusFt * idwRadiusFt;
+
+  // Uniform bucket grid, one cell per IDW radius, so a query only visits the 3x3
+  // block that can possibly hold a contributor instead of every cell in the
+  // world. Routing one river runs ~12,000 queries, and against a whole atlas
+  // (5,829 cells) the linear scan was slow enough to time a town preview out.
+  //
+  // This is an accelerator ONLY. Candidate indices are gathered from the buckets
+  // and then SORTED ASCENDING before summing, because the result must not depend
+  // on visit order: the sum is floating point, and the region heightfield's
+  // seam-purity contract requires two different windows to compute byte-equal
+  // values at a shared world point. Bucketing without the sort would reorder the
+  // additions and change the last bits.
+  const bucketSize = idwRadiusFt;
+  // Numeric key rather than a template string: this runs on the hot path of
+  // every river query, and building nine strings per sample cost more than the
+  // scan it replaced. SPREAD is wider than any plausible bucket index range.
+  const SPREAD = 1 << 20;
+  const buckets = new Map<number, number[]>();
+  const key = (bx: number, by: number): number => bx * SPREAD + by;
+  for (let i = 0; i < candidates.length; i++) {
+    const c = candidates[i];
+    const k = key(Math.floor(c.x / bucketSize), Math.floor(c.y / bucketSize));
+    const list = buckets.get(k);
+    if (list) list.push(i);
+    else buckets.set(k, [i]);
+  }
+
+  // Per-bucket neighborhood, built once and reused. Gathering and sorting the
+  // 3x3 union on every query was itself slower than the scan it replaced — the
+  // comparator calls dominated. Queries along a river are spatially clustered,
+  // so caching the merged list per bucket amortizes that away almost entirely.
+  const neighborhoods = new Map<number, Int32Array>();
+  const neighborhoodFor = (bx: number, by: number): Int32Array => {
+    const k = key(bx, by);
+    const hit = neighborhoods.get(k);
+    if (hit) return hit;
+    const gathered: number[] = [];
+    for (let dy = -1; dy <= 1; dy++) {
+      for (let dx = -1; dx <= 1; dx++) {
+        const list = buckets.get(key(bx + dx, by + dy));
+        if (list) for (const i of list) gathered.push(i);
+      }
+    }
+    // Each bucket list is ascending by construction, but nine of them
+    // interleave, so restore the global ascending order the sum depends on.
+    gathered.sort((a, b) => a - b);
+    const built = Int32Array.from(gathered);
+    neighborhoods.set(k, built);
+    return built;
+  };
+
   return (x, y) => {
+    const near = neighborhoodFor(Math.floor(x / bucketSize), Math.floor(y / bucketSize));
+
     let weightSum = 0;
     let valueSum = 0;
-    for (let i = 0; i < candidates.length; i++) {
+    for (const i of near) {
       const c = candidates[i];
-      const dx = x - c.x;
-      const dy = y - c.y;
-      const distSq = dx * dx + dy * dy;
+      const ddx = x - c.x;
+      const ddy = y - c.y;
+      const distSq = ddx * ddx + ddy * ddy;
       if (distSq >= radiusSq) continue;
       // Coincident with a cell center: take its height outright, matching the
       // grid's early break.

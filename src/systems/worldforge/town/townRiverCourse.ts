@@ -55,6 +55,13 @@ const REGION_RESOLUTION_FT = 100;
 interface AtlasRiverContext {
   naturalHeight: (x: Feet, y: Feet) => number;
   attractors: Map<number, RiverAttractor[]>;
+  /**
+   * Generated courses by river id. A course is a property of the RIVER, not of
+   * whichever burg asked for it, so every burg on the same river shares one —
+   * and `getCanonicalTownWaterFeatures` is not memoized, so without this the
+   * course was regenerated on every call at ~170 ms a time.
+   */
+  courses: Map<number, Array<[Feet, Feet]>>;
 }
 const contextCache = new WeakMap<object, Map<number, AtlasRiverContext>>();
 
@@ -84,6 +91,7 @@ function contextFor(atlas: TownAtlas, worldSeed: number): AtlasRiverContext {
       pack.rivers ?? [],
       FEET_PER_FMG_PIXEL,
     ),
+    courses: new Map(),
   };
   bySeed.set(worldSeed, context);
   return context;
@@ -115,16 +123,20 @@ export function townRiverCourseCanon(
   const anchors = riverAnchorsFt(river.cells, pack.cells.p, FEET_PER_FMG_PIXEL);
   if (anchors.length < 2) return [];
 
-  const { naturalHeight, attractors } = contextFor(atlas, worldSeed);
+  const context = contextFor(atlas, worldSeed);
 
   // Identical inputs to the region tier's `generateRiverBanks` call, so the two
   // tiers produce the identical course and the town river IS the world river.
-  const course = generateRiverCourse(anchors, {
-    sampleHeight: naturalHeight,
-    attractors: attractors.get(Number(riverId)) ?? [],
-    targetSegmentFt: REGION_RESOLUTION_FT * 2,
-    widthFt: 50 + Math.sqrt(river.discharge) * 20,
-  });
+  let course = context.courses.get(Number(riverId));
+  if (!course) {
+    course = generateRiverCourse(anchors, {
+      sampleHeight: context.naturalHeight,
+      attractors: context.attractors.get(Number(riverId)) ?? [],
+      targetSegmentFt: REGION_RESOLUTION_FT * 2,
+      widthFt: 50 + Math.sqrt(river.discharge) * 20,
+    });
+    context.courses.set(Number(riverId), course);
+  }
 
   // Inverse of the town placement: world feet -> normalized town frame. The
   // region pass centers a burg's envelope on exactly this point (generateRegion
