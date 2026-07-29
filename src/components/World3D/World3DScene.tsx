@@ -70,6 +70,8 @@ import {
   isSitePartRenderable,
   sitePartLocalOffset,
 } from '@/systems/worldforge/bridge/sitePartTransform';
+import { EffectComposer, N8AO, ToneMapping } from '@react-three/postprocessing';
+import { ToneMappingMode } from 'postprocessing';
 import type { PlayerWorldPosition } from '@/types';
 import { useForgeTexture, getSemanticAssetKey } from '@/systems/worldforge/bridge/forgeMaterials';
 import type { ForgeAssetService } from '@/systems/worldforge/assets/forgeAssetService';
@@ -1131,6 +1133,41 @@ const World3DScene: React.FC<World3DSceneProps> = ({
         {/* Fight-in-place slice 2: the combat surface (tokens, reachable disc,
             ground-pick plane) drawn on the same streamed terrain. */}
         {combatLayer}
+        {/* BG3 parity, world3d-ground target #6 (ambient occlusion). Ported from
+            the proven BattleMap3D stack rather than reinvented — including its
+            two hard-won lessons:
+
+            1. N8AO, not postprocessing's SSAOEffect. SSAO needs enableNormalPass,
+               and under WebGL2 with three r172 + @react-three/postprocessing 3.x
+               that fired `GL_INVALID_OPERATION: Read and write depth stencil
+               attachments cannot be the same image` every frame. N8AO
+               reconstructs normals from depth in its own pass, so no NormalPass.
+            2. ToneMapping MUST be in this chain. While EffectComposer is
+               mounted it sets `gl.toneMapping = NoToneMapping`, silently killing
+               the ACESFilmic setting on the Canvas above — that is what made an
+               earlier surface read as raw, uncomposited 3D.
+
+            Ground profile only: the continent view draws at a scale where
+            contact shading buys nothing and the extra pass is pure cost. */}
+        {viewProfile === 'ground' && (
+          <EffectComposer>
+            {/* aoRadius is NOT portable from BattleMap3D. Its 1.8 m is tuned for
+                a close tactical camera and is invisible here — the exploration
+                camera looks across a hundred metres, and at half-res that radius
+                lands inside a pixel. Measured on wilds-ancient-forest: 1.8 showed
+                no contact darkening at all, 8 grounded everything but muddied the
+                ground cover. 5 seats trunks, rocks and grass without flattening
+                the midtones. */}
+            <N8AO
+              halfRes
+              quality="performance"
+              aoRadius={5}
+              distanceFalloff={3.5}
+              intensity={4}
+            />
+            <ToneMapping mode={ToneMappingMode.ACES_FILMIC} />
+          </EffectComposer>
+        )}
       </Canvas>
       </ForgeAssetContext.Provider>
     </div>
