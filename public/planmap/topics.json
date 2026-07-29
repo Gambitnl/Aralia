@@ -5841,7 +5841,6 @@
       "title": "Region rivers end-to-end",
       "campaign": "world",
       "status": "active",
-      "focus": true,
       "sub": "One river course for the whole stack. Before: three lines existed for one river - generateRegion stored the RAW clipped centerline, carved terrain along a Chaikin-SMOOTHED one, and regionDraw smoothed again at draw. Separately, inherited TOWN water rode canonAffine (cell bbox -> CANON_TOWN_SPAN), a ~30x shrink: Epicea's river truly runs 4,045 ft from the burg but was drawn 135 ft from town center, and its four bridges existed ONLY because of that shrink. Now: a world-pure terrain point sampler, a dense sub-cell course (resample -> pull toward river-bearing burgs -> relax downhill perpendicular to flow -> smooth, endpoints pinned for seam purity), one line stored and carved, and the town deriving the identical course independently. Remy call 2026-07-29: a course BENDS toward a river-bearing burg (cells.r) so riverside towns stay riverside. Epicea river 5 went 2 pts / 25,537 ft-per-segment -> 513 pts / 55 ft-per-segment, nearest approach to town center 12,582 ft -> 10.9 ft.",
       "link": "docs/superpowers/plans/2026-07-29-region-rivers-end-to-end.md",
       "deps": [
