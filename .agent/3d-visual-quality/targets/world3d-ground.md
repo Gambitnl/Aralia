@@ -67,6 +67,24 @@ motion.
 against the land, no reflection, no depth, no motion. This is the single largest single-
 feature gap in the frame.
 
+**Diagnosis (2026-07-30) — read this before touching it.** The material is not missing;
+`water/waterSurfaceMaterial.ts` already sets a scrolling ripple normal map, `roughness`
+0.12, `metalness` 0.25 and `opacity` 0.92. Two specific reasons it still reads as paint:
+
+1. **`metalness: 0.25` with NO environment map.** A metallic surface reflects its
+   environment, and this scene never provides one, so there is nothing to reflect and the
+   metalness contributes only darkening. Reflection cannot appear until the scene has an
+   environment (a PMREM generated from the existing sky model is the generator-friendly
+   route — the sky is the correct reflector for open water).
+2. **No depth information.** Depth-tinted transparency and a soft shoreline both need the
+   scene depth buffer; a flat quad with constant opacity can express neither, which is why
+   the land edge is a hard straight line.
+
+**Do NOT simply delete the `emissive` term to flatten-fix this.** It looks wrong, but the
+comment records it as a MEASURED fix — without it a lit-only water surface went grey at low
+sun. Removing it would trade this bug for that one. If it needs to change, re-measure at
+dusk as well as midday.
+
 ## 5. Shadows
 
 **Target:** Soft shadows with visible penumbra that widens with distance from the contact
