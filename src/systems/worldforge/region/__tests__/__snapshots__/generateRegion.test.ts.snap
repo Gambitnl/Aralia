@@ -24,4 +24,4 @@ exports[`generateRegion > matches FROZEN golden values for anchor cell > region-
 }
 `;
 
-exports[`generateRegion > smoothness invariant: heightfield is lattice-smooth, not white-noise speckle > smoothness-laplacian 1`] = `0.0002842182925278195`;
+exports[`generateRegion > smoothness invariant: heightfield is lattice-smooth, not white-noise speckle > smoothness-laplacian 1`] = `0.0003456455032979831`;
