@@ -23,6 +23,37 @@ describe('generateRiverCourse', () => {
     }
   });
 
+  it('bends toward a burg without collapsing its own spacing', () => {
+    // The defect this guards (found 2026-07-29 via the Epicea bake): pulling
+    // each point toward the burg individually makes the nearest ones converge
+    // on the SAME spot. The course cusps, adjacent points land on top of each
+    // other, and the channel buffered from that centerline degenerates — 129 of
+    // 213 points ended up under their own carved bed. Measured then: minimum
+    // segment 0.00 ft against a 125 ft median. A bend must move the river, not
+    // crush its parameterization.
+    const anchors: Array<[number, number]> = [[0, 0], [0, 20000]];
+    const burg = { x: 4045, y: 10000, radiusFt: 8090 };
+
+    const plain = generateRiverCourse(anchors, FLAT);
+    const bent = generateRiverCourse(anchors, { ...FLAT, attractors: [burg] });
+
+    const segments = (c: Array<[number, number]>): number[] => {
+      const out: number[] = [];
+      for (let i = 0; i < c.length - 1; i++) {
+        out.push(Math.hypot(c[i + 1][0] - c[i][0], c[i + 1][1] - c[i][1]));
+      }
+      return out;
+    };
+
+    const plainMin = Math.min(...segments(plain));
+    const bentSegs = segments(bent);
+    // No point may be swallowed by its neighbor: the bend keeps segments within
+    // a factor of two of what the undisturbed course already had.
+    expect(Math.min(...bentSegs)).toBeGreaterThan(plainMin / 2);
+    // And nothing may be stretched into a gap the channel cannot fill.
+    expect(Math.max(...bentSegs)).toBeLessThanOrEqual(FLAT.targetSegmentFt * 1.5);
+  });
+
   it('keeps the endpoints exactly where the world put them', () => {
     // Seam purity: these are shared with the adjacent window and river segment.
     const course = generateRiverCourse([[100, 200], [8000, 9000]], FLAT);

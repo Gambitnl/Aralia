@@ -30,13 +30,12 @@ export interface RiverCourseOptions {
 }
 
 /**
- * Attraction passes. One pass only closes about half the gap to a burg sitting
- * mid-radius, which leaves the river still outside the town. Repeating the pull
- * converges the nearest points onto the settlement while leaving the falloff
- * shape — and the exactly-zero contribution of an out-of-radius attractor —
- * untouched.
+ * How far the bend toward a burg spreads ALONG the course, as a multiple of the
+ * sideways distance it has to travel. A river that moves `d` sideways over `6d`
+ * of its length turns about 9 degrees — a bend, not a hairpin. Lower values
+ * make the river hook into town more sharply.
  */
-const ATTRACT_ITERATIONS = 4;
+const BEND_LENGTH_RATIO = 6;
 /** Relaxation passes. More passes hug the valley harder; 12 settles visibly. */
 const RELAX_ITERATIONS = 12;
 /** Chaikin passes applied at the end to remove relaxation kinks. */
@@ -60,33 +59,86 @@ function resample(anchors: P[], targetSegmentFt: Feet): P[] {
   return out;
 }
 
-/**
- * Pull interior points toward any attractor within its radius, with a smooth
- * falloff so the bend eases in rather than kinking. An attractor outside its
- * radius contributes exactly zero, so distant burgs never perturb a river.
- */
-function attract(points: P[], attractors: RiverCourseOptions['attractors']): P[] {
-  if (attractors.length === 0) return points;
-  let current = points;
-  for (let iter = 0; iter < ATTRACT_ITERATIONS; iter++) current = attractOnce(current, attractors);
-  return current;
+/** Cumulative distance along the course, one entry per point. */
+function arcLengths(points: P[]): number[] {
+  const arc: number[] = [0];
+  for (let i = 1; i < points.length; i++) {
+    arc.push(arc[i - 1] + Math.hypot(points[i][0] - points[i - 1][0], points[i][1] - points[i - 1][1]));
+  }
+  return arc;
 }
 
-function attractOnce(points: P[], attractors: RiverCourseOptions['attractors']): P[] {
-  return points.map((p, i) => {
-    if (i === 0 || i === points.length - 1) return p;
-    let [x, y] = p;
-    for (const a of attractors) {
-      const d = Math.hypot(a.x - x, a.y - y);
-      if (d >= a.radiusFt || d < 1e-6) continue;
-      // Smoothstep falloff: full pull at the attractor, zero at the radius.
-      const t = 1 - d / a.radiusFt;
-      const pull = t * t * (3 - 2 * t);
-      x += (a.x - x) * pull;
-      y += (a.y - y) * pull;
+const smoothstep = (t: number): number => t * t * (3 - 2 * t);
+
+/**
+ * BEND the course toward each attractor, rather than pulling points onto it.
+ *
+ * The obvious implementation — move every point some fraction of the way to the
+ * burg — is wrong, and wrong in a way that is invisible until you measure it.
+ * Points near the attractor get the strongest pull, so they converge onto the
+ * SAME spot: the course develops a cusp, adjacent points land exactly on top of
+ * each other, and the channel polygon buffered from that centerline degenerates.
+ * Measured on the first implementation: minimum segment length 0.00 ft against a
+ * 125 ft median, and 129 of 213 centerline points ended up under their own
+ * carved bed because the ring could no longer be filled.
+ *
+ * So instead: find the point on the course that already comes closest to the
+ * burg, take the single offset vector that would put THAT point on the burg, and
+ * apply it to the whole neighborhood with a falloff measured in ARC LENGTH along
+ * the course. That is a smooth translation of one stretch of river, so spacing
+ * is preserved, no cusp forms, and the result reads as a meander.
+ *
+ * An attractor outside its radius contributes exactly zero, so a distant burg
+ * never perturbs a river at all.
+ */
+function attract(points: P[], attractors: RiverCourseOptions['attractors']): P[] {
+  if (attractors.length === 0 || points.length < 3) return points;
+  let current = points;
+
+  for (const a of attractors) {
+    // The stretch of river that already runs nearest this burg.
+    let nearest = 0;
+    let nearestD = Infinity;
+    for (let i = 0; i < current.length; i++) {
+      const d = Math.hypot(a.x - current[i][0], a.y - current[i][1]);
+      if (d < nearestD) { nearestD = d; nearest = i; }
     }
-    return [x, y] as P;
-  });
+    // Hard cutoff: out of range means untouched, bit for bit.
+    if (nearestD >= a.radiusFt || nearestD < 1e-9) continue;
+
+    const dx = a.x - current[nearest][0];
+    const dy = a.y - current[nearest][1];
+
+    const arc = arcLengths(current);
+    const total = arc[arc.length - 1];
+    const here = arc[nearest];
+
+    // Spread the bend over enough length that it reads as a river, not a kink —
+    // but never over more length than the course actually has on the short side.
+    // The endpoint taper is what keeps the pinned ends pinned, so a reach wider
+    // than the distance to the nearer end would tape the bend down to a fraction
+    // of itself and leave the river short of the town it is meant to reach.
+    const room = Math.min(here, total - here);
+    const reach = Math.min(
+      Math.max(a.radiusFt, nearestD * BEND_LENGTH_RATIO),
+      Math.max(room, 1e-9),
+    );
+
+    current = current.map((p, i) => {
+      if (i === 0 || i === current.length - 1) return p;
+      const along = Math.abs(arc[i] - here);
+      if (along >= reach) return p;
+      // Falloff along the course from the nearest point...
+      let w = smoothstep(1 - along / reach);
+      // ...tapered again near the ends so the pinned endpoints stay pinned and
+      // the course does not develop a step beside them.
+      const toEnd = Math.min(arc[i], total - arc[i]);
+      if (toEnd < reach) w *= smoothstep(toEnd / reach);
+      return [p[0] + dx * w, p[1] + dy * w] as P;
+    });
+  }
+
+  return current;
 }
 
 /**
