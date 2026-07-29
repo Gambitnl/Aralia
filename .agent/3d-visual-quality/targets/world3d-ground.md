@@ -81,8 +81,20 @@ the canopy.
 **Target:** Every object–ground contact darkens. A tree, rock, or bush must not appear to
 hover; the base is visibly seated.
 
-**Status: FAIL.** No ambient occlusion anywhere. Tree trunks and rocks meet the ground with
-no darkening, so several read as floating decals on the terrain.
+**Status: PASS (2026-07-30), modest.** N8AO wired into `World3DScene` on the ground
+profile, ported from the BattleMap3D stack. Grass tufts, rocks and trunks now show dark
+seated bases. Verified by capture: `captures/ao-final/wilds-ancient-forest.png` against
+`captures/bg3-baseline/wilds-ancient-forest.png`.
+
+**Finding worth keeping:** `aoRadius` does not port between cameras. BattleMap3D's 1.8 m
+produced NO visible darkening at exploration distance — the camera looks across ~100 m and
+at half-res that radius falls inside a pixel. Measured: 1.8 invisible, 5 too faint to seat
+anything, 8 grounded everything but muddied the ground cover, 7 correct. Any future
+surface with a different camera distance must re-measure rather than copy the number.
+
+Still weaker than the BG3 reference, because AO can only darken what is already there —
+the ground cover it seats is untextured cones. This target will read stronger once #1
+(terrain detail) and #2 (ground cover layers) land.
 
 ## 7. Distance and aerial perspective
 
@@ -105,12 +117,13 @@ no visible time-of-day response in the frame.
 
 ## Honest scoring, first pass
 
-**0 of 8 PASS.** Nothing here is close yet. That is not a reason to soften the bar — it is
-the starting point, and it means almost any of these fixes is visible progress.
+**1 of 8 PASS** (was 0/8). #6 ambient occlusion landed 2026-07-30. Nothing else is close
+yet. That is not a reason to soften the bar — it means almost any of these fixes is visible
+progress.
 
 Highest visual return per unit of work, judged from the two frames:
 
-1. **Ambient occlusion (#6)** — cheapest large readability win; fixes the floating look
+1. ~~**Ambient occlusion (#6)**~~ — DONE 2026-07-30
 2. **Water (#4)** — the most conspicuously wrong single element in frame
 3. **Terrain surface detail (#1)** — removes the "untextured prototype" read
 4. **Aerial perspective (#7)** — cheap, and instantly creates depth
