@@ -142,31 +142,68 @@ describe('Epicea town water reaches the 3D bake', () => {
   }, 120000);
 });
 
-describe('town water is placed by the same transform as the town', () => {
-  it('keeps the river inside the town envelope it was scaled into', () => {
+const FEET_TO_METERS = 0.3048;
+
+describe('the town river and the world river are the same river', () => {
+  it('puts the town channel on the region course', () => {
     const burg = burgPoint();
     const { local, region } = getWorldforgeLocalForCell(SEED, CELL, {
       centerPx: [burg.x, burg.y],
     });
-    const site = region.townSites.find((t) => t.burgId === BURG)!;
-    const { waterBodies } = canonicalTownWaterAndDecks(SEED, site, local.bounds);
+    const ground = makeGroundWorld(local, SEED, region);
 
-    const river = waterBodies.find((b) => b.kind === 'river')!;
-    const FEET_TO_METERS = 0.3048;
-    // The envelope, expressed in the same window-local meters as the body.
-    const minX = (site.envelope.x - local.bounds.x) * FEET_TO_METERS;
-    const minZ = (site.envelope.y - local.bounds.y) * FEET_TO_METERS;
-    const maxX = minX + site.envelope.width * FEET_TO_METERS;
-    const maxZ = minZ + site.envelope.height * FEET_TO_METERS;
+    const town = ground.waterBodies.find((b) => b.kind === 'river');
+    expect(town?.centerlineM?.length ?? 0).toBeGreaterThanOrEqual(2);
 
-    // The channel is buffered outward from the centerline, so allow its
-    // half-width of overhang; the point is that it tracks THIS town's envelope.
-    const slack = site.envelope.width * 0.05 * FEET_TO_METERS;
-    for (const p of river.centerlineM!) {
-      expect(p.x).toBeGreaterThanOrEqual(minX - slack);
-      expect(p.x).toBeLessThanOrEqual(maxX + slack);
-      expect(p.z).toBeGreaterThanOrEqual(minZ - slack);
-      expect(p.z).toBeLessThanOrEqual(maxZ + slack);
+    const regionRiver = region.rivers.find((r) => r.riverId === 5);
+    expect(regionRiver).toBeDefined();
+    const course = regionRiver!.centerline.map(([x, y]) => ({
+      x: (x - local.bounds.x) * FEET_TO_METERS,
+      z: (y - local.bounds.y) * FEET_TO_METERS,
+    }));
+
+    // Every point of the town channel sits on the region course. Before this
+    // pass the two were 3,400-4,900 ft apart: the town drew a 30x-shrunk copy of
+    // its cell's river while the real one ran outside the window entirely.
+    for (const p of town!.centerlineM!) {
+      const nearest = Math.min(
+        ...course.map((c) => Math.hypot(c.x - p.x, c.z - p.z)),
+      );
+      expect(nearest).toBeLessThan(60);
     }
+  }, 120000);
+
+  it('renders the wilderness ribbon in the same window as the town', () => {
+    const { ground } = epiceaGround();
+    // Was 0. The cell-center chord passed a full window west of the burg, so a
+    // river town had no river at all outside its own walls.
+    expect(ground.rivers.length).toBeGreaterThan(0);
+  }, 120000);
+
+  it('hands the river off from the town channel to the wilderness ribbon', () => {
+    const burg = burgPoint();
+    const { local, region } = getWorldforgeLocalForCell(SEED, CELL, {
+      centerPx: [burg.x, burg.y],
+    });
+    const ground = makeGroundWorld(local, SEED, region);
+    const site = region.townSites.find((t) => t.burgId === BURG)!;
+
+    const cx = (site.envelope.x + site.envelope.width / 2 - local.bounds.x) * FEET_TO_METERS;
+    const cz = (site.envelope.y + site.envelope.height / 2 - local.bounds.y) * FEET_TO_METERS;
+    const half = (site.envelope.width / 2) * FEET_TO_METERS;
+
+    // The TOWN body is deliberately clipped to the town square, so the filled
+    // channel and its docks stay a town feature rather than a window-long slab.
+    const town = ground.waterBodies.find((b) => b.kind === 'river')!;
+    const townDists = town.centerlineM!.map((p) => Math.hypot(p.x - cx, p.z - cz));
+    expect(Math.min(...townDists)).toBeLessThan(half);
+    expect(Math.max(...townDists)).toBeLessThanOrEqual(half * 1.05);
+
+    // The WILDERNESS ribbon is what carries the river on past the town, so the
+    // player does not walk out of a settlement and watch its river stop dead.
+    const ribbon = ground.rivers[0];
+    expect(ribbon).toBeDefined();
+    const ribbonDists = ribbon.points.map((p) => Math.hypot(p.x - cx, p.z - cz));
+    expect(Math.max(...ribbonDists)).toBeGreaterThan(half);
   }, 120000);
 });
