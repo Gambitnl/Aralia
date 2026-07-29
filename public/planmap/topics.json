@@ -5904,6 +5904,50 @@
         }
       ],
       "status_note": "Tasks 1-6 done and MERGED TO MASTER 2026-07-29 (merge 7476c5ad). 1,985 worldforge tests green. Epicea river 5: 2 pts -> 514 pts; town channel within 4.49 m of the region course (was 3,400-4,900 ft apart); wilderness ribbon in the town window 0 -> 1. Merge conflict resolved by COMBINING two independently written groundWaterLive.test.ts suites (mine + a concurrent agent legium-settlement-edge one) into 12 tests. Three tests needed explicit timeouts - all timeouts not assertion failures, each bakes a full atlas+region+ground (~3.4 s) against a 5 s default. Remaining: finish the town eyeball."
+    },
+    {
+      "id": "bg3-parity",
+      "title": "BG3 visual parity (all surfaces)",
+      "campaign": "rendering",
+      "status": "active",
+      "tier": "strategic",
+      "sub": "Match Baldur's Gate 3 on every visual surface - not 'inspired by'. Six items, each with its BG3 counterpart: World3D ground vs BG3 overworld exteriors; towns vs Baldur's Gate city and Rivington; interiors L4 vs BG3 taverns/houses/temples; dungeons vs Underdark/Moonrise/Shadowfell (2D module sheets keep the Gozzy hand-inked bar, NOT BG3); combat maps vs BG3 turn-based staging and readability; entity-generator creatures vs BG3 character and monster art. Each item gets a builder plus an unforgiving critic that captures REAL screenshots from the live surface and compares against downloaded BG3 gameplay references. Exit condition (Remy 2026-07-30): per-surface measurable targets met and confirmed by screenshot - NOT 'critic prefers ours', which would either loop forever against a hand-authored AAA game or push the critic into lying. We differ from BG3 on METHOD only (procedural vs hand-placed); the critic judges the rendered frame and never asks for hand-authored content as the fix. Doc: .agent/3d-visual-quality/BG3-PARITY.md",
+      "link": ".agent/3d-visual-quality/BG3-PARITY.md",
+      "updated": "2026-07-30",
+      "features": [
+        {
+          "title": "Capture rig: Chrome fallback (playwright cache was an ELOOP junction)",
+          "status": "done"
+        },
+        {
+          "title": "Capture framing at critique distance + dungeon scenarios (none existed)",
+          "status": "active"
+        },
+        {
+          "title": "World3D ground vs BG3 overworld exteriors",
+          "status": "active"
+        },
+        {
+          "title": "Towns in 3D vs Baldur's Gate city and Rivington",
+          "status": "active"
+        },
+        {
+          "title": "Interiors L4 vs BG3 taverns/houses/temples",
+          "status": "active"
+        },
+        {
+          "title": "Dungeons vs Underdark/Moonrise/Shadowfell (+ Gozzy 2D sheets)",
+          "status": "active"
+        },
+        {
+          "title": "Combat maps 2D+3D vs BG3 encounter readability",
+          "status": "active"
+        },
+        {
+          "title": "Creatures vs BG3 character and monster art",
+          "status": "active"
+        }
+      ]
     }
   ]
 }
