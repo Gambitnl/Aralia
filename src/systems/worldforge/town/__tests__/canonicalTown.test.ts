@@ -58,21 +58,47 @@ describe('getCanonicalTownPlan', () => {
   });
 });
 
-/** makeAtlas + a road crossing the cell and a river running through its centre. */
+/**
+ * makeAtlas + a road crossing the cell and a river running through its centre.
+ *
+ * Cell arrays are DENSE here, as they are in a real FMG pack. They used to be
+ * sparse object literals keyed by cell id, which was enough while the town only
+ * read the three cells it named. Since 2026-07-29 the town routes its river with
+ * the region tier's own terrain sampler, which walks every cell to build the
+ * interpolation set, so the fixture has to look like the data it stands in for.
+ */
 function makeAtlasWithWaterAndRoads(): any {
+  const CELLS = 52;
+  const p: Array<[number, number]> = [];
+  const h: number[] = [];
+  for (let i = 0; i < CELLS; i++) {
+    // Filler cells sit well away from the town so they never win the IDW, but
+    // they do give the sampler a populated neighborhood to interpolate over.
+    p.push([100 + (i % 8) * 40, 100 + Math.floor(i / 8) * 40]);
+    h.push(30); // land (FMG water is < 20)
+  }
+  p[0] = [100, 100];
+  p[50] = [100, 40];
+  p[51] = [100, 220];
+
   return {
     pack: {
       burgs: [undefined, { i: 1, cell: 0, x: 100, y: 100, population: 2 }],
       cells: {
         v: [[0, 1, 2, 3]],
         burg: [1],
-        p: { 0: [100, 100], 50: [100, 40], 51: [100, 220] },
-        h: [],
+        p,
+        h,
         harbor: { 0: 0 },
+        // Which river each cell carries. FMG always populates this for river
+        // cells, and the town reads it to find the river it should inherit at
+        // true scale — the atlas's own statement of which river this burg sits
+        // on, rather than a re-derivation from cell membership.
+        r: { 0: 7, 50: 7, 51: 7 },
       },
       vertices: { p: [[60, 60], [140, 60], [140, 140], [60, 140]] },
       // River flows 50 → cell 0 → 51, a vertical line through the town centre.
-      rivers: [{ cells: [50, 0, 51] }],
+      rivers: [{ i: 7, cells: [50, 0, 51], discharge: 4 }],
       // A road crossing the cell horizontally.
       routes: [{ group: 'roads', points: [[0, 100], [200, 100] ] }],
     },

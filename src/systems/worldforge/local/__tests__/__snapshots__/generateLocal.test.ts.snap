@@ -8,14 +8,14 @@ exports[`generateLocal — forest thickets, clearings, undergrowth (Task 10) > g
     "tree": 180,
   },
   "featureCount": 990,
-  "featureHash": 3351557825,
+  "featureHash": 349806924,
 }
 `;
 
 exports[`generateLocal — golden snapshot (freeze at acceptance) > pins terrain hash and feature counts > local-golden 1`] = `
 {
   "featureCount": 5670,
-  "materialHash": 1341647017,
+  "materialHash": 3952163437,
   "seedPath": "wf:42/cell:110/local:265200-77700",
   "treeCount": 1620,
 }

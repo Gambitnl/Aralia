@@ -1415,10 +1415,13 @@ describe("makeGroundWorld building terrain pads", () => {
   it("correctly maps worldBusinesses and NPC owner names to buildings and keepers", () => {
     const local = makeLocalArtifact();
     const region = makeRegionArtifact();
-    const deltas = [makeMarketDelta(1)]; // makes plot 1 a market
-
     const burgId = 7;
-    const plotId = 1;
+    // A plot id that the generated plan actually places inside this window.
+    // Plot ids are POSITIONAL, so re-deriving the plan (2026-07-29: the town
+    // river is now the region's real course, not a 30x-shrunk cell copy)
+    // renumbers them and can move a low id outside the 500 ft artifact window.
+    const plotId = 2;
+    const deltas = [makeMarketDelta(plotId)]; // makes that plot a market
     const bizId = `biz_burg_${burgId}_plot_${plotId}`;
     const npcId = `npc_burg_${burgId}_plot_${plotId}`;
 
@@ -1469,7 +1472,7 @@ describe("makeGroundWorld building terrain pads", () => {
       generatedNpcs: { [npcId]: mockNpc },
     });
 
-    // Verify building for plot 1 got the business name
+    // Verify building for the market plot got the business name
     const building = ground.buildings.find(
       (b) => b.id === `wf-plot-${burgId}-${plotId}`,
     );

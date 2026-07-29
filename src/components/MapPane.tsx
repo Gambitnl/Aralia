@@ -1282,9 +1282,9 @@ const PreparedMapPane: React.FC<PreparedMapPaneProps> = ({
   // finally shows the river those structures sit on (previously invisible).
   const topTownWater = useMemo(() => {
     if (topTownBurgId == null || !worldforgeAtlas) return undefined;
-    const wf = getCanonicalTownWaterFeatures(worldforgeAtlas, topTownBurgId);
+    const wf = getCanonicalTownWaterFeatures(worldforgeAtlas, topTownBurgId, worldforgeSeed);
     return [...wf.rivers, ...wf.coast];
-  }, [topTownBurgId, worldforgeAtlas]);
+  }, [topTownBurgId, worldforgeAtlas, worldforgeSeed]);
 
   // Submap-tier travel: a route field over the drilled tier's Voronoi cells from
   // the player's sub-cell, so the same route preview works inside the drill.

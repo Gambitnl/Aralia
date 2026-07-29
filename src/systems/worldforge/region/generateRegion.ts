@@ -122,7 +122,7 @@ import {
 } from '../seedPath';
 import { makeWorldFeetNoise } from '../local/worldFeetNoise';
 import { RIDGE_AMPLITUDE, RIDGE_SPAN_FT, RIDGE_START_N } from '../mountains/mountainTunables';
-import { townEnvelopeHalfFtForPeople, townSpanFtForPeople, POPULATION_RATE } from '../town/townScale';
+import { townEnvelopeHalfFtForPeople, POPULATION_RATE } from '../town/townScale';
 import { BoundsFt, Feet, REGION_SIZE_FT } from '../units';
 import type { FmgAtlasResult } from '../fmg/generateAtlas';
 import type { FmgWorldResult } from '../fmg/generateWorld';
@@ -130,7 +130,13 @@ import type { Burg } from '../fmg/burgs-generator';
 import type { Route } from '../fmg/routes-generator';
 import { smoothRegionRiverCenterline } from './riverCenterlineSmoothing';
 import { generateRiverCourse } from './riverCourse';
-import { makeRegionNaturalHeight, type HeightCandidate } from './regionTerrainField';
+import { makeAtlasNaturalHeight } from './regionTerrainField';
+import {
+  buildRiverAttractors,
+  pointToSegmentDist,
+  riverAnchorsFt,
+  type RiverAttractor,
+} from './riverAttractors';
 
 /** Normalized waterline: FMG cell h<20 ≙ height < 0.2 in the refined field. */
 const WATER_THRESHOLD = 0.2;
@@ -236,67 +242,22 @@ export function generateRegion(
 
   // River-bearing settlements pull their river through town. The atlas already
   // says which river a burg sits on (cells.r); the cell-center chord just could
-  // not express it at this zoom.
-  const riverAttractors = new Map<number, Array<{ x: Feet; y: Feet; radiusFt: Feet }>>();
-  const attractorCells = pack.cells as unknown as { r?: ArrayLike<number> };
-  const riversById = new Map<number, { i: number; cells: number[] }>();
-  for (const river of (pack.rivers ?? []) as Array<{ i: number; cells: number[] }>) {
-    riversById.set(river.i, river);
-  }
-  for (const burg of (opts.world?.pack.burgs ?? []) as Array<{
-    i?: number; x: number; y: number; cell: number; removed?: boolean; population?: number;
-  }>) {
-    if (!burg?.i || burg.removed) continue;
-    const riverId = attractorCells.r?.[burg.cell];
-    if (!riverId) continue;
-    const bxFt = burg.x * feetPerPixel;
-    const byFt = burg.y * feetPerPixel;
-    // Baseline radius is the burg's own town span, so a burg already sitting on
-    // its river only bends the course locally.
-    const spanFt = townSpanFtForPeople((burg.population ?? 0) * POPULATION_RATE);
-    let radiusFt = spanFt * 1.5;
-    // But the atlas STATES this burg sits on this river, and at canonical zoom
-    // the cell-center chord can pass further than a town is wide (Epicea: 4,045
-    // ft from a 2,536 ft town). The radius must reach the line it is meant to
-    // pull, and reach it with authority: the smoothstep falloff is ~0 at the
-    // radius edge, so a chord sitting exactly at the radius would not move at
-    // all. Doubling the gap puts the chord at mid-falloff, where each pass
-    // closes about half the distance and ATTRACT_ITERATIONS converges onto the
-    // settlement. This is still a pure function of world data — the FULL
-    // unclipped anchor line — so adjacent windows agree.
-    const riverAnchors = (riversById.get(Number(riverId))?.cells ?? [])
-      .filter((c) => pack.cells.p[c])
-      .map((c) => [pack.cells.p[c][0] * feetPerPixel, pack.cells.p[c][1] * feetPerPixel]);
-    let gapFt = Infinity;
-    for (let i = 0; i < riverAnchors.length - 1; i++) {
-      const [ax, ay] = riverAnchors[i];
-      const [bx, by] = riverAnchors[i + 1];
-      gapFt = Math.min(gapFt, pointToSegmentDist(bxFt, byFt, ax, ay, bx, by));
-    }
-    if (Number.isFinite(gapFt)) radiusFt = Math.max(radiusFt, gapFt * 2);
+  // not express it at this zoom. The rule lives in `riverAttractors.ts` because
+  // the town tier must build the IDENTICAL set to derive the identical course.
+  const riverAttractors = buildRiverAttractors(
+    opts.world?.pack.burgs ?? [],
+    pack.cells.p,
+    (pack.cells as unknown as { r?: ArrayLike<number> }).r,
+    (pack.rivers ?? []) as Array<{ i: number; cells: number[] }>,
+    feetPerPixel,
+  );
 
-    const list = riverAttractors.get(Number(riverId)) ?? [];
-    list.push({ x: bxFt, y: byFt, radiusFt });
-    riverAttractors.set(Number(riverId), list);
-  }
-
-  const heightCandidates: HeightCandidate[] = [];
-  for (let id = 0; id < pack.cells.p.length; id++) {
-    const p = pack.cells.p[id];
-    if (!p) continue;
-    heightCandidates.push({
-      x: p[0] * feetPerPixel,
-      y: p[1] * feetPerPixel,
-      h: pack.cells.h[id] / 100,
-    });
-  }
-  const naturalHeight = makeRegionNaturalHeight(
-    heightCandidates,
-    idwRadiusFt,
+  const naturalHeight = makeAtlasNaturalHeight(
+    pack.cells.p,
+    pack.cells.h,
+    feetPerPixel,
     worldSeedFromPath(regionPath),
-    // 80 lattice cells at the heightfield's resolution — the same macro-landform
-    // wavelength generateHeightfield uses, so river and terrain read one field.
-    80 * resolutionFt,
+    resolutionFt,
   );
 
   const rivers = generateRiverBanks(
@@ -903,7 +864,7 @@ function generateRiverBanks(
   bounds: BoundsFt,
   regionPath: SeedPath,
   naturalHeight: (x: Feet, y: Feet) => number,
-  riverAttractors: Map<number, Array<{ x: Feet; y: Feet; radiusFt: Feet }>>,
+  riverAttractors: Map<number, RiverAttractor[]>,
 ): RegionRiverBank[] {
   const banks: RegionRiverBank[] = [];
 
@@ -911,9 +872,7 @@ function generateRiverBanks(
     // Locality prefilter: the river must touch the membership context at all.
     if (!river.cells.some((c) => memberSet.has(c))) continue;
 
-    const anchors: Array<[Feet, Feet]> = river.cells
-      .filter((c) => cellPoints[c])
-      .map((c) => [cellPoints[c][0] * feetPerPixel, cellPoints[c][1] * feetPerPixel]);
+    const anchors = riverAnchorsFt(river.cells, cellPoints, feetPerPixel);
     if (anchors.length < 2) continue;
 
     // Width from flux (discharge proxy). sqrt dampens the range; +50 ensures
@@ -1034,25 +993,6 @@ function carveRiverChannel(
       }
     }
   }
-}
-
-/**
- * Distance from point (px, py) to line segment (ax, ay)–(bx, by).
- */
-function pointToSegmentDist(
-  px: number, py: number,
-  ax: number, ay: number,
-  bx: number, by: number,
-): number {
-  const dx = bx - ax;
-  const dy = by - ay;
-  const lenSq = dx * dx + dy * dy;
-  if (lenSq < 0.01) return Math.hypot(px - ax, py - ay);
-  let t = ((px - ax) * dx + (py - ay) * dy) / lenSq;
-  t = Math.max(0, Math.min(1, t));
-  const projX = ax + t * dx;
-  const projY = ay + t * dy;
-  return Math.hypot(px - projX, py - projY);
 }
 
 /**

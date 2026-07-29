@@ -16,7 +16,7 @@
  */
 import type { Feet } from '../units';
 import { makeWorldFeetNoise } from '../local/worldFeetNoise';
-import { makeMountainRidgeField } from './generateRegion';
+import { makeMountainRidgeField, computeIdwRadiusFt } from './generateRegion';
 
 /** An FMG cell center in feet with its normalized 0..1 height. */
 export interface HeightCandidate {
@@ -29,6 +29,12 @@ const OCTAVES = 5;
 const LACUNARITY = 2;
 const PERSISTENCE = 0.5;
 const BASE_AMPLITUDE = 0.18;
+
+/**
+ * Macro-landform wavelength in heightfield lattice cells. `generateHeightfield`
+ * uses this same 80-cell base span, so river and terrain read one field.
+ */
+const NOISE_BASE_CELLS = 80;
 
 /** Soft-knee clamp start, mirroring generateHeightfield's summit knee. */
 const KNEE_START = 0.7;
@@ -136,4 +142,38 @@ export function makeRegionNaturalHeight(
     }
     return Math.max(0, Math.min(1, s));
   };
+}
+
+/**
+ * The natural-height sampler for a WHOLE ATLAS — candidates, IDW radius, seed
+ * and noise wavelength all derived from world data in one place.
+ *
+ * The region tier and the town tier both route a river with this surface and
+ * must get the identical line, so the wiring lives here rather than being
+ * restated at each caller where a different radius or wavelength would silently
+ * produce two different rivers.
+ */
+export function makeAtlasNaturalHeight(
+  cellPoints: Array<[number, number]>,
+  cellHeights: ArrayLike<number>,
+  feetPerPixel: number,
+  worldSeed: number,
+  resolutionFt: number,
+): (x: Feet, y: Feet) => number {
+  const candidates: HeightCandidate[] = [];
+  for (let id = 0; id < cellPoints.length; id++) {
+    const p = cellPoints[id];
+    if (!p) continue;
+    candidates.push({
+      x: p[0] * feetPerPixel,
+      y: p[1] * feetPerPixel,
+      h: cellHeights[id] / 100,
+    });
+  }
+  return makeRegionNaturalHeight(
+    candidates,
+    computeIdwRadiusFt(cellPoints, feetPerPixel),
+    worldSeed >>> 0,
+    NOISE_BASE_CELLS * resolutionFt,
+  );
 }

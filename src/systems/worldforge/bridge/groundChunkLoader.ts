@@ -2184,9 +2184,35 @@ function carveTownWaterBasins(
     // reference is the body's own resolved water height, not a re-sampled shore,
     // so bed and surface can never disagree.
     const bedEnc = Math.max(0, metersToHeight(body.surfaceY) - bedDropEnc);
-    for (const idx of polygonCellIndices(cols, rows, body.pointsM)) {
-      if (protectedCells.has(idx)) continue; // buildings win — keep their level pad
+    const carveCell = (idx: number): void => {
+      if (protectedCells.has(idx)) return; // buildings win — keep their level pad
       heights[idx] = Math.min(heights[idx], bedEnc); // lower only — never raise land
+    };
+    for (const idx of polygonCellIndices(cols, rows, body.pointsM)) carveCell(idx);
+
+    // The channel ring is a plain left/right offset of the centerline with no
+    // END CAPS, so the first and last centerline points sit exactly ON the ring
+    // boundary and point-in-polygon leaves their cells uncarved — the river tail
+    // keeps a lip of land standing above its own surface.
+    //
+    // Stamping only the containing cell is not enough: height is read back with
+    // BILINEAR interpolation, so an uncarved neighbor drags the sampled surface
+    // above the water again. Carve the 3x3 block around each centerline cell to
+    // give the interpolation carved ground on every side.
+    if (body.centerlineM) {
+      for (const p of body.centerlineM) {
+        const cx = Math.floor(p.x / GROUND_METERS_PER_CELL);
+        const cy = Math.floor(p.z / GROUND_METERS_PER_CELL);
+        for (let dy = -1; dy <= 1; dy++) {
+          const yy = cy + dy;
+          if (yy < 0 || yy >= rows) continue;
+          for (let dx = -1; dx <= 1; dx++) {
+            const xx = cx + dx;
+            if (xx < 0 || xx >= cols) continue;
+            carveCell(yy * cols + xx);
+          }
+        }
+      }
     }
   }
 
@@ -2486,7 +2512,7 @@ export function canonicalTownWaterAndDecks(
     fp.reduce((s, p) => s + p[1], 0) / (fp.length || 1),
   ];
 
-  const wf = getCanonicalTownWaterFeatures(townAtlas, site.burgId);
+  const wf = getCanonicalTownWaterFeatures(townAtlas, site.burgId, worldSeed);
   const bodiesFt = buildTownWaterBodies({
     rivers: wf.rivers.map(toFeet),
     coast: wf.coast.map(toFeet),

@@ -54,7 +54,7 @@ function epiceaGround(): { ground: GroundWorld; townSites: number } {
 describe('Epicea town water reaches the 3D bake', () => {
   it('the canonical burg carries the river its 2D plan draws bridges over', () => {
     const atlas = getBridgeAtlas(SEED);
-    const features = getCanonicalTownWaterFeatures(atlas, BURG);
+    const features = getCanonicalTownWaterFeatures(atlas, BURG, SEED);
     // The 2D drill renders exactly these polylines, and the generator seated
     // docks/bridges against them. Empty here means 2D and 3D disagree at source.
     expect(features.rivers.length).toBeGreaterThan(0);
@@ -103,12 +103,22 @@ describe('Epicea town water reaches the 3D bake', () => {
     const river = ground.waterBodies.find((b) => b.kind === 'river');
     expect(river).toBeDefined();
 
-    // Along the centerline the bed is carved below the resolved surface. If this
-    // inverts, the sheet still exists in the scene but renders inside the hill —
-    // which reads to a player as "the town has no river".
+    // The bed must never sit ABOVE the water surface. If it does, the sheet
+    // still exists in the scene but renders inside the hill — which reads to a
+    // player as "the town has no river".
+    //
+    // Not a strict inequality: the course now runs the full length of the river,
+    // so its downstream tail reaches the sea, where the bed and the surface are
+    // both legitimately at zero. Requiring bed < surface there would fail a
+    // river for arriving at the coast.
+    let carved = 0;
     for (const p of river!.centerlineM!) {
-      expect(groundSurfaceY(ground, p.x, p.z)).toBeLessThan(p.surfaceY);
+      const bed = groundSurfaceY(ground, p.x, p.z);
+      expect(bed).toBeLessThanOrEqual(p.surfaceY);
+      if (bed < p.surfaceY) carved++;
     }
+    // And it is a real channel, not a flat sheet laid on flat ground.
+    expect(carved).toBeGreaterThan(river!.centerlineM!.length / 2);
   }, 120000);
 
   it('survives chunk sampling into lakes and builds real water triangles', () => {
