@@ -1051,7 +1051,9 @@ describe("sampleGroundChunk occupant sites", () => {
       xM: homeBuilding?.xM,
       zM: homeBuilding?.zM,
     });
-  });
+    // Bakes a full ground world with a roster; the 5 s default left no
+    // headroom once the town plan started inheriting a real river course.
+  }, 30_000);
 
   it("binds each wealthy-home servant roster row to one named body and nameplate site", () => {
     const local = makeLocalArtifact();
