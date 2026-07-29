@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 28/07/2026, 00:36:54
+ * Last Sync: 28/07/2026, 12:44:28
  * Dependents: components/BattleMap/characters/characterActor/EntityModel.tsx, components/DesignPreview/steps/EntityDebugScene.tsx, components/World3D/OccupantFigure.tsx, components/World3D/PlayerAvatar.tsx, systems/entities3d/three/Entity3D.tsx
  * Imports: 7 files
  *
@@ -346,6 +346,13 @@ export function assembleEntity(blueprint: EntityBlueprint, options: AssembleOpti
         wingR.rotation.z = -dihedral;
         wingL.rotation.y = -fold * 0.5;
         wingR.rotation.y = fold * 0.5;
+        // pleat (2026-07-28, ref mz-final-2): real folded wings collapse their
+        // span; rigid rotation can't, so compress the span axis as the fold
+        // deepens — the membrane pleats into a strip lying on the flank
+        // instead of hanging off it as a full-size slab. fold=0 -> 1.0.
+        const pleat = 1 - fold * 0.5;
+        wingL.scale.x = pleat;
+        wingR.scale.x = pleat;
       }
     }
 

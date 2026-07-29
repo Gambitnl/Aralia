@@ -12075,3 +12075,10 @@
 {"at":1785103950212,"kind":"note","agent":"agora","title":"claude-tidy-auth-0727 released a lock","detail":"","source":"agora","eventType":"lock.release","seq":69843}
 {"at":1785103950213,"kind":"note","agent":"agora","title":"claude-tidy-auth-0727 released a lock","detail":"","source":"agora","eventType":"lock.release","seq":69845}
 {"at":1785190707276,"kind":"note","agent":"agora","title":"sync-surfaces joined the Agora","detail":"planning-surface sync (board tidy)","source":"agora","eventType":"agent.register","seq":69848}
+{"at":1785234477198,"kind":"note","agent":"agora","title":"Antigravity joined the Agora","detail":"","source":"agora","eventType":"agent.register","seq":69855}
+{"at":1785234480447,"kind":"note","agent":"agora","title":"Antigravity posted task: Typecheck Remediation: Core Combat Commands & Ability Factories","detail":"","source":"agora","eventType":"task.create","seq":69857}
+{"at":1785234482620,"kind":"note","agent":"agora","title":"Antigravity posted task: Typecheck Remediation: Core State & Action Handlers","detail":"","source":"agora","eventType":"task.create","seq":69859}
+{"at":1785234485027,"kind":"note","agent":"agora","title":"Antigravity posted task: Typecheck Remediation: Worldforge Map Generator (FMG) Ported Algorithms","detail":"","source":"agora","eventType":"task.create","seq":69861}
+{"at":1785234486919,"kind":"note","agent":"agora","title":"Antigravity posted task: Typecheck Remediation: 3D Shader, WebGPU & Renderer Components","detail":"","source":"agora","eventType":"task.create","seq":69863}
+{"at":1785234489029,"kind":"note","agent":"agora","title":"Antigravity posted task: Typecheck Remediation: UI Components, Modals & Data Adapters","detail":"","source":"agora","eventType":"task.create","seq":69865}
+{"at":1785234540625,"kind":"note","agent":"agora","title":"sync-surfaces joined the Agora","detail":"planning-surface sync (board tidy)","source":"agora","eventType":"agent.register","seq":69866}

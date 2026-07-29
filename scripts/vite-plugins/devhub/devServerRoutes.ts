@@ -270,7 +270,7 @@ const buildScanTargetsFromRange = (start: number, end: number, includeKnown = tr
     return {
       port,
       label: includeKnown && DEV_SERVER_SCAN_LABELS.includes(port)
-        ? DEV_SERVER_SCAN_TARGETS[port]
+        ? (DEV_SERVER_SCAN_TARGETS as Record<number, string>)[port]
         : 'Unknown service',
       expectedUrl: `http://${DEV_SERVER_SCAN_HOST}:${port}/`,
     };

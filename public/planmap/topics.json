@@ -5666,7 +5666,7 @@
       "sub": "Rivers in ground 3D have no water surface: the ribbon mesh hides 0.5 m under the carved bed, so water is just blue-tinted terrain and nothing can read as submerged (found during the 3D ford + bridge-burial work 2026-07-17/18). Plan: one shared per-river waterline computed in the ground loader, ribbon rendered AT it and widened to the water-biome extent, and a riverWaterlineAt(x,z) query that fords, bridges, and docks anchor to. Fixes ford, bridge, and riverbank reads in one move.",
       "link": "docs/superpowers/specs/2026-07-18-ground3d-water-surface-design.md",
       "open": 8,
-      "updated": "2026-07-27",
+      "updated": "2026-07-28",
       "features": [
         {
           "title": "Rivers can be above sea level: sea/lake/river kinds + descending river surface; meters-not-encoded depths (2026-07-27)",
@@ -5679,6 +5679,22 @@
         {
           "title": "Water bodies get one flat level each: findWaterRegions flood-fill + rim-spill height (foundation, 2026-07-28)",
           "status": "done"
+        },
+        {
+          "title": "Water was culled: earcut wound every sheet face-down, so no water mesh ever drew (0 -> 24,864 px) (2026-07-28)",
+          "status": "done"
+        },
+        {
+          "title": "Water drawn from real wet cells; carve now marks them (generateLocal never assigned 'water') (2026-07-28)",
+          "status": "done"
+        },
+        {
+          "title": "Terrain hydrology decides water: fill-to-spill + flow accumulation (worst burial 13.01m -> 0.98m) (2026-07-29)",
+          "status": "done"
+        },
+        {
+          "title": "2D town plan has a river, 3D bake has no town water bodies — canonical-town divergence (open, 2026-07-29)",
+          "status": "parked"
         }
       ]
     },

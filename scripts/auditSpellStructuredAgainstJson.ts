@@ -328,7 +328,7 @@ function formatAreaMeasurement(size: number, unit: string, sizeType?: string): s
     return `${size.toLocaleString('en-US')} ${renderedUnit}`;
   }
 
-  return formatMeasuredDistance(size, unit, 'hyphenated');
+  return formatMeasuredDistance(size, unit as any, 'hyphenated');
 }
 
 function formatStructuredCastingTime(labels: Map<string, string>): string {
@@ -789,7 +789,7 @@ function formatJsonDuration(spell: unknown): string {
   const { duration } = parsed.data;
   if (duration.type === 'instantaneous') return 'Instantaneous';
   if (duration.type === 'special') return 'Special';
-  if (duration.type === 'permanent') return 'Permanent';
+  if ((duration.type as string) === 'permanent') return 'Permanent';
   if (duration.type === 'until_dispelled') return 'Until Dispelled';
 
   if (typeof duration.value === 'number' && duration.value > 0 && duration.unit) {

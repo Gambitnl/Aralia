@@ -57,7 +57,7 @@ export function buildWaterMesh(data: ChunkData): ChunkGeometryArrays {
       const local = gridPointToLocal(p.x, p.y, data.cx, data.cy);
       flat.push(local.x, local.z);
     }
-    for (const index of earcut(flat)) indices.push(startVert + index);
+    pushUpwardTriangles(earcut(flat), startVert, positions, indices);
   }
 
   for (const ribbon of ribbons) {
@@ -115,6 +115,46 @@ export function waterSurfaceYAt(
     }
   }
   return best.y;
+}
+
+/**
+ * Append earcut's triangles with every face pointing UP.
+ *
+ * Water was invisible everywhere in the game and this is why: earcut's winding
+ * follows the input ring's orientation, and these rings come out clockwise, so
+ * the triangles faced DOWN. Every vertex normal says (0,1,0), but back-face
+ * culling goes by winding, not by the normal attribute — so a surface that
+ * claimed to face up was culled from every camera above it. Measured in-game
+ * 2026-07-28: rendering the water alone drew 0 pixels front-side and 24,864
+ * double-sided.
+ *
+ * Orienting the geometry is the fix rather than switching the material to
+ * DoubleSide: a sheet drawn from both sides is two sets of faces at one depth,
+ * which is the z-fighting trap that already bit the town walls and gates.
+ */
+export function pushUpwardTriangles(
+  tris: number[],
+  startVert: number,
+  positions: number[],
+  indices: number[],
+): void {
+  for (let t = 0; t + 2 < tris.length; t += 3) {
+    const a = startVert + tris[t];
+    const b = startVert + tris[t + 1];
+    const c = startVert + tris[t + 2];
+    // Cross product's Y component decides which way the face looks. Reading the
+    // emitted positions avoids reasoning about the 2D winding convention.
+    const ax = positions[a * 3];
+    const az = positions[a * 3 + 2];
+    const bx = positions[b * 3];
+    const bz = positions[b * 3 + 2];
+    const cx = positions[c * 3];
+    const cz = positions[c * 3 + 2];
+    const normalY = (bx - ax) * (cz - az) - (bz - az) * (cx - ax);
+    // In a right-handed Y-up frame a face points up when this term is negative.
+    if (normalY <= 0) indices.push(a, b, c);
+    else indices.push(a, c, b);
+  }
 }
 
 function emitLake(

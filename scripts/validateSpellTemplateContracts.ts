@@ -234,7 +234,7 @@ export function validateTemplateParity(
     if (field.runtimeOnly || field.status === 'proposed') continue;
 
     const mappedLabelOk = !field.structuredLabel || structuredLabels.has(field.structuredLabel);
-    const mappedPatternOk = !field.structuredPattern || structuredPatterns.some((pattern) => pattern === field.structuredPattern || pattern.startsWith(field.structuredPattern));
+    const mappedPatternOk = !field.structuredPattern || structuredPatterns.some((pattern) => pattern === field.structuredPattern || (!!field.structuredPattern && pattern.startsWith(field.structuredPattern)));
     const mappedLabelsOk = !field.structuredLabels || field.structuredLabels.every((label) => structuredLabels.has(label));
 
     if (!mappedLabelOk || !mappedPatternOk || !mappedLabelsOk) {

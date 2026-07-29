@@ -87,6 +87,9 @@ import { buildingShellHeightM } from "../interior/generateBuilding";
 import { buildTownWaterBodies } from "../town/townWaterBodies";
 import { STREET_MIN_WIDTH_M } from "../town/streetRibbons";
 import type { AdaptedTownPlan } from "../town/townPlanAdapter";
+import { waterRunsFromLevels, waterLevelsByCell, rasterizeChannel } from "./waterRegions";
+import type { WaterRun } from "./waterRegions";
+import { deriveHydrology } from "./terrainHydrology";
 import type { TownPlan } from "../artifacts";
 import {
   buildInterior,
@@ -436,6 +439,17 @@ export interface GroundWorld {
   walls: GroundPolyline[];
   /** Town water bodies (rivers/harbour), filled flat surfaces, ground meters. */
   waterBodies: GroundWaterBody[];
+  /**
+   * Connected bodies of water taken from the biome grid, each with one flat
+   * level. This is where a VISIBLE water surface comes from; `waterBodies`
+   * above are the town's crude channel/apron quads, which shape the bed and
+   * position decks but are the wrong shape to draw — an in-game look showed
+   * them as 52 m wide slabs laid over the landscape.
+   *
+   * Optional because a world baked before this existed carries none, and the
+   * renderer treats "absent" as "no water sheets" rather than failing.
+   */
+  waterRuns?: WaterRun[];
   /** Town dock/bridge deck slabs, ground meters. */
   decks: GroundDeck[];
   /** Town road-gate placements (ground meters) for gatehouse meshes (styled-architecture slice). */
@@ -1888,6 +1902,16 @@ export function makeGroundWorld(
     crossings,
     walls: townContent.planWalls,
     waterBodies: townContent.planWaterBodies,
+    waterRuns: waterRunsFromLevels(
+      resolveGroundWater(
+        wd.gridSize.cols,
+        wd.gridSize.rows,
+        wd.heights,
+        townContent.planWaterBodies,
+      ),
+      wd.gridSize.cols,
+      GROUND_METERS_PER_CELL,
+    ),
     decks,
     gatehouses: townContent.planGatehouses,
     towns: townContent.towns,
@@ -2115,6 +2139,9 @@ function carveTownWaterBasins(
   decks: GroundDeck[],
   buildings: GroundWorld["buildings"],
 ): void {
+  // NOTE: this pass shapes the BED and places decks. It deliberately does not
+  // decide where water is — the carved channel changes the terrain, and
+  // `deriveHydrology` then reads that terrain to work out what fills with water.
   const original = heights.slice();
   const centroidOf = (pts: Array<{ x: number; z: number }>) => ({
     x: pts.reduce((s, p) => s + p.x, 0) / (pts.length || 1),
@@ -2491,7 +2518,11 @@ export function canonicalTownWaterAndDecks(
     rivers: wf.rivers.map(toFeet),
     coast: wf.coast.map(toFeet),
     centroid,
-    channelHalfWidth: spanFt * 0.03,
+    // 3% of the town's span PER SIDE scales with the settlement, so a large
+    // burg got a 50 m river through its middle — the slabs Remy circled. A
+    // river's width has nothing to do with how big the town beside it is, so
+    // the share is capped at a river-sized channel.
+    channelHalfWidth: Math.min(spanFt * 0.03, TOWN_RIVER_MAX_HALF_WIDTH_FT),
     apronDepth: spanFt * 0.4,
   });
   // Heights stay 0 here; carveTownWaterBasins resolves them from the shore.
@@ -3396,27 +3427,37 @@ export function sampleGroundChunk(
     rivers: ground.rivers.flatMap((r) => clipGroundPolylineToChunk(r, cx, cy)),
     roads: ground.roads.flatMap((r) => clipGroundPolylineToChunk(r, cx, cy)),
     walls: ground.walls.flatMap((w) => clipGroundPolylineToChunk(w, cx, cy)),
-    // Town water bodies → filled lake surfaces; dock/bridge decks → timber slabs.
-    // Both clipped to the chunk rectangle and emitted in pseudo-grid (meters/M).
-    lakes: ground.waterBodies.flatMap((b) => {
-      const clipped = clipPolygonToChunk(b.pointsM, cx, cy);
-      if (clipped.length < 3) return [];
-      // The centerline is NOT clipped: a chunk can hold a slice of channel whose
-      // nearest centerline points lie in the neighbouring chunk, and dropping
-      // them would step the water height at every chunk seam.
-      const centerline = b.centerlineM?.map((p) => {
-        const g = pseudoGrid(p.x, p.z);
-        return { x: g.x, y: g.y, surfaceY: p.surfaceY };
-      });
-      return [
-        {
-          points: clipped.map((p) => pseudoGrid(p.x, p.z)),
-          surfaceY: b.surfaceY,
-          kind: b.kind,
-          ...(centerline?.length ? { centerline } : {}),
-        },
-      ];
-    }),
+    // Water comes from two sources, because neither covers the other:
+    //   - the LAND (waterRuns): hollows that fill and streams that collect,
+    //     worked out by hydrology from the terrain itself;
+    //   - the TOWN PLAN (waterBodies): the river the 2D town plan draws, with
+    //     its bridges. Hydrology cannot invent that river — a town window is
+    //     small and flat, so flow never builds up — and dropping these quads
+    //     left burg Epicea with a river on its map and none in the world.
+    // The quads' width is now capped (TOWN_RIVER_MAX_HALF_WIDTH_FT); their old
+    // town-span share is what made the 52 m slabs.
+    lakes: [
+      ...waterRegionLakesForChunk(ground, cx, cy),
+      ...ground.waterBodies.flatMap((b) => {
+        const clipped = clipPolygonToChunk(b.pointsM, cx, cy);
+        if (clipped.length < 3) return [];
+        // The centerline is NOT clipped: a chunk can hold a slice of channel
+        // whose nearest centerline points lie in the neighbouring chunk, and
+        // dropping them would step the water height at every chunk seam.
+        const centerline = b.centerlineM?.map((p) => {
+          const g = pseudoGrid(p.x, p.z);
+          return { x: g.x, y: g.y, surfaceY: p.surfaceY };
+        });
+        return [
+          {
+            points: clipped.map((p) => pseudoGrid(p.x, p.z)),
+            surfaceY: b.surfaceY,
+            kind: b.kind,
+            ...(centerline?.length ? { centerline } : {}),
+          },
+        ];
+      }),
+    ],
     decks: ground.decks.flatMap((d) => {
       const clipped = clipPolygonToChunk(d.cornersM, cx, cy);
       // Carry the deck kind (TG5) and any per-deck tint through so the
@@ -3557,6 +3598,110 @@ export function sampleGroundChunk(
 function inChunk(xM: number, zM: number, cx: number, cy: number): boolean {
   const S = WORLD3D_CONFIG.CHUNK_WORLD_SIZE;
   return xM >= cx * S && xM < (cx + 1) * S && zM >= cy * S && zM < (cy + 1) * S;
+}
+
+/**
+ * The water sheets for one chunk, built from the ground world's wet cells.
+ *
+ * Each body's rows are merged into runs, clipped to the chunk rectangle, and
+ * emitted as flat quads at that body's single level — so one lake reads as one
+ * surface even where it crosses chunk boundaries.
+ */
+function waterRegionLakesForChunk(
+  ground: GroundWorld,
+  cx: number,
+  cy: number,
+): NonNullable<ChunkData["lakes"]> {
+  const S = WORLD3D_CONFIG.CHUNK_WORLD_SIZE;
+  const minX = cx * S;
+  const minZ = cy * S;
+  const maxX = minX + S;
+  const maxZ = minZ + S;
+  const out: NonNullable<ChunkData["lakes"]> = [];
+
+  for (const run of ground.waterRuns ?? []) {
+    // Clip to the chunk box. Runs are axis-aligned, so this is a clamp.
+    const x0 = Math.max(run.minX, minX);
+    const x1 = Math.min(run.maxX, maxX);
+    const z0 = Math.max(run.minZ, minZ);
+    const z1 = Math.min(run.maxZ, maxZ);
+    if (x1 <= x0 || z1 <= z0) continue;
+    out.push({
+      points: [
+        pseudoGrid(x0, z0),
+        pseudoGrid(x1, z0),
+        pseudoGrid(x1, z1),
+        pseudoGrid(x0, z1),
+      ],
+      surfaceY: heightToMeters(run.surfaceEnc),
+      kind: "lake",
+    });
+  }
+  return out;
+}
+
+/** How wide a town river runs, each side of its centerline. */
+const TOWN_RIVER_HALF_WIDTH_M = 3;
+
+/** Cap on a town river's half-width, in feet (~6 m, so a ~12 m river). */
+const TOWN_RIVER_MAX_HALF_WIDTH_FT = 20;
+
+/**
+ * Where the water is, and how high — the land and the map together.
+ *
+ * Two sources, because neither alone is right:
+ *   - The LAND decides standing water. Hollows fill to the height they would
+ *     spill at, so a lake's flat surface falls out of the terrain rather than
+ *     out of a rule, and flow accumulation finds streams where water collects.
+ *   - The MAP decides a town's river course. Flow accumulation cannot find it
+ *     inside a small, flat town window — switching to hydrology alone left burg
+ *     Hajdured with a few ponds and no river, which is not what its atlas says.
+ *     So the course is taken from the authored centerline.
+ *
+ * Height always comes from the land: a river cell sits just below the bank
+ * beside it, which descends with the valley. That is what keeps the surface out
+ * of the hillside — an earlier flat-level-per-body rule buried it under 13 m.
+ */
+function resolveGroundWater(
+  cols: number,
+  rows: number,
+  heights: number[],
+  waterBodies: GroundWaterBody[],
+): Map<number, number> {
+  const hydrology = deriveHydrology({ cols, rows, heights });
+  const water = new Map(hydrology.water);
+
+  // Authored river courses, rasterized from their centerlines.
+  const riverCells = new Set<number>();
+  for (const body of waterBodies) {
+    if (body.kind !== "river" || !body.centerlineM?.length) continue;
+    for (const idx of rasterizeChannel(
+      body.centerlineM,
+      TOWN_RIVER_HALF_WIDTH_M,
+      cols,
+      rows,
+      GROUND_METERS_PER_CELL,
+    )) {
+      riverCells.add(idx);
+    }
+  }
+
+  if (riverCells.size > 0) {
+    // Resolve their heights from the banks. A synthetic wet grid lets the same
+    // tested rule serve both sources.
+    const wetGrid = new Array<string>(cols * rows).fill("grassland");
+    for (const idx of riverCells) wetGrid[idx] = "water";
+    const levels = waterLevelsByCell({
+      cols,
+      rows,
+      biomeIds: wetGrid,
+      heights,
+      surfaceDropEnc: metersToHeight(WATER_SURFACE_DROP_M),
+    });
+    for (const [idx, level] of levels) water.set(idx, level);
+  }
+
+  return water;
 }
 
 function pseudoGrid(xM: number, zM: number): { x: number; y: number } {

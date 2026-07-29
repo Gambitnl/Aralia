@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 27/07/2026, 22:34:42
+ * Last Sync: 28/07/2026, 12:50:38
  * Dependents: components/BattleMap/characters/characterActor/EntityModel.tsx, components/DesignPreview/steps/EntityDebugScene.tsx, components/World3D/OccupantFigure.tsx, components/World3D/PlayerAvatar.tsx, systems/entities3d/three/Entity3D.tsx, systems/entities3d/three/assembleEntity.ts, systems/entities3d/three/crowdBake.ts
  * Imports: 4 files
  *
@@ -702,7 +702,7 @@ class PlanDriver extends BaseDriver {
         dir.applyAxisAngle(V_UP, (which / (sibs.length - 1) - 0.5) * 1.9 * (chain.side || 1));
       }
     }
-    else if (chain.kind === 'neck') dir.set(chain.side * 0.2, 1.15, upright ? 0.3 : 0.75);
+    else if (chain.kind === 'neck') dir.set(chain.side * 0.2, 0.95, upright ? 0.3 : 0.95); // 2026-07-28: ~45deg per therapsid reference (was 57deg)
     else if (chain.kind === 'wing') dir.set(chain.side === 0 ? 0.9 : chain.side, 0.35, -0.15);
     else {
       // arm: down-forward hang for walkers; a gentle drape for floaters —

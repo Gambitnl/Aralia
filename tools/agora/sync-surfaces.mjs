@@ -10,20 +10,35 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 const dayDiff = (now, d) => Math.max(0, Math.round((now - new Date(d)) / 86400000));
 
-// Windows hands out the target file's handle to whoever else has it open — the
-// dev server's watcher over public/ is the prime suspect — and the write fails
-// for a few seconds at a time. Reproduced 2026-07-28: two consecutive failures,
-// then success on the third try about 4 s later. Seen as EPERM on the rename and
-// as libuv's UNKNOWN (-4094) on the open. Giving up on the first failure is what
-// froze health.json for three days (2026-07-23 → 26) with every age on the
-// plan-map page stale, so a transient lock must not lose the whole step.
-const WRITE_ATTEMPTS = 6;
-const WRITE_BACKOFF_MS = 250;
+// Writes here fail transiently, in bursts of up to ~1.5 s, as EPERM on the
+// rename and as libuv's UNKNOWN (-4094) on a direct open. Giving up on the first
+// failure is what froze health.json for three days (2026-07-23 → 26) with every
+// age on the plan-map page stale, so a transient lock must not lose the step.
+//
+// Measured 2026-07-28, same file, same directory, only one variable changed:
+//   nobody requesting it over HTTP ....  0 failures / 250 writes
+//   dev server serving it ............ 175 failures / 200 writes
+// So the holder is the dev server SERVING the file, not its watcher: sibling
+// files in the same watched directories never failed while merely being watched.
+// Restart Manager never attributes a holder, so the handle is short-lived rather
+// than parked — which is exactly what retrying is good for.
+//
+// The budget below rides out about 10 s. It survives one or two readers hitting
+// the file back to back; against three or more it becomes a coin flip, and no
+// retry budget wins against a reader that never lets go. A browser on the
+// plan-map page sits well inside the survivable range.
+const WRITE_ATTEMPTS = 12;
+const WRITE_BACKOFF_MS = 150;
+const WRITE_BACKOFF_CAP_MS = 1500;
+const backoffFor = (attempt) => Math.min(WRITE_BACKOFF_CAP_MS, WRITE_BACKOFF_MS * attempt);
 
-/** Block the thread briefly — this is a one-shot batch program, not a server. */
+/**
+ * Block the thread — this is a one-shot batch program, not a server. Atomics
+ * rather than a spin loop: a spin burns a core competing with the very process
+ * that has to finish reading the file before the write can land.
+ */
 const sleepSync = (ms) => {
-  const until = Date.now() + ms;
-  while (Date.now() < until) { /* spin */ }
+  Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms);
 };
 
 const atomicWrite = (file, text, { attempts = WRITE_ATTEMPTS, sleep = sleepSync } = {}) => {
@@ -40,7 +55,7 @@ const atomicWrite = (file, text, { attempts = WRITE_ATTEMPTS, sleep = sleepSync 
       lastError = e;
       // Never leave scratch files behind for the next run to trip over.
       try { fs.rmSync(tmp, { force: true }); } catch { /* ignore */ }
-      if (attempt < attempts) sleep(WRITE_BACKOFF_MS * attempt);
+      if (attempt < attempts) sleep(backoffFor(attempt));
     }
   }
   throw new Error(

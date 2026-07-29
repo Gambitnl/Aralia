@@ -68,7 +68,7 @@ interface PremadeSpec {
 function recommendedScores(classId: string): AbilityScores {
   const cls = CLASSES_DATA[classId];
   if (!cls?.recommendedPointBuyPriorities) throw new Error(`No recommended priorities for ${classId}`);
-  const scores = Object.fromEntries(ABILITIES.map(a => [a, 8])) as AbilityScores;
+  const scores = Object.fromEntries(ABILITIES.map(a => [a, 8])) as unknown as AbilityScores;
   const pool = [...STANDARD_ARRAY];
   cls.recommendedPointBuyPriorities.forEach((ability, idx) => {
     if (idx < pool.length) scores[ability] = pool[idx];

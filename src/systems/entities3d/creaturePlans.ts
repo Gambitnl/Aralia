@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 28/07/2026, 00:35:43
+ * Last Sync: 28/07/2026, 12:43:13
  * Dependents: systems/entities3d/generateEntityBlueprint.ts
  * Imports: 3 files
  *
@@ -287,43 +287,45 @@ function dragonPlan(h: number, b: number): PlanTemplate {
   // 2026-07-28 "dachshund" fix: the torso was 2.8h long on 0.95h legs (~3:1 —
   // literally dachshund ratio). Now ~2:1 with a taller stance, which reads
   // big-cat/dragon instead of sausage-dog. Tail still supplies the length.
-  const reach = h * 1.02;
+  const reach = h * 1.12;
   return {
     name: 'Dragon',
-    frame: { heightFt: h, lengthFt: h * 2.0, bulk: Math.max(b, 0.55), stance: 'horizontal' },
+    frame: { heightFt: h, lengthFt: h * 1.8, bulk: Math.max(b, 0.55), stance: 'horizontal' },
     // three-lobe mass: deep chest (wings + forelegs), tucked waist, driving hips —
     // the 2026-07-27 "hot dog dragon" was the old single-sine bulge sausage
-    spine: { segments: 5, taper: 0.7, arch: 0.08, bulge: 0.5, mass: [1.35, 0.78, 1.12] },
+    spine: { segments: 5, taper: 0.7, arch: 0.08, bulge: 0.5, mass: [1.42, 0.76, 1.2] },
     appendages: [
       // heavier haunches than the generic quad — dragon hindquarters drive it
-      ...quadLegs(reach, 0.55, 0.72),
-      // index 2 — neck: shorter and base-thick (was 0.84h of garden hose);
-      // the head-carry pass in compilePlan still thickens it toward the head
+      ...quadLegs(reach, 0.52, 0.85),
+      // index 2 — neck: ~0.6x torso per the mz-3 therapsid reference
+      // (was 0.84h garden hose, then over-cut to 0.53h in wave 5);
+      // thick base tapering to the head; compilePlan thickens it further
       {
         kind: 'neck',
         attach: 0.04,
         perSide: false,
         count: 1,
         chain: [
-          { lenFt: h * 0.2, r: 0.66 },
-          { lenFt: h * 0.17, r: 0.52 },
-          { lenFt: h * 0.16, r: 0.4 },
+          { lenFt: h * 0.3, r: 0.72 },
+          { lenFt: h * 0.26, r: 0.56 },
+          { lenFt: h * 0.24, r: 0.44 },
+          { lenFt: h * 0.2, r: 0.34 },
         ],
       },
       tailChain([
-        [h * 0.5, 0.5],
-        [h * 0.44, 0.36],
-        [h * 0.38, 0.24],
-        [h * 0.3, 0.13],
+        [h * 0.56, 0.62],
+        [h * 0.5, 0.46],
+        [h * 0.42, 0.3],
+        [h * 0.33, 0.16],
       ]),
     ],
     heads: [
       {
         neckIndex: 2,
         form: 'beast',
-        sizeScale: 1.28, // a head big enough to justify the neck (was a knob)
+        sizeScale: 1.32, // a head big enough to justify the neck (was a knob)
         eyes: { count: 2, sizeScale: 0.9, pupil: 'slit' },
-        snout: { lengthScale: 1.25, droop: 0.1 },
+        snout: { lengthScale: 1.4, droop: 0.1 },
       },
     ],
   };

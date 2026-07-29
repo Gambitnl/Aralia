@@ -181,7 +181,7 @@ function readBacklogRetirementState(): unknown {
       markedMarkdown: markedMarkdown.length,
       missingMarkdown: docsMarkdown.length - markedMarkdown.length,
     },
-    recentActivity: readRecentBacklogActivity(snapshot),
+    recentActivity: readRecentBacklogActivity(snapshot as any),
     candidates: readBacklogCandidates(),
   };
 }

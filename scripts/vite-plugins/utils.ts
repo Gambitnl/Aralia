@@ -231,3 +231,8 @@ export async function callMcpTool(
     });
   });
 }
+
+export function isSafeScriptName(scriptName: string): boolean {
+  return /^[a-zA-Z0-9_\-.:/]+$/.test(scriptName);
+}
+

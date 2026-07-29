@@ -43,6 +43,11 @@ import { InteriorHourProvider, useInteriorHour, emissiveForPart } from './Interi
 import FreeRoamCameraController, { type CameraFrameRequest } from './FreeRoamCameraController';
 import { syncVegetationInstanceMatrices } from './vegetationInstanceMatrices';
 import { VegetationTreeField } from './vegetation/VegetationTreeField';
+import {
+  advanceWaterRipple,
+  getWaterSurfaceMaterial,
+  RIPPLE_METERS_PER_TILE,
+} from './water/waterSurfaceMaterial';
 import { GrassLayer } from './vegetation/GrassLayer';
 import { useChunkStreaming } from './useChunkStreaming';
 import World3DNameplates from './World3DNameplates';
@@ -269,32 +274,37 @@ const WaterPiece: React.FC<{ chunk: LoadedChunk; origin: SceneOrigin }> = ({ chu
   const geometry = useDisposableGeometry(
     water ?? { positions: new Float32Array(0), indices: new Uint32Array(0), normals: new Float32Array(0) },
   );
+  const scenePos = chunkScenePos(chunk.cx, chunk.cy, origin);
+
+  // The sheets are 2-triangle quads, so the ripple has to come from a normal
+  // map, and that needs UVs the geometry never carried. Deriving them from
+  // WORLD x/z (chunk offset included) keeps the ripple continuous across chunk
+  // seams — chunk-local UVs would restart the pattern at every boundary.
+  useMemo(() => {
+    const pos = geometry.getAttribute('position');
+    if (!pos || pos.count === 0) return;
+    const uv = new Float32Array(pos.count * 2);
+    for (let i = 0; i < pos.count; i++) {
+      uv[i * 2] = (pos.getX(i) + scenePos[0]) / RIPPLE_METERS_PER_TILE;
+      uv[i * 2 + 1] = (pos.getZ(i) + scenePos[2]) / RIPPLE_METERS_PER_TILE;
+    }
+    geometry.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
+  }, [geometry, scenePos[0], scenePos[2]]);
+
   if (!water) return null;
   return (
-    <mesh geometry={geometry} position={chunkScenePos(chunk.cx, chunk.cy, origin)}>
-      {/* Ground/walking-scale water. Metalness is kept near-zero: a metallic
-          surface goes black wherever it isn't catching a light, which is most
-          of the frame at the low/grazing, back-lit angles normal at eye level —
-          that was the "dark pit" read (TG4). A brighter dielectric tint plus a
-          small emissive lift keeps it reading as blue water from any angle,
-          while a low roughness still gives the sun a specular sheen. */}
-      {/* Opacity was 0.86, which let the carved bed's faceted terrain read
-          straight through the sheet: an in-game look at a Hajdured lake showed
-          the bed's triangle creases as the dominant texture, so the water read
-          as slate or ice rather than liquid. Near-opaque hides the bed and lets
-          the low roughness carry a sun sheen instead. Kept just under 1 so a
-          shoreline still hints at the sand under the shallows. */}
-      <meshStandardMaterial
-        color="#2f78b4"
-        emissive="#123a5c"
-        emissiveIntensity={0.35}
-        transparent
-        opacity={0.96}
-        roughness={0.18}
-        metalness={0.0}
-      />
-    </mesh>
+    <mesh geometry={geometry} position={scenePos} material={getWaterSurfaceMaterial()} />
   );
+};
+
+/**
+ * Scrolls the shared water ripple. One driver for the whole world: the material
+ * and its texture are shared, so advancing it per chunk would multiply the
+ * speed by the number of loaded chunks.
+ */
+const WaterRippleDriver: React.FC = () => {
+  useFrame(({ clock }) => advanceWaterRipple(clock.getElapsedTime()));
+  return null;
 };
 
 const RoadPiece: React.FC<{ chunk: LoadedChunk; origin: SceneOrigin }> = ({ chunk, origin }) => {
@@ -1061,6 +1071,7 @@ const World3DScene: React.FC<World3DSceneProps> = ({
             />
           ))}
         </InteriorHourProvider>
+        <WaterRippleDriver />
         {/* Every chunk's trees in one batch set (2026-07-27). Sits outside the
             per-chunk groups because its instance positions are already scene
             space — see treeBatching.ts for why per-chunk meshes were dropped. */}

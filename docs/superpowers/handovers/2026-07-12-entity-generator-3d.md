@@ -29,6 +29,20 @@ Hopper stays flap-0 (no winged hopper profiles exist). Pinned by driver
 tests (beat envelope, idle-vs-walk amplitude, hopper zero) and an end-to-end
 assembler test (walking Huge dragon: `wingL.rotation.z` sweeps ≈1.4 rad and
 mirrors `wingR`).
+**Update 2026-07-28 (b) — reference-image pass: measured proportions + wing pleat.**
+Proportions now come from MEASURED reference art (Monika Zagrobelna's dragon
+anatomy plates, `.agent/scratch/ref/`), not vibes: torso:leg ≈ 1.45:1 (dragon was
+2:1 → now 1.8h torso / 1.12h legs), neck ≈ 0.75× torso in 4 tapering links
+(wave-5 over-cut it — the "hose" sin was uniform radius, not length), meaty
+1.2×-torso tail (base r 0.62), hind haunch r 0.85 (mz-4 muscle plate), neck
+angle 57° → 45° (gaits.ts, all plan necks), mass [1.42, 0.76, 1.2], snout 1.4.
+Wing pleat: `wingL/wingR.scale.x = 1 - fold*0.5` — scale collapses the span the
+way real finger-folding does, so idle wings read as a flank strip (mz-final-2)
+instead of a slab; fold=0 walking byte-untouched. Suite 664/664 (74 files),
+tsc filtered clean, headers synced. Proof: `.agent/scratch/pleat-*.png` vs
+`ref/mz-3.jpg`. Residuals: neck S-curve needs per-link pose offsets (driver
+lacks them), pleat is uniform compression not true finger-folding, beast
+template unreferenced, celestial/fiend/fairy fold+pleat unrendered.
 **Update 2026-07-28 — "dachshund" proportion fix + wing-fold tune.**
 User verdict on the wave-5 dragon: "still looks like a long dachshund." Root cause
 was the ratio, not the lumps: torso `lengthFt 2.8h` on `reach 0.95h` legs ≈ 3:1

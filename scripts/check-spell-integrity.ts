@@ -10,9 +10,7 @@
 import fs from 'fs';
 import path from 'path';
 import { z } from 'zod';
-// @ts-expect-error -- tsx resolves local TS entrypoints at runtime; keep extensionless for script stability.
 import { CLASSES_DATA } from '../src/data/classes';
-// @ts-expect-error -- tsx resolves local TS entrypoints at runtime; keep extensionless for script stability.
 import { SpellValidator } from '../src/systems/spells/validation/spellValidator';
 
 type SpellManifestEntry = {
