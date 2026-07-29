@@ -282,3 +282,6 @@ vendor/
 # machine for agent tooling, but they are not Aralia source and should not be
 # tracked as broken Git submodule pointers.
 Claudeception/
+
+# BG3 visual-reference screenshots: local study material, never redistributed.
+.agent/3d-visual-quality/references/
