@@ -5633,7 +5633,7 @@
         },
         {
           "title": "Creature skeletons: plan chains become bone chains",
-          "status": "specced",
+          "status": "active",
           "status_note": "DRAFT plan written 2026-07-24 (Agora task e249ddaa-4a17-433c-8143-452410cfad62): docs/superpowers/plans/2026-07-24-skeleton-creature-skeletons.md — plan rest pose, bone chains, pose sink, rigid-weight skinned plan body, heads on bones, stress-fixture acceptance contracts. Implementation blocked on Remy review of one flagged design choice (decorative emissions stay on the anchor path). Mixamo slice stays parked; species gaits out of scope."
         },
         {
@@ -5646,7 +5646,7 @@
           "status_note": "RESOLVED 2026-07-21 (Remy): switch to solid shaded on deforming skinned meshes."
         }
       ],
-      "updated": "2026-07-24",
+      "updated": "2026-07-29",
       "tier": "strategic"
     },
     {
@@ -5820,7 +5820,7 @@
       "id": "region-tier-detail",
       "title": "Region tier detail (L1 drilldown)",
       "campaign": "world",
-      "status": "specced",
+      "status": "active",
       "tier": "strategic",
       "sub": "The L1 region drilldown is blank: it carries ONE field with real detail (heightfield 250x250 @100ft) and everything else is a stub. Root cause found 2026-07-29: a region window is 25,000 ft = ~2.5 FMG pixels while one FMG cell is ~8x9 px (~79,000 x 89,000 ft), so a window covers ~1/9 the area of a single cell. Every region field except the heightfield is EXTRACTED from atlas data, which has no structure below cell resolution - so there is nothing to extract. The tier cannot inherit its detail, it has to generate it. Measured over 6 burg windows: rivers 2-3 pts over 6.6k-25.5k ft, roads 6-7 pts over ~26k ft, crossings 0 EVERYWHERE (no region bridges or fords exist), markers 0, zones 1 total, biomeSites absent or exactly 1 (no gradient to blend). Rule adopted: the atlas decides which river runs here and how big it is; the region tier decides where it bends. Build order: rivers -> crossings -> roads -> biome sites -> markers/zones.",
       "link": "docs/superpowers/specs/2026-07-29-region-tier-audit.md",
@@ -5899,10 +5899,11 @@
         },
         {
           "title": "Eyeball Epicea + Reararesto in 2D and 3D",
-          "status": "specced"
+          "status": "active",
+          "status_note": "PARTIAL 2026-07-29. Verified by eye: L1 region for cell 2186 renders a real curving river with width-scaled banks (was a straight 2-pt chord that missed the window, ground.rivers=0); the Region-Epicea Voronoi view shows the course bending down and terminating at the Epicea marker, i.e. the burg attractor working; L2 local shows the river with banks; 3D ground renders water. NOT yet eyeballed: the town plan with its 4 bridges/6 docks, and the town channel in 3D. Blocked mid-drill by a concurrent agent editing src/systems/worldforge/fmg/*.ts, which full-page-reloads the app every 20-80s."
         }
       ],
-      "status_note": "Tasks 1-6 done and green (1,985 worldforge tests). Epicea river 5: 2 pts -> 514 pts; town channel now within 4.49 m of the region course (was 3,400-4,900 ft apart); wilderness ribbon in the town window 0 -> 1. Remaining: the in-game eyeball."
+      "status_note": "Tasks 1-6 done and MERGED TO MASTER 2026-07-29 (merge 7476c5ad). 1,985 worldforge tests green. Epicea river 5: 2 pts -> 514 pts; town channel within 4.49 m of the region course (was 3,400-4,900 ft apart); wilderness ribbon in the town window 0 -> 1. Merge conflict resolved by COMBINING two independently written groundWaterLive.test.ts suites (mine + a concurrent agent legium-settlement-edge one) into 12 tests. Three tests needed explicit timeouts - all timeouts not assertion failures, each bakes a full atlas+region+ground (~3.4 s) against a 5 s default. Remaining: finish the town eyeball."
     }
   ]
 }
