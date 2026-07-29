@@ -36,11 +36,12 @@
  * sourced.
  */
 import { generateTownPlan, type TownPlan } from './townEngine';
-import { townSpanFtForPeople, POPULATION_RATE } from './townScale';
+import { townSpanFtForPeople, POPULATION_RATE, CANON_TOWN_SPAN } from './townScale';
 import { polygonBounds, type Pt } from '../submap/submapEngine';
 import type { FmgWorldResult } from '../fmg/generateWorld';
 import { rootSeedPath, childSeedPath, streamPath } from '../seedPath';
-import { burgCellPolygon, cellWaterPolylines, cellWaterFeatures, cellRoadPolylines } from './cellFeatures';
+import { burgCellPolygon, cellWaterFeatures, cellRoadPolylines } from './cellFeatures';
+import { townRiverCourseCanon } from './townRiverCourse';
 import type { RegionTownSite } from '../artifacts';
 import { toArtifactPlan, type AdaptedTownPlan } from './townPlanAdapter';
 import {
@@ -60,8 +61,11 @@ type TownAtlas = Pick<FmgWorldResult, 'pack'>;
  * so the 2D view (fit-to-view) and the 3D view (scaled to feet) share one plan.
  * A raw FMG cell is geographic (~50k ft at canonical FEET_PER_FMG_PIXEL) — far
  * too big for a town — so size is decided per-view, only the shape is shared.
+ * Canonical value lives in townScale.ts (so `townRiverCourse.ts` can map the
+ * world river into this frame without importing this module); re-exported here
+ * so existing importers keep working.
  */
-export const CANON_TOWN_SPAN = 1000;
+export { CANON_TOWN_SPAN };
 
 /**
  * People per FMG population point (FMG `populationRate`, default 1000 — see
@@ -143,7 +147,13 @@ export function getCanonicalTownPlan(
   // riverside/harbour docks, bridges between wards, and main streets continued
   // from real roads. Identity holds because the plan is generated ONCE here and
   // the 3D bake only affine-transforms this result.
-  const water = cellWaterPolylines(atlas, burgId).map(toCanonLine);
+  // River at TRUE scale (2026-07-29): the cell affine shrank inherited water by
+  // ~30x, dragging a river that runs 4,045 ft away through the middle of town.
+  // The river now comes from the same course the region tier generates and
+  // carves; only the coast still rides the cell affine, since a harbor apron is
+  // defined by the cell's own shoreline.
+  const coast = cellWaterFeatures(atlas, burgId).coast.map(toCanonLine);
+  const water = [...townRiverCourseCanon(atlas, worldSeed, burgId), ...coast];
   const roads = cellRoadPolylines(atlas, burgId).map(toCanonLine);
   const plan = generateTownPlan(footprint, canonicalTownSeedPath(worldSeed, burgId), {
     population,
@@ -156,19 +166,21 @@ export function getCanonicalTownPlan(
 
 /**
  * The burg's inherited water in the NORMALIZED canonical frame, split by kind —
- * the SAME polylines (same `canonAffine`) that {@link getCanonicalTownPlan} fed
- * to the generator to seat docks/bridges. The 3D bake transforms these to feet
- * and fills them into water bodies, so the rendered water sits exactly under the
- * docks. Pure + deterministic from (atlas, burgId).
+ * the SAME polylines that {@link getCanonicalTownPlan} fed to the generator to
+ * seat docks/bridges: the river from the region's own course at true scale, the
+ * coast from the cell affine. The 3D bake transforms these to feet and fills
+ * them into water bodies, so the rendered water sits exactly under the docks.
+ * Pure + deterministic from (atlas, worldSeed, burgId).
  */
 export function getCanonicalTownWaterFeatures(
   atlas: TownAtlas,
   burgId: number,
+  worldSeed: number,
 ): { rivers: Pt[][]; coast: Pt[][] } {
   const toCanon = canonAffine(burgCellPolygon(atlas, burgId));
-  const { rivers, coast } = cellWaterFeatures(atlas, burgId);
+  const { coast } = cellWaterFeatures(atlas, burgId);
   return {
-    rivers: rivers.map((l) => l.map(toCanon)),
+    rivers: townRiverCourseCanon(atlas, worldSeed, burgId),
     coast: coast.map((l) => l.map(toCanon)),
   };
 }

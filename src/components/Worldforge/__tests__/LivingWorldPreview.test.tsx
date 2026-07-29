@@ -19,5 +19,11 @@ describe('LivingWorldPreview', () => {
     expect(cur.totalEver).toBe(cur.living + cur.dead);
     expect(cur.events).toBeGreaterThan(0);
     expect(cur.holders).toBeGreaterThanOrEqual(1); // at least a priest/marketmaster
-  });
+    // This mount does real work: a full atlas, a canonical town plan, and a
+    // 40-year simulation over it. It ran just inside the 5 s default until the
+    // 2026-07-29 region-rivers pass added the river-course generation the plan
+    // now inherits (~300 ms, once per atlas, cached after), which tipped it
+    // over. The budget is stated explicitly rather than left at a default the
+    // test was already brushing against.
+  }, 20000);
 });

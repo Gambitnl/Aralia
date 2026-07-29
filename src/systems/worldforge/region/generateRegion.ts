@@ -129,6 +129,14 @@ import type { FmgWorldResult } from '../fmg/generateWorld';
 import type { Burg } from '../fmg/burgs-generator';
 import type { Route } from '../fmg/routes-generator';
 import { smoothRegionRiverCenterline } from './riverCenterlineSmoothing';
+import { generateRiverCourse } from './riverCourse';
+import { makeAtlasNaturalHeight } from './regionTerrainField';
+import {
+  buildRiverAttractors,
+  pointToSegmentDist,
+  riverAnchorsFt,
+  type RiverAttractor,
+} from './riverAttractors';
 
 /** Normalized waterline: FMG cell h<20 ≙ height < 0.2 in the refined field. */
 const WATER_THRESHOLD = 0.2;
@@ -231,6 +239,27 @@ export function generateRegion(
 
   // ── Rivers: banks for rivers passing through member cells ─────────────
   const memberSet = new Set(memberCells);
+
+  // River-bearing settlements pull their river through town. The atlas already
+  // says which river a burg sits on (cells.r); the cell-center chord just could
+  // not express it at this zoom. The rule lives in `riverAttractors.ts` because
+  // the town tier must build the IDENTICAL set to derive the identical course.
+  const riverAttractors = buildRiverAttractors(
+    opts.world?.pack.burgs ?? [],
+    pack.cells.p,
+    (pack.cells as unknown as { r?: ArrayLike<number> }).r,
+    (pack.rivers ?? []) as Array<{ i: number; cells: number[] }>,
+    feetPerPixel,
+  );
+
+  const naturalHeight = makeAtlasNaturalHeight(
+    pack.cells.p,
+    pack.cells.h,
+    feetPerPixel,
+    worldSeedFromPath(regionPath),
+    resolutionFt,
+  );
+
   const rivers = generateRiverBanks(
     pack.rivers ?? [],
     pack.cells.p,
@@ -239,6 +268,8 @@ export function generateRegion(
     heightfield,
     bounds,
     regionPath,
+    naturalHeight,
+    riverAttractors,
   );
 
   // ── Town sites + roads (C2) ─────────────────────────────────────────
@@ -832,44 +863,42 @@ function generateRiverBanks(
   heightfield: RegionHeightfield,
   bounds: BoundsFt,
   regionPath: SeedPath,
+  naturalHeight: (x: Feet, y: Feet) => number,
+  riverAttractors: Map<number, RiverAttractor[]>,
 ): RegionRiverBank[] {
   const banks: RegionRiverBank[] = [];
 
   for (const river of rivers) {
-    // Locality prefilter: the river must touch the membership context at all
+    // Locality prefilter: the river must touch the membership context at all.
     if (!river.cells.some((c) => memberSet.has(c))) continue;
 
-    // Build the full centerline in feet, then clip to the region window
-    // (WF-G4): at canonical scale river points are ~70k ft apart, so segments
-    // routinely cross the whole 25k window with both endpoints outside —
-    // the old member-cell point filter produced <2 in-window points and
-    // dropped the river entirely.
-    const fullLine: Array<[Feet, Feet]> = river.cells
-      .filter((c) => cellPoints[c])
-      .map((c) => [
-        cellPoints[c][0] * feetPerPixel,
-        cellPoints[c][1] * feetPerPixel,
-      ]);
-    const centerline = clipPolylineToBounds(fullLine, bounds);
-    if (centerline.length < 2) continue; // need at least 2 points for a line
+    const anchors = riverAnchorsFt(river.cells, cellPoints, feetPerPixel);
+    if (anchors.length < 2) continue;
 
     // Width from flux (discharge proxy). sqrt dampens the range; +50 ensures
     // even small streams have visible banks.
     const widthFt = 50 + Math.sqrt(river.discharge) * 20;
 
-    banks.push({ riverId: river.i, centerline, widthFt });
+    // ONE course, generated from the FULL unclipped anchor line so two adjacent
+    // windows read the same river at a shared world point (seam purity). The
+    // artifact stores a clipped SLICE of this exact line and the heightfield is
+    // carved along it, so the drawn river and the carved channel can no longer
+    // disagree — they were three separate lines before (raw stored, smoothed
+    // carved, smoothed-again at draw).
+    const course = generateRiverCourse(anchors, {
+      sampleHeight: naturalHeight,
+      attractors: riverAttractors.get(river.i) ?? [],
+      // Match the heightfield's own resolution: a river resolved coarser than
+      // the terrain it cuts cannot follow that terrain.
+      targetSegmentFt: heightfield.resolutionFt * 2,
+      widthFt,
+    });
 
-    // WF-G5: carve the terrain under the same curved band the renderer draws.
-    // The artifact keeps the clipped raw path for traceability.
-    //
-    // Seam purity (2026-07-02): smooth the FULL unclipped centerline, not the
-    // window-clipped one — Chaikin bends a clipped line differently near its
-    // cut ends, so two windows carved slightly different channels at shared
-    // world points (~1.2 ft residual at the seam probe). The smoothed full
-    // line is a pure function of world data; carveRiverChannel prefilters
-    // segments that cannot reach this window, which never changes in-window
-    // results.
-    carveRiverChannel(smoothRegionRiverCenterline(fullLine), widthFt, heightfield, bounds);
+    const centerline = clipPolylineToBounds(course, bounds);
+    if (centerline.length < 2) continue;
+
+    banks.push({ riverId: river.i, centerline, widthFt });
+    carveRiverChannel(course, widthFt, heightfield, bounds);
   }
 
   return banks;
@@ -908,15 +937,50 @@ function carveRiverChannel(
   }
   if (segments.length === 0) return;
 
+  // Uniform bucket grid over the window. Before the 2026-07-29 course pass a
+  // river contributed a handful of in-window segments and the brute-force
+  // sample x segment loop was free; a generated course is resolved at the
+  // heightfield's own scale, so the same window now holds hundreds of segments
+  // and the quadratic loop dominated region generation.
+  //
+  // This is a pure accelerator — the carve is bit-identical. A segment is
+  // registered in every bucket its bounding box, EXPANDED BY halfWidth,
+  // overlaps. Any sample within halfWidth of a segment therefore lies inside
+  // that expanded box and so shares a bucket with it, which means the buckets
+  // hold a superset of every segment that could carve the sample. Segments left
+  // out are all at distance >= halfWidth, where the carve does nothing.
+  const bucketFt = Math.max(halfWidth, heightfield.resolutionFt);
+  const bucketCols = Math.max(1, Math.ceil(bounds.width / bucketFt) + 1);
+  const bucketRows = Math.max(1, Math.ceil(bounds.height / bucketFt) + 1);
+  const buckets: Array<Array<[number, number, number, number]> | undefined> =
+    new Array(bucketCols * bucketRows);
+  for (const seg of segments) {
+    const [ax, ay, bx, by] = seg;
+    const c0 = Math.max(0, Math.floor((Math.min(ax, bx) - halfWidth - bounds.x) / bucketFt));
+    const c1 = Math.min(bucketCols - 1, Math.floor((Math.max(ax, bx) + halfWidth - bounds.x) / bucketFt));
+    const r0 = Math.max(0, Math.floor((Math.min(ay, by) - halfWidth - bounds.y) / bucketFt));
+    const r1 = Math.min(bucketRows - 1, Math.floor((Math.max(ay, by) + halfWidth - bounds.y) / bucketFt));
+    for (let br = r0; br <= r1; br++) {
+      for (let bc = c0; bc <= c1; bc++) {
+        const key = br * bucketCols + bc;
+        (buckets[key] ??= []).push(seg);
+      }
+    }
+  }
+
   // For each heightfield sample near the centerline, reduce height
   for (let row = 0; row < heightfield.height; row++) {
     const sampleY = bounds.y + row * heightfield.resolutionFt;
+    const bucketRow = Math.max(0, Math.min(bucketRows - 1, Math.floor((sampleY - bounds.y) / bucketFt)));
     for (let col = 0; col < heightfield.width; col++) {
       const sampleX = bounds.x + col * heightfield.resolutionFt;
+      const bucketCol = Math.max(0, Math.min(bucketCols - 1, Math.floor((sampleX - bounds.x) / bucketFt)));
+      const near = buckets[bucketRow * bucketCols + bucketCol];
+      if (!near) continue;
 
-      // Find minimum distance to any centerline segment
+      // Find minimum distance to any centerline segment that could reach here
       let minDist = Infinity;
-      for (const [ax, ay, bx, by] of segments) {
+      for (const [ax, ay, bx, by] of near) {
         const dist = pointToSegmentDist(sampleX, sampleY, ax, ay, bx, by);
         minDist = Math.min(minDist, dist);
       }
@@ -929,25 +993,6 @@ function carveRiverChannel(
       }
     }
   }
-}
-
-/**
- * Distance from point (px, py) to line segment (ax, ay)–(bx, by).
- */
-function pointToSegmentDist(
-  px: number, py: number,
-  ax: number, ay: number,
-  bx: number, by: number,
-): number {
-  const dx = bx - ax;
-  const dy = by - ay;
-  const lenSq = dx * dx + dy * dy;
-  if (lenSq < 0.01) return Math.hypot(px - ax, py - ay);
-  let t = ((px - ax) * dx + (py - ay) * dy) / lenSq;
-  t = Math.max(0, Math.min(1, t));
-  const projX = ax + t * dx;
-  const projY = ay + t * dy;
-  return Math.hypot(px - projX, py - projY);
 }
 
 /**

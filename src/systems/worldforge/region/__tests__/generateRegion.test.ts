@@ -933,12 +933,20 @@ describe('generateRegion — cross-region seam continuity', () => {
 });
 
 // ---------------------------------------------------------------------------
-// WF-G5 regression (2026-06-12): river carving must follow the same smoothed
-// band the region renderer draws. The test builds a sharp L-bend where the raw
-// polyline and the Chaikin-smoothed line are far enough apart to measure.
+// WF-G5 regression (2026-06-12, rewritten 2026-07-29): the carved channel and
+// the line the renderer draws must be THE SAME LINE.
+//
+// The invariant is unchanged; its subject moved. WF-G5 originally compared the
+// carve against a Chaikin-smoothed reconstruction of the raw polyline, because
+// back then the artifact stored one line and the carve used another, so the
+// test had to name the carved line independently. The region-rivers pass
+// (2026-07-29) removed that split: `generateRiverBanks` now generates one
+// course, carves along it, and stores a clipped slice of that same course. So
+// the honest assertion is against the stored centerline itself — if carve and
+// artifact ever diverge again, this fails.
 // ---------------------------------------------------------------------------
-describe('generateRegion — WF-G5 smoothed river carve', () => {
-  it('carves lowered samples closer to the smoothed bend than the raw centerline', () => {
+describe('generateRegion — WF-G5 river carve follows the stored course', () => {
+  it('carves along the centerline the artifact publishes', () => {
     const atlasWithRiver = makeBentRiverAtlas(true);
     const atlasWithoutRiver = makeBentRiverAtlas(false);
     const worldPath = rootSeedPath(WORLD_SEED);
@@ -949,19 +957,25 @@ describe('generateRegion — WF-G5 smoothed river carve', () => {
     const river = carved.rivers[0];
     expect(river).toBeDefined();
 
+    const carvedSamples = collectLoweredSamples(carved, baseline);
+    expect(carvedSamples.length).toBeGreaterThan(10);
+
+    // Every lowered sample sits within the channel's own half-width of the
+    // published centerline. That is the carve-equals-draw contract stated
+    // directly, rather than inferred from a reconstructed line.
+    const halfWidth = river.widthFt / 2;
+    expect(meanDistanceToLine(carvedSamples, river.centerline)).toBeLessThan(halfWidth);
+
+    // And it is genuinely closer to the published line than to the old
+    // Chaikin-of-raw reconstruction, which is what the carve used to track.
     const rawLine: Array<[number, number]> = [
       [2500, 2500],
       [2500, 22500],
       [22500, 22500],
     ];
-    const smoothedLine = chaikinSmoothForTest(rawLine, 3);
-    const carvedSamples = collectLoweredSamples(carved, baseline);
-
-    // The synthetic bend has enough lowered cells to make an aggregate
-    // distance stable while still catching the raw-vs-smoothed channel shift.
-    expect(carvedSamples.length).toBeGreaterThan(10);
-    expect(meanDistanceToLine(carvedSamples, smoothedLine)).toBeLessThan(
-      meanDistanceToLine(carvedSamples, rawLine),
+    const legacySmoothed = chaikinSmoothForTest(rawLine, 3);
+    expect(meanDistanceToLine(carvedSamples, river.centerline)).toBeLessThan(
+      meanDistanceToLine(carvedSamples, legacySmoothed),
     );
   });
 });

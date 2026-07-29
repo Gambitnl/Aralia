@@ -462,9 +462,17 @@ describe('worldforge pipeline integration', () => {
       // LAST in MATERIALS so every other index is unchanged). ONLY
       // localMaterialHash shifts — the atlas + region heightfield are
       // byte-identical (no elevation math changed). Relief-shading restored.
+      // Re-frozen 2026-07-29 (region rivers end-to-end): a region river is no
+      // longer a straight cell-center chord. generateRiverBanks now generates a
+      // dense sub-cell course that follows terrain and bends toward the burg
+      // whose cell carries the river, and the heightfield is carved along that
+      // exact course. Epicea's river 5 went from 2 points at 25,537 ft per
+      // segment to 513 points at 55 ft. atlasCellCount is unchanged, so the
+      // world structure is intact; only the carved surface and the local
+      // material classification derived from it move.
       atlasCellCount: 6005,
-      regionHeightfieldHash: 2801916318,
-      localMaterialHash: 2089968609,
+      regionHeightfieldHash: 290399338,
+      localMaterialHash: 3954859637,
     });
   }, 60_000); // world gen now includes Military/Markers/Zones (stages 33-35)
 

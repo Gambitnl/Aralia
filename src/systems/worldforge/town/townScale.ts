@@ -34,6 +34,18 @@
  */
 export const POPULATION_RATE = 1000;
 
+/**
+ * Canonical generation span. A town plan is generated in a normalized frame
+ * (centered at the origin, ~this many units across) and only scaled to physical
+ * feet per view, so the 2D drill and the 3D bake share one plan.
+ *
+ * Lives here rather than in canonicalTown.ts so modules that FEED the town
+ * generator — `townRiverCourse.ts` maps the world river into this frame — can
+ * read the span without importing the generator that imports them. Re-exported
+ * from canonicalTown.ts so existing importers keep working.
+ */
+export const CANON_TOWN_SPAN = 1000;
+
 /** Feet of town span per sqrt(person) — the town-size knob (see header note
  * on why this sits below the history-honest ~30 for now). */
 export const TOWN_SPAN_FT_PER_SQRT_PERSON = 12;
