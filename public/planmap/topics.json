@@ -5871,21 +5871,22 @@
         },
         {
           "title": "Stop the 2D renderer re-smoothing the river",
-          "status": "specced"
+          "status": "done"
         },
         {
           "title": "Town inherits the region course at true scale (townRiverCourse.ts)",
-          "status": "specced"
+          "status": "done"
         },
         {
           "title": "Prove town channel and region course are one river",
-          "status": "specced"
+          "status": "done"
         },
         {
           "title": "Eyeball Epicea + Reararesto in 2D and 3D",
           "status": "specced"
         }
-      ]
+      ],
+      "status_note": "Tasks 1-6 done and green (1,985 worldforge tests). Epicea river 5: 2 pts -> 514 pts; town channel now within 4.49 m of the region course (was 3,400-4,900 ft apart); wilderness ribbon in the town window 0 -> 1. Remaining: the in-game eyeball."
     }
   ]
 }
