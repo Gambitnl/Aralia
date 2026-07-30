@@ -72,6 +72,7 @@ import {
 } from '@/systems/worldforge/bridge/sitePartTransform';
 import { EffectComposer, N8AO, ToneMapping } from '@react-three/postprocessing';
 import { ToneMappingMode } from 'postprocessing';
+import { getGroundDetailTexture, getGroundNormalTexture } from './terrain/groundDetailTexture';
 import type { PlayerWorldPosition } from '@/types';
 import { useForgeTexture, getSemanticAssetKey } from '@/systems/worldforge/bridge/forgeMaterials';
 import type { ForgeAssetService } from '@/systems/worldforge/assets/forgeAssetService';
@@ -169,7 +170,15 @@ const SHADOWS = WORLD3D_CONFIG.STREAMED_WORLD_SHADOWS;
  * too large and the texture stops reading as material at all. 12 m puts several
  * repeats inside the near field without the eye locking onto the period.
  */
-const GROUND_TEXTURE_METERS_PER_TILE = 12;
+const GROUND_TEXTURE_METERS_PER_TILE = 3;
+
+/**
+ * Ground normal-map strength. Low on purpose: the terrain already carries real
+ * geometric relief, so this only has to break the flat-paint read at grazing
+ * angles. Pushed higher the ground starts to look like crumpled foil, which is
+ * the same failure the water ripple guards against.
+ */
+const GROUND_NORMAL_SCALE = new THREE.Vector2(0.6, 0.6);
 
 // --- per-chunk rendering ---
 
@@ -258,6 +267,8 @@ const TerrainPiece: React.FC<{
   const geometry = useDisposableGeometry(rebased);
   const service = React.useContext(ForgeAssetContext);
   const tex = useForgeTexture(getSemanticAssetKey({ surface: 'ground' }), service);
+  const groundDetail = useMemo(() => getGroundDetailTexture(), []);
+  const groundNormal = useMemo(() => getGroundNormalTexture(), []);
   const scenePos = chunkScenePos(anchor.cx, anchor.cy, origin);
 
   // The ground texture was wired but structurally inert: `map` was bound while
@@ -286,8 +297,25 @@ const TerrainPiece: React.FC<{
           normalizes per-VERTEX normals across adjacent faces — `flatShading` was
           throwing those away and re-deriving per-face normals in the shader, which
           is what made every triangle countable. */}
+      {/* Ground material detail. `tex` comes from ForgeAssetContext and is
+          undefined whenever no asset service is mounted — which is the case in
+          the capture rig and in plain ground mode — so the ground rendered as
+          one flat colour per biome at every distance. The generated detail and
+          normal maps remove that dependency: Aralia is procedural, so its
+          ground detail is generated rather than authored.
+
+          The generated map is used only as a FALLBACK, so a real forge ground
+          texture still wins when the asset service provides one. The normal map
+          applies either way: it is what makes the surface catch the sun at
+          grazing angles, which a colour map alone cannot do. */}
       <mesh geometry={geometry} position={scenePos} receiveShadow={SHADOWS}>
-        <meshStandardMaterial vertexColors map={tex || null} />
+        <meshStandardMaterial
+          vertexColors
+          map={tex ?? groundDetail}
+          normalMap={groundNormal}
+          normalScale={GROUND_NORMAL_SCALE}
+          roughness={0.95}
+        />
       </mesh>
       {terrain.skirts &&
         SKIRT_EDGES.map(({ edge, dx, dy }) => (
