@@ -285,3 +285,8 @@ Claudeception/
 
 # BG3 visual-reference screenshots: local study material, never redistributed.
 .agent/3d-visual-quality/references/
+
+# Agent worktrees checked out inside the repo. These are git worktrees, not
+# submodules, and committing them as gitlinks (mode 160000) made every status
+# report them as modified forever.
+/Aralia/
