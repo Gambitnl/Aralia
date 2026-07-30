@@ -208,6 +208,23 @@ export interface GenerateTownOptions {
   gap?: number;
   /** Inherited rivers/coast as polylines (footprint coords) — drives docks + bridges (#4). */
   water?: Pt[][];
+  /**
+   * Water that may be BRIDGED — rivers only. Defaults to `water` when absent.
+   *
+   * A coast edge is a shoreline, not a channel, so a bridge across it goes to
+   * open sea. Kalg (burg 2) grew four bridges partly seated on its single coast
+   * segment because bridges and docks read the same undifferentiated list.
+   */
+  bridgeWater?: Pt[][];
+  /**
+   * Width of the water being crossed, in the same units as `water`.
+   *
+   * Without it the deck is sized against the TOWN (`fpSpan * 0.11`), so every
+   * bridge is a fixed 11% of the settlement whatever it spans — on Kalg that
+   * made ~112-unit decks over a ~55-unit river, overshooting both banks by a
+   * full river width.
+   */
+  waterWidth?: number;
   /** Max water distance for a ward edge to count as waterfront (world units). */
   waterMargin?: number;
   /** Optional terrain height sampler (footprint coords) for slope-aware streets (#4). */
@@ -1098,6 +1115,9 @@ export function generateTownPlan(
 
   // Terrain/water inputs (#4): inherited rivers/coast → docks + bridges.
   const water = opts.water ?? [];
+  // Bridgeable water defaults to all water, so existing callers keep their
+  // behaviour; canonicalTown narrows it to rivers.
+  const bridgeWater = opts.bridgeWater ?? water;
   const fpb = polygonBounds(footprint);
   const fpSpan = Math.max(fpb.maxX - fpb.minX, fpb.maxY - fpb.minY) || 1;
   const waterMargin = opts.waterMargin ?? fpSpan * 0.05;
@@ -1243,7 +1263,7 @@ export function generateTownPlan(
 
   // Bridges where a river crosses between wards (#4).
   const bridgeCap = bridgeCapForTypology(profile?.typology);
-  let potentialBridges = findBridges(water, wardPolys, fpSpan / 140);
+  let potentialBridges = findBridges(bridgeWater, wardPolys, fpSpan / 140);
 
   // Merge bridge candidates that are too close to each other into a single point.
   if (potentialBridges.length > 0) {
@@ -1282,10 +1302,19 @@ export function generateTownPlan(
   // than a tiny square dropped on the water line. Length covers the channel
   // (~fpSpan*0.06 wide, matching the downstream channel buffer) plus bank margin;
   // width is the carriageway. Centered on the crossing point.
-  const bridgeSpanLen = fpSpan * 0.11; // across the channel, both banks
-  const bridgeDeckWidth = fpSpan * 0.035; // along the road
+  // Deck length follows the RIVER, not the town: channel width plus a bank
+  // margin at each end. The old `fpSpan * 0.11` sized every bridge against the
+  // settlement, so a brook and a great river got the same deck and a small
+  // town's bridges overshot their banks by a full river width. Falls back to
+  // the historical fraction only when no width is supplied.
+  const BRIDGE_BANK_MARGIN = 1.5; // 1.0 = exactly bank to bank
+  const bridgeSpanLen = opts.waterWidth
+    ? opts.waterWidth * BRIDGE_BANK_MARGIN
+    : fpSpan * 0.11;
+  // Carriageway stays proportional to the deck so a long bridge is not a hairline.
+  const bridgeDeckWidth = Math.max(fpSpan * 0.012, bridgeSpanLen * 0.32);
   for (const bp of potentialBridges) {
-    const tan = nearestWaterTangent(bp, water);
+    const tan = nearestWaterTangent(bp, bridgeWater);
     const across: Pt = [-tan[1], tan[0]]; // perpendicular to flow = bank-to-bank
     const base: Pt = [bp[0] - across[0] * bridgeSpanLen * 0.5, bp[1] - across[1] * bridgeSpanLen * 0.5];
     civic.push({ kind: 'bridge', polygon: pierQuad(base, across, bridgeSpanLen, bridgeDeckWidth), wardIndex: -1 });

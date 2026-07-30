@@ -9,7 +9,7 @@ const BURG = 5;
 describe('town river course', () => {
   it('puts Epicea river inside the town at true scale', () => {
     const atlas = getBridgeAtlas(SEED);
-    const lines = townRiverCourseCanon(atlas, SEED, BURG);
+    const lines = townRiverCourseCanon(atlas, SEED, BURG).lines;
     expect(lines.length).toBeGreaterThan(0);
 
     // Clipped to the town square, so nothing may sit far outside it.
@@ -35,7 +35,7 @@ describe('town river course', () => {
     const dry = burgs.find((b) => b?.i && !b.removed && !cells.r?.[b.cell]);
     expect(dry).toBeDefined();
     // No-fallback: a dry town gets no river rather than an invented one.
-    expect(townRiverCourseCanon(atlas, SEED, dry!.i!)).toEqual([]);
+    expect(townRiverCourseCanon(atlas, SEED, dry!.i!).lines).toEqual([]);
   }, 120000);
 
   it('is the SAME line the region tier carves', async () => {
@@ -61,7 +61,7 @@ describe('town river course', () => {
     const cx = site.envelope.x + site.envelope.width / 2;
     const cy = site.envelope.y + site.envelope.height / 2;
 
-    const lines = townRiverCourseCanon(atlas, SEED, BURG);
+    const lines = townRiverCourseCanon(atlas, SEED, BURG).lines;
     expect(lines.length).toBeGreaterThan(0);
     for (const line of lines) {
       for (const [nx, ny] of line) {

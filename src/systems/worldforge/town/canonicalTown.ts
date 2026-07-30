@@ -153,11 +153,21 @@ export function getCanonicalTownPlan(
   // carves; only the coast still rides the cell affine, since a harbor apron is
   // defined by the cell's own shoreline.
   const coast = cellWaterFeatures(atlas, burgId).coast.map(toCanonLine);
-  const water = [...townRiverCourseCanon(atlas, worldSeed, burgId), ...coast];
+  const course = townRiverCourseCanon(atlas, worldSeed, burgId);
+  // Docks belong on BOTH: a harbour dock sits on the coast, a wharf on the river.
+  const water = [...course.lines, ...coast];
   const roads = cellRoadPolylines(atlas, burgId).map(toCanonLine);
   const plan = generateTownPlan(footprint, canonicalTownSeedPath(worldSeed, burgId), {
     population,
     water,
+    // Bridges belong on RIVERS ONLY. A coast edge is a shoreline — the boundary
+    // between land and open sea — and bridging it means building a bridge to
+    // nowhere. Kalg (burg 2) had four bridges, some seated on its single coast
+    // segment, because the generator saw one undifferentiated `water` list.
+    bridgeWater: course.lines,
+    // The river's own width, so the deck spans the channel it actually crosses
+    // rather than a fixed 11% of the town.
+    waterWidth: course.widthCanon,
     roads,
   });
   perBurg.set(burgId, plan);
@@ -176,12 +186,14 @@ export function getCanonicalTownWaterFeatures(
   atlas: TownAtlas,
   burgId: number,
   worldSeed: number,
-): { rivers: Pt[][]; coast: Pt[][] } {
+): { rivers: Pt[][]; coast: Pt[][]; riverWidthCanon: number } {
   const toCanon = canonAffine(burgCellPolygon(atlas, burgId));
   const { coast } = cellWaterFeatures(atlas, burgId);
+  const course = townRiverCourseCanon(atlas, worldSeed, burgId);
   return {
-    rivers: townRiverCourseCanon(atlas, worldSeed, burgId),
+    rivers: course.lines,
     coast: coast.map((l) => l.map(toCanon)),
+    riverWidthCanon: course.widthCanon,
   };
 }
 

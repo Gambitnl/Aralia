@@ -80,6 +80,21 @@ export interface TownPlanViewProps {
    * water-gates the generator seats against them are visibly IN water.
    */
   water?: Pt[][];
+  /**
+   * Shoreline segments, drawn as a COAST rather than a river.
+   *
+   * Kept separate because they are not the same thing: a river is a channel with
+   * two banks, a coast is the edge of open sea. Drawing a coast with the river's
+   * fat round-capped ribbon produced the stub that appeared to jut out of Kalg's
+   * east side — a 285-unit straight segment rendered as a 60-unit-wide river
+   * ending in a rounded cap.
+   */
+  coast?: Pt[][];
+  /**
+   * River width in plan units. Without it the ribbon falls back to a fraction of
+   * the TOWN, so a brook and a great river drew identically.
+   */
+  riverWidth?: number;
 }
 
 const CIVIC_COLOR: Record<CivicKind, string> = {
@@ -485,6 +500,8 @@ const TownPlanView: React.FC<TownPlanViewProps> = ({
   selectedPlotId,
   artifactPlan,
   water,
+  coast,
+  riverWidth,
 }) => {
   const { layers, toggle } = useTownLayers(prefsScope);
   const bounds = useMemo(() => polygonBounds(plan.footprint), [plan]);
@@ -935,17 +952,38 @@ const TownPlanView: React.FC<TownPlanViewProps> = ({
         {layers.buildings && (plan.courtyards ?? []).map((court) => (
           <CourtyardGlyph key={court.id} court={court} />
         ))}
+        {/* Coast FIRST and underneath: a shoreline, not a channel. Drawn as a
+            thin edge with square caps, because a coast has one bank, not two —
+            rendering it with the river's fat round-capped ribbon is what made
+            Kalg's single 285-unit shore segment jut out of the town as a stub
+            with a rounded end. */}
+        {layers.water && (coast ?? []).map((line, i) => (
+          <path
+            key={`cst${i}`}
+            d={open(line)}
+            fill="none"
+            stroke="#4a7d9e"
+            strokeWidth={Math.max(2, stats.span * 0.006)}
+            strokeLinecap="butt"
+            strokeLinejoin="round"
+            opacity={0.75}
+            data-testid="town-coast"
+          />
+        ))}
         {/* River channel over the ground/blocks but under roads and civic, so
-            bridge decks and dock piers draw ON the water. Width matches the 3D
-            channel (spanFt * 0.06) and scales with zoom — it is real geometry,
-            not a screen-space stroke. The plot carve keeps buildings out of it. */}
+            bridge decks and dock piers draw ON the water. Width is the RIVER's
+            own width, carried down from the same discharge formula the region
+            tier uses — it used to be `span * 0.06`, i.e. a fixed 6% of the
+            settlement, so a brook and a great river drew identically and the
+            deck that crossed them was mis-sized to match. Real geometry, so it
+            scales with zoom. The plot carve keeps buildings out of it. */}
         {layers.water && (water ?? []).map((line, i) => (
           <path
             key={`wtr${i}`}
             d={open(line)}
             fill="none"
             stroke="#4a7d9e"
-            strokeWidth={stats.span * 0.06}
+            strokeWidth={riverWidth && riverWidth > 0 ? riverWidth : stats.span * 0.06}
             strokeLinecap="round"
             strokeLinejoin="round"
             opacity={0.92}

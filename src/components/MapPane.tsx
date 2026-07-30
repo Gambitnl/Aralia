@@ -1283,7 +1283,10 @@ const PreparedMapPane: React.FC<PreparedMapPaneProps> = ({
   const topTownWater = useMemo(() => {
     if (topTownBurgId == null || !worldforgeAtlas) return undefined;
     const wf = getCanonicalTownWaterFeatures(worldforgeAtlas, topTownBurgId, worldforgeSeed);
-    return [...wf.rivers, ...wf.coast];
+    // Rivers and coast are kept APART: a river is a channel drawn as a wide
+    // ribbon at its own width, a coast is a shoreline drawn as a thin edge.
+    // Merging them made the shoreline render as a river stub with a rounded cap.
+    return { rivers: wf.rivers, coast: wf.coast, riverWidth: wf.riverWidthCanon };
   }, [topTownBurgId, worldforgeAtlas, worldforgeSeed]);
 
   // Submap-tier travel: a route field over the drilled tier's Voronoi cells from
@@ -1521,7 +1524,9 @@ const PreparedMapPane: React.FC<PreparedMapPaneProps> = ({
                     prefsScope={worldforgeSeed}
                     styleFamily={topTownStyleFamily}
                     settlementKey={topTownBurgId == null ? undefined : `burg:${topTownBurgId}`}
-                    water={topTownWater}
+                    water={topTownWater?.rivers}
+                    coast={topTownWater?.coast}
+                    riverWidth={topTownWater?.riverWidth}
                   />
                 ) : submapStack[submapStack.length - 1].neighbourhood ? (
                   <NeighbourhoodSvgView

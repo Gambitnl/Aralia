@@ -102,38 +102,58 @@ function contextFor(atlas: TownAtlas, worldSeed: number): AtlasRiverContext {
  * CANON_TOWN_SPAN across), clipped to the town square. Empty when the burg's
  * cell carries no river — a dry town gets no river rather than an invented one.
  */
+export interface TownRiverCourse {
+  /** River polylines in the normalized town frame, clipped to the town square. */
+  lines: Pt[][];
+  /**
+   * The river's OWN width in normalized town units.
+   *
+   * This exists because everything downstream used to size the river against the
+   * TOWN instead: the 2D ribbon was `span * 0.06` and the bridge deck was
+   * `span * 0.11`, so a brook and a great river drew identically and every bridge
+   * was a fixed 11% of the town regardless of what it crossed. Carrying the real
+   * width lets the ribbon and the deck both follow the river.
+   */
+  widthCanon: number;
+}
+
+const EMPTY_COURSE: TownRiverCourse = { lines: [], widthCanon: 0 };
+
 export function townRiverCourseCanon(
   atlas: TownAtlas,
   worldSeed: number,
   burgId: number,
-): Pt[][] {
+): TownRiverCourse {
   const pack = atlas.pack as unknown as {
     cells: { p: Array<[number, number]>; r?: ArrayLike<number> };
     burgs?: Array<{ i?: number; x: number; y: number; cell: number; removed?: boolean; population?: number }>;
     rivers?: Array<{ i: number; cells: number[]; discharge: number }>;
   };
   const burg = pack.burgs?.[burgId];
-  if (!burg || burg.removed) return [];
+  if (!burg || burg.removed) return EMPTY_COURSE;
   const riverId = pack.cells.r?.[burg.cell];
-  if (!riverId) return [];
+  if (!riverId) return EMPTY_COURSE;
 
   const river = (pack.rivers ?? []).find((r) => r.i === Number(riverId));
-  if (!river) return [];
+  if (!river) return EMPTY_COURSE;
 
   const anchors = riverAnchorsFt(river.cells, pack.cells.p, FEET_PER_FMG_PIXEL);
-  if (anchors.length < 2) return [];
+  if (anchors.length < 2) return EMPTY_COURSE;
 
   const context = contextFor(atlas, worldSeed);
 
   // Identical inputs to the region tier's `generateRiverBanks` call, so the two
   // tiers produce the identical course and the town river IS the world river.
+  // Same width formula the region tier uses in `generateRiverBanks`, so the town
+  // ribbon and the wilderness ribbon are the same river at the same width.
+  const widthFt = 50 + Math.sqrt(river.discharge ?? 0) * 20;
   let course = context.courses.get(Number(riverId));
   if (!course) {
     course = generateRiverCourse(anchors, {
       sampleHeight: context.naturalHeight,
       attractors: context.attractors.get(Number(riverId)) ?? [],
       targetSegmentFt: REGION_RESOLUTION_FT * 2,
-      widthFt: 50 + Math.sqrt(river.discharge) * 20,
+      widthFt,
     });
     context.courses.set(Number(riverId), course);
   }
@@ -152,5 +172,8 @@ export function townRiverCourseCanon(
   // the generator's dock/bridge search across empty ground.
   const half = CANON_TOWN_SPAN / 2;
   const square: Pt[] = [[-half, -half], [half, -half], [half, half], [-half, half]];
-  return clipPolylineToPolygon(canon, square).filter((seg) => seg.length >= 2);
+  return {
+    lines: clipPolylineToPolygon(canon, square).filter((seg) => seg.length >= 2),
+    widthCanon: widthFt * k,
+  };
 }
