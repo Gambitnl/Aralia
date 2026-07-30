@@ -161,6 +161,16 @@ interface World3DSceneProps {
 
 const SHADOWS = WORLD3D_CONFIG.STREAMED_WORLD_SHADOWS;
 
+/**
+ * World metres one tile of the ground texture spans.
+ *
+ * Chosen against the failure it has to avoid: too small and the tiling period is
+ * obvious at walking distance (the ceiling the world3d critic set on target #1a),
+ * too large and the texture stops reading as material at all. 12 m puts several
+ * repeats inside the near field without the eye locking onto the period.
+ */
+const GROUND_TEXTURE_METERS_PER_TILE = 12;
+
 // --- per-chunk rendering ---
 
 /** Chunk-local-space origin (meters) for a chunk, relative to the scene origin. */
@@ -249,10 +259,35 @@ const TerrainPiece: React.FC<{
   const service = React.useContext(ForgeAssetContext);
   const tex = useForgeTexture(getSemanticAssetKey({ surface: 'ground' }), service);
   const scenePos = chunkScenePos(anchor.cx, anchor.cy, origin);
+
+  // The ground texture was wired but structurally inert: `map` was bound while
+  // the geometry carried position/normal/color and NO uv, so the sampler read a
+  // single texel for the entire world — the texture multiplied everything by one
+  // flat colour. Found by the world3d critic, 2026-07-30.
+  //
+  // UVs come from WORLD x/z, not chunk-local x/z, for the same reason WaterPiece
+  // does it (see its note): chunk-local UVs restart the pattern at every chunk
+  // boundary and put a visible seam on every edge.
+  useMemo(() => {
+    const pos = geometry.getAttribute('position');
+    if (!pos || pos.count === 0) return;
+    const uv = new Float32Array(pos.count * 2);
+    for (let i = 0; i < pos.count; i++) {
+      uv[i * 2] = (pos.getX(i) + scenePos[0]) / GROUND_TEXTURE_METERS_PER_TILE;
+      uv[i * 2 + 1] = (pos.getZ(i) + scenePos[2]) / GROUND_TEXTURE_METERS_PER_TILE;
+    }
+    geometry.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
+  }, [geometry, scenePos[0], scenePos[2]]);
+
   return (
     <>
+      {/* Smooth-shaded, not flat (Remy's call 2026-07-30: BG3 is the bar, so the
+          low-poly faceting goes). chunkGeometry already accumulates and
+          normalizes per-VERTEX normals across adjacent faces — `flatShading` was
+          throwing those away and re-deriving per-face normals in the shader, which
+          is what made every triangle countable. */}
       <mesh geometry={geometry} position={scenePos} receiveShadow={SHADOWS}>
-        <meshStandardMaterial vertexColors flatShading map={tex || null} />
+        <meshStandardMaterial vertexColors map={tex || null} />
       </mesh>
       {terrain.skirts &&
         SKIRT_EDGES.map(({ edge, dx, dy }) => (
@@ -1151,19 +1186,30 @@ const World3DScene: React.FC<World3DSceneProps> = ({
             contact shading buys nothing and the extra pass is pure cost. */}
         {viewProfile === 'ground' && (
           <EffectComposer>
-            {/* aoRadius is NOT portable from BattleMap3D. Its 1.8 m is tuned for
-                a close tactical camera and is invisible here — the exploration
-                camera looks across a hundred metres, and at half-res that radius
-                lands inside a pixel. Measured on wilds-ancient-forest: 1.8 showed
-                no contact darkening at all, 8 grounded everything but muddied the
-                ground cover. 5 seats trunks, rocks and grass without flattening
-                the midtones. */}
+            {/* aoRadius stays at BattleMap3D's 1.8 m, and the earlier claim that
+                it "does not port" was wrong — corrected after the world3d critic
+                measured it (2026-07-30).
+
+                What happened: AO and ToneMapping were wired in ONE change, so the
+                A/B had two variables. ToneMapping lifted the sky 86.9 → 176.2 and
+                the whole frame read brighter, which was misread as "AO absent".
+                It was never absent — at 1.8 the critic measured rock base
+                60.7 → 29.9 (−51%) and grass tuft 81.7 → 45.3, while UNOCCLUDED
+                open ground correctly held 94.2 → 94.0.
+
+                Raising it to 5 was a net regression: unoccluded open ground dimmed
+                94.0 → 85.3 (−9%, which AO must never do) and grass tufts crushed
+                to 3.2x darker than baseline, reading as black scorch marks.
+
+                Rule this leaves behind: never A/B two rendering changes at once,
+                and a claimed AO pass must show that unoccluded ground did NOT
+                darken. */}
             <N8AO
               halfRes
               quality="performance"
-              aoRadius={5}
+              aoRadius={1.8}
               distanceFalloff={3.5}
-              intensity={4}
+              intensity={3.2}
             />
             <ToneMapping mode={ToneMappingMode.ACES_FILMIC} />
           </EffectComposer>
