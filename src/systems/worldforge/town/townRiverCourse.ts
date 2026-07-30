@@ -25,6 +25,7 @@
 import { clipPolylineToPolygon, type Pt } from '../submap/submapEngine';
 import type { FmgWorldResult } from '../fmg/generateWorld';
 import { generateRiverCourse } from '../region/riverCourse';
+import { riverWidthFt } from '../region/riverWidth';
 import { makeAtlasNaturalHeight } from '../region/regionTerrainField';
 import {
   buildRiverAttractors,
@@ -144,9 +145,9 @@ export function townRiverCourseCanon(
 
   // Identical inputs to the region tier's `generateRiverBanks` call, so the two
   // tiers produce the identical course and the town river IS the world river.
-  // Same width formula the region tier uses in `generateRiverBanks`, so the town
+  // Shared with the region tier via riverWidthFt, so the town
   // ribbon and the wilderness ribbon are the same river at the same width.
-  const widthFt = 50 + Math.sqrt(river.discharge ?? 0) * 20;
+  const widthFt = riverWidthFt(river.discharge);
   let course = context.courses.get(Number(riverId));
   if (!course) {
     course = generateRiverCourse(anchors, {

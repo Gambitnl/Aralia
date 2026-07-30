@@ -130,6 +130,7 @@ import type { Burg } from '../fmg/burgs-generator';
 import type { Route } from '../fmg/routes-generator';
 import { smoothRegionRiverCenterline } from './riverCenterlineSmoothing';
 import { generateRiverCourse } from './riverCourse';
+import { riverWidthFt } from './riverWidth';
 import { makeAtlasNaturalHeight } from './regionTerrainField';
 import {
   buildRiverAttractors,
@@ -877,7 +878,7 @@ function generateRiverBanks(
 
     // Width from flux (discharge proxy). sqrt dampens the range; +50 ensures
     // even small streams have visible banks.
-    const widthFt = 50 + Math.sqrt(river.discharge) * 20;
+    const widthFt = riverWidthFt(river.discharge);
 
     // ONE course, generated from the FULL unclipped anchor line so two adjacent
     // windows read the same river at a shared world point (seam purity). The
