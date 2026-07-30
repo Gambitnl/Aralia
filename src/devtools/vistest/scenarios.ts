@@ -117,7 +117,8 @@ const STAGE_NEAR_OCCUPANT = `(() => { ${GROUND_XFORM} if (!g) return 'MISSING gr
  */
 const POSE_AT_HEARTH = `(() => { ${GROUND_XFORM} if (!g) return 'MISSING ground world'; const s = window.__wf3dScene; if (!s) return 'MISSING scene'; const V = new (s.position.constructor)(); const lights = []; s.traverse((o) => { if (o.isPointLight && o.visible && (o.distance ?? 0) > 0 && (o.distance ?? 0) <= 12) { o.getWorldPosition(V); lights.push({ x: V.x, y: V.y, z: V.z }); } }); if (lights.length === 0) return 'MISSING mounted hearth lights'; const staged = window.__wfStagedHousehold ?? { x: 0, z: 0 }; let h = lights[0], bd = Infinity; for (const L of lights) { const d = Math.hypot(L.x - staged.x, L.z - staged.z); if (d < bd) { bd = d; h = L; } } const OX = g.extentMetersX / 2, OZ = g.extentMetersZ / 2; let dx = 1, dz = 1, nd = Infinity; for (const b of (g.buildings ?? [])) { const d = Math.hypot(b.xM - (h.x + OX), b.zM - (h.z + OZ)); if (d < nd) { nd = d; dx = (b.xM - OX) - h.x; dz = (b.zM - OZ) - h.z; } } let len = Math.hypot(dx, dz); if (len < 0.05) { dx = 1; dz = 1; len = Math.SQRT2; } const D = Math.min(3.2, Math.max(2.4, len * 1.6)); window.__wf3dSetPose([h.x + (dx / len) * D, h.y + 0.55, h.z + (dz / len) * D], [h.x, h.y - 0.15, h.z]); return 'hearth framed (' + lights.length + ' lit)'; })()`;
 
-const POSE_INSIDE_AT_OCCUPANT = `(() => { ${GROUND_XFORM} const s = window.__wf3dScene; const occ = []; s.traverse((o) => { if (o.userData && o.userData.isOccupant) occ.push(o); }); if (occ.length === 0) return 'MISSING mounted occupant bodies'; const V = new (s.position.constructor)(); const staged = window.__wfStagedHousehold; let t = occ[0], bd = Infinity; for (const o of occ) { o.getWorldPosition(V); const d = staged ? Math.hypot(V.x - staged.x, V.z - staged.z) : 0; if (d < bd) { bd = d; t = o; } } const p = t.getWorldPosition(new (s.position.constructor)()); const OX = g.extentMetersX / 2, OZ = g.extentMetersZ / 2; let nb = null, nd = Infinity; for (const b of (g.buildings ?? [])) { const d = Math.hypot(b.xM - (p.x + OX), b.zM - (p.z + OZ)); if (d < nd) { nd = d; nb = b; } } if (!nb) return 'MISSING host building'; let dx = (nb.xM - OX) - p.x, dz = (nb.zM - OZ) - p.z; let len = Math.hypot(dx, dz); if (len < 0.05) { dx = 1; dz = 1; len = Math.SQRT2; } const D = Math.min(3.1, Math.max(2.4, len)); window.__wf3dSetPose([p.x + (dx / len) * D, p.y + 1.6, p.z + (dz / len) * D], [p.x, p.y + 1.0, p.z]); return 'inside at standing height (' + occ.length + ' bodies)'; })()`;
+
+
 
 /**
  * Collect every live crowd instance position in scene coordinates.
@@ -177,9 +178,16 @@ const POSE_AT_CAST = `(() => { ${GROUND_XFORM} ${OPEN_AZIMUTH} const s = window.
  * the exploration camera family, and honest about what the controls allow.
  * `reach` sets how far out the aim point sits, which is what decides whether
  * the frame is a ground-contact close-up or a look down the valley.
+ *
+ * The standing point is the HIGHEST of a sampled grid around the cell centre,
+ * not the centre itself. Cell 3023's centre sits on a lake shore, and standing
+ * there produced a frame of flat sand and flat water with no ground cover in it
+ * at all — nothing the terrain or cover targets ask about. Highest-of-sample is
+ * a cheap guarantee of dry land, and it aims back across the cell so the frame
+ * looks over the terrain rather than off the window edge.
  */
 const POSE_GROUND_EYE = (reach: number, drop: number, eyeUp: number) =>
-  `(() => { ${GROUND_XFORM} if (!g) return 'MISSING ground world'; const cx = g.extentMetersX / 2, cz = g.extentMetersZ / 2; const here = toScene(cx, cz); const a = 0.9; const tx = here.x + Math.cos(a) * ${reach}, tz = here.z + Math.sin(a) * ${reach}; const there = toScene(tx + cx, tz + cz); window.__wf3dSetPose([here.x, here.y + ${eyeUp}, here.z], [tx, there.y + ${drop}, tz]); return 'ground eye framed'; })()`;
+  `(() => { ${GROUND_XFORM} if (!g) return 'MISSING ground world'; const cx = g.extentMetersX / 2, cz = g.extentMetersZ / 2; const SPAN = 120, STEPS = 8; let here = null, bestH = -Infinity; for (let i = 0; i <= STEPS; i++) for (let j = 0; j <= STEPS; j++) { const xM = cx + (i / STEPS - 0.5) * 2 * SPAN, zM = cz + (j / STEPS - 0.5) * 2 * SPAN; const p = toScene(xM, zM); if (p.y > bestH) { bestH = p.y; here = p; } } if (!here) return 'MISSING sampled ground'; const len = Math.hypot(here.x, here.z) || 1; const ax = -here.x / len, az = -here.z / len; const tx = here.x + ax * ${reach}, tz = here.z + az * ${reach}; const there = toScene(tx + cx, tz + cz); window.__wf3dSetPose([here.x, here.y + ${eyeUp}, here.z], [tx, there.y + ${drop}, tz]); return 'ground eye framed'; })()`;
 
 /** Pose an aerial above the first live crowd walker (street context view). */
 const POSE_STREET_AERIAL = `(() => { const root = window.__wf3dScene.getObjectByName('groundAgentsCrowd'); if (!root) return 'no crowd'; let best = null; const M = new (root.matrix.constructor)(); root.traverse((o) => { if (!best && o.isInstancedMesh && o.count > 0) { o.getMatrixAt(0, M); best = { x: M.elements[12], y: M.elements[13], z: M.elements[14] }; } }); if (best) window.__wf3dSetPose([best.x + 14, best.y + 11, best.z + 14], [best.x, best.y + 0.5, best.z]); return best ? 'posed' : 'no instances'; })()`;
@@ -334,26 +342,6 @@ export const SCENARIOS: VisScenario[] = [
       { kind: "readback" },
     ],
   },
-  {
-    id: "forge-lineup-closeup",
-    title: "Forge: lineup dollied to critique distance",
-    group: "entities",
-    url: "misc/design.html?step=entityforge&mode=lineup&seed=3",
-    notes:
-      "The same lineup as forge-lineup, but close enough to judge. forge-lineup auto-fits all eight bodies and leaves each about forty pixels tall on a flat green plane — nothing about skin, cloth or silhouette is decidable from it. This dollies the orbit camera in so two or three bodies carry the frame.",
-    capture: [
-      { kind: "waitHook", expr: "window.__entityforge", timeoutMs: 90000 },
-      // AutoFrame runs for eight frames after the roster settles; dollying
-      // before it finishes would just be overwritten by the auto-fit.
-      { kind: "sleep", ms: 11000 },
-      {
-        kind: "eval",
-        js: `(() => { const c = document.querySelector('canvas'); if (!c) return 'MISSING forge canvas'; const r = c.getBoundingClientRect(); for (let i = 0; i < 16; i++) { c.dispatchEvent(new WheelEvent('wheel', { clientX: r.left + r.width * 0.5, clientY: r.top + r.height * 0.5, deltaY: -220, bubbles: true, cancelable: true })); } return 'dollied into lineup'; })()`,
-      },
-      { kind: "sleep", ms: 5000 },
-      { kind: "readback" },
-    ],
-  },
   // --- combat -----------------------------------------------------------
   {
     id: "combat3d-party",
@@ -401,9 +389,11 @@ export const SCENARIOS: VisScenario[] = [
       { kind: "eval", js: CLICK_3D_VIEW },
       { kind: "sleep", ms: 14000 },
       { kind: "waitHook", expr: "window.__bm3dCam", timeoutMs: 60000 },
-      // Pulled back and flattened from the 9-unit / 58-degree inspection pose:
-      // a play camera has to hold the whole engagement, not one body.
-      { kind: "eval", js: `window.__bm3dCam.poseTeam('player', 20, 44, 200)` },
+      // `polarDeg` is measured FROM +Y, so a SMALLER number is more overhead —
+      // 44 produced a top-down canopy shot with no units in it. 66 is 24 degrees
+      // above the horizon, pulled back to 18 units so the frame holds the whole
+      // engagement instead of one body.
+      { kind: "eval", js: `window.__bm3dCam.poseTeam('player', 18, 66, 205)` },
       { kind: "sleep", ms: 10000 },
       { kind: "readback" },
     ],
@@ -972,15 +962,21 @@ export const SCENARIOS: VisScenario[] = [
         timeoutMs: 90000,
       },
       { kind: "sleep", ms: 10000 },
+      // The URL's &hour= drives the world sun, sky and occupant placement, so
+      // each variant loads at its own real hour. Only FINDING the room needs a
+      // trick: InteriorLights skips a hearth its site schedule marks dark, so
+      // at 10:00 or 23:00 there is no lit fire to anchor on. Hop the LIVE
+      // interior clock to 20:00 just long enough to locate a hearth, pose, then
+      // hand the clock back — hearths and windows track it, so the captured
+      // frame is honestly this hour and all three stand in the same room.
       { kind: "eval", js: `window.__wfAgentClock = 20` },
       { kind: "sleep", ms: 2500 },
-      // Two stages: fly to the household from occupant DATA, wait out the 2 Hz
-      // body budget, then step inside. Searching the scene graph first finds
-      // nothing, because bodies mount only within 18 m of the camera.
       { kind: "eval", js: STAGE_NEAR_OCCUPANT },
       { kind: "sleep", ms: 6000 },
       { kind: "eval", js: POSE_AT_HEARTH },
-      { kind: "sleep", ms: 4000 },
+      { kind: "sleep", ms: 2000 },
+      { kind: "eval", js: `window.__wfAgentClock = 20` },
+      { kind: "sleep", ms: 5000 },
       { kind: "readback" },
     ],
   },
@@ -998,12 +994,21 @@ export const SCENARIOS: VisScenario[] = [
         timeoutMs: 90000,
       },
       { kind: "sleep", ms: 10000 },
-      { kind: "eval", js: `window.__wfAgentClock = 10` },
+      // The URL's &hour= drives the world sun, sky and occupant placement, so
+      // each variant loads at its own real hour. Only FINDING the room needs a
+      // trick: InteriorLights skips a hearth its site schedule marks dark, so
+      // at 10:00 or 23:00 there is no lit fire to anchor on. Hop the LIVE
+      // interior clock to 20:00 just long enough to locate a hearth, pose, then
+      // hand the clock back — hearths and windows track it, so the captured
+      // frame is honestly this hour and all three stand in the same room.
+      { kind: "eval", js: `window.__wfAgentClock = 20` },
       { kind: "sleep", ms: 2500 },
       { kind: "eval", js: STAGE_NEAR_OCCUPANT },
       { kind: "sleep", ms: 6000 },
       { kind: "eval", js: POSE_AT_HEARTH },
-      { kind: "sleep", ms: 4000 },
+      { kind: "sleep", ms: 2000 },
+      { kind: "eval", js: `window.__wfAgentClock = 10` },
+      { kind: "sleep", ms: 5000 },
       { kind: "readback" },
     ],
   },
@@ -1021,12 +1026,21 @@ export const SCENARIOS: VisScenario[] = [
         timeoutMs: 90000,
       },
       { kind: "sleep", ms: 10000 },
-      { kind: "eval", js: `window.__wfAgentClock = 23` },
+      // The URL's &hour= drives the world sun, sky and occupant placement, so
+      // each variant loads at its own real hour. Only FINDING the room needs a
+      // trick: InteriorLights skips a hearth its site schedule marks dark, so
+      // at 10:00 or 23:00 there is no lit fire to anchor on. Hop the LIVE
+      // interior clock to 20:00 just long enough to locate a hearth, pose, then
+      // hand the clock back — hearths and windows track it, so the captured
+      // frame is honestly this hour and all three stand in the same room.
+      { kind: "eval", js: `window.__wfAgentClock = 20` },
       { kind: "sleep", ms: 2500 },
       { kind: "eval", js: STAGE_NEAR_OCCUPANT },
       { kind: "sleep", ms: 6000 },
       { kind: "eval", js: POSE_AT_HEARTH },
-      { kind: "sleep", ms: 4000 },
+      { kind: "sleep", ms: 2000 },
+      { kind: "eval", js: `window.__wfAgentClock = 23` },
+      { kind: "sleep", ms: 5000 },
       { kind: "readback" },
     ],
   },
