@@ -42,7 +42,7 @@ export interface VisScenario {
   /** kebab-case, unique — becomes the capture filename `<id>.png`. */
   id: string;
   title: string;
-  group: "entities" | "combat" | "world" | "interiors" | "crowds";
+  group: "entities" | "combat" | "world" | "interiors" | "crowds" | "dungeons";
   /** Relative to the dev base (no leading slash), e.g. `misc/design.html?step=…`. */
   url: string;
   /** What a reviewer should look for in the capture. */
@@ -73,6 +73,68 @@ const CLICK_3D_VIEW = `(() => { const b = [...document.querySelectorAll('button'
 const VERIFY_3D_CANVAS_PIXELS = `(async () => { const api = window.__bm3dCam; if (!api?.capture || !api?.sceneBreakdown) return 'missing 3D capture hook'; const roots = JSON.stringify(api.sceneBreakdown()?.topRoots ?? []); if (!roots.includes('opening-resolved-body-3d-goblin') || !roots.includes('opening-resolved-body-3d-wolf') || !roots.includes('opening-activity-site-3d') || !roots.includes('opening-combat-disturbance-3d')) return 'missing opening scene meshes'; const dataUrl = api.capture(); if (!dataUrl || dataUrl.length < 10000) return 'missing 3D framebuffer'; const image = new Image(); await new Promise((resolve, reject) => { image.onload = resolve; image.onerror = reject; image.src = dataUrl; }); const probe = document.createElement('canvas'); probe.width = 64; probe.height = 64; const ctx = probe.getContext('2d', { willReadFrequently: true }); if (!ctx) return 'missing pixel probe'; ctx.drawImage(image, 0, 0, 64, 64); const pixels = ctx.getImageData(0, 0, 64, 64).data; let opaque = 0, min = 255, max = 0; const bins = new Set(); for (let i = 0; i < pixels.length; i += 16) { const alpha = pixels[i + 3]; if (alpha < 16) continue; opaque += 1; const luma = Math.round(pixels[i] * 0.2126 + pixels[i + 1] * 0.7152 + pixels[i + 2] * 0.0722); min = Math.min(min, luma); max = Math.max(max, luma); bins.add(Math.floor(luma / 12)); } if (opaque < 700 || max - min < 34 || bins.size < 5) return 'missing canvas contrast'; return 'pixels ok: ' + opaque + ' samples, range ' + (max - min) + ', bins ' + bins.size; })()`;
 
 const TOWN_WINDOW = "?phase=world3d&ground=1&gx=16&gy=4&wfseed=42";
+
+// ── dungeon capture helpers ─────────────────────────────────────────────────
+// The dungeon workbench (`?step=dungeon`) opens on the 3D Expedition view and
+// keeps the parchment module sheet behind a presentation toggle. Both are the
+// SAME generated plan, so a pinned `dseed` makes the pair directly comparable.
+
+/** Press one of the workbench's named camera presets (tactical | entrance | objective). */
+const DUNGEON_CAMERA = (preset: "tactical" | "entrance" | "objective") =>
+  `(() => { const b = document.querySelector('[data-testid="dungeon-camera-${preset}"]'); if (!b) return 'MISSING ${preset} preset'; b.click(); return 'preset ${preset}'; })()`;
+
+/**
+ * Pull the orbit camera in toward its target with wheel ticks.
+ *
+ * Why this and not a pose hook: the dungeon preview exposes no camera setter,
+ * only the three intent presets. `entrance` already aims at the entrance room,
+ * but at a distance derived from the room radius — far enough that torch
+ * falloff and stone material are a few pixels tall. Dollying along the existing
+ * look direction keeps the preset's aim and buys critique distance.
+ */
+const DUNGEON_DOLLY_IN = (ticks: number) =>
+  `(() => { const c = document.querySelector('[data-testid="dungeon-3d-preview"] canvas'); if (!c) return 'MISSING dungeon canvas'; const r = c.getBoundingClientRect(); for (let i = 0; i < ${ticks}; i++) { c.dispatchEvent(new WheelEvent('wheel', { clientX: r.left + r.width * 0.5, clientY: r.top + r.height * 0.5, deltaY: -240, bubbles: true, cancelable: true })); } return 'dollied ${ticks}'; })()`;
+
+/**
+ * Lift the parchment sheet out of the workbench chrome for a clean plate.
+ *
+ * The module sheet is a 2D canvas, so the WebGL `readback` path cannot reach it
+ * and a plain page screenshot would be two-thirds slider panel. This moves the
+ * live canvas into a fixed full-viewport backdrop so the capture is the SHEET,
+ * judged on its ink — not the design harness around it.
+ */
+/**
+ * Zoom the parchment viewport onto the plan so the LINEWORK is judgeable.
+ *
+ * The full-plate shot is the right frame for page composition, but the plan
+ * occupies about a third of the sheet, which leaves wall hatch and corner blots
+ * a few pixels wide — the same "cannot judge it" failure the whole framing pass
+ * exists to remove.
+ *
+ * PRODUCT BUG this has to route around: the sheet's zoom-to-cursor wheel
+ * listener is bound in an effect keyed on `error`, and the parchment canvas is
+ * created only when the presentation toggle leaves the 3D view. Arriving at the
+ * default 3D view and switching to Parchment therefore leaves the canvas with
+ * NO wheel listener, so wheel zoom silently does nothing for a real user too.
+ * The button cluster and the React pointer handlers are wired per render, so
+ * this drives those instead: three centre-zoom clicks, then one pan-drag that
+ * recentres the viewport on the plan (which sits left of and below sheet
+ * centre, because the legend column occupies the upper right).
+ */
+const PARCHMENT_ZOOM_IN = `(() => { const zoomIn = document.querySelector('[title="Zoom in"]'); if (!zoomIn) return 'MISSING zoom-in control'; for (let i = 0; i < 3; i++) zoomIn.click(); return 'zoomed 2.74x'; })()`;
+
+/**
+ * Pan the zoomed sheet so the plan — not the empty lower page — fills the frame.
+ *
+ * Runs as its own step after a pause, because the pan handler reads `view.zoom`
+ * from the render closure: dispatched in the same task as the zoom clicks it
+ * would still see zoom 1 and bail. `setPointerCapture` is neutralised for the
+ * same reason a synthetic drag needs it — there is no real active pointer, so
+ * the genuine call would throw before the drag state is ever recorded.
+ */
+const PARCHMENT_PAN_TO_PLAN = `(() => { const canvas = [...document.querySelectorAll('canvas')].find((c) => { try { return !(c.getContext('webgl2') || c.getContext('webgl')); } catch { return true; } }); if (!canvas) return 'MISSING parchment canvas'; canvas.setPointerCapture = () => {}; canvas.releasePointerCapture = () => {}; const ZOOM = Math.pow(1.4, 3); const r = canvas.getBoundingClientRect(); const cx = r.left + r.width * 0.5, cy = r.top + r.height * 0.5; const dx = (0.5 - 0.46) * ZOOM * r.width, dy = (0.5 - 0.54) * ZOOM * r.height; const send = (type, x, y) => canvas.dispatchEvent(new PointerEvent(type, { clientX: x, clientY: y, pointerId: 1, isPrimary: true, button: 0, buttons: 1, bubbles: true, cancelable: true })); send('pointerdown', cx, cy); send('pointermove', cx + dx, cy + dy); send('pointerup', cx + dx, cy + dy); return 'panned to plan'; })()`;
+
+const ISOLATE_PARCHMENT_SHEET = `(() => { const canvas = [...document.querySelectorAll('canvas')].find((c) => { try { return !(c.getContext('webgl2') || c.getContext('webgl')); } catch { return true; } }); if (!canvas) return 'MISSING parchment canvas'; if (canvas.width < 400) return 'MISSING composed sheet (width ' + canvas.width + ')'; const stage = document.createElement('div'); stage.id = 'vistest-sheet-stage'; stage.style.cssText = 'position:fixed;inset:0;z-index:2147483647;background:#1a1a1a;display:flex;align-items:center;justify-content:center;padding:0'; canvas.style.cssText = 'width:auto;height:100vh;max-width:100vw;display:block'; stage.appendChild(canvas); document.body.appendChild(stage); return 'sheet isolated ' + canvas.width + 'x' + canvas.height; })()`;
 
 export const SCENARIOS: VisScenario[] = [
   // --- entities (forge + debugger) -------------------------------------
@@ -687,6 +749,74 @@ export const SCENARIOS: VisScenario[] = [
       { kind: "readback" },
     ],
   },
+  // --- dungeons -----------------------------------------------------------
+  // The dungeon surface had NO capture scenario at all before this program, so
+  // its critic had nothing to judge. These are the first two: the lit 3D room
+  // an expedition actually stands in, and the diegetic parchment module sheet.
+  {
+    id: "dungeon-3d-entrance-room",
+    title: "Dungeon 3D: torch-lit entrance room at expedition distance",
+    group: "dungeons",
+    url: "misc/design.html?step=dungeon&dseed=20260730&dtheme=crypt",
+    notes:
+      "Standing inside the entrance chamber, not surveying the level: torch flames with warm falloff onto the nearest walls, coursed stone reading as stone at arm's length, floor-to-wall contact readable, and darkness closing the far side of the room rather than a uniform grey wash.",
+    capture: [
+      // __dungeon3dReady only flips after three consecutive drawn frames, so it
+      // is a real paint gate rather than a mount gate.
+      { kind: "waitHook", expr: "window.__dungeon3dReady === true", timeoutMs: 180000 },
+      { kind: "eval", js: DUNGEON_CAMERA("entrance") },
+      { kind: "sleep", ms: 3000 },
+      // Detail props (torches among them) are culled at the tactical preset, so
+      // the dolly happens only after `entrance` has restored them.
+      { kind: "eval", js: DUNGEON_DOLLY_IN(9) },
+      { kind: "sleep", ms: 5000 },
+      { kind: "readback" },
+    ],
+  },
+  {
+    id: "dungeon-parchment-sheet",
+    title: "Dungeon 2D: hand-inked module sheet, full plate",
+    group: "dungeons",
+    url: "misc/design.html?step=dungeon&dseed=20260730&dtheme=crypt",
+    notes:
+      "The Gozzy-style module sheet as a page, free of workbench chrome: one ink hand across walls and corridors, pressure on the shadow side, warm paper, keyed room numbers, cartouche and legend. Same seed as dungeon-3d-entrance-room, so the two views are the same dungeon.",
+    capture: [
+      { kind: "waitHook", expr: "window.__dungeon3dReady === true", timeoutMs: 180000 },
+      {
+        kind: "eval",
+        js: `(() => { const b = document.querySelector('[data-testid="dungeon-view-parchment"]'); if (!b) return 'MISSING parchment toggle'; b.click(); return 'parchment'; })()`,
+      },
+      // renderSheet composes a supersampled buffer on the view switch; this is
+      // the slow step, and the blit onto the visible canvas follows it.
+      { kind: "sleep", ms: 6000 },
+      { kind: "eval", js: ISOLATE_PARCHMENT_SHEET },
+      { kind: "sleep", ms: 800 },
+      { kind: "screenshot" },
+    ],
+  },
+  {
+    id: "dungeon-parchment-linework",
+    title: "Dungeon 2D: module-sheet linework at critique distance",
+    group: "dungeons",
+    url: "misc/design.html?step=dungeon&dseed=20260730&dtheme=crypt",
+    notes:
+      "The same sheet zoomed onto the plan so the ink itself is judgeable: wall stroke weight swelling on the shadow side, corner blots, corridor jambs and threshold ticks, event overlays under the ink, and door states (leaf / bricked red brick / secret dash).",
+    capture: [
+      { kind: "waitHook", expr: "window.__dungeon3dReady === true", timeoutMs: 180000 },
+      {
+        kind: "eval",
+        js: `(() => { const b = document.querySelector('[data-testid="dungeon-view-parchment"]'); if (!b) return 'MISSING parchment toggle'; b.click(); return 'parchment'; })()`,
+      },
+      { kind: "sleep", ms: 6000 },
+      { kind: "eval", js: PARCHMENT_ZOOM_IN },
+      { kind: "sleep", ms: 1500 },
+      { kind: "eval", js: PARCHMENT_PAN_TO_PLAN },
+      { kind: "sleep", ms: 1500 },
+      { kind: "eval", js: ISOLATE_PARCHMENT_SHEET },
+      { kind: "sleep", ms: 800 },
+      { kind: "screenshot" },
+    ],
+  },
 ];
 
 /** Validate a scenario list; returns human-readable problems ([] = valid). */
@@ -699,6 +829,7 @@ export function validateScenarios(list: VisScenario[]): string[] {
     "world",
     "interiors",
     "crowds",
+    "dungeons",
   ]);
   for (const s of list) {
     if (seen.has(s.id)) problems.push(`"${s.id}": duplicate id`);

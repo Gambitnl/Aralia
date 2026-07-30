@@ -5,7 +5,7 @@
 import { describe, it, expect } from "vitest";
 import { SCENARIOS, validateScenarios, type VisScenario } from "../scenarios";
 
-const GROUPS = ["entities", "combat", "world", "interiors", "crowds"] as const;
+const GROUPS = ["entities", "combat", "world", "interiors", "crowds", "dungeons"] as const;
 
 describe("vistest scenario registry", () => {
   it("has scenarios and validateScenarios finds no problems", () => {
