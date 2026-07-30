@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 29/07/2026, 18:44:00
+ * Dependents: systems/worldforge/fmg/generateWorld.ts, systems/worldforge/fmg/religions-generator.ts
+ * Imports: 13 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file cultures-generator.ts — ported from Azgaar's Fantasy-Map-Generator
  * (MIT). Upstream: .tmp/azgaar-src/src/modules/cultures-generator.ts. See
@@ -23,8 +39,12 @@
  *   count-reduction logic they accompany is kept verbatim.
  *
  * Stripped (editor-only): add() (culture editor's "add culture" button).
+ *
+ * TYPE REMEDIATION (GG-46, no behavior change): the `cells: any` field and
+ * per-site `as any` casts were replaced by a CultureCells stage view (the
+ * cells fields populated before the cultures stage) asserted once per
+ * entry point; pack.features accesses use the typed PackedGraphFeature.
  */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { max, range } from "./d3Shim";
 import { quadtree } from "./utils/quadtree";
 import { FlatQueue } from "./utils/flatqueue";
@@ -85,6 +105,20 @@ export const CULTURES_SET_MAX: Record<CulturesSet, number> = {
   random: 100,
 };
 
+/**
+ * Culture-stage view of Pack["cells"]: every optional field this module
+ * reads is populated by the earlier pipeline stages (reGraph, rankCells,
+ * Rivers, Biomes); `culture` is what this module itself writes. TYPE-ONLY
+ * assertion target — no runtime change.
+ */
+type CultureCells = Pack["cells"] &
+  Required<
+    Pick<
+      Pack["cells"],
+      "g" | "area" | "t" | "f" | "haven" | "harbor" | "fl" | "r" | "biome" | "s" | "pop" | "culture"
+    >
+  >;
+
 export interface CulturesContext {
   pack: Pack;
   grid: Grid;
@@ -100,14 +134,14 @@ export interface CulturesContext {
 }
 
 export class CulturesModule {
-  cells: any;
+  cells!: CultureCells; // assigned at the top of generate()
 
   constructor(private ctx: CulturesContext) {}
 
   getRandomShield() {
     const COA = this.ctx.COA;
     const type = rw(COA.shields.types);
-    return rw((COA.shields as any)[type]);
+    return rw(COA.shields[type]);
   }
 
   getDefault(count: number = 0): Omit<Culture, "i">[] {
@@ -129,7 +163,7 @@ export class CulturesModule {
       biomes.includes(cells.biome![cell]) ? 1 : fee; // biome difference fee
     const sf = (cell: number, fee = 4) =>
       cells.haven![cell] &&
-      (pack.features[cells.f![cells.haven![cell]]] as any).type !== "lake"
+      pack.features[cells.f![cells.haven![cell]]].type !== "lake"
         ? 1
         : fee; // not on sea coast fee
 
@@ -323,7 +357,9 @@ export class CulturesModule {
 
   generate() {
     const { pack, graphWidth, graphHeight, emblemShape, Names } = this.ctx;
-    this.cells = pack.cells;
+    // Stage boundary assertion: cultures runs after reGraph/rankCells/
+    // Rivers/Biomes, so the CultureCells fields are populated.
+    this.cells = pack.cells as CultureCells;
     const cultureIds = new Uint16Array(this.cells.i.length); // cell cultures
 
     const culturesInputNumber = this.ctx.culturesNumber;
@@ -417,12 +453,12 @@ export class CulturesModule {
       if (this.cells.h[i] < 70 && [1, 2, 4].includes(this.cells.biome[i]))
         return "Nomadic"; // high penalty in forest biomes and near coastline
       if (this.cells.h[i] > 50) return "Highland"; // no penalty for hills and mountains, high for other elevations
-      const f = pack.features[this.cells.f[this.cells.haven[i]]] as any; // opposite feature
+      const f = pack.features[this.cells.f[this.cells.haven[i]]]; // opposite feature
       if (f.type === "lake" && f.cells > 5) return "Lake"; // low water cross penalty and high for growth not along coastline
       if (
         (this.cells.harbor[i] && f.type !== "lake" && P(0.1)) ||
         (this.cells.harbor[i] === 1 && P(0.6)) ||
-        ((pack.features[this.cells.f[i]] as any).group === "isle" && P(0.4))
+        (pack.features[this.cells.f[i]].group === "isle" && P(0.4))
       )
         return "Naval"; // low water cross penalty and high for non-along-coastline growth
       if (this.cells.r[i] && this.cells.fl[i] > 100) return "River"; // no River cross penalty, penalty for non-River growth
@@ -503,10 +539,10 @@ export class CulturesModule {
 
   expand() {
     const { pack, biomesData } = this.ctx;
-    const { cells, cultures } = pack as never as {
-      cells: any;
-      cultures: Culture[];
-    };
+    // Stage boundary assertion: expand() runs right after generate(), so
+    // the culture-stage cells fields and pack.cultures are present.
+    const cells = pack.cells as CultureCells;
+    const cultures = pack.cultures!;
 
     const queue = new FlatQueue<{
       cellId: number;
@@ -529,7 +565,7 @@ export class CulturesModule {
         cells.culture[cellId] = 0;
       }
     } else {
-      cells.culture = new Uint16Array(cells.i.length) as unknown as number[];
+      cells.culture = new Uint16Array(cells.i.length);
     }
 
     for (const culture of cultures) {
@@ -549,7 +585,7 @@ export class CulturesModule {
     };
 
     const getHeightCost = (i: number, h: number, type: string) => {
-      const f = pack.features[cells.f[i]] as any,
+      const f = pack.features[cells.f[i]],
         a = cells.area[i];
       if (type === "Lake" && f.type === "lake") return 10; // no lake crossing penalty for Lake cultures
       if (type === "Naval" && h < 20) return a * 2; // low sea/lake crossing penalty for Naval cultures

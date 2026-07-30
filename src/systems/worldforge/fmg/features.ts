@@ -3,8 +3,8 @@
  * ARCHITECTURAL ADVISORY:
  * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 10/07/2026, 13:11:03
- * Dependents: systems/worldforge/fmg/biomes.ts, systems/worldforge/fmg/burgs-generator.ts, systems/worldforge/fmg/coa-generator.ts, systems/worldforge/fmg/cultures-generator.ts, systems/worldforge/fmg/generateAtlas.ts, systems/worldforge/fmg/generateBase.ts, systems/worldforge/fmg/ice.ts, systems/worldforge/fmg/lakes.ts, systems/worldforge/fmg/markers-generator.ts, systems/worldforge/fmg/military-generator.ts, systems/worldforge/fmg/names-generator.ts, systems/worldforge/fmg/provinces-generator.ts, systems/worldforge/fmg/rankCells.ts, systems/worldforge/fmg/reGraph.ts, systems/worldforge/fmg/religions-generator.ts, systems/worldforge/fmg/river-generator.ts, systems/worldforge/fmg/routes-generator.ts, systems/worldforge/fmg/states-generator.ts, systems/worldforge/fmg/utils/graphUtils.ts, systems/worldforge/fmg/zones-generator.ts, systems/worldforge/provenance/worldCell.ts
+ * Last Sync: 29/07/2026, 18:41:56
+ * Dependents: systems/worldforge/fmg/biomes.ts, systems/worldforge/fmg/burgs-generator.ts, systems/worldforge/fmg/coa-generator.ts, systems/worldforge/fmg/cultures-generator.ts, systems/worldforge/fmg/generateAtlas.ts, systems/worldforge/fmg/generateBase.ts, systems/worldforge/fmg/ice.ts, systems/worldforge/fmg/lakes.ts, systems/worldforge/fmg/markers-generator.ts, systems/worldforge/fmg/military-generator.ts, systems/worldforge/fmg/names-generator.ts, systems/worldforge/fmg/provinces-generator.ts, systems/worldforge/fmg/rankCells.ts, systems/worldforge/fmg/reGraph.ts, systems/worldforge/fmg/religions-generator.ts, systems/worldforge/fmg/river-generator.ts, systems/worldforge/fmg/routes-generator.ts, systems/worldforge/fmg/states-generator.ts, systems/worldforge/fmg/utils/graphUtils.ts, systems/worldforge/fmg/zones-generator.ts, systems/worldforge/forests/forestsPass.ts, systems/worldforge/mountains/mountainsPass.ts, systems/worldforge/provenance/worldCell.ts
  * Imports: 5 files
  *
  * MULTI-AGENT SAFETY:
@@ -125,12 +125,37 @@ export interface Pack {
   religions?: import("./religions-generator").Religion[];
   provinces?: import("./provinces-generator").Province[];
   ice?: import("./ice").IceElement[];
+  markers?: import("./markers-generator").Marker[]; // set by Markers.generate (stage 34)
+  zones?: import("./zones-generator").Zone[]; // set by Zones.generate (stage 35)
   // --- Aralia additive passes (post-FMG stages; not upstream fields) ---
   forests?: import("../forests/forestsPass").PackForest[]; // set by generateForests (stage 36)
   ranges?: import("../mountains/mountainsPass").PackRange[]; // set by generateMountains (stage 37)
   peaks?: import("../mountains/mountainsPass").PackPeak[]; // set by generateMountains (stage 37)
   passes?: import("../mountains/mountainsPass").PackPass[]; // typed now; the passes task (mountains Task 4) fills it
 }
+
+/**
+ * Pack view for the late civilization stages (Military → Markers → Zones,
+ * pipeline stages 33–35): by the time those generators run, every optional
+ * slice-2/3 cell field and civilization collection above has been populated
+ * by the earlier stages, so this view marks them all required. TYPE-ONLY —
+ * it changes no runtime shape; each module asserts it once at its
+ * constructor boundary instead of scattering `as any` at every field read.
+ * (`markers`/`zones` are initialized by their own generate() calls, which
+ * these modules also own.)
+ */
+export type CivStagePack = Pack & {
+  cells: Required<Pack["cells"]>;
+  rivers: import("./river-generator").River[];
+  cultures: import("./cultures-generator").Culture[];
+  burgs: import("./burgs-generator").Burg[];
+  states: import("./states-generator").State[];
+  routes: import("./routes-generator").Route[];
+  religions: import("./religions-generator").Religion[];
+  provinces: import("./provinces-generator").Province[];
+  markers: import("./markers-generator").Marker[];
+  zones: import("./zones-generator").Zone[];
+};
 
 export class FeatureModule {
   private DEEPER_LAND = 3;

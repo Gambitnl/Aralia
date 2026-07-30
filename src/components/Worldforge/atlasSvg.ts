@@ -363,6 +363,9 @@ export function buildRiverRibbon(points: Array<[number, number]>, halfWidths: nu
 export function buildRivers(atlas: FmgAtlasResult, widthScale = 1): AtlasSvgRegion[] {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const rivers: any[] = (atlas.pack as any).rivers ?? [];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const heights: ArrayLike<number> | undefined = (atlas.pack as any).cells?.h;
+  const isWater = (cellId: number): boolean => (heights?.[cellId] ?? 100) < LAND_THRESHOLD;
   const out: AtlasSvgRegion[] = [];
   for (const r of rivers) {
     const cellIds: number[] = (r.cells ?? []).filter((c: number) => c >= 0);
@@ -382,8 +385,48 @@ export function buildRivers(atlas: FmgAtlasResult, widthScale = 1): AtlasSvgRegi
       const t = n > 1 ? k / (n - 1) : 1;
       return sourceHalf + (mouthHalf - sourceHalf) * t;
     });
-    const d = buildRiverRibbon(points, halfWidths);
-    if (d) out.push({ d, fill: '#5d97bb' });
+
+    // Break the ribbon at open water. FMG routes a river THROUGH lake cells to
+    // carry it downstream, so the cell sequence is right — but drawing it as one
+    // unbroken ribbon paints a river line straight across the lake it flows
+    // into, which reads as a river running over open water (Remy, 2026-07-29).
+    // Each stretch of land becomes its own ribbon, extended ONE cell into the
+    // water at each end so the river still meets the bank instead of stopping
+    // short of the shore. Taper indices stay tied to the position in the WHOLE
+    // river, so width still grows downstream across the break.
+    const midpoint = (a: number, b: number): [number, number] => [
+      (points[a][0] + points[b][0]) / 2,
+      (points[a][1] + points[b][1]) / 2,
+    ];
+    let runStart = -1;
+    const flush = (endExclusive: number): void => {
+      if (runStart < 0) return;
+      const runPts = points.slice(runStart, endExclusive);
+      const runW = halfWidths.slice(runStart, endExclusive);
+      // End the ribbon ON THE BANK, not at the water cell's center. Reaching a
+      // whole cell in leaves a visible stub of river lying across open water at
+      // map zoom; the midpoint between the last land cell and the first water
+      // cell is the shoreline between them, so the river meets the water and
+      // stops there.
+      if (runStart > 0) {
+        runPts.unshift(midpoint(runStart - 1, runStart));
+        runW.unshift(halfWidths[runStart]);
+      }
+      if (endExclusive < points.length) {
+        runPts.push(midpoint(endExclusive - 1, endExclusive));
+        runW.push(halfWidths[endExclusive - 1]);
+      }
+      if (runPts.length >= 2) {
+        const d = buildRiverRibbon(runPts, runW);
+        if (d) out.push({ d, fill: '#5d97bb' });
+      }
+      runStart = -1;
+    };
+    for (let k = 0; k < points.length; k++) {
+      if (isWater(cellIds[k])) flush(k);
+      else if (runStart < 0) runStart = k;
+    }
+    flush(points.length);
   }
   return out;
 }

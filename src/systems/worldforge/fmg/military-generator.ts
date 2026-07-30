@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 29/07/2026, 18:43:40
+ * Dependents: systems/worldforge/bridge/settlementDefense.ts, systems/worldforge/fmg/generateWorld.ts, systems/worldforge/fmg/markers-generator.ts, systems/worldforge/fmg/zones-generator.ts
+ * Imports: 8 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file military-generator.ts — ported from Azgaar's Fantasy-Map-Generator
  * (MIT). Upstream: .tmp/azgaar-src/public/modules/military-generator.js. See
@@ -28,15 +44,19 @@
  * note; the `childen` (sic) merge-children key keeps its typo; getEmblem
  * crashes upstream if options.military lacks the main unit — preserved
  * behavior via non-null assertion.
+ *
+ * TYPE REMEDIATION (GG-46, no behavior change): the scattered `as any`
+ * pack/state accesses were replaced by one documented CivStagePack
+ * assertion at the constructor plus typed StateTemp/MilitaryState views of
+ * the scratch fields upstream tacks onto states during generate().
  */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { sum } from "./d3Shim";
 import { quadtree } from "./utils/quadtree";
 import { findAllInQuadtree } from "./utils/graphUtils";
 import { minmax, rn, si } from "./utils/numberUtils";
 import { nth } from "./utils/languageUtils";
 import { gauss, ra, rand } from "./utils/probabilityUtils";
-import type { Pack } from "./features";
+import type { CivStagePack, Pack } from "./features";
 import type { State } from "./states-generator";
 
 export interface MilitaryUnit {
@@ -92,6 +112,20 @@ interface Platoon {
   childen?: Platoon[];
 }
 
+/**
+ * Scratch object upstream tacks onto each state during generate() and
+ * deletes at the end: per-unit-name rate numbers plus the platoons list.
+ * The index signature mirrors that dual use, so per-unit reads still need
+ * a narrowing `as number` at the two arithmetic sites.
+ */
+interface StateTemp {
+  platoons?: Platoon[];
+  [unitName: string]: number | Platoon[] | undefined;
+}
+
+/** State plus the transient generate()-scoped scratch field. */
+type MilitaryState = State & { temp?: StateTemp };
+
 export interface MilitaryContext {
   pack: Pack;
   /** Unit roster; defaults to getDefaultOptions() like upstream. */
@@ -110,7 +144,7 @@ export interface MilitaryContext {
 
 export class MilitaryModule {
   options: MilitaryUnit[];
-  private pack: Pack;
+  private pack: CivStagePack;
   private populationRate: number;
   private urbanization: number;
   private year: number;
@@ -119,7 +153,11 @@ export class MilitaryModule {
   private notes: MapNote[];
 
   constructor(context: MilitaryContext) {
-    this.pack = context.pack;
+    // Stage-33 boundary assertion: every optional Pack field this module
+    // reads (cells.pop/state/…, states, burgs, provinces) is populated by
+    // the earlier pipeline stages. Single documented cast instead of
+    // per-field `as any`.
+    this.pack = context.pack as CivStagePack;
     this.options = context.military ?? MilitaryModule.getDefaultOptions();
     this.populationRate = context.populationRate ?? 1000;
     this.urbanization = context.urbanization ?? 1;
@@ -141,8 +179,9 @@ export class MilitaryModule {
 
   generate(): void {
     const pack = this.pack;
-    const cells = pack.cells as any;
-    const states = (pack as any).states as State[];
+    const cells = pack.cells;
+    // MilitaryState view: generate() temporarily hangs `temp` off states.
+    const states = pack.states as MilitaryState[];
     const {p} = cells;
     const valid = states.filter(s => s.i && !s.removed); // valid states
     const options = {military: this.options};
@@ -150,7 +189,7 @@ export class MilitaryModule {
     const urbanization = this.urbanization;
 
     const expn = sum(valid.map(s => s.expansionism)); // total expansion
-    const area = sum(valid.map(s => (s as any).area)); // total area
+    const area = sum(valid.map(s => s.area!)); // total area (set by collectStatistics)
     const rate: Record<string, number> = {
       x: 0,
       Ally: -0.2,
@@ -232,11 +271,11 @@ export class MilitaryModule {
       highland: {melee: 1.2, ranged: 2, mounted: 0.3, machinery: 3, naval: 1.0, armored: 0.8, aviation: 0.3, magical: 2}
     };
 
-    valid.forEach((s: any) => {
+    valid.forEach(s => {
       s.temp = {};
-      const d = s.diplomacy as string[];
+      const d = s.diplomacy!;
 
-      const expansionRate = minmax(s.expansionism / expn / (s.area / area), 0.25, 4); // how much state expansionism is realized
+      const expansionRate = minmax(s.expansionism / expn / (s.area! / area), 0.25, 4); // how much state expansionism is realized
       const diplomacyRate = d.some(d => d === "Enemy")
         ? 1
         : d.some(d => d === "Rival")
@@ -244,8 +283,8 @@ export class MilitaryModule {
         : d.some(d => d === "Suspicion")
         ? 0.5
         : 0.1; // peacefulness
-      const neighborsRateRaw = (s.neighbors as number[])
-        .map(n => (n ? ((pack as any).states[n].diplomacy as string[])[s.i] : "Suspicion"))
+      const neighborsRateRaw = s.neighbors!
+        .map(n => (n ? states[n].diplomacy![s.i] : "Suspicion"))
         .reduce((acc: number, r: string) => (acc += rate[r]), 0.5);
       const neighborsRate = minmax(neighborsRateRaw, 0.3, 3); // neighbors rate
       s.alert = minmax(rn(expansionRate * diplomacyRate * neighborsRate, 2), 0.1, 5); // alert rate (area modifier)
@@ -256,9 +295,9 @@ export class MilitaryModule {
         if (!stateModifier[unit.type]) continue;
 
         let modifier = stateModifier[unit.type][s.type] || 1;
-        if (unit.type === "mounted" && s.formName.includes("Horde")) modifier *= 2;
+        if (unit.type === "mounted" && s.formName!.includes("Horde")) modifier *= 2;
         else if (unit.type === "naval" && s.form === "Republic") modifier *= 1.2;
-        s.temp[unit.name] = modifier * s.alert;
+        s.temp![unit.name] = modifier * s.alert!;
       }
     });
 
@@ -286,7 +325,7 @@ export class MilitaryModule {
       const culture = cells.culture[i];
       const religion = cells.religion[i];
 
-      const stateObj = states[state] as any;
+      const stateObj = states[state];
       if (!state || stateObj.removed) continue;
 
       let modifier = cells.pop[i] / 100; // basic rural army in percentages
@@ -299,13 +338,13 @@ export class MilitaryModule {
 
       for (const unit of options.military) {
         const perc = +unit.rural;
-        if (isNaN(perc) || perc <= 0 || !stateObj.temp[unit.name]) continue;
+        if (isNaN(perc) || perc <= 0 || !stateObj.temp![unit.name]) continue;
         if (!passUnitLimits(unit, biome, state, culture, religion)) continue;
         if (unit.type === "naval" && !cells.haven[i]) continue; // only near-ocean cells create naval units
 
         const cellTypeMod = type === "generic" ? 1 : cellTypeModifier[type][unit.type]; // cell specific modifier
         const army = modifier * perc * cellTypeMod; // rural cell army
-        const total = rn(army * stateObj.temp[unit.name] * populationRate); // total troops
+        const total = rn(army * (stateObj.temp![unit.name] as number) * populationRate); // total troops (per-unit rate; see StateTemp)
         if (!total) continue;
 
         let [x, y] = p[i];
@@ -318,7 +357,7 @@ export class MilitaryModule {
           n = 1;
         }
 
-        stateObj.temp.platoons.push({
+        stateObj.temp!.platoons!.push({
           cell: i,
           a: total,
           t: total,
@@ -333,15 +372,15 @@ export class MilitaryModule {
     }
 
     // burgs
-    for (const b of (pack as any).burgs) {
+    for (const b of pack.burgs) {
       if (!b.i || b.removed || !b.state || !b.population) continue;
 
       const biome = cells.biome[b.cell];
       const state = b.state;
-      const culture = b.culture;
+      const culture = b.culture!;
       const religion = cells.religion[b.cell];
 
-      const stateObj = states[state] as any;
+      const stateObj = states[state];
       let m = (b.population * urbanization) / 100; // basic urban army in percentages
       if (b.capital) m *= 1.2; // capital has household troops
       if (culture !== stateObj.culture) m = stateObj.form === "Union" ? m / 1.2 : m / 2; // non-dominant culture
@@ -351,13 +390,13 @@ export class MilitaryModule {
 
       for (const unit of options.military) {
         const perc = +unit.urban;
-        if (isNaN(perc) || perc <= 0 || !stateObj.temp[unit.name]) continue;
+        if (isNaN(perc) || perc <= 0 || !stateObj.temp![unit.name]) continue;
         if (!passUnitLimits(unit, biome, state, culture, religion)) continue;
         if (unit.type === "naval" && (!b.port || !cells.haven[b.cell])) continue; // only ports create naval units
 
         const mod = type === "generic" ? 1 : burgTypeModifier[type][unit.type]; // cell specific modifier
         const army = m * perc * mod; // urban cell army
-        const total = rn(army * stateObj.temp[unit.name] * populationRate); // total troops
+        const total = rn(army * (stateObj.temp![unit.name] as number) * populationRate); // total troops (per-unit rate; see StateTemp)
         if (!total) continue;
 
         let [x, y] = p[b.cell];
@@ -370,7 +409,7 @@ export class MilitaryModule {
           n = 1;
         }
 
-        stateObj.temp.platoons.push({
+        stateObj.temp!.platoons!.push({
           cell: b.cell,
           a: total,
           t: total,
@@ -448,8 +487,8 @@ export class MilitaryModule {
     };
 
     // get regiments for each state
-    valid.forEach((s: any) => {
-      s.military = createRegiments(s.temp.platoons, s);
+    valid.forEach(s => {
+      s.military = createRegiments(s.temp!.platoons!, s);
       delete s.temp; // do not store temp data
     });
   }
@@ -460,7 +499,7 @@ export class MilitaryModule {
   }
 
   getName(r: Regiment, regiments: Regiment[]): string {
-    const pack = this.pack as any;
+    const pack = this.pack;
     const cells = pack.cells;
     const proper = r.n
       ? null
@@ -476,7 +515,7 @@ export class MilitaryModule {
 
   // get default regiment emblem
   getEmblem(r: Regiment): string {
-    const pack = this.pack as any;
+    const pack = this.pack;
     if (!r.n && !Object.values(r.u).length) return "🔰"; // "Newbie" regiment without troops
     if (
       !r.n &&
@@ -491,7 +530,7 @@ export class MilitaryModule {
   }
 
   generateNote(r: Regiment, s: State): void {
-    const pack = this.pack as any;
+    const pack = this.pack;
     const cells = pack.cells;
     const base =
       cells.burg[r.cell] && pack.burgs[cells.burg[r.cell]]
@@ -510,9 +549,7 @@ export class MilitaryModule {
       ? `\r\n\r\nRegiment composition in ${this.year} ${this.eraShort}:\r\n${composition}.`
       : "";
 
-    const campaign = (s as any).campaigns
-      ? (ra((s as any).campaigns) as { name: string; start: number; end?: number })
-      : null;
+    const campaign = s.campaigns ? ra(s.campaigns) : null;
     const year = campaign
       ? rand(campaign.start, campaign.end || this.year)
       : gauss(this.year - 100, 150, 1, this.year - 6);

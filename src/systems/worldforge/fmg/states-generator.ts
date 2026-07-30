@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 29/07/2026, 18:42:17
+ * Dependents: systems/worldforge/fmg/generateWorld.ts, systems/worldforge/fmg/markers-generator.ts, systems/worldforge/fmg/military-generator.ts, systems/worldforge/fmg/zones-generator.ts
+ * Imports: 11 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file states-generator.ts — ported from Azgaar's Fantasy-Map-Generator
  * (MIT). Upstream: .tmp/azgaar-src/src/modules/states-generator.ts. See
@@ -34,7 +50,9 @@ import type { BiomesData } from "./biomes";
 import type { NamesGenerator } from "./names-generator";
 import type { CoaGenerator } from "./coa-generator";
 
-interface Campaign {
+// Exported so the Military/Markers/Zones stages can type their campaign
+// reads (battlefield legends, invasion conflicts, regiment notes).
+export interface Campaign {
   name: string;
   start: number;
   end?: number;
@@ -66,7 +84,10 @@ export interface State {
   formName?: string;
   fullName?: string;
   form?: string;
-  military?: any[];
+  /** Alert rate, set by Military.generate (stage 33 additive field). */
+  alert?: number;
+  /** Regiments, set by Military.generate (was `any[]`; typed additively). */
+  military?: import("./military-generator").Regiment[];
   provinces?: number[];
 }
 
