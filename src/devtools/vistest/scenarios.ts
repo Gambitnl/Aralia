@@ -54,11 +54,132 @@ export interface VisScenario {
 /** Zoom the world3d MapControls camera in by dispatching wheel ticks. */
 const WHEEL_ZOOM_34 = `(() => { const c = document.querySelector('canvas'); if (!c) return; const r = c.getBoundingClientRect(); for (let i = 0; i < 34; i++) { c.dispatchEvent(new WheelEvent('wheel', { clientX: r.left + r.width * 0.485, clientY: r.top + r.height * 0.5, deltaY: -300, bubbles: true, cancelable: true })); } })()`;
 
-/** Park the camera on interior occupant[0] (close-high, inside the room). */
-const POSE_AT_OCCUPANT = `(() => { const s = window.__wf3dScene; const occ = []; s.traverse((o) => { if (o.userData && o.userData.isOccupant) occ.push(o); }); const t = occ[0]; if (!t) return 'no occupants'; const p = t.getWorldPosition(new (t.position.constructor)()); window.__wf3dSetPose([p.x + 2.0, p.y + 1.7, p.z + 2.0], [p.x, p.y + 0.7, p.z]); return 'posed'; })()`;
+// ── ground-world geometry helper ────────────────────────────────────────────
+// `__wfGroundWorld` publishes town data in GROUND metres (0 … extentMeters),
+// while the scene is centred on the cell, so scene x = xM − extentMetersX / 2.
+// Terrain height comes from the same heightfield expression the wilds
+// scenarios already use. Injected as a prelude so every pose helper shares one
+// coordinate conversion instead of re-deriving it slightly differently.
+const GROUND_XFORM = `const g = window.__wfGroundWorld; const toScene = (xM, zM) => { const mpc = g.extentMetersX / g.cols; const col = Math.min(g.cols - 1, Math.max(0, Math.floor(xM / mpc))); const row = Math.min(g.rows - 1, Math.max(0, Math.floor(zM / mpc))); return { x: xM - g.extentMetersX / 2, y: ((g.heights[row * g.cols + col] ?? 0) / 100) * 1800, z: zM - g.extentMetersZ / 2 }; };`;
 
-/** Pose on the walking commuter farthest from any building (open street). */
-const POSE_AT_OPEN_WALKER = `(() => { const root = window.__wf3dScene.getObjectByName('groundAgentsCrowd'); const g = window.__wfGroundWorld; if (!root || !g) return 'missing hooks'; const OX = g.extentMetersX / 2, OZ = g.extentMetersZ / 2; const buildings = g.buildings ?? []; let best = null, bestScore = -1, idx = 0; const M = new (root.matrix.constructor)(); root.children.forEach((o) => { const isWalk = idx % 9 !== 0; idx += 1; if (!isWalk || !o.isInstancedMesh || o.count === 0) return; for (let i = 0; i < o.count; i++) { o.getMatrixAt(i, M); const x = M.elements[12], y = M.elements[13], z = M.elements[14]; let dMin = Infinity; for (const b of buildings) { const d = Math.hypot(b.xM - (x + OX), b.zM - (z + OZ)); if (d < dMin) dMin = d; } if (dMin > bestScore) { bestScore = dMin; best = { x, y, z }; } } }); if (best) window.__wf3dSetPose([best.x + 5.5, best.y + 3.2, best.z + 5.5], [best.x, best.y + 0.8, best.z]); return best ? 'posed' : 'no walkers'; })()`;
+/**
+ * Stage the camera beside an at-home household, using OCCUPANT DATA.
+ *
+ * Why a data-driven stage step exists at all: interior bodies are mounted only
+ * within `BODY_RADIUS_M` (18 m) of the camera, re-evaluated at 2 Hz
+ * (`InteriorOccupants.tsx`). The dev entry's opening camera is hundreds of
+ * metres up, so NOTHING carries `userData.isOccupant` yet and any recipe that
+ * searches the scene graph first finds zero and gives up — which is exactly how
+ * `interior-villager` came to fail with "no occupants" while
+ * `__wfGroundWorld.occupants` held 886 residents.
+ *
+ * So: read the household from data, fly in, and let the body budget mount.
+ *
+ * `activity === 'home'` is a preference, not a requirement: the occupant
+ * snapshot carries the activity for the URL's hour, and at 23:00 nobody reports
+ * `home`, which used to abort the night variant outright. Any occupant is a
+ * good enough address, because the pose step that follows anchors on the
+ * building's hearth light rather than on the resident.
+ */
+const STAGE_NEAR_OCCUPANT = `(() => { ${GROUND_XFORM} if (!g) return 'MISSING ground world'; const all = g.occupants ?? []; if (all.length === 0) return 'MISSING town occupants'; const atHome = all.filter((o) => o.activity === 'home'); const home = atHome.length > 0 ? atHome : all; const cx = g.extentMetersX / 2, cz = g.extentMetersZ / 2; let best = home[0], bd = Infinity; for (const o of home) { const d = Math.hypot(o.xM - cx, o.zM - cz); if (d < bd) { bd = d; best = o; } } const p = toScene(best.xM, best.zM); window.__wfStagedHousehold = p; window.__wf3dSetPose([p.x + 5, p.y + 6, p.z + 5], [p.x, p.y + 1, p.z]); return 'household staged'; })()`;
+
+/**
+ * Drop the camera INSIDE the room at standing eye height, once bodies exist.
+ *
+ * Ground-mode MapControls clamp the polar angle to 0.48π, so a target at chest
+ * height with the eye a short distance away lands a near-horizontal look — the
+ * BG3 interior framing, rather than the previous overhead peek that judged
+ * nothing about hearth light or window shafts.
+ *
+ * The camera retreats TOWARD the host building's centre rather than along a
+ * fixed diagonal. Measured rooms are 20 × 25 ft (6.1 × 7.6 m), so the old
+ * 2.2 m diagonal offset put the eye level with or beyond the wall and the
+ * capture came out on the lawn. Backing off into the room, capped at 3.1 m,
+ * keeps the eye inside the shell whichever way the plot is rotated, and looking
+ * from the room centre at a station-bound resident puts the wall behind them —
+ * where the hearth and window are — in the same frame.
+ */
+/**
+ * Frame the room from inside, anchored on its HEARTH light.
+ *
+ * Why the hearth and not the resident: measured 2026-07-30 at this seed, every
+ * member of a household reports the same world position, several metres from
+ * any hearth (see CAPTURE-FRAMING.md — that is a product finding, not a rig
+ * one). Residents are therefore not a trustworthy anchor for "inside a room".
+ * `InteriorLights` places a warm point light (distance 9 m) at each hearth part
+ * through the same `siteLocalToScene` transform `SiteBuilding` uses for the
+ * shell, so a hearth light is by construction inside a real room — and it is
+ * also the thing the interior targets actually ask about.
+ *
+ * The eye retreats from the hearth toward the host building's centre so it
+ * stays inside a 20 × 25 ft room whichever way the plot is rotated, and sits
+ * about 1.6 m above the floor: standing height, looking at the fire.
+ */
+const POSE_AT_HEARTH = `(() => { ${GROUND_XFORM} if (!g) return 'MISSING ground world'; const s = window.__wf3dScene; if (!s) return 'MISSING scene'; const V = new (s.position.constructor)(); const lights = []; s.traverse((o) => { if (o.isPointLight && o.visible && (o.distance ?? 0) > 0 && (o.distance ?? 0) <= 12) { o.getWorldPosition(V); lights.push({ x: V.x, y: V.y, z: V.z }); } }); if (lights.length === 0) return 'MISSING mounted hearth lights'; const staged = window.__wfStagedHousehold ?? { x: 0, z: 0 }; let h = lights[0], bd = Infinity; for (const L of lights) { const d = Math.hypot(L.x - staged.x, L.z - staged.z); if (d < bd) { bd = d; h = L; } } const OX = g.extentMetersX / 2, OZ = g.extentMetersZ / 2; let dx = 1, dz = 1, nd = Infinity; for (const b of (g.buildings ?? [])) { const d = Math.hypot(b.xM - (h.x + OX), b.zM - (h.z + OZ)); if (d < nd) { nd = d; dx = (b.xM - OX) - h.x; dz = (b.zM - OZ) - h.z; } } let len = Math.hypot(dx, dz); if (len < 0.05) { dx = 1; dz = 1; len = Math.SQRT2; } const D = Math.min(3.2, Math.max(2.4, len * 1.6)); window.__wf3dSetPose([h.x + (dx / len) * D, h.y + 0.55, h.z + (dz / len) * D], [h.x, h.y - 0.15, h.z]); return 'hearth framed (' + lights.length + ' lit)'; })()`;
+
+const POSE_INSIDE_AT_OCCUPANT = `(() => { ${GROUND_XFORM} const s = window.__wf3dScene; const occ = []; s.traverse((o) => { if (o.userData && o.userData.isOccupant) occ.push(o); }); if (occ.length === 0) return 'MISSING mounted occupant bodies'; const V = new (s.position.constructor)(); const staged = window.__wfStagedHousehold; let t = occ[0], bd = Infinity; for (const o of occ) { o.getWorldPosition(V); const d = staged ? Math.hypot(V.x - staged.x, V.z - staged.z) : 0; if (d < bd) { bd = d; t = o; } } const p = t.getWorldPosition(new (s.position.constructor)()); const OX = g.extentMetersX / 2, OZ = g.extentMetersZ / 2; let nb = null, nd = Infinity; for (const b of (g.buildings ?? [])) { const d = Math.hypot(b.xM - (p.x + OX), b.zM - (p.z + OZ)); if (d < nd) { nd = d; nb = b; } } if (!nb) return 'MISSING host building'; let dx = (nb.xM - OX) - p.x, dz = (nb.zM - OZ) - p.z; let len = Math.hypot(dx, dz); if (len < 0.05) { dx = 1; dz = 1; len = Math.SQRT2; } const D = Math.min(3.1, Math.max(2.4, len)); window.__wf3dSetPose([p.x + (dx / len) * D, p.y + 1.6, p.z + (dz / len) * D], [p.x, p.y + 1.0, p.z]); return 'inside at standing height (' + occ.length + ' bodies)'; })()`;
+
+/**
+ * Collect every live crowd instance position in scene coordinates.
+ *
+ * Replaces a stale index heuristic. The old helper skipped any child whose
+ * position in `groundAgentsCrowd.children` was a multiple of nine, on the
+ * assumption that index was a non-walker. Measured 2026-07-30: the crowd holds
+ * 108 children in twelve groups of nine, and the instance-bearing mesh is the
+ * FIRST of each group — so every index carrying instances was a multiple of
+ * nine and the filter excluded the entire crowd. 46 walkers were on screen
+ * while the recipe reported "no walkers".
+ */
+const CROWD_POSITIONS = `const crowdPositions = () => { const root = window.__wf3dScene.getObjectByName('groundAgentsCrowd'); if (!root) return []; const M = new (root.matrix.constructor)(); const out = []; root.children.forEach((o) => { if (!o.isInstancedMesh || o.count === 0) return; for (let i = 0; i < o.count; i++) { o.getMatrixAt(i, M); const x = M.elements[12], y = M.elements[13], z = M.elements[14]; if (!Number.isFinite(x) || !Number.isFinite(y) || !Number.isFinite(z)) continue; if (x === 0 && y === 0 && z === 0) continue; out.push({ x, y, z }); } }); return out; };`;
+
+/** Pick the crowd instance standing farthest from any building (open street). */
+const MOST_OPEN_WALKER = `${CROWD_POSITIONS} const mostOpenWalker = () => { const pts = crowdPositions(); if (pts.length === 0) return null; const OX = g.extentMetersX / 2, OZ = g.extentMetersZ / 2; const buildings = g.buildings ?? []; let best = null, bestScore = -1; for (const p of pts) { let dMin = Infinity; for (const b of buildings) { const d = Math.hypot(b.xM - (p.x + OX), b.zM - (p.z + OZ)); if (d < dMin) dMin = d; } if (dMin > bestScore) { bestScore = dMin; best = p; } } return best; };`;
+
+/**
+ * Choose the camera azimuth around a target with the most open ground.
+ *
+ * Standing at a fixed +x/+z diagonal repeatedly parked the lens against a house
+ * wall, which filled half the frame with flat plaster and shrank the actual
+ * subject. Sampling twelve azimuths and keeping the one whose camera point is
+ * farthest from any building centre puts the lens in the street instead.
+ */
+const OPEN_AZIMUTH = `const openAzimuth = (t, radius) => { const OX = g.extentMetersX / 2, OZ = g.extentMetersZ / 2; const buildings = g.buildings ?? []; let bestDir = { dx: radius, dz: radius }, bestScore = -1; for (let i = 0; i < 12; i++) { const a = (i / 12) * Math.PI * 2; const dx = Math.cos(a) * radius, dz = Math.sin(a) * radius; let dMin = Infinity; for (const b of buildings) { const d = Math.hypot(b.xM - (t.x + dx + OX), b.zM - (t.z + dz + OZ)); if (d < dMin) dMin = d; } if (dMin > bestScore) { bestScore = dMin; bestDir = { dx, dz }; } } return bestDir; };`;
+
+/** Pose on the commuter farthest from any building, close enough to read stride. */
+const POSE_AT_OPEN_WALKER = `(() => { ${GROUND_XFORM} ${MOST_OPEN_WALKER} ${OPEN_AZIMUTH} if (!g) return 'MISSING ground world'; const best = mostOpenWalker(); if (!best) return 'MISSING live crowd instances'; window.__wfWalkerTarget = best; const d = openAzimuth(best, 3.0); window.__wf3dSetPose([best.x + d.dx, best.y + 1.5, best.z + d.dz], [best.x, best.y + 0.85, best.z]); return 'walker framed close'; })()`;
+
+/**
+ * Street-level town framing: stand in the street and look ALONG it.
+ *
+ * BG3's Rivington is judged from the pavement, not from a helicopter, and the
+ * aerial shot cannot show whether a street surface reads as cobble, whether a
+ * wall has thickness at its opening, or whether props break a silhouette. The
+ * eye sits at 1.7 m; the polar clamp keeps the look near-horizontal.
+ */
+const POSE_STREET_LEVEL = `(() => { ${GROUND_XFORM} ${MOST_OPEN_WALKER} ${OPEN_AZIMUTH} if (!g) return 'MISSING ground world'; const best = mostOpenWalker(); if (!best) return 'MISSING live crowd instances'; const ground = toScene(best.x + g.extentMetersX / 2, best.z + g.extentMetersZ / 2); const d = openAzimuth(best, 9); window.__wf3dSetPose([best.x + d.dx, ground.y + 1.7, best.z + d.dz], [best.x, ground.y + 1.5, best.z]); return 'street level framed'; })()`;
+
+/**
+ * Frame the staged opening cast (`?cast=1`) at conversation distance.
+ *
+ * The old recipe just fired 34 wheel ticks from wherever the dev entry opened,
+ * which dollied the MapControls camera straight into a roof and produced a
+ * frame with no cast in it at all. The cast members render as `entity:<label>`
+ * groups, so this finds them, frames their centroid at head height, and picks
+ * an open azimuth so a building does not stand between lens and subject.
+ */
+const POSE_AT_CAST = `(() => { ${GROUND_XFORM} ${OPEN_AZIMUTH} const s = window.__wf3dScene; if (!s) return 'MISSING scene'; const V = new (s.position.constructor)(); const pts = []; s.traverse((o) => { if (o.name && o.name.indexOf('entity:') === 0) { o.getWorldPosition(V); pts.push({ x: V.x, y: V.y, z: V.z }); } }); if (pts.length === 0) return 'MISSING staged cast bodies'; const c = pts.reduce((a, p) => ({ x: a.x + p.x / pts.length, y: a.y + p.y / pts.length, z: a.z + p.z / pts.length }), { x: 0, y: 0, z: 0 }); let spread = 0; for (const p of pts) spread = Math.max(spread, Math.hypot(p.x - c.x, p.z - c.z)); const radius = Math.max(3.4, spread * 1.9); const d = g ? openAzimuth(c, radius) : { dx: radius, dz: radius }; window.__wf3dSetPose([c.x + d.dx, c.y + 1.9, c.z + d.dz], [c.x, c.y + 1.1, c.z]); return 'cast framed (' + pts.length + ' bodies)'; })()`;
+
+/**
+ * Third-person eye height on open ground, looking OUT across the terrain.
+ *
+ * Ground-mode MapControls cap the polar angle at 0.48π, so a target placed far
+ * out and level with the eye gets clamped up to roughly a 3 m camera — still
+ * the exploration camera family, and honest about what the controls allow.
+ * `reach` sets how far out the aim point sits, which is what decides whether
+ * the frame is a ground-contact close-up or a look down the valley.
+ */
+const POSE_GROUND_EYE = (reach: number, drop: number, eyeUp: number) =>
+  `(() => { ${GROUND_XFORM} if (!g) return 'MISSING ground world'; const cx = g.extentMetersX / 2, cz = g.extentMetersZ / 2; const here = toScene(cx, cz); const a = 0.9; const tx = here.x + Math.cos(a) * ${reach}, tz = here.z + Math.sin(a) * ${reach}; const there = toScene(tx + cx, tz + cz); window.__wf3dSetPose([here.x, here.y + ${eyeUp}, here.z], [tx, there.y + ${drop}, tz]); return 'ground eye framed'; })()`;
 
 /** Pose an aerial above the first live crowd walker (street context view). */
 const POSE_STREET_AERIAL = `(() => { const root = window.__wf3dScene.getObjectByName('groundAgentsCrowd'); if (!root) return 'no crowd'; let best = null; const M = new (root.matrix.constructor)(); root.traverse((o) => { if (!best && o.isInstancedMesh && o.count > 0) { o.getMatrixAt(0, M); best = { x: M.elements[12], y: M.elements[13], z: M.elements[14] }; } }); if (best) window.__wf3dSetPose([best.x + 14, best.y + 11, best.z + 14], [best.x, best.y + 0.5, best.z]); return best ? 'posed' : 'no instances'; })()`;
@@ -174,6 +295,65 @@ export const SCENARIOS: VisScenario[] = [
       "Fifteen labeled anchor markers ride the body: head cluster on the head, hands at the hands, hips/tail at the pelvis.",
     capture: [{ kind: "sleep", ms: 9000 }, { kind: "screenshot" }],
   },
+  {
+    id: "entitydebug-portrait",
+    title: "Creature: portrait distance (face, skin, cloth, metal)",
+    group: "entities",
+    url: "misc/design.html?step=entitydebug&race=wood_elf&class=ranger&wire=0",
+    notes:
+      "The BG3 character-portrait frame. Face and shoulders fill the frame, so judge whether skin, cloth, hair and metal each respond to light differently, whether eyes and facial features read at all, and whether the toon shading holds up or flattens into one plastic tone at close range.",
+    capture: [
+      { kind: "waitHook", expr: "window.__entitydebug", timeoutMs: 90000 },
+      // AutoFrame owns the camera for the first frames; the workbench's own
+      // `cam:face` preset is the surface's real portrait pose, so use it rather
+      // than fighting OrbitControls with a synthetic camera write.
+      { kind: "sleep", ms: 9000 },
+      {
+        kind: "eval",
+        js: `(() => { const b = [...document.querySelectorAll('button')].find((x) => (x.textContent ?? '').trim() === 'cam:face'); if (!b) return 'MISSING cam:face preset'; b.click(); return 'portrait posed'; })()`,
+      },
+      { kind: "sleep", ms: 4000 },
+      { kind: "readback" },
+    ],
+  },
+  {
+    id: "entitydebug-silhouette",
+    title: "Creature: full-body silhouette in profile",
+    group: "entities",
+    url: "misc/design.html?step=entitydebug&race=wood_elf&class=ranger&wire=0",
+    notes:
+      "Full body from the side, the classic silhouette test: judge whether the outline is readable as this creature with no interior detail, whether proportions hold, and whether limb masses connect rather than floating. Pairs with entitydebug-portrait on the same subject.",
+    capture: [
+      { kind: "waitHook", expr: "window.__entitydebug", timeoutMs: 90000 },
+      { kind: "sleep", ms: 9000 },
+      {
+        kind: "eval",
+        js: `(() => { const b = [...document.querySelectorAll('button')].find((x) => (x.textContent ?? '').trim() === 'cam:side'); if (!b) return 'MISSING cam:side preset'; b.click(); return 'silhouette posed'; })()`,
+      },
+      { kind: "sleep", ms: 4000 },
+      { kind: "readback" },
+    ],
+  },
+  {
+    id: "forge-lineup-closeup",
+    title: "Forge: lineup dollied to critique distance",
+    group: "entities",
+    url: "misc/design.html?step=entityforge&mode=lineup&seed=3",
+    notes:
+      "The same lineup as forge-lineup, but close enough to judge. forge-lineup auto-fits all eight bodies and leaves each about forty pixels tall on a flat green plane — nothing about skin, cloth or silhouette is decidable from it. This dollies the orbit camera in so two or three bodies carry the frame.",
+    capture: [
+      { kind: "waitHook", expr: "window.__entityforge", timeoutMs: 90000 },
+      // AutoFrame runs for eight frames after the roster settles; dollying
+      // before it finishes would just be overwritten by the auto-fit.
+      { kind: "sleep", ms: 11000 },
+      {
+        kind: "eval",
+        js: `(() => { const c = document.querySelector('canvas'); if (!c) return 'MISSING forge canvas'; const r = c.getBoundingClientRect(); for (let i = 0; i < 16; i++) { c.dispatchEvent(new WheelEvent('wheel', { clientX: r.left + r.width * 0.5, clientY: r.top + r.height * 0.5, deltaY: -220, bubbles: true, cancelable: true })); } return 'dollied into lineup'; })()`,
+      },
+      { kind: "sleep", ms: 5000 },
+      { kind: "readback" },
+    ],
+  },
   // --- combat -----------------------------------------------------------
   {
     id: "combat3d-party",
@@ -205,6 +385,25 @@ export const SCENARIOS: VisScenario[] = [
       { kind: "sleep", ms: 14000 },
       { kind: "waitHook", expr: "window.__bm3dCam", timeoutMs: 60000 },
       { kind: "eval", js: `window.__bm3dCam.poseTeam('enemy', 9, 58, 25)` },
+      { kind: "sleep", ms: 10000 },
+      { kind: "readback" },
+    ],
+  },
+  {
+    id: "combat3d-play-camera",
+    title: "Battle map 3D: the camera a player actually fights from",
+    group: "combat",
+    url: "misc/design.html?step=battlemap",
+    notes:
+      "Not a unit close-up — the real playing distance, with both teams and the ground between them in frame. Judge whether unit silhouettes stay readable against the ground, whether movement range, cover and threat are legible without hunting, and whether elevation reads instantly. combat3d-party and combat3d-enemies stay as the close inspection shots.",
+    capture: [
+      { kind: "sleep", ms: 12000 },
+      { kind: "eval", js: CLICK_3D_VIEW },
+      { kind: "sleep", ms: 14000 },
+      { kind: "waitHook", expr: "window.__bm3dCam", timeoutMs: 60000 },
+      // Pulled back and flattened from the 9-unit / 58-degree inspection pose:
+      // a play camera has to hold the whole engagement, not one body.
+      { kind: "eval", js: `window.__bm3dCam.poseTeam('player', 20, 44, 200)` },
       { kind: "sleep", ms: 10000 },
       { kind: "readback" },
     ],
@@ -619,7 +818,9 @@ export const SCENARIOS: VisScenario[] = [
     capture: [
       { kind: "waitHook", expr: "window.__wf3dScene", timeoutMs: 90000 },
       { kind: "sleep", ms: 12000 },
-      { kind: "eval", js: WHEEL_ZOOM_34 },
+      // Replaces a blind 34-tick wheel dolly that drove the camera into a roof
+      // and captured no cast at all. Find the bodies, then frame them.
+      { kind: "eval", js: POSE_AT_CAST },
       { kind: "sleep", ms: 6000 },
       { kind: "readback" },
     ],
@@ -642,6 +843,27 @@ export const SCENARIOS: VisScenario[] = [
       { kind: "sleep", ms: 1500 },
       { kind: "eval", js: POSE_STREET_AERIAL },
       { kind: "sleep", ms: 4000 },
+      { kind: "readback" },
+    ],
+  },
+  {
+    id: "town-street-level",
+    title: "World: town street at eye level, morning commute",
+    group: "world",
+    url: TOWN_WINDOW,
+    notes:
+      "The BG3 Rivington frame: standing in the street looking along it. Judge the street SURFACE as material (cobble, dirt, plank) rather than a tinted ribbon, wall material and window recesses on the buildings either side, prop clutter breaking the silhouette, and contact shadows where walls meet the road.",
+    capture: [
+      {
+        kind: "waitHook",
+        expr: "window.__wf3dScene && window.__wfGroundWorld",
+        timeoutMs: 90000,
+      },
+      { kind: "sleep", ms: 10000 },
+      { kind: "eval", js: `window.__wfAgentClock = 7.2` },
+      { kind: "sleep", ms: 1500 },
+      { kind: "eval", js: POSE_STREET_LEVEL },
+      { kind: "sleep", ms: 5000 },
       { kind: "readback" },
     ],
   },
@@ -705,6 +927,36 @@ export const SCENARIOS: VisScenario[] = [
       { kind: "readback" },
     ],
   },
+  {
+    id: "wilds-eye-level-vista",
+    title: "Wilds: eye height looking out over the valley",
+    group: "world",
+    url: "?phase=world3d&ground=1&dcell=4214&wfseed=42",
+    notes:
+      "The exploration camera looking OUT, not down: judge aerial perspective (does far terrain desaturate and lighten, or carry foreground contrast?), the sky's sun disc and cloud layer, tree canopy breaking against that sky, and whether the terrain silhouette recedes in layers.",
+    capture: [
+      { kind: "waitHook", expr: "window.__wf3dScene && window.__wfGroundWorld && window.__wf3dSetPose", timeoutMs: 180000 },
+      { kind: "sleep", ms: 15000 },
+      { kind: "eval", js: POSE_GROUND_EYE(260, 6, 2.0) },
+      { kind: "sleep", ms: 8000 },
+      { kind: "readback" },
+    ],
+  },
+  {
+    id: "wilds-ground-contact",
+    title: "Wilds: ground contact close-up (grass, soil, seating)",
+    group: "world",
+    url: "?phase=world3d&ground=1&dcell=3023&wfseed=42",
+    notes:
+      "Close on the forest floor at walking distance: judge terrain facets (are individual triangles countable?), how many depth layers the ground cover has, whether tufts and trunks are visibly SEATED by ambient occlusion or appear to hover, and whether the ground carries any texture at all.",
+    capture: [
+      { kind: "waitHook", expr: "window.__wf3dScene && window.__wfGroundWorld && window.__wf3dSetPose", timeoutMs: 180000 },
+      { kind: "sleep", ms: 15000 },
+      { kind: "eval", js: POSE_GROUND_EYE(4.5, 0.1, 1.7) },
+      { kind: "sleep", ms: 8000 },
+      { kind: "readback" },
+    ],
+  },
   // --- interiors ----------------------------------------------------------
   {
     id: "interior-villager",
@@ -722,7 +974,58 @@ export const SCENARIOS: VisScenario[] = [
       { kind: "sleep", ms: 10000 },
       { kind: "eval", js: `window.__wfAgentClock = 20` },
       { kind: "sleep", ms: 2500 },
-      { kind: "eval", js: POSE_AT_OCCUPANT },
+      // Two stages: fly to the household from occupant DATA, wait out the 2 Hz
+      // body budget, then step inside. Searching the scene graph first finds
+      // nothing, because bodies mount only within 18 m of the camera.
+      { kind: "eval", js: STAGE_NEAR_OCCUPANT },
+      { kind: "sleep", ms: 6000 },
+      { kind: "eval", js: POSE_AT_HEARTH },
+      { kind: "sleep", ms: 4000 },
+      { kind: "readback" },
+    ],
+  },
+  {
+    id: "interior-hearth-day",
+    title: "Interiors: hearth room at 10:00 (window light)",
+    group: "interiors",
+    url: `${TOWN_WINDOW}&hour=10`,
+    notes:
+      "Standing inside a house at mid-morning: window light should be the dominant source and throw a directional shaft, the hearth a secondary warm pool. Surfaces must differ from one another (plaster, timber, stone, cloth) rather than sharing one flat tint. Pairs with interior-hearth-night at the same seed.",
+    capture: [
+      {
+        kind: "waitHook",
+        expr: "window.__wf3dScene && window.__wfGroundWorld",
+        timeoutMs: 90000,
+      },
+      { kind: "sleep", ms: 10000 },
+      { kind: "eval", js: `window.__wfAgentClock = 10` },
+      { kind: "sleep", ms: 2500 },
+      { kind: "eval", js: STAGE_NEAR_OCCUPANT },
+      { kind: "sleep", ms: 6000 },
+      { kind: "eval", js: POSE_AT_HEARTH },
+      { kind: "sleep", ms: 4000 },
+      { kind: "readback" },
+    ],
+  },
+  {
+    id: "interior-hearth-night",
+    title: "Interiors: hearth room at 23:00 (hearth-only light)",
+    group: "interiors",
+    url: `${TOWN_WINDOW}&hour=23`,
+    notes:
+      "The same framing after dark: the hearth must be the only meaningful source, with warm falloff across the near wall and the far side of the room going properly dark. Occupants must be lit BY the room, not by a flat ambient that ignores the hour.",
+    capture: [
+      {
+        kind: "waitHook",
+        expr: "window.__wf3dScene && window.__wfGroundWorld",
+        timeoutMs: 90000,
+      },
+      { kind: "sleep", ms: 10000 },
+      { kind: "eval", js: `window.__wfAgentClock = 23` },
+      { kind: "sleep", ms: 2500 },
+      { kind: "eval", js: STAGE_NEAR_OCCUPANT },
+      { kind: "sleep", ms: 6000 },
+      { kind: "eval", js: POSE_AT_HEARTH },
       { kind: "sleep", ms: 4000 },
       { kind: "readback" },
     ],
