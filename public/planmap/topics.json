@@ -5921,33 +5921,41 @@
         },
         {
           "title": "Capture framing at critique distance + dungeon scenarios (none existed)",
-          "status": "active"
+          "status": "done",
+          "status_note": "All 6 surfaces capturable at critique distance; 14 scenarios green. Dungeons went from ZERO coverage to 3 scenarios. Both prior failures were RIG BUGS not product gaps: crowd-commute skipped every index divisible by 9 and the crowd is 12 groups of 9 with the mesh first, so it excluded all 46 walkers; interior-villager searched the scene graph before staging, but interior bodies only mount within 18m of a camera that opens hundreds of metres up. NOT fixed: forge-lineup at critique distance (AutoFrame centres on the walk circle; needs a camera-pose hook)."
         },
         {
           "title": "World3D ground vs BG3 overworld exteriors",
-          "status": "active"
+          "status": "active",
+          "status_note": "Scored 0/11 by the critic (my earlier 1/8 was overruled). Landed: smooth shading per Remy (facets gone), terrain UVs (map was bound with NO uv, sampling one texel for the whole world), AO restored to 1.8/3.2 after my radius-5 change was measured as a regression that dimmed unoccluded ground 9%. Procedural ground detail: plumbing correct but measures 0.08 mean|dx| against a 3.0 bar - target #1a still FAIL."
         },
         {
           "title": "Towns in 3D vs Baldur's Gate city and Rivington",
-          "status": "active"
+          "status": "active",
+          "status_note": "2/18. AO now PASSES on this surface, measured: 42% contact trough vs an INVERTED profile before. Critic retracted its own larger-radius theory. Material gap quantified: our wall mean|dx| 0.19 vs BG3 ashlar 8.20, our max delta smaller than BG3 mean. ~15 buildings have NO windows or doors. Two bugs split out: grass tufts standing on open water, and a road ribbon crossing water with no bridge."
         },
         {
           "title": "Interiors L4 vs BG3 taverns/houses/temples",
-          "status": "active"
+          "status": "active",
+          "status_note": "0/10, and the hearth does not light the room: the floor NEAREST the hearth is the darkest floor in frame. Windows admit nothing - a wall 130px from a 198-lum pane reads 12.72 at BOTH 08h and 22h, byte-identical. Only 8% of pixels change between 8am and 10pm, all inside the window rectangle. AO is the one thing carrying the 3D read."
         },
         {
           "title": "Dungeons vs Underdark/Moonrise/Shadowfell (+ Gozzy 2D sheets)",
-          "status": "active"
+          "status": "active",
+          "status_note": "3D 2/9, 2D 3/8. Lighting topology correct (falloff measured 189,112,35 beside a sconce vs 44,17,2 further along) but no cast shadows, textures, fog or AO. p50 luma 2.0/255 - half the frame is dead black. 2D sheet is close to its bar; failures are generator-side (map fills a third of the plate, 9 of 11 key entries identical). Critic corrected my brief: Gozzy dungeon maps are NOT hand-inked."
         },
         {
           "title": "Combat maps 2D+3D vs BG3 encounter readability",
-          "status": "active"
+          "status": "active",
+          "status_note": "3D 1/9, 2D 3/9. Nothing draws through occluders so a unit behind a tree vanishes; BG3 answers with coloured X-ray silhouettes. Unit heads are untextured flat spheres and dominate pixel area at the near-top-down camera. 2D board opens at 24% zoom where units are 7px dots. Pixi prototype still entirely unscored - no ?pixiboard=1 capture exists."
         },
         {
           "title": "Creatures vs BG3 character and monster art",
-          "status": "active"
+          "status": "active",
+          "status_note": "0/9. There is no face: a smooth dome with two flat discs, no nose/mouth/jaw - less structure than a BG3 reference ear. Root cause is expressibility not tuning: toonMaterial() exposes no roughness/metalness/normal/texture channel, and EntityForgeScene has no castShadow, env map or post pass. Critic flagged an ordering rule: land material channels BEFORE removing flatShading, or figures get flatter."
         }
-      ]
+      ],
+      "status_note": "Rig fixed and all six surfaces now capturable. Honest scores after the first critic pass: world3d 0/11, towns 2/18, interiors 0/10, dungeons 2/9+3/8, combat 1/9+3/9, creatures 0/9. Critics overruled the orchestrator once (AO) and themselves twice (towns AO radius, dungeons pre-written statuses) - the loop is working. Remy decided 2026-07-30: go smooth, BG3 is the bar."
     }
   ]
 }
