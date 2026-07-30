@@ -92,6 +92,12 @@ the hour under test. All three variants therefore stand in the same room.
 overhead. Reading it as an elevation angle produced a top-down canopy shot with no units in
 it. 66 degrees is 24 degrees above the horizon.
 
+**The two crowd-anchored town shots do not pick the same walker every run.**
+`crowd-commute` and `town-street-level` frame whichever live crowd instance is farthest
+from any building, and the crowd's instance set differs between loads. Every run produces a
+street-level frame with a walker in it, but not the same street. Re-run before concluding
+that something changed; compare like for like on the surface, not on the exact composition.
+
 **`readback` needs a WebGL canvas.** The parchment module sheet is a 2D canvas, so its
 recipes use `screenshot` and first lift the live canvas into a fixed full-viewport backdrop.
 Without that the capture would be two-thirds slider panel — UI chrome instead of the
