@@ -1,9 +1,9 @@
 # Spell Markdown Parity Report
 
-Generated: 2026-05-21T00:40:48.004Z
-Markdown files scanned: 459
-Total mismatches: 801
-Grouped mismatch buckets: 19
+Generated: 2026-07-31T23:06:10.151Z
+Markdown files scanned: 516
+Total mismatches: 891
+Grouped mismatch buckets: 21
 
 This report is grouped so arbitration can start with repeated mismatch families instead of isolated spell noise.
 
@@ -13,8 +13,8 @@ This report is grouped so arbitration can start with repeated mismatch families 
 
 - Family: `markdown-vs-json`
 - Kind: `legacy-effect-collapse`
-- Occurrences: 218
-- Distinct spells: 218
+- Occurrences: 239
+- Distinct spells: 239
 - Sample spells: booming-blade, chill-touch, create-bonfire, green-flame-blade, lightning-lure, magic-stone, mind-sliver, mold-earth, produce-flame, ray-of-frost
 - Sample findings:
   - Booming Blade still uses legacy single-effect markdown labels while the JSON contains 2 separate effect objects.
@@ -27,8 +27,8 @@ This report is grouped so arbitration can start with repeated mismatch families 
 
 - Family: `markdown-vs-json`
 - Kind: `value-mismatch`
-- Occurrences: 192
-- Distinct spells: 192
+- Occurrences: 187
+- Distinct spells: 187
 - Sample spells: acid-splash, blade-ward, dancing-lights, druidcraft, eldritch-blast, elementalism, fire-bolt, friends, frostbite, guidance
 - Sample findings:
   - Acid Splash records Sub-Classes as "No Subclass Entries" in markdown but "None" in JSON.
@@ -41,8 +41,8 @@ This report is grouped so arbitration can start with repeated mismatch families 
 
 - Family: `markdown-vs-json`
 - Kind: `presence-mismatch`
-- Occurrences: 136
-- Distinct spells: 136
+- Occurrences: 125
+- Distinct spells: 125
 - Sample spells: blade-ward, dancing-lights, druidcraft, elementalism, friends, guidance, light, mage-hand, mending, message
 - Sample findings:
   - Blade Ward has Higher Levels marked present in markdown but missing in JSON.
@@ -55,23 +55,37 @@ This report is grouped so arbitration can start with repeated mismatch families 
 
 - Family: `markdown-vs-json`
 - Kind: `value-mismatch`
-- Occurrences: 68
-- Distinct spells: 68
-- Sample spells: aid, alter-self, barkskin, darkvision, enhance-ability, enthrall, find-steed, hold-person, lesser-restoration, levitate
+- Occurrences: 70
+- Distinct spells: 70
+- Sample spells: aid, bane, barkskin, bless, darkvision, enhance-ability, enthrall, find-steed, hold-person, lesser-restoration
 - Sample findings:
+  - Bane records Effect Type as "STATUS_CONDITION" in markdown but "ATTACK_ROLL_MODIFIER" in JSON.
+  - Bless records Effect Type as "STATUS_CONDITION" in markdown but "ATTACK_ROLL_MODIFIER" in JSON.
   - Aid records Effect Type as "BUFF" in markdown but "DEFENSIVE" in JSON.
-  - Alter Self records Effect Type as "BUFF" in markdown but "UTILITY" in JSON.
   - Barkskin records Effect Type as "BUFF" in markdown but "DEFENSIVE" in JSON.
   - Darkvision records Effect Type as "BUFF" in markdown but "UTILITY" in JSON.
-  - Enhance Ability records Effect Type as "BUFF" in markdown but "UTILITY" in JSON.
+
+### markdown-vs-json / Utility Type
+
+- Family: `markdown-vs-json`
+- Kind: `value-mismatch`
+- Occurrences: 60
+- Distinct spells: 60
+- Sample spells: arcane-vigor, catnap, create-food-and-water, enemies-abound, galders-tower, knock, leomunds-tiny-hut, ray-of-enfeeblement, rope-trick, summon-beast
+- Sample findings:
+  - Arcane Vigor records Utility Type as "other" in markdown but "" in JSON.
+  - Knock records Utility Type as "other" in markdown but "control" in JSON.
+  - Ray of Enfeeblement records Utility Type as "control" in markdown but "" in JSON.
+  - Rope Trick records Utility Type as "other" in markdown but "creation" in JSON.
+  - Summon Beast records Utility Type as "other" in markdown but "" in JSON.
 
 ### markdown-vs-json / Valid Targets
 
 - Family: `markdown-vs-json`
 - Kind: `value-mismatch`
-- Occurrences: 62
-- Distinct spells: 62
-- Sample spells: animal-messenger, arcane-lock, barkskin, beast-sense, continual-flame, darkvision, enhance-ability, enlarge-reduce, gentle-repose, hold-person
+- Occurrences: 60
+- Distinct spells: 60
+- Sample spells: animal-messenger, arcane-lock, barkskin, beast-sense, continual-flame, darkness, darkvision, enhance-ability, gentle-repose, hold-person
 - Sample findings:
   - Animal Messenger records Valid Targets as "beast_tiny" in markdown but "creatures" in JSON.
   - Arcane Lock records Valid Targets as "object" in markdown but "objects" in JSON.
@@ -79,13 +93,27 @@ This report is grouped so arbitration can start with repeated mismatch families 
   - Beast Sense records Valid Targets as "willing_beast" in markdown but "creatures" in JSON.
   - Continual Flame records Valid Targets as "object" in markdown but "objects" in JSON.
 
+### markdown-vs-json / missing json file
+
+- Family: `markdown-vs-json`
+- Kind: `missing-markdown-field`
+- Occurrences: 43
+- Distinct spells: 43
+- Sample spells: acid-splash.scenarios, blade-ward.scenarios, booming-blade.scenarios, chill-touch.scenarios, create-bonfire.scenarios, dancing-lights.scenarios, druidcraft.scenarios, eldritch-blast.scenarios, elementalism.scenarios, fire-bolt.scenarios
+- Sample findings:
+  - acid-splash.scenarios has a markdown reference file but no matching spell JSON file was found at the expected level path.
+  - blade-ward.scenarios has a markdown reference file but no matching spell JSON file was found at the expected level path.
+  - booming-blade.scenarios has a markdown reference file but no matching spell JSON file was found at the expected level path.
+  - chill-touch.scenarios has a markdown reference file but no matching spell JSON file was found at the expected level path.
+  - create-bonfire.scenarios has a markdown reference file but no matching spell JSON file was found at the expected level path.
+
 ### markdown-vs-json / Save Outcome
 
 - Family: `markdown-vs-json`
 - Kind: `value-mismatch`
-- Occurrences: 28
-- Distinct spells: 28
-- Sample spells: acid-splash, animal-messenger, enlarge-reduce, enthrall, levitate, sacred-flame, sword-burst, thunderclap, toll-the-dead, word-of-radiance
+- Occurrences: 27
+- Distinct spells: 27
+- Sample spells: acid-splash, animal-messenger, enthrall, levitate, ray-of-enfeeblement, sacred-flame, sword-burst, thunderclap, toll-the-dead, word-of-radiance
 - Sample findings:
   - Acid Splash records Save Outcome as "not_applicable" in markdown but "none" in JSON.
   - Sacred Flame records Save Outcome as "not_applicable" in markdown but "none" in JSON.
@@ -97,15 +125,15 @@ This report is grouped so arbitration can start with repeated mismatch families 
 
 - Family: `markdown-vs-json`
 - Kind: `value-mismatch`
-- Occurrences: 24
-- Distinct spells: 24
-- Sample spells: control-winds, danse-macabre, dominate-person, dream, enervation, enhance-ability, greater-restoration, passwall, raise-dead, rarys-telepathic-bond
+- Occurrences: 26
+- Distinct spells: 26
+- Sample spells: conjure-animals, control-winds, danse-macabre, dominate-person, dream, enervation, enhance-ability, greater-restoration, incite-greed, passwall
 - Sample findings:
   - Enhance Ability records Targeting Type as "single" in markdown but "multi" in JSON.
+  - Conjure Animals records Targeting Type as "area" in markdown but "point" in JSON.
+  - Incite Greed records Targeting Type as "single" in markdown but "multi" in JSON.
   - Control Winds records Targeting Type as "area" in markdown but "single" in JSON.
   - Danse Macabre records Targeting Type as "creature" in markdown but "single" in JSON.
-  - Dominate Person records Targeting Type as "creature" in markdown but "single" in JSON.
-  - Dream records Targeting Type as "creature" in markdown but "single" in JSON.
 
 ### markdown-vs-json / Combat Cost
 
@@ -121,33 +149,33 @@ This report is grouped so arbitration can start with repeated mismatch families 
   - Commune with Nature records Combat Cost as "long_cast" in markdown but "action" in JSON.
   - Commune records Combat Cost as "long_cast" in markdown but "action" in JSON.
 
-### markdown-vs-json / Utility Type
+### markdown-vs-json / Healing Dice
 
 - Family: `markdown-vs-json`
-- Kind: `value-mismatch`
-- Occurrences: 20
-- Distinct spells: 20
-- Sample spells: arcane-vigor, catnap, control-water, death-ward, dimension-door, freedom-of-movement, giant-insect, hallucinatory-terrain, leomunds-secret-chest, mass-healing-word
+- Kind: `missing-markdown-field`
+- Occurrences: 6
+- Distinct spells: 6
+- Sample spells: arcane-vigor, cure-wounds, mass-cure-wounds, mass-healing-word, power-word-fortify, prayer-of-healing
 - Sample findings:
-  - Arcane Vigor records Utility Type as "other" in markdown but "" in JSON.
-  - Catnap records Utility Type as "other" in markdown but "" in JSON.
-  - Mass Healing Word records Utility Type as "other" in markdown but "" in JSON.
-  - Control Water records Utility Type as "environmental_control" in markdown but "control" in JSON.
-  - Death Ward records Utility Type as "defensive" in markdown but "other" in JSON.
+  - Cure Wounds is missing the structured markdown field Healing Dice even though the JSON provides 2d8.
+  - Arcane Vigor is missing the structured markdown field Healing Dice even though the JSON provides 1_or_2_hit_dice+spellcasting_ability_modifier.
+  - Prayer of Healing is missing the structured markdown field Healing Dice even though the JSON provides 2d8.
+  - Mass Healing Word is missing the structured markdown field Healing Dice even though the JSON provides 2d4.
+  - Mass Cure Wounds is missing the structured markdown field Healing Dice even though the JSON provides 3d8 + spellcasting ability modifier.
 
 ### markdown-vs-json / Target Filter Creature Types
 
 - Family: `markdown-vs-json`
 - Kind: `missing-markdown-field`
-- Occurrences: 7
-- Distinct spells: 7
-- Sample spells: animal-messenger, beast-sense, dominate-person, fast-friends, hold-person, plant-growth, speak-with-plants
+- Occurrences: 6
+- Distinct spells: 6
+- Sample spells: animal-messenger, beast-sense, dominate-person, fast-friends, hold-person, speak-with-plants
 - Sample findings:
   - Animal Messenger is missing the structured markdown field Target Filter Creature Types even though the JSON provides Beast.
   - Beast Sense is missing the structured markdown field Target Filter Creature Types even though the JSON provides Beast.
   - Hold Person is missing the structured markdown field Target Filter Creature Types even though the JSON provides Humanoid.
   - Fast Friends is missing the structured markdown field Target Filter Creature Types even though the JSON provides Humanoid.
-  - Plant Growth is missing the structured markdown field Target Filter Creature Types even though the JSON provides Plant.
+  - Speak with Plants is missing the structured markdown field Target Filter Creature Types even though the JSON provides Plant.
 
 ### markdown-vs-json / Defense Type
 
@@ -163,33 +191,19 @@ This report is grouped so arbitration can start with repeated mismatch families 
   - Barkskin is missing the structured markdown field Defense Type even though the JSON provides ac_minimum.
   - Haste is missing the structured markdown field Defense Type even though the JSON provides ac_bonus.
 
-### markdown-vs-json / Healing Dice
-
-- Family: `markdown-vs-json`
-- Kind: `missing-markdown-field`
-- Occurrences: 5
-- Distinct spells: 5
-- Sample spells: arcane-vigor, cure-wounds, mass-cure-wounds, mass-healing-word, prayer-of-healing
-- Sample findings:
-  - Cure Wounds is missing the structured markdown field Healing Dice even though the JSON provides 2d8.
-  - Arcane Vigor is missing the structured markdown field Healing Dice even though the JSON provides 1_or_2_hit_dice+spellcasting_ability_modifier.
-  - Prayer of Healing is missing the structured markdown field Healing Dice even though the JSON provides 2d8.
-  - Mass Healing Word is missing the structured markdown field Healing Dice even though the JSON provides 2d4.
-  - Mass Cure Wounds is missing the structured markdown field Healing Dice even though the JSON provides 3d8 + spellcasting ability modifier.
-
 ### markdown-vs-json / Temporary HP
 
 - Family: `markdown-vs-json`
 - Kind: `missing-markdown-field`
 - Occurrences: 5
 - Distinct spells: 5
-- Sample spells: arcane-vigor, cure-wounds, healing-word, mass-healing-word, prayer-of-healing
+- Sample spells: arcane-vigor, cure-wounds, healing-word, power-word-fortify, prayer-of-healing
 - Sample findings:
   - Cure Wounds is missing the structured markdown field Temporary HP even though the JSON provides false.
   - Healing Word is missing the structured markdown field Temporary HP even though the JSON provides false.
   - Arcane Vigor is missing the structured markdown field Temporary HP even though the JSON provides false.
   - Prayer of Healing is missing the structured markdown field Temporary HP even though the JSON provides false.
-  - Mass Healing Word is missing the structured markdown field Temporary HP even though the JSON provides false.
+  - Power Word Fortify is missing the structured markdown field Temporary HP even though the JSON provides true.
 
 ### markdown-vs-json / Line of Sight
 
@@ -212,6 +226,16 @@ This report is grouped so arbitration can start with repeated mismatch families 
 - Sample findings:
   - Mass Cure Wounds is missing the structured markdown field Targeting Max even though the JSON provides 6.
   - Rary's Telepathic Bond is missing the structured markdown field Targeting Max even though the JSON provides 8.
+
+### markdown-vs-json / Damage Type
+
+- Family: `markdown-vs-json`
+- Kind: `value-mismatch`
+- Occurrences: 1
+- Distinct spells: 1
+- Sample spells: forbiddance
+- Sample findings:
+  - Forbiddance records Damage Type as "Radiant/Necrotic" in markdown but "Radiant or Necrotic" in JSON.
 
 ### markdown-vs-json / Description
 
@@ -241,16 +265,15 @@ This report is grouped so arbitration can start with repeated mismatch families 
 - Distinct spells: 1
 - Sample spells: counterspell
 - Sample findings:
-  - Counterspell records Reaction Trigger as "when you see a creature within 60 feet of you casting a spell" in markdown but "" in JSON.
+  - Counterspell records Reaction Trigger as "when you see a creature within 60 feet of you casting a spell" in markdown but "which you take when you see a creature within 60 feet of you casting a spell" in JSON.
 
-### markdown-vs-json / Terrain Type
+### markdown-vs-json / Save Stat
 
 - Family: `markdown-vs-json`
 - Kind: `missing-markdown-field`
 - Occurrences: 1
 - Distinct spells: 1
-- Sample spells: spike-growth
+- Sample spells: elemental-bane
 - Sample findings:
-  - Spike Growth is missing the structured markdown field Terrain Type even though the JSON provides damaging.
-
-<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/SPELL_MARKDOWN_PARITY_REPORT.md","sha256WithoutMarker":"a86de1493701e8186f4682d8b3054351d1056e43334fcd20d2e11c5cc3d2273c","markedAtUtc":"2026-06-25T22:29:38.551Z"} -->
+  - Elemental Bane is missing the structured markdown field Save Stat even though the JSON provides Constitution.
+<!-- aralia-backlog-walked: true -->

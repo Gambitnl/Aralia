@@ -61,7 +61,7 @@ function validateSpellFile(filePath, level) {
 
         // Check casting time structure
         if (json.castingTime) {
-            if (!json.castingTime.value || !json.castingTime.unit) {
+            if (json.castingTime.value === undefined || !json.castingTime.unit) {
                 errors.push('castingTime missing value or unit');
             }
         }

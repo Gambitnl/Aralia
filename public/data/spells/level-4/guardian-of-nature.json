@@ -1,193 +1,318 @@
 {
-  "id": "guardian-of-nature",
-  "name": "Guardian of Nature",
-  "aliases": [],
-  "level": 4,
-  "school": "Transmutation",
-  "source": "XGE p. 157 (5e.tools)",
-  "legacy": false,
-  "classes": [
-    "Druid",
-    "Ranger"
-  ],
-  "subClasses": [],
-  "ritual": false,
-  "rarity": "common",
-  "attackType": "",
-  "castingTime": {
-    "value": 1,
-    "unit": "bonus_action",
-    "combatCost": {
-      "type": "bonus_action",
-      "condition": ""
-    },
-    "explorationCost": {
-      "value": 0,
-      "unit": "minute"
-    }
-  },
-  "range": {
-    "type": "self",
-    "distance": 0
-  },
-  "components": {
-    "verbal": true,
-    "somatic": false,
-    "material": false,
-    "materialDescription": "",
-    "materialCost": 0,
-    "isConsumed": false
-  },
-  "duration": {
-    "type": "timed",
-    "concentration": true,
-    "value": 1,
-    "unit": "minute"
-  },
-  "targeting": {
-    "type": "single",
-    "range": 0,
-    "validTargets": [
-      "creatures"
+    "id": "guardian-of-nature",
+    "name": "Guardian of Nature",
+    "aliases": [],
+    "level": 4,
+    "school": "Transmutation",
+    "source": "XGE p. 157 (5e.tools)",
+    "legacy": false,
+    "classes": [
+        "Druid",
+        "Ranger"
     ],
-    "lineOfSight": true,
-    "maxTargets": 1,
-    "filter": {
-      "creatureTypes": [],
-      "excludeCreatureTypes": [],
-      "sizes": [],
-      "alignments": [],
-      "hasCondition": [],
-      "isNativeToPlane": false,
-      "willing": "not_applicable",
-      "objectEligibility": {
-        "wornOrCarried": "not_applicable",
-        "magicalStatus": "not_applicable",
-        "fixedToSurface": "not_applicable",
-        "maxSize": "not_applicable",
-        "maxWeightPounds": "not_applicable",
-        "maxWeightScaling": "not_applicable"
-      },
-      "communicationPrerequisites": {
-        "canHearCaster": "not_applicable",
-        "canUnderstandCaster": "not_applicable",
-        "canSeeCaster": "not_applicable"
-      },
-      "abilityThreshold": {
-        "ability": "not_applicable",
-        "operator": "not_applicable",
-        "value": "not_applicable"
-      },
-      "selfRelation": "not_applicable"
-    }
-  },
-  "effects": [
-    {
-      "type": "UTILITY",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
+    "subClasses": [],
+    "ritual": false,
+    "rarity": "common",
+    "attackType": "",
+    "castingTime": {
+        "value": 1,
+        "unit": "bonus_action",
+        "combatCost": {
+            "type": "bonus_action",
+            "condition": ""
         },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
+        "explorationCost": {
+            "value": 0,
+            "unit": "minute"
         }
-      },
-      "condition": {
-        "type": "always",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
+    },
+    "range": {
+        "type": "self",
+        "distance": 0
+    },
+    "components": {
+        "verbal": true,
+        "somatic": false,
+        "material": false,
+        "materialDescription": "",
+        "materialCost": 0,
+        "isConsumed": false
+    },
+    "duration": {
+        "type": "timed",
+        "concentration": true,
+        "value": 1,
+        "unit": "minute"
+    },
+    "targeting": {
+        "type": "single",
+        "range": 0,
+        "validTargets": [
+            "creatures"
+        ],
+        "lineOfSight": true,
+        "maxTargets": 1,
+        "filter": {
+            "creatureTypes": [],
+            "excludeCreatureTypes": [],
+            "sizes": [],
+            "alignments": [],
+            "hasCondition": [],
+            "isNativeToPlane": false,
+            "willing": "not_applicable",
+            "objectEligibility": {
+                "wornOrCarried": "not_applicable",
+                "magicalStatus": "not_applicable",
+                "fixedToSurface": "not_applicable",
+                "maxSize": "not_applicable",
+                "maxWeightPounds": "not_applicable",
+                "maxWeightScaling": "not_applicable"
+            },
+            "communicationPrerequisites": {
+                "canHearCaster": "not_applicable",
+                "canUnderstandCaster": "not_applicable",
+                "canSeeCaster": "not_applicable"
+            },
+            "abilityThreshold": {
+                "ability": "not_applicable",
+                "operator": "not_applicable",
+                "value": "not_applicable"
+            },
+            "selfRelation": "not_applicable"
+        }
+    },
+    "effects": [
+        {
+            "type": "UTILITY",
+            "trigger": {
+                "type": "immediate",
+                "frequency": "every_time",
+                "consumption": "unlimited",
+                "attackFilter": {
+                    "weaponType": "any",
+                    "attackType": "any"
+                },
+                "movementType": "any",
+                "sustainCost": {
+                    "actionType": "action",
+                    "optional": false
+                }
+            },
+            "condition": {
+                "type": "always",
+                "targetFilter": {
+                    "creatureTypes": [],
+                    "excludeCreatureTypes": [],
+                    "sizes": [],
+                    "alignments": [],
+                    "hasCondition": [],
+                    "isNativeToPlane": false,
+                    "willing": "not_applicable",
+                    "objectEligibility": {
+                        "wornOrCarried": "not_applicable",
+                        "magicalStatus": "not_applicable",
+                        "fixedToSurface": "not_applicable",
+                        "maxSize": "not_applicable",
+                        "maxWeightPounds": "not_applicable",
+                        "maxWeightScaling": "not_applicable"
+                    },
+                    "communicationPrerequisites": {
+                        "canHearCaster": "not_applicable",
+                        "canUnderstandCaster": "not_applicable",
+                        "canSeeCaster": "not_applicable"
+                    },
+                    "abilityThreshold": {
+                        "ability": "not_applicable",
+                        "operator": "not_applicable",
+                        "value": "not_applicable"
+                    },
+                    "selfRelation": "not_applicable"
+                },
+                "requiresStatus": [],
+                "saveModifiers": [],
+                "saveOutcomeOverrides": []
+            },
+            "utilityType": "other",
+            "description": "Transforms the caster into a Primal Beast for the duration, granting 10 feet of walking speed, 120-foot darkvision, Advantage on Strength-based attack rolls, and an extra 1d6 Force damage on melee weapon hits.",
+            "scaling": {
+                "type": "slot_level",
+                "bonusPerLevel": "",
+                "customFormula": ""
+            },
+            "grantedActions": [],
+            "attackAugments": [],
+            "controlOptions": [],
+            "taunt": {
+                "disadvantageAgainstOthers": false,
+                "leashRangeFeet": 0,
+                "breakConditions": []
+            },
+            "savePenalty": {
+                "dice": "",
+                "flat": 0,
+                "applies": "next_save",
+                "duration": {
+                    "type": "rounds",
+                    "value": 0
+                }
+            },
+            "light": {
+                "brightRadius": 0,
+                "dimRadius": 0,
+                "attachedTo": "caster",
+                "color": "",
+                "colorChoice": "not_applicable",
+                "opaqueCoverBlocks": "not_applicable",
+                "emitsHeat": "not_applicable",
+                "ignitesObjects": "not_applicable",
+                "consumesFuel": "not_applicable",
+                "canBeCoveredOrHidden": "not_applicable",
+                "canBeSmotheredOrQuenched": "not_applicable"
+            },
+            "conditionalEndings": [],
+            "tags": [
+                "self-buff",
+                "primal-form",
+                "mode-choice"
+            ]
         },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "utilityType": "other",
-      "description": "Transforms the caster into a primal guardian form for the duration, granting a nature-themed combat and movement buff chosen from the spell's available forms.",
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": ""
-      },
-      "grantedActions": [],
-      "attackAugments": [],
-      "controlOptions": [],
-      "taunt": {
-        "disadvantageAgainstOthers": false,
-        "leashRangeFeet": 0,
-        "breakConditions": []
-      },
-      "savePenalty": {
-        "dice": "",
-        "flat": 0,
-        "applies": "next_save",
-        "duration": {
-          "type": "rounds",
-          "value": 0
+        {
+            "type": "UTILITY",
+            "trigger": {
+                "type": "immediate",
+                "frequency": "every_time",
+                "consumption": "unlimited",
+                "attackFilter": {
+                    "weaponType": "any",
+                    "attackType": "any"
+                },
+                "movementType": "any",
+                "sustainCost": {
+                    "actionType": "action",
+                    "optional": false
+                }
+            },
+            "condition": {
+                "type": "always",
+                "targetFilter": {
+                    "creatureTypes": [],
+                    "excludeCreatureTypes": [],
+                    "sizes": [],
+                    "alignments": [],
+                    "hasCondition": [],
+                    "isNativeToPlane": false,
+                    "willing": "not_applicable",
+                    "objectEligibility": {
+                        "wornOrCarried": "not_applicable",
+                        "magicalStatus": "not_applicable",
+                        "fixedToSurface": "not_applicable",
+                        "maxSize": "not_applicable",
+                        "maxWeightPounds": "not_applicable",
+                        "maxWeightScaling": "not_applicable"
+                    },
+                    "communicationPrerequisites": {
+                        "canHearCaster": "not_applicable",
+                        "canUnderstandCaster": "not_applicable",
+                        "canSeeCaster": "not_applicable"
+                    },
+                    "abilityThreshold": {
+                        "ability": "not_applicable",
+                        "operator": "not_applicable",
+                        "value": "not_applicable"
+                    },
+                    "selfRelation": "not_applicable"
+                },
+                "requiresStatus": [],
+                "saveModifiers": [],
+                "saveOutcomeOverrides": []
+            },
+            "utilityType": "other",
+            "description": "Transforms the caster into a Great Tree for the duration, granting 10 temporary hit points, Advantage on Constitution saves and Dexterity- or Wisdom-based attack rolls, and makes ground within 15 feet difficult terrain for enemies while you are on the ground.",
+            "scaling": {
+                "type": "slot_level",
+                "bonusPerLevel": "",
+                "customFormula": ""
+            },
+            "grantedActions": [],
+            "attackAugments": [],
+            "controlOptions": [],
+            "taunt": {
+                "disadvantageAgainstOthers": false,
+                "leashRangeFeet": 0,
+                "breakConditions": []
+            },
+            "savePenalty": {
+                "dice": "",
+                "flat": 0,
+                "applies": "next_save",
+                "duration": {
+                    "type": "rounds",
+                    "value": 0
+                }
+            },
+            "light": {
+                "brightRadius": 0,
+                "dimRadius": 0,
+                "attachedTo": "caster",
+                "color": "",
+                "colorChoice": "not_applicable",
+                "opaqueCoverBlocks": "not_applicable",
+                "emitsHeat": "not_applicable",
+                "ignitesObjects": "not_applicable",
+                "consumesFuel": "not_applicable",
+                "canBeCoveredOrHidden": "not_applicable",
+                "canBeSmotheredOrQuenched": "not_applicable"
+            },
+            "conditionalEndings": [],
+            "tags": [
+                "self-buff",
+                "primal-form",
+                "mode-choice"
+            ]
         }
-      },
-      "light": {
-        "brightRadius": 0,
-        "dimRadius": 0,
-        "attachedTo": "caster",
-        "color": "",
-        "colorChoice": "not_applicable",
-        "opaqueCoverBlocks": "not_applicable",
-        "emitsHeat": "not_applicable",
-        "ignitesObjects": "not_applicable",
-        "consumesFuel": "not_applicable",
-        "canBeCoveredOrHidden": "not_applicable",
-        "canBeSmotheredOrQuenched": "not_applicable"
-      },
-      "conditionalEndings": [],
-      "tags": [
+    ],
+    "arbitrationType": "mechanical",
+    "aiContext": {
+        "prompt": "",
+        "playerInputRequired": false
+    },
+    "description": "Choose Primal Beast or Great Tree when you cast this spell. Primal Beast grants 10 feet of walking speed, 120-foot darkvision, Advantage on Strength-based attack rolls, and an extra 1d6 Force damage on melee weapon hits. Great Tree grants 10 temporary hit points, Advantage on Constitution saves and Dexterity- or Wisdom-based attack rolls, and makes ground within 15 feet difficult terrain for enemies while you are on the ground.",
+    "higherLevels": "",
+    "tags": [
+        "buff",
+        "shapechanging",
         "self-buff",
-        "primal-form",
-        "mode-choice"
-      ]
+        "concentration"
+    ],
+    "modeChoice": {
+        "type": "choose_one",
+        "timing": "on_cast",
+        "optionCount": 2,
+        "optionsSource": "effects",
+        "canDismissActive": false,
+        "options": [
+            {
+                "label": "Primal Beast",
+                "summary": "You gain 10 feet of walking speed, 120-foot darkvision, Advantage on Strength-based attack rolls, and an extra 1d6 Force damage on melee weapon hits.",
+                "effectIndices": [
+                    0
+                ],
+                "effectTypes": [
+                    "UTILITY"
+                ],
+                "duration": "timed"
+            },
+            {
+                "label": "Great Tree",
+                "summary": "You gain 10 temporary hit points, Advantage on Constitution saves and Dexterity- or Wisdom-based attack rolls, and makes ground within 15 feet difficult terrain for enemies while you are on the ground.",
+                "effectIndices": [
+                    1
+                ],
+                "effectTypes": [
+                    "UTILITY"
+                ],
+                "duration": "timed"
+            }
+        ]
     }
-  ],
-  "arbitrationType": "mechanical",
-  "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
-  },
-  "description": "Choose Primal Beast or Great Tree when you cast this spell. Primal Beast grants 10 feet of walking speed, 120-foot darkvision, Advantage on Strength-based attack rolls, and an extra 1d6 Force damage on melee weapon hits. Great Tree grants 10 temporary hit points, Advantage on Constitution saves and Dexterity- or Wisdom-based attack rolls, and makes ground within 15 feet difficult terrain for enemies while you are on the ground.",
-  "higherLevels": "",
-  "tags": [
-    "buff",
-    "shapechanging",
-    "self-buff",
-    "concentration"
-  ]
 }
