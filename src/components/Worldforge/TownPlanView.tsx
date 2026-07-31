@@ -111,6 +111,21 @@ const OUTSKIRT_FILL: Record<'farm' | 'pasture' | 'scrub', string> = {
   farm: 'url(#town-farm)', pasture: '#7c9a57', scrub: '#9b9576',
 };
 
+// Intramural open land: the ground inside the walls the wards never built on.
+// Same visual language as the outskirts (land-use fills, hatched where the use
+// has a texture) but keyed WARMER and lighter, so a garden inside the walls
+// reads as town ground rather than a piece of countryside that leaked in.
+const OPEN_LAND_FILL: Record<'yard' | 'garden' | 'orchard' | 'paddock' | 'ruin', string> = {
+  yard: '#c0ac83',
+  garden: 'url(#town-garden)',
+  orchard: 'url(#town-orchard)',
+  paddock: '#a6b183',
+  ruin: 'url(#town-ruin)',
+};
+const OPEN_LAND_STROKE: Record<'yard' | 'garden' | 'orchard' | 'paddock' | 'ruin', string> = {
+  yard: '#9c8a63', garden: '#77894f', orchard: '#5f7440', paddock: '#849060', ruin: '#8b7f6a',
+};
+
 const poly = (pts: Pt[]): string => 'M' + pts.map((p) => `${p[0].toFixed(1)},${p[1].toFixed(1)}`).join('L') + 'Z';
 const open = (pts: Pt[]): string => 'M' + pts.map((p) => `${p[0].toFixed(1)},${p[1].toFixed(1)}`).join('L');
 
@@ -923,6 +938,20 @@ const TownPlanView: React.FC<TownPlanViewProps> = ({
           <rect width="7" height="7" fill="#c7a567" />
           <line x1="0" y1="0" x2="0" y2="7" stroke="#a6843f" strokeWidth="1.5" />
         </pattern>
+        {/* Intramural open-land textures: garden beds, orchard rows, rubble. */}
+        <pattern id="town-garden" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(-20)">
+          <rect width="5" height="5" fill="#93a967" />
+          <line x1="0" y1="0" x2="5" y2="0" stroke="#74883f" strokeWidth="1" />
+        </pattern>
+        <pattern id="town-orchard" width="8" height="8" patternUnits="userSpaceOnUse">
+          <rect width="8" height="8" fill="#87a05e" />
+          <circle cx="4" cy="4" r="1.7" fill="#4f6a35" />
+        </pattern>
+        <pattern id="town-ruin" width="6" height="6" patternUnits="userSpaceOnUse">
+          <rect width="6" height="6" fill="#b8ab92" />
+          <rect x="0.6" y="0.8" width="2" height="1.4" fill="#8d8069" />
+          <rect x="3.4" y="3.2" width="1.7" height="1.6" fill="#8d8069" />
+        </pattern>
         {/* District facade grammars reuse the production resolver's wall and
             trim colors. Definitions are deduplicated by material + pattern. */}
         {architecturePatterns.map((style) => (
@@ -946,6 +975,15 @@ const TownPlanView: React.FC<TownPlanViewProps> = ({
           <path key={`w${i}`} d={poly(w.block ?? w.polygon)} fill={w.civic === 'plaza' ? '#e7dcc0' : '#efe6d2'} stroke="#b7a77f" strokeWidth={0.4} vectorEffect="non-scaling-stroke"
             data-architecture-district-key={w.architectureDistrict?.key}
             data-architecture-district-label={w.architectureDistrict?.label} />
+        ))}
+        {/* Intramural open land: the ground the walls enclose but the wards never
+            built on, plus ward blocks that packed no plots. Drawn AFTER the block
+            fills so an unbuilt block shows as its parcels, not as blank parchment,
+            and BEFORE buildings so nothing covers a roof. */}
+        {(plan.openLand ?? []).map((o, i) => (
+          <path key={`ol${i}`} d={poly(o.polygon)} fill={OPEN_LAND_FILL[o.kind]}
+            stroke={OPEN_LAND_STROKE[o.kind]} strokeWidth={0.5} vectorEffect="non-scaling-stroke"
+            data-testid={`town-open-land-${o.kind}`} data-open-land-source={o.source} />
         ))}
         {/* Shared courts sit below roofs and above the block fill. Each glyph is
             backed by the same canonical receipt consumed by production props. */}
