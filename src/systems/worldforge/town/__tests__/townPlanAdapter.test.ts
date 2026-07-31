@@ -29,6 +29,7 @@ function makeEnginePlan(): EngineTownPlan {
     wards: [{ polygon: sq(0, 0, 70), block: sq(1, 1, 68), plots: [shop, home], civic: undefined }],
     plots: [shop, home],
     outskirts: [],
+    openLand: [],
     walls: { ring: sq(0, 0, 70), gatehouses: [[35, 0]] },
     civic: [{ kind: 'temple', polygon: sq(40, 40, 18), wardIndex: 0 }],
     streets: [[[0, 0], [25, 25], [50, 50]]],

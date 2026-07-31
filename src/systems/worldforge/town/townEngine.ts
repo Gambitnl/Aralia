@@ -166,6 +166,37 @@ export interface TownOutskirt {
   kind: OutskirtKind;
 }
 
+/**
+ * Land use of the slack INSIDE the walls — ground the town encloses but has
+ * never built on.
+ *
+ * WHY THESE FIVE. The wall ring is inset from the town footprint while the ward
+ * process fills only part of that footprint, so a walled town encloses more
+ * ground than it occupies. That is real history (walls raised for growth that
+ * never came, or a town that shrank behind them), so the slack is kept — but it
+ * has to read as land use, not as a hole. These are the five things a walled
+ * settlement actually does with enclosed ground it has not built over, ordered
+ * by how hard it works the land:
+ *   yard    — service ground abutting a block: sheds, middens, woodpiles.
+ *   garden  — kitchen gardens a step behind the frontage.
+ *   orchard — tree crops, which want depth and are worth the wall's protection.
+ *   paddock — stock penned inside the walls overnight; the largest working parcel.
+ *   ruin    — cellars and footings of blocks the town no longer fills.
+ * The split carries the meaning: `yard`/`garden` say the town uses every foot,
+ * `orchard`/`paddock`/`ruin` say it encloses more than it needs. So the MIX is
+ * what population-versus-footprint drives (see `wallFill`), not the raw area —
+ * the area is whatever the walls leave, and all of it gets parcelled.
+ */
+export type OpenLandKind = 'yard' | 'garden' | 'orchard' | 'paddock' | 'ruin';
+export interface TownOpenLand {
+  /** Parcel polygon (town coords). */
+  polygon: Pt[];
+  /** yard/garden (worked hard) → orchard/paddock/ruin (more wall than town). */
+  kind: OpenLandKind;
+  /** Rim slack between the built edge and the wall, or an unbuilt ward block. */
+  source: 'rim' | 'ward';
+}
+
 export interface TownPlan {
   /** The burg footprint = the whole parent cell (a leaf submap cell). */
   footprint: Pt[];
@@ -181,6 +212,12 @@ export interface TownPlan {
   plots: BuildingPlot[];
   /** Farmland/grassland/scrub parcels filling the ring between the core and cell edge. */
   outskirts: TownOutskirt[];
+  /**
+   * INTRAMURAL open land: gardens/yards/orchards/paddocks/ruins parcelling the
+   * ground the walls enclose but the wards never built on, plus any ward block
+   * that ended up with zero plots. Empty only when the town has no slack.
+   */
+  openLand: TownOpenLand[];
   /** Defensive wall ring + gatehouses (criterion #3). */
   walls: TownWalls;
   /** Civic anatomy: market plaza, temple(s), castle/keep (criterion #3). */
@@ -1045,6 +1082,272 @@ export function buildOutskirts(
   return out;
 }
 
+// ---------------------------------------------------------------------------
+// Intramural open land
+// ---------------------------------------------------------------------------
+
+/** Angular resolution of the built-edge / wall radius profiles. */
+const OPEN_LAND_ANGLE_STEPS = 360;
+/**
+ * People per unit of enclosed cell-fraction at which a town is judged to fill
+ * its walls. Calibrated on the canonical frame (`CANON_TOWN_SPAN`): the capital
+ * Borieborum (31,392 people behind a ring enclosing 0.338 of its cell) reads as
+ * full, the walled town Hafting (2,306 behind 0.283) reads as a third full.
+ */
+const WALL_FILL_REFERENCE = 90_000;
+
+const clamp01 = (v: number): number => (v < 0 ? 0 : v > 1 ? 1 : v);
+
+/**
+ * FARTHEST ray/polygon crossing from `center` (the polygon's outer edge along
+ * the ray). `rayPolyRadius` returns the NEAREST crossing, which is the entry
+ * point — for "how far out does the built fabric reach" we need the exit.
+ * Returns 0 when the ray misses the polygon entirely.
+ */
+function farRayPolyRadius(center: Pt, ang: number, poly: Pt[]): number {
+  const dx = Math.cos(ang), dy = Math.sin(ang);
+  let best = 0;
+  for (let i = 0; i < poly.length; i++) {
+    const a = poly[i], b = poly[(i + 1) % poly.length];
+    const ex = b[0] - a[0], ey = b[1] - a[1];
+    const det = ex * dy - dx * ey;
+    if (Math.abs(det) < 1e-9) continue;
+    const acx = a[0] - center[0], acy = a[1] - center[1];
+    const t = (ex * acy - ey * acx) / det;
+    const u = (dx * acy - dy * acx) / det;
+    if (t >= 0 && u >= -1e-6 && u <= 1 + 1e-6 && t > best) best = t;
+  }
+  return best;
+}
+
+/** Sample a radius profile (indexed by angle step) at an arbitrary angle. */
+function sampleProfile(profile: number[], ang: number): number {
+  const n = profile.length;
+  let f = (ang / (Math.PI * 2)) * n;
+  f -= Math.floor(f / n) * n;
+  const i0 = Math.floor(f) % n;
+  const i1 = (i0 + 1) % n;
+  const t = f - Math.floor(f);
+  return profile[i0] * (1 - t) + profile[i1] * t;
+}
+
+/**
+ * How full a town's walls are: the people it holds against the ground it
+ * encloses. Scale-free — the enclosed area is expressed as a fraction of the
+ * parent cell's bbox span, so the number means the same whatever coordinate
+ * scale the plan was generated at. 1 = the town needs every foot inside its
+ * walls; 0 = it rattles around in them.
+ */
+export function wallFill(population: number, enclosedArea: number, fpSpan: number): number {
+  if (!(population > 0) || !(enclosedArea > 0) || !(fpSpan > 0)) return 0;
+  const enclosedFrac = enclosedArea / (fpSpan * fpSpan);
+  if (!(enclosedFrac > 0)) return 0;
+  return clamp01(Math.sqrt(population / enclosedFrac / WALL_FILL_REFERENCE));
+}
+
+/**
+ * Split every edge of `poly` so no segment is longer than `maxLen`. Needed
+ * before the polar clamp below: clamping only moves VERTICES, so a long chord
+ * across a curved band boundary would cut the corner. Densifying bounds that
+ * error to well under a parcel's width.
+ */
+function densifyPolygon(poly: Pt[], maxLen: number): Pt[] {
+  const out: Pt[] = [];
+  for (let i = 0; i < poly.length; i++) {
+    const a = poly[i], b = poly[(i + 1) % poly.length];
+    out.push(a);
+    const L = Math.hypot(b[0] - a[0], b[1] - a[1]);
+    const n = Math.min(24, Math.floor(L / maxLen));
+    for (let k = 1; k <= n; k++) {
+      const t = k / (n + 1);
+      out.push([a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t]);
+    }
+  }
+  return out;
+}
+
+/**
+ * Classify one open-land parcel.
+ *
+ * `depth` is the parcel's position across the slack band (0 = against a built
+ * block, 1 = against the wall). `fill` is population-versus-footprint. A town
+ * that needs its ground works the edge hard and keeps the rest as garden; a
+ * town rattling around inside its walls turns the same ground over to trees,
+ * stock, and — where it once built — ruins.
+ */
+function classifyOpenLand(depth: number, fill: number, walled: boolean, roll: number): OpenLandKind {
+  if (walled) {
+    // Ruins are the walls' own record of a bigger past, so they need a wall.
+    const ruinChance = clamp01((1 - fill) - 0.35) * 1.2;
+    if (roll < ruinChance * (0.4 + 0.6 * depth)) return 'ruin';
+  }
+  const score = depth * 0.55 + (1 - fill) * 1.0 + (roll - 0.5) * 0.25 - 0.15;
+  if (score < 0.25) return 'yard';
+  if (score < 0.5) return 'garden';
+  if (score < 0.75) return 'orchard';
+  return 'paddock';
+}
+
+/**
+ * Parcel the open ground INSIDE the town: the slack between the built edge and
+ * the wall (or, unwalled, the core edge), plus any ward block that packed zero
+ * plots. This fills what the wards leave; it never moves them.
+ *
+ * REGION. Two disjoint sources, both exact:
+ *  1. RIM SLACK. The envelope (wall ring, else core) and the built fabric are
+ *     both radial blobs about the town center, so the remainder between them is
+ *     described exactly by two radius profiles: `rOut(θ)` = the wall, `rIn(θ)` =
+ *     the farthest any BUILT ward reaches along that ray. "Built ward" means the
+ *     full ward polygon, not its block, so the street margin between blocks
+ *     stays street and no parcel lands in the roadway — that is the "minus ward
+ *     blocks, minus streets" subtraction, done in one step. Civic polygons are
+ *     removed afterwards by intersection test, since a dock or bridge reaches
+ *     past the ward edge.
+ *  2. UNBUILT WARD BLOCKS. A ward with zero plots and no civic role is the same
+ *     phenomenon at block scale, so its block becomes open land too. Plaza and
+ *     temple/keep/citadel wards are LEFT ALONE — their emptiness is the civic
+ *     structure, not slack.
+ *
+ * PARCELLING. Both sources go through `generateSubmap`, so the parcels are
+ * seeded Voronoi work like the outskirts, not hand-placed. The rim tessellates
+ * the envelope's BOUNDING BOX — a convex polygon, which `clipPolygon`
+ * (Sutherland–Hodgman, convex-clip only) handles exactly; running it on the
+ * concave wall ring is precisely what leaves the ward gap in the first place.
+ * Each cell is then clamped into the band in polar coordinates: densify, take
+ * (θ, r) about the center, clamp r into [rIn(θ), rOut(θ)], map back. The clamp
+ * is monotone in r and leaves θ alone, so parcels stay disjoint and land exactly
+ * inside the band; cells wholly inside the built area or outside the wall
+ * collapse to zero area and are dropped.
+ */
+export function buildIntramuralOpenLand(args: {
+  /** Wall ring when walled, else the built-up core. */
+  envelope: Pt[];
+  wards: TownWard[];
+  civic: CivicStructure[];
+  /** Town center the envelope and the built fabric are both radial about. */
+  center: Pt;
+  /** Footprint span — sets the scale-free thresholds. */
+  fpSpan: number;
+  walled: boolean;
+  population: number;
+  seedPath: SeedPath;
+}): TownOpenLand[] {
+  const { envelope, wards, civic, center, fpSpan, walled, population, seedPath } = args;
+  // NO FALLBACK: an unusable region is a generator bug, not an empty result.
+  if (envelope.length < 3) {
+    throw new Error('buildIntramuralOpenLand: envelope needs at least 3 vertices');
+  }
+  if (!(fpSpan > 0)) {
+    throw new Error(`buildIntramuralOpenLand: footprint span must be positive (got ${fpSpan})`);
+  }
+
+  const out: TownOpenLand[] = [];
+  const envArea = polyArea(envelope);
+  if (!(envArea > 0)) {
+    throw new Error('buildIntramuralOpenLand: envelope has zero area');
+  }
+  const fill = wallFill(population, envArea, fpSpan);
+  const rng = rngFromPath(streamPath(seedPath, 'open-land'));
+
+  // A ward is BUILT if it carries plots or a civic role; those bound the slack.
+  const builtWards = wards.filter((w) => w.plots.length > 0 || w.civic != null);
+  const emptyWards = wards.filter((w) => w.plots.length === 0 && w.civic == null);
+  // Solid civic ground (keep/temple/citadel/dock/bridge/plaza) is never open land.
+  const civicPolys = civic.map((c) => c.polygon).filter((p) => p.length >= 3);
+
+  // --- 1. Rim slack -------------------------------------------------------
+  const rOut: number[] = new Array(OPEN_LAND_ANGLE_STEPS);
+  const rIn: number[] = new Array(OPEN_LAND_ANGLE_STEPS);
+  for (let k = 0; k < OPEN_LAND_ANGLE_STEPS; k++) {
+    const ang = (k / OPEN_LAND_ANGLE_STEPS) * Math.PI * 2;
+    const ro = rayPolyRadius(center, ang, envelope);
+    let ri = 0;
+    for (const w of builtWards) {
+      const r = farRayPolyRadius(center, ang, w.polygon);
+      if (r > ri) ri = r;
+    }
+    rOut[k] = ro;
+    rIn[k] = Math.min(ri, ro);
+  }
+
+  // Slack narrower than this is a rendering seam, not a parcel of land.
+  const minBandWidth = fpSpan * 0.012;
+  const minParcelArea = (fpSpan * 0.02) ** 2;
+  let slackArea = 0;
+  const dTheta = (Math.PI * 2) / OPEN_LAND_ANGLE_STEPS;
+  for (let k = 0; k < OPEN_LAND_ANGLE_STEPS; k++) {
+    if (rOut[k] - rIn[k] > minBandWidth) slackArea += 0.5 * (rOut[k] ** 2 - rIn[k] ** 2) * dTheta;
+  }
+
+  if (slackArea > minParcelArea) {
+    // Parcel grain: about a third of a ward, so a parcel reads at the same
+    // scale as the blocks it sits against. Sites are spread over the bbox, so
+    // scale the count up by how much bigger the bbox is than one parcel.
+    const b = polygonBounds(envelope);
+    const bboxArea = (b.maxX - b.minX) * (b.maxY - b.minY);
+    const targetParcelArea = Math.max(minParcelArea * 4, (envArea / Math.max(1, wards.length)) * 0.32);
+    const count = Math.max(24, Math.min(600, Math.round(bboxArea / targetParcelArea)));
+    const bbox: Pt[] = [[b.minX, b.minY], [b.maxX, b.minY], [b.maxX, b.maxY], [b.minX, b.maxY]];
+    const model = generateSubmap(
+      { polygon: bbox, seedPath: streamPath(seedPath, 'open-land') },
+      { count },
+    );
+    const densifyStep = fpSpan * 0.01;
+    for (const cell of model.cells) {
+      if (cell.polygon.length < 3) continue;
+      if (pointInPolygon(center, cell.polygon)) continue; // polar frame is singular here
+      const dense = densifyPolygon(cell.polygon, densifyStep);
+      const clamped: Pt[] = [];
+      for (const [x, y] of dense) {
+        const dx = x - center[0], dy = y - center[1];
+        const ang = Math.atan2(dy, dx);
+        const r = Math.hypot(dx, dy);
+        const lo = sampleProfile(rIn, ang);
+        const hi = sampleProfile(rOut, ang);
+        if (hi - lo <= minBandWidth) { clamped.push([center[0] + Math.cos(ang) * lo, center[1] + Math.sin(ang) * lo]); continue; }
+        const rc = r < lo ? lo : r > hi ? hi : r;
+        clamped.push([center[0] + Math.cos(ang) * rc, center[1] + Math.sin(ang) * rc]);
+      }
+      if (clamped.length < 3) continue;
+      if (polyArea(clamped) < minParcelArea) continue;
+      const c = polygonCentroid(clamped);
+      if (civicPolys.some((p) => pointInPolygon(c, p) || polygonsIntersect(clamped, p))) continue;
+      const ang = Math.atan2(c[1] - center[1], c[0] - center[0]);
+      const lo = sampleProfile(rIn, ang);
+      const hi = sampleProfile(rOut, ang);
+      const depth = hi > lo ? clamp01((Math.hypot(c[0] - center[0], c[1] - center[1]) - lo) / (hi - lo)) : 1;
+      out.push({ polygon: clamped, kind: classifyOpenLand(depth, fill, walled, rng.next()), source: 'rim' });
+    }
+  }
+
+  // --- 2. Unbuilt ward blocks --------------------------------------------
+  for (let i = 0; i < wards.length; i++) {
+    const w = wards[i];
+    if (!emptyWards.includes(w)) continue;
+    const block = w.block.length >= 3 ? w.block : w.polygon;
+    if (block.length < 3 || polyArea(block) < minParcelArea) continue;
+    // Two to four parcels, so an unbuilt block reads as several holdings rather
+    // than one flat slab. Seeded off the ward index → deterministic.
+    const sub = generateSubmap(
+      { polygon: block, seedPath: streamPath(seedPath, `open-ward:${i}`) },
+      { count: 2 + Math.floor(rng.next() * 3) },
+    );
+    for (const cell of sub.cells) {
+      if (cell.polygon.length < 3 || polyArea(cell.polygon) < minParcelArea) continue;
+      if (civicPolys.some((p) => polygonsIntersect(cell.polygon, p))) continue;
+      // An unbuilt block is ringed by streets and neighbours, so it always reads
+      // as close-in ground: shallow depth, whatever the town's fill.
+      out.push({
+        polygon: cell.polygon,
+        kind: classifyOpenLand(0.15, fill, walled, rng.next()),
+        source: 'ward',
+      });
+    }
+  }
+
+  return out;
+}
+
 /**
  * Max docks by settlement size (#4 quality). `wardWaterEdge` seats a dock on
  * EVERY waterfront ward, which over-densifies a river+coast town (a 5k port grew
@@ -1470,7 +1773,22 @@ export function generateTownPlan(
   // block key is exactly the one carried by every court-facing building.
   const courtyards = resolveCourtyardSpaces(wards, seedPath);
 
-  return { footprint, core, wards, plots: allPlots, outskirts, walls, civic, streets, courtyards, farmsteads, demographics };
+  // Intramural open land: the ground the walls enclose that the wards never
+  // built on, plus any ward block that packed zero plots. Runs LAST so it sees
+  // the final plot list — a ward only counts as unbuilt after every collision,
+  // civic-clearing and corridor pass has taken its cut.
+  const openLand = buildIntramuralOpenLand({
+    envelope,
+    wards,
+    civic,
+    center: townCenter,
+    fpSpan,
+    walled: walls.ring.length >= 3,
+    population: profile?.population ?? opts.population ?? 0,
+    seedPath,
+  });
+
+  return { footprint, core, wards, plots: allPlots, outskirts, openLand, walls, civic, streets, courtyards, farmsteads, demographics };
 }
 
 /** Convenience: total building plots across all wards. */

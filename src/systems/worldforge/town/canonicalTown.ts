@@ -224,6 +224,9 @@ export function transformTownPlan(plan: TownPlan, k: number, dx = 0, dy = 0): To
     // Top-level plots share refs with wards[].plots (townEngine contract).
     plots: wards.flatMap((w) => w.plots),
     outskirts: plan.outskirts.map((o) => ({ ...o, polygon: mapPoly(o.polygon, k, dx, dy) })),
+    // Intramural open land rides the same affine, so the gardens/paddocks the 2D
+    // map shows inside the walls are the same parcels the 3D town stands on.
+    openLand: plan.openLand.map((o) => ({ ...o, polygon: mapPoly(o.polygon, k, dx, dy) })),
     walls: {
       ring: mapPoly(plan.walls.ring, k, dx, dy),
       gatehouses: mapPoly(plan.walls.gatehouses, k, dx, dy),
