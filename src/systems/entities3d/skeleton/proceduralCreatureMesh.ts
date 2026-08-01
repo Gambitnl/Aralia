@@ -202,7 +202,6 @@ function createDefaultMaterial(genome: CreatureGenome): Material {
     vertexColors: true,
     roughness: 0.8,
     metalness: 0.1,
-    skinning: true,
     color: new Color(genome.skin.primaryColor)
   });
 }

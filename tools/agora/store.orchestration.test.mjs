@@ -79,6 +79,46 @@ test('tasks: creating with an unknown dep fails honestly', () => {
   rm(dir);
 });
 
+test('tasks: listTasks computes graph fields ready/depStates/gates (diamond observability)', () => {
+  const dir = tmpDir();
+  const store = createStore({ dir });
+  const me = store.registerAgent({ petSlug: 'gf-sd', handle: 'orch' });
+
+  const leafA = store.createTask({ agentId: me.id, title: 'leaf A' });
+  const leafB = store.createTask({ agentId: me.id, title: 'leaf B' });
+  const converge = store.createTask({ agentId: me.id, title: 'converge', deps: [leafA.id, leafB.id] });
+
+  const byId = (rows) => new Map(rows.map((t) => [t.id, t]));
+
+  let rows = byId(store.listTasks());
+  // Leaves: no upstream deps so open = ready; each gates exactly one downstream task.
+  assert.deepEqual(rows.get(leafA.id).depStates, []);
+  assert.equal(rows.get(leafA.id).ready, true); // open + no deps => claimable now
+  assert.equal(rows.get(leafA.id).gates, 1);
+  assert.equal(rows.get(leafB.id).gates, 1);
+  // Converge: not ready, reports its two blocking upstream edges with live state.
+  assert.equal(rows.get(converge.id).ready, false);
+  assert.deepEqual(rows.get(converge.id).depStates.map((d) => d.id).sort(), [leafA.id, leafB.id].sort());
+  assert.deepEqual(rows.get(converge.id).depStates.map((d) => d.state).sort(), ['open', 'open']);
+
+  // Completing both leaves unlocks the converge node (diamond is now join-ready).
+  for (const leaf of [leafA, leafB]) {
+    store.claimTask({ taskId: leaf.id, agentId: me.id });
+    store.setTaskState({ taskId: leaf.id, agentId: me.id, state: 'done' });
+  }
+  rows = byId(store.listTasks());
+  assert.equal(rows.get(leafA.id).ready, false); // done != open, not claimable again
+  assert.equal(rows.get(converge.id).ready, true);
+  assert.equal(rows.get(converge.id).depStates.every((d) => d.state === 'done'), true);
+  assert.equal(rows.get(converge.id).gates, 0); // a final output gates nothing
+
+  // The computed `ready` uses the same predicate claim-next does.
+  assert.deepEqual(store.listTasks({ ready: true }).map((t) => t.title), ['converge']);
+
+  store.close();
+  rm(dir);
+});
+
 test('tasks: done accepts a structured result, stored on the task and in history', () => {
   const dir = tmpDir();
   const store = createStore({ dir });

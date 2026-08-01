@@ -282,6 +282,11 @@ lead explicitly and declare their own bounded paths/globs.
 
 - A task is
   `{ id, title, body, campaignId, wave, state, createdBy, creatorAgent, claimedBy, claimedAgent, assignedPet, deps[], priority, refs[], result, checkpoint, retraceFiles[], retrace, reapCount, createdAt, updatedAt, history[] }`.
+  **`GET /tasks` rows additionally carry computed, read-only graph fields** —
+  `ready` (the same predicate `claim-next` uses), `depStates` (upstream edges
+  with live state), and `gates` (downstream dependents count). They are never
+  persisted. See [`GRAPH-ENGINEERING.md`](./GRAPH-ENGINEERING.md) for how to
+  read a diamond on the board.
 - `state` ∈ `open | claimed | in_progress | blocked | done`.
 - **`creatorAgent` is mandatory on new tasks.** It is a token-free snapshot of the registered
   creator `{ id, handle, note, model, sessionId }`, stamped when the task is created so the
@@ -291,6 +296,10 @@ lead explicitly and declare their own bounded paths/globs.
 - **`deps`** (task ids) gate readiness: a task is **ready** when it is `open` and every dep
   is `done`. Creating a task with an unknown dep id → `400` (fail honestly, no dangling
   references). **`priority`** (number, default 0, higher first) orders the ready queue.
+  ⚠️ `POST /tasks/:id/claim` does **not** re-check readiness — it claims any open task
+  (WF-G55). Direct claims on a gated task undermine the diamond; prefer `claim-next` /
+  `task next` unless an orchestrator is explicitly hand-assigning.
+  Diamond fan-out + checker-gate recipes: [`GRAPH-ENGINEERING.md`](./GRAPH-ENGINEERING.md).
   **`refs`** (free strings, e.g. `planmap:<topic>/<feature>`, `spells:G12`, or a doc path) link
   the task to a planning surface — the Plan Map, the Roadmap, or the deprecated project-tracker
   `GAPS.md` artifacts (see `tools/agora/gapIndex.mjs` for the GAPS.md side of the bridge).

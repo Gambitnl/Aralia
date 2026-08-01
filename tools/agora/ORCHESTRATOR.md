@@ -334,6 +334,10 @@ say <body> | say --to <h> <body>     inbox [--since <seq>] [--mine]     watch   
 - **Sequencing lives on the daemon now**: create wave-2 packets with `--dep <wave1-taskId>` —
   they only surface in `tasks --ready` / `task next` when every dep is `done`. `--priority`
   orders the ready queue. No more hand-sequencing in plan JSON.
+- **Graph recipes (diamond + checker)**: seed dep-free leaves for parallel work, converge
+  with `--dep`, and gate poisonous output behind a checker task. The playbook — fake-edge
+  test, diamond rules, five-check checker node, static vs dynamic, board reading — is
+  [`GRAPH-ENGINEERING.md`](./GRAPH-ENGINEERING.md).
 - **Worker-pull waves**: instead of assigning packets, seed N prioritized tasks and tell each
   worker to loop `task next` → work → `task done <id> --result "<files + proof>"`. The board
   balances the load.

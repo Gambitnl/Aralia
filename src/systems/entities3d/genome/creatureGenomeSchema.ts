@@ -19,7 +19,6 @@
  */
 
 import { z } from 'zod';
-import { zodToJsonSchema } from 'zod-to-json-schema';
 
 // ============================================================================
 // Joint Constraints
@@ -200,7 +199,52 @@ export type CreatureGenome = z.infer<typeof CreatureGenomeSchema>;
 // ============================================================================
 
 export function creatureGenomeToJsonSchema(): Record<string, unknown> {
-  return zodToJsonSchema(CreatureGenomeSchema, 'CreatureGenome');
+  return {
+    $schema: 'http://json-schema.org/draft-07/schema#',
+    title: 'CreatureGenome',
+    type: 'object',
+    required: ['archetype', 'rootBone', 'spine', 'locomotion', 'skin', 'mass'],
+    properties: {
+      schemaVersion: { type: 'string', default: '1.0' },
+      archetype: { type: 'string', enum: ['biped', 'quadruped', 'hexapod', 'serpentine', 'avian', 'arachnid', 'custom'] },
+      symmetryType: { type: 'string', enum: ['bilateral', 'radial', 'none'], default: 'bilateral' },
+      scaleMultiplier: { type: 'number', default: 1.0 },
+      mass: { type: 'number', description: 'Mass in kg' },
+      skin: {
+        type: 'object',
+        required: ['primaryColor', 'secondaryColor', 'pattern'],
+        properties: {
+          primaryColor: { type: 'string', pattern: '^#[0-9A-Fa-f]{6}$' },
+          secondaryColor: { type: 'string', pattern: '^#[0-9A-Fa-f]{6}$' },
+          pattern: { type: 'string', enum: ['solid', 'striped', 'spotted', 'camouflage', 'scaly', 'feathered', 'chitinous', 'custom'] },
+          thicknessProfile: { type: 'number', default: 0.5 }
+        }
+      },
+      spine: {
+        type: 'object',
+        required: ['segmentCount', 'segmentLength'],
+        properties: {
+          segmentCount: { type: 'integer', minimum: 1, maximum: 20 },
+          curvature: { type: 'number', minimum: -90, maximum: 90 },
+          segmentLength: { type: 'number', description: 'Length in feet' },
+          maxSegmentRotation: { type: 'number', maximum: 14 }
+        }
+      },
+      locomotion: {
+        type: 'object',
+        required: ['gaitType', 'strideLength', 'stepFrequency'],
+        properties: {
+          gaitType: { type: 'string', enum: ['walk', 'trot', 'gallop', 'bipedal', 'tripod', 'ripple', 'serpentine', 'flight', 'custom'] },
+          strideLength: { type: 'number', description: 'Stride length in feet' },
+          stepFrequency: { type: 'number', description: 'Step frequency in Hz' }
+        }
+      },
+      rootBone: {
+        type: 'object',
+        description: 'Recursive BoneNode structure with id, name, length (feet), thickness (feet), restRotation [pitch, yaw, roll], joint, mirror, children'
+      }
+    }
+  };
 }
 
 export function validateGenome(

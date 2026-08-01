@@ -1647,10 +1647,28 @@ export function createStore({
     if (ready) source = source.filter(isTaskReady).sort(readyOrder);
     const normalizedCategory = category == null ? '' : normalizeCategoryInput(category);
     const out = [];
+    // Computed graph view (read-only; never persisted, so `state.tasks` rows and
+    // the journal stay raw and replay-consistent). Each row answers the two
+    // questions a diamond workflow needs: which upstream deps am I waiting on
+    // (`ready` + `depStates`), and how many downstream tasks am I gating
+    // (`gates`)? This is what lets a board reader "see the graph" instead of
+    // re-deriving it from raw `deps` arrays. See GRAPH-ENGINEERING.md.
     for (const t of source) {
       const row = withCategory(t);
       if (normalizedCategory && !row.categories.includes(normalizedCategory)) continue;
       if (filterState && t.state !== filterState) continue;
+      row.ready = isTaskReady(t);
+      row.depStates = (t.deps || []).map((d) => {
+        const dep = state.tasks.get(d);
+        return dep
+          ? { id: dep.id, state: dep.state, title: dep.title }
+          : { id: d, state: 'missing', title: '' };
+      });
+      let gates = 0;
+      for (const other of state.tasks.values()) {
+        if ((other.deps || []).includes(t.id)) gates += 1;
+      }
+      row.gates = gates;
       out.push(row);
     }
     return out;
