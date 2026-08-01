@@ -51,6 +51,47 @@ export interface VisScenario {
   capture: CaptureStep[];
 }
 
+/**
+ * Zoom the 2D town map in on its open-land parcels. `TownPlanView` fits the
+ * whole parent cell, which leaves the walled town about a third of the panel —
+ * far too small to judge a garden from a paddock. The map's wheel zoom anchors
+ * on the cursor, so anchoring on the upper third of the open-land spread both
+ * magnifies the town and holds the northern slack on screen.
+ */
+const ZOOM_TOWN_ON_OPEN_LAND = `(() => {
+  const svg = document.querySelector('[data-testid="preview-town"] svg');
+  if (!svg) throw new Error('no town svg');
+  const parcels = [...document.querySelectorAll('[data-testid^="town-open-land-"]')];
+  if (parcels.length === 0) throw new Error('no open-land parcels');
+  let l = Infinity, t = Infinity, r = -Infinity, b = -Infinity;
+  for (const p of parcels) { const q = p.getBoundingClientRect(); if (q.width <= 0) continue; l = Math.min(l, q.left); t = Math.min(t, q.top); r = Math.max(r, q.right); b = Math.max(b, q.bottom); }
+  const cx = (l + r) / 2, cy = t + (b - t) * 0.3;
+  for (let i = 0; i < 9; i++) svg.dispatchEvent(new WheelEvent('wheel', { clientX: cx, clientY: cy, deltaY: -200, bubbles: true, cancelable: true }));
+  return 'zoomed on ' + parcels.length + ' parcels';
+})()`;
+
+/**
+ * Tip the town minimap's OrbitControls toward top-down and zoom in.
+ *
+ * The minimap's opening pose is a low three-quarter view from the south, which
+ * puts the northern half of the town BEHIND its own rooftops — the exact ground
+ * these captures exist to judge. Dragging up raises the polar angle to a near
+ * plan view, so every square foot inside the wall is visible at once.
+ */
+const TOWN_MINIMAP_TOPDOWN = `(() => {
+  const cs = [...document.querySelectorAll('canvas')].filter((c) => c.clientWidth > 0 && c.offsetParent !== null);
+  const c = cs[0];
+  if (!c) throw new Error('no visible minimap canvas');
+  const r = c.getBoundingClientRect();
+  const x = r.left + r.width / 2, y = r.top + r.height / 2;
+  const ev = (t, cx, cy) => c.dispatchEvent(new PointerEvent(t, { clientX: cx, clientY: cy, button: 0, buttons: t === 'pointerup' ? 0 : 1, pointerId: 1, pointerType: 'mouse', bubbles: true, cancelable: true }));
+  ev('pointerdown', x, y);
+  for (let i = 1; i <= 12; i++) ev('pointermove', x, y + i * 5);
+  ev('pointerup', x, y + 60);
+  for (let i = 0; i < 6; i++) c.dispatchEvent(new WheelEvent('wheel', { clientX: x, clientY: y, deltaY: -240, bubbles: true, cancelable: true }));
+  return 'minimap tipped top-down';
+})()`;
+
 /** Zoom the world3d MapControls camera in by dispatching wheel ticks. */
 const WHEEL_ZOOM_34 = `(() => { const c = document.querySelector('canvas'); if (!c) return; const r = c.getBoundingClientRect(); for (let i = 0; i < 34; i++) { c.dispatchEvent(new WheelEvent('wheel', { clientX: r.left + r.width * 0.485, clientY: r.top + r.height * 0.5, deltaY: -300, bubbles: true, cancelable: true })); } })()`;
 
@@ -797,6 +838,61 @@ export const SCENARIOS: VisScenario[] = [
       { kind: "screenshot" },
     ],
   },
+
+
+  // --- town open land ----------------------------------------------------
+  // The `?step=town` harness shows one real burg in three panels with a
+  // typology row. These recipes drive it by BUTTON TEXT because the harness
+  // lives in the gitignored steps/ tree and carries no test ids.
+  ...(
+    [
+      { slug: 'hafting', band: 'Walled town', burg: 'Hafting' },
+      { slug: 'borieborum', band: 'Capital', burg: 'Borieborum' },
+    ] as const
+  ).flatMap(({ slug, band, burg }) => {
+    const pick = (label: string) =>
+      `(() => { const b = [...document.querySelectorAll('button')].find((x) => (x.textContent ?? '').trim().startsWith(${JSON.stringify(label)})); if (!b) throw new Error('no button: ' + ${JSON.stringify(label)}); b.click(); return 'clicked ' + ${JSON.stringify(label)}; })()`;
+    return [
+      {
+        id: `town-open-land-2d-${slug}`,
+        title: `Town 2D: intramural open land — ${burg}`,
+        group: 'world' as const,
+        url: 'misc/design.html?step=town3d',
+        notes:
+          `${burg}'s 2D plan with only the map panel showing. Judge that NO ground inside the wall ring is blank parchment: the slack between the built edge and the wall must read as legible parcels (hatched gardens, dotted orchards, rubble ruins, plain paddocks/yards), and any ward block that packed no buildings must show parcels rather than an empty block.`,
+        capture: [
+          { kind: 'waitHook' as const, expr: `document.querySelector('[data-testid="preview-town"]') != null`, timeoutMs: 60000 },
+          { kind: 'eval' as const, js: pick(band) },
+          { kind: 'sleep' as const, ms: 4000 },
+          { kind: 'eval' as const, js: pick('2D map') },
+          { kind: 'sleep' as const, ms: 2500 },
+          { kind: 'waitHook' as const, expr: `document.querySelectorAll('[data-testid^="town-open-land-"]').length > 0`, timeoutMs: 60000 },
+          { kind: 'eval' as const, js: ZOOM_TOWN_ON_OPEN_LAND },
+          { kind: 'sleep' as const, ms: 1500 },
+          { kind: 'screenshot' as const },
+        ],
+      },
+      {
+        id: `town-open-land-3d-${slug}`,
+        title: `Town 3D: intramural open land — ${burg}`,
+        group: 'world' as const,
+        url: 'misc/design.html?step=town3d',
+        notes:
+          `${burg}'s 3D minimap with only that panel showing. Judge that the ground inside the wall ring is tinted by land use everywhere — no blank tan ground between the outermost blocks and the wall.`,
+        capture: [
+          { kind: 'waitHook' as const, expr: `document.querySelector('[data-testid="preview-town"]') != null`, timeoutMs: 60000 },
+          { kind: 'eval' as const, js: pick(band) },
+          { kind: 'sleep' as const, ms: 4000 },
+          { kind: 'eval' as const, js: pick('3D minimap') },
+          { kind: 'sleep' as const, ms: 9000 },
+          { kind: 'eval' as const, js: TOWN_MINIMAP_TOPDOWN },
+          { kind: 'sleep' as const, ms: 3000 },
+          { kind: 'screenshot' as const },
+        ],
+      },
+    ];
+  }),
+
   // --- world ------------------------------------------------------------
   {
     id: "world-cast-diorama",

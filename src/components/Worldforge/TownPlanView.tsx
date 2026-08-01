@@ -116,14 +116,14 @@ const OUTSKIRT_FILL: Record<'farm' | 'pasture' | 'scrub', string> = {
 // has a texture) but keyed WARMER and lighter, so a garden inside the walls
 // reads as town ground rather than a piece of countryside that leaked in.
 const OPEN_LAND_FILL: Record<'yard' | 'garden' | 'orchard' | 'paddock' | 'ruin', string> = {
-  yard: '#c0ac83',
+  yard: 'url(#town-yard)',
   garden: 'url(#town-garden)',
   orchard: 'url(#town-orchard)',
   paddock: '#a6b183',
   ruin: 'url(#town-ruin)',
 };
 const OPEN_LAND_STROKE: Record<'yard' | 'garden' | 'orchard' | 'paddock' | 'ruin', string> = {
-  yard: '#9c8a63', garden: '#77894f', orchard: '#5f7440', paddock: '#849060', ruin: '#8b7f6a',
+  yard: '#8e7c54', garden: '#77894f', orchard: '#5f7440', paddock: '#849060', ruin: '#857960',
 };
 
 const poly = (pts: Pt[]): string => 'M' + pts.map((p) => `${p[0].toFixed(1)},${p[1].toFixed(1)}`).join('L') + 'Z';
@@ -947,10 +947,23 @@ const TownPlanView: React.FC<TownPlanViewProps> = ({
           <rect width="8" height="8" fill="#87a05e" />
           <circle cx="4" cy="4" r="1.7" fill="#4f6a35" />
         </pattern>
-        <pattern id="town-ruin" width="6" height="6" patternUnits="userSpaceOnUse">
-          <rect width="6" height="6" fill="#b8ab92" />
-          <rect x="0.6" y="0.8" width="2" height="1.4" fill="#8d8069" />
-          <rect x="3.4" y="3.2" width="1.7" height="1.6" fill="#8d8069" />
+        {/* Trodden yard: bare dun ground, scuffed. Deliberately well off the
+            parchment street tone (#cdbf9c) — at the previous flat #c0ac83 a
+            capital's yard band read as slightly dirty road, not as land use. */}
+        <pattern id="town-yard" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(15)">
+          <rect width="6" height="6" fill="#b3a074" />
+          <line x1="0.8" y1="1.4" x2="2.6" y2="1.4" stroke="#95815a" strokeWidth="0.7" />
+          <line x1="3.6" y1="4.3" x2="5.2" y2="4.3" stroke="#95815a" strokeWidth="0.7" />
+        </pattern>
+        {/* Ruin: broken footings and rubble — deliberately IRREGULAR marks, since
+            an even grid of squares reads as gravel paving rather than collapse. */}
+        <pattern id="town-ruin" width="9" height="9" patternUnits="userSpaceOnUse" patternTransform="rotate(8)">
+          <rect width="9" height="9" fill="#b5a891" />
+          <rect x="0.5" y="1.1" width="3.4" height="1.1" fill="#7f7360" />
+          <rect x="0.5" y="2.2" width="1.1" height="2.3" fill="#7f7360" />
+          <rect x="5.4" y="4.6" width="2.6" height="1" fill="#7f7360" />
+          <rect x="6.9" y="5.6" width="1" height="2.1" fill="#7f7360" />
+          <rect x="3.2" y="7.1" width="1.4" height="0.9" fill="#8d8069" />
         </pattern>
         {/* District facade grammars reuse the production resolver's wall and
             trim colors. Definitions are deduplicated by material + pattern. */}

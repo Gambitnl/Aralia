@@ -1279,13 +1279,15 @@ export function buildIntramuralOpenLand(args: {
     if (rOut[k] - rIn[k] > minBandWidth) slackArea += 0.5 * (rOut[k] ** 2 - rIn[k] ** 2) * dTheta;
   }
 
+  // Parcel grain: about a third of a ward, so a parcel reads at the same scale
+  // as the blocks it sits against.
+  const targetParcelArea = Math.max(minParcelArea * 4, (envArea / Math.max(1, wards.length)) * 0.32);
+
   if (slackArea > minParcelArea) {
-    // Parcel grain: about a third of a ward, so a parcel reads at the same
-    // scale as the blocks it sits against. Sites are spread over the bbox, so
-    // scale the count up by how much bigger the bbox is than one parcel.
+    // Sites spread over the bbox, so scale the count up by how much bigger the
+    // bbox is than one parcel.
     const b = polygonBounds(envelope);
     const bboxArea = (b.maxX - b.minX) * (b.maxY - b.minY);
-    const targetParcelArea = Math.max(minParcelArea * 4, (envArea / Math.max(1, wards.length)) * 0.32);
     const count = Math.max(24, Math.min(600, Math.round(bboxArea / targetParcelArea)));
     const bbox: Pt[] = [[b.minX, b.minY], [b.maxX, b.minY], [b.maxX, b.maxY], [b.minX, b.maxY]];
     const model = generateSubmap(
@@ -1325,23 +1327,30 @@ export function buildIntramuralOpenLand(args: {
     const w = wards[i];
     if (!emptyWards.includes(w)) continue;
     const block = w.block.length >= 3 ? w.block : w.polygon;
-    if (block.length < 3 || polyArea(block) < minParcelArea) continue;
-    // Two to four parcels, so an unbuilt block reads as several holdings rather
-    // than one flat slab. Seeded off the ward index → deterministic.
+    const blockArea = block.length >= 3 ? polyArea(block) : 0;
+    if (blockArea < minParcelArea) continue;
+    // An unbuilt block is ringed by streets and neighbours, so it always reads as
+    // close-in ground: shallow depth, whatever the town's fill.
+    const kindFor = (): OpenLandKind => classifyOpenLand(0.15, fill, walled, rng.next());
+    // Split into holdings at the SAME grain as the rim parcels, so a big unbuilt
+    // block reads as several gardens rather than one flat slab. A block already
+    // at or under that grain is one holding — subdividing it would only produce
+    // slivers, and dropping the slivers would put the blank block back.
+    const holdings = Math.max(1, Math.min(4, Math.round(blockArea / targetParcelArea)));
+    if (holdings <= 1) {
+      if (!civicPolys.some((p) => polygonsIntersect(block, p))) {
+        out.push({ polygon: block, kind: kindFor(), source: 'ward' });
+      }
+      continue;
+    }
     const sub = generateSubmap(
       { polygon: block, seedPath: streamPath(seedPath, `open-ward:${i}`) },
-      { count: 2 + Math.floor(rng.next() * 3) },
+      { count: holdings },
     );
     for (const cell of sub.cells) {
-      if (cell.polygon.length < 3 || polyArea(cell.polygon) < minParcelArea) continue;
+      if (cell.polygon.length < 3 || polyArea(cell.polygon) < minParcelArea * 0.2) continue;
       if (civicPolys.some((p) => polygonsIntersect(cell.polygon, p))) continue;
-      // An unbuilt block is ringed by streets and neighbours, so it always reads
-      // as close-in ground: shallow depth, whatever the town's fill.
-      out.push({
-        polygon: cell.polygon,
-        kind: classifyOpenLand(0.15, fill, walled, rng.next()),
-        source: 'ward',
-      });
+      out.push({ polygon: cell.polygon, kind: kindFor(), source: 'ward' });
     }
   }
 
