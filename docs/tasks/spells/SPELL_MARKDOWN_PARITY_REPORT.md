@@ -1,6 +1,6 @@
 # Spell Markdown Parity Report
 
-Generated: 2026-07-31T23:06:10.151Z
+Generated: 2026-08-01T00:52:45.628Z
 Markdown files scanned: 516
 Total mismatches: 891
 Grouped mismatch buckets: 21
@@ -276,4 +276,3 @@ This report is grouped so arbitration can start with repeated mismatch families 
 - Sample spells: elemental-bane
 - Sample findings:
   - Elemental Bane is missing the structured markdown field Save Stat even though the JSON provides Constitution.
-<!-- aralia-backlog-walked: true -->
