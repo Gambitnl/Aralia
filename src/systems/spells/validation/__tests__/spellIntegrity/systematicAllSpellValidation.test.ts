@@ -2354,6 +2354,7 @@ describe('SpellIntegrityValidator', () => {
         'giant-insect',
         'glyph-of-warding',
         'greater-restoration',
+        'guardian-of-nature',
         'guards-and-wards',
         'hallow',
         'hex',

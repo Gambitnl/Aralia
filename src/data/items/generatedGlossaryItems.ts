@@ -184,15 +184,6 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "weight": 12,
     "rarity": ItemRarity.Uncommon
   },
-  "alexandrite": {
-    "id": "alexandrite",
-    "name": "Alexandrite",
-    "description": "A dark green gemstone....",
-    "type": "treasure",
-    "icon": "/assets/icons/items/alexandrite.svg",
-    "cost": "500 GP",
-    "costInGp": 500
-  },
   "ale_mug": {
     "id": "ale_mug",
     "name": "Ale (mug)",
@@ -201,6 +192,15 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "icon": "/assets/icons/items/ale_mug.svg",
     "cost": "0.04 GP",
     "costInGp": 0.04
+  },
+  "alexandrite": {
+    "id": "alexandrite",
+    "name": "Alexandrite",
+    "description": "A dark green gemstone....",
+    "type": "treasure",
+    "icon": "/assets/icons/items/alexandrite.svg",
+    "cost": "500 GP",
+    "costInGp": 500
   },
   "amber": {
     "id": "amber",
@@ -370,16 +370,6 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "cost": "0.05 GP",
     "costInGp": 0.05
   },
-  "arrows_20": {
-    "id": "arrows_20",
-    "name": "Arrows (20)",
-    "description": "Arrows are used with a weapon that has the ammunition property to make a ranged attack. Each time you attack with the weapon, you expend one piece of ...",
-    "type": "treasure",
-    "icon": "/assets/icons/items/arrows_20.svg",
-    "weight": 1,
-    "cost": "1 GP",
-    "costInGp": 1
-  },
   "arrow_catching_shield": {
     "id": "arrow_catching_shield",
     "name": "Arrow-Catching Shield",
@@ -398,6 +388,16 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
         "requirements": "Required"
       }
     }
+  },
+  "arrows_20": {
+    "id": "arrows_20",
+    "name": "Arrows (20)",
+    "description": "Arrows are used with a weapon that has the ammunition property to make a ranged attack. Each time you attack with the weapon, you expend one piece of ...",
+    "type": "treasure",
+    "icon": "/assets/icons/items/arrows_20.svg",
+    "weight": 1,
+    "cost": "1 GP",
+    "costInGp": 1
   },
   "assassin_s_blood": {
     "id": "assassin_s_blood",
@@ -484,16 +484,6 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "costInGp": 2,
     "slot": "Ring"
   },
-  "bagpipes": {
-    "id": "bagpipes",
-    "name": "Bagpipes",
-    "description": "- Ability: Charisma - Utilize: Play a known tune (DC 10), or improvise a song (DC 15)...",
-    "type": "treasure",
-    "icon": "/assets/icons/items/bagpipes.svg",
-    "weight": 6,
-    "cost": "30 GP",
-    "costInGp": 30
-  },
   "bag_of_beans": {
     "id": "bag_of_beans",
     "name": "Bag of Beans",
@@ -542,6 +532,16 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "type": "accessory",
     "icon": "/assets/icons/items/bag_of_tricks_tan.svg",
     "rarity": ItemRarity.Uncommon
+  },
+  "bagpipes": {
+    "id": "bagpipes",
+    "name": "Bagpipes",
+    "description": "- Ability: Charisma - Utilize: Play a known tune (DC 10), or improvise a song (DC 15)...",
+    "type": "treasure",
+    "icon": "/assets/icons/items/bagpipes.svg",
+    "weight": 6,
+    "cost": "30 GP",
+    "costInGp": 30
   },
   "ball_bearings": {
     "id": "ball_bearings",
@@ -780,34 +780,6 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
       }
     }
   },
-  "blackrazor": {
-    "id": "blackrazor",
-    "name": "Blackrazor",
-    "description": "Hidden in the dungeon of White Plume Mountain, Blackrazor shines like a piece of night sky filled with stars. Its black scabbard is decorated with pie...",
-    "type": "weapon",
-    "icon": "/assets/icons/items/blackrazor.svg",
-    "weight": 6,
-    "slot": "MainHand",
-    "damageDice": "2d6",
-    "damageType": "Slashing",
-    "properties": [
-      "Heavy",
-      "Two-Handed"
-    ],
-    "rarity": ItemRarity.Artifact,
-    "magicProperties": {
-      "isIdentified": true,
-      "attunement": {
-        "required": true,
-        "requirements": "Required"
-      }
-    },
-    "effect": {
-      "type": "heal",
-      "value": 0,
-      "dice": "1d10"
-    }
-  },
   "black_dragon_scale_mail": {
     "id": "black_dragon_scale_mail",
     "name": "Black Dragon Scale Mail",
@@ -862,6 +834,34 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "icon": "/assets/icons/items/black_velvet_mask_stitched_with_silver_thread.svg",
     "cost": "25 GP",
     "costInGp": 25
+  },
+  "blackrazor": {
+    "id": "blackrazor",
+    "name": "Blackrazor",
+    "description": "Hidden in the dungeon of White Plume Mountain, Blackrazor shines like a piece of night sky filled with stars. Its black scabbard is decorated with pie...",
+    "type": "weapon",
+    "icon": "/assets/icons/items/blackrazor.svg",
+    "weight": 6,
+    "slot": "MainHand",
+    "damageDice": "2d6",
+    "damageType": "Slashing",
+    "properties": [
+      "Heavy",
+      "Two-Handed"
+    ],
+    "rarity": ItemRarity.Artifact,
+    "magicProperties": {
+      "isIdentified": true,
+      "attunement": {
+        "required": true,
+        "requirements": "Required"
+      }
+    },
+    "effect": {
+      "type": "heal",
+      "value": 0,
+      "dice": "1d10"
+    }
   },
   "blanket": {
     "id": "blanket",
@@ -1412,14 +1412,6 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "cost": "0.1 GP",
     "costInGp": 0.1
   },
-  "cape_of_the_mountebank": {
-    "id": "cape_of_the_mountebank",
-    "name": "Cape of the Mountebank",
-    "description": "This cape smells faintly of brimstone. While wearing it, you can use it to cast dimension_door|Dimension Door as a magic|Magic action. This property c...",
-    "type": "accessory",
-    "icon": "/assets/icons/items/cape_of_the_mountebank.svg",
-    "rarity": ItemRarity.Rare
-  },
   "cap_of_water_breathing": {
     "id": "cap_of_water_breathing",
     "name": "Cap of Water Breathing",
@@ -1427,6 +1419,14 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "type": "accessory",
     "icon": "/assets/icons/items/cap_of_water_breathing.svg",
     "rarity": ItemRarity.Uncommon
+  },
+  "cape_of_the_mountebank": {
+    "id": "cape_of_the_mountebank",
+    "name": "Cape of the Mountebank",
+    "description": "This cape smells faintly of brimstone. While wearing it, you can use it to cast dimension_door|Dimension Door as a magic|Magic action. This property c...",
+    "type": "accessory",
+    "icon": "/assets/icons/items/cape_of_the_mountebank.svg",
+    "rarity": ItemRarity.Rare
   },
   "carnelian": {
     "id": "carnelian",
@@ -1872,14 +1872,6 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "icon": "/assets/icons/items/clockwork_amulet.svg",
     "rarity": ItemRarity.Common
   },
-  "clothes_of_mending": {
-    "id": "clothes_of_mending",
-    "name": "Clothes of Mending",
-    "description": "This elegant outfit magically mends itself to counteract daily wear and tear. Pieces of the outfit that are destroyed can't be repaired in this way....",
-    "type": "accessory",
-    "icon": "/assets/icons/items/clothes_of_mending.svg",
-    "rarity": ItemRarity.Common
-  },
   "cloth_of_gold_vestments": {
     "id": "cloth_of_gold_vestments",
     "name": "Cloth-of-gold vestments",
@@ -1888,6 +1880,14 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "icon": "/assets/icons/items/cloth_of_gold_vestments.svg",
     "cost": "25 GP",
     "costInGp": 25
+  },
+  "clothes_of_mending": {
+    "id": "clothes_of_mending",
+    "name": "Clothes of Mending",
+    "description": "This elegant outfit magically mends itself to counteract daily wear and tear. Pieces of the outfit that are destroyed can't be repaired in this way....",
+    "type": "accessory",
+    "icon": "/assets/icons/items/clothes_of_mending.svg",
+    "rarity": ItemRarity.Common
   },
   "cloves": {
     "id": "cloves",
@@ -2841,37 +2841,6 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "costInGp": 10,
     "slot": "Ring"
   },
-  "eyes_of_charming": {
-    "id": "eyes_of_charming",
-    "name": "Eyes of Charming",
-    "description": "These crystal lenses fit over the eyes. They have 3 charges. While wearing them, you can expend 1 or more charges to cast charm_person|Charm Person (s...",
-    "type": "accessory",
-    "icon": "/assets/icons/items/eyes_of_charming.svg",
-    "rarity": ItemRarity.Uncommon,
-    "magicProperties": {
-      "isIdentified": true,
-      "attunement": {
-        "required": true,
-        "requirements": "Required"
-      }
-    }
-  },
-  "eyes_of_minute_seeing": {
-    "id": "eyes_of_minute_seeing",
-    "name": "Eyes of Minute Seeing",
-    "description": "These crystal lenses fit over the eyes. While wearing them, your vision improves significantly out to a range of 1 foot, granting you darkvision|Darkv...",
-    "type": "accessory",
-    "icon": "/assets/icons/items/eyes_of_minute_seeing.svg",
-    "rarity": ItemRarity.Uncommon
-  },
-  "eyes_of_the_eagle": {
-    "id": "eyes_of_the_eagle",
-    "name": "Eyes of the Eagle",
-    "description": "These crystal lenses fit over the eyes. While wearing them, you have advantage|Advantage on Wisdom (perception|Perception) checks that rely on sight. ...",
-    "type": "accessory",
-    "icon": "/assets/icons/items/eyes_of_the_eagle.svg",
-    "rarity": ItemRarity.Uncommon
-  },
   "eye_agate": {
     "id": "eye_agate",
     "name": "Eye Agate",
@@ -2904,6 +2873,37 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "icon": "/assets/icons/items/eye_patch_decorated_with_tiny_blue_sapphires_and_moonstones.svg",
     "cost": "2500 GP",
     "costInGp": 2500
+  },
+  "eyes_of_charming": {
+    "id": "eyes_of_charming",
+    "name": "Eyes of Charming",
+    "description": "These crystal lenses fit over the eyes. They have 3 charges. While wearing them, you can expend 1 or more charges to cast charm_person|Charm Person (s...",
+    "type": "accessory",
+    "icon": "/assets/icons/items/eyes_of_charming.svg",
+    "rarity": ItemRarity.Uncommon,
+    "magicProperties": {
+      "isIdentified": true,
+      "attunement": {
+        "required": true,
+        "requirements": "Required"
+      }
+    }
+  },
+  "eyes_of_minute_seeing": {
+    "id": "eyes_of_minute_seeing",
+    "name": "Eyes of Minute Seeing",
+    "description": "These crystal lenses fit over the eyes. While wearing them, your vision improves significantly out to a range of 1 foot, granting you darkvision|Darkv...",
+    "type": "accessory",
+    "icon": "/assets/icons/items/eyes_of_minute_seeing.svg",
+    "rarity": ItemRarity.Uncommon
+  },
+  "eyes_of_the_eagle": {
+    "id": "eyes_of_the_eagle",
+    "name": "Eyes of the Eagle",
+    "description": "These crystal lenses fit over the eyes. While wearing them, you have advantage|Advantage on Wisdom (perception|Perception) checks that rely on sight. ...",
+    "type": "accessory",
+    "icon": "/assets/icons/items/eyes_of_the_eagle.svg",
+    "rarity": ItemRarity.Uncommon
   },
   "feed_per_day": {
     "id": "feed_per_day",
@@ -3016,6 +3016,15 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "cost": "10 GP",
     "costInGp": 10
   },
+  "fire_opal": {
+    "id": "fire_opal",
+    "name": "Fire Opal",
+    "description": "A fiery red gemstone....",
+    "type": "treasure",
+    "icon": "/assets/icons/items/fire_opal.svg",
+    "cost": "1000 GP",
+    "costInGp": 1000
+  },
   "firearm_bullet": {
     "id": "firearm_bullet",
     "name": "Firearm Bullet",
@@ -3035,15 +3044,6 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "weight": 2,
     "cost": "3 GP",
     "costInGp": 3
-  },
-  "fire_opal": {
-    "id": "fire_opal",
-    "name": "Fire Opal",
-    "description": "A fiery red gemstone....",
-    "type": "treasure",
-    "icon": "/assets/icons/items/fire_opal.svg",
-    "cost": "1000 GP",
-    "costInGp": 1000
   },
   "flail": {
     "id": "flail",
@@ -3221,16 +3221,6 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "baseArmorClass": 12,
     "rarity": ItemRarity.Rare
   },
-  "glassblower_s_tools": {
-    "id": "glassblower_s_tools",
-    "name": "Glassblower's Tools",
-    "description": "- Ability: Intelligence - Utilize: Discern what a glass object held in the past 24 hours (DC 15) - Craft: glass_bottle|Glass Bottle, magnifying_glass|...",
-    "type": "treasure",
-    "icon": "/assets/icons/items/glassblower_s_tools.svg",
-    "weight": 5,
-    "cost": "30 GP",
-    "costInGp": 30
-  },
   "glass_bottle": {
     "id": "glass_bottle",
     "name": "Glass Bottle",
@@ -3241,6 +3231,16 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "cost": "2 GP",
     "costInGp": 2,
     "slot": "Ring"
+  },
+  "glassblower_s_tools": {
+    "id": "glassblower_s_tools",
+    "name": "Glassblower's Tools",
+    "description": "- Ability: Intelligence - Utilize: Discern what a glass object held in the past 24 hours (DC 15) - Craft: glass_bottle|Glass Bottle, magnifying_glass|...",
+    "type": "treasure",
+    "icon": "/assets/icons/items/glassblower_s_tools.svg",
+    "weight": 5,
+    "cost": "30 GP",
+    "costInGp": 30
   },
   "gloves_of_missile_snaring": {
     "id": "gloves_of_missile_snaring",
@@ -3583,32 +3583,6 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "armorCategory": "Medium",
     "baseArmorClass": 15
   },
-  "handaxe": {
-    "id": "handaxe",
-    "name": "Handaxe",
-    "description": "M...",
-    "type": "weapon",
-    "icon": "/assets/icons/items/handaxe.svg",
-    "weight": 2,
-    "cost": "5 GP",
-    "costInGp": 5,
-    "slot": "MainHand",
-    "damageDice": "1d6",
-    "damageType": "Slashing",
-    "properties": [
-      "Light",
-      "Thrown"
-    ]
-  },
-  "handheld_mirror_set_in_a_painted_wooden_frame": {
-    "id": "handheld_mirror_set_in_a_painted_wooden_frame",
-    "name": "Handheld mirror set in a painted wooden frame",
-    "description": "$A...",
-    "type": "treasure",
-    "icon": "/assets/icons/items/handheld_mirror_set_in_a_painted_wooden_frame.svg",
-    "cost": "25 GP",
-    "costInGp": 25
-  },
   "hand_crossbow": {
     "id": "hand_crossbow",
     "name": "Hand Crossbow",
@@ -3641,6 +3615,32 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
         "requirements": "Required"
       }
     }
+  },
+  "handaxe": {
+    "id": "handaxe",
+    "name": "Handaxe",
+    "description": "M...",
+    "type": "weapon",
+    "icon": "/assets/icons/items/handaxe.svg",
+    "weight": 2,
+    "cost": "5 GP",
+    "costInGp": 5,
+    "slot": "MainHand",
+    "damageDice": "1d6",
+    "damageType": "Slashing",
+    "properties": [
+      "Light",
+      "Thrown"
+    ]
+  },
+  "handheld_mirror_set_in_a_painted_wooden_frame": {
+    "id": "handheld_mirror_set_in_a_painted_wooden_frame",
+    "name": "Handheld mirror set in a painted wooden frame",
+    "description": "$A...",
+    "type": "treasure",
+    "icon": "/assets/icons/items/handheld_mirror_set_in_a_painted_wooden_frame.svg",
+    "cost": "25 GP",
+    "costInGp": 25
   },
   "hat_of_disguise": {
     "id": "hat_of_disguise",
@@ -4569,7 +4569,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "properties": [
       "Heavy",
       "Reach",
-      "Two-Handed"
+      "2H"
     ]
   },
   "lantern_of_revealing": {
@@ -4620,16 +4620,6 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
       "Two-Handed"
     ]
   },
-  "leatherworker_s_tools": {
-    "id": "leatherworker_s_tools",
-    "name": "Leatherworker's Tools",
-    "description": "- Ability: Dexterity - Utilize: Add a design to a leather item (DC 10) - Craft: sling|Sling, whip|Whip, hide_armor|Hide Armor, leather_armor|Leather A...",
-    "type": "treasure",
-    "icon": "/assets/icons/items/leatherworker_s_tools.svg",
-    "weight": 5,
-    "cost": "5 GP",
-    "costInGp": 5
-  },
   "leather_armor": {
     "id": "leather_armor",
     "name": "Leather Armor",
@@ -4642,6 +4632,16 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "slot": "Torso",
     "armorCategory": "Light",
     "baseArmorClass": 11
+  },
+  "leatherworker_s_tools": {
+    "id": "leatherworker_s_tools",
+    "name": "Leatherworker's Tools",
+    "description": "- Ability: Dexterity - Utilize: Add a design to a leather item (DC 10) - Craft: sling|Sling, whip|Whip, hide_armor|Hide Armor, leather_armor|Leather A...",
+    "type": "treasure",
+    "icon": "/assets/icons/items/leatherworker_s_tools.svg",
+    "weight": 5,
+    "cost": "5 GP",
+    "costInGp": 5
   },
   "light_crossbow": {
     "id": "light_crossbow",
@@ -5640,6 +5640,14 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
       "Two-Handed"
     ]
   },
+  "pipe_of_smoke_monsters": {
+    "id": "pipe_of_smoke_monsters",
+    "name": "Pipe of Smoke Monsters",
+    "description": "While smoking this pipe, you can take a magic|Magic action to exhale a puff of smoke that takes the form of a creature, such as a dragon, a flumph, or...",
+    "type": "accessory",
+    "icon": "/assets/icons/items/pipe_of_smoke_monsters.svg",
+    "rarity": ItemRarity.Common
+  },
   "pipes_of_haunting": {
     "id": "pipes_of_haunting",
     "name": "Pipes of Haunting",
@@ -5662,14 +5670,6 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
         "requirements": "Required"
       }
     }
-  },
-  "pipe_of_smoke_monsters": {
-    "id": "pipe_of_smoke_monsters",
-    "name": "Pipe of Smoke Monsters",
-    "description": "While smoking this pipe, you can take a magic|Magic action to exhale a puff of smoke that takes the form of a creature, such as a dragon, a flumph, or...",
-    "type": "accessory",
-    "icon": "/assets/icons/items/pipe_of_smoke_monsters.svg",
-    "rarity": ItemRarity.Common
   },
   "pistol": {
     "id": "pistol",
@@ -5793,6 +5793,14 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "cost": "4 GP",
     "costInGp": 4,
     "slot": "Ring"
+  },
+  "pot_of_awakening": {
+    "id": "pot_of_awakening",
+    "name": "Pot of Awakening",
+    "description": "If you plant an ordinary shrub in this 10-pound clay pot and let it grow for 30 days, the shrub magically transforms into an Awakened Shrub at the end...",
+    "type": "accessory",
+    "icon": "/assets/icons/items/pot_of_awakening.svg",
+    "rarity": ItemRarity.Common
   },
   "potion_of_acid_resistance": {
     "id": "potion_of_acid_resistance",
@@ -6170,14 +6178,6 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "weight": 3,
     "cost": "10 GP",
     "costInGp": 10
-  },
-  "pot_of_awakening": {
-    "id": "pot_of_awakening",
-    "name": "Pot of Awakening",
-    "description": "If you plant an ordinary shrub in this 10-pound clay pot and let it grow for 30 days, the shrub magically transforms into an Awakened Shrub at the end...",
-    "type": "accessory",
-    "icon": "/assets/icons/items/pot_of_awakening.svg",
-    "rarity": ItemRarity.Common
   },
   "pouch": {
     "id": "pouch",
@@ -7913,25 +7913,6 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
       "Versatile"
     ]
   },
-  "spellguard_shield": {
-    "id": "spellguard_shield",
-    "name": "Spellguard Shield",
-    "description": "While holding this Shield, you have advantage|Advantage on saving throws against spells and other magical effects, and spell attack rolls have disadva...",
-    "type": "armor",
-    "icon": "/assets/icons/items/spellguard_shield.svg",
-    "weight": 6,
-    "slot": "OffHand",
-    "armorCategory": "Shield",
-    "armorClassBonus": 2,
-    "rarity": ItemRarity.VeryRare,
-    "magicProperties": {
-      "isIdentified": true,
-      "attunement": {
-        "required": true,
-        "requirements": "Required"
-      }
-    }
-  },
   "spell_scroll_cantrip": {
     "id": "spell_scroll_cantrip",
     "name": "Spell Scroll (Cantrip)",
@@ -8015,6 +7996,25 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "type": "treasure",
     "icon": "/assets/icons/items/spell_scroll_level_9.svg",
     "rarity": ItemRarity.Legendary
+  },
+  "spellguard_shield": {
+    "id": "spellguard_shield",
+    "name": "Spellguard Shield",
+    "description": "While holding this Shield, you have advantage|Advantage on saving throws against spells and other magical effects, and spell attack rolls have disadva...",
+    "type": "armor",
+    "icon": "/assets/icons/items/spellguard_shield.svg",
+    "weight": 6,
+    "slot": "OffHand",
+    "armorCategory": "Shield",
+    "armorClassBonus": 2,
+    "rarity": ItemRarity.VeryRare,
+    "magicProperties": {
+      "isIdentified": true,
+      "attunement": {
+        "required": true,
+        "requirements": "Required"
+      }
+    }
   },
   "sphere_of_annihilation": {
     "id": "sphere_of_annihilation",
@@ -9177,6 +9177,22 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
       }
     }
   },
+  "war_pick": {
+    "id": "war_pick",
+    "name": "War Pick",
+    "description": "M...",
+    "type": "weapon",
+    "icon": "/assets/icons/items/war_pick.svg",
+    "weight": 2,
+    "cost": "5 GP",
+    "costInGp": 5,
+    "slot": "MainHand",
+    "damageDice": "1d8",
+    "damageType": "Piercing",
+    "properties": [
+      "Versatile"
+    ]
+  },
   "warhammer": {
     "id": "warhammer",
     "name": "Warhammer",
@@ -9210,22 +9226,6 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "icon": "/assets/icons/items/warship.svg",
     "cost": "25000 GP",
     "costInGp": 25000
-  },
-  "war_pick": {
-    "id": "war_pick",
-    "name": "War Pick",
-    "description": "M...",
-    "type": "weapon",
-    "icon": "/assets/icons/items/war_pick.svg",
-    "weight": 2,
-    "cost": "5 GP",
-    "costInGp": 5,
-    "slot": "MainHand",
-    "damageDice": "1d8",
-    "damageType": "Piercing",
-    "properties": [
-      "Versatile"
-    ]
   },
   "waterskin": {
     "id": "waterskin",

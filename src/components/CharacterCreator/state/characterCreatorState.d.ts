@@ -32,8 +32,8 @@ export declare enum CreationStep {
     ClassFeatures = 9,
     WeaponMastery = 10,
     RacialFeatSelection = 11,
-    FeatSelection = 11,
-    NameAndReview = 12
+    FeatSelection = 12,
+    NameAndReview = 13
 }
 export type FeatChoiceValue = AbilityScoreName | string | string[] | undefined;
 export type FeatChoiceState = {
