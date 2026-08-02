@@ -572,7 +572,10 @@ export function createAgoraServer({ dir = DEFAULT_DIR, storeFactory, activityFil
   router.post(
     '/tasks/:id/claim',
     withAuth(async (_req, res, ctx) => {
-      const result = store.claimTask({ taskId: ctx.params.id, agentId: ctx.agent.id });
+      // WF-G55: an open task with unresolved deps is gated. `?force=1` is the
+      // orchestrator-only bypass the task creator may use for hand-assignment.
+      const force = ctx.query.get('force') === '1';
+      const result = store.claimTask({ taskId: ctx.params.id, agentId: ctx.agent.id, force });
       if (result.ok) {
         scheduleSyncSoon();
         return sendJson(res, 200, { task: result.task });

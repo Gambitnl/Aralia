@@ -90,7 +90,46 @@ hang it on. Failing that, a custom two-term fog in the terrain material.
 records it as a measured fix: without it, a lit-only water surface went grey at low sun.
 Changing it requires re-measuring at dusk as well as midday.
 
-## 5. Terrain facets are a style decision, not a defect
+## 6. First blind A/B verdict — 2026-08-01, gemma4:12b (local Ollama)
+
+Re-captured `wilds-ancient-forest` from the live surface (current tree, post
+aa7621a0) and ran a **blind** side-by-side against `wilderness-open-campsite-clearing`
+(BG3 best all-round) through `.agent/scratch/vision-critic.mjs`. The model did not
+know which frame was ours; labels A/B randomised (this run: A=BG3, B=OURS).
+
+**Verdict: PICK A (BG3). Score A=9, B=3.** 173.6s, 705 eval tokens.
+
+Actionable notes the critic gave for OURS (the loser):
+1. Replace cone and blob primitives with sculpted meshes for rocks and trees —
+   repetitive silhouettes.
+2. Multi-layered terrain shader (dirt / grass / rock blends) instead of a single
+   uniform texture/color.
+3. Foliage height + density variety; grass too sparse, no visual interest.
+4. Ambient occlusion and soft shadows to define object/ground contact points.
+
+Caveat on #4: AO IS wired (aoRadius 1.8, confirmed working by the in-code
+measurement: rock base 60.7→29.9). At the 640px blind-critique scale and the
+~100 m exploration camera, the 1.8 radius reads as absent — which is the same
+disagreement the world3d-ground critic flagged (#6 FAIL) vs the in-code correction.
+**Resolution: re-measure aoRadius UP from 1.8 for the exploration camera as the
+first cheap change, one-variable A/B.** The BattleMap3D 1.8 value is for the close
+combat camera, not this one.
+
+Current-tree corrections to the 2026-07-30 scores (verified in code, not assumed):
+- #1a terrain UVs — DONE (commit aa7621a0; world-space UVs derived, lines 282-291).
+- #1b flat facets — DONE (smooth-shaded per Remy's call; flatShading removed).
+- #6 AO — wired and working at 1.8, but radius likely wrong for this camera (see above).
+So the honest current score is higher than 0/11 but still well below the bar;
+the blind A/B 3-vs-9 is the real read.
+
+Build order from the critic's notes (highest impact per effort, one change per A/B):
+1. AO radius re-measure (1.8 → walk up toward 7) — cheap, addresses #4 + the #6 disagreement.
+2. Atmosphere job: @takram Sky + AerialPerspective + three-clouds — addresses "fails to
+   define atmosphere/scale", the central 3-vs-9 driver. Wiring against installed libs.
+3. Terrain slope-based material blending (dirt/grass/rock) — addresses note #2.
+4. Foliage geometry + grass layers — addresses notes #1/#3 (the biggest job).
+
+
 
 `World3DScene` sets `flatShading` explicitly on the terrain material. The visible triangles
 are intentional low-poly styling.

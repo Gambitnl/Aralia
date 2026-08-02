@@ -273,7 +273,7 @@ lead explicitly and declare their own bounded paths/globs.
 | Method | Path | Auth | Body | Success | Errors |
 |---|---|---|---|---|---|
 | POST | `/tasks` | Bearer | `{ "title": string, "body"?: string, "deps"?: taskId[], "priority"?: number, "refs"?: string[], "campaignId"?, "wave"? }` | `201 { task }` (state `open`) | `400` if `title` missing/not a string, a dep id is unknown, or campaignId is unknown; `401` |
-| POST | `/tasks/:id/claim` | Bearer | — | `200 { task }` (state `claimed`) | `404` not found; `409` if already claimed by another agent; `401` |
+| POST | `/tasks/:id/claim` | Bearer | — (query `?force=1` is the creator's hand-assignment bypass) | `200 { task }` (state `claimed`) | `404` not found; `409` if already claimed by another agent OR an open task has unresolved deps (WF-G55); `401` |
 | POST | `/tasks/claim-next` | Bearer | optional `{ "campaignId"?: string, "category"?: string }` (the same filters are accepted as query parameters) | `200 { task }` — the top-priority matching READY task, atomically claimed; `200 { task: null }` when nothing is ready | `400` invalid JSON; `401` |
 | POST | `/tasks/:id/checkpoint` | Bearer | `{ "did"?: string, "next"?: string, "files"?: string[] }` | `200 { checkpoint }` | `404` not found; `403` caller is not the current claimant; `409` task is open, blocked, or done; `400` invalid body; `401` |
 | POST | `/tasks/:id/state` | Bearer | `{ "state": "open"|"claimed"|"in_progress"|"blocked"|"done", "result"?: string }` | `200 { task }` | `404` not found; `400` invalid state; `401` |
@@ -296,9 +296,10 @@ lead explicitly and declare their own bounded paths/globs.
 - **`deps`** (task ids) gate readiness: a task is **ready** when it is `open` and every dep
   is `done`. Creating a task with an unknown dep id → `400` (fail honestly, no dangling
   references). **`priority`** (number, default 0, higher first) orders the ready queue.
-  ⚠️ `POST /tasks/:id/claim` does **not** re-check readiness — it claims any open task
-  (WF-G55). Direct claims on a gated task undermine the diamond; prefer `claim-next` /
-  `task next` unless an orchestrator is explicitly hand-assigning.
+  `POST /tasks/:id/claim` re-checks readiness (WF-G55): claiming an open task with an
+  unresolved dep returns `409 task not ready: blocked by dep <id>`. Only the task's
+  creator may bypass with `?force=1` for deliberate hand-assignment; otherwise prefer
+  `claim-next` / `task next`. (Resolved WF-G55.)
   Diamond fan-out + checker-gate recipes: [`GRAPH-ENGINEERING.md`](./GRAPH-ENGINEERING.md).
   **`refs`** (free strings, e.g. `planmap:<topic>/<feature>`, `spells:G12`, or a doc path) link
   the task to a planning surface — the Plan Map, the Roadmap, or the deprecated project-tracker

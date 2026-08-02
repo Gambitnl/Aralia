@@ -1514,12 +1514,25 @@ export function createStore({
     return a.createdAt - b.createdAt; // then FIFO
   }
 
-  function claimTask({ taskId, agentId } = {}) {
+  function claimTask({ taskId, agentId, force = false } = {}) {
     const t = state.tasks.get(taskId);
     if (!t) return { ok: false, error: 'task not found' };
     if (!state.agents.has(agentId)) return { ok: false, error: 'registered claiming agent is required' };
     if ((t.state === 'claimed' || t.state === 'in_progress') && t.claimedBy && t.claimedBy !== agentId) {
       return { ok: false, error: 'task already claimed by another agent' };
+    }
+    // Readiness gate (WF-G55): an open task with unresolved deps must not be
+    // hand-claimed, or the diamond parallelism silently reverts to a chain.
+    // The task's creator (the orchestrator who seeded it) may `force` a gated
+    // claim for deliberate hand-assignment; anyone else is refused.
+    if (t.state === 'open' && !isTaskReady(t)) {
+      if (!force || t.createdBy !== agentId) {
+        const blocks = (t.deps || []).filter((d) => {
+          const dep = state.tasks.get(d);
+          return !dep || dep.state !== 'done';
+        });
+        return { ok: false, error: `task not ready: blocked by dep ${blocks.join(', ') || '(unknown)'}` };
+      }
     }
     const pet = choosePetForAgent(agentId);
     if (!pet) return { ok: false, error: 'pet catalog unavailable; task claims require an assigned pet' };

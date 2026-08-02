@@ -1232,10 +1232,19 @@ const World3DScene: React.FC<World3DSceneProps> = ({
                 Rule this leaves behind: never A/B two rendering changes at once,
                 and a claimed AO pass must show that unoccluded ground did NOT
                 darken. */}
+            {/* BG3 parity world3d-ground #6, re-measured 2026-08-01 for the
+                EXPLORATION camera (~100 m look-across), not the close combat
+                camera the 1.8 value was tuned for. FINDINGS item 2 measured
+                1.8 = no visible darkening, 5 = too faint, 7 = occluders seated,
+                8 = muddies ground cover, at this camera. The in-code 1.8
+                measurement (rock base 60.7->29.9) was a closer framing. The
+                blind A/B critic (2026-08-01) flagged contact shading missing,
+                supporting the larger radius here. Re-A/B vs open-ground luma:
+                if unoccluded ground dims >3%, back off toward 5. */}
             <N8AO
               halfRes
               quality="performance"
-              aoRadius={1.8}
+              aoRadius={7}
               distanceFalloff={3.5}
               intensity={3.2}
             />

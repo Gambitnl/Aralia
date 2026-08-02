@@ -1037,10 +1037,13 @@ async function cmdTask(out, parsed, env, baseUrl) {
   if (sub === 'claim') {
     const taskId = rest[0];
     if (!taskId) {
-      out.log('Usage: task claim <taskId>');
+      out.log('Usage: task claim <taskId> [--force]');
       return { code: 1 };
     }
-    const r = await api(baseUrl, 'POST', `/tasks/${encodeURIComponent(taskId)}/claim`, { token });
+    // WF-G55: direct claim is gated on readiness. `--force` is the creator-only
+    // bypass for deliberate orchestrator hand-assignment of an unready task.
+    const qs = parsed.flags.force === true ? '?force=1' : '';
+    const r = await api(baseUrl, 'POST', `/tasks/${encodeURIComponent(taskId)}/claim${qs}`, { token });
     if (r.status === 200 && r.json && r.json.task) {
       out.log(`Claimed ${r.json.task.id}  [${r.json.task.state}]`);
       if (r.json.task.assignedPet) {

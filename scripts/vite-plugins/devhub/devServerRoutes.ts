@@ -1,6 +1,9 @@
 import { request as httpRequest } from 'http';
 import { execFile } from 'child_process';
+import { promises as fs } from 'fs';
+import type { Dirent } from 'fs';
 import { Socket } from 'net';
+import path from 'path';
 import { stripMarkdownInline } from '../utils';
 import type { DevHubRouteContext } from './routeContext';
 
@@ -38,6 +41,20 @@ type NodeProcessRow = {
 type AnnotatedNodeProcessRow = NodeProcessRow & {
   debugPort: number | null;
   debugPortAlive: boolean | null;
+};
+
+type SymlinkRow = {
+  path: string;
+  name: string;
+  parent: string;
+  type: string;
+  target: string;
+  targetExists: boolean;
+  targetDrive: string;
+  sizeBytes: number | null;
+  sizeLabel: string;
+  sizeNote: string;
+  category: string;
 };
 
 // Process types the dashboard can enumerate. Keys map to the executable names
@@ -103,6 +120,237 @@ const runCommand = (file: string, args: string[]) => new Promise<string>((resolv
     resolve(String(stdout || ''));
   });
 });
+
+const formatSizeLabel = (bytes: number | null): string => {
+  if (bytes === null) return 'unknown';
+  if (bytes >= 1024 ** 3) return `${(bytes / 1024 ** 3).toFixed(2)} GB`;
+  if (bytes >= 1024 ** 2) return `${(bytes / 1024 ** 2).toFixed(1)} MB`;
+  if (bytes >= 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${bytes} B`;
+};
+
+const normalizeWindowsPath = (value: string) => path.win32.normalize(value).replace(/\//g, '\\');
+
+const normalizeLinkTarget = (target: string) => {
+  const normalized = normalizeWindowsPath(target || '');
+  return normalized.startsWith('\\??\\') ? normalized.slice(4) : normalized;
+};
+
+const pathKey = (value: string) => normalizeWindowsPath(value).toLowerCase();
+
+const isPathUnder = (candidate: string, parent: string) => {
+  const candidateKey = pathKey(candidate);
+  const parentKey = pathKey(parent);
+  return candidateKey === parentKey || candidateKey.startsWith(`${parentKey.endsWith('\\') ? parentKey : `${parentKey}\\`}`);
+};
+
+type RecursiveDirent = Dirent<string> & {
+  parentPath?: string;
+  path?: string;
+};
+
+const getDirentParent = (entry: RecursiveDirent, fallback: string) => entry.parentPath || entry.path || fallback;
+
+const sumFileSizes = async (filePaths: string[], concurrency = 64): Promise<number> => {
+  let index = 0;
+  let bytes = 0;
+
+  const worker = async () => {
+    while (index < filePaths.length) {
+      const filePath = filePaths[index];
+      index += 1;
+      try {
+        const stats = await fs.stat(filePath);
+        if (!stats.isDirectory()) bytes += stats.size;
+      } catch {
+        // Ignore files that disappear or cannot be read during a live scan.
+      }
+    }
+  };
+
+  const workerCount = Math.min(concurrency, Math.max(1, filePaths.length));
+  await Promise.all(Array.from({ length: workerCount }, worker));
+  return bytes;
+};
+
+const measureDirectoryWithNode = async (directoryPath: string): Promise<number> => {
+  let entries: RecursiveDirent[];
+  try {
+    entries = await fs.readdir(directoryPath, { recursive: true, withFileTypes: true }) as RecursiveDirent[];
+  } catch {
+    return 0;
+  }
+
+  const skippedDirectories: string[] = [];
+  const filePaths: string[] = [];
+  for (const entry of entries) {
+    const entryPath = path.win32.join(getDirentParent(entry, directoryPath), entry.name);
+    if (skippedDirectories.some((skippedPath) => isPathUnder(entryPath, skippedPath))) continue;
+    if (entry.isSymbolicLink()) {
+      skippedDirectories.push(entryPath);
+      continue;
+    }
+    if (!entry.isDirectory()) filePaths.push(entryPath);
+  }
+
+  return sumFileSizes(filePaths);
+};
+
+const measureDirectoryWithRobocopy = async (directoryPath: string): Promise<number> => new Promise((resolve, reject) => {
+  execFile(
+    'robocopy.exe',
+    [directoryPath, 'NUL', '/L', '/S', '/BYTES', '/XJ', '/R:0', '/W:0', '/NFL', '/NDL', '/NJH'],
+    { windowsHide: true, maxBuffer: 512 * 1024 },
+    (error, stdout, stderr) => {
+      const exitCode = typeof (error as { code?: unknown } | null)?.code === 'number'
+        ? Number((error as { code: number }).code)
+        : 0;
+      if (error && exitCode > 7) {
+        reject(error);
+        return;
+      }
+
+      const output = `${stdout || ''}\n${stderr || ''}`;
+      const bytesMatch = output.match(/^\s*Bytes\s*:\s*([\d,]+)/m);
+      if (!bytesMatch) {
+        reject(new Error('Could not parse robocopy byte summary'));
+        return;
+      }
+
+      resolve(Number(bytesMatch[1].replace(/,/g, '')));
+    },
+  );
+});
+
+const measureDirectoryNoLinks = async (directoryPath: string): Promise<number> => {
+  if (process.platform === 'win32') {
+    try {
+      return await measureDirectoryWithRobocopy(directoryPath);
+    } catch {
+      // Fall back to the Node walker if robocopy is unavailable or returns an unexpected summary.
+    }
+  }
+
+  return measureDirectoryWithNode(directoryPath);
+};
+
+const getCompatibilityLinkParents = (userProfile: string) => new Map<string, Set<string>>([
+  [pathKey(userProfile), new Set([
+    'application data',
+    'cookies',
+    'local settings',
+    'my documents',
+    'nethood',
+    'printhood',
+    'recent',
+    'sendto',
+    'start menu',
+    'templates',
+  ])],
+  [pathKey(path.win32.join(userProfile, 'AppData', 'Local')), new Set([
+    'application data',
+    'history',
+    'temporary internet files',
+  ])],
+  [pathKey(path.win32.join(userProfile, 'AppData', 'Roaming')), new Set([
+    'application data',
+  ])],
+]);
+
+const listProfileSymlinks = async (): Promise<SymlinkRow[]> => {
+  const userProfile = process.env.USERPROFILE || process.env.HOME || '';
+  if (!userProfile) return [];
+
+  if (process.platform !== 'win32') {
+    return [];
+  }
+
+  const scanRoots = [
+    userProfile,
+    path.win32.join(userProfile, 'AppData', 'Local'),
+    path.win32.join(userProfile, 'AppData', 'Roaming'),
+  ];
+  const compatibilityLinkParents = getCompatibilityLinkParents(userProfile);
+  const profileOnG = path.win32.join('G:\\', 'Users', path.win32.basename(userProfile));
+  const rows: SymlinkRow[] = [];
+
+  for (const root of scanRoots) {
+    let entries: Dirent<string>[];
+    try {
+      entries = await fs.readdir(root, { withFileTypes: true });
+    } catch {
+      continue;
+    }
+
+    for (const entry of entries) {
+      if (!entry.isSymbolicLink()) continue;
+
+      const sourcePath = path.win32.join(root, entry.name);
+      let target = '';
+      try {
+        target = normalizeLinkTarget(await fs.readlink(sourcePath));
+      } catch {
+        // Keep the row visible even if Windows cannot resolve its target.
+      }
+
+      const knownCompatibilityNames = compatibilityLinkParents.get(pathKey(root));
+      const isWindowsCompatibilityLink = Boolean(knownCompatibilityNames?.has(entry.name.toLowerCase()))
+        && Boolean(target)
+        && isPathUnder(target, userProfile);
+      let targetExists = false;
+      let targetIsDirectory = false;
+      let sizeBytes: number | null = null;
+      let sizeNote = '';
+
+      if (isWindowsCompatibilityLink) {
+        targetExists = true;
+        targetIsDirectory = true;
+        sizeBytes = 0;
+        sizeNote = 'Compatibility alias; size belongs to its target folder.';
+      } else if (target) {
+        try {
+          const targetStats = await fs.stat(target);
+          targetExists = true;
+          targetIsDirectory = targetStats.isDirectory();
+          if (targetIsDirectory) {
+            sizeBytes = await measureDirectoryNoLinks(target);
+            sizeNote = 'Target folder, excluding nested reparse points.';
+          } else {
+            sizeBytes = targetStats.size;
+            sizeNote = 'Target file.';
+          }
+        } catch {
+          targetExists = false;
+        }
+      }
+
+      const targetDrive = target.match(/^[A-Za-z]:/)?.[0].toUpperCase() || '';
+      const category = isPathUnder(target, profileOnG)
+        ? 'G drive offload'
+        : isPathUnder(target, userProfile)
+          ? isWindowsCompatibilityLink
+            ? 'Windows compatibility link'
+            : 'Profile redirect'
+          : 'System or app link';
+
+      rows.push({
+        path: sourcePath,
+        name: entry.name,
+        parent: root,
+        type: targetIsDirectory ? 'Junction' : 'Symlink',
+        target,
+        targetExists,
+        targetDrive,
+        sizeBytes,
+        sizeLabel: isWindowsCompatibilityLink ? '0 KB link' : formatSizeLabel(sizeBytes),
+        sizeNote,
+        category,
+      });
+    }
+  }
+
+  return rows.sort((left, right) => left.path.localeCompare(right.path));
+};
 
 // Read small JSON request bodies for local dashboard mutation routes. The dev
 // hub API is intentionally lightweight and does not install a body parser, so
@@ -501,6 +749,27 @@ const scanDevServerTargets = async (targets: Array<{ port: number; label: string
 
 export async function handleDevServerRoutes(ctx: DevHubRouteContext): Promise<boolean> {
   const { req, json, parsedUrl, urlPath } = ctx;
+
+  if (urlPath === '/api/dev/symlinks' || urlPath === '/Aralia/api/dev/symlinks') {
+    try {
+      const userProfile = process.env.USERPROFILE || process.env.HOME || '';
+      const links = await listProfileSymlinks();
+      json({
+        scannedAt: new Date().toISOString(),
+        count: links.length,
+        offloadedCount: links.filter((link) => link.category === 'G drive offload').length,
+        roots: [
+          userProfile,
+          `${userProfile}\\AppData\\Local`,
+          `${userProfile}\\AppData\\Roaming`,
+        ],
+        links,
+      });
+    } catch (error) {
+      json({ error: `Could not scan symlinks: ${String(error)}` }, 500);
+    }
+    return true;
+  }
 
   if (urlPath === '/api/dev/node-processes/kill-likely-leaked' || urlPath === '/Aralia/api/dev/node-processes/kill-likely-leaked') {
     if (String(req.method || 'GET').toUpperCase() !== 'POST') {

@@ -5,9 +5,11 @@
  * 1. Analytical 2-bone IK (law of cosines) for simple legs/arms with 2 segments (hip -> knee -> foot).
  * 2. FABRIK (Forward And Backward Reaching Inverse Kinematics) for 3+ bone chains (spines, tails, tentacles).
  * 3. High-level `solveAllChains` orchestration that solves limb/spine/tail chains and enforces joint constraints parent-first.
+ *
+ * Safe Quaternion unit vector rotation prevents anti-parallel 180-degree singularities.
  */
 
-import { Vector3, Quaternion, Bone, Object3D } from 'three';
+import { Vector3, Quaternion, Object3D } from 'three';
 import type { AssembledSkeleton, LimbChain } from './skeletonAssembler';
 import { enforceAllConstraints } from './jointConstraints';
 import { solveKnee } from '../three/ik';
@@ -26,7 +28,7 @@ const EPSILON = 1e-6;
 
 function safeNormalize(v: Vector3): Vector3 {
   const len = v.length();
-  if (len < EPSILON) return new Vector3(0, 0, 0);
+  if (len < EPSILON) return new Vector3(0, 1, 0);
   return v.clone().divideScalar(len);
 }
 
@@ -49,6 +51,25 @@ function getWorldQuaternion(bone: Object3D | null): Quaternion {
 
 function worldToLocalQuat(worldQuat: Quaternion, parentWorldQuat: Quaternion): Quaternion {
   return parentWorldQuat.clone().invert().multiply(worldQuat);
+}
+
+/**
+ * Safe quaternion setFromUnitVectors that handles anti-parallel (180-degree)
+ * vectors without producing degenerate zero quaternions or NaN.
+ */
+function quatFromUnitVectors(vFrom: Vector3, vTo: Vector3): Quaternion {
+  const q = new Quaternion();
+  const r = vFrom.dot(vTo) + 1;
+  if (r < EPSILON) {
+    if (Math.abs(vFrom.x) > Math.abs(vFrom.z)) {
+      q.set(-vFrom.y, vFrom.x, 0, 0).normalize();
+    } else {
+      q.set(0, -vFrom.z, vFrom.y, 0).normalize();
+    }
+  } else {
+    q.setFromUnitVectors(vFrom, vTo);
+  }
+  return q;
 }
 
 // ============================================================================
@@ -89,10 +110,10 @@ export function solveAnalytical2Bone(
   solveKnee(hipPos, targetPos, upperLength, lowerLength, bendDir, kneeTargetPos);
   
   const hipToKnee = safeNormalize(kneeTargetPos.clone().sub(hipPos));
-  const hipWorldQuat = new Quaternion().setFromUnitVectors(new Vector3(0, 1, 0), hipToKnee);
+  const hipWorldQuat = quatFromUnitVectors(new Vector3(0, 1, 0), hipToKnee);
   
   const kneeToFoot = safeNormalize(targetPos.clone().sub(kneeTargetPos));
-  const kneeWorldQuat = new Quaternion().setFromUnitVectors(new Vector3(0, 1, 0), kneeToFoot);
+  const kneeWorldQuat = quatFromUnitVectors(new Vector3(0, 1, 0), kneeToFoot);
   
   const hipParentWorldQuat = getWorldQuaternion(hipBone.parent);
   const kneeParentWorldQuat = getWorldQuaternion(kneeBone.parent);
@@ -169,7 +190,7 @@ export function solveFABRIK(
       const currentPos = positions[i];
       const direction = safeNormalize(nextPos.clone().sub(currentPos));
       
-      const worldQuat = new Quaternion().setFromUnitVectors(new Vector3(0, 1, 0), direction);
+      const worldQuat = quatFromUnitVectors(new Vector3(0, 1, 0), direction);
       const parentWorldQuat = getWorldQuaternion(bone.parent);
       const localQuat = worldToLocalQuat(worldQuat, parentWorldQuat);
       

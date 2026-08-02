@@ -119,6 +119,58 @@ test('tasks: listTasks computes graph fields ready/depStates/gates (diamond obse
   rm(dir);
 });
 
+test('tasks: claimTask gates open tasks on unresolved deps; only the creator may force (WF-G55)', () => {
+  const dir = tmpDir();
+  const store = createStore({ dir });
+  const orch = store.registerAgent({ petSlug: 'gf-sd', handle: 'orch' });
+  const worker = store.registerAgent({ petSlug: 'gf-sd', handle: 'worker' });
+
+  const leaf = store.createTask({ agentId: orch.id, title: 'leaf' });
+  const converge = store.createTask({ agentId: orch.id, title: 'converge', deps: [leaf.id] });
+
+  // A worker cannot hand-claim the gated converge task...
+  const blocked = store.claimTask({ taskId: converge.id, agentId: worker.id });
+  assert.equal(blocked.ok, false);
+  assert.match(blocked.error, /not ready: blocked by dep/);
+
+  // ...and a non-creator cannot force it either.
+  const forcedByWorker = store.claimTask({ taskId: converge.id, agentId: worker.id, force: true });
+  assert.equal(forcedByWorker.ok, false);
+  assert.match(forcedByWorker.error, /not ready: blocked by dep/);
+
+  // The creator can force a gated claim (deliberate orchestrator hand-assignment).
+  const forcedByOrch = store.claimTask({ taskId: converge.id, agentId: orch.id, force: true });
+  assert.equal(forcedByOrch.ok, true);
+  assert.equal(forcedByOrch.task.state, 'claimed');
+
+  // Re-claim by the current owner stays allowed (idempotent hot-swap).
+  const reClaim = store.claimTask({ taskId: converge.id, agentId: orch.id });
+  assert.equal(reClaim.ok, true);
+
+  store.close();
+  rm(dir);
+});
+
+test('tasks: claimTask lets a ready (dep-satisfied) task be claimed normally (WF-G55)', () => {
+  const dir = tmpDir();
+  const store = createStore({ dir });
+  const orch = store.registerAgent({ petSlug: 'gf-sd', handle: 'orch' });
+  const worker = store.registerAgent({ petSlug: 'gf-sd', handle: 'worker' });
+
+  const leaf = store.createTask({ agentId: orch.id, title: 'leaf' });
+  const converge = store.createTask({ agentId: orch.id, title: 'converge', deps: [leaf.id] });
+  store.claimTask({ taskId: leaf.id, agentId: orch.id });
+  store.setTaskState({ taskId: leaf.id, agentId: orch.id, state: 'done' });
+
+  // Once every dep is done, any registered agent can claim the converge task.
+  const ok = store.claimTask({ taskId: converge.id, agentId: worker.id });
+  assert.equal(ok.ok, true);
+  assert.equal(ok.task.state, 'claimed');
+
+  store.close();
+  rm(dir);
+});
+
 test('tasks: done accepts a structured result, stored on the task and in history', () => {
   const dir = tmpDir();
   const store = createStore({ dir });

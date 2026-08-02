@@ -43,9 +43,10 @@ Procedure (five minutes, on paper or in `example-plan.json`):
 `seed → claim → work → verify → retire` looks sequential, but "verify" only
 consumes the task *result* — the separate `task checkpoint` step does not feed
 verify, so checkpointing and verifying are parallel, not dependent. Related
-fake edge: direct `task claim` on a gated task (WF-G55) bypasses readiness, so
-a worker can hand-pick work the board meant to wait. Read a task as "what must
-I wait for", not "what comes after what".
+edge: direct `task claim` on a gated task is now refused (WF-G55) unless the
+task's creator forces it — use `task next` for pull, `--force` only for
+deliberate orchestrator hand-assignment. Read a task as "what must I wait
+for", not "what comes after what".
 
 ## 3. The Diamond — parallel fan-out, one convergence
 
@@ -127,7 +128,8 @@ convergence) before it becomes a truck.
 Codify these defaults (they already shape `tools/agora/` docs):
 
 - Seed diamonds with `--dep`; tell workers to use `task next`, not `task claim`
-  (direct claim bypasses readiness — WF-G55).
+  (direct claim is gated on readiness — WF-G55; only a task's creator may
+  `--force` a gated claim for deliberate hand-assignment).
 - Require a checker node for any convergence fed by >1 parallel leaf whose
   failure is expensive.
 - File the moment you remove a fake edge from a live workflow as a
