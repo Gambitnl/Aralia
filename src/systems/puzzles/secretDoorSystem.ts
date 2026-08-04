@@ -23,7 +23,7 @@
  */
 
 import { PlayerCharacter } from '../../types/character';
-import { rollDice } from '../../utils/combatUtils';
+import { rollDice } from '../../utils/combat';
 import { getAbilityModifierValue } from '../../utils/statUtils';
 import { getPuzzleCharacterStats } from './characterAbilityBridge';
 import { SecretDoor, SecretDoorResult } from './types';

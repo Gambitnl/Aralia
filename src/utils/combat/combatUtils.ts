@@ -3,8 +3,8 @@
  * ARCHITECTURAL ADVISORY:
  * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 19/07/2026, 23:52:35
- * Dependents: App.tsx, components/BattleMap/characters/characterActor/CharacterActor.tsx, services/DiceService.ts, state/reducers/characterReducer.ts, systems/spells/mechanics/DiceRoller.ts, utils/character/checkUtils.ts, utils/character/savingThrowUtils.ts, utils/combat/index.ts, utils/combat/mechanicsUtils.ts, utils/combatUtils.ts, utils/sandbox/quickCharacterGenerator.ts, utils/spells/outOfCombatCasting.ts
+ * Last Sync: 04/08/2026, 01:44:44
+ * Dependents: App.tsx, components/BattleMap/characters/characterActor/CharacterActor.tsx, state/reducers/characterReducer.ts, systems/spells/mechanics/DiceRoller.ts, utils/character/checkUtils.ts, utils/character/savingThrowUtils.ts, utils/combat/combatAI.ts, utils/combat/index.ts, utils/combat/mechanicsUtils.ts, utils/sandbox/quickCharacterGenerator.ts, utils/spells/outOfCombatCasting.ts
  * Imports: 10 files
  *
  * MULTI-AGENT SAFETY:

@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 29/06/2026, 13:45:05
+ * Last Sync: 04/08/2026, 01:51:21
  * Dependents: commands/factory/AbilityCommandFactory.ts, commands/factory/SpellCommandFactory.ts
  * Imports: 7 files
  *
@@ -28,7 +28,7 @@ import { Item } from '@/types/items'
 import { DamageEffect, isDamageEffect, Spell, SpellEffect } from '@/types/spells'
 import { calculateProficiencyBonus } from '@/utils/character/savingThrowUtils'
 import { getAbilityModifierValue } from '@/utils/character/statUtils'
-import { getDistance } from '@/utils/combatUtils'
+import { getDistance } from '@/utils/combat'
 import { isWeaponProficient } from '@/utils/character/weaponUtils'
 
 type EquippedItemSnapshot = Partial<Record<'MainHand' | 'OffHand', Item>>

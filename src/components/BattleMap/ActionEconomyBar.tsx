@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 04/08/2026, 01:51:40
+ * Dependents: components/BattleMap/BattleMapDemo.tsx, components/BattleMap/index.ts, components/Combat/CombatView.tsx, components/DesignPreview/steps/PreviewCombatScenarios.tsx
+ * Imports: 3 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file ActionEconomyBar.tsx
  * A component to display the character's current action economy status.
@@ -6,7 +22,7 @@ import React from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { CombatCharacter, CombatAction, AbilityCost } from '../../types/combat';
 import Tooltip from '../Tooltip';
-import { generateId } from '../../utils/combatUtils';
+import { generateId } from '../../utils/combat';
 
 interface ActionEconomyBarProps {
   character: CombatCharacter;

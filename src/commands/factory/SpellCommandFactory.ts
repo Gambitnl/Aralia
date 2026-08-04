@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 23/07/2026, 21:24:56
+ * Last Sync: 04/08/2026, 01:51:04
  * Dependents: commands/index.ts
  * Imports: 33 files
  *
@@ -38,7 +38,7 @@ import { TargetValidationUtils } from '@/systems/spells/targeting/TargetValidati
 import { Plane } from '@/types/planes'
 import { calculateProficiencyBonus } from '@/utils/character/savingThrowUtils'
 import { getAbilityModifierValue } from '@/utils/character/statUtils'
-import { generateId, getCharacterDistance, resolveAttack, rollD20 } from '@/utils/combatUtils'
+import { generateId, getCharacterDistance, resolveAttack, rollD20 } from '@/utils/combat'
 import { calculateSpellDC, rollSavingThrow } from '@/utils/character/savingThrowUtils'
 import { combatEvents } from '@/systems/events/CombatEvents'
 import { SavePenaltySystem } from '@/systems/combat/SavePenaltySystem'

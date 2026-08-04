@@ -33,7 +33,7 @@ import type { CombatCharacter, CombatLogEntry, CombatState } from '../../types/c
 import type { SavingThrowAbility } from '../../types/spells';
 import { SavePenaltySystem } from '../combat/SavePenaltySystem';
 import { calculateSpellDC, rollSavingThrow } from '../../utils/character/savingThrowUtils';
-import { generateId } from '../../utils/combatUtils';
+import { generateId } from '../../utils/combat';
 
 // ============================================================================
 // Request Shape

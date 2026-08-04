@@ -1,7 +1,7 @@
 import { GameState, Location } from '../../types';
 import { getCurrentPlane } from '../../utils/planarUtils';
 import { rollSavingThrow } from '../../utils/savingThrowUtils';
-import { createPlayerCombatCharacter } from '../../utils/combatUtils';
+import { createPlayerCombatCharacter } from '../../utils/combat';
 import { LOCATIONS } from '../../constants';
 
 export interface RestOutcome {

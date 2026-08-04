@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { OpportunityAttackSystem } from '../reactions/OpportunityAttackSystem';
 import { createMockCombatCharacter, createMockItem } from '@/utils/factories';
-import { canTakeReaction } from '@/utils/combatUtils';
+import { canTakeReaction } from '@/utils/combat';
 import type { Ability } from '@/types/combat';
 
 describe('OpportunityAttackSystem and Reaction Rules', () => {

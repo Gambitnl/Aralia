@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 21/07/2026, 01:47:39
+ * Last Sync: 04/08/2026, 01:52:29
  * Dependents: components/DesignPreview/steps/PreviewDungeon.tsx, components/World3D/DungeonExpeditionOverlay.tsx
  * Imports: 6 files
  *
@@ -34,6 +34,8 @@
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { Html, MapControls } from '@react-three/drei';
+import { EffectComposer, Bloom, Vignette, N8AO, ToneMapping } from '@react-three/postprocessing';
+import { BlendFunction, ToneMappingMode } from 'postprocessing';
 import * as THREE from 'three';
 import { Button } from '../../ui/Button';
 import type { Cell, DungeonPlan } from '../../../systems/worldforge/dungeon/types';
@@ -625,6 +627,11 @@ const DungeonScene: React.FC<{
           intensity={26}
           distance={12}
           decay={2}
+          castShadow
+          shadow-mapSize={[512, 512]}
+          shadow-bias={-0.0006}
+          shadow-near={0.1}
+          shadow-far={20}
         />
       ))}
 
@@ -694,13 +701,55 @@ const DungeonScene: React.FC<{
         </>
       )}
       <SceneLines lines={model.lines} overlays={overlays} />
-      {model.markers.map((marker) => <SceneMarker key={marker.label} marker={marker} />)}
+      {/* Entrance/objective waypoint markers are gameplay chrome, not environment. A capture
+          scenario sets window.__dungeon3dMarkers = false to keep the frame a clean environment
+          (A9 hygiene); default (undefined) keeps them on so product users still see waypoints. */}
+      {(window as unknown as { __dungeon3dMarkers?: boolean }).__dungeon3dMarkers !== false
+        && model.markers.map((marker) => <SceneMarker key={marker.label} marker={marker} />)}
       {treasurePosition ? <DungeonTreasureMarker position={treasurePosition} /> : null}
       {playerPosition ? <DungeonPlayerMarker position={playerPosition} /> : null}
       <DungeonCamera model={model} preset={preset} autoRotate={autoRotate} />
     </>
   );
 };
+
+// ============================================================================
+// Post-processing stack — N8AO + Bloom + tone mapping + Vignette (dark dungeon)
+// ============================================================================
+// Copy of the BattleMap3D pattern (see FINDINGS works: use N8AO, not SSAO —
+// N8AO reconstructs normals from depth and needs no NormalPass, sidestepping
+// the WebGL2 depth-stencil GL_INVALID_OPERATION). ToneMapping MUST be in the
+// stack: while an EffectComposer is mounted it sets gl.toneMapping =
+// NoToneMapping, which would otherwise silently drop ACES and read as "raw
+// 3D". Every dungeon is underground, so this uses the dark-biome profile.
+// NOTE (2026-08-03): aoRadius copied from the close combat camera (1.8) as the
+// wiring default; it is a world-unit value and must be re-measured for the
+// dungeon entrance/objective cameras by a vision-capable critic (do NOT assume
+// the battle-map value transfers).
+// ============================================================================
+const PostProcessingStack: React.FC = () => (
+  <EffectComposer>
+    <N8AO
+      halfRes
+      quality="performance"
+      aoRadius={1.8}
+      distanceFalloff={3.5}
+      intensity={2.2}
+    />
+    <Bloom
+      mipmapBlur
+      luminanceThreshold={0.45}
+      luminanceSmoothing={0.25}
+      intensity={0.9}
+    />
+    <ToneMapping mode={ToneMappingMode.ACES_FILMIC} />
+    <Vignette
+      offset={0.3}
+      darkness={0.3}
+      blendFunction={BlendFunction.NORMAL}
+    />
+  </EffectComposer>
+);
 
 // ============================================================================
 // Frame profiler dev hook (development inspection only)
@@ -1059,8 +1108,9 @@ export const Dungeon3DPreview: React.FC<Dungeon3DPreviewProps> = ({ plan, overla
       <Canvas
         className="h-full w-full"
         dpr={[1, 2]}
+        shadows
         camera={{ fov: 46, near: 0.1, far: 600, position: [30, 34, 30] }}
-        gl={{ antialias: true, alpha: false, preserveDrawingBuffer: true }}
+        gl={{ antialias: true, alpha: false, preserveDrawingBuffer: true, toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: 1.35 }}
       >
         <DungeonScene
           model={model}
@@ -1072,6 +1122,7 @@ export const Dungeon3DPreview: React.FC<Dungeon3DPreviewProps> = ({ plan, overla
           playerPosition={playerPosition}
           treasurePosition={treasurePosition}
         />
+        <PostProcessingStack />
         <FrameProfiler />
       </Canvas>
 

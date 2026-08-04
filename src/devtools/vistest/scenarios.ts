@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 16/07/2026, 10:30:30
+ * Last Sync: 04/08/2026, 01:54:54
  * Dependents: components/DesignPreview/steps/PreviewVisTest.tsx, devtools/vistest/runnerCore.ts
  * Imports: None
  *
@@ -305,6 +305,14 @@ const PARCHMENT_ZOOM_IN = `(() => { const zoomIn = document.querySelector('[titl
 const PARCHMENT_PAN_TO_PLAN = `(() => { const canvas = [...document.querySelectorAll('canvas')].find((c) => { try { return !(c.getContext('webgl2') || c.getContext('webgl')); } catch { return true; } }); if (!canvas) return 'MISSING parchment canvas'; canvas.setPointerCapture = () => {}; canvas.releasePointerCapture = () => {}; const ZOOM = Math.pow(1.4, 3); const r = canvas.getBoundingClientRect(); const cx = r.left + r.width * 0.5, cy = r.top + r.height * 0.5; const dx = (0.5 - 0.46) * ZOOM * r.width, dy = (0.5 - 0.54) * ZOOM * r.height; const send = (type, x, y) => canvas.dispatchEvent(new PointerEvent(type, { clientX: x, clientY: y, pointerId: 1, isPrimary: true, button: 0, buttons: 1, bubbles: true, cancelable: true })); send('pointerdown', cx, cy); send('pointermove', cx + dx, cy + dy); send('pointerup', cx + dx, cy + dy); return 'panned to plan'; })()`;
 
 const ISOLATE_PARCHMENT_SHEET = `(() => { const canvas = [...document.querySelectorAll('canvas')].find((c) => { try { return !(c.getContext('webgl2') || c.getContext('webgl')); } catch { return true; } }); if (!canvas) return 'MISSING parchment canvas'; if (canvas.width < 400) return 'MISSING composed sheet (width ' + canvas.width + ')'; const stage = document.createElement('div'); stage.id = 'vistest-sheet-stage'; stage.style.cssText = 'position:fixed;inset:0;z-index:2147483647;background:#1a1a1a;display:flex;align-items:center;justify-content:center;padding:0'; canvas.style.cssText = 'width:auto;height:100vh;max-width:100vw;display:block'; stage.appendChild(canvas); document.body.appendChild(stage); return 'sheet isolated ' + canvas.width + 'x' + canvas.height; })()`;
+
+/**
+ * A9 hygiene: drop entrance/objective waypoint markers (gameplay chrome) from the 3D scene so
+ * the captured frame is the environment, not decorated with UI gizmos. Design Preview passes no
+ * `gameplay`, so the player/treasure markers never render anyway; this hides the always-on
+ * SceneMarkers. Set AFTER the camera/dolly and right before the final readback.
+ */
+const HIDE_DUNGEON_MARKERS = `(() => { window.__dungeon3dMarkers = false; return 'markers hidden'; })()`;
 
 export const SCENARIOS: VisScenario[] = [
   // --- entities (forge + debugger) -------------------------------------
@@ -1183,6 +1191,8 @@ export const SCENARIOS: VisScenario[] = [
       // the dolly happens only after `entrance` has restored them.
       { kind: "eval", js: DUNGEON_DOLLY_IN(9) },
       { kind: "sleep", ms: 5000 },
+      { kind: "eval", js: HIDE_DUNGEON_MARKERS },
+      { kind: "sleep", ms: 800 },
       { kind: "readback" },
     ],
   },
@@ -1230,9 +1240,62 @@ export const SCENARIOS: VisScenario[] = [
       { kind: "screenshot" },
     ],
   },
+  {
+    id: "dungeon-parchment-sheet-frost",
+    title: "Dungeon 2D: frost module sheet, full plate (second theme for B6)",
+    group: "dungeons",
+    url: "misc/design.html?step=dungeon&dseed=20260730&dtheme=frost",
+    notes:
+      "The same crypt seed re-themed to frost so the B6 'theme palette triad' target becomes scorable against dungeon-parchment-sheet: cold rime walls, warm paper retained, ice accents instead of the crypt's warm pyre light. Same seed as the other dungeon scenarios so 2D and 3D and both themes describe the same plan.",
+    capture: [
+      { kind: "waitHook", expr: "window.__dungeon3dReady === true", timeoutMs: 180000 },
+      {
+        kind: "eval",
+        js: `(() => { const b = document.querySelector('[data-testid="dungeon-view-parchment"]'); if (!b) return 'MISSING parchment toggle'; b.click(); return 'parchment'; })()`,
+      },
+      { kind: "sleep", ms: 6000 },
+      { kind: "eval", js: ISOLATE_PARCHMENT_SHEET },
+      { kind: "sleep", ms: 800 },
+      { kind: "screenshot" },
+    ],
+  },
+  {
+    id: "dungeon-3d-corridor-depth",
+    title: "Dungeon 3D: corridor-depth shot toward a lit mouth",
+    group: "dungeons",
+    url: "misc/design.html?step=dungeon&dseed=20260730&dtheme=crypt",
+    notes:
+      "A down-the-depth framing for A4/A6: the objective preset aims from the entrance toward the deepest room, then a dolly-in buys a corridor run. Purpose is measuring fog/darkness ALONG depth (near-to-far), so the shot should keep a receding run of floor and wall with a warm mouth in the far field. (Approximation of a strict corridor preset, which does not exist yet.)",
+    capture: [
+      { kind: "waitHook", expr: "window.__dungeon3dReady === true", timeoutMs: 180000 },
+      { kind: "eval", js: DUNGEON_CAMERA("objective") },
+      { kind: "sleep", ms: 3000 },
+      { kind: "eval", js: DUNGEON_DOLLY_IN(6) },
+      { kind: "sleep", ms: 5000 },
+      { kind: "eval", js: HIDE_DUNGEON_MARKERS },
+      { kind: "sleep", ms: 800 },
+      { kind: "readback" },
+    ],
+  },
+  {
+    id: "dungeon-3d-entrance-room-frost",
+    title: "Dungeon 3D: frost entrance room (second theme for A/B cross-theme)",
+    group: "dungeons",
+    url: "misc/design.html?step=dungeon&dseed=20260730&dtheme=frost",
+    notes:
+      "The crypt entrance camera re-themed to frost, so the A-series darkness-floor/atmosphere targets can be checked across a second theme (same plan, colder palette) rather than tuning on the crypt alone. Mirrors dungeon-3d-entrance-room exactly.",
+    capture: [
+      { kind: "waitHook", expr: "window.__dungeon3dReady === true", timeoutMs: 180000 },
+      { kind: "eval", js: DUNGEON_CAMERA("entrance") },
+      { kind: "sleep", ms: 3000 },
+      { kind: "eval", js: DUNGEON_DOLLY_IN(9) },
+      { kind: "sleep", ms: 5000 },
+      { kind: "eval", js: HIDE_DUNGEON_MARKERS },
+      { kind: "sleep", ms: 800 },
+      { kind: "readback" },
+    ],
+  },
 ];
-
-/** Validate a scenario list; returns human-readable problems ([] = valid). */
 export function validateScenarios(list: VisScenario[]): string[] {
   const problems: string[] = [];
   const seen = new Set<string>();

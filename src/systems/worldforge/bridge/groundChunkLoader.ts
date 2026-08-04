@@ -191,6 +191,11 @@ import {
 } from "./settlementDefense";
 import { buildFarShells, type FarShells } from "./farShells";
 import { FEET_PER_FMG_PIXEL } from "../adapter/atlasArtifact";
+import {
+  buildTownKeepOut,
+  townClearance,
+  type TownKeepOut,
+} from "./townVegetationKeepOut";
 
 /** A polyline in ground world-meters with a uniform width (meters). */
 export interface GroundPolyline {
@@ -334,6 +339,11 @@ export interface GroundFeature {
   kind: string;
   xM: number;
   zM: number;
+  /** Depth into a vegetation clump, 0 at a thicket's edge and 1 inside it.
+   * Carried through from LocalFeature so the 3D scatter can size plants by
+   * cohort position; absent for kinds that do not scatter through the clump
+   * field. */
+  dens?: number;
 }
 
 // ============================================================================
@@ -437,6 +447,13 @@ export interface GroundWorld {
   crossings?: GroundCrossing[];
   /** Town defensive wall rings (closed polylines), ground meters. */
   walls: GroundPolyline[];
+  /**
+   * Town footprints wilderness vegetation must not grow inside, ground meters.
+   * Optional because a world baked before this existed carries none, and the
+   * vegetation builder treats "absent" as "no towns to avoid" rather than
+   * failing. See bridge/townVegetationKeepOut.ts.
+   */
+  townKeepOuts?: TownKeepOut[];
   /** Town water bodies (rivers/harbour), filled flat surfaces, ground meters. */
   waterBodies: GroundWaterBody[];
   /**
@@ -1692,6 +1709,7 @@ export function makeGroundWorld(
     kind: f.kind,
     xM: (f.x - local.bounds.x) * FEET_TO_METERS,
     zM: (f.y - local.bounds.y) * FEET_TO_METERS,
+    dens: f.dens,
   }));
 
   const extentX = wd.gridSize.cols * GROUND_METERS_PER_CELL;
@@ -1920,6 +1938,7 @@ export function makeGroundWorld(
     rosters: townContent.rosters,
     occupants: townContent.occupants,
     townPlans: townContent.townPlans,
+    townKeepOuts: townContent.townKeepOuts,
     boundsFeet: { x: local.bounds.x, y: local.bounds.y },
     canopy,
     snowLineH,
@@ -2616,6 +2635,7 @@ function groundTowns(
   rosters: TownRoster[];
   occupants: GroundOccupantSite[];
   townPlans: Array<{ burgId: number; plan: TownPlan }>;
+  townKeepOuts: TownKeepOut[];
 } {
   const exX = local.bounds.width * FEET_TO_METERS;
   const exZ = local.bounds.height * FEET_TO_METERS;
@@ -2631,6 +2651,7 @@ function groundTowns(
   const rosters: TownRoster[] = [];
   const occupants: GroundOccupantSite[] = [];
   const townPlans: Array<{ burgId: number; plan: TownPlan }> = [];
+  const townKeepOuts: TownKeepOut[] = [];
 
   for (const t of region?.townSites ?? []) {
     const xM =
@@ -2745,6 +2766,41 @@ function groundTowns(
         });
       }
     }
+
+    /* The town's footprint, so wilderness plants stop growing through it.
+     *
+     * Built from the wall ring when there is one and from a hull of the plan's
+     * own plot corners and street vertices when there is not. Both are read
+     * here, at the one place the complete plan and the unsplit ring are in
+     * scope — `ground.walls` further down has already been broken into runs at
+     * the gates, and a ring with gaps in it cannot be tested for inside-ness.
+     */
+    const keepOut = buildTownKeepOut(
+      t.burgId,
+      adapted.walls.ring.length >= 3
+        ? adapted.walls.ring.map(([fx, fy]) => ({
+            x: (fx - local.bounds.x) * FEET_TO_METERS,
+            z: (fy - local.bounds.y) * FEET_TO_METERS,
+          }))
+        : null,
+      [
+        ...plan.plots.flatMap((p) =>
+          p.footprint.map(([fx, fy]) => ({
+            x: (fx - local.bounds.x) * FEET_TO_METERS,
+            z: (fy - local.bounds.y) * FEET_TO_METERS,
+          })),
+        ),
+        ...plan.streets.flatMap((s) =>
+          s.centerline.map(([fx, fy]) => ({
+            x: (fx - local.bounds.x) * FEET_TO_METERS,
+            z: (fy - local.bounds.y) * FEET_TO_METERS,
+          })),
+        ),
+      ],
+      TREE_TOWN_MARGIN_M,
+    );
+    if (keepOut) townKeepOuts.push(keepOut);
+
     // Occupants live where the floor plans say they can (ROSTER-1), and
     // stand at work during business hours (time-of-day v0).
     // Culture-true names from the burg's culture (FMG Markov chains under a
@@ -3139,6 +3195,7 @@ function groundTowns(
     rosters,
     occupants,
     townPlans,
+    townKeepOuts,
   };
 }
 
@@ -3187,6 +3244,26 @@ function fhash01(id: number, salt: number): number {
 }
 
 /**
+ * How much a plant grows between a thicket's edge and its middle. 0.35 means a
+ * fully-enclosed individual is about a third larger than the same plant on the
+ * margin — enough to read as a size gradient across a stand without turning
+ * the clump centers into a separate species.
+ */
+const DENS_SCALE_LIFT = 0.35;
+
+/**
+ * How far past a town's edge the woods keep thinning, in meters.
+ *
+ * Trees get the wider skirt because a mature crown overhangs its trunk by
+ * several meters, so a tree standing exactly on the wall line still puts
+ * branches over the rampart. Bushes get a narrow one on purpose — scrub
+ * crowding the foot of a wall is right, and clearing it leaves the town
+ * sitting on a suspiciously mown apron.
+ */
+const TREE_TOWN_MARGIN_M = 14;
+const BUSH_TOWN_MARGIN_M = 5;
+
+/**
  * Ground-mode vegetation = the artifact's OWN tree/bush features inside the
  * chunk (chunk-local positions), replacing the generic per-vertex scatter —
  * which both honors the deterministic feature placement (delta-layer ids!)
@@ -3222,21 +3299,51 @@ export function buildGroundVegetation(
     [0.24, 0.55, 0.22],
   ];
 
+  const keepOuts = ground.townKeepOuts ?? [];
   for (const f of ground.features) {
     if (f.kind !== "tree" && f.kind !== "bush") continue;
     if (f.xM < minX || f.xM >= minX + S || f.zM < minZ || f.zM >= minZ + S)
       continue;
+
+    /* Towns clear their own ground.
+     *
+     * The wilderness scatter has never known towns exist — it refuses water,
+     * paving and rock and nothing else — so any candidate that landed on a
+     * town's grass was placed, and a live look at Hafting found trees standing
+     * among the roofs. Filtering here rather than in the scatter is deliberate:
+     * generateLocal runs before any town plan exists, and the feature ids it
+     * hands out are what the delta layer keys off, so removing features there
+     * would renumber a player's edits.
+     *
+     * The test is a survival ROLL against a hashed id, not a hard cut, so the
+     * woods feather toward the settlement rather than ending on a contour.
+     * Hashing the id keeps it deterministic and independent of chunk order.
+     */
+    if (keepOuts.length) {
+      const margin = f.kind === "tree" ? TREE_TOWN_MARGIN_M : BUSH_TOWN_MARGIN_M;
+      const clear = townClearance(f.xM, f.zM, keepOuts, margin);
+      if (clear <= 0) continue;
+      if (clear < 1 && fhash01(f.id, 41) > clear) continue;
+    }
+
     const surfaceY = groundSurfaceY(ground, f.xM, f.zM);
     const rot = fhash01(f.id, 11) * Math.PI * 2;
+    // Cohort sizing: a plant's scale rides its depth into the clump, so the
+    // biggest individuals stand mid-thicket and seedlings ring the margin.
+    // Without this every plant draws its size from the same distribution and a
+    // thicket is a crowd of identically-sized adults, which reads as planted.
+    // `dens` is absent on pre-clump-field artifacts and on any feature placed
+    // outside the vegetation streams, and 0 there keeps the old size band.
+    const dens = f.dens ?? 0;
     if (f.kind === "tree") {
       tPos.push(f.xM - minX, surfaceY, f.zM - minZ);
-      tScl.push(0.7 + fhash01(f.id, 7) * 1.1);
+      tScl.push((0.7 + fhash01(f.id, 7) * 1.1) * (1 + DENS_SCALE_LIFT * dens));
       tRot.push(rot);
       const tc = TREE_PALETTE[Math.floor(fhash01(f.id, 23) * 3)];
       tCol.push(tc[0], tc[1], tc[2]);
     } else {
       bPos.push(f.xM - minX, surfaceY, f.zM - minZ);
-      bScl.push(0.35 + fhash01(f.id, 7) * 0.25);
+      bScl.push((0.35 + fhash01(f.id, 7) * 0.25) * (1 + DENS_SCALE_LIFT * dens));
       bRot.push(rot);
       const bc = BUSH_PALETTE[Math.floor(fhash01(f.id, 23) * 3)];
       bCol.push(bc[0], bc[1], bc[2]);

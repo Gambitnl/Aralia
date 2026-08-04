@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 01/05/2026, 14:08:58
+ * Last Sync: 04/08/2026, 01:56:32
  * Dependents: hooks/useBattleMap.ts
- * Imports: 3 files
+ * Imports: 4 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -39,7 +39,7 @@
 import { useState, useCallback, useMemo } from 'react';
 import { BattleMapData, BattleMapTile, CombatCharacter, CharacterPosition } from '../../types/combat';
 import { findPath } from '../../utils/pathfinding';
-import { getCharacterSizeMultiplier } from '../../utils/combatUtils';
+import { getCharacterSizeMultiplier } from '../../utils/combat';
 // calculateMovementCost: base cost of a single step (5 or 10 ft depending on diagonal parity)
 // getTileMovementMultiplier: normalizes tile terrain cost to a multiplier (1 = normal, 2 = difficult)
 // calculateStepMovementCost: combines the above two (kept imported for potential future use)

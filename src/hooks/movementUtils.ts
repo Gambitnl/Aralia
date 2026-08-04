@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 19/07/2026, 23:23:38
+ * Last Sync: 04/08/2026, 01:57:56
  * Dependents: hooks/useAbilitySystem.ts
  * Imports: 6 files
  *
@@ -17,7 +17,7 @@
 import { CombatCharacter, CombatLogEntryInput, CombatState, Position, BattleMapData } from '../types/combat';
 import { MovementEffect } from '../types/spells';
 import { rollSavingThrow } from '../utils/savingThrowUtils';
-import { generateId } from '../utils/combatUtils';
+import { generateId } from '../utils/combat';
 import { findPath } from '../utils/spatial/pathfinding';
 import { SavePenaltySystem } from '../systems/combat/SavePenaltySystem';
 

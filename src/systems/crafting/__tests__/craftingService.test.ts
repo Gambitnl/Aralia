@@ -74,11 +74,11 @@ vi.mock('../../../utils/statUtils', () => ({
   getSkillModifierValue: () => 5
 }));
 
-vi.mock('../../../utils/combatUtils', () => ({
+vi.mock('../../../utils/combat', () => ({
   rollDice: vi.fn()
 }));
 
-import { rollDice } from '../../../utils/combatUtils';
+import { rollDice } from '../../../utils/combat';
 
 describe('Crafting System', () => {
 

@@ -7,7 +7,7 @@ import { ItemType } from '@/types/items'
 import type { CombatState, SelectedSpellTarget } from '@/types/combat'
 import type { MovementTriggerDebuff } from '@/systems/spells/effects/triggerHandler'
 import type { Spell } from '@/types/spells'
-import * as combatUtils from '@/utils/combatUtils'
+import * as combatUtils from '@/utils/combat'
 import boomingBlade from '../../../../public/data/spells/level-0/booming-blade.json'
 
 /**
@@ -23,8 +23,8 @@ import boomingBlade from '../../../../public/data/spells/level-0/booming-blade.j
  * the movement-trigger runtime, and shared combat test factories.
  */
 
-vi.mock('@/utils/combatUtils', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('@/utils/combatUtils')>()
+vi.mock('@/utils/combat', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/utils/combat')>()
   return {
     ...actual,
     rollD20: vi.fn()

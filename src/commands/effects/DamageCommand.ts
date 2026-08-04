@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 23/07/2026, 19:09:18
+ * Last Sync: 04/08/2026, 01:47:56
  * Dependents: commands/effects/AttackRollModifierCommand.ts, commands/effects/GrantedActionCommand.ts, commands/effects/ReactiveEffectCommand.ts, commands/factory/AbilityCommandFactory.ts, commands/factory/SpellCommandFactory.ts
  * Imports: 17 files
  *
@@ -33,7 +33,7 @@ import type { DamageEffect } from '../../types/spells'
 import { checkConcentration } from '../../utils/concentrationUtils';
 import { calculateSpellDC, rollSavingThrow, calculateSaveDamage } from '../../utils/savingThrowUtils';
 import type { SavingThrowModifier } from '../../utils/savingThrowUtils';
-import { rollDamage as rollDamageUtil, calculateCover, generateId } from '../../utils/combatUtils';
+import { rollDamage as rollDamageUtil, calculateCover, generateId } from '../../utils/combat';
 import { BreakConcentrationCommand, breakFriendsConcentrationForCaster } from './ConcentrationCommands'
 import { ResistanceCalculator } from '../../utils/combat/resistanceUtils';
 import { getPlanarSpellModifier } from '../../utils/planarUtils';

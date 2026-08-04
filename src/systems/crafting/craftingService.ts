@@ -18,7 +18,7 @@ import { Recipe, CraftingResult, MaterialRequirement } from './types';
 import { PlayerCharacter } from '../../types/character';
 import { InventoryEntry } from '../../types/items';
 import { getAbilityModifierValue as getSkillModifierValue } from '../../utils/statUtils';
-import { rollDice } from '../../utils/combatUtils';
+import { rollDice } from '../../utils/combat';
 
 // Mock inventory check function - in a real system this would interface with inventory state
 export const checkMaterials = (

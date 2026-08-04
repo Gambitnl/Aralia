@@ -3,8 +3,8 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 12/06/2026, 23:03:21
- * Dependents: commands/effects/MovementCommand.ts, commands/effects/UtilityCommand.ts
+ * Last Sync: 04/08/2026, 01:50:29
+ * Dependents: commands/effects/MovementCommand.ts, commands/effects/utility/combatSupport.ts
  * Imports: 4 files
  *
  * MULTI-AGENT SAFETY:
@@ -15,7 +15,7 @@
 // @dependencies-end
 
 import { CombatState, Position, StatusEffect } from '@/types/combat'
-import { rollDice } from '../../utils/combatUtils'
+import { rollDice } from '../../utils/combat'
 import { generateId } from '../../utils/idGenerator'
 import { ActiveSpellZone, processAreaMoveWithinTriggers } from '../../systems/spells/effects/triggerHandler'
 

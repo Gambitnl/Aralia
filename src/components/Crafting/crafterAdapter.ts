@@ -3,8 +3,8 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 08/06/2026, 14:31:44
- * Dependents: components/Crafting/CreatureHarvestPanel.tsx, components/Crafting/GatheringPanel.tsx
+ * Last Sync: 04/08/2026, 01:53:32
+ * Dependents: components/Crafting/CreatureHarvestPanel.tsx, components/Crafting/GatheringPanel.tsx, components/Crafting/RefiningEnchantingPanel.tsx
  * Imports: 5 files
  *
  * MULTI-AGENT SAFETY:
@@ -29,7 +29,7 @@
 import { SKILLS_DATA } from '../../data/skills';
 import { PlayerCharacter, AbilityScoreName } from '../../types';
 import { getAbilityModifierValue } from '../../utils/character/statUtils';
-import { rollDice } from '../../utils/combatUtils';
+import { rollDice } from '../../utils/combat';
 import { Crafter } from '../../systems/crafting/craftingSystem';
 
 interface CraftingStateSnapshot {

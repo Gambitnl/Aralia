@@ -54,8 +54,8 @@ vi.mock('../../commands', () => ({
   }
 }));
 
-vi.mock('../../utils/combatUtils', async () => {
-  const actual = await vi.importActual<typeof import('../../utils/combatUtils')>('../../utils/combatUtils');
+vi.mock('../../utils/combat', async () => {
+  const actual = await vi.importActual<typeof import('../../utils/combat')>('../../utils/combat');
   return {
     ...actual,
     getOccupiedTiles: (character: CombatCharacter) => [character.position],

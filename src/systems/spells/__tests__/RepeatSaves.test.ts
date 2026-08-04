@@ -12,7 +12,7 @@ vi.mock('../../../utils/savingThrowUtils', () => ({
     calculateSpellDC: vi.fn(() => 15) // Default DC
 }));
 
-vi.mock('../../../utils/combatUtils', () => ({
+vi.mock('../../../utils/combat', () => ({
     createDamageNumber: vi.fn(() => ({ id: 'dmg-1', duration: 1000 })),
     generateId: vi.fn(() => 'id_123'),
     getActionMessage: vi.fn(),

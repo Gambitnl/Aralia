@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 19/07/2026, 23:22:31
+ * Last Sync: 04/08/2026, 01:49:01
  * Dependents: commands/effects/ReactiveEffectCommand.ts, commands/factory/AbilityCommandFactory.ts, commands/factory/SpellCommandFactory.ts, hooks/combat/engine/useCombatEngine.ts
  * Imports: 11 files
  *
@@ -24,7 +24,7 @@ import { BaseEffectCommand } from '../base/BaseEffectCommand'
 import { CommandContext } from '../base/SpellCommand'
 import { MovementEffect } from '@/types/spells'
 import { CombatState, CombatCharacter, Position, StatusEffect, ActiveCondition } from '@/types/combat'
-import { getDistance } from '../../utils/combatUtils'
+import { getDistance } from '../../utils/combat'
 import { findPath } from '../../utils/pathfinding'
 import { calculatePathMovementCost } from '../../utils/combat/movementUtils'
 import { calculateMovementTotal } from '../../utils/combat/actionEconomyUtils'

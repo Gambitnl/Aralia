@@ -51,7 +51,9 @@ import { getPart } from '../registry';
 import type { GaitDriver, LocomotionState, Pose } from './gaits';
 import { createGaitDriver } from './gaits';
 import { createSegmentBody, wireframeifyPart } from './segmentBody';
-import { createSkinnedBiped } from './skinnedBody';
+import { createSkinnedBiped, createSkinnedPlan } from './skinnedBody';
+import { createSkinnedClipPlayer, type SkinnedClipPlayer } from './skinnedClipPlayer';
+import type { AnimationClip } from 'three';
 import { buildHeadForm } from './headForms';
 import {
   blobShadowMaterial,
@@ -102,6 +104,13 @@ export interface AssembleOptions {
    * look exactly; 'smooth' lofts one-piece chain tubes with joint-blended
    * weights (creased elbows/knees). Default 'rigid' until the eyeball gate. */
   skinnedWeights?: 'rigid' | 'smooth';
+  /** Animation source (CC0 clip slice 1). 'procedural' (default) = the gait
+   * driver poses the bones. 'clip' = a retargeted mocap clip drives them via
+   * an AnimationMixer; requires bodyTech 'skinned' and a loaded clip pack. */
+  animSource?: 'procedural' | 'clip';
+  /** Retargeted clip pack (from loadHumanoidClips) — required when
+   * animSource is 'clip'. */
+  clips?: Map<string, AnimationClip>;
 }
 
 const IDLE: LocomotionState = {
@@ -119,15 +128,24 @@ export function assembleEntity(blueprint: EntityBlueprint, options: AssembleOpti
   const wireframe = renderMode === 'wireframe';
   const bodyTech = options.bodyTech ?? 'segments';
   // Scope guards — fail honestly instead of falling back:
-  // creature/plan skeletons are slice 4. Wireframe on a deforming body is
-  // DECIDED (Remy 2026-07-21): skinned bodies render solid shaded, period —
-  // wireframe stays a segment-body debug look and never comes to the skeleton
-  // path, so requesting it is a caller bug, not a parked feature.
-  if (bodyTech === 'skinned' && gait !== 'biped') {
-    throw new Error(`bodyTech 'skinned' supports only the biped gait in slice 1 (got '${gait}')`);
+  // creature/plan skeletons are slice 4 — biped and plan gaits are skinned;
+  // species gaits (quad/hexapod/hopper/flyer/float) skeletons are NOT this
+  // slice. Wireframe on a deforming body is DECIDED (Remy 2026-07-21):
+  // skinned bodies render solid shaded, period — wireframe stays a segment-body
+  // debug look and never comes to the skeleton path, so requesting it is a
+  // caller bug, not a parked feature.
+  if (bodyTech === 'skinned' && gait !== 'biped' && gait !== 'plan') {
+    throw new Error(`bodyTech 'skinned' supports only the biped and plan gaits in slice 4 (got '${gait}')`);
   }
   if (bodyTech === 'skinned' && wireframe) {
     throw new Error("bodyTech 'skinned' renders solid shaded only (decided 2026-07-21) — wireframe is a segment-body debug look");
+  }
+  const animSource = options.animSource ?? 'procedural';
+  if (animSource === 'clip' && bodyTech !== 'skinned') {
+    throw new Error("animSource 'clip' needs bodyTech 'skinned' — a clip drives bones, and only the skinned body has them");
+  }
+  if (animSource === 'clip' && !options.clips) {
+    throw new Error("animSource 'clip' needs a loaded clip pack (options.clips) — load it with loadHumanoidClips first");
   }
 
   const group = new Group();
@@ -156,14 +174,37 @@ export function assembleEntity(blueprint: EntityBlueprint, options: AssembleOpti
 
   const skinnedBody =
     bodyTech === 'skinned'
-      ? createSkinnedBiped(frame, {
-          colorHex: palette.skinHex,
-          outlineThickness,
-          opacity: blueprint.planSpec?.opacity,
-          weights: options.skinnedWeights,
-        })
+      ? blueprint.planSpec
+        ? // Slice 4: plan creatures get a real bone hierarchy + rigid-weight
+          // skinned body. Decorative emissions (snouts, cilia, toes, fingers,
+          // rings, collars) stay on the anchor path — forwarded to the segment
+          // renderer so nothing that renders today is dropped in skinned mode.
+          createSkinnedPlan(frame, blueprint.planSpec, {
+            colorHex: palette.skinHex,
+            outlineThickness,
+            opacity: blueprint.planSpec?.opacity,
+            weights: options.skinnedWeights,
+            decorativeDelegate: body.sink,
+          })
+        : createSkinnedBiped(frame, {
+            colorHex: palette.skinHex,
+            outlineThickness,
+            opacity: blueprint.planSpec?.opacity,
+            weights: options.skinnedWeights,
+          })
       : null;
   if (skinnedBody) bodyRoot.add(skinnedBody.root);
+
+  // CC0 clip playback: a mixer poses the skinned bones instead of the driver.
+  // The bones live under skinnedBody.root, so the mixer resolves them by name.
+  const clipPlayer: SkinnedClipPlayer | null =
+    animSource === 'clip' && skinnedBody && options.clips
+      ? createSkinnedClipPlayer(skinnedBody.root, options.clips)
+      : null;
+  // slice 1: auto-select Walk vs Idle by speed. The full action table is slice 2.
+  const idleClip = clipPlayer?.clipNames().includes('Idle_A') ? 'Idle_A' : 'Idle';
+  let clipMode: 'idle' | 'walk' | null = clipPlayer ? 'idle' : null;
+  if (clipPlayer) clipPlayer.play(idleClip);
 
   // Wing mesh parts (wingsFeathered/wingsMembrane) are garnish the driver
   // cannot see — plan-driven bodies (the Emberwing dragon) need the hint or
@@ -311,7 +352,18 @@ export function assembleEntity(blueprint: EntityBlueprint, options: AssembleOpti
     // Skinned mode: the driver's emissions drive the bones (pose adapter);
     // chain parts still render through the segment renderer either way.
     body.beginFrame();
-    if (skinnedBody) {
+    if (clipPlayer && skinnedBody) {
+      // clip mode: the mixer owns the bones; the driver still ran (above) for
+      // facing + group movement, but must NOT also pose the skeleton.
+      const walking = loco.speed > 0.1;
+      const want = walking ? 'walk' : 'idle';
+      if (want !== clipMode) {
+        clipPlayer.play(walking ? 'Walk' : idleClip, { fadeSec: 0.2 });
+        clipMode = want;
+      }
+      if (walking) clipPlayer.setSpeed(loco.speed);
+      clipPlayer.update(dt);
+    } else if (skinnedBody) {
       driver.buildBody(skinnedBody.sink);
       skinnedBody.finishFrame();
     } else {
@@ -416,6 +468,7 @@ export function assembleEntity(blueprint: EntityBlueprint, options: AssembleOpti
     if (disposed) return;
     disposed = true;
     body.dispose();
+    clipPlayer?.dispose();
     // skinned extras: shared geometry/materials plus the skeleton's bone
     // texture; the traverse below re-hits the meshes harmlessly
     skinnedBody?.dispose();

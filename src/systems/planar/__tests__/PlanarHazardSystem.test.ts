@@ -12,8 +12,8 @@ vi.mock('../../../utils/planarUtils', () => ({
   getCurrentPlane: vi.fn()
 }));
 
-vi.mock('../../../utils/combatUtils', async (importOriginal) => {
-    const actual = await importOriginal() as typeof import('../../../utils/combatUtils');
+vi.mock('../../../utils/combat', async (importOriginal) => {
+    const actual = await importOriginal() as typeof import('../../../utils/combat');
     return {
         ...actual,
         rollDice: vi.fn().mockReturnValue(3), // Fixed roll for predictability

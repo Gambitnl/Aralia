@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 16/07/2026, 08:57:11
+ * Last Sync: 04/08/2026, 01:53:16
  * Dependents: components/Combat/index.ts
  * Imports: 46 files
  *
@@ -110,7 +110,7 @@ import {
 } from "../../hooks/useCombatRailLayout";
 import { canUseDevTools } from "../../utils/permissions";
 import { logger } from "../../utils/logger";
-import { createPlayerCombatCharacter } from "../../utils/combatUtils";
+import { createPlayerCombatCharacter } from "../../utils/combat";
 import SpellContext from "../../context/SpellContext";
 import { motion } from "framer-motion";
 import { useGameState } from "../../state/GameContext";

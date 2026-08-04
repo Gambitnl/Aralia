@@ -1,7 +1,7 @@
 
 import { PlayerCharacter, GameState } from '../../types/index';
 import { rollSavingThrow } from '../../utils/savingThrowUtils';
-import { createPlayerCombatCharacter, rollDice } from '../../utils/combatUtils'; // Using standard factory
+import { createPlayerCombatCharacter, rollDice } from '../../utils/combat'; // Using standard factory
 import { logger } from '../../utils/logger';
 import { generateId } from '../../utils/idGenerator';
 import { formatDuration } from '../../utils/core';

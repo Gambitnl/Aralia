@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 23/07/2026, 18:56:16
+ * Last Sync: 04/08/2026, 01:48:45
  * Dependents: commands/effects/ReactiveEffectCommand.ts, commands/factory/AbilityCommandFactory.ts, commands/factory/SpellCommandFactory.ts
  * Imports: 5 files
  *
@@ -17,7 +17,7 @@
 import { BaseEffectCommand } from '../base/BaseEffectCommand'
 import { CombatState } from '@/types/combat'
 import { isHealingEffect } from '../../types/spells'
-import { rollDamage as rollFormula } from '../../utils/combatUtils'
+import { rollDamage as rollFormula } from '../../utils/combat'
 import { applyHealingAndRestore } from '../../utils/combat/deathSaveUtils'
 
 /**

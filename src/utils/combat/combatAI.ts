@@ -21,7 +21,7 @@
  * @file combatAI.ts
  */
 import { CombatCharacter, CombatAction, BattleMapData, Ability, Position, BattleMapTile } from '../../types/combat';
-import { computeAoETiles, getDistance, generateId, resolveAreaDefinition, getOccupiedTiles, getCharacterDistance } from '../../utils/combatUtils';
+import { computeAoETiles, getDistance, generateId, resolveAreaDefinition, getOccupiedTiles, getCharacterDistance } from './combatUtils';
 import { hasLineOfSight } from '../../utils/lineOfSight';
 import { TargetValidationUtils } from '../../systems/spells/targeting/TargetValidationUtils';
 import { logger } from '../logger';

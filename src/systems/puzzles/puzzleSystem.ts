@@ -8,7 +8,7 @@
 
 import { Puzzle, PuzzleResult } from './types';
 import { CharacterStats } from '../../types/combat';
-import { rollDice } from '../../utils/combatUtils';
+import { rollDice } from '../../utils/combat';
 import { getAbilityModifierValue } from '../../utils/statUtils';
 
 /**

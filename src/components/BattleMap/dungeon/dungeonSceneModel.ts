@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 19/07/2026, 13:15:53
+ * Last Sync: 04/08/2026, 01:52:45
  * Dependents: components/BattleMap/dungeon/Dungeon3DPreview.tsx
  * Imports: 1 files
  *
@@ -171,7 +171,11 @@ export const DUNGEON_3D_PALETTES: Record<DungeonTheme, DungeonScenePalette> = {
   crypt: {
     // Warm sandstone floors against cool slate walls and corridors give the crypt a two-tone
     // palette instead of a monotone tan. Ambient stays cold and blue so torch pools read warm.
-    background: '#08070c', fog: '#1a1526', floor: '#71665c', corridor: '#41434f',
+    // background/fog were lifted off near-black (was #08070c/#1a1526) with a cooler blue tint so
+    // far and unlit frame regions resolve to cool gloom instead of dead pure-black — measured
+    // pre-fix: p50 luma 2, 33% pure-black, darkness floor mean RGB 7/3/2 (warm). Fog still far too
+    // dark to wash out the warm torch pools (Rec.709 ~49). See scripts/visual/frame-stats.mjs.
+    background: '#0d1220', fog: '#26314d', floor: '#71665c', corridor: '#41434f',
     wall: '#3f414e', wallCap: '#726f7e', accent: '#c9a05b', flame: '#ff9a3c',
     ambient: '#5a6690', sun: '#ffca94',
   },

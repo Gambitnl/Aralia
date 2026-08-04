@@ -149,14 +149,62 @@ export const FOREST_TINTS: Record<Exclude<ForestKind, 'ordinary'>, string> = {
 // 3D deep forest: thickets, clearings, undergrowth, canopy atmosphere
 // ---------------------------------------------------------------------------
 
-/** Two-octave clearing-noise gate for TREE placement (grass uses the same
- * noise PRIMITIVE with different salts/frequencies, so tree clearings and
- * grass gaps do NOT visually align yet — see the forests spec's Open list):
- * seed salt, noise frequency (cycles per kilofoot), and the gate threshold
- * (noise below it = clearing, no trees). */
+/** Clearing-noise seed salt and frequency (cycles per kilofoot) for vegetation
+ * placement. Grass uses the same noise PRIMITIVE with different salts and
+ * frequencies, so tree clearings and grass gaps do NOT visually align yet —
+ * see the forests spec's Open list.
+ *
+ * These two are now the MIDDLE octave of the three-octave clump field in
+ * clumpField.ts, which is what keeps the ~333 ft clearing structure this pass
+ * tuned. There is no longer a hard threshold: a boolean cutoff draws a visible
+ * contour through the forest, so acceptance is a continuous probability
+ * instead (see CLUMP_ACCEPT_BASE below). */
 export const CLEARING_SALT = 7031;
 export const CLEARING_FREQ = 3;
-export const CLEARING_THRESHOLD = 0.35;
+
+/** The other two octaves of the clump field, in cycles per kilofoot: stands
+ * and clearings at ~1000 ft, knots at ~125 ft. One octave gives an even
+ * sprinkle with soft variation; three multiplied give a heavy-tailed field
+ * with solid knots and genuinely open floor between them. */
+export const CLUMP_STAND_FREQ = 1;
+export const CLUMP_KNOT_FREQ = 8;
+
+/** How much the two finer octaves are allowed to modulate the stand octave,
+ * as [floor, range]. Neither reaches zero on its own — only the stand octave
+ * can empty the ground — or the field punches pinholes everywhere and the
+ * clearings stop reading as places. */
+export const CLUMP_MID_MIX: readonly [number, number] = [0.30, 0.70];
+export const CLUMP_KNOT_MIX: readonly [number, number] = [0.55, 0.45];
+
+/** Acceptance probability = BASE + GAIN × clump^POW.
+ *
+ * Tuned against the rendered scatter, not by eye on the numbers. The first
+ * pass used a square and a gain of 10, and it measured fine — the clearings
+ * really were emptier — while the picture still read as an even speckle. The
+ * reason is CONTRAST between the middle quartiles rather than between the
+ * extremes: at those values acceptance ran 0.60 in the field's lower quartile
+ * and saturated in its upper, a spread of only 1.7x, and the eye cannot see a
+ * 1.7x density step through a canopy. Cubing and dropping the base widens that
+ * spread to about 4x, which is where the thickets start reading as thickets.
+ *
+ * The cost is a lower expectation, which is why the clumped attempt budget in
+ * generateLocal is doubled. Raising GAIN or lowering POW walks the whole thing
+ * back toward the even scatter this replaced. */
+export const CLUMP_ACCEPT_BASE = 0.02;
+export const CLUMP_ACCEPT_GAIN = 12;
+export const CLUMP_ACCEPT_POW = 3;
+
+/** Clump value at which a candidate counts as fully inside a thicket. Feeds
+ * the per-feature `dens` that sizes plants — biggest in the middle, seedlings
+ * around the outside. Sits near the field's 75th percentile so a useful
+ * fraction of the ground reaches it. */
+export const CLUMP_DENS_FULL = 0.34;
+
+/** Fraction of the minimum-separation radius given back at full `dens`. A
+ * fixed spacing rule caps how tight a thicket can get no matter what the
+ * density field says; relaxing it toward a clump's middle is what lets a knot
+ * close over. Only ever shrinks the radius. */
+export const CLUMP_SEP_RELIEF = 0.5;
 
 /** Undergrowth: scrub-species instance density multiplier under dense canopy
  * (relative to the biome's normal scrub density). */

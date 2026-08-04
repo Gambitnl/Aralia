@@ -2,7 +2,7 @@ import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { createCraftingCrafter, resolveCraftingCrafter } from '../crafterAdapter';
 import { PlayerCharacter } from '../../../types';
 
-vi.mock('../../../utils/combatUtils', () => ({
+vi.mock('../../../utils/combat', () => ({
   rollDice: vi.fn(() => 10),
 }));
 

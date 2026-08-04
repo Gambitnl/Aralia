@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 23/07/2026, 21:32:15
+ * Last Sync: 04/08/2026, 01:58:12
  * Dependents: components/BattleMap/BattleMap.tsx, components/BattleMap/BattleMap3D.tsx, components/BattleMap/BattleMapDemo.tsx, components/Combat/CombatView.tsx, components/DesignPreview/steps/PreviewCombatScenarios.tsx, hooks/useBattleMap.ts
  * Imports: 26 files
  *
@@ -36,7 +36,7 @@ import { isExecutableControlOption } from '../types/spells';
 import { resolveScalableNumber } from '../types/spells';
 import { SpellCommandFactory, AbilityCommandFactory, CommandExecutor } from '../commands'; // Import Command System
 import { BreakConcentrationCommand } from '../commands/effects/ConcentrationCommands'; // Import Break Concentration
-import { getDistance, generateId } from '../utils/combatUtils';
+import { getDistance, generateId } from '../utils/combat';
 import { calculateSpellDC, rollSavingThrow } from '../utils/savingThrowUtils';
 import { hasLineOfSight } from '../utils/lineOfSight';
 import { calculateAffectedTiles, type AoEParams } from '../utils/combat/aoeCalculations';

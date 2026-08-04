@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 04/08/2026, 01:58:30
+ * Dependents: components/Dialogue/DialogueInterface.tsx, hooks/useDialogueSystem.ts
+ * Imports: 6 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file src/services/dialogueService.ts
  * Service for managing dialogue topics, checking prerequisites, and handling conversation flow.
@@ -9,7 +25,7 @@ import {
   TopicCost
 } from '../types/dialogue';
 import { GameState, QuestStatus, Item, NPC, WorldRumor } from '../types/index';
-import { rollDice } from '../utils/combatUtils';
+import { rollDice } from '../utils/combat';
 import { INITIAL_TOPICS } from '../data/dialogue/topics';
 import { getGameDay } from '../utils/core';
 import { hasWorldFact, topicUnlockKey } from '../systems/facts/worldFactStore';

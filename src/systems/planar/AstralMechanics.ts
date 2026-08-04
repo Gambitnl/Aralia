@@ -1,6 +1,6 @@
 
 import { GameState } from '../../types/index';
-import { rollDice } from '../../utils/combatUtils';
+import { rollDice } from '../../utils/combat';
 import { logger } from '../../utils/logger';
 import { generateId } from '../../utils/idGenerator';
 

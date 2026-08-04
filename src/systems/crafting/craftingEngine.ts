@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 04/08/2026, 01:59:56
+ * Dependents: components/Crafting/AlchemyBenchPanel.tsx, components/Crafting/alchemyBenchSelectors.ts, systems/crafting/batchCrafting.ts
+ * Imports: 5 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file src/systems/crafting/craftingEngine.ts
  * Core engine for checking recipe requirements and executing crafting.
@@ -5,7 +21,7 @@
  */
 import { Item, PlayerCharacter } from '../../types';
 import { CraftingRecipe, CraftingTool, ALL_RECIPES } from './alchemyRecipes';
-import { rollDice } from '../../utils/combatUtils';
+import { rollDice } from '../../utils/combat';
 import { rollAbilityCheck } from '../../utils/character/checkUtils';
 import {
     determineCraftingQuality,

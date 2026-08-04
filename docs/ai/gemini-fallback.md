@@ -38,13 +38,13 @@ Credential resolution for every Gemini-backed service is centralized in
 `src/services/aiClient.ts`, which picks (in priority order):
 
 1. the player's runtime credential (API key or OAuth token), else
-2. a build-time `GEMINI_API_KEY`, if a deployment chose to bake one in.
+2. a build-time `VITE_GEMINI_API_KEY`, if a deployment chose to bake one in.
 
 ## Deployment configuration (optional)
 
 | Env var | Purpose |
 | --- | --- |
-| `GEMINI_API_KEY` | Optional build-time key for the whole deployment. Most setups leave this unset. |
+| `VITE_GEMINI_API_KEY` | Optional build-time key for the whole deployment. Most setups leave this unset. The `VITE_` prefix is required — Vite only exposes prefixed vars to the browser. Never set this for the public GitHub Pages build; anything reaching the client bundle is extractable. |
 | `VITE_GOOGLE_CLIENT_ID` | Public OAuth 2.0 client ID that enables the "Sign in with Google" button. Not a secret. When unset, only the API-key path is shown. |
 | `VITE_GOOGLE_OAUTH_SCOPE` | Override the requested OAuth scopes (defaults to `cloud-platform` + `userinfo.email`). |
 

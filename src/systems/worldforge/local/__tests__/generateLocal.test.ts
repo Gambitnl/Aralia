@@ -10,8 +10,7 @@ import { generateLocal, elevationCurveFt } from '../generateLocal';
 import { rootSeedPath } from '../../seedPath';
 import { boundsCenter } from '../../units';
 import { WORLDFORGE_SCHEMA_VERSION, type LocalArtifact, type RegionArtifact } from '../../artifacts';
-import { patchNoise2 } from '../../vegetation/grassField';
-import { CLEARING_FREQ, CLEARING_SALT, CLEARING_THRESHOLD } from '../../forests/forestTunables';
+import { clumpAt, clumpAccept, clumpDens } from '../../forests/clumpField';
 import { MOUNTAIN_MAX_ELEV_FT } from '../../mountains/mountainTunables';
 
 const SEED = 'world-42';
@@ -164,17 +163,23 @@ describe('generateLocal — altitude/slope rock classification', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Forest thickets, clearings, undergrowth (forests campaign Task 10).
-// Trees in DENSE-forest windows gate through the shared patch noise
-// (patchNoise2 over world feet / 1000): low-noise zones become clearings,
-// and an extra keep-gated 'undergrowth' stream crowds bushes into the
-// thickets. Non-dense windows must stay byte-identical to the pre-Task-10
-// generator.
+// Vegetation clumping (jungle-trail pass, replaces the Task 10 clearing gate).
+//
+// Every vegetated kind in EVERY biome now scatters through the three-octave
+// clump field in forests/clumpField.ts. Three behaviours replace the old
+// single-octave boolean gate and are what these tests pin:
+//
+//   • density REDISTRIBUTES rather than falls — the target count still lands,
+//   • acceptance is continuous, so a thicket has a margin rather than an edge,
+//   • features carry `dens`, and it tracks the field they were placed from.
+//
+// The old contract asserted "every tree sits above the threshold", which was
+// only ever true because the gate was a hard cutoff. Those assertions are gone
+// on purpose: a hard cutoff draws a visible contour through the forest.
 // ---------------------------------------------------------------------------
 
-describe('generateLocal — forest thickets, clearings, undergrowth (Task 10)', () => {
-  const clearingNoiseAt = (x: number, y: number) =>
-    patchNoise2(x / 1000, y / 1000, CLEARING_SALT, CLEARING_FREQ);
+describe('generateLocal — vegetation clumping', () => {
+  const clearingNoiseAt = (x: number, y: number) => clumpAt(x, y);
 
   function buildLocalFor(biomeId: number): LocalArtifact {
     const region = buildRegion();
@@ -199,56 +204,125 @@ describe('generateLocal — forest thickets, clearings, undergrowth (Task 10)', 
     return local.features.slice(lastBoulder + 1);
   }
 
-  it('dense forest: low-noise probe rects hold < 20% of mean tree density (clearings)', () => {
-    const local = dense();
-    const { bounds } = local;
-    // Find clearing probe rects straight from the noise the gate reads:
-    // 150ft rects whose 10ft-sampled noise never reaches the threshold
-    // (0.03 margin absorbs sub-sample wiggle).
-    const RECT = 150;
-    const rects: Array<[number, number]> = [];
+  /**
+   * Probe rects over the window, split by the clump field the placement reads.
+   * "Clearing" rects are ones the field never lifts above the 25th percentile
+   * anywhere inside; "thicket" rects are ones it holds above the 75th
+   * throughout. Sampling every 10 ft absorbs sub-sample wiggle.
+   */
+  const RECT = 150;
+  const CLEAR_MAX = 0.153; // measured p25 of the field
+  const THICK_MIN = 0.333; // measured p75
+  function probeRects(bounds: LocalArtifact['bounds']) {
+    const clearings: Array<[number, number]> = [];
+    const thickets: Array<[number, number]> = [];
     for (let ry = bounds.y; ry + RECT <= bounds.y + bounds.height; ry += RECT) {
       for (let rx = bounds.x; rx + RECT <= bounds.x + bounds.width; rx += RECT) {
-        let maxNoise = -Infinity;
+        let lo = Infinity;
+        let hi = -Infinity;
         for (let sy = 0; sy <= RECT; sy += 10) {
           for (let sx = 0; sx <= RECT; sx += 10) {
             const n = clearingNoiseAt(rx + sx, ry + sy);
-            if (n > maxNoise) maxNoise = n;
+            if (n < lo) lo = n;
+            if (n > hi) hi = n;
           }
         }
-        if (maxNoise < CLEARING_THRESHOLD - 0.03) rects.push([rx, ry]);
+        if (hi < CLEAR_MAX) clearings.push([rx, ry]);
+        if (lo > THICK_MIN) thickets.push([rx, ry]);
       }
     }
-    expect(rects.length).toBeGreaterThanOrEqual(3); // the window really has clearings to probe
+    return { clearings, thickets };
+  }
+
+  const countIn = (
+    pts: ReadonlyArray<{ x: number; y: number }>,
+    rects: ReadonlyArray<[number, number]>,
+  ) => {
+    let n = 0;
+    for (const p of pts) {
+      for (const [rx, ry] of rects) {
+        if (p.x >= rx && p.x < rx + RECT && p.y >= ry && p.y < ry + RECT) { n++; break; }
+      }
+    }
+    return n;
+  };
+
+  it('dense forest: clearings hold well under mean tree density, thickets well over', () => {
+    const local = dense();
+    const { clearings, thickets } = probeRects(local.bounds);
+    expect(clearings.length).toBeGreaterThanOrEqual(3); // the window really has clearings
+    expect(thickets.length).toBeGreaterThanOrEqual(3); // ...and real thickets
 
     const trees = local.features.filter((f) => f.kind === 'tree');
-    const meanPerSqFt = trees.length / (bounds.width * bounds.height);
-    const expectedInRects = meanPerSqFt * RECT * RECT * rects.length;
-    let inRects = 0;
-    for (const t of trees) {
-      for (const [rx, ry] of rects) {
-        if (t.x >= rx && t.x < rx + RECT && t.y >= ry && t.y < ry + RECT) { inRects++; break; }
-      }
-    }
-    expect(expectedInRects).toBeGreaterThan(5); // probe is statistically meaningful
-    expect(inRects).toBeLessThan(expectedInRects * 0.2);
+    const meanPerSqFt = trees.length / (local.bounds.width * local.bounds.height);
+    const perRect = meanPerSqFt * RECT * RECT;
+
+    const expectClear = perRect * clearings.length;
+    const expectThick = perRect * thickets.length;
+    expect(expectClear).toBeGreaterThan(5); // probes are statistically meaningful
+    expect(expectThick).toBeGreaterThan(5);
+
+    const clearRatio = countIn(trees, clearings) / expectClear;
+    const thickRatio = countIn(trees, thickets) / expectThick;
+
+    // The spread between the two is the real signal and it is scale-free.
+    // Absolute enrichment has a low ceiling that depends on the window: this
+    // one sits on high ground for the field (mean acceptance 0.79), so a fully
+    // saturated rect can only run 1/0.79 = 1.26x the window mean however
+    // strong the clumping is. The clearings are the half with room to move.
+    expect(clearRatio).toBeLessThan(0.35);
+    expect(thickRatio).toBeGreaterThan(1.15);
+    expect(thickRatio / clearRatio).toBeGreaterThan(4);
   });
 
-  it('dense forest: every tree sits above the clearing threshold (gate wired to the shared noise)', () => {
+  it('clearings keep a thin margin population rather than a hard edge', () => {
+    // The failure this guards is a regression to a boolean gate: that would
+    // read as zero trees below the cutoff and a visible contour on the ground.
+    const local = dense();
+    const trees = local.features.filter((f) => f.kind === 'tree');
+    const belowP25 = trees.filter((t) => clearingNoiseAt(t.x, t.y) < CLEAR_MAX).length;
+    expect(belowP25).toBeGreaterThan(0);
+    expect(belowP25 / trees.length).toBeLessThan(0.15);
+  });
+
+  it('density REDISTRIBUTES rather than falls — the target count still lands', () => {
+    // 3000ft window = 900 patches of 10k sq ft; the deciduous profile asks for
+    // 1.8 trees each. If the clump field were deleting trees instead of moving
+    // them this is the number that would drop.
     const trees = dense().features.filter((f) => f.kind === 'tree');
-    expect(trees.length).toBeGreaterThan(300);
-    let below = 0;
-    for (const t of trees) if (clearingNoiseAt(t.x, t.y) <= CLEARING_THRESHOLD) below++;
-    expect(below).toBe(0);
+    expect(trees.length).toBeGreaterThan(900 * 1.8 * 0.9);
   });
 
-  it('dense forest: undergrowth bushes exist and all hug the thickets (same keep as trees)', () => {
-    const under = undergrowthSlice(dense());
+  it('every clumped feature carries a dens that tracks the field it sat on', () => {
+    const local = dense();
+    const veg = local.features.filter((f) => f.kind === 'tree' || f.kind === 'bush');
+    expect(veg.length).toBeGreaterThan(0);
+    expect(veg.every((f) => typeof f.dens === 'number')).toBe(true);
+    for (const f of veg) expect(f.dens).toBeCloseTo(clumpDens(clumpAt(f.x, f.y)), 10);
+    // Boulders do not scatter through the field, so they must NOT carry one.
+    expect(local.features.filter((f) => f.kind === 'boulder').every((f) => f.dens === undefined))
+      .toBe(true);
+  });
+
+  it('plants run bigger toward a thicket middle than on its margin', () => {
+    const veg = dense().features.filter((f) => f.kind === 'tree');
+    const inner = veg.filter((f) => (f.dens ?? 0) > 0.8).length;
+    const outer = veg.filter((f) => (f.dens ?? 0) < 0.3).length;
+    // Both populations have to exist for the size gradient to mean anything.
+    expect(inner).toBeGreaterThan(0);
+    expect(outer).toBeGreaterThan(0);
+  });
+
+  it('dense forest: undergrowth bushes exist and hug the thickets', () => {
+    const local = dense();
+    const under = undergrowthSlice(local);
     expect(under.length).toBeGreaterThan(200); // 2.5× scrub density has real presence
     expect(under.every((f) => f.kind === 'bush')).toBe(true);
-    let below = 0;
-    for (const f of under) if (clearingNoiseAt(f.x, f.y) <= CLEARING_THRESHOLD) below++;
-    expect(below).toBe(0); // clearings stay open — undergrowth never lands in them
+
+    const { clearings, thickets } = probeRects(local.bounds);
+    const perRect = (under.length / (local.bounds.width * local.bounds.height)) * RECT * RECT;
+    expect(countIn(under, clearings)).toBeLessThan(perRect * clearings.length * 0.35);
+    expect(countIn(under, thickets)).toBeGreaterThan(perRect * thickets.length * 1.3);
   });
 
   it('deep-forest-id biome (taiga 9): deterministic, with undergrowth', () => {
@@ -258,27 +332,75 @@ describe('generateLocal — forest thickets, clearings, undergrowth (Task 10)', 
     expect(undergrowthSlice(a).length).toBeGreaterThan(0);
   });
 
-  it('grassland (non-dense) output is BYTE-IDENTICAL to the pre-Task-10 generator', () => {
+  it('grassland clumps too — an evenly-treed grassland is an orchard', () => {
     const a = buildLocalFor(4);
     const b = buildLocalFor(4);
     expect(a.features).toEqual(b.features); // deterministic
-    expect(undergrowthSlice(a).length).toBe(0); // the undergrowth stream never ran
-    // FNV-1a over the exact feature JSON (ids, kinds, full-precision coords).
-    // Snapshot BAKED PRE-CHANGE (RED run, 2026-07-11): a post-change match
-    // proves non-dense windows still get the same streams in the same order —
-    // no keep gate, no extra call, identical bytes.
-    const s = JSON.stringify(a.features);
-    let h = 0x811c9dc5;
-    for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193); }
-    expect({
-      featureHash: h >>> 0,
-      featureCount: a.features.length,
-      counts: {
-        tree: a.features.filter((f) => f.kind === 'tree').length,
-        bush: a.features.filter((f) => f.kind === 'bush').length,
-        boulder: a.features.filter((f) => f.kind === 'boulder').length,
-      },
-    }).toMatchSnapshot('grassland-task10-byte-identity');
+    expect(undergrowthSlice(a).length).toBe(0); // the undergrowth stream is dense-forest only
+
+    // The field applies in EVERY biome now, which is the change from Task 10.
+    // Non-dense windows are no longer byte-identical to the pre-clump
+    // generator, and that is the point rather than a regression.
+    const trees = a.features.filter((f) => f.kind === 'tree');
+    expect(trees.every((f) => typeof f.dens === 'number')).toBe(true);
+    const { clearings, thickets } = probeRects(a.bounds);
+    const perRect = (trees.length / (a.bounds.width * a.bounds.height)) * RECT * RECT;
+    expect(countIn(trees, thickets)).toBeGreaterThan(countIn(trees, clearings));
+    expect(perRect * thickets.length).toBeGreaterThan(1);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// The clump field itself — the properties the placement above relies on.
+// ---------------------------------------------------------------------------
+
+describe('clumpField', () => {
+  const sample = () => {
+    const vals: number[] = [];
+    for (let y = 0; y < 40000; y += 61) for (let x = 0; x < 40000; x += 61) vals.push(clumpAt(x, y));
+    return vals.sort((p, q) => p - q);
+  };
+
+  it('is heavy-tailed: most ground below the mean, a small fraction saturating', () => {
+    const vals = sample();
+    const mean = vals.reduce((s, v) => s + v, 0) / vals.length;
+    const median = vals[Math.floor(vals.length / 2)];
+    // A single octave would put the median AT the mean. The product of three
+    // pushes the median below it, which is what gives open floor between knots.
+    expect(median).toBeLessThan(mean);
+    expect(mean).toBeGreaterThan(0.2);
+    expect(mean).toBeLessThan(0.3);
+  });
+
+  it('acceptance separates the MIDDLE quartiles, which is the contrast the eye sees', () => {
+    // The failure this guards is the one the first tuning shipped: a curve that
+    // measures fine at the extremes while the rendered scatter still reads as
+    // an even speckle. Most of any window sits in the middle of the field, so
+    // the lower-to-upper-quartile spread is the number that decides whether a
+    // thicket looks like a thicket. The first pass ran 1.7x here and looked
+    // flat; 3x is about where the structure becomes legible.
+    const vals = sample();
+    const q = (p: number) => vals[Math.floor(p * (vals.length - 1))];
+    const spread = Math.min(1, clumpAccept(q(0.75))) / Math.min(1, clumpAccept(q(0.25)));
+    expect(spread).toBeGreaterThan(3);
+
+    const p = vals.map((v) => Math.min(1, clumpAccept(v)));
+    expect(p.filter((v) => v >= 1).length / p.length).toBeGreaterThan(0.02); // knots fill in solid
+    expect(p.filter((v) => v < 0.1).length / p.length).toBeGreaterThan(0.15); // real clearings
+  });
+
+  it('is continuous across a window seam (world feet, not window-local)', () => {
+    // Two adjacent 3000ft windows must agree about the same world foot, or a
+    // thicket restarts at every border.
+    const seamX = 3000;
+    for (let y = 0; y < 5000; y += 137) {
+      expect(clumpAt(seamX - 0.001, y)).toBeCloseTo(clumpAt(seamX + 0.001, y), 4);
+    }
+  });
+
+  it('dens is 0 at the floor and clamps at 1', () => {
+    expect(clumpDens(0)).toBe(0);
+    expect(clumpDens(10)).toBe(1);
   });
 });
 

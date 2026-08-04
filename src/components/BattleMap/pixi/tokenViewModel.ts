@@ -1,5 +1,21 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 04/08/2026, 01:53:00
+ * Dependents: components/BattleMap/pixi/PixiBattleBoard.tsx
+ * Imports: 2 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import type { CombatCharacter } from '../../../types/combat';
-import { getCharacterSizeMultiplier } from '../../../utils/combatUtils';
+import { getCharacterSizeMultiplier } from '../../../utils/combat';
 
 /** Everything the Pixi token needs to draw, matching CharacterToken.tsx:
  *  blue-400 ally / red-500 hostile rings, amber-400 selection, and the

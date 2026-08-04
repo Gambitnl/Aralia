@@ -32,7 +32,7 @@ screenshot times out. Use this rig.
 | World3D ground | `wilds-ancient-forest`, `wilds-mountain-summit`, `wilds-road-bridge`, `wilds-ford-causeway` | covered |
 | Towns in 3D | `town-street-aerial`, `crowd-commute` | covered |
 | Interiors (L4) | `interior-villager` | thin — one scenario, needs hour variants |
-| Dungeons | **none** | **BLOCKED — no scenario exists; build one first** |
+| Dungeons | `dungeon-3d-entrance-room`, `dungeon-3d-corridor-depth`, `dungeon-parchment-sheet`, `dungeon-parchment-linework`, `dungeon-3d-entrance-room-frost`, `dungeon-parchment-sheet-frost` | **covered** (was none; +3 added 2026-08-03) — see `FINDINGS-dungeons.md` |
 | Combat maps | `combat3d-party`, `combat3d-enemies`, `combat-world-*` (18) | covered |
 | Creatures | `forge-lineup`, `forge-dwarf-wizard`, `forge-dragon-huge`, `entitydebug-anchors`, `world-cast-diorama` | covered |
 

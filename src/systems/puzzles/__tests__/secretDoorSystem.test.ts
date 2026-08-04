@@ -14,10 +14,10 @@ import {
 } from '../secretDoorSystem';
 import { SecretDoor } from '../types';
 import { PlayerCharacter } from '../../../types/character';
-import * as combatUtils from '../../../utils/combatUtils';
+import * as combatUtils from '../../../utils/combat';
 
 // Mock the dice roller
-vi.mock('../../../utils/combatUtils', () => ({
+vi.mock('../../../utils/combat', () => ({
   rollDice: vi.fn()
 }));
 // TODO #925(lint-intent): Keep this stub aligned with the PlayerCharacter contract once puzzle flows migrate off the legacy stats field.

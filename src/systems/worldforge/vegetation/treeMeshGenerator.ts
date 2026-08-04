@@ -17,9 +17,28 @@
  */
 import * as THREE from 'three';
 
-export type TreeSpecies = 'conifer' | 'broadleaf' | 'scrub';
+/**
+ * Species widened from three to six (2026-08-04, ez-tree adoption). Three meant
+ * a taiga, a temperate wood and a rainforest drew from the same silhouettes, so
+ * canopy tint was the only thing telling them apart and every forest in the
+ * world read as the same forest in a different color.
+ *
+ * Geometry for all six now comes from vegetation/ezTreeMeshSource.ts. The forms
+ * below still describe the hand-written fallback generator, which is kept for
+ * headless callers (tests, worker builds) that must not pull the vendored
+ * library in.
+ */
+export type TreeSpecies =
+  | 'conifer'
+  | 'broadleaf'
+  | 'ash'
+  | 'aspen'
+  | 'scrub'
+  | 'palm';
 
-export const TREE_SPECIES: readonly TreeSpecies[] = ['conifer', 'broadleaf', 'scrub'];
+export const TREE_SPECIES: readonly TreeSpecies[] = [
+  'conifer', 'broadleaf', 'ash', 'aspen', 'scrub', 'palm',
+];
 
 /**
  * Distinct silhouettes per species.
@@ -40,7 +59,19 @@ export const TREE_SPECIES: readonly TreeSpecies[] = ['conifer', 'broadleaf', 'sc
 export const TREE_FORMS = {
   conifer: ['spire', 'umbrella'],
   broadleaf: ['dome', 'spreading'],
+  // The three species added with ez-tree reuse the fallback generator's
+  // existing outlines: ash and aspen are broadleaf shapes, and a palm without
+  // fronds is an umbrella. The fallback is a stand-in for headless callers, so
+  // its job is to be the right SIZE and roughly the right outline, not to
+  // re-implement six silhouettes that the real source already draws.
+  //
+  // A species' forms must be ones its BUILDER actually distinguishes, or the
+  // outline test is right to fail: aspen first carried 'spire', which the
+  // broadleaf builder does not know and silently collapsed to 'dome'.
+  ash: ['dome', 'spreading'],
+  aspen: ['dome', 'spreading'],
   scrub: ['tussock', 'thicket'],
+  palm: ['umbrella', 'spire'],
 } as const satisfies Record<TreeSpecies, readonly string[]>;
 
 export type TreeForm = (typeof TREE_FORMS)[TreeSpecies][number];
@@ -55,7 +86,13 @@ export const VARIANTS_PER_SPECIES = 4;
 export const SPECIES_HEIGHT_M: Record<TreeSpecies, number> = {
   conifer: 9,
   broadleaf: 7,
+  /** Ash runs tall and narrow; it is the wetland/streamside tree. */
+  ash: 8,
+  /** Aspen is a slighter cold-country tree that stands in stands. */
+  aspen: 6.5,
   scrub: 2.6,
+  /** Palms carry their crown high on a bare stem — tall for their bulk. */
+  palm: 11,
 };
 
 export interface TreeGeometryData {
@@ -377,10 +414,23 @@ function buildScrub(rng: () => number, form: TreeForm = 'tussock'): TreeGeometry
   return mergeParts(parts);
 }
 
+/**
+ * Fallback builders, one per species.
+ *
+ * Ash, aspen and palm route to the two existing broadleaf/conifer builders on
+ * purpose. This generator is the headless stand-in for callers that cannot pull
+ * the vendored ez-tree library; giving it three more bespoke silhouettes would
+ * be maintaining a second art pipeline for geometry no player sees. The heights
+ * in SPECIES_HEIGHT_M still separate them, which is what a test or a worker
+ * needs from a tree.
+ */
 const BUILDERS: Record<TreeSpecies, (rng: () => number, form: TreeForm) => TreeGeometryData> = {
   conifer: buildConifer,
   broadleaf: buildBroadleaf,
+  ash: buildBroadleaf,
+  aspen: buildBroadleaf,
   scrub: buildScrub,
+  palm: buildConifer,
 };
 
 /**

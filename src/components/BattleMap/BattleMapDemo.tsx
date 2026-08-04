@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 16/07/2026, 08:58:07
+ * Last Sync: 04/08/2026, 01:51:58
  * Dependents: components/BattleMap/index.ts, components/DesignPreview/steps/PreviewBattleMap.tsx, components/DesignPreview/steps/PreviewBattleMapScenarioLab.tsx
- * Imports: 26 files
+ * Imports: 27 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -58,7 +58,7 @@ import CharacterSheetModal from "../CharacterSheet/CharacterSheetModal";
 import { canUseDevTools } from "../../utils/permissions";
 import { CONTROL_POSES, type ControlPoseId } from "./controlOptionPose";
 import { logger } from "../../utils/logger";
-import { createPlayerCombatCharacter } from "../../utils/combatUtils";
+import { createPlayerCombatCharacter } from "../../utils/combat";
 import {
   createQuickCombatCharacter,
   AVAILABLE_RACE_IDS,

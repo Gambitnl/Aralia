@@ -133,6 +133,16 @@
         {
           "title": "Tree batching: 379 instanced meshes -> 16, scene draw calls 571 -> 208, render 3.3ms -> 1.2ms (2026-07-27)",
           "status": "done"
+        },
+        {
+          "title": "ez-tree adopted for the streamed world; species 3 -> 6 (2026-08-04)",
+          "status": "done",
+          "status_note": "World and combat map had two tree generators; only the combat one was art directed. ezTreeMeshSource merges branches+leaves to one unit-frame geometry so instancing/batching are untouched. Leaf mass 3.2x/1.6x after the first pass shipped wispier trees than the cones it replaced. flatShading off - closes the 2026-07-27 faceted complaint."
+        },
+        {
+          "title": "Understory layer (jungle-trail: ferns, logs, root runs, vines, litter, thickets)",
+          "status": "specced",
+          "status_note": "Remy call 2026-08-04. Aralia has NO understory - grass and bushes only, which is why the forest floor reads empty. Source: vendor/jungle-trail/src/world/plants.js (MIT)."
         }
       ],
       "history": {
@@ -140,7 +150,7 @@
         "built": "2026-07-04"
       },
       "tier": "strategic",
-      "updated": "2026-07-27"
+      "updated": "2026-08-04"
     },
     {
       "id": "perf-campaign",
@@ -4214,9 +4224,25 @@
         {
           "title": "Tree silhouette variety: 2 forms per species, drooped+yawed conifer tiers, pad foliage primitive (2026-07-27)",
           "status": "done"
+        },
+        {
+          "title": "Vegetation clumping rebuild (3-octave clump field replaces the single-octave clearing gate; all biomes)",
+          "status": "done",
+          "status_note": "jungle-trail poach. Probability not boolean, min-sep relaxes mid-clump, features carry dens and 3D scales by it. Target counts unchanged - density redistributes. Tuned against the rendered scatter: middle-quartile contrast, not saturation share."
+        },
+        {
+          "title": "Towns clear their own ground (vegetation keep-out from wall ring / plot hull)",
+          "status": "done",
+          "status_note": "Remy 3D look at Hafting: trees stood among the roofs. Wilderness scatter never knew towns existed. Soft margin out (trees 14m, bushes 5m) so woods feather rather than stop on a line."
+        },
+        {
+          "title": "Town-owned tree placement from plan land use (orchard/garden/yard)",
+          "status": "specced",
+          "decision": false,
+          "status_note": "Remy call 2026-08-04: towns should place their own trees. openLand parcels exist in townEngine TownPlan but toArtifactPlan drops them - carry through, then place per kind (orchards regular, gardens sparse)."
         }
       ],
-      "updated": "2026-07-27",
+      "updated": "2026-08-04",
       "tier": "strategic"
     },
     {
@@ -5623,8 +5649,8 @@
         },
         {
           "title": "Mixamo clip playback: retarget map + mixer + in-place speed sync (first payoff)",
-          "status": "parked",
-          "status_note": "Deferred by Remy 2026-07-23 (clip acquisition needs an Adobe login or a CC0 pack; neither chosen). The converter/retarget design stands; slices reordered — smooth bodies first."
+          "status": "superseded",
+          "status_note": "Superseded 2026-07-24 by CC0 Mesh2Motion clips (MIT/CC0, no Adobe login, glTF not FBX). See topic cc0-clip-animation."
         },
         {
           "title": "Smooth joint weights: one-piece creased bodies",
@@ -5646,7 +5672,7 @@
           "status_note": "RESOLVED 2026-07-21 (Remy): switch to solid shaded on deforming skinned meshes."
         }
       ],
-      "updated": "2026-07-29",
+      "updated": "2026-07-24",
       "tier": "strategic"
     },
     {
@@ -5956,6 +5982,47 @@
         }
       ],
       "status_note": "Rig fixed and all six surfaces now capturable. Honest scores after the first critic pass: world3d 0/11, towns 2/18, interiors 0/10, dungeons 2/9+3/8, combat 1/9+3/9, creatures 0/9. Critics overruled the orchestrator once (AO) and themselves twice (towns AO radius, dungeons pre-written statuses) - the loop is working. Remy decided 2026-07-30: go smooth, BG3 is the bar."
+    },
+    {
+      "id": "cc0-clip-animation",
+      "title": "CC0 clip animation (Mesh2Motion library)",
+      "sub": "real mocap clips on skinned bodies; humanoid retarget + rigged creature bestiary",
+      "campaign": "rendering",
+      "status": "specced",
+      "updated": "2026-08-04",
+      "status_note": "Spec approved 2026-07-24 (Remy: full 87-clip pack; humanoids first, then path A rigged bestiary). Un-defers the skeleton-pivot clip slice using CC0 glTF packs instead of Mixamo/FBX. Source: github.com/Mesh2Motion/mesh2motion-app (MIT code, CC0 assets, CMU mocap).",
+      "deps": [
+        {
+          "id": "entity-skeleton-pivot",
+          "kind": "hard",
+          "why": "clips need the 17-bone skeleton + SkinnedMesh + mixer from the pivot"
+        }
+      ],
+      "link": "docs/superpowers/specs/2026-07-24-cc0-clip-animation-design.md",
+      "tier": "strategic",
+      "features": [
+        {
+          "title": "Humanoid retarget substrate (map + clip store + player)",
+          "status": "active",
+          "status_note": "Code built + unit-proven 2026-08-04 (bone map, in-place strip, clip store via SkeletonUtils.retargetClip, mixer player, animSource:clip through assembleEntity + debugger ?clip=1; packs bundled, NOTICES written; 23 tests green, typecheck clean). NOT visually verified: headless probe hit a 500 loading the clip debugger path — diagnosis paused by Remy."
+        },
+        {
+          "title": "Full 87-clip action set + speed sync + debugger scrub",
+          "status": "specced"
+        },
+        {
+          "title": "Rigged creature bestiary (spider, dragon, snake, fox, horse)",
+          "status": "specced"
+        },
+        {
+          "title": "Game wiring (combat/dialogue clips + bestiary monsters)",
+          "status": "parked"
+        },
+        {
+          "title": "Polish: additive layering, palette tint, blend trees",
+          "status": "parked"
+        }
+      ]
     }
   ]
 }

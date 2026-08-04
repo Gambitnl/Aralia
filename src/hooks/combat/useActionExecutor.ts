@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 23/07/2026, 20:44:08
+ * Last Sync: 04/08/2026, 01:55:59
  * Dependents: hooks/combat/useTurnManager.ts
  * Imports: 12 files
  *
@@ -40,7 +40,7 @@ import {
   rollD20,
   getOccupiedTiles,
   getCharacterSizeMultiplier
-} from '../../utils/combatUtils';
+} from '../../utils/combat';
 import { getAbilityModifierValue } from '../../utils/statUtils';
 import { calculateSpellDC, rollSavingThrow } from '../../utils/savingThrowUtils';
 import { calculateMovementTotal } from '../../utils/combat/actionEconomyUtils';

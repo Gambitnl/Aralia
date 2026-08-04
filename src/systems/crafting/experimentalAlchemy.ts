@@ -3,7 +3,7 @@
  * Experimental Alchemy system - mix random ingredients to discover effects.
  * Based on the PDF source material's property-based crafting system.
  */
-import { rollDice } from '../../utils/combatUtils';
+import { rollDice } from '../../utils/combat';
 import { REAGENT_DATABASE, AlchemicalProperty } from './alchemySystem';
 
 export type ExperimentOutcome =

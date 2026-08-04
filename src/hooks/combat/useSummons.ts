@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * This file appears to be an ISOLATED UTILITY or ORPHAN.
  *
- * Last Sync: 01/07/2026, 22:47:09
+ * Last Sync: 04/08/2026, 01:56:48
  * Dependents: None (Orphan)
  * Imports: 5 files
  *
@@ -17,7 +17,7 @@
 import { useState, useCallback } from 'react';
 import { CombatCharacter, ActionCostType, AbilityEffect } from '../../types/combat';
 import { Spell, SummoningEffect, FamiliarContract } from '../../types/spells';
-import { generateId } from '../../utils/combatUtils';
+import { generateId } from '../../utils/combat';
 import { getSummonTemplate, SummonTemplate } from '../../data/summonTemplates';
 import { Class } from '../../types/character';
 

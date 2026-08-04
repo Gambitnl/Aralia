@@ -1,7 +1,7 @@
 import { renderHook, act } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { useAbilitySystem } from '../useAbilitySystem';
-import { createPlayerCombatCharacter } from '../../utils/combatUtils';
+import { createPlayerCombatCharacter } from '../../utils/combat';
 import { createMockCombatCharacter } from '../../utils/core/factories';
 import type { BattleMapData, BattleMapTile, CombatAction, CombatCharacter } from '../../types/combat';
 import type { SpellSlots } from '../../types/character';
@@ -75,8 +75,8 @@ vi.mock('../../commands', () => ({
   CommandExecutor: { execute: vi.fn().mockReturnValue({ success: true, finalState: { characters: [], combatLog: [] } }) }
 }));
 
-vi.mock('../../utils/combatUtils', async () => {
-  const actual = await vi.importActual<typeof import('../../utils/combatUtils')>('../../utils/combatUtils');
+vi.mock('../../utils/combat', async () => {
+  const actual = await vi.importActual<typeof import('../../utils/combat')>('../../utils/combat');
 
   // Keep the real player-to-combat bridge available so the test exercises the
   // actual premade wizard spellbook, but make geometry and dice deterministic.

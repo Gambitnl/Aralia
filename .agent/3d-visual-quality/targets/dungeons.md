@@ -7,6 +7,14 @@ Shadowfell.
 hand-inked module sheet. They are NOT judged against the same reference. Section A is judged
 against BG3. Section B is NOT — see the attribution correction below.
 
+> **2026-08-03 session note (builder):** the linework byte-identical blocker is gone
+> (re-captured, now a distinct deterministic zoom frame — see `FINDINGS-dungeons.md`), and
+> two scenarios were added for B6/cross-theme (`dungeon-parchment-sheet-frost`,
+> `dungeon-3d-entrance-room-frost`). A crypt A6/A4 darkness-floor lift was applied and
+> **measured** (dark<10 86%→64%, torch pools intact); crypt was the warm-dark outlier vs
+> frost already cool. All numbers + what still needs a vision read: `FINDINGS-dungeons.md`.
+
+
 **Captures judged**, all taken 2026-07-30 from the live surface and all read with the Read
 tool before scoring:
 

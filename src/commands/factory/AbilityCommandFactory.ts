@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 23/07/2026, 20:12:17
+ * Last Sync: 04/08/2026, 01:50:48
  * Dependents: commands/factory/SpellCommandFactory.ts, commands/index.ts
  * Imports: 28 files
  *
@@ -42,7 +42,7 @@ import { StatusConditionCommand } from '../effects/StatusConditionCommand';
 import { DefensiveCommand } from '../effects/DefensiveCommand';
 import { AttackRollModifierCommand } from '../effects/AttackRollModifierCommand';
 import { AbilityEffectMapper } from './AbilityEffectMapper';
-import { generateId, calculateCover, resolveAttack, getDistance, rollD20, rollDice } from '@/utils/combatUtils';
+import { generateId, calculateCover, resolveAttack, getDistance, rollD20, rollDice } from '@/utils/combat';
 import { SpellEffect, Spell, isAttackRollModifierEffect, isDamageEffect, isHealingEffect, isMovementEffect, isStatusConditionEffect } from '@/types/spells';
 import { AttackRiderSystem, AttackContext } from '@/systems/combat/AttackRiderSystem';
 import { VisibilitySystem } from '@/systems/visibility';

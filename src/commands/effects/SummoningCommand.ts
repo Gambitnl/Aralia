@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 23/07/2026, 19:32:43
+ * Last Sync: 04/08/2026, 01:49:52
  * Dependents: commands/effects/ReactiveEffectCommand.ts, commands/factory/SpellCommandFactory.ts
  * Imports: 9 files
  *
@@ -21,7 +21,7 @@ import { CombatState, CombatCharacter, Position, CharacterStats, Ability, Abilit
 import type { ExtraMovementSpeeds } from '@/types/core'
 import { CLASSES_DATA } from '@/constants'
 import { MONSTERS_DATA } from '../../data/monsters'
-import { generateId } from '../../utils/combatUtils'
+import { generateId } from '../../utils/combat'
 import { getSummonTemplate, type SummonTemplate } from '../../data/summonTemplates'
 
 /**

@@ -4,7 +4,7 @@
  */
 import { Crafter } from './craftingSystem';
 import { CreaturePart, HarvestableCreature, getCreatureById } from './creatureHarvestData';
-import { rollDice } from '../../utils/combatUtils';
+import { rollDice } from '../../utils/combat';
 
 export interface CreatureHarvestResult {
     success: boolean;

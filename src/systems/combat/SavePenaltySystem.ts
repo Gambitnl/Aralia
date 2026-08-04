@@ -3,8 +3,8 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 27/02/2026, 09:29:24
- * Dependents: DamageCommand.ts, StatusConditionCommand.ts, UtilityCommand.ts, useCombatEngine.ts
+ * Last Sync: 04/08/2026, 01:58:59
+ * Dependents: commands/effects/AttackRollModifierCommand.ts, commands/effects/DamageCommand.ts, commands/effects/StatusConditionCommand.ts, commands/effects/UtilityCommand.ts, commands/factory/SpellCommandFactory.ts, hooks/combat/engine/useCombatEngine.ts, hooks/movementUtils.ts, systems/spells/socialServiceResolution.ts
  * Imports: 4 files
  *
  * MULTI-AGENT SAFETY:
@@ -24,7 +24,7 @@
  */
 
 import { CombatState, CombatCharacter, SavePenaltyRider } from '@/types/combat';
-import { rollDice } from '@/utils/combatUtils';
+import { rollDice } from '@/utils/combat';
 import { SavingThrowModifier } from '@/utils/savingThrowUtils';
 import { generateId } from '@/utils/core/idGenerator';
 

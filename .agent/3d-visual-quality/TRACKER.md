@@ -235,7 +235,50 @@ capture script before changing each.
 | 2026-06-07 | gaps | Verify-before-fix: terrain-gen "bugs" debunked | Code-checked suspected gaps: #10 (desert flagstone) = `rock` outcrops, legit. #12 (cave/dungeon grass) = the green valid-move GridOverlay, not grass (GrassLayer/GroundScatter exclude wall/floor). GOAL #50 (cacti-in-swamp) already fixed (swamp=mangroves). Corrected gaps; made no code changes to correct code. |
 | 2026-06-07 | 48 | Overview-capture mode | shoot.mjs `OVERVIEW=1` dispatches wheel-zoom-out to pull OrbitControls back to a wide tactical view. overview2-forest.png = strong eye-test shot (whole atmospheric forest battlefield; tree variety confirmed). overview-desert.png used to assess spawn: teams split sides but members clump (opened gap #18). `__r3f` not externally accessible (camera can't be force-posed); wheel events work. maxDistance is 35. |
 | 2026-06-08 | eye-test re-baseline | Fresh tactical-overview captures (`eyetest-forest.png`, `eyetest-desert.png`) | Current state passes the basic eye test — both biomes read as a credible 3D game (atmosphere, fog→horizon blend, tree variety, terrain grain, characters w/ team rings + gold turn beacon). The GOAL/reminder premise ("flat terrain, no grain, identical trees") is stale — those P0s (tasks 14/15/16) are done. New residual detractor logged: open-biome map edge still shows a hard vertical step into the apron when perimeter tiles are elevated (gap #19). Remaining polish gaps: #15 silhouettes, #16 foliage occlusion, #18 spawn spread, #19 edge cliff. No code changed (per "record, don't impulsively fix"). |
+
+
 | 2026-06-08 | 16 — Foliage occlusion fade (DONE) | `EzTreeLayer.tsx` leaf material `onBeforeCompile` | Implemented a BG3-style camera-proximity canopy fade: leaf `diffuseColor.a *= smoothstep(2.5, 7.0, -mvPosition.z)`, so foliage near the camera fades and stops walling off characters at the snap-to-active angle; distant forest stays opaque. GPU-only, instancing-safe. **Before:** occl-before-forest.png (characters buried in dark canopy). **Proof:** deterministic same-seed fade-far.png (foliage opaque at distance) vs fade-near.png (near canopy gone, character fully readable). Verification harness: `captures/fade-check.mjs`. Closed gap #16. Spotted + logged gap #20 (EzTreeLayer biome detection bug) while in the file — not fixed (out of scope). |
+
+---
+
+## 2026-08-03 — Dungeons: measurement rig + A6 darkness-floor + scenario coverage (builder pass)
+
+- Added **`scripts/visual/frame-stats.mjs`**: committed quantitative capture analyzer
+  (luma percentiles, dark/black fractions, darkness-floor channel tint). Used for all
+  dungeon measurements; portable to every other surface's captures.
+- **A6/A4 crypt darkness-floor fix** (`dungeonSceneModel.ts`): `background #08070c→#0d1220`,
+  `fog #1a1526→#26314d` (cool lift off zero). **Measured:** dark(<10) 86%→64%, torch pools
+  intact (colourful 6.9%→6.9%), 24/24 scene-model tests green. Crypt was the warm-dark
+  outlier; frost already meets the cool-gloom target (darkness floor 3/9/17).
+- **Scenarios added:** `dungeon-parchment-sheet-frost` (B6 second theme),
+  `dungeon-3d-entrance-room-frost` (cross-theme A-check). Both capture; registry tests pass.
+- **Linework:** 07-30 byte-identical blocker **not reproduced** — linework is now a
+  deterministic, byte-distinct zoom frame.
+- ⚠️ **Capability gate:** this session's model + sub-agents **cannot read images**, so the
+  craft-level dungeons review (A1/A2/A3/A7/A8 + residual crypt warm-floor tune) is handed to
+  a **vision-capable** critic. See `FINDINGS-dungeons.md`.
+
+## 2026-08-03 (second pass) — deterministic non-visual items (A2, corridor, A5, A9, page-fill)
+
+All implemented + structurally/capture-verified; craft/visual confirmation still vision-gated
+(items 1/A2, 4/A5 tonality, and 5/page-fill resize). All unit tests green (90).
+
+- **A2 torch shadows** — `<Canvas shadows>`, torch `pointLight castShadow` (512²). Measured
+  (`tools/dungeon-profile`/`results-shadows.json`): worst true render 2.49→**3.97 ms** (252fps),
+  meets 30fps floor by ~8×; live p50/p95 unchanged.
+- **`dungeon-3d-corridor-depth` scenario** — objective preset + dolly for A4/A6 along-depth;
+  captures a distinct receding deep frame (approx. until a real corridor preset exists).
+- **A5 N8AO+Bloom+ToneMapping+Vignette** — dark profile, exposure 1.35 / vignette 0.3 (harsher
+  first pass regressed the A6 metric; pulled back). Measured: pure-black 0.319→**0.176**, dark<10
+  flat, torch pools intact. Perf (`results-ao.json`): worst true render **7.13 ms** (140fps),
+  meets floor by ~4.7×. `aoRadius=1.8` + tonality need vision confirmation.
+- **A9 marker hygiene** — `window.__dungeon3dMarkers=false` hides entrance/objective markers;
+  3D dungeon scenarios set it. Scene probe: `__dungeon3dReady` + 0 console errors.
+- **Page-fill (B5/B7/B8)** — added `window.__dungeonSheetLayout` probe to `renderSheet`.
+  Baseline (crypt seed 20260730): **fillRatioPlate 0.29**, fillRatioArtBox 0.575. The actual
+  resize is left **vision-gated** (delicate hand-inked sheet; see FINDINGS).
+
+
 | 2026-06-08 | Gap reconciliation (#18, #20) | `useBattleMapGeneration.ts`, `EzTreeLayer.tsx`, `battleMapGenerator.ts` | Verified-before-acting (code ahead of gap docs, recurring pattern): **#18 spawn clumping is already RESOLVED** — `getSpawnTiles.spreadTiles` enforces `MIN_SEP=2`; eyetest-desert.png confirms a spaced formation. **#20 EzTreeLayer biome bug is INERT** — `placeObstacles` only emits `decoration==='tree'` for forest, so EzTreeLayer never runs in other biomes (their props come from DecorationProps); the non-forest BIOME_TREES configs are dead code. No code changed for either. Genuinely-open visual gaps now: **#15 (class silhouettes), #19 (open-biome edge cliff)** — both non-trivial. |
 | 2026-06-08 | 19 — Biome-tinted terrain skirt (DONE) | `TerrainMesh.tsx` skirtMaterial | Root-caused #19: terrain already has a solid perimeter skirt (`buildSkirtGeometry`, panels to y=-1.0 + cap) — it's a solid mesa, not a floating sheet (my earlier read was wrong). Real residual = uniform near-black skirt color looked like a void band under desert sand. Fixed by tinting the skirt per biome (desert sandstone, cave/dungeon stone-grey, forest/swamp loam/peat). Before/after: edge-before-desert.png → edge-after-desert.png. Low-risk (material color only); no regression. Closed gap #19. |
 | 2026-06-08 | Final eye-test sweep (5 biomes) | captures eyetest-forest/desert, finaleye-cave/dungeon/swamp | **Verdict: passes** at the gameplay framing. Forest/desert/swamp read as credible 3D scenes at overview; cave/dungeon read fine at the close combat camera (per prior lit-cave/pools-dungeon) but go near-black at overview max-zoom → logged gap #21 (dark-biome overview readability, low priority). Cave/dungeon close re-captures were **blocked** by a concurrent World3DScene.tsx breakage crashing the capture entry path (transient, not a battle-map issue). Only code change this session: #16 foliage fade. |

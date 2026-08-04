@@ -42,6 +42,7 @@
  * only on tapered slopes — the A/B eyeball gate judges it.
  */
 import {
+  BoxGeometry,
   BufferAttribute,
   BufferGeometry,
   CylinderGeometry,
@@ -56,6 +57,7 @@ import {
 } from 'three';
 import type { Frame, SegmentSink } from '../types';
 import { buildBipedSkeleton, createBipedPoseSink } from './skeletonBuilder';
+import { buildPlanSkeleton, createPlanPoseSink } from './planSkeleton';
 import { buildSmoothBipedGeometry } from './smoothBipedGeometry';
 import { outlineMaterial, toonMaterial } from './toon';
 
@@ -87,7 +89,7 @@ const IDENTITY = new Matrix4();
 
 /** One geometry piece bound rigidly to one bone. */
 interface Piece {
-  geometry: CylinderGeometry | SphereGeometry;
+  geometry: CylinderGeometry | SphereGeometry | BoxGeometry;
   bone: number;
 }
 
@@ -230,3 +232,144 @@ export function createSkinnedBiped(frame: Frame, options: SkinnedBodyOptions): S
     },
   };
 }
+
+const FWD = new Vector3(0, 0, 1);
+
+/**
+ * Bind-pose geometry for a plan-driven creature (slice 4): one rigid cylinder
+ * per spine/chain rest link + joint spheres, one sphere per terminal ball, and
+ * one rigid Box per box-spine link — every vertex owned by exactly one bone.
+ * Reuses the segment renderer's shapes (CylinderGeometry(r1,r0,len,10,1),
+ * joint SphereGeometry(r·0.98,8,6), ball SphereGeometry(r,12,9)) plus
+ * BoxGeometry for cube bodies. Decorations (rings, collars, snouts, cilia,
+ * toes, fingers) are NOT skinned — they stay on the anchor path.
+ */
+export function buildPlanBindGeometry(
+  restPose: import('./planSkeleton').PlanRestPose,
+  index: ReadonlyMap<string, number>,
+): BufferGeometry {
+  const pieces: Piece[] = [];
+  const quat = new Quaternion();
+  const dir = new Vector3();
+  const mid = new Vector3();
+  const matrix = new Matrix4();
+  const one = new Vector3(1, 1, 1);
+
+  const boxIds = new Set(restPose.boxes.map((b) => b.id));
+
+  for (const seg of restPose.rels) {
+    const bone = index.get(seg.id);
+    if (bone === undefined) throw new Error(`skinnedBody: no bone for rest link "${seg.id}"`);
+    // box-spine links are built as boxes below; skip their cylinder twin.
+    if (boxIds.has(seg.id)) continue;
+    dir.set(seg.b[0] - seg.a[0], seg.b[1] - seg.a[1], seg.b[2] - seg.a[2]);
+    const len = Math.max(dir.length(), 1e-4);
+    mid.set((seg.a[0] + seg.b[0]) / 2, (seg.a[1] + seg.b[1]) / 2, (seg.a[2] + seg.b[2]) / 2);
+    quat.setFromUnitVectors(UP, dir.normalize());
+    matrix.compose(mid, quat, one);
+
+    const cylinder = new CylinderGeometry(seg.r1, seg.r0, len, 10, 1);
+    cylinder.applyMatrix4(matrix);
+    pieces.push({ geometry: cylinder, bone });
+
+    for (const [end, r] of [
+      [seg.a, seg.r0],
+      [seg.b, seg.r1],
+    ] as const) {
+      const joint = new SphereGeometry(r * 0.98, 8, 6);
+      joint.translate(end[0], end[1], end[2]);
+      pieces.push({ geometry: joint, bone });
+    }
+  }
+
+  // box-spine links: a rigid slab from a→b (depth axis), w×h cross-section.
+  for (const box of restPose.boxes) {
+    const bone = index.get(box.id);
+    if (bone === undefined) throw new Error(`skinnedBody: no bone for box link "${box.id}"`);
+    dir.set(box.b[0] - box.a[0], box.b[1] - box.a[1], box.b[2] - box.a[2]);
+    const len = Math.max(dir.length(), 1e-4);
+    mid.set((box.a[0] + box.b[0]) / 2, (box.a[1] + box.b[1]) / 2, (box.a[2] + box.b[2]) / 2);
+    quat.setFromUnitVectors(FWD, dir.normalize());
+    matrix.compose(mid, quat, one);
+    const slab = new BoxGeometry(box.w, box.h, len);
+    slab.applyMatrix4(matrix);
+    pieces.push({ geometry: slab, bone });
+  }
+
+  for (const ball of restPose.balls) {
+    const bone = index.get(ball.id)!;
+    const sphere = new SphereGeometry(ball.r, 12, 9);
+    sphere.translate(ball.center[0], ball.center[1], ball.center[2]);
+    pieces.push({ geometry: sphere, bone });
+  }
+  return mergePieces(pieces);
+}
+
+export interface PlanSkinnedBodyOptions extends SkinnedBodyOptions {
+  /** Forward decorative emissions here (the segment renderer on the anchor path),
+   * so snouts, cilia, toes, fingers, rings and collars keep rendering in
+   * skinned mode instead of being dropped. */
+  decorativeDelegate?: SegmentSink;
+}
+
+/**
+ * Slice 4: a rigid-weight skinned plan creature. One bind-pose BufferGeometry
+ * (cylinders + joint spheres + terminal balls, plus boxes for cube bodies),
+ * each vertex owned 100% by one bone, drawn as one fill SkinnedMesh plus one
+ * inverse-hull ink shell — 2 draw calls, PLAN_TRIANGLE_BUDGET-respecting.
+ * The PlanDriver's emissions drive the bones through the plan pose sink.
+ * Creature SMOOTH joint weights are deferred (slice 4 scope).
+ */
+export function createSkinnedPlan(frame: Frame, spec: import('../types').PlanSpec, options: PlanSkinnedBodyOptions): SkinnedBody {
+  if (options.weights === 'smooth') {
+    // Deferred explicitly (skeleton pivot slice 4) — no silent fallback.
+    throw new Error("skinnedBody: creature SMOOTH joint weights are deferred (slice 4) — use 'rigid'");
+  }
+  const built = buildPlanSkeleton(frame, spec);
+  const geometry = buildPlanBindGeometry(built.restPose, built.index);
+
+  // Skeleton inverses must be captured while the bones hold their bind pose
+  // in entity-local space, before anything reparents or animates them.
+  built.root.updateMatrixWorld(true);
+  const skeleton = new Skeleton(built.bones);
+
+  const fillMaterial = toonMaterial(options.colorHex);
+  if (options.opacity !== undefined && options.opacity < 1) {
+    fillMaterial.transparent = true;
+    fillMaterial.opacity = options.opacity;
+    fillMaterial.depthWrite = false; // translucent bodies must not self-occlude harshly
+  }
+  const inkMaterial = outlineMaterial(options.colorHex, options.outlineThickness);
+
+  const root = new Group();
+  root.name = 'skinnedBody';
+
+  const fill = new SkinnedMesh(geometry, fillMaterial);
+  fill.name = 'skinnedFill';
+  fill.frustumCulled = false;
+  fill.add(built.root); // bones live under the fill mesh (standard three setup)
+  fill.bind(skeleton, IDENTITY);
+
+  const shell = new SkinnedMesh(geometry, inkMaterial);
+  shell.name = 'skinnedOutline';
+  shell.frustumCulled = false;
+  shell.bind(skeleton, IDENTITY); // shares skeleton + geometry; no second bone tree
+
+  root.add(fill, shell);
+
+  const pose = createPlanPoseSink(built, options.decorativeDelegate);
+
+  return {
+    root,
+    sink: pose.sink,
+    finishFrame: pose.finishFrame,
+    triangles: () => (geometry.index!.count / 3) * 2,
+    dispose: () => {
+      geometry.dispose();
+      fillMaterial.dispose();
+      inkMaterial.dispose();
+      skeleton.dispose(); // frees the bone texture once a renderer has made one
+    },
+  };
+}
+

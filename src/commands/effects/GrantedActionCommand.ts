@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 23/07/2026, 20:12:56
+ * Last Sync: 04/08/2026, 01:48:27
  * Dependents: commands/factory/AbilityCommandFactory.ts
  * Imports: 11 files
  *
@@ -20,7 +20,7 @@ import { CombatState, LightSource, Position, SelectedSpellTarget, SpellObjectImp
 import type { CommonCombatLogData } from '../../types/combat'
 import type { DamageEffect, DamageType, UtilityEffect } from '../../types/spells'
 import { generateId } from '../../utils/idGenerator'
-import { rollD20, resolveAttack } from '../../utils/combatUtils'
+import { rollD20, resolveAttack } from '../../utils/combat'
 import { getAbilityModifierValue } from '../../utils/character/statUtils'
 import { calculateProficiencyBonus } from '../../utils/character/savingThrowUtils'
 import { DamageCommand } from './DamageCommand'

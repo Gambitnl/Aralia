@@ -24,10 +24,11 @@
  *   import { rollDice } from '@/utils/combat';
  *   import { createMockSpell } from '@/utils/core';
  *
- * MIGRATION GUIDE:
- *   Old: import { rollDice } from '@/utils/combatUtils'
- *   New: import { rollDice } from '@/utils/combat'
- *        OR: import { rollDice } from '@/utils'
+ * MIGRATION GUIDE (completed 2026-08-04): the deprecated '@/utils/combatUtils'
+ * bridge was removed after all dependents were migrated. Import combat helpers
+ * from the real module directly:
+ *   import { rollDice } from '@/utils/combat'
+ *   OR: import { rollDice } from '@/utils'
  */
 
 // Core utilities - foundational functions

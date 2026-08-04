@@ -5,12 +5,12 @@ import { WeaponAttackCommand } from '../AbilityCommandFactory'
 import magicStone from '../../../../public/data/spells/level-0/magic-stone.json'
 import { createMockCombatCharacter, createMockCombatState, createMockItem } from '@/utils/factories'
 import { ItemType } from '@/types/items'
-import { rollDamage } from '@/utils/combatUtils'
+import { rollDamage } from '@/utils/combat'
 import type { Ability, CombatCharacter, CombatState } from '@/types/combat'
 import type { Item } from '@/types/items'
 
-vi.mock('@/utils/combatUtils', async () => {
-  const actual = await vi.importActual<typeof import('@/utils/combatUtils')>('@/utils/combatUtils')
+vi.mock('@/utils/combat', async () => {
+  const actual = await vi.importActual<typeof import('@/utils/combat')>('@/utils/combat')
 
   return {
     ...actual,

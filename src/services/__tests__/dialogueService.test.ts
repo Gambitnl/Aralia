@@ -11,11 +11,11 @@ import {
 } from '../dialogueService';
 import { ConversationTopic, DialogueSession, NPCKnowledgeProfile } from '../../types/dialogue';
 import { GameState, SuspicionLevel, Item, NPC, WorldRumor } from '../../types/index';
-import * as combatUtils from '../../utils/combatUtils';
+import * as combatUtils from '../../utils/combat';
 import * as timeUtils from '../../utils/core';
 
 // Mock rollDice
-vi.mock('../../utils/combatUtils', () => ({
+vi.mock('../../utils/combat', () => ({
   rollDice: vi.fn()
 }));
 

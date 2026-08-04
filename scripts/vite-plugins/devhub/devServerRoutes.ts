@@ -267,6 +267,7 @@ const listProfileSymlinks = async (): Promise<SymlinkRow[]> => {
 
   const scanRoots = [
     userProfile,
+    path.win32.join(userProfile, 'Documents'),
     path.win32.join(userProfile, 'AppData', 'Local'),
     path.win32.join(userProfile, 'AppData', 'Roaming'),
   ];
@@ -760,6 +761,7 @@ export async function handleDevServerRoutes(ctx: DevHubRouteContext): Promise<bo
         offloadedCount: links.filter((link) => link.category === 'G drive offload').length,
         roots: [
           userProfile,
+          `${userProfile}\\Documents`,
           `${userProfile}\\AppData\\Local`,
           `${userProfile}\\AppData\\Roaming`,
         ],

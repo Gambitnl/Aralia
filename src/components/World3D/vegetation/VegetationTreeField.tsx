@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 04/08/2026, 01:54:03
+ * Dependents: components/World3D/World3DScene.tsx
+ * Imports: 3 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file VegetationTreeField.tsx
  * @description Every loaded chunk's trees, drawn as ONE instanced mesh per
@@ -14,11 +30,11 @@
  */
 import React, { useEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
-import {
-  generateTreeVariantSet,
-  type TreeGeometryData,
-  type TreeSpecies,
+import type {
+  TreeGeometryData,
+  TreeSpecies,
 } from '@/systems/worldforge/vegetation/treeMeshGenerator';
+import { generateEzTreeVariantSet } from '@/systems/worldforge/vegetation/ezTreeMeshSource';
 import {
   buildTreeBatches,
   treeBatchKey,
@@ -45,7 +61,7 @@ function toBufferGeometry(data: TreeGeometryData): THREE.BufferGeometry {
 function getTreeGeometry(species: TreeSpecies, variant: number): THREE.BufferGeometry {
   if (!sharedGeometries) {
     sharedGeometries = new Map();
-    const set = generateTreeVariantSet(TREE_SET_SEED);
+    const set = generateEzTreeVariantSet(TREE_SET_SEED);
     for (const [sp, variants] of Object.entries(set)) {
       (variants as TreeGeometryData[]).forEach((data, v) => {
         sharedGeometries!.set(`${sp}|${v}`, toBufferGeometry(data));
@@ -55,10 +71,23 @@ function getTreeGeometry(species: TreeSpecies, variant: number): THREE.BufferGeo
   return sharedGeometries.get(`${species}|${variant}`)!;
 }
 
+/*
+ * Two settings changed when the geometry moved to ez-tree (2026-08-04).
+ *
+ * `flatShading` is off. It was right for the old builder, whose crowns were
+ * stacked cones and blobs that wanted their facets read. ez-tree ships smooth
+ * vertex normals along tapered limbs, and faceting them is exactly the
+ * "faceted + flat-shaded up close" complaint from the 2026-07-27 in-game look.
+ *
+ * `side` is DoubleSide because ez-tree leaves are single quads. Back-face
+ * culling them empties half of every crown seen from the wrong side. The
+ * trunk's own back faces are inside a closed solid and never resolve, so the
+ * cost is drawing them, not seeing them.
+ */
 const TREE_MATERIAL = new THREE.MeshStandardMaterial({
   color: '#ffffff',
   vertexColors: true,
-  flatShading: true,
+  side: THREE.DoubleSide,
   roughness: 0.95,
 });
 

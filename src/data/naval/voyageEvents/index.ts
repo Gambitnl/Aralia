@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * This file appears to be an ISOLATED UTILITY or ORPHAN.
  *
- * Last Sync: 09/06/2026, 03:06:22
+ * Last Sync: 04/08/2026, 01:54:36
  * Dependents: None (Orphan)
  * Imports: 3 files
  *
@@ -23,7 +23,7 @@
  */
 import { VoyageEvent } from '../../../types/naval';
 import { CrewManager } from '../../../systems/naval/CrewManager';
-import { rollDice } from '../../../utils/combatUtils';
+import { rollDice } from '../../../utils/combat';
 
 export const VOYAGE_EVENTS: VoyageEvent[] = [
     // ========================================================================

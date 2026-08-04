@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 01/06/2026, 18:57:09
+ * Last Sync: 04/08/2026, 01:56:14
  * Dependents: hooks/combat/useTurnManager.ts
  * Imports: 2 files
  *
@@ -16,7 +16,7 @@
 
 import { useState, useCallback } from 'react';
 import { DamageNumber, Animation, Position, SpellDeliveryVisual, SpellMovementVisual } from '../../types/combat';
-import { createDamageNumber } from '../../utils/combatUtils';
+import { createDamageNumber } from '../../utils/combat';
 
 /**
  * Hook to manage visual feedback in combat (damage numbers, animations).

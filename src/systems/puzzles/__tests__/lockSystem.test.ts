@@ -12,12 +12,12 @@ import { Lock, Trap } from '../types';
 import { PlayerCharacter } from '../../../types/character';
 import { CharacterStats } from '../../../types/core'; // Added to type the stats helper explicitly.
 import { Item, ItemType } from '../../../types/items';
-import * as combatUtils from '../../../utils/combatUtils';
+import * as combatUtils from '../../../utils/combat';
 import * as statUtils from '../../../utils/statUtils';
 import { createMockPlayerCharacter } from '../../../utils/factories';
 
 // Mock dependencies
-vi.mock('../../../utils/combatUtils', () => ({
+vi.mock('../../../utils/combat', () => ({
   rollDice: vi.fn(),
 }));
 

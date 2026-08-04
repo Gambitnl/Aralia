@@ -41,18 +41,55 @@ export function classifySpecies(
   mix: number,
 ): TreeSpecies {
   if (r === undefined || g === undefined || b === undefined) {
-    // No palette: hash-only distribution 55% broadleaf / 35% conifer / 10% scrub.
-    if (mix < 0.55) return 'broadleaf';
-    if (mix < 0.9) return 'conifer';
+    // No palette: hash-only spread across the temperate set.
+    if (mix < 0.42) return 'broadleaf';
+    if (mix < 0.68) return 'conifer';
+    if (mix < 0.82) return 'ash';
+    if (mix < 0.92) return 'aspen';
     return 'scrub';
   }
-  // Yellow-shifted (dry biome palette): scrub.
-  if (r >= g * 0.85 && g >= b) return 'scrub';
-  // Dark green (taiga/highland palette): conifer, with 20% broadleaf mix-in.
+  /* Six species, not three (2026-08-04).
+   *
+   * Three meant a taiga, a temperate wood and a rainforest all drew from the
+   * same silhouettes, so canopy tint was the only thing separating them and
+   * every forest in the world read as the same forest in a different color.
+   *
+   * Each band still keeps a MINORITY companion species rather than resolving
+   * to one: a pure stand is the monoculture read the position-hash mix exists
+   * to break, and real woods are mixed almost everywhere.
+   */
+  // Yellow-shifted (dry biome palette): scrub, with the odd hardy conifer.
+  if (r >= g * 0.85 && g >= b) return mix < 0.86 ? 'scrub' : 'conifer';
+
   const luminance = 0.299 * r + 0.587 * g + 0.114 * b;
-  if (luminance < 0.24) return mix < 0.8 ? 'conifer' : 'broadleaf';
-  // Temperate: broadleaf, with 20% conifer mix-in.
-  return mix < 0.8 ? 'broadleaf' : 'conifer';
+
+  // Dark green (taiga/highland palette): conifer country, and the one place
+  // aspen belongs — it is the cold-country pioneer that fills burns and edges.
+  if (luminance < 0.24) {
+    if (mix < 0.68) return 'conifer';
+    if (mix < 0.9) return 'aspen';
+    return 'broadleaf';
+  }
+
+  // Blue-shifted and bright (wet/lowland palette): ash is the streamside and
+  // wetland tree, so it leads where the ground reads damp.
+  if (b > r * 1.05) {
+    if (mix < 0.55) return 'ash';
+    if (mix < 0.85) return 'broadleaf';
+    return 'aspen';
+  }
+
+  // Deep saturated green (rainforest palette): the only band that grows palm.
+  if (g > 0.34 && g > r * 1.6) {
+    if (mix < 0.5) return 'broadleaf';
+    if (mix < 0.78) return 'palm';
+    return 'ash';
+  }
+
+  // Temperate: broadleaf-led, mixed with conifer and ash.
+  if (mix < 0.62) return 'broadleaf';
+  if (mix < 0.84) return 'conifer';
+  return 'ash';
 }
 
 /**

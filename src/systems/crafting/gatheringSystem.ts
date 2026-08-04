@@ -5,7 +5,7 @@
  */
 import { Crafter } from './craftingSystem';
 import { GatherableResource, getResourcesForBiome, Biome } from './gatheringData';
-import { rollDice } from '../../utils/combatUtils';
+import { rollDice } from '../../utils/combat';
 
 export interface IdentificationResult {
     success: boolean;

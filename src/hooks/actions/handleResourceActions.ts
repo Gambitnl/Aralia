@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 21/07/2026, 13:36:21
+ * Last Sync: 04/08/2026, 01:55:27
  * Dependents: components/ConversationPanel/ConversationPanel.tsx, hooks/actions/actionHandlers.ts
  * Imports: 11 files
  *
@@ -25,7 +25,7 @@ import { AddMessageFn, AddGeminiLogFn } from './actionHandlerTypes';
 import { handleGossipEvent, handleResidueChecks, handleLongRestWorldEvents } from './handleWorldEvents'; // Import the new world event handlers.
 import { checkPlanarRestRules } from '../../systems/planar/rest';
 import { buildHitPointDicePools, getAbilityModifierValue, getRacialSpellGrantForSpell } from '../../utils/characterUtils';
-import { rollDice } from '../../utils/combatUtils';
+import { rollDice } from '../../utils/combat';
 import { formatDuration, getGameDay } from '../../utils/core';
 import { CastSpellPayload } from '../../types/actions';
 import { spellService } from '../../services/SpellService';

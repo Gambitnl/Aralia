@@ -2,11 +2,11 @@
 import { describe, it, expect, vi } from 'vitest';
 import { AstralMechanics, PsychicWindResult } from '../AstralMechanics';
 import { GameState } from '../../../types/index';
-import * as combatUtils from '../../../utils/combatUtils';
+import * as combatUtils from '../../../utils/combat';
 import { createMockGameState } from '../../../utils/factories';
 
 // Mock rollDice to control randomness
-vi.mock('../../../utils/combatUtils', () => ({
+vi.mock('../../../utils/combat', () => ({
   rollDice: vi.fn(),
   createPlayerCombatCharacter: vi.fn(), // If needed by other imports
 }));

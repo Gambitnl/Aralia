@@ -24,7 +24,10 @@ Before you venture forth, take a moment to understand the terrain:
 
 2.  **Environment Setup**:
     *   Copy `.env.example` to `.env`.
-    *   Add your `GEMINI_API_KEY`.
+    *   No key is needed to run the game — narration uses local Ollama, and
+        players supply their own Gemini credential at runtime.
+    *   (Optional) To bake in a Gemini key, set `VITE_GEMINI_API_KEY`. The
+        `VITE_` prefix is required; an unprefixed `GEMINI_API_KEY` is ignored.
     *   (Optional) Set `VITE_ENABLE_DEV_TOOLS=true` to enable the debug menu.
 
 3.  **Start the Server**:

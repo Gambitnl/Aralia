@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 09/06/2026, 03:06:22
+ * Last Sync: 04/08/2026, 01:54:18
  * Dependents: systems/naval/VoyageManager.ts
  * Imports: 3 files
  *
@@ -23,7 +23,7 @@
  */
 import { VoyageEvent, VoyageState } from '../../types/naval';
 import { CrewManager } from '../../systems/naval/CrewManager';
-import { rollDamage, rollDice } from '../../utils/combatUtils';
+import { rollDamage, rollDice } from '../../utils/combat';
 
 export const VOYAGE_EVENTS: VoyageEvent[] = [
     // ========================================================================

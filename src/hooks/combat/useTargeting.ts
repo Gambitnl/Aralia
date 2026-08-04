@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 01/06/2026, 10:16:10
+ * Last Sync: 04/08/2026, 01:57:22
  * Dependents: hooks/useAbilitySystem.ts
  * Imports: 5 files
  *
@@ -29,7 +29,7 @@ import { useState, useCallback } from 'react';
 import { Ability, Position, CombatCharacter, BattleMapData } from '../../types/combat';
 import { resolveAoEParams } from '../../utils/spatial/targetingUtils';
 import { calculateAffectedTiles } from '../../utils/combat/aoeCalculations';
-import { getDistance } from '../../utils/combatUtils';
+import { getDistance } from '../../utils/combat';
 import { hasLineOfSight } from '../../utils/lineOfSight';
 
 interface UseTargetingProps {

@@ -3,8 +3,8 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 19/07/2026, 23:21:31
- * Dependents: commands/effects/DamageCommand.ts, commands/effects/GrantedActionCommand.ts, commands/effects/StatusConditionCommand.ts, commands/factory/AbilityCommandFactory.ts, commands/factory/SpellCommandFactory.ts, hooks/useAbilitySystem.ts
+ * Last Sync: 04/08/2026, 01:47:40
+ * Dependents: commands/effects/DamageCommand.ts, commands/effects/GrantedActionCommand.ts, commands/effects/StatusConditionCommand.ts, commands/factory/AbilityCommandFactory.ts, commands/factory/SpellCommandFactory.ts, hooks/useAbilitySystem.ts, systems/spells/socialServiceResolution.ts
  * Imports: 6 files
  *
  * MULTI-AGENT SAFETY:
@@ -19,7 +19,7 @@ import { CommandContext } from '../base/SpellCommand'
 import { CombatCharacter, CombatState, ConcentrationState } from '../../types/combat'
 import type { Spell, UtilityEffect } from '../../types/spells'
 import { AttackRiderSystem } from '../../systems/combat/AttackRiderSystem'
-import { generateId } from '../../utils/combatUtils'
+import { generateId } from '../../utils/combat'
 
 /**
  * Command to initiate concentration on a spell.

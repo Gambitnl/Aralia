@@ -10,7 +10,7 @@ import { StatusConditionEffect, SpellEffect, DamageEffect } from '@/types/spells
 import { createMockCombatCharacter, createMockCombatState } from '@/utils/factories';
 import { CommandContext } from '../../base/SpellCommand';
 import * as savingThrowUtils from '@/utils/savingThrowUtils';
-import { generateId } from '@/utils/combatUtils';
+import { generateId } from '@/utils/combat';
 import { BreakConcentrationCommand } from '../ConcentrationCommands';
 import { DamageCommand } from '../DamageCommand';
 import friends from '../../../../public/data/spells/level-0/friends.json';
@@ -23,8 +23,8 @@ vi.mock('@/utils/savingThrowUtils', () => ({
 }));
 
 // Mock unique ID generation for predictable tests
-vi.mock('@/utils/combatUtils', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('@/utils/combatUtils')>();
+vi.mock('@/utils/combat', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/utils/combat')>();
   return {
     ...actual,
     generateId: vi.fn(() => 'test-id')

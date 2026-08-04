@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 21/07/2026, 15:11:40
+ * Last Sync: 04/08/2026, 01:49:17
  * Dependents: commands/factory/SpellCommandFactory.ts
  * Imports: 20 files
  *
@@ -23,7 +23,7 @@ import { CommandContext, SpellCommand } from '../base/SpellCommand';
 import { CommandExecutor } from '../base/CommandExecutor';
 import { CombatState } from '../../types/combat';
 import { ReactiveEffect, SpellEffect } from '../../types/spells';
-import { generateId } from '../../utils/combatUtils';
+import { generateId } from '../../utils/combat';
 import { movementEvents, MovementEvent, MovementEventEmitter } from '../../systems/combat/MovementEventEmitter';
 import { attackEvents, AttackEvent, AttackEventEmitter } from '../../systems/combat/AttackEventEmitter';
 import { combatEvents, CastEvent, CombatEventEmitter } from '../../systems/events/CombatEvents';

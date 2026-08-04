@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { TargetResolver } from '../TargetResolver'
-import * as combatUtils from '../../../../utils/combatUtils'
+import * as combatUtils from '../../../../utils/combat'
 import type { SpellTargeting } from '@/types/spells'
 import type { ActionEconomyState, BattleMapTile, CombatCharacter, CombatState, BattleMapData, TurnState } from '@/types/combat'
 import type { CharacterStats as CoreCharacterStats } from '@/types/core'

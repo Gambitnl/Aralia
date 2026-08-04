@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 21/07/2026, 14:58:22
+ * Last Sync: 04/08/2026, 01:59:29
  * Dependents: commands/effects/DamageCommand.ts, commands/factory/AbilityCommandFactory.ts, commands/factory/SpellCommandFactory.ts, hooks/combat/useActionExecutor.ts, hooks/combat/useTurnManager.ts
  * Imports: 3 files
  *
@@ -23,7 +23,7 @@
  */
 import type { CombatCharacter, Position, StatusEffect } from '@/types/combat'
 import type { TauntBreakEvent } from '@/types/spells'
-import { getDistance } from '@/utils/combatUtils'
+import { getDistance } from '@/utils/combat'
 
 export interface TauntBreakRecord {
   casterId: string

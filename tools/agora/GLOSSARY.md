@@ -266,3 +266,14 @@ the region heightfield (continues terrain to ~7.6 km, seam-blended to the
 streamed window) and a "horizon shell" from the atlas grid heightmap
 (distant ranges to ~20 km). Built once per window entry in
 src/systems/worldforge/bridge/farShells.ts; no streaming, no per-frame cost.
+
+**Clump field** — the noise field that decides where plants crowd and where
+the ground stays open (2026-08-03). Three octaves multiplied together, read
+in world feet so a thicket carries on across window borders. It replaced a
+single-octave on/off gate that only ran in dense forest. Lives in
+src/systems/worldforge/forests/clumpField.ts.
+
+**Dens** — how far inside a clump a plant stands: 0 at the ragged edge of a
+thicket, 1 well inside it. Stored on each placed feature. The 3D loader
+scales plants by it, so the biggest trees stand in the middle of a stand and
+the seedlings ring the outside.

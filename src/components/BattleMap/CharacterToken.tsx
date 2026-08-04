@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 16/07/2026, 08:58:06
+ * Last Sync: 04/08/2026, 01:52:14
  * Dependents: components/BattleMap/BattleMap.tsx, components/BattleMap/index.ts
- * Imports: 6 files
+ * Imports: 7 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -45,7 +45,7 @@ import Tooltip from "../Tooltip";
 import {
   getStatusEffectIcon,
   getCharacterSizeMultiplier,
-} from "../../utils/combatUtils";
+} from "../../utils/combat";
 import { Z_INDEX } from "../../styles/zIndex";
 import { getCreatureTokenVisual } from "../../utils/visuals/combatIconVisuals";
 import { resolveControlPose } from "./controlOptionPose";

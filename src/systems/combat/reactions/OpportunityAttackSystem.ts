@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 08/06/2026, 15:41:21
+ * Last Sync: 04/08/2026, 01:59:13
  * Dependents: hooks/combat/useActionExecutor.ts
  * Imports: 3 files
  *
@@ -27,7 +27,7 @@
  */
 
 import { CombatCharacter, Position, BattleMapData } from '../../../types/combat';
-import { getDistance, canTakeReaction } from '../../../utils/combatUtils';
+import { getDistance, canTakeReaction } from '../../../utils/combat';
 import { hasLineOfSight } from '../../../utils/lineOfSight';
 
 export interface OpportunityAttackResult {

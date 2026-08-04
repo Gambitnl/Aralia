@@ -5,7 +5,7 @@ import { createMockCombatCharacter, createMockCombatState, createMockGameState, 
 import { ItemType } from '@/types/items'
 import type { CombatCharacter, SelectedSpellTarget } from '@/types/combat'
 import type { Spell } from '@/types/spells'
-import * as combatUtils from '@/utils/combatUtils'
+import * as combatUtils from '@/utils/combat'
 import greenFlameBlade from '../../../../public/data/spells/level-0/green-flame-blade.json'
 
 /**
@@ -17,8 +17,8 @@ import greenFlameBlade from '../../../../public/data/spells/level-0/green-flame-
  * exercising the production command path.
  */
 
-vi.mock('@/utils/combatUtils', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('@/utils/combatUtils')>()
+vi.mock('@/utils/combat', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/utils/combat')>()
   return {
     ...actual,
     rollD20: vi.fn()

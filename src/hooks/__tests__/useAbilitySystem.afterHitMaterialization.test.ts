@@ -7,7 +7,7 @@ import { Item } from '../../types';
 import type { ActiveSpellZone } from '../../systems/spells/effects';
 import * as savingThrowUtils from '../../utils/savingThrowUtils';
 import { combatEvents } from '../../systems/events/CombatEvents';
-import * as combatUtils from '../../utils/combatUtils';
+import * as combatUtils from '../../utils/combat';
 import shiningSmite from '../../../public/data/spells/level-2/shining-smite.json';
 import blindingSmite from '../../../public/data/spells/level-3/blinding-smite.json';
 import { shieldSpell, attacker, defender, swordItem, basicAttack } from './useAbilitySystem.fixtures';
@@ -86,7 +86,7 @@ vi.mock('../../commands', () => ({
     CommandExecutor: { execute: vi.fn().mockReturnValue({ success: true, finalState: { characters: [], combatLog: [] } }) }
 }));
 
-vi.mock('../../utils/combatUtils', () => ({
+vi.mock('../../utils/combat', () => ({
     getDistance: vi.fn(() => 5),
     getCharacterDistance: vi.fn(() => 5),
     // useTargetValidator asks for every occupied tile so large tokens and

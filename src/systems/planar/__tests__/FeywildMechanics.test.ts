@@ -1,7 +1,7 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { FeywildMechanics } from '../FeywildMechanics';
-import * as combatUtils from '../../../utils/combatUtils';
+import * as combatUtils from '../../../utils/combat';
 import * as savingThrowUtils from '../../../utils/savingThrowUtils'; // Import the module to spy on
 import { createMockPlayerCharacter } from '../../../utils/factories';
 

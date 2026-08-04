@@ -24,13 +24,13 @@
 import { CELL_FT, LOCAL_SIZE_FT, type BoundsFt, type Feet } from '../units';
 import { childSeedPath, rngFromPath, streamPath, worldSeedFromPath, type SeedPath } from '../seedPath';
 import { makeWorldFeetNoise } from './worldFeetNoise';
-import { patchNoise2 } from '../vegetation/grassField';
 import {
-  CLEARING_FREQ,
-  CLEARING_SALT,
-  CLEARING_THRESHOLD,
-  UNDERGROWTH_MULT,
-} from '../forests/forestTunables';
+  clumpAccept,
+  clumpAt,
+  clumpDens,
+  clumpSeparationScale,
+} from '../forests/clumpField';
+import { UNDERGROWTH_MULT } from '../forests/forestTunables';
 import {
   MOUNTAIN_MAX_ELEV_FT,
   TREELINE_N,
@@ -360,6 +360,18 @@ export function generateLocal(
 
   // Feature placement: blue-noise-ish rejection sampling per kind, density by
   // biome profile, never on water/paved, boulders prefer rock.
+  //
+  // `clumped` kinds additionally run through the three-octave clump field
+  // (forests/clumpField.ts), which is what stops the result reading as an
+  // orchard. Two things change for them: acceptance becomes a continuous
+  // probability instead of a uniform draw, and the minimum-separation radius
+  // relaxes toward the middle of a thicket so a knot can actually close over.
+  //
+  // The attempt budget is doubled for clumped kinds because the acceptance
+  // probability averages about 0.61, so a fixed 12x budget would quietly ship
+  // 40% fewer trees. The target count is deliberately unchanged: the field is
+  // meant to REDISTRIBUTE density, not remove it, and a window that loses a
+  // third of its trees to a new gate is a different, worse change.
   const features: LocalFeature[] = [];
   let nextId = 1;
   const placeKind = (
@@ -369,84 +381,121 @@ export function generateLocal(
     minSepFt: number,
     allow: (mat: number) => boolean,
     keep?: (fx: number, fy: number) => boolean,
+    clumped = false,
   ) => {
     const target = Math.round((sizeFt * sizeFt) / 10_000 * densityPer10kSqFt);
     if (target <= 0) return;
     const rng = rngFromPath(streamPath(localPath, stream));
-    const placed: Array<[number, number]> = [];
+    // Uniform grid over the window at the unrelaxed separation radius, so the
+    // min-sep test reads at most nine buckets instead of every tree placed so
+    // far. Identical decisions to the old O(n^2) scan: a candidate closer than
+    // minSepFt can only be in this cell or one touching it, and the clump
+    // relief only ever SHRINKS the radius (see clumpSeparationScale).
+    const gridCols = Math.max(1, Math.ceil(sizeFt / minSepFt));
+    const buckets: Array<Array<[number, number]>> = [];
+    const bucketAt = (gx: number, gy: number) => {
+      const i = gy * gridCols + gx;
+      return (buckets[i] ??= []);
+    };
     let attempts = 0;
-    while (placed.length < target && attempts < target * 12) {
+    let placedTotal = 0;
+    const budget = target * (clumped ? 24 : 12);
+    while (placedTotal < target && attempts < budget) {
       attempts++;
       const fx = bounds.x + rng.next() * sizeFt;
       const fy = bounds.y + rng.next() * sizeFt;
       const ccx = Math.min(widthCells - 1, Math.floor((fx - bounds.x) / CELL_FT));
       const ccy = Math.min(heightCells - 1, Math.floor((fy - bounds.y) / CELL_FT));
       if (!allow(materialIndex[ccy * widthCells + ccx])) continue;
-      // Optional spatial gate (e.g. the dense-forest clearing noise) — checked
-      // after the material allow, before min-sep; a rejected sample burns an
-      // attempt exactly like a material rejection.
+      // Optional spatial gate (e.g. the biome tree line) — checked after the
+      // material allow, before min-sep; a rejected sample burns an attempt
+      // exactly like a material rejection.
       if (keep && !keep(fx, fy)) continue;
+
+      let dens = 0;
+      let sep = minSepFt;
+      if (clumped) {
+        const clump = clumpAt(fx, fy);
+        // Probabilities over 1 always accept, which is what lets the dense
+        // knots saturate rather than merely being likelier than the clearings.
+        if (rng.next() > clumpAccept(clump)) continue;
+        dens = clumpDens(clump);
+        sep = minSepFt * clumpSeparationScale(dens);
+      }
+
+      const gx = Math.min(gridCols - 1, Math.max(0, Math.floor((fx - bounds.x) / minSepFt)));
+      const gy = Math.min(gridCols - 1, Math.max(0, Math.floor((fy - bounds.y) / minSepFt)));
       let tooClose = false;
-      for (const [px, py] of placed) {
-        if (Math.hypot(px - fx, py - fy) < minSepFt) { tooClose = true; break; }
+      for (let oy = -1; oy <= 1 && !tooClose; oy++) {
+        for (let ox = -1; ox <= 1 && !tooClose; ox++) {
+          const nx = gx + ox;
+          const ny = gy + oy;
+          if (nx < 0 || ny < 0 || nx >= gridCols || ny >= gridCols) continue;
+          for (const [px, py] of bucketAt(nx, ny)) {
+            if (Math.hypot(px - fx, py - fy) < sep) { tooClose = true; break; }
+          }
+        }
       }
       if (tooClose) continue;
-      placed.push([fx, fy]);
-      features.push({ id: nextId++, kind, x: fx, y: fy });
+      bucketAt(gx, gy).push([fx, fy]);
+      placedTotal++;
+      const feature: LocalFeature = { id: nextId++, kind, x: fx, y: fy };
+      if (clumped) feature.dens = dens;
+      features.push(feature);
     }
   };
 
   const groundOk = (m: number) => m !== MAT.water && m !== MAT.paved && m !== MAT.rock;
 
-  // Dense forest (deep-forest biome id, or canopy at/above the density bar):
-  // trees gate through the SHARED patch noise — where the field dips below the
-  // threshold no tree lands, so coherent clearings open up and the survivors
-  // crowd into thickets. Mirrors grassField's world-space-lattice reasoning:
-  // patchNoise2 is sampled at WORLD-space feet / 1000, so two adjacent local
-  // windows evaluate the same world foot to the same value and the
-  // thicket/clearing field continues seamlessly across window borders instead
-  // of resetting per window. Non-dense windows pass no keep — their placement
-  // is byte-identical to the pre-Task-10 generator.
+  // Every vegetated kind now clumps, in every biome. The dense-forest flag no
+  // longer decides WHETHER the field applies — a grassland whose trees are
+  // spread evenly is an orchard, and savannah trees clump for the same reasons
+  // rainforest trees do — it decides only whether the window also gets the
+  // undergrowth stream crowding its thicket floors.
+  //
+  // What used to live here was a boolean gate on a single octave of the same
+  // noise, applied to dense windows only. It went for two reasons: a hard
+  // cutoff draws a visible contour through the forest, and one octave produces
+  // a field with a recognizable mean everywhere, so what came out the other
+  // side was still an even sprinkle with soft variation. See clumpField.ts.
   const isDenseForest =
     DEEP_FOREST_BIOME_IDS.has(opts.biomeId) || profile.treeDensity >= DENSE_TREE_DENSITY;
-  const clearingKeep = isDenseForest
-    ? (fx: number, fy: number) =>
-        patchNoise2(fx / 1000, fy / 1000, CLEARING_SALT, CLEARING_FREQ) > CLEARING_THRESHOLD
-    : undefined;
 
   // Tree line (Task 11 MOUNTAINS): reject trees above the window's normalized
   // height line, resolved ONCE from the anchor biome's temperature class — cold
   // taiga/tundra/glacier lose trees lowest, tropical biomes carry no line
   // (TREELINE_N.none sits above the domain). Read from the SAME cached
   // `normalized` field the material pass uses, indexed by the SAME cell math as
-  // placeKind, so the gate agrees cell-for-cell. Composed with the forests
-  // clearingKeep: a tree survives only if BOTH pass. Trees only — bushes,
-  // boulders, and undergrowth are untouched. For a lowland window every cell is
-  // below the line, so `belowTreeline` is always true and the tree stream stays
-  // byte-identical to the pre-Task-11 generator (lowland invariance).
+  // placeKind, so the gate agrees cell-for-cell. It stays a hard boolean while
+  // the clump field went probabilistic, and that asymmetry is deliberate: a
+  // tree line is a real geographic edge that the eye expects to see, whereas a
+  // clearing margin is not. Trees only — bushes, boulders, and undergrowth are
+  // untouched. For a lowland window every cell is below the line, so
+  // `belowTreeline` is always true and the gate costs the tree stream nothing.
   const treelineN = TREELINE_N[treelineClassOf(opts.biomeId)];
   const belowTreeline = (fx: number, fy: number): boolean => {
     const ccx = Math.min(widthCells - 1, Math.floor((fx - bounds.x) / CELL_FT));
     const ccy = Math.min(heightCells - 1, Math.floor((fy - bounds.y) / CELL_FT));
     return normalized[ccy * widthCells + ccx] <= treelineN;
   };
-  const treeKeep = clearingKeep
-    ? (fx: number, fy: number) => clearingKeep(fx, fy) && belowTreeline(fx, fy)
-    : (fx: number, fy: number) => belowTreeline(fx, fy);
 
-  placeKind('tree', profile.treeDensity, 'trees', 18, groundOk, treeKeep);
-  placeKind('bush', profile.bushDensity, 'bushes', 10, groundOk);
+  placeKind('tree', profile.treeDensity, 'trees', 18, groundOk, belowTreeline, true);
+  placeKind('bush', profile.bushDensity, 'bushes', 10, groundOk, undefined, true);
+  // Boulders do not clump: scree genuinely does, but it clumps to slope and
+  // outcrop rather than to a vegetation field, and borrowing this one would
+  // put boulders in the same knots as the trees. Left even until the rocks
+  // pass gives them a field of their own.
   placeKind('boulder', profile.boulderDensity, 'boulders', 14, (m) => m !== MAT.water && m !== MAT.paved);
-  if (clearingKeep) {
-    // Undergrowth: scrub crowding the thicket floor under dense canopy — same
-    // keep as the trees, so it hugs the thickets and the clearings stay open.
-    // Reuses the 'bush' feature kind; the separate 'undergrowth' stream name
-    // keeps it deterministic and independent of the base 'bushes' stream. Runs
-    // LAST: each placeKind call seeds its own rng via
-    // rngFromPath(streamPath(localPath, stream)), so ordering can't perturb the
-    // other streams anyway — but appending keeps the three base streams' ids
-    // identical to the pre-Task-10 artifact.
-    placeKind('bush', profile.bushDensity * UNDERGROWTH_MULT, 'undergrowth', 8, groundOk, clearingKeep);
+  if (isDenseForest) {
+    // Undergrowth: scrub crowding the thicket floor under dense canopy. It
+    // reads the same clump field as the trees, so it hugs the thickets and the
+    // clearings stay open. Reuses the 'bush' feature kind; the separate
+    // 'undergrowth' stream name keeps it deterministic and independent of the
+    // base 'bushes' stream. Runs LAST: each placeKind call seeds its own rng
+    // via rngFromPath(streamPath(localPath, stream)), so ordering cannot
+    // perturb the other streams, and appending keeps the three base streams'
+    // ids contiguous.
+    placeKind('bush', profile.bushDensity * UNDERGROWTH_MULT, 'undergrowth', 8, groundOk, undefined, true);
   }
 
   const terrain: LocalTerrain = {

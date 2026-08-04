@@ -319,6 +319,16 @@ export interface LocalFeature {
   kind: 'tree' | 'bush' | 'boulder' | 'water-body' | 'path' | 'poi' | 'building';
   x: Feet;
   y: Feet;
+  /**
+   * How deep into a vegetation clump this feature sits: 0 at a thicket's
+   * ragged edge, 1 well inside it. Set by the clump field for the kinds that
+   * scatter through it (trees, bushes, undergrowth) and absent otherwise.
+   *
+   * Renderers use it to size the plant, so the biggest individuals stand in a
+   * thicket's middle and the seedlings ring its outside — which is how a real
+   * cohort grows. See forests/clumpField.ts.
+   */
+  dens?: number;
   /** Kind-specific payload; concretized as generators land. */
   data?: Record<string, unknown>;
 }

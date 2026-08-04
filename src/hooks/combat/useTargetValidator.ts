@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 23/07/2026, 21:24:49
+ * Last Sync: 04/08/2026, 01:57:04
  * Dependents: hooks/useAbilitySystem.ts
  * Imports: 7 files
  *
@@ -22,7 +22,7 @@
 import { useCallback } from 'react';
 import { CombatCharacter, Ability, Position, BattleMapData, CombatState, AbilityCost } from '../../types/combat';
 import type { SpellTargeting } from '../../types/spells';
-import { getDistance, getCharacterDistance, getOccupiedTiles } from '../../utils/combatUtils';
+import { getDistance, getCharacterDistance, getOccupiedTiles } from '../../utils/combat';
 import { canAffordActionCost } from '../../utils/combat/actionEconomyUtils';
 import { hasLineOfSight } from '../../utils/lineOfSight';
 import { CreatureTaxonomy } from '../../systems/creatures/CreatureTaxonomy';

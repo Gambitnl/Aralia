@@ -24,7 +24,7 @@
 
 import { PlayerCharacter } from '../../types/character';
 import { Item } from '../../types/items';
-import { rollDice } from '../../utils/combatUtils';
+import { rollDice } from '../../utils/combat';
 import { getAbilityModifierValue } from '../../utils/statUtils';
 import { getPuzzleCharacterStats } from './characterAbilityBridge';
 import { Lock, Trap, LockpickResult, KeyUnlockResult, BreakResult, TrapDetectionResult, TrapDisarmResult } from './types';

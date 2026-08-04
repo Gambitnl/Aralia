@@ -21,7 +21,7 @@
  */
 import { TargetAllocation, ScalingFormula } from '../../../types/spells';
 import { CombatCharacter } from '../../../types/combat';
-import { rollDice } from '../../../utils/combatUtils';
+import { rollDice } from '../../../utils/combat';
 
 export interface AllocationResult {
   /** The subset of candidates that were selected */

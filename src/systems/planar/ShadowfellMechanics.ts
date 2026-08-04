@@ -1,7 +1,7 @@
 
 import { PlayerCharacter, GameState } from '../../types';
 import { rollSavingThrow } from '../../utils/savingThrowUtils';
-import { createPlayerCombatCharacter } from '../../utils/combatUtils';
+import { createPlayerCombatCharacter } from '../../utils/combat';
 import { logger } from '../../utils/logger';
 import { generateId } from '../../utils/idGenerator';
 

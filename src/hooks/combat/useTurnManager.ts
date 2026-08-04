@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 23/07/2026, 21:41:39
+ * Last Sync: 04/08/2026, 01:57:38
  * Dependents: components/BattleMap/BattleMap.tsx, components/BattleMap/BattleMap3D.tsx, components/BattleMap/BattleMapDemo.tsx, components/Combat/CombatView.tsx, components/DesignPreview/steps/PreviewCombatScenarios.tsx, hooks/useBattleMap.ts
  * Imports: 13 files
  *
@@ -30,7 +30,7 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { CombatCharacter, CombatLogEntry, BattleMapData, LightSource, Ability } from '../../types/combat';
 import { AI_THINKING_DELAY_MS } from '../../config/combatConfig';
-import { generateId } from '../../utils/combatUtils';
+import { generateId } from '../../utils/combat';
 import { calculateMovementTotal, resetEconomy } from '../../utils/combat/actionEconomyUtils';
 import { useActionEconomy } from './useActionEconomy';
 

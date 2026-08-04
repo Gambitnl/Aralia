@@ -139,7 +139,7 @@ vi.mock('../../../hooks/useBattleMapGeneration', () => ({
   }),
 }));
 
-vi.mock('../../../utils/combatUtils', () => ({
+vi.mock('../../../utils/combat', () => ({
   createPlayerCombatCharacter: () => combatants.player,
 }));
 

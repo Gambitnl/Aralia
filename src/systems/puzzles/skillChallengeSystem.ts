@@ -7,7 +7,7 @@
  */
 
 import { PlayerCharacter, AbilityScoreName } from '../../types/index';
-import { rollDice } from '../../utils/combatUtils';
+import { rollDice } from '../../utils/combat';
 import { getAbilityModifierValue } from '../../utils/statUtils';
 import { SkillChallenge, SkillChallengeResult, ChallengeSkill } from './types';
 

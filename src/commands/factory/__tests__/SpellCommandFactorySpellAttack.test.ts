@@ -8,12 +8,12 @@ import eldritchBlast from '../../../../public/data/spells/level-0/eldritch-blast
 import primalSavagery from '../../../../public/data/spells/level-0/primal-savagery.json'
 import { HealingEffect, Spell } from '@/types/spells'
 import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '@/utils/factories'
-import * as combatUtils from '@/utils/combatUtils'
+import * as combatUtils from '@/utils/combat'
 import { BreakConcentrationCommand } from '@/commands/effects/ConcentrationCommands'
 import { HealingCommand } from '@/commands/effects/HealingCommand'
 
-vi.mock('@/utils/combatUtils', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('@/utils/combatUtils')>()
+vi.mock('@/utils/combat', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/utils/combat')>()
   return {
     ...actual,
     rollD20: vi.fn()

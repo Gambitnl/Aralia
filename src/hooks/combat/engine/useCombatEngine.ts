@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 23/07/2026, 21:41:30
+ * Last Sync: 04/08/2026, 01:55:43
  * Dependents: hooks/combat/useTurnManager.ts
  * Imports: 13 files
  *
@@ -39,7 +39,7 @@ import {
 } from '../../../systems/spells/effects';
 import { AreaEffectTracker } from '../../../systems/spells/effects/AreaEffectTracker';
 import { MovementCommand } from '../../../commands/effects/MovementCommand';
-import { generateId, rollDice, calculateDamage, rollD20, getDistance } from '../../../utils/combatUtils';
+import { generateId, rollDice, calculateDamage, rollD20, getDistance } from '../../../utils/combat';
 import { calculateSpellDC, rollSavingThrow } from '../../../utils/savingThrowUtils';
 import { SavePenaltySystem } from '../../../systems/combat/SavePenaltySystem';
 import { getAbilityModifierValue } from '../../../utils/statUtils';
