@@ -67,7 +67,7 @@ export async function handleDocsRoutes(ctx: DevHubRouteContext): Promise<boolean
               
               if (fmMatch) {
                 const block = fmMatch[1].replace(/\r/g, '');
-                const titleMatch = block.match(/^title:\s*\"?([^\"]+)\"?$/m);
+                const titleMatch = block.match(/^title:\s*"?([^"]+)"?$/m);
                 const catMatch = block.match(/^category:\s*(.+)$/m);
                 const statusMatch = block.match(/^status:\s*(.+)$/m);
                 const reviewedMatch = block.match(/^lastReviewed:\s*(.+)$/m);
@@ -150,7 +150,7 @@ export async function handleDocsRoutes(ctx: DevHubRouteContext): Promise<boolean
       if (fmMatch) {
         body = fmMatch[2];
         const block = fmMatch[1].replace(/\r/g, '');
-        const titleMatch = block.match(/^title:\s*\"?([^\"]+)\"?$/m);
+        const titleMatch = block.match(/^title:\s*"?([^"]+)"?$/m);
         const catMatch = block.match(/^category:\s*(.+)$/m);
         const statusMatch = block.match(/^status:\s*(.+)$/m);
         const reviewedMatch = block.match(/^lastReviewed:\s*(.+)$/m);
@@ -196,7 +196,7 @@ export async function handleDocsRoutes(ctx: DevHubRouteContext): Promise<boolean
           `lastReviewed: "${metadata.lastReviewed || ''}"`,
           `notes: "${(metadata.notes || '')
             .replace(/\\/g, '\\\\')
-            .replace(/\"/g, '\\"')}"`,
+            .replace(/"/g, '\\"')}"`,
           '---',
           ''
         ];
@@ -303,7 +303,7 @@ export async function handleDocsRoutes(ctx: DevHubRouteContext): Promise<boolean
               const fullContent = `---\n${block}\n---\n${fmMatch[2]}`;
               fs.writeFileSync(retiredPath, fullContent, 'utf-8');
             }
-          } catch (_) {}
+          } catch (_) { /* ignore */ }
           
           json({ success: true, action: 'retired', newPath: path.relative(process.cwd(), retiredPath).replace(/\\/g, '/') });
         } else {

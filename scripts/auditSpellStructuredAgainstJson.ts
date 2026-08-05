@@ -30,7 +30,7 @@ import { SpellValidator } from '../src/systems/spells/validation/spellValidator'
 // other tooling expect.
 // ============================================================================
 
-const REPO_ROOT = 'F:/Repos/Aralia';
+const REPO_ROOT = '.';
 const SCRIPT_FILE = fileURLToPath(import.meta.url);
 const SPELL_REFERENCE_ROOT = path.join(REPO_ROOT, 'docs', 'spells', 'reference');
 const SPELLS_ROOT = path.join(REPO_ROOT, 'public', 'data', 'spells');

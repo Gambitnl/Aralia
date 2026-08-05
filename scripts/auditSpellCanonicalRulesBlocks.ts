@@ -24,7 +24,7 @@ import path from 'node:path';
 // without guessing where its machine output and human report belong.
 // ============================================================================
 
-const REPO_ROOT = 'F:/Repos/Aralia';
+const REPO_ROOT = '.';
 const SPELL_REFERENCE_ROOT = path.join(REPO_ROOT, 'docs', 'spells', 'reference');
 const AUDIT_JSON_PATH = path.join(REPO_ROOT, '.agent', 'roadmap-local', 'spell-validation', 'spell-canonical-rules-audit.json');
 const AUDIT_REPORT_PATH = path.join(REPO_ROOT, 'docs', 'tasks', 'spells', 'SPELL_CANONICAL_RULES_AUDIT_REPORT.md');

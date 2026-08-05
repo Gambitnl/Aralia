@@ -25,7 +25,7 @@ import path from 'node:path';
 // report is the human-facing review surface.
 // ============================================================================
 
-const REPO_ROOT = 'F:/Repos/Aralia';
+const REPO_ROOT = '.';
 const INPUT_REPORT_PATH = path.join(REPO_ROOT, '.agent', 'roadmap-local', 'spell-validation', 'spell-structured-vs-canonical-report.json');
 const OUTPUT_JSON_PATH = path.join(REPO_ROOT, '.agent', 'roadmap-local', 'spell-validation', 'spell-description-subbucket-report.json');
 const OUTPUT_MD_PATH = path.join(REPO_ROOT, 'docs', 'tasks', 'spells', 'SPELL_DESCRIPTION_SUBBUCKET_REPORT.md');
