@@ -18,7 +18,7 @@
  */
 import React, { useState, useMemo } from 'react';
 import { Spell, Class as CharClass, AbilityScores } from '../../../types';
-import { getAbilityModifierValue } from '../../../utils/characterUtils';
+import { getAbilityModifierValue } from '../../../utils/character';
 import { CreationStepLayout } from '../ui/CreationStepLayout';
 import { SpellCard } from './SpellCard';
 

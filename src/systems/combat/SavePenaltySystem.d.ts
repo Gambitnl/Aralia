@@ -20,7 +20,7 @@
  * Used by spells like Mind Sliver that impose "subtract 1d4 from next saving throw".
  */
 import { CombatState, CombatCharacter } from '@/types/combat';
-import { SavingThrowModifier } from '@/utils/savingThrowUtils';
+import { SavingThrowModifier } from '@/utils/character';
 /**
  * System for registering, consuming, and expiring save penalty riders.
  */

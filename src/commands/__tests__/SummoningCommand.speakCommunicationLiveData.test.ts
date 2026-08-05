@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { UtilityCommand } from '../effects/UtilityCommand'
 import type { CombatCharacter } from '@/types/combat'
 import type { EffectDuration, Spell, UtilityEffect } from '@/types/spells'
-import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '@/utils/factories'
+import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '@/utils/core'
 import speakWithDead from '../../../public/data/spells/level-3/speak-with-dead.json'
 import speakWithPlants from '../../../public/data/spells/level-3/speak-with-plants.json'
 

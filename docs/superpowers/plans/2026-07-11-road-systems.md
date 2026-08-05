@@ -14,7 +14,7 @@
 
 - **NO manual git commits and NO branches/worktrees.** This repo auto-commits a daily snapshot; all work lands directly in `master`'s working tree. Where the standard task template says "Commit", instead: run the task's tests + `npx tsc --noEmit` and move on.
 - **Agora lock before editing:** before modifying any file, `export AGORA_AGENT_ID=claude-roads` and lock the files via the Agora daemon (`node tools/agora/client.mjs lock <paths...> --reason "roads task N"`, or curl POST /locks). Release when the task ends. A 409 conflict = hard stop on that file; coordinate, don't override.
-- **US-English plain-language comments** (GOV.UK style, US spelling), matching each file's existing comment density.
+- **US-English plain-language comments** (ASD-STE100 Simplified Technical English, US spelling), matching each file's existing comment density.
 - Tests: run per-file via `npx vitest run <path>`. Type check: `npx tsc --noEmit` (repo has NO `typecheck` script; the tsconfig excludes nothing relevant).
 - **SeededRandom convention:** `nextInt(min, max)` is MAX-EXCLUSIVE (d20 = `nextInt(1, 21)`).
 - Do not touch files currently locked by other Agora agents (check `curl -s http://localhost:4319/locks`).

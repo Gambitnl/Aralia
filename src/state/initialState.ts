@@ -30,7 +30,7 @@ import { FACTIONS, INITIAL_FACTION_STANDINGS } from '../data/factions';
 import { DEITIES } from '../data/deities';
 import { TEMPLES } from '../data/temples';
 import { INITIAL_TRADE_ROUTES } from '../data/tradeRoutes';
-import { createEmptyHistory } from '../utils/historyUtils';
+import { createEmptyHistory } from '../utils/world';
 import { createEmptyWorldFactStore } from '../systems/facts/worldFactStore';
 import { INITIAL_GAME_ENTRY_STATE } from '../systems/gameEntry/types';
 import { NavalState } from '../types/naval';

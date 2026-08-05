@@ -28,7 +28,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { ChevronRight, ChevronDown, FilterX, AlertTriangle } from 'lucide-react';
 import { PlayerCharacter, Item, Action, ItemContainer, InventoryEntry, EquipmentSlotType, ItemType as _ItemType } from '../../../types';
-import { canEquipItem, calculatePotentialAcChange } from '../../../utils/characterUtils';
+import { canEquipItem, calculatePotentialAcChange } from '../../../utils/character';
 import { ENV } from '../../../config/env';
 import { resolveItemVisual } from '../../../utils/visuals/visualUtils';
 import Tooltip from '../../ui/Tooltip';

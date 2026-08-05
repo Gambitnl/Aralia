@@ -2,11 +2,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { FeywildMechanics } from '../FeywildMechanics';
 import * as combatUtils from '../../../utils/combat';
-import * as savingThrowUtils from '../../../utils/savingThrowUtils'; // Import the module to spy on
-import { createMockPlayerCharacter } from '../../../utils/factories';
+import * as savingThrowUtils from '../../../utils/character'; // Import the module to spy on
+import { createMockPlayerCharacter } from '../../../utils/core';
 
 // Mock logger
-vi.mock('../../../utils/logger', () => ({
+vi.mock('../../../utils/core/logger', () => ({
   logger: {
     info: vi.fn(),
     warn: vi.fn(),
@@ -19,7 +19,7 @@ vi.mock('../../../utils/logger', () => ({
 // However, if FeywildMechanics imports { rollSavingThrow }, direct spying might be tricky depending on bundler.
 // Vitest supports spying on imports.
 
-vi.mock('../../../utils/savingThrowUtils', () => ({
+vi.mock('../../../utils/character/savingThrowUtils', () => ({
   rollSavingThrow: vi.fn(),
   calculateSavingThrowBonus: vi.fn().mockReturnValue(0) // Mock dependency if needed
 }));

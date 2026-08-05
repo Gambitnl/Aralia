@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { TavernGossipSystem } from '../TavernGossipSystem';
-import { createMockGameState } from '../../../utils/factories';
+import { createMockGameState } from '../../../utils/core';
 
 describe('TavernGossipSystem', () => {
     it('generates rumors deterministically', () => {

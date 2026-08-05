@@ -1,9 +1,25 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * This file appears to be an ISOLATED UTILITY or ORPHAN.
+ *
+ * Last Sync: 04/08/2026, 02:02:22
+ * Dependents: None (Orphan)
+ * Imports: 6 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import { GameState, Location } from '../../types';
 import { PlanarHazard } from '../../types/planes';
 import { LOCATIONS } from '../../constants';
-import { getCurrentPlane } from '../../utils/planarUtils';
+import { getCurrentPlane } from '../../utils/planar';
 import { rollDice , createPlayerCombatCharacter } from '../../utils/combat';
-import { rollSavingThrow } from '../../utils/savingThrowUtils';
+import { rollSavingThrow } from '../../utils/character';
 
 export interface HazardEvent {
   characterId: string;

@@ -54,9 +54,9 @@ import {
   isRacialSpellCastLevelAllowed,
   resolveRacialSpellLimitedUseId,
   resolveRacialResourceId,
-} from '../../utils/characterUtils';
+} from '../../utils/character';
 import { getMaxPreparedSpells } from '../../utils/character/getMaxPreparedSpells';
-import { isWeaponProficient } from '../../utils/weaponUtils';
+import { isWeaponProficient } from '../../utils/character';
 import { rollDice } from '../../utils/combat/combatUtils';
 import { ITEMS, CLASSES_DATA } from '../../constants';
 import { generateId } from '../../utils/core/idGenerator';

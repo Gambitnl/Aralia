@@ -46,6 +46,19 @@ const FEATURE_STYLE: Record<LocalFeature["kind"], { fill: string; stroke: string
   path: { fill: "#b09a72", stroke: "#8a7a5a", radiusFt: 4 },
   poi: { fill: "#d8b54a", stroke: "#8a6f1c", radiusFt: 7 },
   building: { fill: "#a06a4a", stroke: "#6b3a2a", radiusFt: 10 },
+  /* Understory (2026-08-04). Radii are the plant's real footprint in feet, so
+   * the 2D local map reads as the same place the 3D world does rather than as
+   * a legend of equal-sized dots.
+   *
+   * Ferns are the most numerous feature in a forest window by a wide margin, so
+   * theirs is the smallest and the least saturated glyph the palette has: at
+   * 4,800 per window anything louder turns the map into a green wash and hides
+   * the trees the reader is actually navigating by. Logs draw brown and wider
+   * than they are tall in the world, and are the one understory kind worth
+   * spotting on a map — a fallen trunk is cover, and cover is tactical. */
+  fern: { fill: "#3f6b33", stroke: "#2a4a22", radiusFt: 2 },
+  sapling: { fill: "#4f7f3a", stroke: "#2d5a27", radiusFt: 3 },
+  log: { fill: "#6b5540", stroke: "#4a3a2a", radiusFt: 5 },
 };
 
 export interface LocalDrawOptions {

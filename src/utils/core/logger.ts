@@ -32,7 +32,7 @@ interface LogContext {
  * 3. Type-safe logging levels.
  *
  * @example
- * import { logger } from '@/utils/logger';
+ * import { logger } from '@/utils/core/logger';
  *
  * logger.info('Player saved game', { playerId: '123', saveData: data });
  */

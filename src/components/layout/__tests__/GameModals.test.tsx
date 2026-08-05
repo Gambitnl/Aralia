@@ -23,7 +23,7 @@ vi.mock('../../../hooks/useDialogueSystem', () => ({
     })),
 }));
 
-vi.mock('../../../utils/permissions', () => ({
+vi.mock('../../../utils/core/permissions', () => ({
     canUseDevTools: () => true,
 }));
 

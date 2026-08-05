@@ -2,7 +2,18 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-> **Status: DRAFT 2026-07-24 (kimi-skeleton-20260724, Agora parent task 31b275e7).** Written from spec slice 4 after smooth bodies (slice 3) verified complete. One design choice inside (decorative emissions stay on the anchor path) is flagged for Remy review before implementation starts. Do not implement from this draft without that review.
+> **Status: APPROVED + in progress 2026-08-04.** Remy approved the flagged
+> design (decorative emissions stay on the anchor path) and green-lit the full
+> DRAFT. Tasks 1–2 are implemented and green (`npx vitest run
+> src/systems/entities3d/__tests__/planSkeleton.test.ts
+> src/systems/entities3d/__tests__/skinnedPlan.test.ts` → 11/11; neighbor
+> suites assemble/skinnedBody/segmentCollar/perfBudget/crowdBake/skeletonBuilder/planDriver
+> → 68/68 green). Task 3 (head parenting + A/B preview surface + eyeball
+> captures) is PENDING — it needs rendered A/B captures and the Remy eyeball
+> gate, which require a live browser/operator. One open design gap for Task 3:
+> formed heads emit no ball, so their `head<i>` bone is never written by the
+> pose sink — parenting sculpted heads to bones needs the assembler to write
+> those bones from `driver.headSockets()` each frame (outside the pure sink).
 
 **Goal:** Every plan-driven creature (text-to-creature Describe/Library entries, `gait: 'plan'`) gets a real `THREE.Bone` hierarchy: each spine joint and each chain link becomes a bone, and the PlanDriver's existing tentacle/tail/wing/neck/leg/arm math writes bone rotations through the same sink-adapter pattern slice 1 proved for bipeds. Heads ride neck-tip bones. The segment renderer stays the default; the skeleton is opt-in via the existing `bodyTech: 'skinned'` switch.
 
@@ -63,7 +74,7 @@ Bones: one per spine segment (`spine.0`…`spine.<n-1>`, parented root→tip), o
   (c) `tube` and `seg` emission paths produce identical bone transforms for the same pose;
   (d) unknown emission id throws (fail loud);
   (e) determinism: two `buildPlanSkeleton` calls are structurally identical.
-- [ ] Run → FAIL (module missing). Implement. Run → PASS.
+- [x] Run → was FAIL (module missing). Implemented `three/planSkeleton.ts`. Run → PASS (5/5 in `__tests__/planSkeleton.test.ts`).
 
 ### Task 2: Rigid-weight skinned plan body through the stack
 
@@ -72,7 +83,7 @@ Bones: one per spine segment (`spine.0`…`spine.<n-1>`, parented root→tip), o
 - [ ] Rigid bind geometry from the rest emissions (every vertex owned by exactly one bone — the slice-1 parity strategy; creature SMOOTH weights are explicitly deferred, see below). Spine tubes/segments, chain tubes/segments, terminal balls bind per their owning bone. Box spines (cube) bind as rigid per-segment boxes owned by their spine bone — bones exist for every fixture; if the box bind path proves ugly, cube may be guarded out with a loud error instead, but that is a scope retreat to record in the Plan Map, not a silent fallback.
 - [ ] `assembleEntity` admits `bodyTech: 'skinned'` when `gait === 'plan'`; guard message updated to name the gaits that still throw (`quad`, `hexapod`, `hopper`, `flyer`, `float`).
 - [ ] Failing tests: (a) weights sum to 1, exactly 1 nonzero influence per vertex, indices in range; (b) body = exactly 2 draw-call meshes; triangles < `PLAN_TRIANGLE_BUDGET` for every stress fixture; (c) A/B parity: skinned-rigid joint positions match the segment renderer's per frame over a walk cycle (slice-1 contract); (d) decorative emissions (rings, collars, cilia, snouts, fingers, toes) still render through the anchor path — a creature with `jointRings`/`cilia`/`snout` assembles with zero dropped pieces; (e) guards: `bodyTech: 'skinned'` + `gait: 'quad'` throws.
-- [ ] Run → FAIL. Implement. Run → PASS. Full neighbor suites green: `npx vitest run src/systems/entities3d`.
+- [x] Run → was FAIL. Implemented (`buildPlanBindGeometry` + `createSkinnedPlan` in `skinnedBody.ts`; `assembleEntity.ts` admits `bodyTech:'skinned'` for `gait:'plan'` and forwards decorative emissions to the segment renderer). Run → PASS (6/6 in `__tests__/skinnedPlan.test.ts`); neighbor suites green.
 
 ### Task 3: Heads and parts ride bones + eyeball surface
 

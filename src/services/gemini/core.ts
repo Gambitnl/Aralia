@@ -1,8 +1,8 @@
 import { GenerateContentResponse, GenerationConfig } from "@google/genai";
 import { ai, isAiEnabled } from "../aiClient";
-import { withRetry } from "../../utils/networkUtils";
-import { logger } from "../../utils/logger";
-import { sanitizeAIInput, redactSensitiveData } from "../../utils/securityUtils";
+import { withRetry } from "../../utils/context";
+import { logger } from "../../utils/core";
+import { sanitizeAIInput, redactSensitiveData } from "../../utils/core";
 import { FAST_MODEL, GEMINI_TEXT_MODEL_FALLBACK_CHAIN } from "../../config/geminiConfig";
 import { ExtendedGenerationConfig, GeminiTextData, StandardizedResult } from "./types";
 

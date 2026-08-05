@@ -50,6 +50,13 @@ export interface AdaptedTownPlan {
   plan: ArtifactTownPlan;
   /** Wall ring + gatehouses, plus the river water-gate breaks (TG7). */
   walls: { ring: Pt[]; gatehouses: Pt[]; waterGates: Pt[] };
+  /**
+   * Intramural open land, carried through so 3D can plant a town's own trees
+   * (bridge/townVegetation.ts). It rides here rather than on ArtifactTownPlan
+   * because the artifact plan is the 2D map's contract too, and orchards and
+   * paddocks are already drawn there from the engine plan directly.
+   */
+  openLand: Array<{ polygon: Pt[]; kind: 'yard' | 'garden' | 'orchard' | 'paddock' | 'ruin' }>;
 }
 
 /**
@@ -603,5 +610,8 @@ export function toArtifactPlan(
       gatehouses: plan.walls.gatehouses,
       waterGates: plan.walls.waterGates ?? [],
     },
+    // Passed straight through: these polygons are already in the caller's frame
+    // because canonicalTown transforms the whole engine plan before adapting it.
+    openLand: (plan.openLand ?? []).map((o) => ({ polygon: o.polygon, kind: o.kind })),
   };
 }

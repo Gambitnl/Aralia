@@ -1,7 +1,7 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { ReactiveEffectCommand, type ReactiveEventEmitters } from '../ReactiveEffectCommand';
-import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '../../../utils/factories';
+import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '../../../utils/core';
 import { CombatCharacter, CombatState } from '../../../types/combat';
 import { MovementEventEmitter } from '../../../systems/combat/MovementEventEmitter';
 import { AttackEventEmitter } from '../../../systems/combat/AttackEventEmitter';
@@ -23,7 +23,7 @@ import type { EffectCondition } from '../../../types/spells';
  */
 
 // Keep command diagnostics quiet while the assertions focus on state changes.
-vi.mock('../../../utils/logger', () => ({
+vi.mock('../../../utils/core/logger', () => ({
     logger: {
         info: vi.fn(),
         debug: vi.fn(),

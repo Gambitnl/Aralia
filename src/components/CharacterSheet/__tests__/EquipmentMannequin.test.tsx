@@ -4,10 +4,10 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { vi, describe, it, expect } from 'vitest';
 import EquipmentMannequin from '../Overview/EquipmentMannequin';
 import { PlayerCharacter, Item } from '../../../types';
-import { createMockPlayerCharacter } from '../../../utils/factories';
+import { createMockPlayerCharacter } from '../../../utils/core';
 
 // Mock dependencies
-vi.mock('../../../utils/characterUtils', async (importOriginal) => {
+vi.mock('../../../utils/character/characterUtils', async (importOriginal) => {
   const actual = (await importOriginal()) as Record<string, unknown>;
   return {
     ...actual,

@@ -49,7 +49,7 @@ vi.mock('../services/saveLoadService', () => ({
 // The menu uses translated labels, but the tests need stable English text so the
 // assertions do not depend on the full i18n pipeline.
 // ============================================================================
-vi.mock('../utils/i18n', () => ({
+vi.mock('../utils/core', () => ({
     t: (key: string) => {
         const translations: Record<string, string> = {
             'main_menu.title': 'Aralia RPG',

@@ -3,7 +3,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { AstralMechanics, PsychicWindResult } from '../AstralMechanics';
 import { GameState } from '../../../types/index';
 import * as combatUtils from '../../../utils/combat';
-import { createMockGameState } from '../../../utils/factories';
+import { createMockGameState } from '../../../utils/core';
 
 // Mock rollDice to control randomness
 vi.mock('../../../utils/combat', () => ({

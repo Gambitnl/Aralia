@@ -55,9 +55,9 @@ import CombatLog from "./CombatLog";
 import ActionEconomyBar from "./ActionEconomyBar";
 import PartyDisplay from "./PartyDisplay";
 import CharacterSheetModal from "../CharacterSheet/CharacterSheetModal";
-import { canUseDevTools } from "../../utils/permissions";
+import { canUseDevTools } from "../../utils/core";
 import { CONTROL_POSES, type ControlPoseId } from "./controlOptionPose";
-import { logger } from "../../utils/logger";
+import { logger } from "../../utils/core";
 import { createPlayerCombatCharacter } from "../../utils/combat";
 import {
   createQuickCombatCharacter,

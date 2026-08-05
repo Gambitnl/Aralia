@@ -26,7 +26,7 @@ import { JournalState } from '../../types/journal';
 import { Companion } from '../../types/companions';
 import { WindowFrame } from '../ui/WindowFrame';
 import { WINDOW_KEYS } from '../../styles/uiIds';
-import { canLevelUp } from '../../utils/characterUtils';
+import { canLevelUp } from '../../utils/character';
 
 /**
  * This file renders the primary window frame containing the interactive D&D character sheet.

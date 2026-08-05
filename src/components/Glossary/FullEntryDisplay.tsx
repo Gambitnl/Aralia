@@ -16,7 +16,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { GlossaryEntry } from '../../types';
-import { fetchWithTimeout } from '../../utils/networkUtils';
+import { fetchWithTimeout } from '../../utils/context';
 import { assetUrl } from '../../config/env';
 import { GlossaryEntryTemplate } from './GlossaryEntryTemplate';
 

@@ -3,7 +3,7 @@ import { describe, it, expect } from 'vitest';
 import { canInteract, canSeeTarget, getCharacterPhase } from '../planarTargeting';
 import { CombatCharacter, CombatState } from '@/types/combat';
 import { ETHEREAL_PLANE, MATERIAL_PLANE } from '@/data/planes';
-import { createMockCombatCharacter } from '@/utils/factories';
+import { createMockCombatCharacter } from '../../core/factories';
 
 // Mock helper
 const createMockState = (characters: CombatCharacter[] = []): CombatState => ({

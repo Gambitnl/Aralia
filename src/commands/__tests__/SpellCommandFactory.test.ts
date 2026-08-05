@@ -14,7 +14,7 @@ import { RegisterRiderCommand } from '../effects/RegisterRiderCommand'
 import { DamageEffect, Spell, SpellSchool } from '@/types/spells'
 import type { CombatCharacter, SelectedSpellTarget } from '@/types/combat'
 import { combatEvents } from '@/systems/events/CombatEvents'
-import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '@/utils/factories'
+import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '@/utils/core'
 
 /**
  * This file protects command creation for structured spell effects.

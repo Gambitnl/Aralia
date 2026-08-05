@@ -3,8 +3,14 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * This header is a placeholder — run the sync tool after editing:
+ * Last Sync: 04/08/2026 (manual — sync tool timed out in this session)
+ * Dependents: systems/entities3d/three/skinnedBody.ts
+ * Imports: 2 files (../types, ./gaits)
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
  * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
  */
 // @dependencies-end
 

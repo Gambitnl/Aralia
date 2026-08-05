@@ -17,7 +17,7 @@
 - No fallbacks: every stage produces its artifact or fails with a named error; downstream stages refuse on missing upstream artifacts.
 - Budget single-source: move the 30k fixture budget into `src/systems/entities3d/textPlan/budgets.ts` (`PLAN_TRIANGLE_BUDGET = 30_000`, `HUMANOID_TRIANGLE_BUDGET = 12_000`); perfBudget.test.ts imports it; optimize tool imports it.
 - New deps (root): `@gradio/client`, `@gltf-transform/core`, `@gltf-transform/functions` (devDependencies; tools + tests only — no game-bundle imports).
-- GOV.UK plain English, US spelling.
+- ASD-STE100 Simplified Technical English, US spelling.
 
 ## File Structure
 

@@ -6,8 +6,8 @@ import {
   ContractGenerationParams
 } from '../../types/infernal';
 import { GameState } from '../../types/index';
-import { generateId } from '../../utils/idGenerator';
-import { logger } from '../../utils/logger';
+import { generateId } from '../../utils/core';
+import { logger } from '../../utils/core';
 
 export class InfernalMechanics {
 

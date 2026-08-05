@@ -38,8 +38,8 @@ import { BattleMapData, BattleMapTile, CombatCharacter, CharacterPosition, Abili
 import { useTurnManager } from './combat/useTurnManager';
 import { useAbilitySystem } from './useAbilitySystem';
 import { useGridMovement } from './combat/useGridMovement';
-import { findPath } from '../utils/pathfinding';
-import { calculatePathMovementCost } from '../utils/movementUtils';
+import { findPath } from '../utils/spatial/pathfinding';
+import { calculatePathMovementCost } from '../utils/combat';
 
 interface UseBattleMapReturn {
   characterPositions: Map<string, CharacterPosition>;

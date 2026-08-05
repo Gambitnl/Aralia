@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { SpellCommandFactory } from '../factory/SpellCommandFactory';
-import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '@/utils/factories';
+import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '@/utils/core';
 import type { CombatCharacter } from '@/types/combat';
 import type { Spell } from '@/types/spells';
 import { rollSavingThrow } from '@/utils/character/savingThrowUtils';

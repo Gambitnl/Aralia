@@ -5,7 +5,7 @@ import {
 } from '../effects/UtilityCommand'
 import type { CombatCharacter } from '@/types/combat'
 import type { EffectDuration, Spell, UtilityEffect } from '@/types/spells'
-import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '@/utils/factories'
+import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '@/utils/core'
 import animateObjects from '../../../public/data/spells/level-5/animate-objects.json'
 
 /**

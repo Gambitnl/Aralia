@@ -3,8 +3,8 @@
  * ARCHITECTURAL ADVISORY:
  * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 17/07/2026, 23:24:45
- * Dependents: components/World3D/InWorldHUD.tsx, components/World3D/World3DWrapper.tsx, components/World3D/createWorldGenClient.ts, components/World3D/worldGenCore.ts, components/Worldforge/AtlasDemo.tsx, components/Worldforge/LocalMapView.tsx, components/Worldforge/RegionMapView.tsx, components/Worldforge/TownAgentSnapshotView.tsx, components/Worldforge/localDraw.ts, components/Worldforge/regionDraw.ts, devtools/buildingIdentityLab/buildingIdentityLabModel.ts, systems/spells/ai/MaterialTagService.ts, systems/worldforge/adapter/atlasArtifact.ts, systems/worldforge/bridge/dungeonEntrances.ts, systems/worldforge/bridge/groundAgentMotion.ts, systems/worldforge/bridge/groundChunkLoader.ts, systems/worldforge/bridge/groundDeltas.ts, systems/worldforge/bridge/groundHostiles.ts, systems/worldforge/bridge/groundWorldAdapter.ts, systems/worldforge/bridge/legacySubmapBridge.ts, systems/worldforge/bridge/seamProbe.ts, systems/worldforge/delta/applyDeltas.ts, systems/worldforge/delta/types.ts, systems/worldforge/generate.ts, systems/worldforge/index.ts, systems/worldforge/leaf3d/atlasGroundDrilldown.ts, systems/worldforge/local/generateLocal.ts, systems/worldforge/local/stitchLocalArtifacts.ts, systems/worldforge/provenance/groundProvenance.ts, systems/worldforge/region/generateRegion.ts, systems/worldforge/roster/agentPath.ts, systems/worldforge/roster/generateTownRoster.ts, systems/worldforge/roster/townSnapshot.ts, systems/worldforge/roster/types.ts, systems/worldforge/town/buildingPlotInput.ts, systems/worldforge/town/canonicalTown.ts, systems/worldforge/town/demoTownPlan.ts, systems/worldforge/town/townPlanAdapter.ts, systems/worldforge/town/voronoiTownAdapter.ts, systems/worldforge/townsim/keyNpcs.ts, systems/worldforge/townsim/townSimRegistration.ts
+ * Last Sync: 04/08/2026, 02:04:57
+ * Dependents: components/World3D/InWorldHUD.tsx, components/World3D/World3DWrapper.tsx, components/World3D/createWorldGenClient.ts, components/World3D/worldGenCore.ts, components/Worldforge/AtlasDemo.tsx, components/Worldforge/LocalMapView.tsx, components/Worldforge/RegionMapView.tsx, components/Worldforge/TownAgentSnapshotView.tsx, components/Worldforge/localDraw.ts, components/Worldforge/regionDraw.ts, devtools/buildingIdentityLab/buildingIdentityLabModel.ts, systems/spells/ai/MaterialTagService.ts, systems/worldforge/adapter/atlasArtifact.ts, systems/worldforge/bridge/dungeonEntrances.ts, systems/worldforge/bridge/farShells.ts, systems/worldforge/bridge/groundAgentMotion.ts, systems/worldforge/bridge/groundChunkLoader.ts, systems/worldforge/bridge/groundDeltas.ts, systems/worldforge/bridge/groundHostiles.ts, systems/worldforge/bridge/groundWorldAdapter.ts, systems/worldforge/bridge/legacySubmapBridge.ts, systems/worldforge/bridge/seamProbe.ts, systems/worldforge/delta/applyDeltas.ts, systems/worldforge/delta/types.ts, systems/worldforge/generate.ts, systems/worldforge/index.ts, systems/worldforge/leaf3d/atlasGroundDrilldown.ts, systems/worldforge/local/generateLocal.ts, systems/worldforge/local/stitchLocalArtifacts.ts, systems/worldforge/provenance/groundProvenance.ts, systems/worldforge/region/generateRegion.ts, systems/worldforge/roster/agentPath.ts, systems/worldforge/roster/generateTownRoster.ts, systems/worldforge/roster/townSnapshot.ts, systems/worldforge/roster/types.ts, systems/worldforge/town/buildingPlotInput.ts, systems/worldforge/town/canonicalTown.ts, systems/worldforge/town/demoTownPlan.ts, systems/worldforge/town/householdBrief.ts, systems/worldforge/town/townPlanAdapter.ts, systems/worldforge/town/voronoiTownAdapter.ts, systems/worldforge/townsim/keyNpcs.ts, systems/worldforge/townsim/townSimRegistration.ts
  * Imports: 2 files
  *
  * MULTI-AGENT SAFETY:
@@ -316,7 +316,22 @@ export interface LocalTerrain {
 export interface LocalFeature {
   /** Stable id within the artifact (delta layer keys off this). */
   id: number;
-  kind: 'tree' | 'bush' | 'boulder' | 'water-body' | 'path' | 'poi' | 'building';
+  /**
+   * `fern`/`log`/`sapling` are the understory (2026-08-04): the layer between
+   * the grass and the canopy that the world had nothing in. They scatter
+   * through the same clump field as trees, so they crowd the thickets.
+   */
+  kind:
+    | 'tree'
+    | 'bush'
+    | 'boulder'
+    | 'fern'
+    | 'log'
+    | 'sapling'
+    | 'water-body'
+    | 'path'
+    | 'poi'
+    | 'building';
   x: Feet;
   y: Feet;
   /**

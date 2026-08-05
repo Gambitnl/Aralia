@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { SpellCommandFactory } from '../SpellCommandFactory'
-import { createMockCombatCharacter, createMockGameState } from '@/utils/factories'
+import { createMockCombatCharacter, createMockGameState } from '@/utils/core'
 import fireBolt from '../../../../public/data/spells/level-0/fire-bolt.json'
 import frostbite from '../../../../public/data/spells/level-0/frostbite.json'
 import { type Spell, type SpellEffect, type DamageEffect } from '@/types/spells'

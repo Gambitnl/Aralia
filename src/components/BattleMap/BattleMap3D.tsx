@@ -34,7 +34,7 @@
  * @see docs/superpowers/specs/2026-05-21-3d-combat-map-design.md
  */
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
-import { canUseDevTools } from '../../utils/permissions';
+import { canUseDevTools } from '../../utils/core';
 import { Z_INDEX } from '../../styles/zIndex';
 import { Canvas } from '@react-three/fiber';
 // MapControls now handled by CameraController

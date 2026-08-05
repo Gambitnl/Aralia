@@ -6,8 +6,8 @@ import { FullEntryDisplay } from './FullEntryDisplay';
 import SpellCardTemplate, { SpellData } from './SpellCardTemplate';
 import { AnimatePresence, motion, MotionProps } from 'framer-motion';
 import { LoadingSpinner } from '../ui/LoadingSpinner';
-import { findGlossaryEntryAndPath } from '../../utils/glossaryUtils';
-import { fetchWithTimeout } from '../../utils/networkUtils';
+import { findGlossaryEntryAndPath } from '../../utils/visuals';
+import { fetchWithTimeout } from '../../utils/context';
 import { assetUrl } from '../../config/env';
 
 /**

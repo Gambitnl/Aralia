@@ -3,7 +3,7 @@ import { UtilityCommand } from '../effects/UtilityCommand'
 import type { CommandContext } from '../base/SpellCommand'
 import type { CombatCharacter, CombatState, SelectedSpellTarget } from '../../types/combat'
 import type { UtilityEffect } from '../../types/spells'
-import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '@/utils/factories'
+import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '@/utils/core'
 import truePolymorph from '../../../public/data/spells/level-9/true-polymorph.json'
 
 /**

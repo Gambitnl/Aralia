@@ -1,6 +1,6 @@
 import { SpellCommand, CommandContext, CommandMetadata } from '../base/SpellCommand';
 import { CombatState } from '@/types/combat';
-import { generateId } from '../../utils/idGenerator';
+import { generateId } from '../../utils/core';
 
 export class NarrativeCommand implements SpellCommand {
     public readonly id: string;

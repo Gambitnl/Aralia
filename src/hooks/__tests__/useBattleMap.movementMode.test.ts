@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { inferMovementModeForAction } from '../useBattleMap';
-import { createMockCombatCharacter } from '../../utils/factories';
+import { createMockCombatCharacter } from '../../utils/core';
 import type { CombatCharacter } from '../../types/combat';
 import summonBeast from '../../../public/data/spells/level-2/summon-beast.json';
 

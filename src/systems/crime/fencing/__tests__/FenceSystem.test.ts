@@ -2,7 +2,7 @@
 import { describe, it, expect } from 'vitest';
 import { FenceSystem } from '../FenceSystem';
 import { Fence, StolenItem } from '../../../../types/crime';
-import { createMockPlayerCharacter } from '../../../../utils/factories';
+import { createMockPlayerCharacter } from '../../../../utils/core';
 import { ItemType, ItemRarity } from '../../../../types/items';
 
 describe('FenceSystem', () => {

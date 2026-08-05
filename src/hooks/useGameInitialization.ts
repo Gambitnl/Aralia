@@ -68,7 +68,7 @@ import { WorldHistoryService } from '../services/WorldHistoryService';
 import * as SaveLoadService from '../services/saveLoadService';
 // Utility that determines which dynamic NPCs should be active at a given location.
 import { determineActiveDynamicNpcsForLocation } from '@/utils/spatial';
-import { getAllFactions } from '../utils/factionUtils';
+import { getAllFactions } from '../utils/world';
 import { generateWorldSeed } from '../utils/random/generateWorldSeed';
 import { generateId } from '../utils/core/idGenerator';
 import { makeCellLocationId } from '../utils/location/cellLocationId';

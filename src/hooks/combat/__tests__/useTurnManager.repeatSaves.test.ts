@@ -10,10 +10,10 @@ import { renderHook, act } from '@testing-library/react';
 import { useTurnManager } from '../useTurnManager';
 import type { CombatCharacter } from '@/types/combat';
 import type { Class } from '@/types';
-import * as savingThrowUtils from '@/utils/savingThrowUtils';
+import * as savingThrowUtils from '@/utils/character';
 
-vi.mock('@/utils/savingThrowUtils', async importOriginal => {
-  const actual = await importOriginal<typeof import('@/utils/savingThrowUtils')>();
+vi.mock('@/utils/character/savingThrowUtils', async importOriginal => {
+  const actual = await importOriginal<typeof import('@/utils/character')>();
   return {
     ...actual,
     rollSavingThrow: vi.fn()

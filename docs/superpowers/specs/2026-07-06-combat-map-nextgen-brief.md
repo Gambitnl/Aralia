@@ -99,8 +99,8 @@ Design battlefield generation DERIVED from the player's actual location:
 - **Design doc before code.** Deliver: (1) an architecture note for the
   renderer (layers, what redraws when, a11y story, migration steps that keep
   the game shippable at every step), (2) the worldforge→battlefield data
-  contract, (3) a mock or storyboard for the living-board look. Use plain
-  English (GOV.UK style, US spelling); define any coined term in
+  contract, (3) a mock or storyboard for the living-board look. Use
+  ASD-STE100 Simplified Technical English, US spelling; define any coined term in
   `tools/agora/GLOSSARY.md` in the same turn.
 - **No estimates, no feasibility-shrinking.** Full vision, priority order.
 - **No fallbacks.** One real path; fail honestly.

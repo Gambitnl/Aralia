@@ -17,8 +17,8 @@
 import React, { useState } from 'react';
 import { PlayerCharacter, AbilityScoreName } from '../../../types';
 import Tooltip from '../../ui/Tooltip';
-import { getAbilityModifierValue, getAbilityModifierString, getCharacterRaceDisplayString, buildHitPointDicePools } from '../../../utils/characterUtils';
-import { calculatePassiveScore } from '../../../utils/statUtils';
+import { getAbilityModifierValue, getAbilityModifierString, getCharacterRaceDisplayString, buildHitPointDicePools } from '../../../utils/character';
+import { calculatePassiveScore } from '../../../utils/character';
 import { FEATS_DATA } from '../../../data/feats/featsData';
 import { classFeaturesForLevel } from '../../../data/classes/classFeatureProgression';
 import { useCharacterProficiencies } from '../../../hooks/useCharacterProficiencies';

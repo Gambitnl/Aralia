@@ -16,9 +16,9 @@
 
 import type { SpellTargeting, TargetFilter, TargetConditionFilter, CombatCharacter, CombatState, Position } from '@/types'
 
-import { hasLineOfSight } from '../../../utils/lineOfSight'
+import { hasLineOfSight } from '../../../utils/spatial'
 import { TargetValidationUtils } from './TargetValidationUtils'
-import { canInteract, canSeeTarget } from '../../../utils/planarTargeting'
+import { canInteract, canSeeTarget } from '../../../utils/planar'
 import { TargetAllocator } from './TargetAllocator'
 import type { AllocationResult, AllocatorContext } from './TargetAllocator'
 

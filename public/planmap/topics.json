@@ -4237,9 +4237,9 @@
         },
         {
           "title": "Town-owned tree placement from plan land use (orchard/garden/yard)",
-          "status": "specced",
+          "status": "done",
           "decision": false,
-          "status_note": "Remy call 2026-08-04: towns should place their own trees. openLand parcels exist in townEngine TownPlan but toArtifactPlan drops them - carry through, then place per kind (orchards regular, gardens sparse)."
+          "status_note": "BUILT 2026-08-04. openLand carried through AdaptedTownPlan; townVegetation.ts maps parcel kind to planting. Orchard = REGULAR rows (~25ft, 1ft jitter) - the one place evenness is correct. Verified by probe: orchard 35 trees nn-dist 7.0-8.2m, paddock 2, ruin 24+22. In-game screenshot PENDING - shared tree mid-refactor of src/utils killed the dev server."
         }
       ],
       "updated": "2026-08-04",
@@ -5659,8 +5659,13 @@
         },
         {
           "title": "Creature skeletons: plan chains become bone chains",
+          "status": "done",
+          "status_note": "COMPLETED 2026-08-04 (Agora task e249ddaa-4a17-433c-8143-452410cfad62, Tasks 1-2; Task 3 tracked separately below). Remy approved the flagged design (decorative emissions stay on the anchor path) and green-lit the DRAFT. New module src/systems/entities3d/three/planSkeleton.ts (buildPlanSkeleton + createPlanPoseSink — parity-trick rest pose stepping a real PlanDriver at dt=0; parent-first bone hierarchy spine.N/<chainId>.N/terminals; tauric parentId chains via topo sort; decorative-on-anchor-path with delegate forwarding; unknown ids throw). skinnedBody.ts buildPlanBindGeometry + createSkinnedPlan (rigid weights, box-spine BoxGeometry, 2 draw calls, PLAN_TRIANGLE_BUDGET-respecting). assembleEntity.ts admits bodyTech:skinned for gait:plan and forwards decorative emissions to the segment renderer. Proof: planSkeleton.test.ts(5) + skinnedPlan.test.ts(6) = 11/11; neighbors assemble/skinnedBody/segmentCollar/perfBudget/crowdBake/skeletonBuilder/planDriver = 68/68; git diff --check clean; no commits (plan constraint). Creature SMOOTH weights + species gaits remain deferred."
+        },
+        {
+          "title": "Creature skeletons — heads on bones + A/B eyeball gate (Task 3)",
           "status": "active",
-          "status_note": "DRAFT plan written 2026-07-24 (Agora task e249ddaa-4a17-433c-8143-452410cfad62): docs/superpowers/plans/2026-07-24-skeleton-creature-skeletons.md — plan rest pose, bone chains, pose sink, rigid-weight skinned plan body, heads on bones, stress-fixture acceptance contracts. Implementation blocked on Remy review of one flagged design choice (decorative emissions stay on the anchor path). Mixamo slice stays parked; species gaits out of scope."
+          "status_note": "OPEN 2026-08-04 (Task 3 of the creature-skeletons plan): head-ball/formed-head parenting to head<i> bones, creature-mode A/B preview surface (segments vs skinned-rigid, deep-linkable for headless capture), mounted A/B captures + Remy eyeball gate. Needs a live browser for rendered captures + human approval. Open design gap: formed heads emit no ball, so their head<i> bones are never written by the pure pose sink — the assembler must write those bones from driver.headSockets() each frame (outside the sink)."
         },
         {
           "title": "Crowd bake from bone transforms + segment renderer deletion",
@@ -5672,7 +5677,7 @@
           "status_note": "RESOLVED 2026-07-21 (Remy): switch to solid shaded on deforming skinned meshes."
         }
       ],
-      "updated": "2026-07-24",
+      "updated": "2026-08-04",
       "tier": "strategic"
     },
     {
@@ -5988,7 +5993,7 @@
       "title": "CC0 clip animation (Mesh2Motion library)",
       "sub": "real mocap clips on skinned bodies; humanoid retarget + rigged creature bestiary",
       "campaign": "rendering",
-      "status": "specced",
+      "status": "active",
       "updated": "2026-08-04",
       "status_note": "Spec approved 2026-07-24 (Remy: full 87-clip pack; humanoids first, then path A rigged bestiary). Un-defers the skeleton-pivot clip slice using CC0 glTF packs instead of Mixamo/FBX. Source: github.com/Mesh2Motion/mesh2motion-app (MIT code, CC0 assets, CMU mocap).",
       "deps": [
@@ -6004,7 +6009,7 @@
         {
           "title": "Humanoid retarget substrate (map + clip store + player)",
           "status": "active",
-          "status_note": "Code built + unit-proven 2026-08-04 (bone map, in-place strip, clip store via SkeletonUtils.retargetClip, mixer player, animSource:clip through assembleEntity + debugger ?clip=1; packs bundled, NOTICES written; 23 tests green, typecheck clean). NOT visually verified: headless probe hit a 500 loading the clip debugger path — diagnosis paused by Remy."
+          "status_note": "Substrate BUILT 2026-08-04: bone map + in-place strip (5 tests) + clipStore (SkeletonUtils retarget) + skinnedClipPlayer (mixer, 4 tests) + assembleEntity animSource:clip + debugger ?clip=1. Headless-proven: 87 clips load, Walk retargets to our 17 bones, forearm moves 16cm under the mixer. Mixer-root fix: bind to SkinnedMesh not Group (.bones[name] binding). Live visual BLOCKED: Remys :3000 down during UtilityCommand refactor."
         },
         {
           "title": "Full 87-clip action set + speed sync + debugger scrub",

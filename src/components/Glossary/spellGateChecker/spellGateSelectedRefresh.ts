@@ -28,7 +28,7 @@
 
 import { assetUrl } from "../../../config/env";
 import { SpellValidator } from "../../../systems/spells/validation/spellValidator";
-import { fetchWithTimeout } from "../../../utils/networkUtils";
+import { fetchWithTimeout } from "../../../utils/context";
 import type { LiveSpellGateRefreshResponse } from "./spellGateDataTypes";
 
 // ============================================================================

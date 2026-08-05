@@ -3,7 +3,7 @@
  * Service for procedurally generating battle maps.
  */
 import { BattleMapData, BattleMapTile, BattleMapTerrain, BattleMapDecoration, BattleMapBiome, TargetableMapObject } from '../types/combat';
-import { PerlinNoise } from '../utils/perlinNoise';
+import { PerlinNoise } from '../utils/random';
 import { SeededRandom } from '@/utils/random';
 
 type GeneratedBattleMapDecoration = Exclude<BattleMapDecoration, null>;

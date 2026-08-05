@@ -6,7 +6,7 @@
  */
 import { describe, expect, it } from 'vitest';
 import { Ability } from '../../../types/combat';
-import { createMockCombatCharacter } from '../../../utils/factories';
+import { createMockCombatCharacter } from '../../../utils/core';
 import { AbilityCommandFactory } from '../AbilityCommandFactory';
 import { MovementCommand } from '../../effects/MovementCommand';
 

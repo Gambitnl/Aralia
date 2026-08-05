@@ -77,23 +77,45 @@ export function sunFromTime(hours: number): SunState {
     Math.sin(elevation),
     Math.cos(azimuth) * cosE,
   ];
-  // Warmth rises as the sun drops (golden hour), neutral-warm high sun.
-  const lowSun = 1 - Math.sin(t * Math.PI); // 1 at dawn/dusk, 0 at noon
-  // Key light: creamy at noon, deep amber at golden hour — a richer, warmer
-  // swing than the old near-white ramp so lit faces actually read gold.
-  const sunColor = new THREE.Color(0xfff0d0).lerp(new THREE.Color(0xff9c46), lowSun * 0.9);
+  // How far the sun has dropped, 0 at solar noon and 1 at the daylight edges.
+  // Note this is LINEAR IN ELEVATION (elevation = sin(t·π) · 62°), so it reads
+  // 0.61 at a sun still 24° up — most of an afternoon sky.
+  const lowSun = 1 - Math.sin(t * Math.PI);
+  // Reddening of DIRECT sunlight is an air-mass effect: it barely exists above
+  // ~15° elevation and then runs away as the sun touches the horizon. Using
+  // `lowSun` raw made the whole afternoon amber, and amber light is not a tint
+  // — it is a multiply. Measured at the 18.2h default, the raw ramp put the key
+  // at linear (1.00, 0.58, 0.32), which turned savanna ground whose vertex
+  // colour is (0.50, 0.66, 0.36) into an on-screen 105,76,59: red-dominant, the
+  // green lead not just reduced but INVERTED. Cubing concentrates the amber
+  // into the last hour where it belongs (0.61 → 0.22 at the default hour, still
+  // 1.00 at true dusk), so grassland reads green in the afternoon and sunset
+  // still burns. Rejected alternatives: lightening the biome palettes (hides a
+  // lighting bug in the art, and would undo today's dark forest-litter fix) and
+  // simply moving the default hour to midday (throws away the wanted low-sun
+  // shadows and warm sky, and leaves the curve wrong for every other hour).
+  const keyWarmth = lowSun * lowSun * lowSun;
+  // Key light: creamy high sun, deep amber at true golden hour.
+  const sunColor = new THREE.Color(0xfff0d0).lerp(new THREE.Color(0xff9c46), keyWarmth * 0.9);
+  // Atmosphere warms EARLIER and more readily than the key does: the horizon
+  // band is hazy and warm well before the sun itself reddens, and unlike the
+  // key it multiplies nothing — it only sits in front of distant terrain
+  // (ground fog starts at 600 m). So sky and fog keep a much gentler exponent
+  // and retain the evening mood the default hour is chosen for.
+  const skyWarmth = Math.pow(lowSun, 1.5);
   // Fog / horizon band: a genuinely tinted atmosphere, NOT the old near-white
   // pale blue that washed the horizon out. Deep hazy blue at noon melts into a
   // rich amber at golden hour, so distant terrain (and the low sky, which the
   // far fog also tints) dissolves into a real, saturated horizon band instead
-  // of a flat grey-white edge. Full `lowSun` weight so golden hour lands firmly
-  // in warm territory rather than a muddy blue/amber midpoint.
-  const fogColor = new THREE.Color(0x5f7ea8).lerp(new THREE.Color(0xcf7f34), lowSun);
+  // of a flat grey-white edge. Rides `skyWarmth`, not the key's cubed ramp, so
+  // golden hour still lands firmly in warm territory rather than a muddy
+  // blue/amber midpoint.
+  const fogColor = new THREE.Color(0x5f7ea8).lerp(new THREE.Color(0xcf7f34), skyWarmth);
   // Gradient-sky colours. The zenith deepens toward indigo as the sun drops;
   // the horizon band warms toward amber and is kept close to the fog tint so
   // the sky dome and the far terrain haze read as one continuous atmosphere.
-  const skyZenith = new THREE.Color(0x2f6fc8).lerp(new THREE.Color(0x1e2d58), lowSun);
-  const skyHorizon = new THREE.Color(0x9fc4e8).lerp(new THREE.Color(0xeca457), lowSun);
+  const skyZenith = new THREE.Color(0x2f6fc8).lerp(new THREE.Color(0x1e2d58), skyWarmth);
+  const skyHorizon = new THREE.Color(0x9fc4e8).lerp(new THREE.Color(0xeca457), skyWarmth);
   return {
     direction,
     sunColor: sunColor.getHex(),
@@ -324,9 +346,7 @@ const World3DLighting: React.FC<{
         intensity={sun.hemiIntensity * (interior?.lightMul ?? 1)}
       />
       {/* Warm sun key — NEAR cascade. Carries the majority of the key so the
-          walking-scale neighbourhood gets crisp, high-res shadows. Bias pair
-          tuned against acne (bias) and peter-panning (normalBias kept small in
-          meters — buildings are ~5 m tall). */}
+          walking-scale neighbourhood gets crisp, high-res shadows. */}
       <directionalLight
         ref={lightRef}
         position={[sun.direction[0] * SUN_DIST_M, sun.direction[1] * SUN_DIST_M, sun.direction[2] * SUN_DIST_M]}
@@ -342,7 +362,19 @@ const World3DLighting: React.FC<{
         shadow-camera-top={SHADOW_HALF_M}
         shadow-camera-bottom={-SHADOW_HALF_M}
         shadow-bias={-0.0004}
-        shadow-normalBias={0.6}
+        // normalBias is a distance in METERS, and it was 0.6 — which is not a
+        // bias, it is an eraser. It slides the shadow lookup along the surface
+        // normal, so on flat ground under a sun 24° up (the default hour) it
+        // displaces the sample by 0.6/tan(24°) = 1.3 m laterally. Canopy lobes
+        // and the gaps between them are ~1 m across, so every scrap of tree
+        // silhouette was eroded away and shadows landed as featureless blobs
+        // detached from their trunks (see .agent/scratch/sunfix/before-shadow-
+        // zoom.png: clearly lobed canopy, perfectly smooth shadow). At 0.08 the
+        // erosion is ~0.18 m, under the 0.215 m shadow texel, so the map's own
+        // resolution is once again the limit on shadow detail rather than the
+        // bias. Kept non-zero because slope-scaled bias is still what keeps
+        // acne off the terrain's shallow-angle faces at this low sun.
+        shadow-normalBias={0.08}
       />
       {/* Coarse FAR cascade — same sun direction, much larger frustum on a
           low-res map. Carries the remaining key share and casts the distant

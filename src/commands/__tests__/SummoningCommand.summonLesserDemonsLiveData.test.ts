@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { UtilityCommand } from '../effects/UtilityCommand';
-import { createMockCombatCharacter } from '../../utils/factories';
+import { createMockCombatCharacter } from '../../utils/core';
 import type { CommandContext } from '../base/SpellCommand';
 import type { CombatCharacter, CombatLogEntry, CombatState } from '../../types/combat';
 import type { UtilityEffect } from '../../types/spells';

@@ -9,7 +9,7 @@ import { isExecutableControlOption } from '@/types/spells'
 import type { UtilityEffect, ExecutableControlOption } from '@/types/spells'
 import type { Item } from '@/types/items'
 import type { CombatState, CombatCharacter, StatusEffect, SelectedSpellTarget, ShapeWaterMode, ThaumaturgyMode, ActiveMinorUtilityEffect } from '@/types/combat'
-import { generateId } from '../../../utils/idGenerator'
+import { generateId } from '../../../utils/core'
 
 
 

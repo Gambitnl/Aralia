@@ -7,7 +7,7 @@
 import { UtilityCommandCore } from './core'
 import type { UtilityEffect, ExecutableControlOption } from '@/types/spells'
 import type { CombatState, CombatCharacter, StatusEffect } from '@/types/combat'
-import { generateId } from '../../../utils/idGenerator'
+import { generateId } from '../../../utils/core'
 import { applyCommandAreaMovementEffects } from '../commandAreaMovementEffects'
 
 

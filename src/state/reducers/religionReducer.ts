@@ -16,7 +16,7 @@
 
 import { GameState, DeityAction, DivineFavor, ReligionState, StatusEffect, Blessing } from '../../types';
 import { AppAction } from '../actionTypes';
-import { calculateFavorChange, getDeity, evaluateAction, grantBlessing, resolveBlessingDefinition } from '../../utils/religionUtils';
+import { calculateFavorChange, getDeity, evaluateAction, grantBlessing, resolveBlessingDefinition } from '../../utils/world';
 import { DEITIES } from '../../data/deities';
 import { inGameTimestamp } from '../../utils/core/timeUtils';
 

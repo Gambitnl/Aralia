@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 04/08/2026, 02:05:27
+ * Dependents: components/World3D/canopyInterior.ts, components/Worldforge/AtlasSvgView.tsx, components/Worldforge/atlasSvg.ts, components/Worldforge/forestGlyphs.ts, systems/worldforge/forests/clumpField.ts, systems/worldforge/forests/forestClusters.ts, systems/worldforge/forests/forestsPass.ts, systems/worldforge/local/generateLocal.ts, systems/worldforge/travel/atlasTravelGraph.ts
+ * Imports: 1 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file forestTunables.ts — every gameplay-feel constant for the forest system.
  *
@@ -209,6 +225,41 @@ export const CLUMP_SEP_RELIEF = 0.5;
 /** Undergrowth: scrub-species instance density multiplier under dense canopy
  * (relative to the biome's normal scrub density). */
 export const UNDERGROWTH_MULT = 2.5;
+
+/**
+ * Understory densities, as multipliers on the biome's existing bush and tree
+ * density (2026-08-04). Multipliers rather than absolutes so a sparse
+ * grassland stays sparse: a fixed fern count would carpet a savannah.
+ *
+ * Ferns outnumber everything. That is not a stylistic choice — ground cover
+ * genuinely is the most numerous thing on a forest floor, and a handful of
+ * ferns per acre reads as someone having placed a few ferns.
+ *
+ * Logs are the opposite: rare, but each one does more work for believability
+ * than any other object down here, because a fallen tree is evidence that the
+ * wood has a history. Their min-separation is set high in generateLocal for
+ * the same reason — two crossing logs read as a dam.
+ */
+/*
+ * Retuned once the shapes were fixed (2026-08-05). Both moves are consequences
+ * of the geometry pass, not second thoughts about how a wood is populated.
+ *
+ * Ferns came down because each one now costs 341 triangles instead of 159 and
+ * covers a meter of ground standing 0.6 m tall instead of lying 0.23 m flat.
+ * At 4.5 the floor was carrying that in one instanced draw for no gain: the
+ * plants were already overlapping into a mat, and a mat is a texture, not
+ * ground cover. Fewer, larger, legible ferns is the same coverage read better
+ * and about a fifth off the triangle bill.
+ *
+ * Logs went UP because the old ones were half the length they were meant to
+ * be — the unit-frame bug fixed in understoryMeshSource — so the density that
+ * looked correct was tuned against a 2 m branch. Against the 4.2 m deadfall
+ * they were always supposed to be, 0.22 leaves a wood with almost no
+ * evidence of its own history in it.
+ */
+export const FERN_MULT = 3.6;
+export const SAPLING_MULT = 1.6;
+export const LOG_MULT = 0.3;
 
 /** Canopy interior: ambient light multiplier while the player's cell has
  * canopyShade — the woods close over you. */

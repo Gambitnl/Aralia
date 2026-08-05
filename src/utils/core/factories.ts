@@ -52,7 +52,7 @@ import {
 import { CommandContext } from '@/commands/base/SpellCommand';
 import { v4 as uuidv4 } from 'uuid';
 import { buildHitPointDicePools } from '@/utils/character';
-import { createEmptyHistory } from '@/utils/historyUtils';
+import { createEmptyHistory } from '../world/historyUtils';
 import { INITIAL_GAME_ENTRY_STATE } from '@/systems/gameEntry/types';
 
 /**

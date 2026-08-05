@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from 'vitest';
 import * as geminiService from '../geminiService';
 import { ai } from '../aiClient';
 import { GameState, PlayerCharacter, Location } from '../../types';
-import * as contextUtils from '../../utils/contextUtils';
+import * as contextUtils from '../../utils/context';
 
 // Mock the AI client
 vi.mock('../aiClient', () => ({
@@ -17,7 +17,7 @@ vi.mock('../aiClient', () => ({
 }));
 
 // Mock logger
-vi.mock('../../utils/logger', () => ({
+vi.mock('../../utils/core/logger', () => ({
   logger: {
     warn: vi.fn(),
     info: vi.fn(),

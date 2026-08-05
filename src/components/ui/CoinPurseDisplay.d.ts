@@ -17,7 +17,7 @@
  * @component-owner Gameplay Team / Core UI
  */
 import React from 'react';
-import { CoinBreakdown } from '../../utils/coinPurseUtils';
+import { CoinBreakdown } from '../../utils/character';
 interface CoinPurseDisplayProps {
     /** Total value in gold pieces (stored as decimal) */
     goldValue: number;

@@ -1,7 +1,7 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { InfernalMechanics } from '../InfernalMechanics';
-import { createMockGameState } from '../../../utils/factories';
+import { createMockGameState } from '../../../utils/core';
 import { ContractGenerationParams } from '../../../types/infernal';
 
 describe('InfernalMechanics', () => {

@@ -1,6 +1,22 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 04/08/2026, 02:02:49
+ * Dependents: hooks/actions/handleResourceActions.ts
+ * Imports: 5 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import { GameState, Location } from '../../types';
-import { getCurrentPlane } from '../../utils/planarUtils';
-import { rollSavingThrow } from '../../utils/savingThrowUtils';
+import { getCurrentPlane } from '../../utils/planar';
+import { rollSavingThrow } from '../../utils/character';
 import { createPlayerCombatCharacter } from '../../utils/combat';
 import { LOCATIONS } from '../../constants';
 

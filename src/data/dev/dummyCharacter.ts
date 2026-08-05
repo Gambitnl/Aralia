@@ -3,8 +3,8 @@
  * Defines the dummy character data for development and testing purposes.
  */
 import { PlayerCharacter, AbilityScores, Skill, LimitedUses, SpellSlots, SpellbookData, Item } from '../../types';
-import { getAbilityModifierValue, calculateArmorClass, calculateFixedRacialBonuses } from '../../utils/statUtils';
-import { buildHitPointDicePools } from '../../utils/characterUtils';
+import { getAbilityModifierValue, calculateArmorClass, calculateFixedRacialBonuses } from '../../utils/character';
+import { buildHitPointDicePools } from '../../utils/character';
 import { FEATURES } from '../../config/features';
 
 import { ALL_RACES_DATA } from '../races/index.ts';

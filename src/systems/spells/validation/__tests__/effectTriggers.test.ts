@@ -11,7 +11,7 @@
  * complete, valid spell shell.
  */
 import { describe, expect, it } from 'vitest';
-import { createMockSpell } from '@/utils/factories';
+import { createMockSpell } from '@/utils/core';
 import { SpellValidator } from '../spellValidator';
 
 // ============================================================================

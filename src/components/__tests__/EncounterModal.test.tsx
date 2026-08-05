@@ -4,8 +4,10 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import EncounterModal from '../Combat/EncounterModal';
 
-// Mock i18n
-vi.mock('../../utils/i18n', () => ({
+// Mock i18n. Targets the direct file (utils/core/i18n), not the barrel: a
+// partial-factory barrel mock would hide every other export the component
+// imports from utils/core (e.g. SafeStorage), silently undefined-ing them.
+vi.mock('../../utils/core/i18n', () => ({
   t: (key: string) => key,
 }));
 

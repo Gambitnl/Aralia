@@ -8,7 +8,7 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { handleLongRest, handleShortRest } from '../handleResourceActions';
-import { createMockGameState, createMockPlayerCharacter } from '../../../utils/factories';
+import { createMockGameState, createMockPlayerCharacter } from '../../../utils/core';
 import { getGameDay } from '../../../utils/core';
 import type { GameState } from '../../../types';
 import type { AppAction } from '../../../state/actionTypes';

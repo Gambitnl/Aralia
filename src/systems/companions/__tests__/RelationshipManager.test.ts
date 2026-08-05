@@ -8,7 +8,7 @@
 
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { RelationshipManager } from '../RelationshipManager';
-import { createMockCompanion } from '../../../utils/companionFactories';
+import { createMockCompanion } from '../../../utils/character';
 
 describe('RelationshipManager', () => {
   afterEach(() => {

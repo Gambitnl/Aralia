@@ -5,7 +5,7 @@ import Glossary from '../Glossary';
 import GlossaryContext from '../../../context/GlossaryContext';
 import { GlossaryEntry } from '../../../types';
 import type { GateResult } from '../spellGateChecker/useSpellGateChecks';
-import { fetchWithTimeout } from '../../../utils/networkUtils';
+import { fetchWithTimeout } from '../../../utils/context';
 
 // Prevent errors from scrollIntoView in JSDOM
 window.HTMLElement.prototype.scrollIntoView = vi.fn();
@@ -38,7 +38,7 @@ vi.mock('../../../hooks/useSpellGateChecks', () => ({
   useSpellGateChecks: () => mockGateHookReturn,
 }));
 
-vi.mock('../../../utils/networkUtils', () => ({
+vi.mock('../../../utils/context/networkUtils', () => ({
   fetchWithTimeout: vi.fn().mockImplementation(() => Promise.resolve({})),
 }));
 

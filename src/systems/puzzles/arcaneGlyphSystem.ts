@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 27/06/2026, 02:18:23
+ * Last Sync: 04/08/2026, 02:03:03
  * Dependents: components/puzzles/LockpickingModal.tsx
  * Imports: 5 files
  *
@@ -24,7 +24,7 @@
 
 import { PlayerCharacter } from '../../types/character';
 import { rollDice } from '../../utils/combat';
-import { getAbilityModifierValue } from '../../utils/statUtils';
+import { getAbilityModifierValue } from '../../utils/character';
 import { getPuzzleCharacterStats } from './characterAbilityBridge';
 import { Trap, TrapDetectionResult, TrapDisarmResult } from './types';
 

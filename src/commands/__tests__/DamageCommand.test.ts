@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { DamageCommand } from '../effects/DamageCommand';
 import { SummoningCommand } from '../effects/SummoningCommand';
-import { createMockCombatCharacter, createMockCombatState, createMockCommandContext, createMockGameState, createMockPlayerCharacter } from '../../utils/factories';
+import { createMockCombatCharacter, createMockCombatState, createMockCommandContext, createMockGameState, createMockPlayerCharacter } from '../../utils/core';
 import type { CommandContext } from '../base/SpellCommand';
 import type { DamageEffect } from '../../types/spells';
 import type { SummoningEffect } from '../../types/spells';

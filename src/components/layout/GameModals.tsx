@@ -45,7 +45,7 @@ import { GameState, Action, Location, NPC, Item, PlayerCharacter, MissingChoice,
 import { AppAction } from '../../state/actionTypes';
 import { STARTER_SHIP_COST } from '../../state/reducers/navalReducer';
 import { NPCS } from '../../data/world/npcs';
-import { canUseDevTools } from '../../utils/permissions';
+import { canUseDevTools } from '../../utils/core';
 import { LoadingSpinner } from '../ui/LoadingSpinner';
 import { useDialogueSystem } from '../../hooks/useDialogueSystem';
 import { useFocusTrap } from '../../hooks/useFocusTrap';

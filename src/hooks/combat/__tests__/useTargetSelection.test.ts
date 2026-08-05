@@ -1,7 +1,7 @@
 import { renderHook } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import { useTargetSelection } from '../useTargetSelection';
-import { createMockCombatCharacter } from '../../../utils/factories';
+import { createMockCombatCharacter } from '../../../utils/core';
 import { BattleMapData, BattleMapTile } from '../../../types/combat';
 
 describe('useTargetSelection', () => {

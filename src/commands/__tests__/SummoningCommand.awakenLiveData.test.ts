@@ -6,7 +6,7 @@ import {
 } from '../effects/UtilityCommand'
 import type { CombatCharacter } from '@/types/combat'
 import type { Spell, StatusConditionEffect, UtilityEffect } from '@/types/spells'
-import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '@/utils/factories'
+import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '@/utils/core'
 import awaken from '../../../public/data/spells/level-5/awaken.json'
 
 /**

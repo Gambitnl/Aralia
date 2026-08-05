@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 04/08/2026, 02:05:43
+ * Dependents: components/Worldforge/AtlasDemo.tsx, systems/worldforge/bridge/farShells.ts, systems/worldforge/bridge/legacySubmapBridge.ts, systems/worldforge/bridge/seamProbe.ts, systems/worldforge/leaf3d/atlasGroundRestore.ts
+ * Imports: 7 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file generateLocal.ts — L2 LOCAL layer generation (wilderness-first slice).
  *
@@ -30,7 +46,12 @@ import {
   clumpDens,
   clumpSeparationScale,
 } from '../forests/clumpField';
-import { UNDERGROWTH_MULT } from '../forests/forestTunables';
+import {
+  UNDERGROWTH_MULT,
+  FERN_MULT,
+  SAPLING_MULT,
+  LOG_MULT,
+} from '../forests/forestTunables';
 import {
   MOUNTAIN_MAX_ELEV_FT,
   TREELINE_N,
@@ -497,6 +518,24 @@ export function generateLocal(
     // ids contiguous.
     placeKind('bush', profile.bushDensity * UNDERGROWTH_MULT, 'undergrowth', 8, groundOk, undefined, true);
   }
+
+  /* The understory (2026-08-04).
+   *
+   * A forest floor is the busiest surface in a wood, and this one was grass
+   * with bushes on it. All three ride the clump field, so they crowd the same
+   * knots the trees do and the clearings stay walkable.
+   *
+   * Densities are deliberately unequal and none of them is a guess about
+   * looks. Ferns are the ground cover, so they are the most numerous thing in
+   * the world by a wide margin. Saplings are the missing rung between bush and
+   * tree — a wood of only mature trees has no succession, which reads as
+   * planted. Fallen logs are rare per acre but carry more believability each
+   * than anything else down here, and their separation is the largest of the
+   * three because two logs crossing is a beaver dam, not a forest.
+   */
+  placeKind('fern', profile.bushDensity * FERN_MULT, 'ferns', 5, groundOk, belowTreeline, true);
+  placeKind('sapling', profile.treeDensity * SAPLING_MULT, 'saplings', 9, groundOk, belowTreeline, true);
+  placeKind('log', profile.treeDensity * LOG_MULT, 'logs', 26, groundOk, belowTreeline, true);
 
   const terrain: LocalTerrain = {
     widthCells,

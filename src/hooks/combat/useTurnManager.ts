@@ -40,7 +40,7 @@ import { useCombatEngine } from './engine/useCombatEngine';
 import { useActionExecutor } from './useActionExecutor';
 import { ROUND_DURATION_SECONDS } from '../../utils/core/spellTimeUtils';
 import { evaluateCombatTurn } from '../../utils/combat/combatAI';
-import { getAbilityModifierValue } from '../../utils/characterUtils';
+import { getAbilityModifierValue } from '../../utils/character';
 import { breakTauntsForEvent } from '../../systems/combat/tauntConstraint';
 
 interface UseTurnManagerProps {

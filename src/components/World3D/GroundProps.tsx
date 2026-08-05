@@ -36,6 +36,16 @@ const WOOD_DARK = '#6e5238';
 const WOOD_PALE = '#a58a63';
 const STONE = '#8d8d86';
 const ROCK = '#7d7a72';
+/**
+ * Moss-bearing stone. `mossy-rock-cluster` used to draw in the plain ROCK tone,
+ * so the only thing separating it from a bare boulder was its name. This is a
+ * green-GRAY, not a green: measured against the vegetation scatter's bush tone
+ * (sRGB 76,125,58 — saturation 0.37) this sits at saturation 0.10, so moss
+ * reads as a stain on stone rather than as foliage sitting on the ground.
+ * Rejected: tinting the whole boulder bucket, which would have turned every
+ * bare rock in every biome green to fix one def.
+ */
+const ROCK_MOSSY = '#747c66';
 const LEAF = '#4f7a3a';
 const HAY = '#c9a94e';
 const SACK = '#b3a07d';
@@ -50,6 +60,55 @@ interface Placed {
   rot: number;
   scale: number;
   variant: number;
+}
+
+/**
+ * Per-def size multiplier for the reused rock and bush render forms.
+ *
+ * Every def routed through RENDER_VARIANT used to draw at its bucket's single
+ * `base`, so the catalog's own S/M/L `sizeClass` reached the screen nowhere: a
+ * measured forest window drew all 867 stone instances between 1.57 m and 2.33 m
+ * wide (median 2.02 m) whether they were a cairn, a scatter boulder or a crag,
+ * and all 7,057 bush-form instances between 1.57 m and 2.32 m wide whether they
+ * were a fern clump or a hedge run. One size for everything is what makes a
+ * window read as a diorama — a 2 m "fern" beside an 8 m tree has no scale.
+ *
+ * Multipliers are finer-grained than the catalog's three size classes on
+ * purpose (a menhir and a rubble pile are both M but are not the same object),
+ * and they are ordered to agree with it: every S def sits below 1, every L def
+ * above. A def absent here draws at its bucket's base.
+ */
+const FORM_SIZE_MUL: Record<string, number> = {
+  // Stone family (bucket base = the plain scatter boulder).
+  cairn: 0.75, 'stone-planter': 0.8, 'stone-bench': 0.9,
+  'mossy-rock-cluster': 1.05, 'rubble-pile': 1.1, 'standing-stone': 1.15,
+  'broken-wall': 1.4, 'boundary-wall': 1.5, 'dry-stone-wall': 1.5,
+  'gravel-bar': 1.6, 'toppled-column': 1.6, 'rock-outcrop': 2.4,
+  // Vegetation family (bucket base = the plain scatter bush).
+  'mushroom-ring': 0.5, 'fern-clump': 0.65, 'gorse-shrub': 0.85, topiary: 0.9,
+  'reed-bed': 1.1, 'bramble-patch': 1.2, deadfall: 1.2,
+  'ivy-mass': 1.4, 'hedge-run': 1.6,
+};
+
+/**
+ * Defs whose instances draw a long-tailed size spread instead of one nominal
+ * size. Loose stone is the case that needs it: a real scatter is mostly rubble
+ * you step over with the occasional one you walk around, and the placement
+ * engine's own `variation.scale` is a flat 0.85–1.15 for every prop in the
+ * game, which cannot produce that shape. Restricted to the two scatter stone
+ * defs — a menhir or a dry-stone wall is a built thing and has a size.
+ */
+const SIZE_TAIL_DEFS = new Set(['boulder', 'mossy-rock-cluster']);
+
+/**
+ * Cubed uniform in [0.6, 1.7]: median 0.74, ~10% above 1.15, ~1% above 1.6.
+ * Against the boulder base that puts the typical scatter rock at roughly knee
+ * height with rare ones at chest height, and nothing within reach of the 17 m
+ * trees measured in the same window.
+ */
+function sizeTail(x: number, z: number, variant: number): number {
+  const u = hash3(0x51ce, Math.round(x * 29), Math.round(z * 29), variant);
+  return 0.6 + 1.1 * u * u * u;
 }
 
 /**
@@ -111,14 +170,21 @@ function placeAll(
     // form; see RENDER_VARIANT). Referee data is unaffected — that lives in the
     // catalog and is imprinted separately at combat extraction.
     const form = renderFormFor(p.defId);
-    let list = byDef.get(form);
-    if (!list) byDef.set(form, (list = []));
+    // Mossy stone is bucketed apart from bare stone because the two differ only
+    // by instance tint, and an InstancedMesh carries one base color per mesh.
+    const key = p.defId === 'mossy-rock-cluster' ? 'boulder-mossy' : form;
+    let list = byDef.get(key);
+    if (!list) byDef.set(key, (list = []));
+    const x = p.xM - origin.x;
+    const z = p.zM - origin.z;
+    let scale = p.variation.scale * (FORM_SIZE_MUL[p.defId] ?? 1);
+    if (SIZE_TAIL_DEFS.has(p.defId)) scale *= sizeTail(x, z, p.variation.variant);
     list.push({
-      x: p.xM - origin.x,
+      x,
       y,
-      z: p.zM - origin.z,
+      z,
       rot: p.rotationRad,
-      scale: p.variation.scale,
+      scale,
       variant: p.variation.variant,
     });
   }
@@ -380,6 +446,8 @@ const GroundProps: React.FC<GroundPropsProps> = ({ ground, sceneOrigin }) => {
   const get = (id: string) => byDef.get(id) ?? [];
   const bouldersByVariant: Placed[][] = [[], [], [], []];
   for (const b of get('boulder')) bouldersByVariant[b.variant % 4].push(b);
+  const mossyByVariant: Placed[][] = [[], [], [], []];
+  for (const b of get('boulder-mossy')) mossyByVariant[b.variant % 4].push(b);
   const bushesByVariant: Placed[][] = [[], [], []];
   for (const b of get('bush')) bushesByVariant[b.variant % 3].push(b);
   const logsByVariant: Placed[][] = [[], [], []];
@@ -392,14 +460,26 @@ const GroundProps: React.FC<GroundPropsProps> = ({ ground, sceneOrigin }) => {
       <InstancedForm items={get('barrel')} geometry={geoms.barrel} color={WOOD_DARK} base={[1, 0.95, 1]} yLift={0.5} />
       <InstancedForm items={get('sack')} geometry={geoms.sack} color={SACK} base={[0.9, 0.55, 0.9]} yLift={0.45} />
       <InstancedForm items={get('haystack')} geometry={geoms.hay} color={HAY} base={[2.4, 1.9, 2.4]} yLift={0.42} />
+      {/* Bucket bases are the size of the PLAIN scatter member of each family;
+          every other def in the family reaches its own size through
+          FORM_SIZE_MUL. Before this the bases were 1.5/1.7 wide, which sized
+          the whole family off its largest member. */}
       {bushesByVariant.map((items, i) => (
-        <InstancedForm key={`bush-${i}`} items={items} geometry={geoms.bushes[i]} color={LEAF} base={[1.5, 1.1, 1.5]} yLift={0.45} colorJitter={0.35} />
+        <InstancedForm key={`bush-${i}`} items={items} geometry={geoms.bushes[i]} color={LEAF} base={[1.0, 0.85, 1.0]} yLift={0.45} colorJitter={0.35} />
       ))}
       {logsByVariant.map((items, i) => (
         <InstancedForm key={`log-${i}`} items={items} geometry={geoms.logs[i]} color={WOOD_DARK} base={[1, 1, 1]} yLift={0} colorJitter={0.25} />
       ))}
+      {/* Jitter 0.18 -> 0.26: the measured spread across a forest window's 867
+          stone instances was sRGB value 0.43-0.53, which at distance collapses
+          to one flat gray. Stone wants value variation more than hue variation,
+          and ROCK's saturation is low enough (linear-HSL 0.11) that the wider
+          swing cannot make a rock read as colored. */}
       {bouldersByVariant.map((items, i) => (
-        <InstancedForm key={`rock-${i}`} items={items} geometry={geoms.boulders[i]} color={ROCK} base={[1.7, 1.3, 1.7]} yLift={0.3} colorJitter={0.18} />
+        <InstancedForm key={`rock-${i}`} items={items} geometry={geoms.boulders[i]} color={ROCK} base={[1.0, 0.95, 1.0]} yLift={0.3} colorJitter={0.26} />
+      ))}
+      {mossyByVariant.map((items, i) => (
+        <InstancedForm key={`mossrock-${i}`} items={items} geometry={geoms.boulders[i]} color={ROCK_MOSSY} base={[1.0, 0.95, 1.0]} yLift={0.3} colorJitter={0.26} />
       ))}
       {/* Owned town-prop forms: one instanced mesh per (def, variant). The
           geometries are ground-origin unit-frame with baked vertex colors,

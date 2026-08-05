@@ -29,8 +29,8 @@ import { BACKGROUNDS } from '../../data/backgrounds';
 import { RACE_NAMES } from '../../data/names/raceNames';
 import { FEATS_DATA } from '../../data/feats/featsData';
 import { SKILLS_DATA } from '../../data/skills';
-import { evaluateFeatPrerequisites, getAbilityModifierValue } from '../../utils/characterUtils';
-import { filterSpellsForRequirement } from '../../utils/spellFilterUtils';
+import { evaluateFeatPrerequisites, getAbilityModifierValue } from '../../utils/character';
+import { filterSpellsForRequirement } from '../../utils/character';
 import type { RacialChoiceData } from './Race/RaceDetailPane';
 import {
   buildSkillsForSubmit,

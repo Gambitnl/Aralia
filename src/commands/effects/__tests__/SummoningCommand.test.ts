@@ -3,7 +3,7 @@ import simulacrum from '../../../../public/data/spells/level-7/simulacrum.json';
 import conjureAnimals from '../../../../public/data/spells/level-3/conjure-animals.json';
 import { SummoningCommand } from '../SummoningCommand';
 import { CommandContext } from '../../base/SpellCommand';
-import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '@/utils/factories';
+import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '@/utils/core';
 import type { SummoningEffect } from '@/types/spells';
 
 describe('SummoningCommand', () => {

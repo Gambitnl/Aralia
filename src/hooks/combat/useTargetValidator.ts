@@ -24,7 +24,7 @@ import { CombatCharacter, Ability, Position, BattleMapData, CombatState, Ability
 import type { SpellTargeting } from '../../types/spells';
 import { getDistance, getCharacterDistance, getOccupiedTiles } from '../../utils/combat';
 import { canAffordActionCost } from '../../utils/combat/actionEconomyUtils';
-import { hasLineOfSight } from '../../utils/lineOfSight';
+import { hasLineOfSight } from '../../utils/spatial';
 import { CreatureTaxonomy } from '../../systems/creatures/CreatureTaxonomy';
 import { TargetResolver } from '../../systems/spells/targeting/TargetResolver';
 

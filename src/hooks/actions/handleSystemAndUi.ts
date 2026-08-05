@@ -7,7 +7,7 @@ import { GameState, GamePhase } from '../../types';
 import { AppAction } from '../../state/actionTypes';
 import * as SaveLoadService from '../../services/saveLoadService';
 import { AddMessageFn } from './actionHandlerTypes';
-import { canUseDevTools } from '../../utils/permissions';
+import { canUseDevTools } from '../../utils/core';
 
 interface HandleSystemAndUiProps {
   gameState: GameState;

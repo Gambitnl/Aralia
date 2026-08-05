@@ -7,7 +7,7 @@
 import { UtilityCommandCombatSupport } from './combatSupport'
 import type { UtilityEffect } from '@/types/spells'
 import type { CombatState, CombatCharacter, LightSource, SelectedSpellTarget, Position, SpellCommunicationExchange, ActiveIllusionEffect, ActiveCommunicationControl } from '@/types/combat'
-import { generateId } from '../../../utils/idGenerator'
+import { generateId } from '../../../utils/core'
 
 
 

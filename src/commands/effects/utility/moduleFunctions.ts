@@ -2,7 +2,7 @@
 // Extracted mechanically; bodies byte-identical to the original file.
 
 import type { CombatState, Position, ActiveSpellForce, ActiveSpellStructure, ActiveAnimatedObject, ActiveAwakenedCreature } from '@/types/combat'
-import { generateId } from '../../../utils/idGenerator'
+import { generateId } from '../../../utils/core'
 
 function getGridDistanceFeet(from: Position, to: Position): number {
     return Math.hypot(to.x - from.x, to.y - from.y) * 5

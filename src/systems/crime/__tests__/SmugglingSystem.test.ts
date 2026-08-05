@@ -2,7 +2,7 @@
 import { describe, it, expect } from 'vitest';
 import { SmugglingSystem } from '../SmugglingSystem';
 import { SmugglingRoute, ContrabandCategory, InspectionResult } from '../../../types/crime';
-import { createMockPlayerCharacter } from '../../../utils/factories';
+import { createMockPlayerCharacter } from '../../../utils/core';
 
 describe('SmugglingSystem', () => {
     const mockRoute: SmugglingRoute = {

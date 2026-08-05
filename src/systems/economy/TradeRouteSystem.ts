@@ -1,6 +1,6 @@
 import { GameState } from '../../types';
-import { logger } from '../../utils/logger';
-import { generateId } from '../../utils/idGenerator';
+import { logger } from '../../utils/core';
+import { generateId } from '../../utils/core';
 import { TradeRoute, MarketEventType, MarketEvent } from '../../types/economy';
 import { REGIONAL_ECONOMIES } from '../../data/economy/regions';
 import { getEventPriceModifier } from '../../utils/economy/marketEvents';

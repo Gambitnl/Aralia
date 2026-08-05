@@ -26,7 +26,7 @@
  */
 import React, { useEffect, useMemo, useState } from 'react';
 import { PlayerCharacter, HitPointDiceSpendMap, HitPointDiceSpend, HitPointDicePool } from '../../types';
-import { buildHitPointDicePools, getAbilityModifierValue } from '../../utils/characterUtils';
+import { buildHitPointDicePools, getAbilityModifierValue } from '../../utils/character';
 import { ModalDialog } from './ModalDialog';
 
 interface RestModalProps {

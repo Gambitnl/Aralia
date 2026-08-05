@@ -26,7 +26,7 @@ import { townChronicleForLocation } from '../../systems/worldforge/townsim/chron
 import { synthesizeSpeech } from '../../services/ttsService';
 import { AddMessageFn, AddGeminiLogFn, PlayPcmAudioFn } from './actionHandlerTypes';
 import { NPCS } from '../../constants';
-import { resolveAndRegisterEntities } from '../../utils/entityIntegrationUtils';
+import { resolveAndRegisterEntities } from '../../utils/context';
 import { generateNPC, NPCGenerationConfig } from '../../services/npcGenerator';
 import { generateId } from '../../utils/core/idGenerator';
 import { getDayPartLabel } from '../../utils/core/timeUtils';

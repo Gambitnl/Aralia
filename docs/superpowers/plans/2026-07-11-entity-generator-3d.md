@@ -17,7 +17,7 @@
 - **Feet canon:** all authored proportions in feet; only the assembler converts (× 0.3048) to meters.
 - **Determinism:** all randomness via `rngFromPath(streamPath(base, '<concern>'))` from `src/systems/worldforge/seedPath.ts`; never `Math.random`.
 - **No fallbacks:** unknown race id / class id / part id throws. One real path, fail honestly.
-- **Writing:** GOV.UK plain English, US spelling, in all docs and UI copy.
+- **Writing:** ASD-STE100 Simplified Technical English, US spelling, in all docs and UI copy.
 - Test runner: `npx vitest run <path>`; typecheck: `npm run typecheck` (once, at the end — it builds the whole repo).
 
 ## File Structure

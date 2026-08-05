@@ -7,7 +7,7 @@ import {
     createMockCombatState,
     createMockGameState,
     createMockPlayerCharacter
-} from '@/utils/factories';
+} from '@/utils/core';
 import { createMockSpell } from '@/utils/core/factories';
 import type { CombatCharacter, LightSource } from '@/types/combat';
 import type { DamageEffect } from '@/types/spells';

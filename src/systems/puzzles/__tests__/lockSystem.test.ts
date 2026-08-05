@@ -13,15 +13,15 @@ import { PlayerCharacter } from '../../../types/character';
 import { CharacterStats } from '../../../types/core'; // Added to type the stats helper explicitly.
 import { Item, ItemType } from '../../../types/items';
 import * as combatUtils from '../../../utils/combat';
-import * as statUtils from '../../../utils/statUtils';
-import { createMockPlayerCharacter } from '../../../utils/factories';
+import * as statUtils from '../../../utils/character';
+import { createMockPlayerCharacter } from '../../../utils/core';
 
 // Mock dependencies
 vi.mock('../../../utils/combat', () => ({
   rollDice: vi.fn(),
 }));
 
-vi.mock('../../../utils/statUtils', () => ({
+vi.mock('../../../utils/character/statUtils', () => ({
   getAbilityModifierValue: vi.fn(),
 }));
 

@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 23/07/2026, 19:55:56
+ * Last Sync: 04/08/2026, 02:06:26
  * Dependents: hooks/combat/useCombatAI.ts, hooks/combat/useTurnManager.ts, utils/combat/index.ts
  * Imports: 5 files
  *
@@ -22,9 +22,9 @@
  */
 import { CombatCharacter, CombatAction, BattleMapData, Ability, Position, BattleMapTile } from '../../types/combat';
 import { computeAoETiles, getDistance, generateId, resolveAreaDefinition, getOccupiedTiles, getCharacterDistance } from './combatUtils';
-import { hasLineOfSight } from '../../utils/lineOfSight';
+import { hasLineOfSight } from '../spatial/lineOfSight';
 import { TargetValidationUtils } from '../../systems/spells/targeting/TargetValidationUtils';
-import { logger } from '../logger';
+import { logger } from '../core/logger';
 
 /**
  * Scoring weights used to prioritize AI actions.

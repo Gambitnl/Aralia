@@ -11,10 +11,10 @@ import { renderHook } from '@testing-library/react';
 import { useCombatEngine } from '../useCombatEngine';
 import type { BattleMapData, BattleMapTile, CombatCharacter, CombatLogEntry, Position } from '@/types/combat';
 import type { Class } from '@/types';
-import * as savingThrowUtils from '@/utils/savingThrowUtils';
+import * as savingThrowUtils from '@/utils/character';
 
-vi.mock('@/utils/savingThrowUtils', async importOriginal => {
-  const actual = await importOriginal<typeof import('@/utils/savingThrowUtils')>();
+vi.mock('@/utils/character/savingThrowUtils', async importOriginal => {
+  const actual = await importOriginal<typeof import('@/utils/character')>();
   return {
     ...actual,
     rollSavingThrow: vi.fn()

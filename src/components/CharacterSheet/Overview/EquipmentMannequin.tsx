@@ -59,9 +59,9 @@ import HandsIcon from '../../../assets/icons/HandsIcon';
 
 // Import the new dynamic icon component
 import DynamicMannequinSlotIcon from './DynamicMannequinSlotIcon';
-import { isWeaponProficient, isWeaponMartial } from '../../../utils/weaponUtils';
-import { getCharacterMaxArmorProficiency, getArmorCategoryHierarchy, getAbilityModifierValue } from '../../../utils/characterUtils';
-import { resolveItemVisual } from '../../../utils/visualUtils';
+import { isWeaponProficient, isWeaponMartial } from '../../../utils/character';
+import { getCharacterMaxArmorProficiency, getArmorCategoryHierarchy, getAbilityModifierValue } from '../../../utils/character';
+import { resolveItemVisual } from '../../../utils/visuals';
 
 interface EquipmentMannequinProps {
   character: PlayerCharacter;

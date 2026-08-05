@@ -3,7 +3,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { evaluateCombatTurn } from '../combatAI';
 import {
   createMockCombatCharacter
-} from '../../factories';
+} from '../../core/factories';
 import {
   BattleMapData,
   BattleMapTile,

@@ -10,7 +10,7 @@
 
 import { GameState } from '../../types';
 import { AppAction } from '../actionTypes';
-import { generateVillageTemple } from '../../utils/templeUtils';
+import { generateVillageTemple } from '../../utils/world';
 import { VillagePersonality } from '../../types/village';
 
 /**

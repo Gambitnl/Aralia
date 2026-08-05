@@ -18,7 +18,7 @@ import { FEATS_DATA } from '../../data/feats/featsData';
 import { BACKGROUNDS } from '../../data/backgrounds';
 import { SKILLS_DATA } from '../../data/skills';
 import { WEAPONS_DATA } from '../../constants';
-import { evaluateFeatPrerequisites } from '../../utils/characterUtils';
+import { evaluateFeatPrerequisites } from '../../utils/character';
 import {
   CharacterCreationState,
   CreationStep,

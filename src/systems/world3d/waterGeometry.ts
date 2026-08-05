@@ -34,13 +34,53 @@ const M = WORLD3D_CONFIG.METERS_PER_CELL;
 const LEGACY_RIVER_DROP_M = 0.5;
 const LAKE_DROP_M = LEGACY_RIVER_DROP_M + 0.05;
 
-const EMPTY: ChunkGeometryArrays = {
+/**
+ * Water depth at which the surface stops reading through to the bed, in meters.
+ *
+ * Measured on the streamed world at dcell 785 / seed 42 (11x11 chunk sweep,
+ * 14,453 water polygons): the carved bed sits a median 0.44 m under the water
+ * surface in a body's interior and a median -0.03 m — i.e. level with it — at
+ * the polygon's own edge. So the whole shoreline transition lives inside the
+ * first half meter of depth, which is where the opacity ramp has to spend its
+ * range. A ramp normalized to the 21.9 m maximum would leave every pool in the
+ * scene at the pale end of it.
+ */
+const OPAQUE_DEPTH_M = 0.55;
+
+/**
+ * Depth at which water reaches its deepest color. Deliberately much longer than
+ * the opacity ramp: opacity is about seeing the bed, which stops fast, while
+ * color keeps deepening down the channel long after the bed is hidden.
+ */
+const DEEP_COLOR_DEPTH_M = 2.5;
+
+/** Ease so the pale margin holds its width instead of snapping to full tone. */
+function smoothstep01(t: number): number {
+  const c = t <= 0 ? 0 : t >= 1 ? 1 : t;
+  return c * c * (3 - 2 * c);
+}
+
+/**
+ * Water geometry carries a per-vertex DEPTH encoding in its color attribute.
+ *
+ * Not a color: the three channels are (opacity ramp, color ramp, raw normalized
+ * depth), unpacked by `waterSurfaceMaterial`'s shader hooks. Depth is a CPU-side
+ * fact — it needs the carved bed heightfield, which the fragment shader has no
+ * access to — and the color attribute is the only per-vertex channel the chunk
+ * geometry pipeline already transports end to end.
+ */
+export interface WaterMesh extends ChunkGeometryArrays {
+  colors: Float32Array;
+}
+
+const EMPTY: WaterMesh = {
   positions: new Float32Array(0),
   indices: new Uint32Array(0),
   normals: new Float32Array(0),
+  colors: new Float32Array(0),
 };
 
-export function buildWaterMesh(data: ChunkData): ChunkGeometryArrays {
+export function buildWaterMesh(data: ChunkData): WaterMesh {
   const lakes = data.lakes?.filter((l) => l.points.length >= 3) ?? [];
   const ribbons = data.rivers.filter((r) => r.points.length >= 2);
   if (lakes.length === 0 && ribbons.length === 0) return EMPTY;
@@ -48,10 +88,11 @@ export function buildWaterMesh(data: ChunkData): ChunkGeometryArrays {
   const positions: number[] = [];
   const indices: number[] = [];
   const normals: number[] = [];
+  const colors: number[] = [];
 
   for (const lake of lakes) {
     const startVert = positions.length / 3;
-    emitLake(lake, data, positions, normals);
+    emitLake(lake, data, positions, normals, colors);
     const flat: number[] = [];
     for (const p of lake.points) {
       const local = gridPointToLocal(p.x, p.y, data.cx, data.cy);
@@ -62,7 +103,7 @@ export function buildWaterMesh(data: ChunkData): ChunkGeometryArrays {
 
   for (const ribbon of ribbons) {
     const startVert = positions.length / 3;
-    emitRibbon(ribbon, data, positions, normals);
+    emitRibbon(ribbon, data, positions, normals, colors);
     const ptCount = ribbon.points.length;
     for (let i = 0; i < ptCount - 1; i++) {
       const l0 = startVert + i * 2;
@@ -77,7 +118,24 @@ export function buildWaterMesh(data: ChunkData): ChunkGeometryArrays {
     positions: new Float32Array(positions),
     indices: new Uint32Array(indices),
     normals: new Float32Array(normals),
+    colors: new Float32Array(colors),
   };
+}
+
+/**
+ * Encode one vertex's water depth into the color attribute.
+ *
+ * Both ramps are evaluated here rather than in the shader because the constants
+ * that set them are measurements of this world's carve pass, and they belong
+ * next to the note recording those measurements.
+ */
+function pushDepthEncoding(colors: number[], depthM: number): void {
+  const d = Math.max(0, depthM);
+  colors.push(
+    smoothstep01(d / OPAQUE_DEPTH_M),
+    smoothstep01(d / DEEP_COLOR_DEPTH_M),
+    Math.min(1, d / DEEP_COLOR_DEPTH_M),
+  );
 }
 
 /**
@@ -162,6 +220,7 @@ function emitLake(
   data: ChunkData,
   positions: number[],
   normals: number[],
+  colors: number[],
 ): void {
   // Sea surfaces are already AT their true height (zero) and must not be pushed
   // under their own floor; the legacy buried offset applies to the old flat
@@ -169,8 +228,10 @@ function emitLake(
   const drop = lake.kind === 'sea' || lake.kind === 'river' ? 0 : LAKE_DROP_M;
   for (const p of lake.points) {
     const local = gridPointToLocal(p.x, p.y, data.cx, data.cy);
-    positions.push(local.x, waterSurfaceYAt(lake, p.x, p.y) - drop, local.z);
+    const y = waterSurfaceYAt(lake, p.x, p.y) - drop;
+    positions.push(local.x, y, local.z);
     normals.push(0, 1, 0);
+    pushDepthEncoding(colors, y - waterHeightAt(data, p.x, p.y));
   }
 }
 
@@ -179,6 +240,7 @@ function emitRibbon(
   data: ChunkData,
   positions: number[],
   normals: number[],
+  colors: number[],
 ): void {
   const pts = ribbon.points;
   for (let i = 0; i < pts.length; i++) {
@@ -205,6 +267,14 @@ function emitRibbon(
     normals.push(0, 1, 0);
     positions.push(local.x + perpX * halfW, y, local.z + perpZ * halfW);
     normals.push(0, 1, 0);
+
+    // Bed sampled UNDER each bank vertex, not under the centerline. The two are
+    // the whole point here: a ribbon is ~18 m wide against a 4 m heightfield
+    // sample spacing, so its edges land on genuinely shallower bed than its
+    // middle and that difference is what draws the shoreline.
+    const halfGrid = halfW / M;
+    pushDepthEncoding(colors, y - waterHeightAt(data, p.x - perpX * halfGrid, p.y - perpZ * halfGrid));
+    pushDepthEncoding(colors, y - waterHeightAt(data, p.x + perpX * halfGrid, p.y + perpZ * halfGrid));
   }
 }
 

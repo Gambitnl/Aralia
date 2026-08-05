@@ -7,7 +7,7 @@
 import { UtilityCommandSummons } from './summons'
 import type { UtilityEffect } from '@/types/spells'
 import type { CombatState, CombatCharacter, Ability, Position } from '@/types/combat'
-import { generateId } from '../../../utils/idGenerator'
+import { generateId } from '../../../utils/core'
 
 
 

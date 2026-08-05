@@ -2,7 +2,7 @@
 import { describe, it, expect } from 'vitest';
 import { OpportunityAttackSystem } from '../OpportunityAttackSystem';
 import { CombatCharacter } from '../../../../types/combat';
-import { createMockCombatCharacter } from '../../../../utils/factories';
+import { createMockCombatCharacter } from '../../../../utils/core';
 import summonBeast from '../../../../../public/data/spells/level-2/summon-beast.json';
 
 /**

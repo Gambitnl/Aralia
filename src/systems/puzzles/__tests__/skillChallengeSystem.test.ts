@@ -2,7 +2,7 @@
 import { describe, it, expect } from 'vitest';
 import { createSkillChallenge, attemptSkillChallenge } from '../skillChallengeSystem';
 import { PlayerCharacter } from '../../../types/character';
-import { createMockPlayerCharacter } from '../../../utils/factories';
+import { createMockPlayerCharacter } from '../../../utils/core';
 
 /**
  * Helper to create a test character with specific ability scores.

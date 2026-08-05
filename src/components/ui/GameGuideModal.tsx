@@ -14,8 +14,8 @@ import { generateCharacterFromConfig, CharacterGenerationConfig } from '../../se
 import { PlayerCharacter, NPCMemory, GoalStatus, SuspicionLevel } from '../../types';
 import { AppAction } from '../../state/actionTypes';
 import { RACES_DATA, AVAILABLE_CLASSES } from '../../constants';
-import { t } from '../../utils/i18n';
-import { cleanAIJSON, safeJSONParse } from '../../utils/securityUtils';
+import { t } from '../../utils/core';
+import { cleanAIJSON, safeJSONParse } from '../../utils/core';
 
 interface GameGuideModalProps {
     isOpen: boolean;

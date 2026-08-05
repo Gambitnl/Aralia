@@ -11,7 +11,7 @@
 import { describe, it, expect } from 'vitest';
 import { gameEntryReducer } from '../gameEntryReducer';
 import { conversationReducer } from '../conversationReducer';
-import { createMockGameState } from '../../../utils/factories';
+import { createMockGameState } from '../../../utils/core';
 import { INITIAL_GAME_ENTRY_STATE, INITIAL_SCENE_IMAGE_STATE, type OpeningSituation } from '../../../systems/gameEntry/types';
 import type { ConversationMessage, ConversationNpcParticipant } from '../../../types/conversation';
 

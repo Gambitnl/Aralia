@@ -10,7 +10,7 @@
 import { describe, expect, it } from 'vitest';
 import { journalReducer } from '../journalReducer';
 import { createInitialJournalState, type JournalEntry, type JournalEvent } from '../../../types/journal';
-import { createMockGameState } from '../../../utils/factories';
+import { createMockGameState } from '../../../utils/core';
 
 describe('journalReducer', () => {
   it('merges pending events into a new journal entry and clears the queue', () => {

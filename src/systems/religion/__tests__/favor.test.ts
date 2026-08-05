@@ -1,6 +1,6 @@
 
 import { describe, it, expect } from 'vitest';
-import { calculateFavorChange, evaluateAction } from '../../../utils/religionUtils';
+import { calculateFavorChange, evaluateAction } from '../../../utils/world';
 import { DivineFavor, DeityAction } from '../../../types';
 
 describe('Religion System - Favor', () => {

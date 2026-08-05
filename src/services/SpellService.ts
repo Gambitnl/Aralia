@@ -1,6 +1,6 @@
 import { Spell } from '../types';
-import { fetchWithTimeout } from '../utils/networkUtils';
-import { logger } from '../utils/logger';
+import { fetchWithTimeout } from '../utils/context';
+import { logger } from '../utils/core';
 import { ENV, assetUrl } from '../config/env';
 
 // Define a type for the manifest entry

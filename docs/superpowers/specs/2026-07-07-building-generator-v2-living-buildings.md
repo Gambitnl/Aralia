@@ -418,7 +418,7 @@ At generation, each building rolls `BuildingBackstory` from its own seed path:
 - Feet-canon 5 ft grid; all geometry pure data, zero `three` imports in generators.
 - Deterministic seed paths; never `Math.random()`.
 - No fallback / graceful degradation — unknown types throw; misfit households show honestly.
-- US spelling; GOV.UK plain writing in docs; coined terms → `tools/agora/GLOSSARY.md`.
+- US spelling; ASD-STE100 Simplified Technical English in docs; coined terms → `tools/agora/GLOSSARY.md`.
 - No time estimates. Work only in master; never branch; never commit (2am auto-snapshot).
 - **Visual-inspection rule:** every phase in the build plan ends with a render-and-eyeball
   step — 2D preview and in-3D — not just green tests.

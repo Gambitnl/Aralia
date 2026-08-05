@@ -4,7 +4,7 @@ import { CombatState, CombatCharacter } from '../../../types/combat'
 import { SpellEffect } from '../../../types/spells'
 import { StateTag } from '../../../types/elemental'
 import { CommandContext } from '../../base/SpellCommand'
-import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '../../../utils/factories'
+import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '../../../utils/core'
 import * as combatUtils from '../../../utils/combat/combatUtils'
 
 vi.mock('../../../utils/combat/combatUtils', async (importOriginal) => {

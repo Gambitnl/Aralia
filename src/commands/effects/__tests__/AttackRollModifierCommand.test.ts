@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { createMockCombatCharacter, createMockCombatState } from '../../../utils/factories';
+import { createMockCombatCharacter, createMockCombatState } from '../../../utils/core';
 import { AttackRollModifierCommand } from '../AttackRollModifierCommand';
 import { AttackRollModifierEffect } from '../../../types/spells';
 

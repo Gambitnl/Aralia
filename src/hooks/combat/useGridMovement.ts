@@ -38,12 +38,12 @@
 
 import { useState, useCallback, useMemo } from 'react';
 import { BattleMapData, BattleMapTile, CombatCharacter, CharacterPosition } from '../../types/combat';
-import { findPath } from '../../utils/pathfinding';
+import { findPath } from '../../utils/spatial/pathfinding';
 import { getCharacterSizeMultiplier } from '../../utils/combat';
 // calculateMovementCost: base cost of a single step (5 or 10 ft depending on diagonal parity)
 // getTileMovementMultiplier: normalizes tile terrain cost to a multiplier (1 = normal, 2 = difficult)
 // calculateStepMovementCost: combines the above two (kept imported for potential future use)
-import { calculateMovementCost, getTileMovementMultiplier, calculateStepMovementCost } from '../../utils/movementUtils';
+import { calculateMovementCost, getTileMovementMultiplier, calculateStepMovementCost } from '../../utils/combat';
 
 interface UseGridMovementProps {
   mapData: BattleMapData | null;

@@ -8,7 +8,7 @@ import React, { useState } from 'react';
 import { motion, MotionProps } from 'framer-motion';
 import { AbilityScoreName, AbilityScores, Class as CharClass } from '../../../types';
 import { RELEVANT_SPELLCASTING_ABILITIES } from '../../../constants';
-import { getAbilityModifierString } from '../../../utils/characterUtils';
+import { getAbilityModifierString } from '../../../utils/character';
 
 export interface RacialSpellAbilitySelectionProps {
   // The name of the race for display purposes (e.g., "Aarakocra")

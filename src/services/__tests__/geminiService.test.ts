@@ -31,7 +31,7 @@ vi.mock('../aiClient', () => ({
 }));
 
 // Mock logger to avoid noise
-vi.mock('../../utils/logger', () => ({
+vi.mock('../../utils/core/logger', () => ({
   logger: {
     debug: vi.fn(),
     info: vi.fn(),
@@ -92,8 +92,8 @@ const stubVillageContext: VillageActionContext = {
 
 // We need to mock withRetry to avoid its own timer logic interfering with the timeout test.
 // We want to test the timeout in `generateText` in isolation from the retry logic.
-vi.mock('../../utils/networkUtils', async () => {
-  const mod = await vi.importActual<typeof import('../../utils/networkUtils')>('../../utils/networkUtils');
+vi.mock('../../utils/context/networkUtils', async () => {
+  const mod = await vi.importActual<typeof import('../../utils/context')>('../../utils/context');
   return {
     // Keep original exports
     ...mod,

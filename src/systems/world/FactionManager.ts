@@ -7,7 +7,7 @@
  * Replaces scattered utility functions in factionUtils.ts for better encapsulation.
  */
 import { GameState, GameMessage, WorldRumor, PlayerFactionStanding } from '../../types';
-import { calculateRippleEffects, calculateNewStanding, formatReputationChangeMessage } from '../../utils/factionUtils';
+import { calculateRippleEffects, calculateNewStanding, formatReputationChangeMessage } from '../../utils/world';
 import { getGameDay } from '../../utils/core';
 
 export interface ApplyReputationResult {

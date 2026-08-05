@@ -33,10 +33,10 @@
 import React, { useEffect, useRef, useState, useCallback, useContext, useMemo } from 'react';
 import GlossaryContext from '../../context/GlossaryContext';
 import { GlossaryEntry } from '../../types';
-import { findGlossaryEntryAndPath } from '../../utils/glossaryUtils';
+import { findGlossaryEntryAndPath } from '../../utils/visuals';
 import { useSpellGateChecks } from './spellGateChecker/useSpellGateChecks';
 import { SpellData } from './SpellCardTemplate';
-import { fetchWithTimeout } from '../../utils/networkUtils';
+import { fetchWithTimeout } from '../../utils/context';
 import { assetUrl } from '../../config/env';
 import { WindowFrame } from '../ui/WindowFrame';
 import { WINDOW_KEYS } from '../../styles/uiIds';

@@ -75,6 +75,10 @@ export interface SkinnedBodyOptions {
 export interface SkinnedBody {
   /** Add this under the entity's bodyRoot (holds fill mesh, ink shell, bones). */
   readonly root: Group;
+  /** The fill SkinnedMesh — the object carrying `.skeleton`. An AnimationMixer
+   * that plays retargeted clips (`.bones[name].quaternion` tracks) MUST bind to
+   * this, not the wrapping group, or PropertyBinding can't resolve the bones. */
+  readonly skinnedMesh: SkinnedMesh;
   /** Hand this to driver.buildBody() each frame (the pose adapter). */
   readonly sink: SegmentSink;
   /** Resolve this frame's emissions into bone transforms — call after buildBody. */
@@ -221,6 +225,7 @@ export function createSkinnedBiped(frame: Frame, options: SkinnedBodyOptions): S
 
   return {
     root,
+    skinnedMesh: fill,
     sink: pose.sink,
     finishFrame: pose.finishFrame,
     triangles: () => (geometry.index!.count / 3) * 2,
@@ -361,6 +366,7 @@ export function createSkinnedPlan(frame: Frame, spec: import('../types').PlanSpe
 
   return {
     root,
+    skinnedMesh: fill,
     sink: pose.sink,
     finishFrame: pose.finishFrame,
     triangles: () => (geometry.index!.count / 3) * 2,

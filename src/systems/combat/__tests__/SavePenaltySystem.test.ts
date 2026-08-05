@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { SavePenaltySystem } from '../SavePenaltySystem';
-import { createMockCombatCharacter, createMockCombatState } from '../../../utils/factories';
+import { createMockCombatCharacter, createMockCombatState } from '../../../utils/core';
 import { CombatState, CombatCharacter } from '../../../types/combat';
 
 describe('SavePenaltySystem', () => {

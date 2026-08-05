@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { SpellCommandFactory } from '../SpellCommandFactory'
-import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '@/utils/factories'
+import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '@/utils/core'
 import alarm from '../../../../public/data/spells/level-1/alarm.json'
 import chromaticOrb from '../../../../public/data/spells/level-1/chromatic-orb.json'
 import alterSelf from '../../../../public/data/spells/level-2/alter-self.json'

@@ -8,7 +8,7 @@ import { checkPressurePlate, detectPressurePlate, jamPressurePlate } from '../pr
 import { PressurePlate, Trap } from '../types';
 import { PlayerCharacter } from '../../../types/character';
 import { CharacterStats } from '../../../types/core'; // Added to type the stats helper explicitly.
-import { createMockPlayerCharacter } from '../../../utils/factories';
+import { createMockPlayerCharacter } from '../../../utils/core';
 
 // Mock character factory
 // Was an inline stats literal per character; extracted to ensure required fields are always present.

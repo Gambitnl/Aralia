@@ -34,7 +34,7 @@ import {
 import { CharacterVisualConfig } from '../../../services/CharacterAssetService';
 import { FEATS_DATA } from '../../../data/feats/featsData';
 import { BACKGROUNDS } from '../../../data/backgrounds';
-import { calculateFixedRacialBonuses } from '../../../utils/characterUtils';
+import { calculateFixedRacialBonuses } from '../../../utils/character';
 import { getRacialSpellCastingAbilityChoiceForRace } from '../../../data/races';
 
 // --- Enums and Types ---

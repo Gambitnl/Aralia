@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 04/08/2026, 02:06:12
+ * Dependents: components/World3D/WebGPUProbeScene.tsx, components/World3D/vegetation/VegetationTreeField.tsx, systems/worldforge/vegetation/ezTreeMeshSource.ts, systems/worldforge/vegetation/treeBatching.ts, systems/worldforge/vegetation/treeInstancePartition.ts
+ * Imports: None
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file treeMeshGenerator.ts
  * @description Owned seeded procedural tree meshes for the streamed 3D world

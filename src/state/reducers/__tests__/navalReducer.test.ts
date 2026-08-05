@@ -2,7 +2,7 @@
 import { describe, it, expect } from 'vitest';
 import { navalReducer } from '../navalReducer';
 import { AppAction } from '../../actionTypes';
-import { createMockGameState } from '../../../utils/factories';
+import { createMockGameState } from '../../../utils/core';
 
 describe('navalReducer', () => {
   const normalizeShip = (ship: NonNullable<ReturnType<typeof navalReducer>['naval']['playerShips']>[number]) => {

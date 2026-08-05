@@ -26,11 +26,11 @@ import lightSpell from '../../../public/data/spells/level-0/light.json';
 
 const mockFetchWithTimeout = vi.fn();
 
-vi.mock('../../utils/networkUtils', () => ({
+vi.mock('../../utils/context/networkUtils', () => ({
   fetchWithTimeout: (url: string, options?: unknown) => mockFetchWithTimeout(url, options),
 }));
 
-vi.mock('../../utils/logger', () => ({
+vi.mock('../../utils/core/logger', () => ({
   logger: {
     debug: vi.fn(),
     error: vi.fn(),

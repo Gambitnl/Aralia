@@ -3,7 +3,7 @@ import { SummoningCommand } from '../effects/SummoningCommand';
 import { AbilityCommandFactory } from '../factory/AbilityCommandFactory';
 import { UtilityCommand } from '../effects/UtilityCommand';
 import * as CommandedSummonRuntime from '../effects/CommandedSummonCommand';
-import { createMockCombatCharacter } from '../../utils/factories';
+import { createMockCombatCharacter } from '../../utils/core';
 import type { CommandContext } from '../base/SpellCommand';
 import type { CombatCharacter, CombatLogEntry, CombatState } from '../../types/combat';
 import type { SummoningEffect, UtilityEffect } from '../../types/spells';

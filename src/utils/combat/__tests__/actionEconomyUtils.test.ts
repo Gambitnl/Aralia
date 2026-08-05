@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { canAffordActionCost, consumeActionCost, createDefaultActionEconomy, resetEconomy } from '../actionEconomyUtils';
-import { createMockCombatCharacter } from '../../factories';
+import { createMockCombatCharacter } from '../../core/factories';
 import { resolveRacialSpellLimitedUseId } from '../../character/characterUtils';
 
 type LimitedUseEntry = {

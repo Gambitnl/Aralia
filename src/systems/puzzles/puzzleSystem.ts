@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 04/08/2026, 02:03:45
+ * Dependents: systems/puzzles/puzzleRuntime.ts
+ * Imports: 4 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * Copyright (c) 2024 Aralia RPG
  * Licensed under the MIT License
@@ -9,7 +25,7 @@
 import { Puzzle, PuzzleResult } from './types';
 import { CharacterStats } from '../../types/combat';
 import { rollDice } from '../../utils/combat';
-import { getAbilityModifierValue } from '../../utils/statUtils';
+import { getAbilityModifierValue } from '../../utils/character';
 
 /**
  * Attempts to solve a step of the puzzle or the whole puzzle.

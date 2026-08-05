@@ -43,6 +43,7 @@ import { InteriorHourProvider, useInteriorHour, emissiveForPart } from './Interi
 import FreeRoamCameraController, { type CameraFrameRequest } from './FreeRoamCameraController';
 import { syncVegetationInstanceMatrices } from './vegetationInstanceMatrices';
 import { VegetationTreeField } from './vegetation/VegetationTreeField';
+import { UnderstoryField } from './vegetation/UnderstoryField';
 import {
   advanceWaterRipple,
   getWaterSurfaceMaterial,
@@ -73,6 +74,10 @@ import {
 import { EffectComposer, N8AO, ToneMapping } from '@react-three/postprocessing';
 import { ToneMappingMode } from 'postprocessing';
 import { getGroundDetailTexture, getGroundNormalTexture } from './terrain/groundDetailTexture';
+import {
+  applyTerrainSurfaceNoise,
+  TERRAIN_SURFACE_NOISE_CACHE_KEY,
+} from './terrain/terrainSurfaceNoise';
 import type { PlayerWorldPosition } from '@/types';
 import { useForgeTexture, getSemanticAssetKey } from '@/systems/worldforge/bridge/forgeMaterials';
 import type { ForgeAssetService } from '@/systems/worldforge/assets/forgeAssetService';
@@ -180,6 +185,13 @@ const GROUND_TEXTURE_METERS_PER_TILE = 3;
  */
 const GROUND_NORMAL_SCALE = new THREE.Vector2(0.6, 0.6);
 
+/**
+ * Module-level so the identity is stable across renders: three keys compiled
+ * programs on this string, and a fresh closure every render would keep
+ * invalidating the cache entry.
+ */
+const terrainProgramCacheKey = (): string => TERRAIN_SURFACE_NOISE_CACHE_KEY;
+
 // --- per-chunk rendering ---
 
 /** Chunk-local-space origin (meters) for a chunk, relative to the scene origin. */
@@ -229,7 +241,16 @@ const FrontierSkirt: React.FC<{
   if (!visible) return null;
   return (
     <mesh geometry={geometry} position={scenePos} receiveShadow={SHADOWS}>
-      <meshStandardMaterial vertexColors flatShading map={tex || null} />
+      {/* The skirt carries the same surface noise as the terrain it hangs off:
+          without it the wall reads as a different material along the top edge,
+          which is the one place a frontier skirt has to be invisible. */}
+      <meshStandardMaterial
+        vertexColors
+        flatShading
+        map={tex || null}
+        onBeforeCompile={applyTerrainSurfaceNoise}
+        customProgramCacheKey={terrainProgramCacheKey}
+      />
     </mesh>
   );
 };
@@ -308,6 +329,11 @@ const TerrainPiece: React.FC<{
           texture still wins when the asset service provides one. The normal map
           applies either way: it is what makes the surface catch the sun at
           grazing angles, which a colour map alone cannot do. */}
+      {/* Surface noise in the 2.4-41 m band (terrainSurfaceNoise). The detail
+          map above only carries sub-metre grain, so nothing existed between one
+          metre and the 8 m per-vertex colour lattice — which is why natural
+          material boundaries rendered as straight diagonal lines and why the
+          ground measured as a numerically flat plane at walking distance. */}
       <mesh geometry={geometry} position={scenePos} receiveShadow={SHADOWS}>
         <meshStandardMaterial
           vertexColors
@@ -315,6 +341,8 @@ const TerrainPiece: React.FC<{
           normalMap={groundNormal}
           normalScale={GROUND_NORMAL_SCALE}
           roughness={0.95}
+          onBeforeCompile={applyTerrainSurfaceNoise}
+          customProgramCacheKey={terrainProgramCacheKey}
         />
       </mesh>
       {terrain.skirts &&
@@ -1150,6 +1178,16 @@ const World3DScene: React.FC<World3DSceneProps> = ({
               castShadow: SHADOWS
                 && Math.max(Math.abs(c.cx - anchorChunk.cx), Math.abs(c.cy - anchorChunk.cy)) <= 1,
             }];
+          })}
+        />
+        {/* The forest floor — ferns, fallen logs and saplings (2026-08-04).
+            Batched across chunks like the trees above, and for the same reason:
+            it is the most numerous thing in the world. */}
+        <UnderstoryField
+          chunks={loaded.flatMap((c) => {
+            const u = c.bundle.understory;
+            if (!u || u.count === 0) return [];
+            return [{ understory: u, offset: chunkScenePos(c.cx, c.cy, sceneOrigin) }];
           })}
         />
         <GroundAgents

@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { SummoningCommand } from '../effects/SummoningCommand';
 import { AbilityCommandFactory } from '../factory/AbilityCommandFactory';
 import { useTurnManager } from '../../hooks/combat/useTurnManager';
-import { createMockCombatCharacter } from '../../utils/factories';
+import { createMockCombatCharacter } from '../../utils/core';
 import type { CommandContext } from '../base/SpellCommand';
 import type { Ability, CombatCharacter, CombatLogEntry, CombatState, SelectedSpellTarget } from '../../types/combat';
 import type { SummoningEffect, UtilityEffect } from '../../types/spells';

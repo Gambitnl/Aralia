@@ -1267,7 +1267,7 @@ export class SpellCommandFactory {
     let planarMod = 0;
 
     if (currentPlane && spell.school) {
-      const { getPlanarSpellModifier } = await import('@/utils/planarUtils')
+      const { getPlanarSpellModifier } = await import('@/utils/planar')
       planarMod = getPlanarSpellModifier(spell.school, currentPlane)
 
       if (planarMod > 0) {

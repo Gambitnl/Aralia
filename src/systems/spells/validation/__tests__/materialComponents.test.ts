@@ -1,7 +1,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { SpellValidator } from '../spellValidator';
-import { createMockSpell } from '@/utils/factories';
+import { createMockSpell } from '@/utils/core';
 
 describe('SpellValidator Material Components', () => {
   // Use factory to get a complete valid base spell

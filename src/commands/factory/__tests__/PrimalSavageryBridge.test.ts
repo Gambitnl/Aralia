@@ -1,7 +1,7 @@
 import { describe, expect, it, beforeEach, vi } from 'vitest'
 import { SpellCommandFactory } from '../SpellCommandFactory'
 import primalSavagery from '../../../../public/data/spells/level-0/primal-savagery.json'
-import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '@/utils/factories'
+import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '@/utils/core'
 import * as combatUtils from '@/utils/combat'
 import type { Spell } from '@/types/spells'
 

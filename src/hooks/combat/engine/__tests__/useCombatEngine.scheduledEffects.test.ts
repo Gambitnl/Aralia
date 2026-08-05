@@ -3,10 +3,10 @@ import { describe, expect, it, vi } from 'vitest';
 import { useCombatEngine } from '../useCombatEngine';
 import type { CombatCharacter } from '../../../../types/combat';
 import type { ScheduledSpellEffect } from '../../../../systems/spells/effects';
-import * as savingThrowUtils from '@/utils/savingThrowUtils';
+import * as savingThrowUtils from '@/utils/character';
 
-vi.mock('@/utils/savingThrowUtils', async importOriginal => {
-  const actual = await importOriginal<typeof import('@/utils/savingThrowUtils')>();
+vi.mock('@/utils/character/savingThrowUtils', async importOriginal => {
+  const actual = await importOriginal<typeof import('@/utils/character')>();
   return {
     ...actual,
     rollSavingThrow: vi.fn(() => ({ total: 8, success: false, modifiersApplied: [] }))

@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 28/07/2026, 12:44:28
+ * Last Sync: 04/08/2026, 02:01:12
  * Dependents: components/BattleMap/characters/characterActor/EntityModel.tsx, components/DesignPreview/steps/EntityDebugScene.tsx, components/World3D/OccupantFigure.tsx, components/World3D/PlayerAvatar.tsx, systems/entities3d/three/Entity3D.tsx
- * Imports: 7 files
+ * Imports: 8 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -189,7 +189,9 @@ export function assembleEntity(blueprint: EntityBlueprint, options: AssembleOpti
         : createSkinnedBiped(frame, {
             colorHex: palette.skinHex,
             outlineThickness,
-            opacity: blueprint.planSpec?.opacity,
+            // biped branch: this is the else of `blueprint.planSpec ?`, so
+            // planSpec is absent — humanoids carry no plan opacity.
+            opacity: undefined,
             weights: options.skinnedWeights,
           })
       : null;
@@ -197,9 +199,12 @@ export function assembleEntity(blueprint: EntityBlueprint, options: AssembleOpti
 
   // CC0 clip playback: a mixer poses the skinned bones instead of the driver.
   // The bones live under skinnedBody.root, so the mixer resolves them by name.
+  // The mixer must bind to the SkinnedMesh (which carries .skeleton) — the
+  // retargeted tracks are `.bones[name].quaternion`, which PropertyBinding can
+  // only resolve on an object with a skeleton, never the wrapping group.
   const clipPlayer: SkinnedClipPlayer | null =
     animSource === 'clip' && skinnedBody && options.clips
-      ? createSkinnedClipPlayer(skinnedBody.root, options.clips)
+      ? createSkinnedClipPlayer(skinnedBody.skinnedMesh, options.clips)
       : null;
   // slice 1: auto-select Walk vs Idle by speed. The full action table is slice 2.
   const idleClip = clipPlayer?.clipNames().includes('Idle_A') ? 'Idle_A' : 'Idle';

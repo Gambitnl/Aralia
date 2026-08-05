@@ -11,7 +11,7 @@ import * as OllamaTextService from '../../services/ollamaTextService';
 import * as GeminiService from '../../services/geminiService';
 import { AddMessageFn, AddGeminiLogFn, GetTileTooltipTextFn } from './actionHandlerTypes';
 import { DIRECTION_VECTORS } from '../../config/mapConfig';
-import { resolveAndRegisterEntities } from '../../utils/entityIntegrationUtils';
+import { resolveAndRegisterEntities } from '../../utils/context';
 import { isWildernessLocationId } from '../../utils/location/cellLocationId';
 
 interface HandleLookAroundProps {

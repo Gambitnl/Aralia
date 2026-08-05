@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * This file appears to be an ISOLATED UTILITY or ORPHAN.
+ *
+ * Last Sync: 04/08/2026, 02:04:14
+ * Dependents: None (Orphan)
+ * Imports: 4 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * Copyright (c) 2024 Aralia RPG
  * Licensed under the MIT License
@@ -8,7 +24,7 @@
 
 import { PlayerCharacter, AbilityScoreName } from '../../types/index';
 import { rollDice } from '../../utils/combat';
-import { getAbilityModifierValue } from '../../utils/statUtils';
+import { getAbilityModifierValue } from '../../utils/character';
 import { SkillChallenge, SkillChallengeResult, ChallengeSkill } from './types';
 
 // TODO #912(Lockpick): Integrate Skill Challenges into the Dialogue System for social boss fights.

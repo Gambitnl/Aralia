@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { characterReducer } from '../characterReducer';
 import { GameState, AbilityScoreName, Class, Item } from '../../../types';
 import { AppAction } from '../../actionTypes';
-import { createMockPlayerCharacter } from '../../../utils/factories';
+import { createMockPlayerCharacter } from '../../../utils/core';
 import { DEEP_GNOME_DATA } from '../../../data/races/deep_gnome';
 import {
   applyRacialSpellGrantsByLevel,

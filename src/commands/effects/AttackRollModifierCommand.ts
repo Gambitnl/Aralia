@@ -34,9 +34,9 @@ import { DamageCommand } from './DamageCommand';
 import { StatusConditionCommand } from './StatusConditionCommand';
 import { CombatState, ActiveEffect, LightSource } from '../../types/combat';
 import { DamageEffect, StatusConditionEffect, isAttackRollModifierEffect } from '../../types/spells';
-import { calculateSpellDC, rollSavingThrow } from '../../utils/savingThrowUtils';
+import { calculateSpellDC, rollSavingThrow } from '../../utils/character';
 import { SavePenaltySystem } from '../../systems/combat/SavePenaltySystem';
-import { generateId } from '../../utils/idGenerator';
+import { generateId } from '../../utils/core';
 
 // ============================================================================
 // Attack Roll Riders

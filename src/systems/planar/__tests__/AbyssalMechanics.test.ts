@@ -2,15 +2,15 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { AbyssalMechanics, ABYSSAL_CORRUPTION_EFFECTS } from '../AbyssalMechanics';
 import { PlayerCharacter, GameState } from '../../../types/index';
-import { rollSavingThrow } from '../../../utils/savingThrowUtils';
-import { logger } from '../../../utils/logger';
+import { rollSavingThrow } from '../../../utils/character';
+import { logger } from '../../../utils/core';
 
 // Mock dependencies
-vi.mock('../../../utils/savingThrowUtils', () => ({
+vi.mock('../../../utils/character/savingThrowUtils', () => ({
   rollSavingThrow: vi.fn(),
 }));
 
-vi.mock('../../../utils/logger', () => ({
+vi.mock('../../../utils/core/logger', () => ({
   logger: {
     info: vi.fn(),
     warn: vi.fn(),

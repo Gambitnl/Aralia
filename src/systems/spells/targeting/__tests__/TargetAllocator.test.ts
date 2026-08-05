@@ -2,7 +2,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { TargetAllocator } from '../TargetAllocator';
 import { TargetAllocation } from '../../../../types/spells';
-import { createMockCombatCharacter } from '../../../../utils/factories';
+import { createMockCombatCharacter } from '../../../../utils/core';
 import * as combatUtils from '../../../../utils/combat';
 
 /**

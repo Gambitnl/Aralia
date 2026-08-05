@@ -20,7 +20,7 @@ import { TerrainEffect, EffectDuration, DamageType } from '@/types/spells'
 import { CombatState, Position, BattleMapTile, StatusEffect, EnvironmentalEffect, ActiveMoldEarthSurfaceMark } from '@/types/combat'
 import { calculateAffectedTiles, AoEParams } from '../../utils/combat/aoeCalculations'
 import { mapShapeToStandard } from '../../utils/spatial/targetingUtils'
-import { generateId } from '../../utils/idGenerator'
+import { generateId } from '../../utils/core'
 
 /**
  * Applies terrain spell effects to battle-map tiles and records the result in the combat log.

@@ -7,7 +7,7 @@
 import { UtilityCommandTransformation } from './transformation'
 import type { UtilityEffect } from '@/types/spells'
 import type { CombatState, ActiveSpellEmanation, ActiveExtradimensionalSpace, ActiveSpellHelper, ActiveSpellForce, ActiveSpellStructure, ActiveSpellWard } from '@/types/combat'
-import { generateId } from '../../../utils/idGenerator'
+import { generateId } from '../../../utils/core'
 
 
 

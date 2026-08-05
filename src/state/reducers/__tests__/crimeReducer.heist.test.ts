@@ -2,7 +2,7 @@
 import { describe, it, expect } from 'vitest';
 import { crimeReducer } from '../crimeReducer';
 import { GameState } from '../../../types';
-import { createMockGameState } from '../../../utils/factories';
+import { createMockGameState } from '../../../utils/core';
 import { HeistPhase } from '../../../types/crime';
 import { AppAction } from '../../actionTypes';
 

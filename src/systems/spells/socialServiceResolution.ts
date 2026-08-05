@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 23/07/2026, 20:12:27
+ * Last Sync: 04/08/2026, 02:04:30
  * Dependents: commands/effects/GrantedActionCommand.ts
  * Imports: 7 files
  *

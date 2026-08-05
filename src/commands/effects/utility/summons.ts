@@ -7,7 +7,7 @@
 import { UtilityCommandControlledEntities } from './controlledEntities'
 import type { UtilityEffect } from '@/types/spells'
 import type { CombatState, CombatCharacter, StatusEffect, Ability, SelectedSpellTarget, Position, ActiveAnimatedObject } from '@/types/combat'
-import { generateId } from '../../../utils/idGenerator'
+import { generateId } from '../../../utils/core'
 
 
 

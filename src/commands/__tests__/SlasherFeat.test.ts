@@ -4,7 +4,7 @@ import type { CommandContext } from '../base/SpellCommand';
 import type { CombatCharacter, CombatState, Position } from '@/types/combat';
 import type { DamageEffect } from '@/types/spells';
 import type { Class, GameState } from '@/types';
-import { createMockGameState, createMockPlayerCharacter } from '../../utils/factories';
+import { createMockGameState, createMockPlayerCharacter } from '../../utils/core';
 
 const baseStats = {
   strength: 14,

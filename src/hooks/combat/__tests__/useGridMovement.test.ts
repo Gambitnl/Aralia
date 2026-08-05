@@ -6,7 +6,7 @@ import type { Class } from '../../../types';
 import { vi, describe, it, expect } from 'vitest';
 
 // Mock pathfinding
-vi.mock('../../../utils/pathfinding', () => ({
+vi.mock('../../../utils/spatial/pathfinding', () => ({
   findPath: vi.fn((start, end, _mapData) => {
     // Simple mock path: just start and end
     return [start, end];

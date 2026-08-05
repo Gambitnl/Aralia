@@ -5,7 +5,7 @@ import { BattleMapData, CombatState, CombatCharacter } from '@/types/combat'
 import type { MapData } from '@/types/world'
 import { CommandContext } from '../base/SpellCommand'
 import { CLASSES_DATA } from '@/constants'
-import { createMockGameState, createMockPlayerCharacter } from '../../utils/factories'
+import { createMockGameState, createMockPlayerCharacter } from '../../utils/core'
 
 /**
  * This file proves summoned creatures are created, placed, bounded, and linked

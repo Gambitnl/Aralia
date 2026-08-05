@@ -28,7 +28,7 @@ import { movementEvents, MovementEvent, MovementEventEmitter } from '../../syste
 import { attackEvents, AttackEvent, AttackEventEmitter } from '../../systems/combat/AttackEventEmitter';
 import { combatEvents, CastEvent, CombatEventEmitter } from '../../systems/events/CombatEvents';
 import { sustainActionSystem, SustainedSpell } from '../../systems/combat/SustainActionSystem';
-import { logger } from '../../utils/logger';
+import { logger } from '../../utils/core';
 import { DamageCommand } from './DamageCommand';
 import { HealingCommand } from './HealingCommand';
 import { StatusConditionCommand } from './StatusConditionCommand';

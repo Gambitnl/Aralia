@@ -1,5 +1,5 @@
 
-import { RNG, NoiseGenerator } from '../utils/realmsmithRng';
+import { RNG, NoiseGenerator } from '../utils/random';
 import { Tile, TileType, TownMap, Building, TownOptions } from '../types/realmsmith';
 import { BIOME_DATA, BiomeConfig } from '../data/realmsmithBiomes';
 import { WIDTH, HEIGHT } from '../constants/realmsmith';

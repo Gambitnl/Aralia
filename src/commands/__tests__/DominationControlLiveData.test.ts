@@ -3,7 +3,7 @@ import { StatusConditionCommand } from '../effects/StatusConditionCommand';
 import type { CommandContext } from '../base/SpellCommand';
 import type { CombatCharacter, CombatState } from '../../types/combat';
 import type { StatusConditionEffect } from '../../types/spells';
-import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '../../utils/factories';
+import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '../../utils/core';
 import dominateBeast from '../../../public/data/spells/level-4/dominate-beast.json';
 import dominatePerson from '../../../public/data/spells/level-5/dominate-person.json';
 import dominateMonster from '../../../public/data/spells/level-8/dominate-monster.json';
@@ -16,7 +16,7 @@ import dominateMonster from '../../../public/data/spells/level-8/dominate-monste
  * combat state.
  */
 
-vi.mock('../../utils/savingThrowUtils', () => ({
+vi.mock('../../utils/character/savingThrowUtils', () => ({
   calculateSpellDC: vi.fn(() => 15),
   rollSavingThrow: vi.fn(() => ({
     roll: 2,

@@ -6,7 +6,7 @@ import { describe, expect, it } from 'vitest';
 import { questReducer } from '../questReducer';
 import { worldReducer } from '../worldReducer';
 import { Quest, QuestStatus } from '../../../types';
-import { createMockGameState } from '../../../utils/factories';
+import { createMockGameState } from '../../../utils/core';
 
 describe('adventure log append hooks', () => {
   it('records an "opening" entry when the Main opening quest completes', () => {

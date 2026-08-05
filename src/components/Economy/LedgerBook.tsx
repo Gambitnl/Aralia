@@ -9,7 +9,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useGameState } from '../../state/GameContext';
 import { WindowFrame } from '../ui/WindowFrame';
 import { WINDOW_KEYS } from '../../styles/uiIds';
-import { formatGpAsCoins } from '../../utils/coinPurseUtils';
+import { formatGpAsCoins } from '../../utils/character';
 import CoinPurseDisplay from '../ui/CoinPurseDisplay';
 
 type LedgerTab = 'treasury' | 'investments' | 'businesses' | 'debts';

@@ -15,8 +15,8 @@
 // @dependencies-end
 
 import { useCallback, useEffect, useState } from "react";
-import { fetchWithTimeout } from "../../../utils/networkUtils";
-import { logger } from "../../../utils/logger";
+import { fetchWithTimeout } from "../../../utils/context";
+import { logger } from "../../../utils/core";
 import { assetUrl } from "../../../config/env";
 import { SpellValidator } from "../../../systems/spells/validation/spellValidator";
 import { fetchSpellGateBootstrap } from "./spellGateBootstrap";

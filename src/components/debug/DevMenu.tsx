@@ -35,7 +35,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { GEMINI_TEXT_MODEL_FALLBACK_CHAIN } from '../../config/geminiConfig';
 import { useGameState } from '../../state/GameContext';
-import { generateVillageTemple } from '../../utils/templeUtils';
+import { generateVillageTemple } from '../../utils/world';
 import { GamePhase, VillageActionContext, VillagePersonality } from '../../types';
 import { Z_INDEX } from '../../styles/zIndex';
 import { UI_ID } from '../../styles/uiIds';

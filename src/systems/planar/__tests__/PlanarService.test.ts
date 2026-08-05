@@ -1,7 +1,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { PlanarService } from '../PlanarService';
-import { createMockGameState } from '../../../utils/factories';
+import { createMockGameState } from '../../../utils/core';
 import type { GameState } from '../../../types';
 
 /**

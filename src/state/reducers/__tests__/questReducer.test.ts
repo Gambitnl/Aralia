@@ -11,7 +11,7 @@ import { describe, expect, it } from 'vitest';
 import { questReducer } from '../questReducer';
 import { Quest, QuestStatus } from '../../../types';
 import { createInitialJournalState } from '../../../types/journal';
-import { createMockGameState } from '../../../utils/factories';
+import { createMockGameState } from '../../../utils/core';
 
 describe('questReducer', () => {
   const quest: Quest = {

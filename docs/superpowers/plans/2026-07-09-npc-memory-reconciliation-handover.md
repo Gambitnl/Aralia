@@ -16,7 +16,7 @@
 > 3. **The fact-shape conflict.** The one genuine data-modeling difference is the "fact" type: the live `KnownFact` (`world.ts:138`: text, public flag, strength, lifespan, source direct/gossip) vs the richer `Fact` (`memory.ts:68`: id, learned-date, confidence, importance, wider sources). Lay both out side by side and propose what a single canonical fact should carry IF merging — or explain why they shouldn't be one shape.
 > 4. **Note the half-merge already present:** `world.ts`'s live type has been quietly extended with optional fields from the richer one (interactions, attitude, discussedTopics, lastInteractionDate), and seeded objects carry both. Assess whether that's a deliberate migration in progress or accidental drift.
 >
-> **Deliver:** a recommendation — MERGE (with the canonical shape + a migration sketch + consumer count), or KEEP SEPARATE (with the distinct purpose each serves and how they should relate, e.g. the richer one layered on top for specific features). Plain-English (GOV.UK style, US spelling). Evidence with file:line. Then Remy decides and a follow-up packet executes.
+> **Deliver:** a recommendation — MERGE (with the canonical shape + a migration sketch + consumer count), or KEEP SEPARATE (with the distinct purpose each serves and how they should relate, e.g. the richer one layered on top for specific features). ASD-STE100 Simplified Technical English, US spelling. Evidence with file:line. Then Remy decides and a follow-up packet executes.
 >
 > **Relevant future consumer:** the AI-arbitrated ritual feature ([[ai-arbitrated-ritual-casting]]) needs to know whether a companion "knows the player is ritual-casting" — that is a memory fact, so the canonical memory shape affects it.
 

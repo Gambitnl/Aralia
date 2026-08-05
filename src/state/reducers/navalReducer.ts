@@ -24,7 +24,7 @@ import type { WeatherState } from '../../types';
 import type { VoyageState } from '../../types/naval';
 import { VoyageManager } from '../../systems/naval/VoyageManager';
 import { CrewManager } from '../../systems/naval/CrewManager';
-import { createShip } from '../../utils/navalUtils';
+import { createShip } from '../../utils/naval';
 import { SeededRandom } from '@/utils/random';
 import { rollSeaEncounter } from '../../systems/naval/seaEncounter';
 import { appendAdventureLogEntry } from '../../systems/adventureLog/adventureLog';

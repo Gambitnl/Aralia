@@ -36,8 +36,8 @@ import { AppAction } from '../state/actionTypes';
 import { LOCATIONS } from '../data/world/locations';
 import { NPCS } from '../data/world/npcs';
 import { AddMessageFn, PlayPcmAudioFn, GetCurrentLocationFn, GetCurrentNPCsFn, GetTileTooltipTextFn, AddGeminiLogFn, LogDiscoveryFn } from './actions/actionHandlerTypes';
-import { getDiegeticPlayerActionMessage } from '../utils/actionUtils';
-import { generateGeneralActionContext } from '../utils/contextUtils';
+import { getDiegeticPlayerActionMessage } from '../utils/combat';
+import { generateGeneralActionContext } from '../utils/context';
 
 // ============================================================================
 // Hook Inputs

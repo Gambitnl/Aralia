@@ -1,4 +1,4 @@
-import { RNG, NoiseGenerator } from '../utils/realmsmithRng';
+import { RNG, NoiseGenerator } from '../utils/random';
 import { Tile, TownOptions } from '../types/realmsmith';
 export declare class RoadGenerator {
     private rng;

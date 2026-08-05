@@ -1,6 +1,6 @@
 import { CombatState } from '@/types/combat'
 import { SpellCommand } from './SpellCommand'
-import { logger } from '@/utils/logger'
+import { logger } from '@/utils/core'
 
 export interface ExecutionResult {
   success: boolean

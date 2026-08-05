@@ -27,10 +27,10 @@ vi.mock('../../../services/geminiService');
 vi.mock('../handleWorldEvents', () => ({
   handleImmediateGossip: vi.fn().mockResolvedValue(undefined),
 }));
-vi.mock('../../../utils/socialUtils', () => ({
+vi.mock('../../../utils/world/socialUtils', () => ({
   assessPlausibility: vi.fn(() => 0),
 }));
-vi.mock('../../../utils/entityIntegrationUtils', () => ({
+vi.mock('../../../utils/context/entityIntegrationUtils', () => ({
   resolveAndRegisterEntities: vi.fn().mockResolvedValue(undefined),
 }));
 vi.mock('../../../constants', () => ({

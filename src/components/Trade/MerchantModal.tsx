@@ -25,7 +25,7 @@ import { Item, Action, EconomyState, MarketEvent } from '../../types';
 import Tooltip from '../Tooltip';
 import { useGameState } from '../../state/GameContext';
 import { calculatePrice } from '../../utils/economy/economyUtils';
-import { formatGpAsCoins } from '../../utils/coinPurseUtils';
+import { formatGpAsCoins } from '../../utils/character';
 import CoinPurseDisplay from '../ui/CoinPurseDisplay';
 import { WindowFrame } from '../ui/WindowFrame';
 import { RumorMill } from '../Town/Intrigue/RumorMill';

@@ -8,7 +8,7 @@ import { BaseEffectCommand } from '../../base/BaseEffectCommand'
 import type { UtilityEffect } from '@/types/spells'
 import type { Item } from '@/types/items'
 import type { CombatState, CombatCharacter, StatusEffect, Ability, SelectedSpellTarget, Position } from '@/types/combat'
-import { generateId } from '../../../utils/idGenerator'
+import { generateId } from '../../../utils/core'
 
 
 

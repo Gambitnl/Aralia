@@ -113,7 +113,7 @@ vi.mock('../../../services/ollama', () => ({
   },
 }));
 
-vi.mock('../../../utils/entityIntegrationUtils', () => ({
+vi.mock('../../../utils/context/entityIntegrationUtils', () => ({
   resolveAndRegisterEntities: vi.fn(async () => undefined),
 }));
 

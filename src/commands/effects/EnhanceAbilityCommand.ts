@@ -3,7 +3,7 @@ import { CommandContext } from '../base/SpellCommand'
 import { UtilityEffect } from '@/types/spells'
 import { CombatCharacter, CombatState, StatusEffect } from '@/types/combat'
 import type { AbilityScoreName } from '@/types/character'
-import { generateId } from '../../utils/idGenerator'
+import { generateId } from '../../utils/core'
 
 /**
  * This file applies the mechanical part of the Enhance Ability spell.

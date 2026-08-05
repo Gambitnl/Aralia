@@ -14,7 +14,7 @@
 
 - No git commits/branches/worktrees; tasks end at "tests green". Agora locks held on `src/systems/entities3d/**` (agent `fable-entitygen`).
 - `EntityHandle` public contract unchanged except `stats()` fields; `AssembleOptions.resolutionScale/fieldUpdateHz` accepted as deprecated no-ops (surfaces untouched this slice).
-- No fallbacks; GOV.UK plain English, US spelling.
+- No fallbacks; ASD-STE100 Simplified Technical English, US spelling.
 
 ## File Structure
 

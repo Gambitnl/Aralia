@@ -67,7 +67,7 @@ const mockCrafter = {
   proficiencyBonus: 2
 } as unknown as PlayerCharacter;
 
-vi.mock('../../../utils/statUtils', () => ({
+vi.mock('../../../utils/character/statUtils', () => ({
   // NOTE: craftingService aliases getAbilityModifierValue as getSkillModifierValue.
   // Provide both exports so tests survive alias changes without mutating production logic.
   getAbilityModifierValue: () => 5,

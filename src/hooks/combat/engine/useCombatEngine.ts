@@ -40,9 +40,9 @@ import {
 import { AreaEffectTracker } from '../../../systems/spells/effects/AreaEffectTracker';
 import { MovementCommand } from '../../../commands/effects/MovementCommand';
 import { generateId, rollDice, calculateDamage, rollD20, getDistance } from '../../../utils/combat';
-import { calculateSpellDC, rollSavingThrow } from '../../../utils/savingThrowUtils';
+import { calculateSpellDC, rollSavingThrow } from '../../../utils/character';
 import { SavePenaltySystem } from '../../../systems/combat/SavePenaltySystem';
-import { getAbilityModifierValue } from '../../../utils/statUtils';
+import { getAbilityModifierValue } from '../../../utils/character';
 import { hasLineOfSight } from '../../../utils/spatial/lineOfSight';
 import { findPath } from '../../../utils/spatial/pathfinding';
 import { applyDamageAndCheckDowned, applyHealingAndRestore } from '../../../utils/combat/deathSaveUtils';

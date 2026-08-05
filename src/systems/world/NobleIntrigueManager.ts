@@ -7,7 +7,7 @@
  */
 
 import { GameState, GameMessage, WorldRumor, Faction } from '../../types';
-import { modifyFactionRelationship } from '../../utils/factionUtils';
+import { modifyFactionRelationship } from '../../utils/world';
 import { getGameDay } from '../../utils/core';
 import { SeededRandom } from '@/utils/random';
 import { WorldEventResult } from './WorldEventManager';

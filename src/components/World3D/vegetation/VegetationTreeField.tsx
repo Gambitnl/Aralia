@@ -91,6 +91,55 @@ const TREE_MATERIAL = new THREE.MeshStandardMaterial({
   roughness: 0.95,
 });
 
+/**
+ * How much of the biome's hue the bark is allowed to take.
+ *
+ * The tint is renormalized to unit luminance first, so this shifts wood toward
+ * the biome without carrying the biome's VALUE into it. A quarter is enough for
+ * a taiga bole to read colder than a rainforest one and far short of painting
+ * wood green.
+ */
+const BARK_TINT_BLEND = 0.25;
+
+/*
+ * The instance tint reaches foliage only.
+ *
+ * three.js multiplies `instanceColor` into every vertex of an instance, and the
+ * batch's tint is a FOLIAGE albedo — measured live in the deep temperate wood
+ * at (0.047, 0.196, 0.043). Wood came out of that at a twentieth of its baked
+ * value and green-dominant: trunks read 8/17/2 on screen where the ground under
+ * them read 58/39/25, which is the entire "flat black column" fault. It was not
+ * shadow, not roughness, and not the environment map — `scene.environment` is
+ * null in ground mode, so envMapIntensity contributes nothing here and the cut
+ * that fixed the jungle-trail reference's blue bark has no equivalent to make.
+ *
+ * The split has to happen in the vertex shader because there is only one
+ * geometry and one draw call per batch; splitting the mesh would double a
+ * draw-call budget that was capped at 24 deliberately. The mask is the baked
+ * green channel, the same 0.6 threshold the generator uses (bark bakes near
+ * 0.24, foliage near 0.97), so no extra attribute is needed.
+ */
+TREE_MATERIAL.onBeforeCompile = (shader) => {
+  shader.vertexShader = shader.vertexShader.replace(
+    '#include <color_vertex>',
+    /* glsl */`
+    vColor = vec3( 1.0 );
+    #ifdef USE_COLOR
+      vColor *= color;
+    #endif
+    #ifdef USE_INSTANCING_COLOR
+      float foliageMask = step( 0.6, color.g );
+      vec3 tint = instanceColor.xyz;
+      float tintLuma = max( dot( tint, vec3( 0.2126, 0.7152, 0.0722 ) ), 1e-4 );
+      vec3 barkTint = mix( vec3( 1.0 ), tint / tintLuma, ${BARK_TINT_BLEND} );
+      vColor.xyz *= mix( barkTint, tint, foliageMask );
+    #endif
+    `,
+  );
+};
+/** Changing onBeforeCompile after a program exists needs an explicit rebuild. */
+TREE_MATERIAL.customProgramCacheKey = () => 'aralia-tree-foliage-tint-v1';
+
 const TreeBatchMesh: React.FC<{ batch: TreeBatch }> = ({ batch }) => {
   const ref = useRef<THREE.InstancedMesh>(null);
   const geometry = getTreeGeometry(batch.species, batch.variant);

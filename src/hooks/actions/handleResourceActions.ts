@@ -24,7 +24,7 @@ import { AppAction } from '../../state/actionTypes';
 import { AddMessageFn, AddGeminiLogFn } from './actionHandlerTypes';
 import { handleGossipEvent, handleResidueChecks, handleLongRestWorldEvents } from './handleWorldEvents'; // Import the new world event handlers.
 import { checkPlanarRestRules } from '../../systems/planar/rest';
-import { buildHitPointDicePools, getAbilityModifierValue, getRacialSpellGrantForSpell } from '../../utils/characterUtils';
+import { buildHitPointDicePools, getAbilityModifierValue, getRacialSpellGrantForSpell } from '../../utils/character';
 import { rollDice } from '../../utils/combat';
 import { formatDuration, getGameDay } from '../../utils/core';
 import { CastSpellPayload } from '../../types/actions';

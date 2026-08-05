@@ -39,7 +39,7 @@ import { UnderdarkMechanics } from "../../systems/underdark/UnderdarkMechanics";
 import { DEFAULT_WEATHER } from "../../systems/environment/EnvironmentSystem";
 import { updateWeather } from "../../systems/environment/WeatherSystem";
 import { ritualReducer } from "./ritualReducer";
-import { addHistoryEvent, createEmptyHistory } from "../../utils/historyUtils";
+import { addHistoryEvent, createEmptyHistory } from "../../utils/world";
 import {
   processAllStrongholds,
   strongholdSummariesToMessages,

@@ -26,7 +26,7 @@
 import type { GameState } from '../../types';
 import { parseCellLocationId } from '../../utils/location/cellLocationId';
 import { applyWfSpawnToMap } from '../../systems/worldforge/local/resolveSpawn';
-import { logger } from '../../utils/logger';
+import { logger } from '../../utils/core';
 import { appendDebugLog } from '../../utils/debugLog';
 
 /**

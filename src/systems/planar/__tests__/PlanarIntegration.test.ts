@@ -6,7 +6,7 @@ import { Spell, SpellSchool } from '../../../types/spells';
 import { CombatState } from '../../../types/combat';
 import { GameState } from '../../../types';
 import { PLANES } from '../../../data/planes';
-import { createMockCombatCharacter } from '../../../utils/factories';
+import { createMockCombatCharacter } from '../../../utils/core';
 
 describe('Planar Mechanics Integration', () => {
   const mockCaster = createMockCombatCharacter({ id: 'caster', name: 'Caster' });

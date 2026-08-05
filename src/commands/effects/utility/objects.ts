@@ -7,7 +7,7 @@
 import { UtilityCommandSenses } from './senses'
 import type { UtilityEffect, RepairState } from '@/types/spells'
 import type { CombatState, SelectedSpellTarget, SpellObjectRepair, SpellObjectAccessChange } from '@/types/combat'
-import { generateId } from '../../../utils/idGenerator'
+import { generateId } from '../../../utils/core'
 
 
 

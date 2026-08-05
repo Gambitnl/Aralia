@@ -3,7 +3,7 @@ import { render, screen, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import InventoryList from '../Overview/InventoryList';
 import { Item } from '../../../types';
-import { createMockPlayerCharacter } from '../../../utils/factories';
+import { createMockPlayerCharacter } from '../../../utils/core';
 
 /**
  * This file proves the character sheet inventory shows perishable food correctly.

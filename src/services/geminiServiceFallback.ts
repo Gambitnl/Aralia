@@ -18,7 +18,7 @@ import { Monster } from '../types';
 import type { MonsterData } from '../types/ui';
 import { XP_BY_CR } from '../constants';
 import { MONSTERS_DATA } from '../data/monsters';
-import { logger } from '../utils/logger';
+import { logger } from '../utils/core';
 import { MAX_ENCOUNTER_MONSTER_COUNT } from '../utils/world/encounterUtils';
 import { SeededRandom } from '../utils/random/seededRandom';
 

@@ -28,7 +28,7 @@
 
 import { CombatCharacter, Position, BattleMapData } from '../../../types/combat';
 import { getDistance, canTakeReaction } from '../../../utils/combat';
-import { hasLineOfSight } from '../../../utils/lineOfSight';
+import { hasLineOfSight } from '../../../utils/spatial';
 
 export interface OpportunityAttackResult {
   canAttack: boolean;

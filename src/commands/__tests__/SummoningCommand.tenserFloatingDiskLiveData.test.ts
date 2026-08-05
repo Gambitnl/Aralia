@@ -6,7 +6,7 @@ import { useActionExecutor } from '../../hooks/combat/useActionExecutor'
 import type { CommandContext } from '../base/SpellCommand'
 import type { BattleMapData, BattleMapTile, CombatAction, CombatCharacter, TurnState } from '@/types/combat'
 import type { MovementEffect, SummoningEffect } from '@/types/spells'
-import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '@/utils/factories'
+import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '@/utils/core'
 import tensersFloatingDisk from '../../../public/data/spells/level-1/tensers-floating-disk.json'
 
 /**

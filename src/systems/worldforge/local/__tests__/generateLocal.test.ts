@@ -197,11 +197,24 @@ describe('generateLocal — vegetation clumping', () => {
    * exactly the 'undergrowth' stream's output — empty when the stream
    * never ran.
    */
+  /**
+   * The undergrowth stream, identified by POSITION: it is appended after the
+   * boulders and reuses the 'bush' kind, so there is no field to filter on.
+   *
+   * The upper bound matters as much as the lower one. The understory streams
+   * (fern/sapling/log) are appended after undergrowth, and without the cut
+   * below they fall into this slice and make it claim a grassland has
+   * undergrowth. The slice runs from the last boulder to the first understory
+   * feature.
+   */
+  const UNDERSTORY_KINDS = new Set(['fern', 'sapling', 'log']);
   function undergrowthSlice(local: LocalArtifact) {
     let lastBoulder = -1;
     local.features.forEach((f, i) => { if (f.kind === 'boulder') lastBoulder = i; });
     expect(lastBoulder).toBeGreaterThanOrEqual(0); // fixture must have boulders for the slice to mean anything
-    return local.features.slice(lastBoulder + 1);
+    const rest = local.features.slice(lastBoulder + 1);
+    const firstUnder = rest.findIndex((f) => UNDERSTORY_KINDS.has(f.kind));
+    return firstUnder === -1 ? rest : rest.slice(0, firstUnder);
   }
 
   /**

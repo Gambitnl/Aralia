@@ -27,7 +27,18 @@ const S = WORLD3D_CONFIG.CHUNK_WORLD_SIZE;
 const VEGETATION_SCATTER_CACHE_VERSION = 1;
 const VEGETATION_SCATTER_CACHE_MAX_ENTRIES = 256;
 
-const VEGETATED = new Set(['forest', 'jungle', 'plains', 'grassland', 'wetland', 'swamp']);
+// `forest_floor` is the leaf-litter tint a forest window's `grass` ground now
+// carries; it is the SAME growable surface `grassland` was, so leaving it out
+// would strip scatter from exactly the cells that should be most overgrown.
+const VEGETATED = new Set([
+  'forest',
+  'forest_floor',
+  'jungle',
+  'plains',
+  'grassland',
+  'wetland',
+  'swamp',
+]);
 // Keep a bounded cache of stable scatter payloads.
 const VEGETATION_CACHE = new Map<string, VegetationScatter>();
 

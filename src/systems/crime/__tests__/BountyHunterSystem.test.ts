@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { BountyHunterSystem } from '../BountyHunterSystem';
 import { NotorietyState } from '../../../types';
 import { Bounty, HunterTier } from '../../../types/crime';
-import { createMockGameState } from '../../../utils/factories';
+import { createMockGameState } from '../../../utils/core';
 
 describe('BountyHunterSystem', () => {
 

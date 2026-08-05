@@ -3,10 +3,10 @@ import { motion } from 'framer-motion';
 import { Action } from '../../types';
 import { Temple, TempleService } from '../../types/religion';
 import { useGameState } from '../../state/GameContext';
-import { formatGpAsCoins } from '../../utils/coinPurseUtils';
+import { formatGpAsCoins } from '../../utils/character';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
 import { DEITIES } from '../../data/deities';
-import { getDivineStanding } from '../../utils/religionUtils';
+import { getDivineStanding } from '../../utils/world';
 import { WindowFrame } from '../ui/WindowFrame';
 import { WINDOW_KEYS } from '../../styles/uiIds';
 

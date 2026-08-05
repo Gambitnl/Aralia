@@ -1,6 +1,6 @@
 import type { Spell } from '@/types/spells'
 import type { CombatCharacter, CombatState, ConcentrationState } from '@/types/combat'
-import { rollSavingThrow } from '@/utils/savingThrowUtils'
+import { rollSavingThrow } from '@/utils/character'
 
 /**
  * Tracks concentration on spells

@@ -108,8 +108,8 @@ import {
   createCombatRailGridStyle,
   useCombatRailLayout,
 } from "../../hooks/useCombatRailLayout";
-import { canUseDevTools } from "../../utils/permissions";
-import { logger } from "../../utils/logger";
+import { canUseDevTools } from "../../utils/core";
+import { logger } from "../../utils/core";
 import { createPlayerCombatCharacter } from "../../utils/combat";
 import SpellContext from "../../context/SpellContext";
 import { motion } from "framer-motion";

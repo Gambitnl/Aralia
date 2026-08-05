@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 10/06/2026, 22:17:54
+ * Last Sync: 04/08/2026, 02:04:44
  * Dependents: systems/spells/targeting/TargetResolver.ts
  * Imports: 3 files
  *

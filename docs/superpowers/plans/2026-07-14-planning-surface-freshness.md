@@ -22,7 +22,7 @@
 - If `node tools/agora/validate-planmap.mjs` exits non-zero, the sync program must refuse ALL writes.
 - Never write `.agent/roadmap-local/processing_manifest.json` (roadmap-session-close regenerates it from sqlite and clobbers outside edits).
 - Duplicate roadmap node ids crash the whole graph (`id-validation.ts` throws). Planmap-born ids use prefix `planmap_` + topic id, which the planmap schema guarantees unique.
-- UI copy in plain English, US spelling (GOV.UK style — repo writing rule).
+- UI copy in plain English, US spelling (ASD-STE100 Simplified Technical English — repo writing rule).
 - Tests for `tools/agora/*` use node:test (`node --test <file>`), matching `tools/agora/server.test.mjs`.
 
 ---

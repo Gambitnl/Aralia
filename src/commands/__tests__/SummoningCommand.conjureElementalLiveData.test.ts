@@ -7,7 +7,7 @@ import {
 } from '../effects/DamageCommand'
 import type { CombatCharacter } from '@/types/combat'
 import type { DamageEffect, EffectDuration, Spell } from '@/types/spells'
-import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '@/utils/factories'
+import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '@/utils/core'
 import conjureElemental from '../../../public/data/spells/level-5/conjure-elemental.json'
 
 /**

@@ -41,8 +41,8 @@ import {
   getOccupiedTiles,
   getCharacterSizeMultiplier
 } from '../../utils/combat';
-import { getAbilityModifierValue } from '../../utils/statUtils';
-import { calculateSpellDC, rollSavingThrow } from '../../utils/savingThrowUtils';
+import { getAbilityModifierValue } from '../../utils/character';
+import { calculateSpellDC, rollSavingThrow } from '../../utils/character';
 import { calculateMovementTotal } from '../../utils/combat/actionEconomyUtils';
 import {
   ActiveSpellZone,

@@ -38,7 +38,7 @@ An age/wear dimension that shows: a newer wing in different stone, a bricked-up 
 - **Feet-canon 5 ft grid**; all geometry data pure (zero `three` imports in generators).
 - **Deterministic** via worldforge seed paths (`rngFromPath(streamPath(...))`); never `Math.random()`. Mind draw-order stability — v1 pins goldens.
 - **No fallback / graceful degradation** — one real path, fail honestly.
-- **US spelling** everywhere. **GOV.UK plain writing** in the spec (front-load, one idea per sentence); new coined terms go into `tools/agora/GLOSSARY.md` the same turn.
+- **US spelling** everywhere. **ASD-STE100 Simplified Technical English** in the spec (front-load, one idea per sentence); new coined terms go into `tools/agora/GLOSSARY.md` the same turn.
 - **No time estimates, no feasibility-shrinking** — full vision, priority order.
 - **Work only in master; never branch or worktree; never commit** (2am auto-snapshot).
 - **Visual-inspection rule**: every visual slice in the eventual plan must end with a render-and-eyeball step, not just green tests.

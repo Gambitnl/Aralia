@@ -16,7 +16,7 @@
 
 import { CombatState, Position, StatusEffect } from '@/types/combat'
 import { rollDice } from '../../utils/combat'
-import { generateId } from '../../utils/idGenerator'
+import { generateId } from '../../utils/core'
 import { ActiveSpellZone, processAreaMoveWithinTriggers } from '../../systems/spells/effects/triggerHandler'
 
 type SpellZoneWithTracking = NonNullable<CombatState['spellZones']>[number] &

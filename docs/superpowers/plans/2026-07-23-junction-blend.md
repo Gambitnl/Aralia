@@ -17,7 +17,7 @@
 - **Determinism:** compile stays pure; no randomness anywhere in this feature.
 - **Budgets:** `perfBudget.test.ts` (30k plan budget) must stay green with collars.
 - Test: `npx vitest run <path>`; typecheck filtered to touched files.
-- US English, GOV.UK plain style in copy and errors.
+- US English, ASD-STE100 Simplified Technical English in copy and errors.
 
 ## File Structure
 

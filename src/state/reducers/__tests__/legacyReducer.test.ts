@@ -6,7 +6,7 @@ import { Stronghold } from '../../../types/stronghold';
 import { PlayerLegacy } from '../../../types/legacy';
 import { createStronghold, recruitStaff, startMission } from '../../../services/strongholdService';
 import { initializeLegacy } from '../../../services/legacyService';
-import { createMockPlayerCharacter } from '../../../utils/factories';
+import { createMockPlayerCharacter } from '../../../utils/core';
 
 // ---------------------------------------------------------------------------
 // Helpers

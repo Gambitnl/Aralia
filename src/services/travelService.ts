@@ -3,7 +3,7 @@ import { GroupTravelParameters, TravelResult } from '../types/travel';
 import { calculateGroupTravelStats, calculateTravelTimeHours } from '../systems/travel/TravelCalculations';
 import { PlayerCharacter } from '../types/character';
 import { Item } from '../types/items';
-import { logger } from '../utils/logger';
+import { logger } from '../utils/core';
 
 /**
  * Service to handle comprehensive travel calculations.

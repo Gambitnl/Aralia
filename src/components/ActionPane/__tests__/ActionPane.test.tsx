@@ -45,7 +45,7 @@ vi.mock('framer-motion', async (importOriginal) => {
   };
 });
 
-vi.mock('../../../utils/permissions', () => ({
+vi.mock('../../../utils/core/permissions', () => ({
   canUseDevTools: () => true,
 }));
 

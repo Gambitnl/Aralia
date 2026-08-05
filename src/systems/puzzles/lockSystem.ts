@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 27/06/2026, 02:18:22
+ * Last Sync: 04/08/2026, 02:03:16
  * Dependents: components/puzzles/LockpickingModal.tsx, systems/puzzles/pressurePlateSystem.ts
  * Imports: 6 files
  *
@@ -25,7 +25,7 @@
 import { PlayerCharacter } from '../../types/character';
 import { Item } from '../../types/items';
 import { rollDice } from '../../utils/combat';
-import { getAbilityModifierValue } from '../../utils/statUtils';
+import { getAbilityModifierValue } from '../../utils/character';
 import { getPuzzleCharacterStats } from './characterAbilityBridge';
 import { Lock, Trap, LockpickResult, KeyUnlockResult, BreakResult, TrapDetectionResult, TrapDisarmResult } from './types';
 

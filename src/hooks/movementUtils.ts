@@ -16,7 +16,7 @@
 
 import { CombatCharacter, CombatLogEntryInput, CombatState, Position, BattleMapData } from '../types/combat';
 import { MovementEffect } from '../types/spells';
-import { rollSavingThrow } from '../utils/savingThrowUtils';
+import { rollSavingThrow } from '../utils/character';
 import { generateId } from '../utils/combat';
 import { findPath } from '../utils/spatial/pathfinding';
 import { SavePenaltySystem } from '../systems/combat/SavePenaltySystem';

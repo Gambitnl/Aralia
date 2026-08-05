@@ -30,7 +30,7 @@ import { Ability, Position, CombatCharacter, BattleMapData } from '../../types/c
 import { resolveAoEParams } from '../../utils/spatial/targetingUtils';
 import { calculateAffectedTiles } from '../../utils/combat/aoeCalculations';
 import { getDistance } from '../../utils/combat';
-import { hasLineOfSight } from '../../utils/lineOfSight';
+import { hasLineOfSight } from '../../utils/spatial';
 
 interface UseTargetingProps {
     mapData: BattleMapData | null;

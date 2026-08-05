@@ -5,7 +5,7 @@ import { AbilityCommandFactory } from '../factory/AbilityCommandFactory';
 import type { CommandContext } from '../base/SpellCommand';
 import type { CombatCharacter, CombatState } from '../../types/combat';
 import type { SummoningEffect, UtilityEffect } from '../../types/spells';
-import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '@/utils/factories';
+import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '@/utils/core';
 import planarAlly from '../../../public/data/spells/level-6/planar-ally.json';
 
 /**

@@ -7,9 +7,9 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { StatusConditionCommand } from '../StatusConditionCommand';
 import { BattleMapData, BattleMapTile, CombatState } from '@/types/combat';
 import { StatusConditionEffect, SpellEffect, DamageEffect } from '@/types/spells';
-import { createMockCombatCharacter, createMockCombatState } from '@/utils/factories';
+import { createMockCombatCharacter, createMockCombatState } from '@/utils/core';
 import { CommandContext } from '../../base/SpellCommand';
-import * as savingThrowUtils from '@/utils/savingThrowUtils';
+import * as savingThrowUtils from '@/utils/character';
 import { generateId } from '@/utils/combat';
 import { BreakConcentrationCommand } from '../ConcentrationCommands';
 import { DamageCommand } from '../DamageCommand';
@@ -17,7 +17,7 @@ import friends from '../../../../public/data/spells/level-0/friends.json';
 import type { ActiveSpellZone } from '@/systems/spells/effects';
 
 // We mock saving throws so we don't have to deal with RNG in tests
-vi.mock('@/utils/savingThrowUtils', () => ({
+vi.mock('@/utils/character/savingThrowUtils', () => ({
   calculateSpellDC: vi.fn(() => 13),
   rollSavingThrow: vi.fn()
 }));

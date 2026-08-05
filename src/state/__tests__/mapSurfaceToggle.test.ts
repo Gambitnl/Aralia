@@ -9,7 +9,7 @@ import { describe, it, expect } from 'vitest';
 import { appReducer } from '../appState';
 import { GamePhase, GameState } from '../../types';
 import { AppAction } from '../actionTypes';
-import { createMockPlayerCharacter } from '../../utils/factories';
+import { createMockPlayerCharacter } from '../../utils/core';
 
 const makeState = (overrides: Partial<GameState> = {}): GameState =>
   ({

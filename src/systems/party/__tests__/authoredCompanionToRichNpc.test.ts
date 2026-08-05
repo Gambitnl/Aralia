@@ -20,7 +20,7 @@ import { promoteCompanionToMember } from '../npcToPartyMember';
 import { COMPANIONS } from '../../../data/companions';
 import type { Companion } from '../../../types/companions';
 import { gameEntryReducer } from '../../../state/reducers/gameEntryReducer';
-import { createMockGameState } from '../../../utils/factories';
+import { createMockGameState } from '../../../utils/core';
 
 const KAELEN = COMPANIONS['kaelen_thorne'];
 const ELARA = COMPANIONS['elara_vance'];

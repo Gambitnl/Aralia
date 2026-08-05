@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { hasSpellInterruptionLineOfSight, hasSpellInterruptionVisibility } from '../useAbilitySystem';
-import * as lineOfSightUtils from '../../utils/lineOfSight';
+import * as lineOfSightUtils from '../../utils/spatial';
 import type { BattleMapData, BattleMapTile, CombatCharacter } from '../../types/combat';
 import counterspell from '../../../public/data/spells/level-3/counterspell.json';
 
@@ -17,7 +17,7 @@ import counterspell from '../../../public/data/spells/level-3/counterspell.json'
  * Depends on: the shared line-of-sight helper used by map targeting.
  */
 
-vi.mock('../../utils/lineOfSight', () => ({
+vi.mock('../../utils/spatial/lineOfSight', () => ({
   hasLineOfSight: vi.fn(() => true)
 }));
 

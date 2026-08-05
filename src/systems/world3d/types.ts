@@ -473,6 +473,20 @@ export interface ChunkMeshBundle {
   /** Second vegetation layer (ground mode): bushes, rendered as their own
    * instanced mesh so trees and bushes can differ in geometry/palette. */
   bushes?: VegetationScatter;
+  /**
+   * Third vegetation layer (ground mode): the understory — ferns, fallen logs
+   * and saplings. Its own type rather than a VegetationScatter because every
+   * instance carries which species it is; the three share one placement pass
+   * but not a mesh.
+   */
+  understory?: {
+    positions: Float32Array;
+    scales: Float32Array;
+    rotations: Float32Array;
+    colors: Float32Array;
+    species: Array<'fern' | 'log' | 'sapling'>;
+    count: number;
+  };
 }
 
 /**

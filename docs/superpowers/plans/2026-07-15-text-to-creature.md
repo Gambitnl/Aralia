@@ -15,7 +15,7 @@
 - **No git commits/branches/worktrees** (Remy standing rule; 2am auto-snapshots). Tasks end at "tests green".
 - **Agora:** re-register (`AGORA_AGENT_ID=fable-entitygen`), lock `src/systems/entities3d/**` + `src/components/DesignPreview/steps/PreviewEntityForge.tsx` + `scripts/vite-plugins/devHubApiManager.ts` before editing; on conflict RESERVE (`client.mjs reserve <path>`), never proceed unlocked; `unlock --mine` at the end. Lock in its OWN command; check the result before any write.
 - **No fallbacks:** invalid plans fail with the full named-error list (one CLI retry with errors appended, then surface verbatim). No silent clamping. Unknown `partId` → reject.
-- **Writing:** GOV.UK plain English, US spelling in all copy and errors.
+- **Writing:** ASD-STE100 Simplified Technical English, US spelling in all copy and errors.
 - **Determinism:** compiling a stored plan is pure; recipe `seed` only drives blink/idle offsets.
 - Test: `npx vitest run <path>`; typecheck `npm run typecheck` filtered to touched files (repo has known pre-existing errors elsewhere).
 - Races/classes and the six existing gaits are untouched; `assembleEntity`'s public contract is unchanged.

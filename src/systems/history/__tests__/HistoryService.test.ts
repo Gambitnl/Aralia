@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { HistoryService } from '../HistoryService';
-import { createMockGameState } from '../../../utils/factories';
+import { createMockGameState } from '../../../utils/core';
 
 describe('HistoryService', () => {
   const mockState = createMockGameState();

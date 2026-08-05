@@ -53,7 +53,7 @@ import {
 } from '../../constants';
 import { ACTIVE_RACES } from '../../data/races/index';
 import { FEATS_DATA } from '../../data/feats/featsData';
-import { evaluateFeatPrerequisites } from '../../utils/characterUtils';
+import { evaluateFeatPrerequisites } from '../../utils/character';
 import RaceSelection from './Race/RaceSelection';
 import AgeSelection from './AgeSelection';
 import BackgroundSelection from './BackgroundSelection';
@@ -97,8 +97,8 @@ import { LoadingSpinner } from '../ui/LoadingSpinner';
 import { WindowFrame } from '../ui/WindowFrame';
 import { WINDOW_KEYS } from '../../styles/uiIds';
 import { Button } from '../ui/Button';
-import { SafeStorage } from '../../utils/storageUtils';
-import { sanitizeAIPromptText } from '../../utils/securityUtils';
+import { SafeStorage } from '../../utils/core';
+import { sanitizeAIPromptText } from '../../utils/core';
 import { ENV } from '../../config/env';
 import { getLockedStepMessage } from './config/sidebarSteps';
 

@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * This file appears to be an ISOLATED UTILITY or ORPHAN.
  *
- * Last Sync: 08/06/2026, 13:21:07
+ * Last Sync: 04/08/2026, 02:00:13
  * Dependents: None (Orphan)
  * Imports: 5 files
  *
@@ -17,7 +17,7 @@
 import { Recipe, CraftingResult, MaterialRequirement } from './types';
 import { PlayerCharacter } from '../../types/character';
 import { InventoryEntry } from '../../types/items';
-import { getAbilityModifierValue as getSkillModifierValue } from '../../utils/statUtils';
+import { getAbilityModifierValue as getSkillModifierValue } from '../../utils/character';
 import { rollDice } from '../../utils/combat';
 
 // Mock inventory check function - in a real system this would interface with inventory state

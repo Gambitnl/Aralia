@@ -14,7 +14,7 @@ import React, { useMemo, useState } from 'react';
 import { useGameState } from '../../state/GameContext';
 import { WindowFrame } from '../ui/WindowFrame';
 import { WINDOW_KEYS } from '../../styles/uiIds';
-import { formatGpAsCoins } from '../../utils/coinPurseUtils';
+import { formatGpAsCoins } from '../../utils/character';
 import CoinPurseDisplay from '../ui/CoinPurseDisplay';
 import { getGameDay } from '../../utils/core';
 import {

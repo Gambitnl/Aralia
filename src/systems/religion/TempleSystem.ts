@@ -22,8 +22,8 @@ import {
   GameState
 } from '../../types';
 import { AppAction } from '../../state/actionTypes';
-import { canAffordService, getDivineStanding } from '../../utils/religionUtils';
-import { logger } from '../../utils/logger';
+import { canAffordService, getDivineStanding } from '../../utils/world';
+import { logger } from '../../utils/core';
 import { generateId } from '../../utils/core/idGenerator';
 
 export interface ServiceResult {

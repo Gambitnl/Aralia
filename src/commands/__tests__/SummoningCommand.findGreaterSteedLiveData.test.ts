@@ -4,7 +4,7 @@ import { AbilityCommandFactory } from '../factory/AbilityCommandFactory'
 import type { CommandContext } from '../base/SpellCommand'
 import type { CombatCharacter, CombatState } from '../../types/combat'
 import type { UtilityEffect } from '../../types/spells'
-import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '@/utils/factories'
+import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '@/utils/core'
 import findGreaterSteed from '../../../public/data/spells/level-4/find-greater-steed.json'
 
 /**

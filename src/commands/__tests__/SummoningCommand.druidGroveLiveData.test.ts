@@ -5,7 +5,7 @@ import {
 } from '../effects/UtilityCommand'
 import type { CombatCharacter } from '@/types/combat'
 import type { Spell, UtilityEffect } from '@/types/spells'
-import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '@/utils/factories'
+import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '@/utils/core'
 import druidGrove from '../../../public/data/spells/level-6/druid-grove.json'
 
 /**

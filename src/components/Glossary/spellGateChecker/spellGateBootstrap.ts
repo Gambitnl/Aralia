@@ -27,7 +27,7 @@
  */
 
 import { assetUrl } from "../../../config/env";
-import { fetchWithTimeout } from "../../../utils/networkUtils";
+import { fetchWithTimeout } from "../../../utils/context";
 import type {
   FidelityData,
   SpellGateArtifact,

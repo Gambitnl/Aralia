@@ -1,10 +1,10 @@
 import { renderHook } from '@testing-library/react';
 import { useLocalStorage } from '../useLocalStorage';
 import { z } from 'zod';
-import { SafeStorage } from '../../utils/storageUtils';
+import { SafeStorage } from '../../utils/core';
 
 // Mock SafeStorage
-vi.mock('../../utils/storageUtils', () => ({
+vi.mock('../../utils/core/storageUtils', () => ({
   SafeStorage: {
     getItem: vi.fn(),
     setItem: vi.fn(),

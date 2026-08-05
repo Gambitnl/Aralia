@@ -16,7 +16,7 @@
 - **Agora:** lock `src/components/DesignPreview/DesignPreviewPage.tsx` and `src/systems/entities3d/**` before editing; `unlock --mine` when done. Agent id `fable-entitygen`.
 - **Existing game pages do not change** — capture recipes use hooks pages already expose.
 - **No fallbacks:** malformed scenarios fail validation loudly; the runner throws on a failed step naming the scenario + step.
-- **Writing:** GOV.UK plain English, US spelling in all copy.
+- **Writing:** ASD-STE100 Simplified Technical English, US spelling in all copy.
 - Test: `npx vitest run <path>`; typecheck: `npm run typecheck` (filter output to touched files; repo has known pre-existing errors elsewhere).
 
 ## File Structure

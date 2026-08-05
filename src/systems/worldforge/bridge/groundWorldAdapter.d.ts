@@ -37,5 +37,9 @@ export declare const GROUND_METERS_PER_CELL = 1.524;
 /**
  * Express a LocalArtifact as WorldData for the world3d pipeline.
  * Deterministic and allocation-light: one pass over the 360k cells.
+ *
+ * @param anchorBiomeId legacy biome id of the window's anchor atlas cell (see
+ *   `biomeIdForCell`). Only consulted to decide whether `grass` is meadow or
+ *   forest floor; omitting it keeps the pre-forest-floor behavior exactly.
  */
-export declare function localArtifactToWorldData(local: LocalArtifact, seed: number): WorldData;
+export declare function localArtifactToWorldData(local: LocalArtifact, seed: number, anchorBiomeId?: string): WorldData;

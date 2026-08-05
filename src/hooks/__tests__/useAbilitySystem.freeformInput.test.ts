@@ -5,7 +5,7 @@ import { ActiveTruePolymorphTransformation, CombatCharacter, Ability, BattleMapD
 import { Spell } from '../../types/spells';
 import { Item } from '../../types';
 import type { ActiveSpellZone } from '../../systems/spells/effects';
-import * as savingThrowUtils from '../../utils/savingThrowUtils';
+import * as savingThrowUtils from '../../utils/character';
 import { combatEvents } from '../../systems/events/CombatEvents';
 import * as combatUtils from '../../utils/combat';
 import shiningSmite from '../../../public/data/spells/level-2/shining-smite.json';
@@ -99,7 +99,7 @@ vi.mock('../../utils/combat', () => ({
     rollDamage: () => 5
 }));
 
-vi.mock('../../utils/savingThrowUtils', () => ({
+vi.mock('../../utils/character/savingThrowUtils', () => ({
     calculateSpellDC: () => 17,
     rollSavingThrow: vi.fn(() => ({ total: 18, success: true, modifiersApplied: [] }))
 }));

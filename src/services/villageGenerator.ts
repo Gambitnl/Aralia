@@ -1,6 +1,6 @@
 import { resolveVillageIntegrationProfile } from '../data/villagePersonalityProfiles';
 import { villageBuildingVisuals } from '../config/submapVisualsConfig';
-import { createSeededRandom } from '../utils/submapUtils';
+import { createSeededRandom } from '../utils/spatial/submapUtils';
 import { BIOMES } from '../constants';
 export type { VillagePersonality, VillageIntegrationProfile };
 

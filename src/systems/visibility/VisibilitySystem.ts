@@ -28,7 +28,7 @@ import {
   LightLevel,
   Position
 } from '../../types/combat';
-import { bresenhamLine } from '../../utils/lineOfSight';
+import { bresenhamLine } from '../../utils/spatial';
 
 export type VisibilityTier = 'visible' | 'dim' | 'hidden';
 

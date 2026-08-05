@@ -3,7 +3,7 @@ import { BreakConcentrationCommand } from '../effects/ConcentrationCommands'
 import { UtilityCommand } from '../effects/UtilityCommand'
 import type { CombatCharacter } from '@/types/combat'
 import type { EffectDuration, Spell, UtilityEffect } from '@/types/spells'
-import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '@/utils/factories'
+import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '@/utils/core'
 import spiritualWeapon from '../../../public/data/spells/level-2/spiritual-weapon.json'
 
 /**

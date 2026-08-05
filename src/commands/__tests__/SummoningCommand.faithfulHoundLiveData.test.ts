@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { DamageCommand, moveFaithfulHoundGuardian } from '../effects/DamageCommand'
 import type { CombatCharacter } from '@/types/combat'
 import type { DamageEffect, EffectDuration, Spell } from '@/types/spells'
-import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '@/utils/factories'
+import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '@/utils/core'
 import faithfulHound from '../../../public/data/spells/level-4/mordenkainens-faithful-hound.json'
 
 /**

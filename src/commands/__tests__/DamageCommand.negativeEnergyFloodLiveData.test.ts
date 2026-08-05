@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { DamageCommand } from '../effects/DamageCommand';
-import { createMockCombatCharacter, createMockCombatState, createMockCommandContext, createMockGameState } from '../../utils/factories';
+import { createMockCombatCharacter, createMockCombatState, createMockCommandContext, createMockGameState } from '../../utils/core';
 import type { DamageEffect } from '../../types/spells';
 import negativeEnergyFlood from '../../../public/data/spells/level-5/negative-energy-flood.json';
 
@@ -9,7 +9,7 @@ import negativeEnergyFlood from '../../../public/data/spells/level-5/negative-en
  * row. This proof keeps lethal damage from stopping at 0 HP and forgetting the
  * start-of-caster-next-turn aftermath.
  */
-vi.mock('../../utils/savingThrowUtils', () => ({
+vi.mock('../../utils/character/savingThrowUtils', () => ({
   calculateSpellDC: vi.fn(() => 16),
   rollSavingThrow: vi.fn(() => ({
     roll: 1,

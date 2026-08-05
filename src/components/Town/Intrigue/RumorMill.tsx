@@ -11,7 +11,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Action, Item } from '../../../types';
 import { TavernGossipSystem, PurchaseableRumor } from '../../../systems/intrigue/TavernGossipSystem';
 import { useGameState } from '../../../state/GameContext';
-import { formatGpAsCoins } from '../../../utils/coinPurseUtils';
+import { formatGpAsCoins } from '../../../utils/character';
 
 interface RumorMillProps {
     merchantName: string;

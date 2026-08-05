@@ -13,7 +13,7 @@
 import { fireEvent, render, screen, within } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { OpeningSituationGate } from '../OpeningSituationGate';
-import { createMockGameState } from '../../../utils/factories';
+import { createMockGameState } from '../../../utils/core';
 import type { AppAction } from '../../../state/actionTypes';
 
 describe('OpeningSituationGate', () => {

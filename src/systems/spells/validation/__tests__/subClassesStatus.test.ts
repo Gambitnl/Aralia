@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { SpellValidator } from '../spellValidator';
-import { createMockSpell } from '@/utils/factories';
+import { createMockSpell } from '@/utils/core';
 
 // Retired 2026-05-11 with the Sub-Classes bucket closure. The field
 // `subClassesVerification` was needed while the lane was being filled out;

@@ -44,7 +44,7 @@ import {
   buildHitPointDicePools,
   applyRacialSpellGrantsByLevel,
   getRacialSpellAbilityFromSelection,
-} from '../../../utils/characterUtils';
+} from '../../../utils/character';
 
 // --- Helper Functions for Character Assembly ---
 

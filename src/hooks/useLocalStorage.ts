@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
-import { SafeStorage } from '../utils/storageUtils';
-import { safeJSONParse } from '../utils/securityUtils';
+import { SafeStorage } from '../utils/core';
+import { safeJSONParse } from '../utils/core';
 import { z } from 'zod';
 
 export interface UseLocalStorageOptions<T> {

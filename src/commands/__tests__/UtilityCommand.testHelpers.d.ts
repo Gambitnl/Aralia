@@ -10,7 +10,7 @@
 import { UtilityCommand } from '../effects/UtilityCommand';
 import { GrantedActionCommand } from '../effects/GrantedActionCommand';
 import { BreakConcentrationCommand, StartConcentrationCommand } from '../effects/ConcentrationCommands';
-import { createMockCombatCharacter, createMockCombatState } from '@/utils/factories';
+import { createMockCombatCharacter, createMockCombatState } from '@/utils/core';
 import type { CommandContext } from '../base/SpellCommand';
 import type { CombatCharacter, CombatState } from '@/types/combat';
 export declare const mockCaster: CombatCharacter;

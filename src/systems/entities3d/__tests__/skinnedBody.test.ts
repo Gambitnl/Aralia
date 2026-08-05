@@ -184,14 +184,11 @@ describe('assembleEntity bodyTech switch', () => {
     // Decision 2026-07-21: deforming (skinned) bodies render solid shaded;
     // wireframe is a segment-body debug look and never reaches the skeleton.
     expect(() => assembleEntity(bp(), { renderMode: 'wireframe', bodyTech: 'skinned' })).toThrow(/solid shaded only/);
-    const wolf = generateEntityBlueprint({
-      kind: 'creature',
-      creatureType: 'Beast',
-      size: 'Medium',
-      seed: 'skel-2',
-      cues: ['wolf'],
-    });
-    expect(wolf.gait).not.toBe('biped');
-    expect(() => assembleEntity(wolf, { renderMode: 'solid', bodyTech: 'skinned' })).toThrow(/biped/);
+    // Skinned supports biped (slice 1) and plan (slice 4) gaits. A gait outside
+    // that set — a non-plan quad — still fails honestly. Build one directly so
+    // the guard is tested regardless of what the generator currently emits
+    // (creature profiles became plan-driven in slice 4).
+    const quad = { ...bp(), gait: 'quad' as const, planSpec: undefined };
+    expect(() => assembleEntity(quad, { renderMode: 'solid', bodyTech: 'skinned' })).toThrow(/biped and plan/);
   });
 });

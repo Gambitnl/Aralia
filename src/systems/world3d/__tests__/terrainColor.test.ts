@@ -37,3 +37,30 @@ it('ice: a light blue-leaning tint distinct from the brown-grey mountain rock it
     Math.abs(ice[2] - mountain[2]);
   expect(dist).toBeGreaterThan(0.3);
 });
+
+// 2026-08-04: a deciduous forest window's ground rendered as pale sand — the
+// adapter gave it `grassland` and the golden-hour key light multiplied that
+// bright, green-dominant tint into flat khaki. `forest_floor` is leaf litter.
+it('forest_floor: dark brown-olive litter, well under open grassland in value', () => {
+  const litter = biomeColor('forest_floor', 5);
+  const grass = biomeColor('grassland', 5);
+  const luma = ([r, g, b]: number[]) => 0.2126 * r + 0.7152 * g + 0.0722 * b;
+  // Darker than open meadow by more than half — that gap is what survives a
+  // warm low sun as brown instead of sand.
+  expect(luma(litter)).toBeLessThan(luma(grass) * 0.55);
+  // Brown-olive: warm (red leads), never green-dominant the way meadow is.
+  expect(litter[0]).toBeGreaterThan(litter[1]);
+  expect(litter[1]).toBeGreaterThan(litter[2]);
+  expect(grass[1]).toBeGreaterThan(grass[0]);
+  // Desaturated: a saturated brown reads as terracotta, not leaf litter.
+  const sat = (Math.max(...litter) - Math.min(...litter)) / Math.max(...litter);
+  expect(sat).toBeLessThan(0.5);
+});
+
+// Dry biomes must STAY pale — the forest fix is biome-driven, not a global
+// darkening of the terrain.
+it('desert and dirt keep their pale, warm tints', () => {
+  const luma = ([r, g, b]: number[]) => 0.2126 * r + 0.7152 * g + 0.0722 * b;
+  expect(luma(biomeColor('desert', 5))).toBeGreaterThan(0.55);
+  expect(luma(biomeColor('dirt', 5))).toBeGreaterThan(0.3);
+});

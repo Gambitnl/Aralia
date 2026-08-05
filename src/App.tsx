@@ -98,7 +98,7 @@ import { useOverheardGossip } from "./hooks/useOverheardGossip";
 import { useMissingChoice } from "./hooks/useMissingChoice";
 import { useOllamaCheck } from "./hooks/useOllamaCheck";
 import { useAutoSave } from "./hooks/useAutoSave";
-import { t } from "./utils/i18n";
+import { t } from "./utils/core";
 
 // Utility functions
 import { determineActiveDynamicNpcsForLocation } from "@/utils/spatial";
@@ -125,7 +125,7 @@ import {
   isWildernessLocationId,
 } from "./utils/location/cellLocationId";
 import { parseCoordinateLocationId } from "./utils/locationUtils";
-import { canUseDevTools } from "./utils/permissions";
+import { canUseDevTools } from "./utils/core";
 import { validateEnv } from "./config/env";
 import { DiceOverlay } from "./components/dice/DiceOverlay";
 import { Z_INDEX, applyZIndexCssVariables } from "./styles/zIndex";

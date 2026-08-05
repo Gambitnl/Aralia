@@ -1,9 +1,9 @@
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
- * This file appears to be an ISOLATED UTILITY or ORPHAN.
+ * RE-EXPORT BRIDGE / MIDDLEMAN: Forwards exports to another file.
  *
- * Last Sync: 27/02/2026, 09:32:39
+ * Last Sync: 04/08/2026, 02:07:38
  * Dependents: None (Orphan)
  * Imports: 13 files
  *

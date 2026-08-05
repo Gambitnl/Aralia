@@ -17,7 +17,7 @@ vi.mock('../aiClient', () => ({
 }));
 
 // Mock logger to avoid console spam
-vi.mock('../../utils/logger', () => ({
+vi.mock('../../utils/core/logger', () => ({
   logger: {
     warn: vi.fn(),
     error: vi.fn(),

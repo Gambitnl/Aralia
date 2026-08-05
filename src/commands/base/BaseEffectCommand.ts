@@ -17,7 +17,7 @@
 import { SpellCommand, CommandMetadata, CommandContext } from './SpellCommand'
 import { SpellEffect } from '@/types/spells'
 import { CombatState, CombatCharacter, CombatLogEntryInput } from '@/types/combat'
-import { generateId } from '../../utils/idGenerator'
+import { generateId } from '../../utils/core'
 
 /**
  * Abstract base class for all spell effect commands.

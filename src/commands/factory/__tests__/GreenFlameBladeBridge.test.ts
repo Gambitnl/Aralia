@@ -1,7 +1,7 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest'
 import { SpellCommandFactory } from '../SpellCommandFactory'
 import { WeaponAttackCommand } from '../AbilityCommandFactory'
-import { createMockCombatCharacter, createMockCombatState, createMockGameState, createMockItem } from '@/utils/factories'
+import { createMockCombatCharacter, createMockCombatState, createMockGameState, createMockItem } from '@/utils/core'
 import { ItemType } from '@/types/items'
 import type { CombatCharacter, SelectedSpellTarget } from '@/types/combat'
 import type { Spell } from '@/types/spells'

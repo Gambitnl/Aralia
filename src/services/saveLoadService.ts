@@ -35,13 +35,13 @@
  * an optional callback) instead of relying on intrusive `alert()` calls.
  */
 import { GameState, GamePhase, NotificationType } from '../types';
-import { buildHitPointDicePools, normalizeClassLevels } from '../utils/characterUtils';
+import { buildHitPointDicePools, normalizeClassLevels } from '../utils/character';
 import { getGameDay } from '../utils/core';
-import { createEmptyHistory } from '../utils/historyUtils';
-import { SafeStorage, SafeSession } from '../utils/storageUtils';
-import { safeJSONParse } from '../utils/securityUtils';
-import { logger } from '../utils/logger';
-import { simpleHash } from '../utils/hashUtils';
+import { createEmptyHistory } from '../utils/world';
+import { SafeStorage, SafeSession } from '../utils/core';
+import { safeJSONParse } from '../utils/core';
+import { logger } from '../utils/core';
+import { simpleHash } from '../utils/core';
 import * as IDBStorage from './indexedDBStorageService';
 import { migratePlayerCell } from '@/state/migrations/playerCellMigration';
 import { countUnreadDiscoveryEntries, retainDiscoveryLogEntries } from '@/state/reducers/logReducer';

@@ -4,7 +4,7 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import ActionEconomyBar from '../ActionEconomyBar';
 import { CombatCharacter } from '../../../types/combat';
-import { createMockCombatCharacter } from '@/utils/factories';
+import { createMockCombatCharacter } from '@/utils/core';
 
 describe('ActionEconomyBar', () => {
     const mockOnExecuteAction = vi.fn();

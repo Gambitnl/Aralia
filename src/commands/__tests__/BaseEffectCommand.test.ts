@@ -3,7 +3,7 @@ import { describe, it, expect } from 'vitest'
 import { BaseEffectCommand } from '../base/BaseEffectCommand'
 import { SpellEffect, HealingEffect } from '../../types/spells'
 import type { CommandContext } from '../base/SpellCommand'
-import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '../../utils/factories'
+import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '../../utils/core'
 import type { CombatCharacter, CombatState } from '../../types/combat'
 
 class StateFreshnessProbeCommand extends BaseEffectCommand {

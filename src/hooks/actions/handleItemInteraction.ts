@@ -26,7 +26,7 @@ import { ITEMS, LOCATIONS } from '../../constants';
 import { SKILLS_DATA } from '../../data/skills';
 import * as OllamaTextService from '../../services/ollamaTextService';
 import * as GeminiService from '../../services/geminiService';
-import { getAbilityModifierValue } from '../../utils/characterUtils';
+import { getAbilityModifierValue } from '../../utils/character';
 import { INITIAL_QUESTS } from '../../data/quests';
 import { biomeIdForCell } from '../../systems/worldforge/local/biomeForCell';
 import { generateId } from '../../utils/core/idGenerator';

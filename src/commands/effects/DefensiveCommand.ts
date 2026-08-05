@@ -17,7 +17,7 @@
 import { SpellCommand, CommandContext, CommandMetadata } from '../base/SpellCommand';
 import { CombatState, ActiveEffect } from '../../types/combat';
 import { DefensiveEffect } from '../../types/spells';
-import { getAbilityModifierValue } from '../../utils/characterUtils';
+import { getAbilityModifierValue } from '../../utils/character';
 import { v4 as uuidv4 } from 'uuid';
 
 /**

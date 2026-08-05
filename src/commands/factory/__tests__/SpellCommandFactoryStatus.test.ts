@@ -8,14 +8,14 @@
  */
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { SpellCommandFactory } from '../SpellCommandFactory';
-import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '@/utils/factories';
+import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '@/utils/core';
 import { SpellSchool, type Spell, type SpellEffect, type UtilityEffect, type StatusConditionEffect } from '@/types/spells';
 import guidance from '../../../../public/data/spells/level-0/guidance.json';
 import { INGESTED_MONSTERS } from '@/data/monsters.generated';
-import * as savingThrowUtils from '@/utils/savingThrowUtils';
+import * as savingThrowUtils from '@/utils/character';
 
-vi.mock('@/utils/savingThrowUtils', async importOriginal => {
-  const actual = await importOriginal<typeof import('@/utils/savingThrowUtils')>();
+vi.mock('@/utils/character/savingThrowUtils', async importOriginal => {
+  const actual = await importOriginal<typeof import('@/utils/character')>();
   return {
     ...actual,
     calculateSpellDC: vi.fn(() => 13),

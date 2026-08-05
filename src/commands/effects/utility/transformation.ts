@@ -8,7 +8,7 @@ import { UtilityCommandMinorUtility } from './minorUtility'
 import { isExecutableControlOption } from '@/types/spells'
 import type { UtilityEffect } from '@/types/spells'
 import type { CombatState, CombatCharacter, SelectedSpellTarget, ActiveAwakenedCreature, ActiveTruePolymorphTransformation } from '@/types/combat'
-import { generateId } from '../../../utils/idGenerator'
+import { generateId } from '../../../utils/core'
 
 
 

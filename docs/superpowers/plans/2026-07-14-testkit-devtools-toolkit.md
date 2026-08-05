@@ -16,7 +16,7 @@
 - No fallback paths: if the MCP or dev server is unavailable, the workflows say so and stop (Remy's no-fallback directive).
 - A visual surface never passes without a screenshot.
 - Do NOT create git commits — this repo auto-commits via a 2am daily snapshot; skip every "Commit" step convention.
-- Writing style for all markdown: GOV.UK plain English, US spelling.
+- Writing style for all markdown: ASD-STE100 Simplified Technical English, US spelling.
 - Dev server: launch config `dev` on port 5174 (`.claude/launch.json`); base URL `http://localhost:5174`.
 
 ---

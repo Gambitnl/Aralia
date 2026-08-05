@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { religionReducer } from '../../../state/reducers/religionReducer';
-import { createMockGameState, createMockPlayerCharacter } from '../../../utils/factories';
+import { createMockGameState, createMockPlayerCharacter } from '../../../utils/core';
 
 describe('religionReducer - Blessings', () => {
     it('should grant a blessing and apply status effects when USE_TEMPLE_SERVICE is dispatched with a grant_blessing_ effect', () => {

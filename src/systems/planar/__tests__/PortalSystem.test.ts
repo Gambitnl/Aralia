@@ -4,7 +4,7 @@ import { PortalSystem } from '../PortalSystem';
 import { Portal } from '../../../types/planes';
 import { ItemType } from '../../../types/items'; // Added to replace legacy string item type.
 import { GameState } from '../../../types/index';
-import { createMockGameState } from '../../../utils/factories';
+import { createMockGameState } from '../../../utils/core';
 
 describe('PortalSystem', () => {
     const mockGameState = createMockGameState();

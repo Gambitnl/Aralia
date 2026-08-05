@@ -19,7 +19,7 @@ import {
   canLevelUp,
   evaluateFeatPrerequisites,
   getAbilityScoreImprovementBudget,
-} from '../../utils/characterUtils';
+} from '../../utils/character';
 import FeatSelection from '../CharacterCreator/FeatSelection';
 import { subclassesForClass } from '../../data/classes/subclasses';
 import type { FeatChoiceState, FeatChoiceValue } from '../CharacterCreator/state/characterCreatorState';

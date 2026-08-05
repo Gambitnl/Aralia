@@ -30,13 +30,13 @@ import { BaseEffectCommand } from '../base/BaseEffectCommand'
 import { CombatState, CombatCharacter, StatusEffect, ActiveEffect, ActiveEnvironmentalControl, ActiveSpellEmanation, ActiveSpellGuardian, Position, SelectedSpellTarget } from '../../types/combat'
 import { isDamageEffect } from '../../types/spells'
 import type { DamageEffect } from '../../types/spells'
-import { checkConcentration } from '../../utils/concentrationUtils';
-import { calculateSpellDC, rollSavingThrow, calculateSaveDamage } from '../../utils/savingThrowUtils';
-import type { SavingThrowModifier } from '../../utils/savingThrowUtils';
+import { checkConcentration } from '../../utils/character';
+import { calculateSpellDC, rollSavingThrow, calculateSaveDamage } from '../../utils/character';
+import type { SavingThrowModifier } from '../../utils/character';
 import { rollDamage as rollDamageUtil, calculateCover, generateId } from '../../utils/combat';
 import { BreakConcentrationCommand, breakFriendsConcentrationForCaster } from './ConcentrationCommands'
 import { ResistanceCalculator } from '../../utils/combat/resistanceUtils';
-import { getPlanarSpellModifier } from '../../utils/planarUtils';
+import { getPlanarSpellModifier } from '../../utils/planar';
 import { StatusConditionCommand } from './StatusConditionCommand';
 import { SavePenaltySystem } from '../../systems/combat/SavePenaltySystem';
 import { applyDamageAndCheckDowned } from '../../utils/combat/deathSaveUtils';

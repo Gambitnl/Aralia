@@ -3,7 +3,7 @@ import { StatusConditionCommand } from '../effects/StatusConditionCommand';
 import type { CommandContext } from '../base/SpellCommand';
 import type { CombatCharacter, CombatState } from '../../types/combat';
 import type { StatusConditionEffect } from '../../types/spells';
-import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '../../utils/factories';
+import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '../../utils/core';
 import geas from '../../../public/data/spells/level-5/geas.json';
 import planarBinding from '../../../public/data/spells/level-5/planar-binding.json';
 
@@ -14,7 +14,7 @@ import planarBinding from '../../../public/data/spells/level-5/planar-binding.js
  * work can read the runtime condition without reparsing spell JSON.
  */
 
-vi.mock('../../utils/savingThrowUtils', () => ({
+vi.mock('../../utils/character/savingThrowUtils', () => ({
   calculateSpellDC: vi.fn(() => 16),
   rollSavingThrow: vi.fn(() => ({
     roll: 3,

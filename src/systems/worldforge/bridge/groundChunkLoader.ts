@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 18/07/2026, 21:55:11
- * Dependents: components/Combat/InPlaceCombatScene.tsx, components/World3D/DungeonEntrances.tsx, components/World3D/GroundAgents.tsx, components/World3D/GroundMovePlane.tsx, components/World3D/GroundProps.tsx, components/World3D/PlayerAvatar.tsx, components/World3D/WebGPUProbe.tsx, components/World3D/WebGPUProbeScene.tsx, components/World3D/World3DDemo.tsx, components/World3D/World3DScene.tsx, components/World3D/World3DWrapper.tsx, components/World3D/canopyInterior.ts, components/World3D/combat/InPlaceCombatLayer.tsx, components/World3D/createGroundWorkerChunkLoader.ts, components/World3D/createWorldGenClient.ts, components/World3D/groundChunkWorker.ts, components/World3D/worldGenCore.ts, components/Worldforge/AgentSim3DPreview.tsx, components/Worldforge/WorldforgeGroundDrilldown.tsx, systems/combat/worldScenario/liveSettlementEncounter.ts, systems/combat/worldScenario/statePatrolWorldEvent.ts, systems/combat/worldScenario/travelAmbushBattlefield.ts, systems/combat/worldScenario/worldBattleScenario.ts, systems/worldforge/bridge/dungeonEntrances.ts, systems/worldforge/bridge/groundAgentMotion.ts, systems/worldforge/bridge/groundChunkWorkerCore.ts, systems/worldforge/bridge/groundHostiles.ts, systems/worldforge/bridge/groundProps.ts, systems/worldforge/provenance/groundProvenance.ts
- * Imports: 49 files
+ * Last Sync: 04/08/2026, 02:05:11
+ * Dependents: components/Combat/InPlaceCombatScene.tsx, components/DesignPreview/steps/PreviewTown3D.tsx, components/World3D/DungeonEntrances.tsx, components/World3D/FarShells.tsx, components/World3D/GroundAgents.tsx, components/World3D/GroundMovePlane.tsx, components/World3D/GroundProps.tsx, components/World3D/PlayerAvatar.tsx, components/World3D/WebGPUProbe.tsx, components/World3D/WebGPUProbeScene.tsx, components/World3D/World3DDemo.tsx, components/World3D/World3DScene.tsx, components/World3D/World3DWrapper.tsx, components/World3D/canopyInterior.ts, components/World3D/combat/InPlaceCombatLayer.tsx, components/World3D/createGroundWorkerChunkLoader.ts, components/World3D/createWorldGenClient.ts, components/World3D/dungeonEntryRuntime.ts, components/World3D/groundChunkWorker.ts, components/World3D/worldGenCore.ts, components/Worldforge/AgentSim3DPreview.tsx, components/Worldforge/WorldforgeGroundDrilldown.tsx, systems/combat/worldScenario/liveSettlementEncounter.ts, systems/combat/worldScenario/statePatrolWorldEvent.ts, systems/combat/worldScenario/travelAmbushBattlefield.ts, systems/combat/worldScenario/worldBattleScenario.ts, systems/worldforge/bridge/dungeonEntrances.ts, systems/worldforge/bridge/groundAgentMotion.ts, systems/worldforge/bridge/groundChunkWorkerCore.ts, systems/worldforge/bridge/groundHostiles.ts, systems/worldforge/bridge/groundProps.ts, systems/worldforge/provenance/groundProvenance.ts
+ * Imports: 55 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -196,6 +196,28 @@ import {
   townClearance,
   type TownKeepOut,
 } from "./townVegetationKeepOut";
+import { buildTownVegetation, type FeetPt, type TownParcel } from "./townVegetation";
+import {
+  UNDERSTORY_SPECIES,
+  type UnderstorySpecies,
+} from "../vegetation/understoryMeshSource";
+
+/** Feature kinds that render as understory rather than tree or bush. */
+const UNDERSTORY_KINDS: ReadonlySet<string> = new Set<string>(UNDERSTORY_SPECIES);
+
+/**
+ * One chunk's understory instances. Separate from VegetationScatter because
+ * every instance carries WHICH species it is: ferns, logs and saplings share a
+ * placement pass but not a mesh, and the renderer buckets by species.
+ */
+export interface UnderstoryScatter {
+  positions: Float32Array;
+  scales: Float32Array;
+  rotations: Float32Array;
+  colors: Float32Array;
+  species: UnderstorySpecies[];
+  count: number;
+}
 
 /** A polyline in ground world-meters with a uniform width (meters). */
 export interface GroundPolyline {
@@ -1669,7 +1691,15 @@ export function makeGroundWorld(
   region?: RegionArtifact,
   opts: MakeGroundWorldOptions = {},
 ): GroundWorld {
-  const wd = localArtifactToWorldData(local, seed);
+  // The anchor cell's biome decides whether this window's `grass` ground is
+  // open meadow or a forest FLOOR (leaf litter). Resolved here rather than in
+  // the adapter because only the bridge knows the atlas; without an anchor
+  // (tests, legacy paths) the adapter keeps its meadow-green default.
+  const wd = localArtifactToWorldData(
+    local,
+    seed,
+    opts.anchorCellId != null ? biomeIdForCell(seed, opts.anchorCellId) : undefined,
+  );
   const townContent = groundTowns(
     local,
     region,
@@ -1711,6 +1741,29 @@ export function makeGroundWorld(
     zM: (f.y - local.bounds.y) * FEET_TO_METERS,
     dens: f.dens,
   }));
+
+  /* Town planting, appended after the wild features.
+   *
+   * Ids continue past the last wild feature rather than restarting, because
+   * `buildGroundVegetation` hashes the id to decide who survives the town
+   * margin, and two features sharing an id would be rolled as one plant.
+   *
+   * This runs even though the keep-out has just cleared the same ground, and
+   * that ordering is the whole design: the wilderness is removed because it
+   * grew there by accident, and the town's trees are put back because somebody
+   * planted them.
+   */
+  const maxWildId = features.reduce((m, f) => (f.id > m ? f.id : m), 0);
+  features.push(
+    ...buildTownVegetation(
+      townContent.townParcels,
+      local.bounds.x,
+      local.bounds.y,
+      FEET_TO_METERS,
+      seed,
+      maxWildId + 1,
+    ),
+  );
 
   const extentX = wd.gridSize.cols * GROUND_METERS_PER_CELL;
   const extentZ = wd.gridSize.rows * GROUND_METERS_PER_CELL;
@@ -2636,6 +2689,7 @@ function groundTowns(
   occupants: GroundOccupantSite[];
   townPlans: Array<{ burgId: number; plan: TownPlan }>;
   townKeepOuts: TownKeepOut[];
+  townParcels: TownParcel[];
 } {
   const exX = local.bounds.width * FEET_TO_METERS;
   const exZ = local.bounds.height * FEET_TO_METERS;
@@ -2652,6 +2706,7 @@ function groundTowns(
   const occupants: GroundOccupantSite[] = [];
   const townPlans: Array<{ burgId: number; plan: TownPlan }> = [];
   const townKeepOuts: TownKeepOut[] = [];
+  const townParcels: TownParcel[] = [];
 
   for (const t of region?.townSites ?? []) {
     const xM =
@@ -2800,6 +2855,15 @@ function groundTowns(
       TREE_TOWN_MARGIN_M,
     );
     if (keepOut) townKeepOuts.push(keepOut);
+
+    /* The town's own planting ground. Kinds carry the meaning — an orchard is
+     * rows of fruit trees, a paddock is grazed bare — so the parcels go through
+     * untouched and townVegetation.ts decides what stands on each. */
+    for (const parcel of adapted.openLand) {
+      if (parcel.polygon.length >= 3) {
+        townParcels.push({ polygon: parcel.polygon as FeetPt[], kind: parcel.kind });
+      }
+    }
 
     // Occupants live where the floor plans say they can (ROSTER-1), and
     // stand at work during business hours (time-of-day v0).
@@ -3196,6 +3260,7 @@ function groundTowns(
     occupants,
     townPlans,
     townKeepOuts,
+    townParcels,
   };
 }
 
@@ -3273,7 +3338,11 @@ export function buildGroundVegetation(
   ground: GroundWorld,
   cx: number,
   cy: number,
-): { trees: VegetationScatter; bushes: VegetationScatter } {
+): {
+  trees: VegetationScatter;
+  bushes: VegetationScatter;
+  understory: UnderstoryScatter;
+} {
   const S = WORLD3D_CONFIG.CHUNK_WORLD_SIZE;
   const minX = cx * S;
   const minZ = cy * S;
@@ -3285,6 +3354,11 @@ export function buildGroundVegetation(
   const bScl: number[] = [];
   const bRot: number[] = [];
   const bCol: number[] = [];
+  const uPos: number[] = [];
+  const uScl: number[] = [];
+  const uRot: number[] = [];
+  const uCol: number[] = [];
+  const uSpecies: UnderstorySpecies[] = [];
 
   // Species palettes (tree-variety dispatch, 2026-06-12): 3 green variants
   // per kind picked by id hash — deterministic, instanced-friendly.
@@ -3292,6 +3366,17 @@ export function buildGroundVegetation(
     [0.12, 0.3, 0.17],
     [0.18, 0.42, 0.25],
     [0.24, 0.48, 0.23],
+  ];
+  /* Understory greens sit DARKER and yellower than the canopy's.
+   *
+   * A forest floor is lit by whatever the canopy leaked, so ground cover that
+   * matches the crowns above it reads as a mirror rather than as shade. The
+   * yellow shift is the leaf litter and dead frond showing through the live
+   * growth, which is most of what separates a floor from a hedge. */
+  const UNDERSTORY_PALETTE: Array<[number, number, number]> = [
+    [0.20, 0.30, 0.13],
+    [0.26, 0.38, 0.17],
+    [0.31, 0.35, 0.15],
   ];
   const BUSH_PALETTE: Array<[number, number, number]> = [
     [0.29, 0.42, 0.16],
@@ -3301,7 +3386,14 @@ export function buildGroundVegetation(
 
   const keepOuts = ground.townKeepOuts ?? [];
   for (const f of ground.features) {
-    if (f.kind !== "tree" && f.kind !== "bush") continue;
+    // `townTree`/`townBush` are the town's OWN planting (bridge/townVegetation.ts).
+    // They render as trees and bushes but skip the keep-out below, because that
+    // filter exists to delete plants the wilderness put inside a settlement by
+    // accident — which is the opposite of what these are.
+    const town = f.kind === "townTree" || f.kind === "townBush";
+    const isTree = f.kind === "tree" || f.kind === "townTree";
+    const under = UNDERSTORY_KINDS.has(f.kind);
+    if (!isTree && !under && f.kind !== "bush" && f.kind !== "townBush") continue;
     if (f.xM < minX || f.xM >= minX + S || f.zM < minZ || f.zM >= minZ + S)
       continue;
 
@@ -3319,8 +3411,8 @@ export function buildGroundVegetation(
      * woods feather toward the settlement rather than ending on a contour.
      * Hashing the id keeps it deterministic and independent of chunk order.
      */
-    if (keepOuts.length) {
-      const margin = f.kind === "tree" ? TREE_TOWN_MARGIN_M : BUSH_TOWN_MARGIN_M;
+    if (keepOuts.length && !town) {
+      const margin = isTree ? TREE_TOWN_MARGIN_M : BUSH_TOWN_MARGIN_M;
       const clear = townClearance(f.xM, f.zM, keepOuts, margin);
       if (clear <= 0) continue;
       if (clear < 1 && fhash01(f.id, 41) > clear) continue;
@@ -3335,9 +3427,27 @@ export function buildGroundVegetation(
     // `dens` is absent on pre-clump-field artifacts and on any feature placed
     // outside the vegetation streams, and 0 there keeps the old size band.
     const dens = f.dens ?? 0;
-    if (f.kind === "tree") {
+    if (under) {
+      /* Understory rides `dens` harder than the canopy does. A fern at the
+       * ragged edge of a thicket really is a seedling and one in the middle is
+       * waist high, and that spread is most of what stops a ground layer
+       * reading as a decal repeated across the floor. */
+      uPos.push(f.xM - minX, surfaceY, f.zM - minZ);
+      uScl.push((0.55 + fhash01(f.id, 7) * 0.5) * (1 + 0.8 * dens));
+      uRot.push(rot);
+      uSpecies.push(f.kind as UnderstorySpecies);
+      const uc = UNDERSTORY_PALETTE[Math.floor(fhash01(f.id, 23) * 3)];
+      uCol.push(uc[0], uc[1], uc[2]);
+    } else if (isTree) {
       tPos.push(f.xM - minX, surfaceY, f.zM - minZ);
-      tScl.push((0.7 + fhash01(f.id, 7) * 1.1) * (1 + DENS_SCALE_LIFT * dens));
+      /* A planted tree is a narrower size band than a wild one. An orchard of
+       * mixed saplings and giants is not an orchard, and the whole read of the
+       * rows depends on the trees matching each other. */
+      tScl.push(
+        town
+          ? (0.85 + fhash01(f.id, 7) * 0.35) * (1 + DENS_SCALE_LIFT * dens)
+          : (0.7 + fhash01(f.id, 7) * 1.1) * (1 + DENS_SCALE_LIFT * dens),
+      );
       tRot.push(rot);
       const tc = TREE_PALETTE[Math.floor(fhash01(f.id, 23) * 3)];
       tCol.push(tc[0], tc[1], tc[2]);
@@ -3351,6 +3461,14 @@ export function buildGroundVegetation(
   }
 
   return {
+    understory: {
+      positions: new Float32Array(uPos),
+      scales: new Float32Array(uScl),
+      rotations: new Float32Array(uRot),
+      colors: new Float32Array(uCol),
+      species: uSpecies.slice(),
+      count: uScl.length,
+    },
     trees: {
       positions: new Float32Array(tPos),
       scales: new Float32Array(tScl),

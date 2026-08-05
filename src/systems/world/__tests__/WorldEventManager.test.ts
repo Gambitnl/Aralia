@@ -10,7 +10,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { processWorldEvents } from '../WorldEventManager';
 import { GameState } from '../../../types';
 import { FACTIONS, INITIAL_FACTION_STANDINGS } from '../../../data/factions';
-import { createMockGameState } from '../../../utils/factories';
+import { createMockGameState } from '../../../utils/core';
 import { getGameDay } from '../../../utils/core';
 
 describe('WorldEventManager', () => {

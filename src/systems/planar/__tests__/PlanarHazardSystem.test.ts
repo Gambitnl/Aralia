@@ -3,12 +3,12 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { PlanarHazardSystem } from '../PlanarHazardSystem';
 import { CombatCharacter, GameState, Location, PlayerCharacter } from '../../../types';
 import { Plane } from '../../../types/planes';
-import { getCurrentPlane } from '../../../utils/planarUtils';
-import { rollSavingThrow } from '../../../utils/savingThrowUtils';
-import { createMockGameState, createMockPlayerCharacter } from '../../../utils/factories';
+import { getCurrentPlane } from '../../../utils/planar';
+import { rollSavingThrow } from '../../../utils/character';
+import { createMockGameState, createMockPlayerCharacter } from '../../../utils/core';
 
 // Mock dependencies
-vi.mock('../../../utils/planarUtils', () => ({
+vi.mock('../../../utils/planar/planarUtils', () => ({
   getCurrentPlane: vi.fn()
 }));
 
@@ -24,7 +24,7 @@ vi.mock('../../../utils/combat', async (importOriginal) => {
     };
 });
 
-vi.mock('../../../utils/savingThrowUtils', () => ({
+vi.mock('../../../utils/character/savingThrowUtils', () => ({
   rollSavingThrow: vi.fn()
 }));
 

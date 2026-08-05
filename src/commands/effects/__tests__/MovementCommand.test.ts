@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { MovementCommand } from '../MovementCommand';
-import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '@/utils/factories';
+import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '@/utils/core';
 import { MovementEffect, SpellEffect } from '@/types/spells';
 import { CommandContext } from '../../base/SpellCommand';
 

@@ -5,7 +5,7 @@
  */
 import { Item, Monster } from '../types';
 import { ITEMS, WEAPONS_DATA } from '../constants';
-import { logger } from '../utils/logger';
+import { logger } from '../utils/core';
 
 interface LootResult {
   gold: number;

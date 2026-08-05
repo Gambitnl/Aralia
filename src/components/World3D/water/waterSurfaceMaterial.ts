@@ -89,11 +89,36 @@ export function getRippleNormalTexture(): THREE.DataTexture {
 /** Water colour, kept in one place so the emissive can be derived from it. */
 export const WATER_COLOR = '#2f78b4';
 
+/**
+ * The deep-channel colour. Darker and far less saturated than the old single
+ * WATER_COLOR: one flat blue across every body is what made rivers and pools
+ * read as decals painted onto the terrain rather than as water sitting in it.
+ */
+export const WATER_DEEP_COLOR = '#1d4e6d';
+
+/**
+ * The colour of water thin enough to see the bed through. Not a lighter blue —
+ * a desaturated silt-green, because a shallow margin takes most of its
+ * appearance from the sand and mud under it, and a pale BLUE rim just reads as
+ * a second decal outlining the first.
+ */
+export const WATER_SHALLOW_COLOR = '#7d9a8c';
+
+/** Opacity at the shore edge and in the deep channel. */
+const SHALLOW_OPACITY = 0.12;
+const DEEP_OPACITY = 0.9;
+
 let material: THREE.MeshStandardMaterial | null = null;
 
 /**
  * The shared water material. One instance for every chunk, so the scrolling
  * offset advances once per frame rather than once per chunk.
+ *
+ * Reads the per-vertex depth encoding that `waterGeometry` packs into the color
+ * attribute (see WaterMesh): red = opacity ramp, green = colour ramp. Depth
+ * cannot be recovered in the shader — it is the gap between the water surface
+ * and the CARVED BED, and the bed heightfield is CPU-side only — so the vertex
+ * attribute is the channel that carries it.
  */
 export function getWaterSurfaceMaterial(): THREE.MeshStandardMaterial {
   if (material) return material;
@@ -109,8 +134,56 @@ export function getWaterSurfaceMaterial(): THREE.MeshStandardMaterial {
     roughness: 0.12,
     metalness: 0.25,
     transparent: true,
-    opacity: 0.92,
+    // Per-vertex depth drives opacity now, so the constant is neutral; the
+    // ramp's own endpoints live in SHALLOW_OPACITY/DEEP_OPACITY.
+    opacity: 1,
+    vertexColors: true,
+    /**
+     * DoubleSide, despite the note in `pushUpwardTriangles` arguing against it.
+     *
+     * That note is about geometry: emitting each triangle twice with opposite
+     * windings puts two surfaces at one depth, which z-fights, and it is why the
+     * town walls chipped open. DoubleSide does something different — it turns
+     * back-face CULLING off, so each triangle still rasterizes exactly once and
+     * there is no second surface to fight with. The water is a single sheet, so
+     * this costs no triangles and is the whole fix for a lid that used to vanish
+     * the moment the camera dipped under it.
+     */
+    side: THREE.DoubleSide,
   });
+
+  material.onBeforeCompile = (shader) => {
+    shader.uniforms.uShallowColor = { value: new THREE.Color(WATER_SHALLOW_COLOR) };
+    shader.uniforms.uDeepColor = { value: new THREE.Color(WATER_DEEP_COLOR) };
+
+    shader.fragmentShader = shader.fragmentShader
+      .replace(
+        '#include <common>',
+        `#include <common>
+uniform vec3 uShallowColor;
+uniform vec3 uDeepColor;
+float wOpacityRamp;
+float wColorRamp;`,
+      )
+      // vColor is a depth encoding, not a tint, so the stock chunk's
+      // "multiply the diffuse by it" is exactly wrong and gets replaced.
+      .replace(
+        '#include <color_fragment>',
+        `wOpacityRamp = vColor.r;
+wColorRamp = vColor.g;
+diffuseColor.rgb = mix( uShallowColor, uDeepColor, wColorRamp );
+diffuseColor.a = mix( ${SHALLOW_OPACITY.toFixed(3)}, ${DEEP_OPACITY.toFixed(3)}, wOpacityRamp );`,
+      )
+      // A constant emissive over a depth-faded surface lights the transparent
+      // margin as brightly as the channel, which puts the hard edge straight
+      // back. Fade it with the water it belongs to.
+      .replace(
+        '#include <emissivemap_fragment>',
+        `#include <emissivemap_fragment>
+totalEmissiveRadiance *= mix( 0.15, 1.0, wColorRamp );`,
+      );
+  };
+
   return material;
 }
 

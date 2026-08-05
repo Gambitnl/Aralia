@@ -25,7 +25,7 @@
 import { BaseEffectCommand } from '../base/BaseEffectCommand';
 import { CombatState, StatusEffect, ActiveCondition, ActiveEffect, ActiveEnvironmentalControl } from '../../types/combat';
 import { isStatusConditionEffect, EffectDuration, ConditionName, BindingControl, DominationControl, StatusCondition, StatusConditionEffect, RepeatSave, SpellcastingRestriction } from '../../types/spells';
-import { calculateSpellDC, rollSavingThrow } from '../../utils/savingThrowUtils';
+import { calculateSpellDC, rollSavingThrow } from '../../utils/character';
 import { generateId } from '../../utils/combat';
 import { STATUS_ICONS, DEFAULT_STATUS_ICON } from '@/config/statusIcons';
 import { SavePenaltySystem } from '../../systems/combat/SavePenaltySystem';

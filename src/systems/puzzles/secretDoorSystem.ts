@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * This file appears to be an ISOLATED UTILITY or ORPHAN.
  *
- * Last Sync: 27/06/2026, 02:18:23
+ * Last Sync: 04/08/2026, 02:03:59
  * Dependents: None (Orphan)
  * Imports: 5 files
  *
@@ -24,7 +24,7 @@
 
 import { PlayerCharacter } from '../../types/character';
 import { rollDice } from '../../utils/combat';
-import { getAbilityModifierValue } from '../../utils/statUtils';
+import { getAbilityModifierValue } from '../../utils/character';
 import { getPuzzleCharacterStats } from './characterAbilityBridge';
 import { SecretDoor, SecretDoorResult } from './types';
 

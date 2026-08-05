@@ -2,7 +2,7 @@ import { SpellCommandFactory } from '../SpellCommandFactory'
 import scrying from '../../../../public/data/spells/level-5/scrying.json'
 import type { CombatCharacter, CombatState } from '@/types/combat'
 import type { Spell } from '@/types/spells'
-import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '@/utils/factories'
+import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '@/utils/core'
 import { buildSpellMapArtifactMarkers } from '@/components/BattleMap/spellMapArtifacts'
 
 /**

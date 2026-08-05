@@ -16,7 +16,7 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import { Spell, UtilityEffect, isExecutableControlOption } from '../../types/spells';
-import { detectSuspiciousInput } from '../../utils/securityUtils';
+import { detectSuspiciousInput } from '../../utils/core';
 import { WindowFrame } from '../ui/WindowFrame';
 import { WINDOW_KEYS } from '../../styles/uiIds';
 

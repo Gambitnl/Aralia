@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { FamiliarSharedSensesCommand } from '../effects/FamiliarSharedSensesCommand'
-import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '../../utils/factories'
+import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '../../utils/core'
 
 /**
  * These tests protect the Find Familiar shared-senses command.

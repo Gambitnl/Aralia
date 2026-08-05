@@ -1,5 +1,5 @@
 
-import { createSeededRandom } from '../utils/submapUtils';
+import { createSeededRandom } from '../utils/spatial/submapUtils';
 import { DiscoveryReward, DiscoveryConsequence } from '../types/exploration';
 import { LANDMARK_ORIGINS, LANDMARK_TYPES, LANDMARK_STATES } from '../data/landmarkGenData';
 

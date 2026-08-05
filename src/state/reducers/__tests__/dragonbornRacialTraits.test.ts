@@ -3,7 +3,7 @@ import { describe, it, expect } from 'vitest';
 import { characterReducer } from '../characterReducer';
 import { GameState } from '../../../types';
 import { AppAction } from '../../actionTypes';
-import { createMockPlayerCharacter } from '../../../utils/factories';
+import { createMockPlayerCharacter } from '../../../utils/core';
 
 describe('Dragonborn Racial Traits Logic', () => {
     const initialState: GameState = {

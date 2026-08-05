@@ -37,8 +37,8 @@ import { resolveScalableNumber } from '../types/spells';
 import { SpellCommandFactory, AbilityCommandFactory, CommandExecutor } from '../commands'; // Import Command System
 import { BreakConcentrationCommand } from '../commands/effects/ConcentrationCommands'; // Import Break Concentration
 import { getDistance, generateId } from '../utils/combat';
-import { calculateSpellDC, rollSavingThrow } from '../utils/savingThrowUtils';
-import { hasLineOfSight } from '../utils/lineOfSight';
+import { calculateSpellDC, rollSavingThrow } from '../utils/character';
+import { hasLineOfSight } from '../utils/spatial';
 import { calculateAffectedTiles, type AoEParams } from '../utils/combat/aoeCalculations';
 import { useTargeting } from './combat/useTargeting'; // New Hook
 import { resolveAoEParams } from '../utils/spatial/targetingUtils';

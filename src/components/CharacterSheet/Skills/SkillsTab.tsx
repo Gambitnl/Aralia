@@ -22,7 +22,7 @@
 import React from 'react';
 import { PlayerCharacter, Skill as SkillType } from '../../../types';
 import { SKILLS_DATA } from '../../../data/skills';
-import { getAbilityModifierValue } from '../../../utils/characterUtils';
+import { getAbilityModifierValue } from '../../../utils/character';
 import Tooltip from '../../ui/Tooltip';
 import GlossaryTooltip from '../../Glossary/GlossaryTooltip';
 

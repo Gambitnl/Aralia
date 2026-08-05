@@ -36,8 +36,8 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { LoadGameModal, SaveSlotSelector } from '../SaveLoad';
 import { deleteSaveGame, getSaveSlots, SaveSlotSummary } from '../../services/saveLoadService';
 import { VersionDisplay } from '../ui/VersionDisplay';
-import { canUseDevTools } from '../../utils/permissions';
-import { t } from '../../utils/i18n';
+import { canUseDevTools } from '../../utils/core';
+import { t } from '../../utils/core';
 import { UI_ID } from '../../styles/uiIds';
 
 interface MainMenuProps {

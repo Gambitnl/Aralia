@@ -19,7 +19,7 @@ import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X } from 'lucide-react';
 import { Action } from '../../types';
-import { canUseDevTools } from '../../utils/permissions';
+import { canUseDevTools } from '../../utils/core';
 import { ENV } from '../../config/env';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
 import { useKeyboardNavigation } from '../../hooks/useKeyboardNavigation';

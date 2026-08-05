@@ -7,7 +7,7 @@
  */
 
 import React, { useState } from 'react';
-import { getAllFactions } from '../../utils/factionUtils';
+import { getAllFactions } from '../../utils/world';
 import { WindowFrame } from '../ui/WindowFrame';
 import { WINDOW_KEYS } from '../../styles/uiIds';
 import { NobleHouse, Heraldry } from '../../types/noble';

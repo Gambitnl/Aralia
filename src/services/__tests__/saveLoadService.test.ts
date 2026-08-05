@@ -11,7 +11,7 @@ import {
     atlasHiddenSiteForAddress,
 } from '../../systems/worldforge/leaf3d/atlasGroundContinuity';
 import { MAX_DISCOVERY_LOG_ENTRIES } from '../../state/reducers/logReducer';
-import { logger } from '../../utils/logger';
+import { logger } from '../../utils/core';
 import { canonicalDungeonId } from '../../systems/worldforge/dungeon/world/deriveIdentity';
 import {
     completeDungeonExpedition,

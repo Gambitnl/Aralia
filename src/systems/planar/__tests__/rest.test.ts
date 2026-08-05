@@ -3,13 +3,13 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { checkPlanarRestRules } from '../rest';
 import { GameState, Location } from '../../../types';
 import { Plane } from '../../../types/planes';
-import { getCurrentPlane } from '../../../utils/planarUtils';
-import { rollSavingThrow } from '../../../utils/savingThrowUtils';
-import { createMockGameState, createMockPlayerCharacter } from '../../../utils/factories';
+import { getCurrentPlane } from '../../../utils/planar';
+import { rollSavingThrow } from '../../../utils/character';
+import { createMockGameState, createMockPlayerCharacter } from '../../../utils/core';
 
 // Mock dependencies
-vi.mock('../../../utils/planarUtils');
-vi.mock('../../../utils/savingThrowUtils');
+vi.mock('../../../utils/planar/planarUtils');
+vi.mock('../../../utils/character/savingThrowUtils');
 
 describe('checkPlanarRestRules', () => {
     let mockGameState: GameState;
