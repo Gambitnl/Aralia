@@ -1,5 +1,7 @@
 # Time & World Events
 
+Verified: unknown — predates the verification rule (see AGENTS.md)
+
 ## Purpose
 
 This domain covers the systems that model game time, seasonal changes, world events, faction-level world activity, and the reducers or services that expose those changes to the rest of the game.
@@ -45,13 +47,13 @@ This pass verified:
 - src/data/deities/
 - src/data/temples/
 - src/utils/core/timeUtils.ts
-- src/utils/factionUtils.ts
+- src/utils/world/factionUtils.ts
 - src/utils/world/factionUtils.ts
 
 ## Important Corrections
 
 - The older doc used several flat utility paths as if they were the only current source of truth. The repo now clearly has namespaced utility lanes such as src/utils/core/timeUtils.ts and src/utils/world/factionUtils.ts alongside some older bridge paths.
-- TempleModal is not at src/components/TempleModal.tsx; the current path is src/components/Religion/TempleModal.tsx.
+- TempleModal is not at src/components/Religion/TempleModal.tsx; the current path is src/components/Religion/TempleModal.tsx.
 - The current world lane includes an explicit FactionEconomyManager.ts, which means world-events and faction systems now overlap more directly with economy than the older doc made clear.
 
 ## Tests Verified In This Pass

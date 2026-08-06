@@ -86,9 +86,9 @@ export function migrateMapDataToWorldDataV2(mapData: MapData, worldSeed: number)
 
   const migrated: MapData = { ...mapData, worldData };
 
-  // Record provenance only when we derived heights from biomes (no Azgaar terrain), and only if a
-  // generator upstream (e.g. mapService legacy fallback) has not already recorded a more specific
-  // reason. This is lower-fidelity than the Azgaar path, so it stays flagged in the DebugHUD.
+  // Record provenance only when we derived heights from biomes (no Azgaar terrain), and only if an
+  // upstream generator (an old save's map) has not already recorded a more specific reason. This is
+  // lower-fidelity than real terrain, so it stays flagged in the DebugHUD.
   if (usedBiomeDerivedHeights && !migrated.generation) {
     migrated.generation = {
       source: 'biome-derived',

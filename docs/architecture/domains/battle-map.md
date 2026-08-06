@@ -1,5 +1,7 @@
 # Battle Map
 
+Verified: unknown — predates the verification rule (see AGENTS.md)
+
 ## Purpose
 
 The Battle Map domain covers the tactical grid-rendering layer used during combat, including tiles, tokens, overlays, initiative-adjacent UI, targeting presentation, and battle-map generation helpers.

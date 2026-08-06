@@ -1,5 +1,7 @@
 # Data Pipelines
 
+Verified: unknown — predates the verification rule (see AGENTS.md)
+
 ## Purpose
 
 This domain covers the tooling lane that validates, generates, migrates, and audits game data and supporting documentation.

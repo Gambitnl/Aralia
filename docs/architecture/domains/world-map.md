@@ -1,5 +1,7 @@
 # World Map
 
+Verified: unknown — predates the verification rule (see AGENTS.md)
+
 ## Purpose
 
 The World Map domain handles region-level navigation, high-level geography, and the bridge from world-scale travel selection into more local exploration surfaces.
@@ -9,8 +11,13 @@ The World Map domain handles region-level navigation, high-level geography, and 
 High-signal current entry points verified in this pass:
 - src/components/MapPane.tsx
 - src/components/WorldPane.tsx
-- src/components/Minimap.tsx
-- src/services/mapService.ts
+
+RETIRED 2026-08-05 — these two were deleted with the legacy Azgaar world-map
+generator and are kept here only so a reader is not left guessing where they
+went. Worldforge is now the sole world map.
+
+- ~~src/components/Minimap.tsx~~ — deleted; the atlas view carries the overview
+- ~~src/services/mapService.ts~~ — deleted; see src/systems/worldforge/
 
 ## Current Domain Shape
 

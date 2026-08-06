@@ -1,5 +1,7 @@
 # Creature Taxonomy System
 
+Verified: unknown — predates the verification rule (see AGENTS.md)
+
 ## Purpose
 
 This file documents the CreatureTaxonomy service and its intended role as a safer typed lane for creature-type validation, normalization, and trait lookup.

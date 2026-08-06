@@ -1,5 +1,7 @@
 # Character Sheet
 
+Verified: unknown — predates the verification rule (see AGENTS.md)
+
 ## Purpose
 
 The Character Sheet domain covers the modal character-inspection and character-management surfaces used during gameplay, including overview, equipment, inventory, skills, details, family, spellbook, crafting, journal, and level-up flows.
@@ -14,7 +16,7 @@ High-signal current entry points verified in this pass:
 - src/components/CharacterSheet/Crafting/
 - src/components/CharacterSheet/Journal/
 - src/hooks/useCharacterProficiencies.ts
-- src/utils/characterUtils.ts
+- src/utils/character/characterUtils.ts
 
 ## Current Domain Shape
 
@@ -32,13 +34,13 @@ It also owns a nested LevelUpModal flow.
 The surrounding component tree already includes dedicated overview, equipment mannequin, inventory, skill, spellbook, crafting, journal, and family surfaces under the CharacterSheet subtree.
 
 Utility ownership also drifted:
-- src/utils/characterUtils.ts still exists, but it is a deprecated bridge that re-exports from src/utils/character/characterUtils.
+- src/utils/character/characterUtils.ts still exists, but it is a deprecated bridge that re-exports from src/utils/character/characterUtils.
 - useAbilitySystem exists, but it is more combat-facing orchestration than a clean primary character-sheet entry point.
 
 ## Historical Drift Corrected
 
 The older version of this file drifted in several concrete ways:
-- it pointed to src/components/CharacterSheetModal.tsx, but the live file now lives at src/components/CharacterSheet/CharacterSheetModal.tsx
+- it pointed to src/components/CharacterSheet/CharacterSheetModal.tsx, but the live file now lives at src/components/CharacterSheet/CharacterSheetModal.tsx
 - it treated SpellbookOverlay.tsx and Party*.tsx as top-level companion paths, but the verified spellbook surfaces now live under src/components/CharacterSheet/Spellbook/ and no top-level PartyPane path was found in this pass
 - it listed src/utils/character*.ts as if those were the clean primary utility homes, but the current characterUtils file is a deprecated bridge
 

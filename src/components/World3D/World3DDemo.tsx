@@ -1,19 +1,10 @@
 ﻿/**
  * @file World3DDemo.tsx
- * @description Self-contained host for the streamed 3D world. Generates a full world via the
- * real generation pipeline (`generateMap` â†’ `WorldData` v2) and feeds World3DScene an inline
- * (main-thread) chunk loader.
- *
- * Why this is built this way:
- * - Using the real `generateMap` pipeline (instead of a synthetic all-`plains` heightmap) means
- *   the demo showcases the *actual* implemented content: varied biomes, flow-traced rivers,
- *   the MST road graph, and placed towns/dungeons/ruins â€” the same data the live atlas + 3D
- *   world consume. (Resolves gap W3D-G8 / task T4.)
- * - The inline loader keeps the sandbox runnable without the Web Worker pool (worker-backed
- *   loading is tracked separately as W3D-G1).
- * - The camera spawns on the town with the greatest local terrain relief and is lifted to that
- *   ground elevation, so the now vertically-exaggerated hills read immediately rather than
- *   spawning on flat coast/ocean or a flat plateau (W3D-G11 / T8).
+ * @description Self-contained host for the streamed 3D ground world. One-worldmap
+ * cleanup 2026-08-05: the legacy continent sandbox (generateMap → WorldData grid,
+ * inline chunk loader) is gone. The demo now always runs the canonical Worldforge
+ * ground pipeline — the same cell-addressed Local artifacts the game streams.
+ * URL tuning: ?gx/?gy (grid window), ?dcell (atlas cell), ?wfseed, ?hour, ?seam=1.
  */
 
 import React, { useMemo, useState } from 'react';
@@ -43,8 +34,6 @@ if (urlParams.get('stubForgeAssets') === '1') {
   });
 }
 
-import { generateMap } from '@/services/mapService';
-import { BIOMES } from '@/constants';
 import { ALL_RACES_DATA } from '@/data/races';
 import { CLASSES_DATA } from '@/data/classes';
 import type { PlayerCharacter } from '@/types/character';
@@ -80,27 +69,19 @@ const demoCast: SceneCastMember[] = [
   },
   { id: 'demo-commoner', name: 'Quiet Stranger' },
 ];
-import { handleChunkRequest } from '@/systems/world3d/chunkWorkerCore';
-import { WORLD3D_CONFIG, heightToMeters, resolutionForLod } from '@/systems/world3d/config';
+import { heightToMeters } from '@/systems/world3d/config';
 import type { ChunkLoader } from '@/systems/world3d/types';
 import { getWorldforgeLocalForLocation, getWorldforgeLocalForCell, getBridgeAtlas } from '@/systems/worldforge/bridge/legacySubmapBridge';
 import { createGroundChunkLoader } from '@/systems/worldforge/bridge/groundChunkLoader';
 import { pickSeamCellPair, buildSeamStitchedLocal } from '@/systems/worldforge/bridge/seamProbe';
 
-const DEMO_COLS = 60;
-const DEMO_ROWS = 40;
-const DEMO_SEED = 2026;
 /** Worldforge world seed for the ground/seam sandbox (matches the .agent probes). */
 const DEMO_WF_SEED = 42;
 
 const World3DDemo: React.FC = () => {
-  // Worldforge GROUND MODE (?ground=1, slice 3b): stream an L2 LocalArtifact
-  // at walking scale (5 ft cells) through the same scene/streamer the
-  // continent demo uses â€” the loaders differ, nothing else does.
-  const groundMode = useMemo(
-    () => new URLSearchParams(window.location.search).get('ground') === '1',
-    [],
-  );
+  // One-worldmap cleanup: the demo is ground-mode only. `?ground=1` is accepted
+  // for old bookmarks but no longer selects between pipelines.
+  const groundMode = true;
 
   // The ground harness's cell address, re-read here for the 2D zoom-out
   // overlay (the loader memo consumes the same params internally).
@@ -126,7 +107,7 @@ const World3DDemo: React.FC = () => {
   }, [show2dSubmap, dcell, wfSeed]);
 
   const { loader, start, startSurfaceY, ground: demoGround } = useMemo(() => {
-    if (groundMode) {
+    {
       // Location is URL-tunable: ?ground=1&gx=17&gy=4 → river window;
       // default (16,4) spawns at a town site. Scans: find-river/find-town
       // probes in .agent/a8/.
@@ -200,55 +181,6 @@ const World3DDemo: React.FC = () => {
         ground,
       };
     }
-    // Run the real world-generation pipeline so the demo renders authentic rivers, roads,
-    // towns, and varied biomes rather than a uniform-plains placeholder.
-    const map = generateMap(DEMO_ROWS, DEMO_COLS, {}, BIOMES, DEMO_SEED);
-    const world = map.worldData;
-    if (!world) {
-      throw new Error('World3DDemo: generateMap did not produce worldData (v2). Check the worldSim pipeline.');
-    }
-
-    const inlineLoader: ChunkLoader = async (cx, cy, lod) =>
-      handleChunkRequest(world, { cx, cy, resolution: resolutionForLod(lod) });
-
-    // Spawn on the town with the greatest *local relief* (maxâˆ’min terrain height in its
-    // neighborhood) so the camera frames varied, hilly ground where the now vertically-exaggerated
-    // relief reads clearly â€” rather than the first town (often a flat coastal/sea-level site) or
-    // the highest town (often a flat plateau top). Falls back to the world's geometric center.
-    const { cols: wCols, rows: wRows } = world.gridSize;
-    const heightAtCell = (gx: number, gy: number): number => {
-      const cx = Math.max(0, Math.min(wCols - 1, Math.round(gx)));
-      const cy = Math.max(0, Math.min(wRows - 1, Math.round(gy)));
-      return world.heights[cy * wCols + cx] ?? 0;
-    };
-    const localRelief = (gx: number, gy: number): number => {
-      let min = Infinity, max = -Infinity;
-      for (let dy = -2; dy <= 2; dy++) {
-        for (let dx = -2; dx <= 2; dx++) {
-          const h = heightAtCell(gx + dx, gy + dy);
-          if (h < min) min = h;
-          if (h > max) max = h;
-        }
-      }
-      return max - min;
-    };
-    const towns = world.sites.filter((s) => s.kind === 'town');
-    const spawnTown = towns.length
-      ? towns.reduce((best, s) =>
-          localRelief(s.position.x, s.position.y) > localRelief(best.position.x, best.position.y) ? s : best,
-        )
-      : undefined;
-    const startGridX = spawnTown ? spawnTown.position.x : DEMO_COLS / 2;
-    const startGridY = spawnTown ? spawnTown.position.y : DEMO_ROWS / 2;
-    const startX = startGridX * WORLD3D_CONFIG.METERS_PER_CELL;
-    const startZ = startGridY * WORLD3D_CONFIG.METERS_PER_CELL;
-
-    // Terrain is now vertically exaggerated, so the spawn surface can sit hundreds of meters up.
-    // Convert the spawn cell's height (via the same exaggerated mapping the geometry builders use)
-    // so the scene can frame the camera on the actual ground, not Y=0.
-    const startSurfaceY = heightToMeters(heightAtCell(startGridX, startGridY));
-
-    return { loader: inlineLoader, start: [startX, 0, startZ] as const, startSurfaceY, ground: null };
   }, [groundMode]);
 
   return (

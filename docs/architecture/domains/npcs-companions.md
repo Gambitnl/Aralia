@@ -1,5 +1,7 @@
 # NPCs / Companions
 
+Verified: unknown — predates the verification rule (see AGENTS.md)
+
 ## Purpose
 
 This domain covers the companion, NPC, dialogue, and relationship-management surfaces that drive party commentary, NPC state, generated dialogue topics, and character-facing social systems.

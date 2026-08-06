@@ -1,5 +1,7 @@
 # Crafting & Economy
 
+Verified: unknown — predates the verification rule (see AGENTS.md)
+
 ## Purpose
 
 This file should describe the crafting lane and its adjacent relationship to trade and economy systems.

@@ -34,6 +34,11 @@ import {
   directionalAtlasNeighbor,
   type AtlasKeyboardDirection,
 } from './atlasKeyboardNavigation';
+import { FEET_PER_FMG_PIXEL } from '../../systems/worldforge/adapter/atlasArtifact';
+import { FEET_PER_METER } from '../../systems/worldforge/units';
+
+/** Map-canon ground distance of one FMG graph pixel, in km (exactly 3). */
+const KM_PER_FMG_PX = FEET_PER_FMG_PIXEL / (FEET_PER_METER * 1000);
 
 /**
  * This file renders and operates Aralia's canonical interactive SVG world map.
@@ -173,7 +178,7 @@ function loadLayerPrefs(key: string): { mapMode?: string; features?: Partial<Rec
 // pick what the land is colored BY. A neutral land base is always drawn beneath.
 type AreaModeId =
   | 'biomes' | 'states' | 'cultures' | 'religions' | 'provinces'
-  | 'population' | 'temperature' | 'precipitation' | 'none';
+  | 'population' | 'temperature' | 'precipitation' | 'heightmap' | 'none';
 type LegendKind = 'biomes' | 'discrete' | 'ramp' | 'none';
 interface AreaModeDef {
   id: AreaModeId;
@@ -199,13 +204,16 @@ const AREA_MODES: AreaModeDef[] = [
   { id: 'population', label: 'Population', desc: 'How densely each area is settled', legend: 'ramp', ramp: ['#ffffcc', '#fd8d3c', '#800026'], ends: ['Sparse', 'Dense'], dataKey: 'populationCells' },
   { id: 'temperature', label: 'Temperature', desc: 'Average temperature, cold to hot', legend: 'ramp', ramp: ['#2c7bb6', '#ffffbf', '#d7191c'], ends: ['Cold', 'Hot'], dataKey: 'temperatureCells' },
   { id: 'precipitation', label: 'Precipitation', desc: 'Rainfall, dry to wet', legend: 'ramp', ramp: ['#f6e8c3', '#80cdc1', '#01665e'], ends: ['Dry', 'Wet'], dataKey: 'precipitationCells' },
+  { id: 'heightmap', label: 'Heightmap', desc: 'Land elevation, lowland to peak', legend: 'ramp', ramp: ['#6da05f', '#a58858', '#f2efe9'], ends: ['Low', 'High'], dataKey: 'heightCells' },
   { id: 'none', label: 'None (plain land)', desc: 'Flat parchment land — features only', legend: 'none' },
 ];
 
 // ── Feature layers (independent toggles, drawn on top of the coloring) ─────────
 type FeatureLayerId =
   | 'rivers' | 'routes' | 'borders' | 'coast' | 'ice' | 'zones' | 'danger' | 'military'
-  | 'burgs' | 'markers' | 'labels' | 'cells' | 'grid' | 'vignette';
+  | 'reliefGlyphs' | 'forestGlyphs'
+  | 'burgs' | 'markers' | 'labels' | 'cells' | 'grid' | 'coordinates' | 'compass'
+  | 'scalebar' | 'texture' | 'vignette';
 interface FeatureLayerDef {
   id: FeatureLayerId;
   label: string;
@@ -223,18 +231,26 @@ const FEATURE_LAYERS: FeatureLayerDef[] = [
   { id: 'zones', label: 'Zones', group: 'Features', desc: 'Event/danger areas: wars, plagues, disasters', dataKey: 'zoneCells' },
   { id: 'danger', label: 'Danger', group: 'Features', desc: 'Where is it risky to travel? Threat from wars, plagues and hostile terrain (blends over any coloring)', dataKey: 'dangerCells' },
   { id: 'military', label: 'Military', group: 'Features', desc: 'State regiments and fleets', dataKey: 'regiments' },
+  { id: 'reliefGlyphs', label: 'Relief', group: 'Features', desc: 'Mountain and hill glyphs', dataKey: 'reliefGlyphs' },
+  { id: 'forestGlyphs', label: 'Forests', group: 'Features', desc: 'Tree glyphs on named forests', dataKey: 'forestGlyphs' },
   { id: 'burgs', label: 'Burgs', group: 'Places', desc: 'Towns and cities (★ = capital)' },
   { id: 'markers', label: 'Markers', group: 'Places', desc: 'Points of interest', dataKey: 'poiMarkers' },
   { id: 'labels', label: 'Labels', group: 'Places', desc: 'State and settlement names' },
   { id: 'cells', label: 'Cells', group: 'Reference', desc: 'Voronoi cell mesh — the clickable grid' },
-  { id: 'grid', label: 'Grid', group: 'Reference', desc: 'Latitude/longitude reference lines' },
+  { id: 'grid', label: 'Grid', group: 'Reference', desc: 'Square reference grid' },
+  { id: 'coordinates', label: 'Coordinates', group: 'Reference', desc: 'Latitude/longitude graticule with degree labels' },
+  { id: 'compass', label: 'Compass', group: 'Reference', desc: 'Compass rose (north is up)' },
+  { id: 'scalebar', label: 'Scale bar', group: 'Reference', desc: 'Map distance bar in km (zoom-aware)' },
+  { id: 'texture', label: 'Texture', group: 'Reference', desc: 'Paper-grain wash over the map (cosmetic)' },
   { id: 'vignette', label: 'Vignette', group: 'Reference', desc: 'Darkened map edges (cosmetic)' },
 ];
 const FEATURE_GROUPS: Array<FeatureLayerDef['group']> = ['Features', 'Places', 'Reference'];
 
 const DEFAULT_FEATURES: Record<FeatureLayerId, boolean> = {
   rivers: true, routes: true, borders: true, coast: true, ice: false, zones: false, danger: false, military: false,
-  burgs: true, markers: false, labels: true, cells: false, grid: false, vignette: false,
+  reliefGlyphs: true, forestGlyphs: true,
+  burgs: true, markers: false, labels: true, cells: false, grid: false, coordinates: false, compass: false,
+  scalebar: true, texture: false, vignette: false,
 };
 const DEFAULT_AREA_MODE: AreaModeId = 'biomes';
 const LAYER_PREFS_KEY = 'aralia.atlas.layerPrefs.v1';
@@ -505,6 +521,7 @@ const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height 
     population: mapMode === 'population',
     temperature: mapMode === 'temperature',
     precipitation: mapMode === 'precipitation',
+    heightmap: mapMode === 'heightmap',
     ...features,
   }), [mapMode, features]);
 
@@ -1023,6 +1040,16 @@ const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height 
           <stop offset="55%" stopColor="#000000" stopOpacity={0} />
           <stop offset="100%" stopColor="#000000" stopOpacity={0.55} />
         </radialGradient>
+        {/* Paper grain (Azgaar "texture" overlay): fractal noise mapped to a
+            brownish speckle alpha. Screen space, multiplied over the map. */}
+        <filter id="atlas-paper" x="0%" y="0%" width="100%" height="100%">
+          <feTurbulence type="fractalNoise" baseFrequency="0.14" numOctaves={3} seed={7} stitchTiles="stitch" result="noise" />
+          <feColorMatrix
+            in="noise"
+            type="matrix"
+            values="0 0 0 0 0.36  0 0 0 0 0.30  0 0 0 0 0.22  0.6 0.6 0.6 0 0"
+          />
+        </filter>
         {/* Smooth radial ocean depth gradient. */}
         <radialGradient id="ocean-radial" cx="50%" cy="50%" r="70%">
           <stop offset="0%" stopColor="#3d6ea4" />
@@ -1139,6 +1166,51 @@ const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height 
           </>
         ) : null}
       </g>
+      {/* Texture overlay (Azgaar "texture") — screen-space paper grain multiplied
+          over the map fills, under labels and ink so names stay crisp. */}
+      {visible.texture ? (
+        <rect
+          x={0} y={0} width={width} height={height}
+          filter="url(#atlas-paper)" opacity={0.16}
+          style={{ mixBlendMode: 'multiply', pointerEvents: 'none' }}
+          data-testid="atlas-texture"
+        />
+      ) : null}
+      {/* Coordinates (Azgaar "coordinates") — true lat/long graticule with degree
+          labels, from the atlas's globe position (mapCoordinates). Screen space:
+          lines span the viewport and follow the pan/zoom transform. */}
+      {visible.coordinates ? (() => {
+        const mc = atlas.mapCoordinates;
+        const latSpan = mc.latN - mc.latS;
+        const lonSpan = mc.lonE - mc.lonW;
+        if (!(latSpan > 0) || !(lonSpan > 0)) return null;
+        // Choose the degree step so the visible span draws at most ~8 lines.
+        const pickStep = (span: number): number => {
+          for (const s of [1, 2, 5, 10, 15, 30]) if (span / s <= 8) return s;
+          return 30;
+        };
+        const latStep = pickStep(latSpan);
+        const lonStep = pickStep(lonSpan);
+        const els: React.ReactNode[] = [];
+        const labelStyle = { fontFamily: 'sans-serif', fontSize: 10, fill: '#334155', stroke: '#f8f5ec', strokeWidth: 2.5, paintOrder: 'stroke' as const };
+        for (let lat = Math.ceil(mc.latS / latStep) * latStep; lat <= mc.latN; lat += latStep) {
+          const sy = ((mc.latN - lat) / latSpan) * model.height * view.k + view.y;
+          if (sy < 0 || sy > height) continue;
+          els.push(
+            <line key={`lat${lat}`} x1={0} y1={sy} x2={width} y2={sy} stroke="#2d3b4d66" strokeWidth={0.75} />,
+            <text key={`latl${lat}`} x={4} y={sy - 3} {...labelStyle}>{lat === 0 ? '0°' : `${Math.abs(lat)}°${lat > 0 ? 'N' : 'S'}`}</text>,
+          );
+        }
+        for (let lon = Math.ceil(mc.lonW / lonStep) * lonStep; lon <= mc.lonE; lon += lonStep) {
+          const sx = ((lon - mc.lonW) / lonSpan) * model.width * view.k + view.x;
+          if (sx < 0 || sx > width) continue;
+          els.push(
+            <line key={`lon${lon}`} x1={sx} y1={0} x2={sx} y2={height} stroke="#2d3b4d66" strokeWidth={0.75} />,
+            <text key={`lonl${lon}`} x={sx + 3} y={12} {...labelStyle}>{lon === 0 ? '0°' : `${Math.abs(lon)}°${lon > 0 ? 'E' : 'W'}`}</text>,
+          );
+        }
+        return <g data-testid="atlas-coordinates" style={{ pointerEvents: 'none' }}>{els}</g>;
+      })() : null}
       {/* Labels overlay — screen space (constant size), zoom-thresholded + decluttered (T5c).
           Burg names (capital/town) are nudged below their point so the settlement
           glyph (drawn after this block) sits ABOVE the name without overlapping.
@@ -1273,6 +1345,59 @@ const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height 
       {visible.vignette ? (
         <rect x={0} y={0} width={width} height={height} fill="url(#atlas-vignette)" style={{ pointerEvents: 'none' }} />
       ) : null}
+      {/* Compass rose (Azgaar "compass") — decorative, north is up. Drawn after
+          the vignette so it stays crisp. Bottom-right, above the scale bar. */}
+      {visible.compass ? (
+        <g transform={`translate(${width - 52},${height - 96})`} style={{ pointerEvents: 'none' }} data-testid="atlas-compass" opacity={0.92}>
+          <circle r={26} fill="#f7f0dfd9" stroke="#2b2622" strokeWidth={1.2} />
+          <circle r={20} fill="none" stroke="#2b2622" strokeWidth={0.6} />
+          {/* ordinal points (rotated 45°, short, dark) under the cardinal points */}
+          {[45, 135, 225, 315].map((a) => (
+            <path key={`ord${a}`} transform={`rotate(${a})`} d="M0,-16 L2.6,-2.6 L0,0 L-2.6,-2.6 Z" fill="#2b2622" stroke="#2b2622" strokeWidth={0.4} />
+          ))}
+          {/* cardinal points — north carries the only color accent */}
+          {[0, 90, 180, 270].map((a) => (
+            <path
+              key={`card${a}`}
+              transform={`rotate(${a})`}
+              d="M0,-24 L3.4,-3.4 L0,0 L-3.4,-3.4 Z"
+              fill={a === 0 ? '#b3322a' : '#f7f0df'}
+              stroke="#2b2622"
+              strokeWidth={0.6}
+            />
+          ))}
+          <text y={-30} textAnchor="middle" fontFamily="Georgia, serif" fontSize={11} fontWeight={700} fill="#2b2622" stroke="#f8f5ec" strokeWidth={2} paintOrder="stroke">N</text>
+        </g>
+      ) : null}
+      {/* Scale bar (Azgaar "scale bar") — zoom-aware distance bar. The atlas
+          canon is 3 km per FMG graph pixel (atlasArtifact derivation); the bar
+          picks the largest 1-2-5 series distance that fits ~130 screen px. */}
+      {visible.scalebar ? (() => {
+        const kmPerScreenPx = KM_PER_FMG_PX / view.k;
+        let bar = 0;
+        for (let n = -1; n <= 4; n++) {
+          for (const m of [1, 2, 5]) {
+            const d = m * 10 ** n;
+            if (d / kmPerScreenPx <= 130) bar = d;
+          }
+        }
+        if (bar <= 0) return null;
+        const px = bar / kmPerScreenPx;
+        const x1 = width - 16 - px;
+        const y = height - 16;
+        return (
+          <g data-testid="atlas-scalebar" style={{ pointerEvents: 'none' }}>
+            <rect x={x1 - 8} y={y - 20} width={px + 16} height={30} rx={4} fill="#0f1e2dbb" />
+            <line x1={x1} y1={y} x2={x1 + px} y2={y} stroke="#e2e8f0" strokeWidth={2} />
+            <line x1={x1} y1={y - 5} x2={x1} y2={y + 3} stroke="#e2e8f0" strokeWidth={2} />
+            <line x1={x1 + px / 2} y1={y - 4} x2={x1 + px / 2} y2={y} stroke="#e2e8f0" strokeWidth={1.5} />
+            <line x1={x1 + px} y1={y - 5} x2={x1 + px} y2={y + 3} stroke="#e2e8f0" strokeWidth={2} />
+            <text x={x1 + px / 2} y={y - 8} textAnchor="middle" fontFamily="sans-serif" fontSize={10} fill="#e2e8f0">
+              {bar >= 1 ? `${bar} km` : `${Math.round(bar * 1000)} m`}
+            </text>
+          </g>
+        );
+      })() : null}
     </svg>
     {/* Find Me — zoom to the player's current cell (top-left). */}
     {marker ? (

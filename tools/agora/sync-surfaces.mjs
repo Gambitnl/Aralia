@@ -5,9 +5,17 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { reconcileBoardToPlanmap } from './planmap-reconcile-lib.mjs';
+import { coverageReport } from './coverage-lib.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+
+/* Areas a reader has already judged as needing no architecture domain doc.
+ *
+ * This records a decision; it does not hide anything. An ignored area is still
+ * reported, marked `ignored`, so the coverage list stays a complete picture of
+ * the repository rather than a curated one. */
+const COVERAGE_IGNORE = ['ui', 'layout'];
 const dayDiff = (now, d) => Math.max(0, Math.round((now - new Date(d)) / 86400000));
 
 // Writes here fail transiently, in bursts of up to ~1.5 s, as EPERM on the
@@ -215,6 +223,16 @@ export async function runSync({
           chronicleDaysSilent: mtimeDays(path.join(repoRoot, 'misc', 'chronicle', 'chronicle.db')),
           atlasDaysSilent: mtimeDays(path.join(repoRoot, '.agent', 'atlas', 'atlas.sqlite')),
         },
+        /* What SHOULD be on a planning surface and is not.
+         *
+         * The block above measures staleness — has a surface gone quiet. This
+         * one measures coverage — was it ever there. They are different faults
+         * and only the first was ever checked, which is how the streamed 3D
+         * world reached 154 files with no architecture doc and nothing said so.
+         *
+         * Never filtered. See PLANNING-STACK.md section 6 for why a threshold
+         * here would be the tool making a judgment it cannot make. */
+        coverage: coverageReport(repoRoot, { ignore: COVERAGE_IGNORE }),
         topics,
       };
       if (!dryRun) atomicWrite(healthPath, JSON.stringify(health, null, 2) + '\n');

@@ -1,5 +1,7 @@
 # Character Creator
 
+Verified: unknown — predates the verification rule (see AGENTS.md)
+
 ## Purpose
 
 The Character Creator domain covers Aralia's step-by-step player-character creation flow, including race and class selection, age and background choices, visuals, ability scores, skills, class features, weapon masteries, feats, and final review.
@@ -36,12 +38,12 @@ The state and assembly split is also more specific now:
 - CharacterCreator.tsx owns the step orchestration and reducer-driven UI flow.
 - characterCreatorState.ts owns creator state and step transitions.
 - src/components/CharacterCreator/hooks/useCharacterAssembly.ts owns the main assembly logic.
-- src/hooks/useCharacterAssembly.ts still exists, but it is no longer the best primary architecture entry point.
+- src/components/CharacterCreator/hooks/useCharacterAssembly.ts still exists, but it is no longer the best primary architecture entry point.
 
 ## Historical Drift Corrected
 
 The older version of this file drifted in a few concrete ways:
-- it pointed to src/hooks/useCharacterAssembly.ts as the main assembly hook, but the live creator imports ./hooks/useCharacterAssembly from inside the CharacterCreator subtree
+- it pointed to src/components/CharacterCreator/hooks/useCharacterAssembly.ts as the main assembly hook, but the live creator imports ./hooks/useCharacterAssembly from inside the CharacterCreator subtree
 - it treated the creator as a simpler wizard than the current gated step flow actually is
 - it listed generic utility-test surfaces under src/utils/__tests__, but those files are not present at the claimed paths in the current repo
 
@@ -76,7 +78,7 @@ Verified tests in this pass:
 - src/components/CharacterCreator/utils/__tests__/skillSelectionUtils.test.ts
 - src/components/CharacterCreator/Class/__tests__/FeatureSelectionCheckboxes.test.tsx
 
-The older claims about src/utils/__tests__/characterUtils.test.ts, characterValidation.test.ts, and statUtils.test.ts were not accurate in the current repo.
+The older claims about src/utils/character/__tests__/characterUtils.test.ts, characterValidation.test.ts, and statUtils.test.ts were not accurate in the current repo.
 
 ## Open Follow-Through Questions
 

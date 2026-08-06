@@ -1,5 +1,7 @@
 # Submap (Retired Legacy Domain)
 
+Verified: unknown — predates the verification rule (see AGENTS.md)
+
 ## Current Authority
 
 The former rectangular/Pixi Submap runtime is retired. Its pane, tiles,

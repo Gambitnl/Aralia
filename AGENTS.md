@@ -25,6 +25,37 @@ is NOT wholesale-ignored, only specific subdirs are. Reusable tooling/scripts
 belong in `scripts/` (tracked); only disposable artifacts go in scratch. A Stop
 hook warns when untracked, non-ignored image files are about to be committed.
 
+## Where knowledge goes
+
+Every kind of knowledge has ONE home. Pick by what the knowledge IS, not by
+what you were working on.
+
+| Knowledge | Home | Dated? |
+|---|---|---|
+| What a term means | `CONTEXT.md` | Never |
+| How a system works NOW | `docs/architecture/domains/<domain>.md` | Never |
+| A hard-to-reverse decision | `docs/adr/NNNN-name.md` | Always, by design |
+| What is planned, and its status | `public/planmap/topics.json` | Never |
+| Agent recall and gotchas | agent memory | Never |
+| Throwaway proof | `.agent/scratch/` | Free |
+
+**A new dated markdown file is only ever an ADR.** Everything else updates a
+living file. A Stop hook warns when a dated file appears outside `docs/adr/`.
+
+If no domain doc covers the system you learned about, create the domain doc.
+A domain doc is a living file, so it never becomes sprawl.
+
+Every domain doc carries a `Verified:` line naming the day it was last checked
+against the code. Update that line when you touch the doc. A living document
+with no verification date is a stale document that a reader trusts.
+
+**Why this rule exists.** An audit on 2026-08-05 found 1,276 markdown files
+under `docs/`, 162 of them dated, 129 written in July alone. That was not
+laziness. An agent needed somewhere to put a finding, saw six candidate homes,
+and had no rule saying which was right — so a new dated file was the only
+choice that could not be wrong. The system rewarded a new file over an update.
+See `docs/architecture/knowledge-stores-audit.md`.
+
 For Symphony/Jules work, preserve Aralia-facing intent and proof rather than
 raw process exhaust. Track task packets, prompts, acceptance criteria, package
 tracker updates, final product PR links, and short blocker or repair summaries.

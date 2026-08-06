@@ -293,6 +293,10 @@
   <button id="heat-toggle" aria-pressed="false" title="Show colored age shading for roadmap items based on how long they have stayed unchanged.">Age heat: Off</button>
   <button id="tier-toggle" aria-pressed="false" title="Show the absorbed detail topics (tier: component). Off keeps the strategic picture readable.">Detail topics: Off</button>
   <span id="sync-banner" style="margin-left:10px;font-size:11px;"></span>
+  <!-- Coverage: what SHOULD be on a planning surface and is not. Sits beside
+       the sync banner because staleness and absence are the same class of
+       question and a reader checks them together. -->
+  <button id="coverage-banner" style="margin-left:10px;font-size:11px;background:none;border:none;padding:0;cursor:pointer;text-decoration:underline dotted;"></button>
   <span id="heat-legend" style="display:none;">
     <span><span class="hsw" style="background:#22d3ee;"></span>≤2d</span>
     <span><span class="hsw" style="background:#fbbf24;"></span>≤7d</span>
@@ -669,6 +673,54 @@ Promise.all([
       el.style.color = '#4ade80';
     }
   })();
+  /* Coverage banner: gaps a surface cannot show by itself.
+   *
+   * Absence is invisible by construction — a surface only shows what somebody
+   * put in it, so a missing entry looks exactly like empty space. This is the
+   * check that would have named the streamed 3D world months earlier.
+   *
+   * Never filtered. An ignored area still counts toward the total and appears
+   * in the detail list, marked; hiding it would make the tool judge instead of
+   * the reader. See tools/agora/PLANNING-STACK.md section 6. */
+  (() => {
+    const el = document.getElementById('coverage-banner');
+    if (!el) return;
+    const cov = health && health.coverage;
+    if (!cov) {
+      el.textContent = 'coverage: not measured';
+      el.style.color = '#94a3b8';
+      return;
+    }
+    const gaps = (cov.domainDocs && cov.domainDocs.gaps) || [];
+    const stale = (cov.domainDocDrift && cov.domainDocDrift.stale) || [];
+    // Drift leads. A doc naming a deleted file still reads as authoritative,
+    // which is worse than a missing doc — a reader trusts it.
+    el.textContent = `coverage: ${gaps.length} undocumented, ${stale.length} drifted`;
+    el.style.color = stale.length > 0 ? '#f87171' : (gaps.length > 0 ? '#fbbf24' : '#4ade80');
+    el.title = 'Click for the ranked list of code areas with no domain doc, and docs naming files that no longer exist.';
+    el.onclick = () => {
+      const top = gaps.slice(0, 20)
+        .map(g => `${String(g.files).padStart(4)}  ${g.repoPath}${g.ignored ? '   [ignored]' : ''}`)
+        .join('
+');
+      const rot = stale.slice(0, 20)
+        .map(s => `${String(s.missing.length).padStart(3)}  ${s.doc}`)
+        .join('
+');
+      alert(
+        'UNDOCUMENTED code areas (ranked by file count)
+' + (top || '  none') +
+        '
+
+DOCS NAMING FILES THAT NO LONGER EXIST
+' + (rot || '  none') +
+        '
+
+Rule: tools/agora/PLANNING-STACK.md section 6'
+      );
+    };
+  })();
+
   const repoRoot = data.repoRoot || '';
   // Document cards need two destinations: Vite can read the active checkout,
   // but static hosts cannot see that local disk path. The resolver preserves

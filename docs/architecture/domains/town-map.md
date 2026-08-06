@@ -1,16 +1,37 @@
 # Town Map
 
+Verified: unknown — predates the verification rule (see AGENTS.md)
+
 ## Purpose
 
 The Town Map domain covers deterministic town and village exploration surfaces, including generated layouts, local movement, building interaction entry points, merchant access, and town-scoped rendering helpers.
 
+## The renderer moved; the state did not
+
+Corrected 2026-08-05. This doc named three rendering surfaces that no longer
+exist:
+
+- `Town/TownCanvas.tsx`
+- `Town/VillageScene.tsx`
+- `hooks/useTownController.ts`
+
+Worldforge replaced them. A town now draws through
+`src/components/Worldforge/TownPlanView.tsx` in 2D and through the ground bake
+in 3D, from ONE canonical plan per (atlas, burg).
+
+Generation and state were not retired with the renderer, and that split is the
+useful fact here. `RealmSmithTownGenerator.ts`, `townReducer.ts` and
+`types/town.ts` are all still live.
+
+Sections below that describe TownCanvas or VillageScene behavior are history.
+They are kept because they record what the old surface did, not because they
+describe the current one.
+
 ## Verified Current Entry Points
 
 High-signal current entry points verified in this pass:
-- src/components/Town/TownCanvas.tsx
-- src/components/Town/VillageScene.tsx
-- src/hooks/useTownController.ts
 - src/services/RealmSmithTownGenerator.ts
+- src/components/Worldforge/TownPlanView.tsx
 - src/state/reducers/townReducer.ts
 - src/types/town.ts
 
@@ -39,7 +60,7 @@ TownCanvas.tsx also makes the current rendering model more specific than the old
 The older version of this file drifted in a few concrete ways:
 - it claimed a lowercase src/services/realmsmith/**/*.ts ownership lane that does not match the verified current paths
 - it implied a simpler renderer description than the current TownCanvas plus AssetPainter flow warrants
-- it listed src/components/__tests__/MerchantModal.test.tsx, which is not present in the current repo
+- it listed src/components/Trade/__tests__/MerchantModal.test.tsx, which is not present in the current repo
 
 That older explanation should not be treated as the current implementation guide.
 
@@ -64,13 +85,16 @@ This pass verified that the town-map domain already has:
 ## Verified Test Surface
 
 Verified tests in this pass:
-- src/components/Town/__tests__/TownCanvasPan.test.tsx
-- src/components/Town/__tests__/TownDevControls.test.tsx
-- src/components/Town/__tests__/TownNavigationControls.test.tsx
-- src/hooks/__tests__/useTownController.test.tsx
+- src/components/Worldforge/__tests__/TownPlanView.test.tsx
+- src/components/Worldforge/__tests__/TownAgentSnapshotView.test.tsx
+
+The four tests this section used to name covered pan, dev controls, navigation
+and the town controller hook. All four went with the renderer they tested. No
+replacement covers pan or navigation today, because the Worldforge view does
+not present those controls.
 - src/services/__tests__/strongholdService.test.ts
 
-The older claim about src/components/__tests__/MerchantModal.test.tsx was not accurate in the current repo.
+The older claim about src/components/Trade/__tests__/MerchantModal.test.tsx was not accurate in the current repo.
 
 ## Open Follow-Through Questions
 

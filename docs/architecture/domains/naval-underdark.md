@@ -1,5 +1,7 @@
 # Naval & Underdark
 
+Verified: unknown — predates the verification rule (see AGENTS.md)
+
 ## Purpose
 
 This domain covers the specialized naval and Underdark system lanes: ship and voyage mechanics, naval combat, faerzress and Underdark environmental rules, and the supporting data, services, types, and UI that expose those systems.

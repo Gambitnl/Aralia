@@ -143,6 +143,29 @@
           "title": "Understory layer (jungle-trail: ferns, logs, root runs, vines, litter, thickets)",
           "status": "specced",
           "status_note": "Remy call 2026-08-04. Aralia has NO understory - grass and bushes only, which is why the forest floor reads empty. Source: vendor/jungle-trail/src/world/plants.js (MIT)."
+        },
+        {
+          "title": "Ground scars: spells change terrain durably, then heal",
+          "status": "specced",
+          "decision": true,
+          "status_note": "Grilling 2026-08-05, 8 decisions in CONTEXT.md. Scars persist and decay via a per-window terrain sim mirroring townSim lastSimDay. A healed scar leaves a mark carrying its cause. Ground gets free-length layers plus buried objects. Cut faces show what was cut."
+        },
+        {
+          "title": "Facade audit: walls are paper, roads float, terrain has no underside",
+          "status": "specced",
+          "decision": true,
+          "status_note": "docs/design/2026-08-05-facade-audit.md. Verified in source. wallGeometry emits 4 verts/segment, zero thickness, discards the widthM:1.2 it is given. Buildings/gatehouses/interiors/trees are honest. Grass/leaves/far-shells are correct cheats."
+        },
+        {
+          "title": "Judgment surfaces + recorded verdicts (ADR 0001)",
+          "status": "specced",
+          "decision": true,
+          "status_note": "docs/adr/0001. Visual calls happen on a built surface, verdict stored beside the subject, plan map indexes them. Driven by 4 failures on 2026-08-05: verdicts lost to chat, throwaway rigs, 20m camera clamp hiding the subject, no staleness check."
+        },
+        {
+          "title": "BUSH_PALETTE + bush scale: the real source of the green blobs",
+          "status": "specced",
+          "status_note": "Measured by the boulder agent: 3,780 sphereGeometry(1,6,4) instances, not rocks. groundChunkLoader BUSH_PALETTE ~line 3381 is the brightest green in the world; bScl line 3456 reaches 4.05m wide. Fix is ~10 lines, sits 3 lines from the understory palette."
         }
       ],
       "history": {
@@ -150,7 +173,7 @@
         "built": "2026-07-04"
       },
       "tier": "strategic",
-      "updated": "2026-08-04"
+      "updated": "2026-08-05"
     },
     {
       "id": "perf-campaign",
@@ -4329,9 +4352,14 @@
         {
           "title": "Sync engine outage: board step EPERM froze health.json for 3 days (cleared 2026-07-26)",
           "status": "done"
+        },
+        {
+          "title": "Coverage check: what is MISSING from a planning surface, not just stale",
+          "status": "done",
+          "status_note": "Built 2026-08-05. tools/agora/coverage-lib.mjs + 11 tests, wired into sync-surfaces health.json beside the staleness block. Three checks: absence (code areas no domain doc names), drift (docs naming files that no longer exist), and surfaces declared UNCHECKABLE rather than reported clean. Found on first run: 29 uncovered areas, and 19 of 25 domain docs name dead files. Trigger: Remy expected the plan map to surface the MISSING streamed-3D-world domain (154 files, no doc). Rule recorded in PLANNING-STACK.md section 6. NOT yet shown in the planmap UI - health.json carries the data only."
         }
       ],
-      "updated": "2026-07-26"
+      "updated": "2026-08-05"
     },
     {
       "id": "compass-pane",
@@ -5141,9 +5169,16 @@
       "title": "Documentation Cleanup",
       "campaign": "ui",
       "status": "parked",
-      "updated": "2026-07-15",
+      "updated": "2026-08-05",
       "deps": [],
-      "tier": "strategic"
+      "tier": "strategic",
+      "features": [
+        {
+          "title": "Domain doc drift cleared: 0 dead references (was 25 real, plus 58 checker false positives)",
+          "status": "done",
+          "status_note": "Done 2026-08-05. FIRST: the checker itself was wrong - its path regex alternated ts|tsx with no end boundary, so it matched the PREFIX of BattleMap.tsx and invented 58 of 83 findings. Fixed with longest-extension-first plus a boundary, 2 regression tests added. Of the 25 REAL dead refs: 15 files had simply moved (the src/utils reorganization) and were repointed automatically; 10 were genuine deletions and needed judgment. Those 10 turned out to be two retirements, not rot - mapService.ts and Minimap.tsx died with the legacy Azgaar map, and the Town canvas renderer was replaced by Worldforge TownPlanView while town GENERATION and STATE stayed live. Both docs now record the split rather than naming dead files. Drift now reads 0."
+        }
+      ]
     },
     {
       "id": "encounter-generator",
@@ -5650,7 +5685,8 @@
         {
           "title": "Mixamo clip playback: retarget map + mixer + in-place speed sync (first payoff)",
           "status": "superseded",
-          "status_note": "Superseded 2026-07-24 by CC0 Mesh2Motion clips (MIT/CC0, no Adobe login, glTF not FBX). See topic cc0-clip-animation."
+          "status_note": "Superseded 2026-07-24 by CC0 Mesh2Motion clips (MIT/CC0, no Adobe login, glTF not FBX). See topic cc0-clip-animation.",
+          "killed": "Superseded by CC0 Mesh2Motion clips (MIT/CC0, no Adobe login, glTF not FBX) — see topic cc0-clip-animation."
         },
         {
           "title": "Smooth joint weights: one-piece creased bodies",
@@ -5893,12 +5929,12 @@
       "deps": [
         {
           "id": "region-tier-detail",
-          "kind": "requires",
+          "kind": "hard",
           "why": "step 1 of the audit build order; the audit established the sub-cell-window root cause this plan is built on"
         },
         {
           "id": "ground3d-water-surface",
-          "kind": "requires",
+          "kind": "hard",
           "why": "town water bodies, river kinds and the descending river surface already land in the ground bake - this pass changes WHERE the course runs, not how it renders"
         }
       ],
@@ -6026,6 +6062,37 @@
         {
           "title": "Polish: additive layering, palette tint, blend trees",
           "status": "parked"
+        }
+      ]
+    },
+    {
+      "id": "azgaar-toggle-parity",
+      "title": "Azgaar toggle parity on the Worldforge atlas",
+      "sub": "all 28 FMG layer toggles captured; one worldmap system",
+      "campaign": "world",
+      "status": "active",
+      "updated": "2026-08-05",
+      "status_note": "Remy directive 2026-08-05: capture all Azgaar toggles, implement in the owned atlas, shrink worldmap systems to 1. Same day: gap toggles built AND the legacy generator retired — mapService/azgaarDerivedMapService deleted, World3DDemo now ground-pipeline only. One worldmap system remains.",
+      "link": "docs/superpowers/specs/2026-08-05-azgaar-toggle-parity.md",
+      "tier": "strategic",
+      "features": [
+        {
+          "title": "Toggle gap build (heightmap, relief, forests, coordinates, compass, scale bar, texture)",
+          "status": "done",
+          "status_note": "Live in AtlasSvgView layer panel 2026-08-05; DOM + screenshot proven on step=startselect."
+        },
+        {
+          "title": "Emblems layer (COA renderer over ported coa-generator)",
+          "status": "specced"
+        },
+        {
+          "title": "Rulers (click-to-measure, 3 km/px canon)",
+          "status": "specced"
+        },
+        {
+          "title": "Retire mapService/azgaarDerivedMapService (World3DDemo ground-only; SpawnPreview already atlas-native)",
+          "status": "done",
+          "status_note": "Deleted 2026-08-05 with tests; 762 tests green; World3DDemo boot-probed headless."
         }
       ]
     }

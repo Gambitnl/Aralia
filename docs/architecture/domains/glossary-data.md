@@ -1,5 +1,7 @@
 # Glossary Data Domain
 
+Verified: unknown — predates the verification rule (see AGENTS.md)
+
 ## Purpose
 
 This domain covers the static glossary content that feeds the live glossary loader and glossary UI.

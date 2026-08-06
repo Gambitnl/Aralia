@@ -1,5 +1,7 @@
 # Commands Domain
 
+Verified: unknown — predates the verification rule (see AGENTS.md)
+
 ## Purpose
 
 This domain covers the command-pattern execution lane that turns spell effects and combat ability effects into validated runtime actions.
@@ -62,7 +64,7 @@ The current command test suite includes:
 - src/commands/__tests__/SpellCommandFactory.test.ts
 - src/commands/__tests__/StatusConditionCommand.test.ts
 - src/commands/__tests__/SummoningCommand.test.ts
-- src/commands/__tests__/UtilityCommand.test.ts
+- src/commands/__tests__/UtilityCommand.*.test.ts (split by concern 9 ways: control, illusion, information, light, message, minorUtility, objects, riders, summon)
 - src/commands/effects/__tests__/DamageCommand.test.ts
 - src/commands/effects/__tests__/ReactiveEffectCommand.test.ts
 - src/commands/factory/__tests__/SpellCommandFactoryAI.test.ts
@@ -77,7 +79,7 @@ The current command test suite includes:
 
 - src/types/spells.ts
 - src/types/combat.ts
-- src/utils/combatUtils.ts
+- src/utils/combat/combatUtils.ts
 - src/systems/combat/AttackRiderSystem.ts
 
 ### Boundary note

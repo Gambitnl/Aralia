@@ -1,5 +1,7 @@
 # Glossary
 
+Verified: unknown — predates the verification rule (see AGENTS.md)
+
 ## Purpose
 
 The Glossary domain is the app's read-only reference surface for rules, spells, classes, races, and related terms that can be opened without leaving the current gameplay flow.
@@ -12,7 +14,7 @@ High-signal current entry points verified in this pass:
 - src/components/Glossary/FullEntryDisplay.tsx
 - src/components/Glossary/SingleGlossaryEntryModal.tsx
 - src/components/Glossary/SpellCardTemplate.tsx
-- src/utils/glossaryUtils.ts
+- src/utils/visuals/glossaryUtils.ts
 
 ## Current Domain Shape
 
@@ -29,7 +31,7 @@ Spell entries are a special case:
 
 The older version of this file drifted in a few concrete ways:
 - it treated src/data/glossaryData.ts as the glossary data-loading utility, but that file currently contains submap icon meanings rather than the live glossary loader
-- it treated src/utils/glossaryUtils.ts as the primary utility surface without noting that the file is now a deprecated bridge that re-exports from src/utils/visuals/glossaryUtils
+- it treated src/utils/visuals/glossaryUtils.ts as the primary utility surface without noting that the file is now a deprecated bridge that re-exports from src/utils/visuals/glossaryUtils
 - it implied a cleaner ownership map than the current repo shape, where glossary state loading, entry rendering, spell data fetches, and icon-legend display now sit in related but distinct lanes
 
 That older explanation should not be treated as the current implementation guide.
@@ -59,10 +61,10 @@ Verified tests in this pass:
 - src/components/__tests__/GlossaryContentRenderer.test.tsx
 - src/components/__tests__/GlossaryFullEntryDisplay.test.tsx
 
-The older claim about src/utils/__tests__/glossaryUtils.test.ts was not accurate in the current repo.
+The older claim about src/utils/visuals/__tests__/glossaryUtils.test.ts was not accurate in the current repo.
 
 ## Open Follow-Through Questions
 
-- Should the deprecated src/utils/glossaryUtils.ts bridge be documented more explicitly alongside its newer src/utils/visuals/ home?
+- Should the deprecated src/utils/visuals/glossaryUtils.ts bridge be documented more explicitly alongside its newer src/utils/visuals/ home?
 - Which docs should explain the split between the full glossary domain and the narrower icon-legend surfaces used by submap and related UI?
 - How much spell-schema detail belongs in glossary docs versus the spell-domain reference docs?

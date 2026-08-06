@@ -1,5 +1,7 @@
 # Core Systems Domain
 
+Verified: unknown — predates the verification rule (see AGENTS.md)
+
 ## Purpose
 
 This domain covers the shared foundation that the rest of the app builds on: root application orchestration, shared state wiring, common configuration and types, and the cross-cutting services or hooks that multiple feature domains still depend on.

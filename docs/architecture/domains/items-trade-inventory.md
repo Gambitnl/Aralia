@@ -1,5 +1,7 @@
 # Items / Trade / Inventory
 
+Verified: unknown — predates the verification rule (see AGENTS.md)
+
 ## Purpose
 
 This domain covers the item, trade, merchant, and economy-adjacent surfaces that support inventory management, pricing, trade routes, loot, and organization-facing economic UI.
@@ -50,7 +52,7 @@ This pass verified:
 
 ## Important Corrections
 
-- The live merchant UI path is src/components/Trade/MerchantModal.tsx, not src/components/MerchantModal.tsx.
+- The live merchant UI path is src/components/Trade/MerchantModal.tsx, not src/components/Trade/MerchantModal.tsx.
 - The repo now has a real Trade component subtree and a real systems/economy subtree, so the older flat ownership summary had drifted.
 - Crafting is related, but this file should describe it as an adjacent shared type and integration lane, not as proof that a single finished crafting architecture already exists here.
 

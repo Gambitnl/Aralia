@@ -308,6 +308,13 @@ function AtlasLayersImpl({ model, visible, softenActive = true, deferDecorativeG
           ))}
         </g>
       ) : null}
+      {visible.heightmap ? (
+        <g filter={softenFilter} opacity={0.8}>
+          {(model.heightCells ?? []).map((c, i) => (
+            <polygon key={`hgt${i}`} points={c.points} fill={c.fill} />
+          ))}
+        </g>
+      ) : null}
       {/* Mountain relief glyphs (mountains campaign T9) — peak carets + hill
           chevrons for EVERY land cell in a relief band (height-truth). Placed
           just BELOW the forest glyphs (relief under trees: a forested hill

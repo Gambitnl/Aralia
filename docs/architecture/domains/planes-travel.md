@@ -1,5 +1,7 @@
 # Planes / Travel
 
+Verified: unknown — predates the verification rule (see AGENTS.md)
+
 ## Purpose
 
 This domain covers planar mechanics, overland travel systems, travel-event generation, and the supporting data, types, and utilities that connect those systems to the rest of the game.

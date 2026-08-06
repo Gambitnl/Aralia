@@ -1,5 +1,7 @@
 # Intrigue Domain Architecture
 
+Verified: unknown — predates the verification rule (see AGENTS.md)
+
 ## Purpose
 
 This file describes the social-leverage and identity side of the intrigue lane: secrets, leverage, rumor circulation, disguises, and noble-house power structures.
@@ -18,7 +20,7 @@ This pass confirmed the following live intrigue-system files:
 It also confirmed supporting reducer and utility surfaces that still interact with this lane:
 
 - src/state/reducers/identityReducer.ts
-- src/utils/identityUtils.ts
+- src/utils/character/identityUtils.ts
 - src/utils/world/nobleHouseGenerator.ts
 - src/utils/world/secretGenerator.ts
 

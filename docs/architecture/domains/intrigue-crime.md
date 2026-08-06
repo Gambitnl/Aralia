@@ -1,5 +1,7 @@
 # Intrigue & Crime
 
+Verified: unknown — predates the verification rule (see AGENTS.md)
+
 ## Purpose
 
 This domain covers the implemented intrigue and crime systems: noble-house and secret generation, identity management, thieves-guild play, smuggling, heists, black-market flows, and the reducer or UI surfaces that support them.
@@ -53,7 +55,7 @@ This pass verified:
 ## Important Corrections
 
 - The repo now has concrete intrigue and crime subsystems rather than only a conceptual lane.
-- TempleModal is not at src/components/TempleModal.tsx; the current path is src/components/Religion/TempleModal.tsx, so it should not be listed as a direct root-level ownership marker here.
+- TempleModal is not at src/components/Religion/TempleModal.tsx; the current path is src/components/Religion/TempleModal.tsx, so it should not be listed as a direct root-level ownership marker here.
 - Some older helper paths still exist in legacy locations, but the current utility drift points toward namespaced world and core utility folders rather than one flat utils ownership block.
 
 ## Tests Verified In This Pass

@@ -17,6 +17,7 @@ This document provides a high-level map of the Aralia codebase, organized by pro
 | [Submap](./architecture/domains/submap.md) | Tile-based exploration within regions | `SubmapPane.tsx` |
 | [Town Map](./architecture/domains/town-map.md) | Village/town interior navigation | `TownCanvas.tsx` |
 | [Battle Map](./architecture/domains/battle-map.md) | Tactical combat grid and tokens | `BattleMap.tsx` |
+| [Streamed 3D World](./architecture/domains/streamed-3d-world.md) | The walkable 3D world: terrain, water, walls, roads, vegetation | `World3DScene.tsx` |
 | [Combat](./architecture/domains/combat.md) | Combat mechanics, initiative, actions | `combatUtils.ts` |
 | [Spells](./architecture/domains/spells.md) | Spell data, targeting, effects | Spell system |
 | [Character Creator](./architecture/domains/character-creator.md) | Character generation wizard | `CharacterCreator.tsx` |

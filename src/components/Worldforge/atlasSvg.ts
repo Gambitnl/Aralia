@@ -132,6 +132,8 @@ export interface AtlasSvgModel {
   temperatureCells?: AtlasSvgPolygon[];
   /** Per-cell precipitation color-ramp fills (Azgaar "precipitation" overlay; toggle layer). */
   precipitationCells?: AtlasSvgPolygon[];
+  /** Per-cell land elevation color-ramp fills (Azgaar "heightmap" layer; area mode). */
+  heightCells?: AtlasSvgPolygon[];
   /** Voronoi cell outlines, points strings (Azgaar "cells" overlay; toggle layer). */
   cellOutlines?: string[];
   /** Point-of-interest markers (Azgaar "markers" overlay; toggle layer). */
@@ -1079,6 +1081,7 @@ function ramp3(c0: string, c1: string, c2: string): (t: number) => string {
 }
 
 const RAMP_POPULATION = ramp3('#ffffcc', '#fd8d3c', '#800026'); // sparse → dense
+const RAMP_HEIGHT = ramp3('#6da05f', '#a58858', '#f2efe9'); // lowland → upland → peak
 const RAMP_TEMPERATURE = ramp3('#2c7bb6', '#ffffbf', '#d7191c'); // cold → hot
 const RAMP_PRECIPITATION = ramp3('#f6e8c3', '#80cdc1', '#01665e'); // dry → wet
 
@@ -1360,6 +1363,9 @@ export function buildAtlasSvgModel(
   const precipitationCells = precArr && gArr
     ? buildCellRamp(atlas, (i) => precArr[gArr[i]] ?? null, RAMP_PRECIPITATION)
     : [];
+  // Heightmap ramp (Azgaar "heightmap" layer): land elevation, low → high.
+  // buildCellRamp already skips water cells (h < LAND_THRESHOLD).
+  const heightCells = buildCellRamp(atlas, (i) => cells.h[i], RAMP_HEIGHT);
   return {
     width: atlas.graphWidth,
     height: atlas.graphHeight,
@@ -1382,6 +1388,7 @@ export function buildAtlasSvgModel(
     populationCells,
     temperatureCells,
     precipitationCells,
+    heightCells,
     cellOutlines: buildCellOutlines(atlas),
     poiMarkers: buildPoiMarkers(atlas),
     iceCells: buildIceCells(atlas),

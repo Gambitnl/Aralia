@@ -1,5 +1,7 @@
 # Environment & Physics
 
+Verified: unknown — predates the verification rule (see AGENTS.md)
+
 ## Purpose
 
 This domain covers the environmental, terrain, hazard, weather, and elemental-interaction systems that shape world-state behavior.

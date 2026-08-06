@@ -1,5 +1,7 @@
 # Combat
 
+Verified: unknown — predates the verification rule (see AGENTS.md)
+
 ## Purpose
 
 The Combat domain handles tactical encounter execution: turn flow, action resolution, spell and ability use, movement, targeting, damage, conditions, and combat-facing UI state.
@@ -12,7 +14,7 @@ High-signal current entry points verified in this pass:
 - src/hooks/combat/
 - src/systems/combat/
 - src/systems/events/CombatEvents.ts
-- src/utils/combatUtils.ts
+- src/utils/combat/combatUtils.ts
 - src/utils/combat/deathSaveUtils.ts
 - src/types/combat.ts
 

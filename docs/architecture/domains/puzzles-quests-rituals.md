@@ -1,5 +1,7 @@
 # Puzzles, Quests & Rituals
 
+Verified: unknown — predates the verification rule (see AGENTS.md)
+
 ## Purpose
 
 This domain covers the quest, puzzle, and ritual subsystems: quest tracking and progression, environmental puzzle mechanics, ritual-state handling, and the UI or reducer surfaces that consume those systems.

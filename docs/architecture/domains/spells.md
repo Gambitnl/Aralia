@@ -1,5 +1,7 @@
 # Spells
 
+Verified: unknown — predates the verification rule (see AGENTS.md)
+
 ## Purpose
 
 The Spells domain covers spell data, validation, loading, translation into executable abilities, targeting support, effect execution, and spell-facing UI surfaces.
@@ -36,7 +38,7 @@ The domain currently includes these active lanes:
 ## Historical Drift Corrected
 
 The older version of this file drifted in several ways:
-- it pointed at src/utils/spellAbilityFactory.ts instead of the current src/utils/character/spellAbilityFactory.ts path
+- it pointed at src/utils/character/spellAbilityFactory.ts instead of the current src/utils/character/spellAbilityFactory.ts path
 - it presented the spell JSON lane as a cleaner single-source-of-truth story than the broader migration workflow currently supports
 - it implied migration percentages and progress states that are no longer trustworthy without a fresh count
 

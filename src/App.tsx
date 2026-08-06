@@ -143,7 +143,6 @@ import { shouldPassiveGameClockRun } from "./utils/core/timekeeperUtils";
 
 import { CollapsibleBanterPanel } from "./components/ui/CollapsibleBanterPanel";
 import { BanterAttentionBanner } from "./components/ui/BanterAttentionBanner";
-import { generateMap } from "./services/mapService";
 import { generateWorldSeed } from "./utils/random/generateWorldSeed";
 
 // Lazy load large components to reduce initial bundle size
