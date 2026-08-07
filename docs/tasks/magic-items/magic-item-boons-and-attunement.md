@@ -6,7 +6,35 @@ How a magic item's mechanical benefits reach the player character, and how
 attunement gates those benefits. This is the path from item data → equipped
 character → final ability scores, armor class, and attack rolls.
 
-## Current state (found 2026-07-22)
+## Current state (data gap closed 2026-08-06)
+
+The item data now fills the fields the machinery reads. The ingest captures
+the structured 5eTools mechanic fields, and the registry generator emits the
+runtime fields. Magic items grant their boons in play.
+
+### What the 2026-08-06 slice added
+- The ingest (`scripts/ingestPhbGlossary.ts`) reads `bonusWeapon`, `bonusAc`,
+  `ability`, `charges`, `recharge`, and `rechargeAmount` into `itemMetadata`.
+- The registry (`scripts/generateItemRegistry.ts`) emits the flat
+  `requiresAttunement`, `statOverrides`, `statBonuses`,
+  `magicProperties.magicalBonus`, `armorClassBonus`, and
+  `magicProperties.charges`.
+- The registry infers a wear slot for wondrous accessories from the item name
+  (`inferAccessorySlot`). Without a slot, `EQUIP_ITEM` cannot place the item.
+- `calculateArmorClass` now adds `armorClassBonus` from equipped non-shield
+  items, gated on attunement. This makes Ring and Cloak of Protection work.
+- Guard test: `src/data/items/__tests__/generatedItemMechanics.test.ts` pins
+  representative items and registry-wide counts.
+
+### Still open after the slice
+- No machinery spends or recharges wand/staff charges. The data is now there.
+- Spell-attack and save-DC bonuses (Rod of the Pact Keeper) are not ingested.
+- The saving-throw half of Ring/Cloak of Protection does not apply.
+- `magicalBonus` reaches main-hand weapon rolls only; Wraps of Unarmed Power
+  sit in the Wrists slot and do not boost unarmed strikes.
+- In-game eyeball of the attunement panel and boon flow is pending.
+
+## Old state (found 2026-07-22, now fixed)
 
 The **enforcement machinery is built and tested, but the item data never fills
 the fields it reads**, so magic items are inert in play. This is a data-and-

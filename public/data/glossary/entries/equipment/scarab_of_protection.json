@@ -20,6 +20,8 @@
     "type": "Wondrous Item",
     "rarity": "Legendary",
     "reqAttune": "Required",
-    "weight": 1
+    "weight": 1,
+    "bonusAc": "+1",
+    "charges": 12
   }
 }

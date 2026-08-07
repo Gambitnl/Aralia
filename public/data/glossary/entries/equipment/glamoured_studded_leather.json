@@ -19,6 +19,7 @@
     "type": "Light Armor",
     "rarity": "Rare",
     "weight": 13,
-    "ac": 12
+    "ac": 12,
+    "bonusAc": "+1"
   }
 }

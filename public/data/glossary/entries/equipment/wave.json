@@ -28,6 +28,10 @@
     "properties": [
       "T|XPHB",
       "V|XPHB"
-    ]
+    ],
+    "bonusWeapon": "+3",
+    "charges": 3,
+    "recharge": "dawn",
+    "rechargeAmount": "1d3"
   }
 }

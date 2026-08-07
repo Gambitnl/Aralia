@@ -29,6 +29,9 @@
     "type": "Wondrous Item",
     "rarity": "Artifact",
     "reqAttune": "Required",
-    "weight": 5
+    "weight": 5,
+    "abilityBonus": {
+      "wis": 2
+    }
   }
 }

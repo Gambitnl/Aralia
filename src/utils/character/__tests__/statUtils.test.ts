@@ -367,4 +367,86 @@ describe('statUtils', () => {
             expect(calculatePassiveScore(2, 2, 'disadvantage')).toBe(9);
         });
     });
+
+    describe('calculateArmorClass — magic AC bonuses from equipped items', () => {
+        const flatScores = {
+            Strength: 10, Dexterity: 10, Constitution: 10,
+            Intelligence: 10, Wisdom: 10, Charisma: 10
+        };
+        const ringOfProtection: Item = {
+            id: 'ring_of_protection',
+            name: 'Ring of Protection',
+            type: 'accessory',
+            description: '',
+            slot: 'Ring',
+            armorClassBonus: 1,
+            requiresAttunement: true,
+        };
+
+        it('adds an attuned accessory AC bonus (Ring of Protection)', () => {
+            const char = createMockPlayerCharacter({
+                finalAbilityScores: flatScores,
+                equippedItems: {
+                    Torso: undefined,
+                    OffHand: undefined,
+                    Ring1: { ...ringOfProtection, isAttuned: true }
+                }
+            });
+            // 10 base + 1 ring = 11
+            expect(calculateArmorClass(char)).toBe(11);
+        });
+
+        it('ignores an unattuned accessory AC bonus', () => {
+            const char = createMockPlayerCharacter({
+                finalAbilityScores: flatScores,
+                equippedItems: {
+                    Torso: undefined,
+                    OffHand: undefined,
+                    Ring1: { ...ringOfProtection }
+                }
+            });
+            expect(calculateArmorClass(char)).toBe(10);
+        });
+
+        it('adds magic body armor armorClassBonus on top of its base AC', () => {
+            const char = createMockPlayerCharacter({
+                finalAbilityScores: flatScores,
+                equippedItems: {
+                    Torso: {
+                        id: 'demon_armor',
+                        name: 'Demon Armor',
+                        type: 'armor',
+                        description: '',
+                        armorCategory: 'Heavy',
+                        baseArmorClass: 18,
+                        armorClassBonus: 1,
+                        requiresAttunement: true,
+                        isAttuned: true
+                    },
+                    OffHand: undefined
+                }
+            });
+            // 18 base + 1 magic = 19
+            expect(calculateArmorClass(char)).toBe(19);
+        });
+
+        it('does not double-count a shield bonus through the magic path', () => {
+            const char = createMockPlayerCharacter({
+                finalAbilityScores: flatScores,
+                equippedItems: {
+                    Torso: undefined,
+                    OffHand: {
+                        id: 'shield',
+                        name: 'Shield',
+                        type: 'armor',
+                        description: '',
+                        armorCategory: 'Shield',
+                        armorClassBonus: 2
+                    }
+                }
+            });
+            // 10 base + 2 shield only = 12
+            expect(calculateArmorClass(char)).toBe(12);
+        });
+    });
 });

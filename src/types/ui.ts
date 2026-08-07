@@ -86,6 +86,20 @@ export interface GlossaryEntry {
     rarity?: string;
     tier?: string;
     reqAttune?: string;
+    /** Magic attack/damage bonus, e.g. "+1" (5eTools bonusWeapon). */
+    bonusWeapon?: string;
+    /** Magic AC bonus, e.g. "+1" (5eTools bonusAc). */
+    bonusAc?: string;
+    /** Ability scores this item sets to a fixed value (5eTools ability.static). Short keys: str/dex/con/int/wis/cha. */
+    abilitySet?: Record<string, number>;
+    /** Ability score increases this item grants while worn (5eTools ability additive form). */
+    abilityBonus?: Record<string, number>;
+    /** Maximum charges (5eTools charges). */
+    charges?: number;
+    /** When charges replenish, e.g. "dawn" (5eTools recharge). */
+    recharge?: string;
+    /** Dice or number of charges regained, plain text, e.g. "1d6 + 1". */
+    rechargeAmount?: string;
   };
 }
 

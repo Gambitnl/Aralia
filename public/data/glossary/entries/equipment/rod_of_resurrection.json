@@ -19,6 +19,9 @@
     "type": "Rod",
     "rarity": "Legendary",
     "reqAttune": "Required by a cleric, druid, or paladin",
-    "weight": 2
+    "weight": 2,
+    "charges": 5,
+    "recharge": "dawn",
+    "rechargeAmount": "1"
   }
 }

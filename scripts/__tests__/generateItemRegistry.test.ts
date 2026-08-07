@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { convertEntryToItem } from '../generateItemRegistry';
+import { convertEntryToItem, inferAccessorySlot } from '../generateItemRegistry';
 
 /**
  * Acceptance checks for the mechanical conversion seam in
@@ -192,6 +192,16 @@ describe('convertEntryToItem — weapon properties + attunement + effect', () =>
     expect(out!.item.magicProperties.attunement.requirements).toBe('Required by a warlock');
   });
 
+  it('sets the flat requiresAttunement field the runtime reads', () => {
+    const out = convertEntryToItem(entry({ type: 'Wondrous Item', rarity: 'Rare', reqAttune: 'Required' }));
+    expect(out!.item.requiresAttunement).toBe(true);
+  });
+
+  it('omits requiresAttunement when the item needs none', () => {
+    const out = convertEntryToItem(entry({ type: 'Wondrous Item', rarity: 'Rare' }));
+    expect(out!.item.requiresAttunement).toBeUndefined();
+  });
+
   it('strips 5eTools markup out of attunement requirements', () => {
     const out = convertEntryToItem(entry({ type: 'Wondrous Item', rarity: 'Rare', reqAttune: '{@item Belt of Dwarvenkind|XDMG}' }));
     expect(out!.item.magicProperties.attunement.requirements).toBe('Belt of Dwarvenkind');
@@ -211,5 +221,78 @@ describe('convertEntryToItem — weapon properties + attunement + effect', () =>
       { markdown: 'The imbiber regains 10 [[hit_points]].' },
     ));
     expect(out!.item.effect).toEqual({ type: 'heal', value: 10 });
+  });
+});
+
+describe('convertEntryToItem — mechanical boon fields', () => {
+  it('emits magicalBonus from bonusWeapon', () => {
+    const out = convertEntryToItem(entry({ type: 'Melee Weapon', rarity: 'Uncommon', bonusWeapon: '+1' }));
+    expect(out!.item.magicProperties.magicalBonus).toBe(1);
+  });
+
+  it('emits armorClassBonus and magicProperties.acBonus from bonusAc', () => {
+    const out = convertEntryToItem(entry({ type: 'Ring', rarity: 'Rare', reqAttune: 'Required', bonusAc: '+1' }));
+    expect(out!.item.armorClassBonus).toBe(1);
+    expect(out!.item.magicProperties.acBonus).toBe(1);
+  });
+
+  it('stacks bonusAc on top of a shield base armorClassBonus', () => {
+    const out = convertEntryToItem(entry({ type: 'Shield', rarity: 'Rare', ac: 2, bonusAc: '+1' }));
+    expect(out!.item.armorClassBonus).toBe(3);
+  });
+
+  it('keeps magic body-armor bonusAc out of baseArmorClass', () => {
+    const out = convertEntryToItem(entry({ type: 'Heavy Armor', rarity: 'Very rare', ac: 18, reqAttune: 'Required', bonusAc: '+1' }));
+    expect(out!.item.baseArmorClass).toBe(18);
+    expect(out!.item.armorClassBonus).toBe(1);
+  });
+
+  it('maps abilitySet to statOverrides with full ability names', () => {
+    const out = convertEntryToItem(entry({ type: 'Wondrous Item', rarity: 'Uncommon', reqAttune: 'Required', abilitySet: { str: 19 } }));
+    expect(out!.item.statOverrides).toEqual({ Strength: 19 });
+    expect(out!.item.statBonuses).toBeUndefined();
+  });
+
+  it('maps abilityBonus to statBonuses with full ability names', () => {
+    const out = convertEntryToItem(entry({ type: 'Wondrous Item', rarity: 'Rare', reqAttune: 'Required', abilityBonus: { con: 2 } }));
+    expect(out!.item.statBonuses).toEqual({ Constitution: 2 });
+    expect(out!.item.statOverrides).toBeUndefined();
+  });
+
+  it('emits full charges with dawn recharge and reset dice', () => {
+    const out = convertEntryToItem(entry({ type: 'Wand', rarity: 'Uncommon', charges: 7, recharge: 'dawn', rechargeAmount: '1d6 + 1' }));
+    expect(out!.item.magicProperties.charges).toEqual({
+      current: 7,
+      max: 7,
+      resetCondition: 'dawn',
+      resetDice: '1d6 + 1',
+    });
+  });
+});
+
+describe('inferAccessorySlot', () => {
+  it.each([
+    ['Gauntlets of Ogre Power', 'Hands'],
+    ['Belt of Dwarvenkind', 'Belt'],
+    ['Cloak of Protection', 'Cloak'],
+    ['Amulet of Health', 'Neck'],
+    ['Headband of Intellect', 'Head'],
+    ['Boots of Speed', 'Feet'],
+    ['+1 Wraps of Unarmed Power', 'Wrists'],
+    ['Robe of the Archmagi', 'Torso'],
+  ] as const)('maps %s to the %s slot', (name, slot) => {
+    expect(inferAccessorySlot(name)).toBe(slot);
+  });
+
+  it('returns undefined for a name without a wear-slot word', () => {
+    expect(inferAccessorySlot('Bag of Holding')).toBeUndefined();
+  });
+
+  it('assigns the inferred slot to a converted wondrous item', () => {
+    const out = convertEntryToItem(entry(
+      { type: 'Wondrous Item', rarity: 'Uncommon', reqAttune: 'Required', abilitySet: { str: 19 } },
+      { id: 'gauntlets_of_ogre_power', title: 'Gauntlets of Ogre Power' },
+    ));
+    expect(out!.item.slot).toBe('Hands');
   });
 });

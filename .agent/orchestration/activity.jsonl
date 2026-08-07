@@ -12237,3 +12237,23 @@
 {"at":1785880814950,"kind":"note","agent":"agora","title":"f8e690e6 released a lock","detail":"","source":"agora","eventType":"lock.release","seq":70474}
 {"at":1785880814951,"kind":"note","agent":"agora","title":"f8e690e6 released a lock","detail":"","source":"agora","eventType":"lock.release","seq":70475}
 {"at":1785880814951,"kind":"note","agent":"agora","title":"f8e690e6 released a lock","detail":"","source":"agora","eventType":"lock.release","seq":70476}
+{"at":1786038004445,"kind":"note","agent":"agora","title":"fluid-proof joined the Agora","detail":"fluid visual proof: terrain/** + DesignPreviewPage","source":"agora","eventType":"agent.register","seq":70478}
+{"at":1786038004627,"kind":"note","agent":"agora","title":"fluid-proof locked src/systems/worldforge/terrain/**","detail":"GPU fluid gather-kernel fix + ?step=fluid proof scene","source":"agora","eventType":"lock.acquire","seq":70480}
+{"at":1786038014333,"kind":"note","agent":"agora","title":"fluid-proof locked src/components/DesignPreview/DesignPreviewPage.tsx","detail":"add ?step=fluid entry","source":"agora","eventType":"lock.acquire","seq":70482}
+{"at":1786038379244,"kind":"note","agent":"agora","title":"fable-magic-items joined the Agora","detail":"magic-item boon data slice","source":"agora","eventType":"agent.register","seq":70483}
+{"at":1786038379513,"kind":"note","agent":"agora","title":"fable-magic-items locked src/types/ui.ts, scripts/ingestPhbGlossary.ts +7 more","detail":"magic-item boon data: ingest mechanical fields + registry emit + AC accessory path","source":"agora","eventType":"lock.acquire","seq":70485}
+{"at":1786038518549,"kind":"note","agent":"agora","title":"fable-tests joined the Agora","detail":"add unit tests: utils/random + worldforge/fmg golden seeds","source":"agora","eventType":"agent.register","seq":70486}
+{"at":1786038547684,"kind":"note","agent":"agora","title":"fable-tests locked src/utils/random/__tests__/**, src/systems/worldforge/fmg/__tests__/**","detail":"new unit tests: random contracts + fmg golden seeds","source":"agora","eventType":"lock.acquire","seq":70488}
+{"at":1786038992530,"kind":"note","agent":"agora","title":"fable-tests released a lock","detail":"","source":"agora","eventType":"lock.release","seq":70490}
+{"at":1786038992669,"kind":"note","agent":"agora","title":"fable-tests → all","detail":"WORKFLOW: none","source":"agora","eventType":"message.post","seq":70492}
+{"at":1786039012107,"kind":"note","agent":"agora","title":"fable-magic-items → all","detail":"magic-item boon slice done: ingest+registry emit mechanical fields, statUtils AC accessory path, all regenerated + tests green. Locks released.","source":"agora","eventType":"message.post","seq":70496}
+{"at":1786039012236,"kind":"note","agent":"agora","title":"fable-magic-items released a lock","detail":"","source":"agora","eventType":"lock.release","seq":70498}
+{"at":1786039801529,"kind":"note","agent":"agora","title":"fluid-proof → all","detail":"WORKFLOW: none — locks clean, no conflicts. GPU fluid gather kernel + ?step=fluid proof landed; terrain/** and DesignPreviewPage released.","source":"agora","eventType":"message.post","seq":70500}
+{"at":1786039801800,"kind":"note","agent":"agora","title":"fluid-proof released a lock","detail":"","source":"agora","eventType":"lock.release","seq":70502}
+{"at":1786039801804,"kind":"note","agent":"agora","title":"fluid-proof released a lock","detail":"","source":"agora","eventType":"lock.release","seq":70504}
+{"at":1786042645378,"kind":"note","agent":"agora","title":"fluid-proof joined the Agora","detail":"fluid water-look rebuild","source":"agora","eventType":"agent.register","seq":70508}
+{"at":1786042645571,"kind":"note","agent":"agora","title":"fluid-proof locked src/components/DesignPreview/steps/FluidScene3D.tsx, src/systems/worldforge/terrain/fluidCompute.ts","detail":"water look rebuild","source":"agora","eventType":"lock.acquire","seq":70510}
+{"at":1786043446645,"kind":"note","agent":"agora","title":"fluid-proof released a lock","detail":"","source":"agora","eventType":"lock.release","seq":70512}
+{"at":1786046568576,"kind":"note","agent":"agora","title":"fluid-proof joined the Agora","detail":"FLIP/MPM water spike","source":"agora","eventType":"agent.register","seq":70515}
+{"at":1786046568766,"kind":"note","agent":"agora","title":"fluid-proof locked src/systems/worldforge/terrain/flipCompute.ts, src/components/DesignPreview/steps/FlipScene3D.tsx +2 more","detail":"MPM water spike","source":"agora","eventType":"lock.acquire","seq":70517}
+{"at":1786048201891,"kind":"note","agent":"agora","title":"fluid-proof released a lock","detail":"","source":"agora","eventType":"lock.release","seq":70519}

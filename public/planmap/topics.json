@@ -166,6 +166,18 @@
           "title": "BUSH_PALETTE + bush scale: the real source of the green blobs",
           "status": "specced",
           "status_note": "Measured by the boulder agent: 3,780 sphereGeometry(1,6,4) instances, not rocks. groundChunkLoader BUSH_PALETTE ~line 3381 is the brightest green in the world; bScl line 3456 reaches 4.05m wide. Fix is ~10 lines, sits 3 lines from the understory palette."
+        },
+        {
+          "title": "Volume ground + GPU fluid: 64m bubble at 25cm, WebGPU compute",
+          "status": "active",
+          "decision": true,
+          "status_note": "ADR 0002. VISUAL PROOF LIVE at design.html?step=fluid (2026-08-06): pour falls, runs downhill in runnels, pools, spills a saddle, levels; 56fps with 2 steps/frame at 256^3; GPU-readback total mass flat with pour off. The scatter kernel RACED (out[neighbor]+= from parallel cells loses mass; WGSL has no float atomics) - rebuilt gather-form: each cell recomputes neighbor outflows and writes only itself; CPU twin fluidGather.ts proves conservation in vitest. Velocity now double-buffered: FIVE buffers, 320MB (ADR said four/256MB). GOTCHA: TSL .mod() emits WGSL mod() which has no i32 overload - use .modInt(); the shader failed silently every frame at 56fps. Open: bubble fill 778ms must move to a worker; wire into live World3D ground; water look REBUILT after Remy rejected v1: shade from true column depth (mass sum), never surface-minus-terrain (25cm quantization noise = checkered mottling); clamp surface to ground+depth; alpha 0 at dry verts kills skirt slivers; fresnel+specular from finite-difference normals; 39fps at 4 steps/frame; still awaits Remy's eyeball; sparse compute restores 64m/12cm for ~100MB when 25cm proves too coarse."
+        },
+        {
+          "title": "Water is 2D first: conservative shallow-water solver over a changing bed",
+          "status": "active",
+          "decision": true,
+          "status_note": "ADR 0002 revision 2026-08-07 after a deep research pass. 3D water over the bubble was 16.8M cells at 108ms/step; the same ground in 2D is 65,536 cells and steps in under 16ms measured. Built shallowWater.ts: virtual-pipe fluxes, exact conservation, boundary ledger so water leaving the domain is recorded not deleted, and editBed() that conserves volume when a spell moves the ground. 11 tests. THREE conservation bugs found and fixed: lowering the bed created water, raising it deleted water, and the solver checkerboarded (a cell could shed its whole depth in one step, so cells swapped forever while conserving volume exactly - looked stable for 20k steps)."
         }
       ],
       "history": {
@@ -173,7 +185,7 @@
         "built": "2026-07-04"
       },
       "tier": "strategic",
-      "updated": "2026-08-05"
+      "updated": "2026-08-07"
     },
     {
       "id": "perf-campaign",
@@ -5779,8 +5791,8 @@
       "sub": "items grant their mechanical benefits; attunement gates them",
       "campaign": "character",
       "status": "active",
-      "updated": "2026-07-26",
-      "status_note": "Enforcement machinery is built and tested, but NO item data fills the fields it reads, so magic items are inert in play. Flat-vs-nested attunement field mismatch; fix lives mostly in the glossary ingest.",
+      "updated": "2026-08-06",
+      "status_note": "Data gap CLOSED 2026-08-06: ingest+registry emit the mechanical fields, flat requiresAttunement bridged, accessory slots inferred, AC path for Protection items added; still open = charge spending, spell/save-DC bonuses, in-game eyeball.",
       "deps": [
         {
           "id": "item-categorization",
@@ -5797,19 +5809,19 @@
         },
         {
           "title": "Ability Score Boons From Equipment",
-          "status": "parked"
+          "status": "done"
         },
         {
           "title": "Weapon Magical Attack Bonuses",
-          "status": "parked"
+          "status": "done"
         },
         {
           "title": "Ingested Mechanical Field Population",
-          "status": "parked"
+          "status": "done"
         },
         {
           "title": "Unified Attunement Field Shape",
-          "status": "parked"
+          "status": "done"
         }
       ]
     },

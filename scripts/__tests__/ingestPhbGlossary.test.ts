@@ -137,6 +137,47 @@ describe('buildItemMetadata', () => {
     });
   });
 
+  it('captures structured magic-item mechanics', () => {
+    // These field shapes mirror Gauntlets of Ogre Power, Belt of Dwarvenkind,
+    // and Wand of Magic Missiles in the XDMG vendor data.
+    const metadata = buildItemMetadata({
+      rarity: 'uncommon',
+      reqAttune: true,
+      bonusWeapon: '+1',
+      bonusAc: '+2',
+      ability: { static: { str: 19 }, con: 2 },
+      charges: 7,
+      recharge: 'dawn',
+      rechargeAmount: '{@dice 1d6 + 1}',
+    }, {});
+
+    expect(metadata).toEqual({
+      rarity: 'Uncommon',
+      reqAttune: 'Required',
+      bonusWeapon: '+1',
+      bonusAc: '+2',
+      abilitySet: { str: 19 },
+      abilityBonus: { con: 2 },
+      charges: 7,
+      recharge: 'dawn',
+      rechargeAmount: '1d6 + 1',
+    });
+  });
+
+  it('rejects malformed mechanic fields while keeping valid ones', () => {
+    const metadata = buildItemMetadata({
+      bonusWeapon: 'unknown',
+      bonusAc: 3,
+      ability: { choose: [{ from: ['str'], amount: 2 }], luck: 5, str: 'high' },
+      charges: -2,
+      recharge: 7,
+      rechargeAmount: 4,
+    }, {});
+
+    // Only the numeric recharge amount survives; every other shape is invalid.
+    expect(metadata).toEqual({ rechargeAmount: '4' });
+  });
+
   it.each([null, undefined, 'not-an-item', 42, []])('returns null for a non-object raw value: %j', (item) => {
     expect(buildItemMetadata(item, {})).toBeNull();
   });

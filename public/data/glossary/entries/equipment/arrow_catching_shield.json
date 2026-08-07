@@ -20,6 +20,7 @@
     "rarity": "Rare",
     "reqAttune": "Required",
     "weight": 6,
-    "ac": 2
+    "ac": 2,
+    "bonusAc": "+2"
   }
 }

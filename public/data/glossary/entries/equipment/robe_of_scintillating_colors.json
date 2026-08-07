@@ -21,6 +21,9 @@
   "itemMetadata": {
     "type": "Wondrous Item",
     "rarity": "Very rare",
-    "reqAttune": "Required"
+    "reqAttune": "Required",
+    "charges": 3,
+    "recharge": "dawn",
+    "rechargeAmount": "1d3"
   }
 }

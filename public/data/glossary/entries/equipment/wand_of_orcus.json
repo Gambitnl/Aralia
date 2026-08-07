@@ -29,6 +29,11 @@
     "rarity": "Artifact",
     "reqAttune": "Required",
     "weight": 4,
-    "damage": "1d6 B"
+    "damage": "1d6 B",
+    "bonusWeapon": "+3",
+    "bonusAc": "+3",
+    "charges": 7,
+    "recharge": "dawn",
+    "rechargeAmount": "1d4 + 3"
   }
 }

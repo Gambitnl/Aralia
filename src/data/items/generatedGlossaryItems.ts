@@ -17,6 +17,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "weight": 2,
     "slot": "MainHand",
     "rarity": ItemRarity.Uncommon,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
@@ -34,6 +35,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "weight": 1,
     "slot": "MainHand",
     "rarity": ItemRarity.Uncommon,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
@@ -48,7 +50,12 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "description": "While wearing these wraps, you have a +1 bonus to attack rolls and damage rolls made with your Unarmed Strikes. Those strikes deal your choice of Forc...",
     "type": "accessory",
     "icon": "/assets/icons/items/1_wraps_of_unarmed_power.svg",
-    "rarity": ItemRarity.Uncommon
+    "slot": "Wrists",
+    "rarity": ItemRarity.Uncommon,
+    "magicProperties": {
+      "isIdentified": true,
+      "magicalBonus": 1
+    }
   },
   "2_rod_of_the_pact_keeper": {
     "id": "2_rod_of_the_pact_keeper",
@@ -59,6 +66,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "weight": 2,
     "slot": "MainHand",
     "rarity": ItemRarity.Rare,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
@@ -76,6 +84,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "weight": 1,
     "slot": "MainHand",
     "rarity": ItemRarity.Rare,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
@@ -90,7 +99,12 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "description": "While wearing these wraps, you have a +2 bonus to attack rolls and damage rolls made with your Unarmed Strikes. Those strikes deal your choice of Forc...",
     "type": "accessory",
     "icon": "/assets/icons/items/2_wraps_of_unarmed_power.svg",
-    "rarity": ItemRarity.Rare
+    "slot": "Wrists",
+    "rarity": ItemRarity.Rare,
+    "magicProperties": {
+      "isIdentified": true,
+      "magicalBonus": 2
+    }
   },
   "3_rod_of_the_pact_keeper": {
     "id": "3_rod_of_the_pact_keeper",
@@ -101,6 +115,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "weight": 2,
     "slot": "MainHand",
     "rarity": ItemRarity.VeryRare,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
@@ -118,6 +133,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "weight": 1,
     "slot": "MainHand",
     "rarity": ItemRarity.VeryRare,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
@@ -132,7 +148,12 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "description": "While wearing these wraps, you have a +3 bonus to attack rolls and damage rolls made with your Unarmed Strikes. Those strikes deal your choice of Forc...",
     "type": "accessory",
     "icon": "/assets/icons/items/3_wraps_of_unarmed_power.svg",
-    "rarity": ItemRarity.VeryRare
+    "slot": "Wrists",
+    "rarity": ItemRarity.VeryRare,
+    "magicProperties": {
+      "isIdentified": true,
+      "magicalBonus": 3
+    }
   },
   "acid": {
     "id": "acid",
@@ -184,15 +205,6 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "weight": 12,
     "rarity": ItemRarity.Uncommon
   },
-  "ale_mug": {
-    "id": "ale_mug",
-    "name": "Ale (mug)",
-    "description": "FD...",
-    "type": "treasure",
-    "icon": "/assets/icons/items/ale_mug.svg",
-    "cost": "0.04 GP",
-    "costInGp": 0.04
-  },
   "alexandrite": {
     "id": "alexandrite",
     "name": "Alexandrite",
@@ -201,6 +213,15 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "icon": "/assets/icons/items/alexandrite.svg",
     "cost": "500 GP",
     "costInGp": 500
+  },
+  "ale_mug": {
+    "id": "ale_mug",
+    "name": "Ale (mug)",
+    "description": "FD...",
+    "type": "treasure",
+    "icon": "/assets/icons/items/ale_mug.svg",
+    "cost": "0.04 GP",
+    "costInGp": 0.04
   },
   "amber": {
     "id": "amber",
@@ -237,13 +258,18 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "type": "accessory",
     "icon": "/assets/icons/items/amulet_of_health.svg",
     "weight": 1,
+    "slot": "Neck",
     "rarity": ItemRarity.Rare,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
         "required": true,
         "requirements": "Required"
       }
+    },
+    "statOverrides": {
+      "Constitution": 19
     }
   },
   "amulet_of_proof_against_detection_and_location": {
@@ -253,7 +279,9 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "type": "accessory",
     "icon": "/assets/icons/items/amulet_of_proof_against_detection_and_location.svg",
     "weight": 1,
+    "slot": "Neck",
     "rarity": ItemRarity.Uncommon,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
@@ -269,7 +297,9 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "type": "accessory",
     "icon": "/assets/icons/items/amulet_of_the_planes.svg",
     "weight": 1,
+    "slot": "Neck",
     "rarity": ItemRarity.VeryRare,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
@@ -289,6 +319,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "armorCategory": "Shield",
     "armorClassBonus": 2,
     "rarity": ItemRarity.VeryRare,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
@@ -352,6 +383,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "armorCategory": "Heavy",
     "baseArmorClass": 18,
     "rarity": ItemRarity.Legendary,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
@@ -370,25 +402,6 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "cost": "0.05 GP",
     "costInGp": 0.05
   },
-  "arrow_catching_shield": {
-    "id": "arrow_catching_shield",
-    "name": "Arrow-Catching Shield",
-    "description": "You gain a +2 bonus to armor_class|Armor Class against ranged attack rolls while you wield this Shield. This bonus is in addition to the Shield's norm...",
-    "type": "armor",
-    "icon": "/assets/icons/items/arrow_catching_shield.svg",
-    "weight": 6,
-    "slot": "OffHand",
-    "armorCategory": "Shield",
-    "armorClassBonus": 2,
-    "rarity": ItemRarity.Rare,
-    "magicProperties": {
-      "isIdentified": true,
-      "attunement": {
-        "required": true,
-        "requirements": "Required"
-      }
-    }
-  },
   "arrows_20": {
     "id": "arrows_20",
     "name": "Arrows (20)",
@@ -398,6 +411,27 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "weight": 1,
     "cost": "1 GP",
     "costInGp": 1
+  },
+  "arrow_catching_shield": {
+    "id": "arrow_catching_shield",
+    "name": "Arrow-Catching Shield",
+    "description": "You gain a +2 bonus to armor_class|Armor Class against ranged attack rolls while you wield this Shield. This bonus is in addition to the Shield's norm...",
+    "type": "armor",
+    "icon": "/assets/icons/items/arrow_catching_shield.svg",
+    "weight": 6,
+    "slot": "OffHand",
+    "armorCategory": "Shield",
+    "armorClassBonus": 4,
+    "rarity": ItemRarity.Rare,
+    "requiresAttunement": true,
+    "magicProperties": {
+      "isIdentified": true,
+      "attunement": {
+        "required": true,
+        "requirements": "Required"
+      },
+      "acBonus": 2
+    }
   },
   "assassin_s_blood": {
     "id": "assassin_s_blood",
@@ -441,12 +475,14 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
       "Versatile"
     ],
     "rarity": ItemRarity.Artifact,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
         "required": true,
         "requirements": "Required"
-      }
+      },
+      "magicalBonus": 3
     }
   },
   "azurite": {
@@ -465,6 +501,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "type": "accessory",
     "icon": "/assets/icons/items/baba_yaga_s_dancing_broom.svg",
     "rarity": ItemRarity.Uncommon,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
@@ -483,6 +520,16 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "cost": "2 GP",
     "costInGp": 2,
     "slot": "Ring"
+  },
+  "bagpipes": {
+    "id": "bagpipes",
+    "name": "Bagpipes",
+    "description": "- Ability: Charisma - Utilize: Play a known tune (DC 10), or improvise a song (DC 15)...",
+    "type": "treasure",
+    "icon": "/assets/icons/items/bagpipes.svg",
+    "weight": 6,
+    "cost": "30 GP",
+    "costInGp": 30
   },
   "bag_of_beans": {
     "id": "bag_of_beans",
@@ -532,16 +579,6 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "type": "accessory",
     "icon": "/assets/icons/items/bag_of_tricks_tan.svg",
     "rarity": ItemRarity.Uncommon
-  },
-  "bagpipes": {
-    "id": "bagpipes",
-    "name": "Bagpipes",
-    "description": "- Ability: Charisma - Utilize: Play a known tune (DC 10), or improvise a song (DC 15)...",
-    "type": "treasure",
-    "icon": "/assets/icons/items/bagpipes.svg",
-    "weight": 6,
-    "cost": "30 GP",
-    "costInGp": 30
   },
   "ball_bearings": {
     "id": "ball_bearings",
@@ -681,13 +718,18 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "description": "While wearing this belt, your Strength score changes to 27. The item has no effect on you if your Strength without the belt is equal to or greater tha...",
     "type": "accessory",
     "icon": "/assets/icons/items/belt_of_cloud_giant_strength.svg",
+    "slot": "Belt",
     "rarity": ItemRarity.Legendary,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
         "required": true,
         "requirements": "Required"
       }
+    },
+    "statOverrides": {
+      "Strength": 27
     }
   },
   "belt_of_dwarvenkind": {
@@ -696,13 +738,18 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "description": "While wearing this belt, you gain the following benefits: - Dwarvish: You know Dwarvish. - Friend of Dwarvenkind: You have advantage|Advantage on Char...",
     "type": "accessory",
     "icon": "/assets/icons/items/belt_of_dwarvenkind.svg",
+    "slot": "Belt",
     "rarity": ItemRarity.Rare,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
         "required": true,
         "requirements": "Required"
       }
+    },
+    "statBonuses": {
+      "Constitution": 2
     }
   },
   "belt_of_fire_giant_strength": {
@@ -711,13 +758,18 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "description": "While wearing this belt, your Strength score changes to 25. The item has no effect on you if your Strength without the belt is equal to or greater tha...",
     "type": "accessory",
     "icon": "/assets/icons/items/belt_of_fire_giant_strength.svg",
+    "slot": "Belt",
     "rarity": ItemRarity.VeryRare,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
         "required": true,
         "requirements": "Required"
       }
+    },
+    "statOverrides": {
+      "Strength": 25
     }
   },
   "belt_of_frost_giant_strength": {
@@ -726,13 +778,18 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "description": "While wearing this belt, your Strength score changes to 23. The item has no effect on you if your Strength without the belt is equal to or greater tha...",
     "type": "accessory",
     "icon": "/assets/icons/items/belt_of_frost_giant_strength.svg",
+    "slot": "Belt",
     "rarity": ItemRarity.VeryRare,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
         "required": true,
         "requirements": "Required"
       }
+    },
+    "statOverrides": {
+      "Strength": 23
     }
   },
   "belt_of_hill_giant_strength": {
@@ -741,13 +798,18 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "description": "While wearing this belt, your Strength score changes to 21. The item has no effect on you if your Strength without the belt is equal to or greater tha...",
     "type": "accessory",
     "icon": "/assets/icons/items/belt_of_hill_giant_strength.svg",
+    "slot": "Belt",
     "rarity": ItemRarity.Rare,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
         "required": true,
         "requirements": "Required"
       }
+    },
+    "statOverrides": {
+      "Strength": 21
     }
   },
   "belt_of_stone_giant_strength": {
@@ -756,13 +818,18 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "description": "While wearing this belt, your Strength score changes to 23. The item has no effect on you if your Strength without the belt is equal to or greater tha...",
     "type": "accessory",
     "icon": "/assets/icons/items/belt_of_stone_giant_strength.svg",
+    "slot": "Belt",
     "rarity": ItemRarity.VeryRare,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
         "required": true,
         "requirements": "Required"
       }
+    },
+    "statOverrides": {
+      "Strength": 23
     }
   },
   "belt_of_storm_giant_strength": {
@@ -771,13 +838,48 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "description": "While wearing this belt, your Strength score changes to 29. The item has no effect on you if your Strength without the belt is equal to or greater tha...",
     "type": "accessory",
     "icon": "/assets/icons/items/belt_of_storm_giant_strength.svg",
+    "slot": "Belt",
     "rarity": ItemRarity.Legendary,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
         "required": true,
         "requirements": "Required"
       }
+    },
+    "statOverrides": {
+      "Strength": 29
+    }
+  },
+  "blackrazor": {
+    "id": "blackrazor",
+    "name": "Blackrazor",
+    "description": "Hidden in the dungeon of White Plume Mountain, Blackrazor shines like a piece of night sky filled with stars. Its black scabbard is decorated with pie...",
+    "type": "weapon",
+    "icon": "/assets/icons/items/blackrazor.svg",
+    "weight": 6,
+    "slot": "MainHand",
+    "damageDice": "2d6",
+    "damageType": "Slashing",
+    "properties": [
+      "Heavy",
+      "Two-Handed"
+    ],
+    "rarity": ItemRarity.Artifact,
+    "requiresAttunement": true,
+    "magicProperties": {
+      "isIdentified": true,
+      "attunement": {
+        "required": true,
+        "requirements": "Required"
+      },
+      "magicalBonus": 3
+    },
+    "effect": {
+      "type": "heal",
+      "value": 0,
+      "dice": "1d10"
     }
   },
   "black_dragon_scale_mail": {
@@ -791,13 +893,16 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "armorCategory": "Medium",
     "baseArmorClass": 14,
     "rarity": ItemRarity.VeryRare,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
         "required": true,
         "requirements": "Required"
-      }
-    }
+      },
+      "acBonus": 1
+    },
+    "armorClassBonus": 1
   },
   "black_opal": {
     "id": "black_opal",
@@ -834,34 +939,6 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "icon": "/assets/icons/items/black_velvet_mask_stitched_with_silver_thread.svg",
     "cost": "25 GP",
     "costInGp": 25
-  },
-  "blackrazor": {
-    "id": "blackrazor",
-    "name": "Blackrazor",
-    "description": "Hidden in the dungeon of White Plume Mountain, Blackrazor shines like a piece of night sky filled with stars. Its black scabbard is decorated with pie...",
-    "type": "weapon",
-    "icon": "/assets/icons/items/blackrazor.svg",
-    "weight": 6,
-    "slot": "MainHand",
-    "damageDice": "2d6",
-    "damageType": "Slashing",
-    "properties": [
-      "Heavy",
-      "Two-Handed"
-    ],
-    "rarity": ItemRarity.Artifact,
-    "magicProperties": {
-      "isIdentified": true,
-      "attunement": {
-        "required": true,
-        "requirements": "Required"
-      }
-    },
-    "effect": {
-      "type": "heal",
-      "value": 0,
-      "dice": "1d10"
-    }
   },
   "blanket": {
     "id": "blanket",
@@ -922,13 +999,16 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "armorCategory": "Medium",
     "baseArmorClass": 14,
     "rarity": ItemRarity.VeryRare,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
         "required": true,
         "requirements": "Required"
-      }
-    }
+      },
+      "acBonus": 1
+    },
+    "armorClassBonus": 1
   },
   "blue_quartz": {
     "id": "blue_quartz",
@@ -1006,12 +1086,16 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "icon": "/assets/icons/items/book_of_exalted_deeds.svg",
     "weight": 5,
     "rarity": ItemRarity.Artifact,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
         "required": true,
         "requirements": "Required"
       }
+    },
+    "statBonuses": {
+      "Wisdom": 2
     }
   },
   "book_of_vile_darkness": {
@@ -1022,6 +1106,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "icon": "/assets/icons/items/book_of_vile_darkness.svg",
     "weight": 5,
     "rarity": ItemRarity.Artifact,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
@@ -1036,6 +1121,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "description": "While you wear these boots, your steps make no sound, regardless of the surface you are moving across. You also have advantage|Advantage on Dexterity ...",
     "type": "accessory",
     "icon": "/assets/icons/items/boots_of_elvenkind.svg",
+    "slot": "Feet",
     "rarity": ItemRarity.Uncommon
   },
   "boots_of_false_tracks": {
@@ -1044,6 +1130,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "description": "While wearing these boots, you can have them leave tracks like those of any kind of Humanoid of your size....",
     "type": "accessory",
     "icon": "/assets/icons/items/boots_of_false_tracks.svg",
+    "slot": "Feet",
     "rarity": ItemRarity.Common
   },
   "boots_of_levitation": {
@@ -1052,7 +1139,9 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "description": "While you wear these boots, you can cast levitate|Levitate on yourself....",
     "type": "accessory",
     "icon": "/assets/icons/items/boots_of_levitation.svg",
+    "slot": "Feet",
     "rarity": ItemRarity.Rare,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
@@ -1067,7 +1156,9 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "description": "While you wear these boots, you can take a bonus_action|Bonus Action to click the boots' heels together. If you do, the boots double your speed|Speed,...",
     "type": "accessory",
     "icon": "/assets/icons/items/boots_of_speed.svg",
+    "slot": "Feet",
     "rarity": ItemRarity.Rare,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
@@ -1082,7 +1173,9 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "description": "While you wear these boots, your speed|Speed becomes 30 feet unless your speed|Speed is higher, and your speed|Speed isn't reduced by you carrying wei...",
     "type": "accessory",
     "icon": "/assets/icons/items/boots_of_striding_and_springing.svg",
+    "slot": "Feet",
     "rarity": ItemRarity.Uncommon,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
@@ -1097,7 +1190,9 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "description": "These furred boots are snug and feel warm. While wearing them, you gain the following benefits.  Cold Resistance You have resistance|Resistance to Col...",
     "type": "accessory",
     "icon": "/assets/icons/items/boots_of_the_winterlands.svg",
+    "slot": "Feet",
     "rarity": ItemRarity.Uncommon,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
@@ -1138,7 +1233,9 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "description": "While wearing these bracers, you have proficiency with the longbow|Longbow and shortbow|Shortbow, and you gain a +2 bonus to damage rolls made with su...",
     "type": "accessory",
     "icon": "/assets/icons/items/bracers_of_archery.svg",
+    "slot": "Wrists",
     "rarity": ItemRarity.Uncommon,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
@@ -1153,14 +1250,18 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "description": "While wearing these bracers, you gain a +2 bonus to armor_class|Armor Class if you are wearing no armor and using no shield|Shield....",
     "type": "accessory",
     "icon": "/assets/icons/items/bracers_of_defense.svg",
+    "slot": "Wrists",
     "rarity": ItemRarity.Rare,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
         "required": true,
         "requirements": "Required"
-      }
-    }
+      },
+      "acBonus": 2
+    },
+    "armorClassBonus": 2
   },
   "brass_dragon_scale_mail": {
     "id": "brass_dragon_scale_mail",
@@ -1173,13 +1274,16 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "armorCategory": "Medium",
     "baseArmorClass": 14,
     "rarity": ItemRarity.VeryRare,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
         "required": true,
         "requirements": "Required"
-      }
-    }
+      },
+      "acBonus": 1
+    },
+    "armorClassBonus": 1
   },
   "brass_mug_with_jade_inlay": {
     "id": "brass_mug_with_jade_inlay",
@@ -1250,13 +1354,16 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "armorCategory": "Medium",
     "baseArmorClass": 14,
     "rarity": ItemRarity.VeryRare,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
         "required": true,
         "requirements": "Required"
-      }
-    }
+      },
+      "acBonus": 1
+    },
+    "armorClassBonus": 1
   },
   "brooch_of_shielding": {
     "id": "brooch_of_shielding",
@@ -1264,7 +1371,9 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "description": "While wearing this brooch, you have resistance|Resistance to Force damage, and you have immunity|Immunity to damage from the magic_missile|Magic Missi...",
     "type": "accessory",
     "icon": "/assets/icons/items/brooch_of_shielding.svg",
+    "slot": "Neck",
     "rarity": ItemRarity.Uncommon,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
@@ -1280,6 +1389,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "type": "accessory",
     "icon": "/assets/icons/items/broom_of_flying.svg",
     "rarity": ItemRarity.Uncommon,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
@@ -1387,6 +1497,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "type": "accessory",
     "icon": "/assets/icons/items/candle_of_invocation.svg",
     "rarity": ItemRarity.VeryRare,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
@@ -1412,6 +1523,15 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "cost": "0.1 GP",
     "costInGp": 0.1
   },
+  "cape_of_the_mountebank": {
+    "id": "cape_of_the_mountebank",
+    "name": "Cape of the Mountebank",
+    "description": "This cape smells faintly of brimstone. While wearing it, you can use it to cast dimension_door|Dimension Door as a magic|Magic action. This property c...",
+    "type": "accessory",
+    "icon": "/assets/icons/items/cape_of_the_mountebank.svg",
+    "slot": "Cloak",
+    "rarity": ItemRarity.Rare
+  },
   "cap_of_water_breathing": {
     "id": "cap_of_water_breathing",
     "name": "Cap of Water Breathing",
@@ -1419,14 +1539,6 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "type": "accessory",
     "icon": "/assets/icons/items/cap_of_water_breathing.svg",
     "rarity": ItemRarity.Uncommon
-  },
-  "cape_of_the_mountebank": {
-    "id": "cape_of_the_mountebank",
-    "name": "Cape of the Mountebank",
-    "description": "This cape smells faintly of brimstone. While wearing it, you can use it to cast dimension_door|Dimension Door as a magic|Magic action. This property c...",
-    "type": "accessory",
-    "icon": "/assets/icons/items/cape_of_the_mountebank.svg",
-    "rarity": ItemRarity.Rare
   },
   "carnelian": {
     "id": "carnelian",
@@ -1553,6 +1665,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "type": "accessory",
     "icon": "/assets/icons/items/cauldron_of_rebirth.svg",
     "rarity": ItemRarity.VeryRare,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
@@ -1641,6 +1754,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "type": "accessory",
     "icon": "/assets/icons/items/charlatan_s_die.svg",
     "rarity": ItemRarity.Common,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
@@ -1721,6 +1835,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "description": "While wearing this circlet, you can cast scorching_ray|Scorching Ray with it (+5 to hit). The circlet can't cast this spell again until the next dawn....",
     "type": "accessory",
     "icon": "/assets/icons/items/circlet_of_blasting.svg",
+    "slot": "Head",
     "rarity": ItemRarity.Uncommon
   },
   "citrine": {
@@ -1749,7 +1864,9 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "description": "This fine garment is made of black silk interwoven with faint, silvery threads. While wearing it, you gain the following benefits.  Poison Resistance ...",
     "type": "accessory",
     "icon": "/assets/icons/items/cloak_of_arachnida.svg",
+    "slot": "Cloak",
     "rarity": ItemRarity.VeryRare,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
@@ -1764,6 +1881,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "description": "While wearing this cloak, you can take a bonus_action|Bonus Action to make it billow dramatically for 1 minute....",
     "type": "accessory",
     "icon": "/assets/icons/items/cloak_of_billowing.svg",
+    "slot": "Cloak",
     "rarity": ItemRarity.Common
   },
   "cloak_of_displacement": {
@@ -1772,7 +1890,9 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "description": "While you wear this cloak, it magically projects an illusion that makes you appear to be standing in a place near your actual location, causing any cr...",
     "type": "accessory",
     "icon": "/assets/icons/items/cloak_of_displacement.svg",
+    "slot": "Cloak",
     "rarity": ItemRarity.Rare,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
@@ -1787,7 +1907,9 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "description": "While you wear this cloak, Wisdom (perception|Perception) checks made to perceive you have disadvantage|Disadvantage, and you have advantage|Advantage...",
     "type": "accessory",
     "icon": "/assets/icons/items/cloak_of_elvenkind.svg",
+    "slot": "Cloak",
     "rarity": ItemRarity.Uncommon,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
@@ -1802,12 +1924,20 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "description": "This cloak has 3 charges and regains 1d3 expended charges daily at dawn. While wearing the cloak, you can take a magic|Magic action to pull its hood o...",
     "type": "accessory",
     "icon": "/assets/icons/items/cloak_of_invisibility.svg",
+    "slot": "Cloak",
     "rarity": ItemRarity.Legendary,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
         "required": true,
         "requirements": "Required"
+      },
+      "charges": {
+        "current": 3,
+        "max": 3,
+        "resetCondition": "dawn",
+        "resetDice": "1d3"
       }
     }
   },
@@ -1817,6 +1947,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "description": "While wearing this cloak, you can take a bonus_action|Bonus Action to change the style, color, and apparent quality of the garment. The cloak's weight...",
     "type": "accessory",
     "icon": "/assets/icons/items/cloak_of_many_fashions.svg",
+    "slot": "Cloak",
     "rarity": ItemRarity.Common
   },
   "cloak_of_protection": {
@@ -1825,14 +1956,18 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "description": "You gain a +1 bonus to armor_class|Armor Class and saving throws while you wear this cloak....",
     "type": "accessory",
     "icon": "/assets/icons/items/cloak_of_protection.svg",
+    "slot": "Cloak",
     "rarity": ItemRarity.Uncommon,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
         "required": true,
         "requirements": "Required"
-      }
-    }
+      },
+      "acBonus": 1
+    },
+    "armorClassBonus": 1
   },
   "cloak_of_the_bat": {
     "id": "cloak_of_the_bat",
@@ -1840,7 +1975,9 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "description": "While wearing this cloak, you have advantage|Advantage on Dexterity (stealth|Stealth) checks. In an area of dim_light|Dim Light or darkness|Darkness, ...",
     "type": "accessory",
     "icon": "/assets/icons/items/cloak_of_the_bat.svg",
+    "slot": "Cloak",
     "rarity": ItemRarity.Rare,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
@@ -1855,7 +1992,9 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "description": "While wearing this cloak, you can breathe underwater, and you have a swim_speed|Swim Speed of 60 feet....",
     "type": "accessory",
     "icon": "/assets/icons/items/cloak_of_the_manta_ray.svg",
+    "slot": "Cloak",
     "rarity": ItemRarity.Uncommon,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
@@ -1870,6 +2009,23 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "description": "This copper amulet contains tiny interlocking gears and is powered by magic from Mechanus, a plane of clockwork predictability. Faint ticking and whir...",
     "type": "accessory",
     "icon": "/assets/icons/items/clockwork_amulet.svg",
+    "slot": "Neck",
+    "rarity": ItemRarity.Common,
+    "magicProperties": {
+      "isIdentified": true,
+      "charges": {
+        "current": 1,
+        "max": 1,
+        "resetCondition": "dawn"
+      }
+    }
+  },
+  "clothes_of_mending": {
+    "id": "clothes_of_mending",
+    "name": "Clothes of Mending",
+    "description": "This elegant outfit magically mends itself to counteract daily wear and tear. Pieces of the outfit that are destroyed can't be repaired in this way....",
+    "type": "accessory",
+    "icon": "/assets/icons/items/clothes_of_mending.svg",
     "rarity": ItemRarity.Common
   },
   "cloth_of_gold_vestments": {
@@ -1880,14 +2036,6 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "icon": "/assets/icons/items/cloth_of_gold_vestments.svg",
     "cost": "25 GP",
     "costInGp": 25
-  },
-  "clothes_of_mending": {
-    "id": "clothes_of_mending",
-    "name": "Clothes of Mending",
-    "description": "This elegant outfit magically mends itself to counteract daily wear and tear. Pieces of the outfit that are destroyed can't be repaired in this way....",
-    "type": "accessory",
-    "icon": "/assets/icons/items/clothes_of_mending.svg",
-    "rarity": ItemRarity.Common
   },
   "cloves": {
     "id": "cloves",
@@ -1985,13 +2133,16 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "armorCategory": "Medium",
     "baseArmorClass": 14,
     "rarity": ItemRarity.VeryRare,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
         "required": true,
         "requirements": "Required"
-      }
-    }
+      },
+      "acBonus": 1
+    },
+    "armorClassBonus": 1
   },
   "coral": {
     "id": "coral",
@@ -2071,6 +2222,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "icon": "/assets/icons/items/crystal_ball.svg",
     "weight": 3,
     "rarity": ItemRarity.VeryRare,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
@@ -2087,6 +2239,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "icon": "/assets/icons/items/crystal_ball_of_mind_reading.svg",
     "weight": 3,
     "rarity": ItemRarity.Legendary,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
@@ -2103,6 +2256,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "icon": "/assets/icons/items/crystal_ball_of_telepathy.svg",
     "weight": 3,
     "rarity": ItemRarity.Legendary,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
@@ -2119,6 +2273,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "icon": "/assets/icons/items/crystal_ball_of_true_seeing.svg",
     "weight": 3,
     "rarity": ItemRarity.Legendary,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
@@ -2134,11 +2289,18 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "type": "accessory",
     "icon": "/assets/icons/items/cube_of_force.svg",
     "rarity": ItemRarity.Rare,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
         "required": true,
         "requirements": "Required"
+      },
+      "charges": {
+        "current": 10,
+        "max": 10,
+        "resetCondition": "dawn",
+        "resetDice": "1d6"
       }
     }
   },
@@ -2156,7 +2318,16 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "description": "This cube is 3 inches across and radiates palpable magical energy. The six sides of the cube are each keyed to a different plane of existence, one of ...",
     "type": "accessory",
     "icon": "/assets/icons/items/cubic_gate.svg",
-    "rarity": ItemRarity.Legendary
+    "rarity": ItemRarity.Legendary,
+    "magicProperties": {
+      "isIdentified": true,
+      "charges": {
+        "current": 3,
+        "max": 3,
+        "resetCondition": "dawn",
+        "resetDice": "1d3"
+      }
+    }
   },
   "daern_s_instant_fortress": {
     "id": "daern_s_instant_fortress",
@@ -2165,6 +2336,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "type": "accessory",
     "icon": "/assets/icons/items/daern_s_instant_fortress.svg",
     "rarity": ItemRarity.Rare,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
@@ -2206,7 +2378,11 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
       "Light",
       "Thrown"
     ],
-    "rarity": ItemRarity.Rare
+    "rarity": ItemRarity.Rare,
+    "magicProperties": {
+      "isIdentified": true,
+      "magicalBonus": 1
+    }
   },
   "dark_shard_amulet": {
     "id": "dark_shard_amulet",
@@ -2216,6 +2392,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "icon": "/assets/icons/items/dark_shard_amulet.svg",
     "weight": 1,
     "rarity": ItemRarity.Common,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
@@ -2273,11 +2450,18 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "type": "accessory",
     "icon": "/assets/icons/items/demonomicon_of_iggwilv.svg",
     "rarity": ItemRarity.Artifact,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
         "required": true,
         "requirements": "Required"
+      },
+      "charges": {
+        "current": 8,
+        "max": 8,
+        "resetCondition": "dawn",
+        "resetDice": "1d8"
       }
     }
   },
@@ -2361,6 +2545,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "description": "While you're wearing this fearsome steel helm, your eyes glow red and the rest of your face is hidden in shadow....",
     "type": "accessory",
     "icon": "/assets/icons/items/dread_helm.svg",
+    "slot": "Head",
     "rarity": ItemRarity.Common
   },
   "driftglobe": {
@@ -2442,12 +2627,14 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
       "Versatile"
     ],
     "rarity": ItemRarity.VeryRare,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
         "required": true,
         "requirements": "Required by a Dwarf or a Creature Attuned to a Belt of Dwarvenkind"
-      }
+      },
+      "magicalBonus": 3
     }
   },
   "dynamite_stick": {
@@ -2599,11 +2786,18 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
       "Versatile"
     ],
     "rarity": ItemRarity.Uncommon,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
         "required": true,
         "requirements": "Required by a Spellcaster"
+      },
+      "charges": {
+        "current": 6,
+        "max": 6,
+        "resetCondition": "dawn",
+        "resetDice": "1d6"
       }
     }
   },
@@ -2621,11 +2815,18 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
       "Versatile"
     ],
     "rarity": ItemRarity.Uncommon,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
         "required": true,
         "requirements": "Required by a Spellcaster"
+      },
+      "charges": {
+        "current": 6,
+        "max": 6,
+        "resetCondition": "dawn",
+        "resetDice": "1d6"
       }
     }
   },
@@ -2643,11 +2844,18 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
       "Versatile"
     ],
     "rarity": ItemRarity.Rare,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
         "required": true,
         "requirements": "Required by a Spellcaster"
+      },
+      "charges": {
+        "current": 6,
+        "max": 6,
+        "resetCondition": "dawn",
+        "resetDice": "1d6"
       }
     }
   },
@@ -2665,11 +2873,18 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
       "Versatile"
     ],
     "rarity": ItemRarity.Rare,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
         "required": true,
         "requirements": "Required by a Spellcaster"
+      },
+      "charges": {
+        "current": 6,
+        "max": 6,
+        "resetCondition": "dawn",
+        "resetDice": "1d6"
       }
     }
   },
@@ -2687,11 +2902,18 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
       "Versatile"
     ],
     "rarity": ItemRarity.VeryRare,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
         "required": true,
         "requirements": "Required by a Spellcaster"
+      },
+      "charges": {
+        "current": 6,
+        "max": 6,
+        "resetCondition": "dawn",
+        "resetDice": "1d6"
       }
     }
   },
@@ -2709,11 +2931,18 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
       "Versatile"
     ],
     "rarity": ItemRarity.VeryRare,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
         "required": true,
         "requirements": "Required by a Spellcaster"
+      },
+      "charges": {
+        "current": 6,
+        "max": 6,
+        "resetCondition": "dawn",
+        "resetDice": "1d6"
       }
     }
   },
@@ -2731,11 +2960,18 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
       "Versatile"
     ],
     "rarity": ItemRarity.Legendary,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
         "required": true,
         "requirements": "Required by a Spellcaster"
+      },
+      "charges": {
+        "current": 6,
+        "max": 6,
+        "resetCondition": "dawn",
+        "resetDice": "1d6"
       }
     }
   },
@@ -2753,11 +2989,18 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
       "Versatile"
     ],
     "rarity": ItemRarity.Legendary,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
         "required": true,
         "requirements": "Required by a Spellcaster"
+      },
+      "charges": {
+        "current": 6,
+        "max": 6,
+        "resetCondition": "dawn",
+        "resetDice": "1d6"
       }
     }
   },
@@ -2775,11 +3018,18 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
       "Versatile"
     ],
     "rarity": ItemRarity.Legendary,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
         "required": true,
         "requirements": "Required by a Spellcaster"
+      },
+      "charges": {
+        "current": 6,
+        "max": 6,
+        "resetCondition": "dawn",
+        "resetDice": "1d6"
       }
     }
   },
@@ -2841,39 +3091,6 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "costInGp": 10,
     "slot": "Ring"
   },
-  "eye_agate": {
-    "id": "eye_agate",
-    "name": "Eye Agate",
-    "description": "A circles of gray, white, brown, blue, or green gemstone....",
-    "type": "treasure",
-    "icon": "/assets/icons/items/eye_agate.svg",
-    "cost": "10 GP",
-    "costInGp": 10
-  },
-  "eye_of_vecna": {
-    "id": "eye_of_vecna",
-    "name": "Eye of Vecna",
-    "description": "Vecna was a mighty wizard who, through magic and conquest, forged a terrible empire. For all his power, however, Vecna feared death and took steps to ...",
-    "type": "accessory",
-    "icon": "/assets/icons/items/eye_of_vecna.svg",
-    "rarity": ItemRarity.Artifact,
-    "magicProperties": {
-      "isIdentified": true,
-      "attunement": {
-        "required": true,
-        "requirements": "Required"
-      }
-    }
-  },
-  "eye_patch_decorated_with_tiny_blue_sapphires_and_moonstones": {
-    "id": "eye_patch_decorated_with_tiny_blue_sapphires_and_moonstones",
-    "name": "Eye patch decorated with tiny blue sapphires and moonstones",
-    "description": "$A...",
-    "type": "treasure",
-    "icon": "/assets/icons/items/eye_patch_decorated_with_tiny_blue_sapphires_and_moonstones.svg",
-    "cost": "2500 GP",
-    "costInGp": 2500
-  },
   "eyes_of_charming": {
     "id": "eyes_of_charming",
     "name": "Eyes of Charming",
@@ -2881,11 +3098,18 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "type": "accessory",
     "icon": "/assets/icons/items/eyes_of_charming.svg",
     "rarity": ItemRarity.Uncommon,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
         "required": true,
         "requirements": "Required"
+      },
+      "charges": {
+        "current": 3,
+        "max": 3,
+        "resetCondition": "dawn",
+        "resetDice": "3"
       }
     }
   },
@@ -2904,6 +3128,46 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "type": "accessory",
     "icon": "/assets/icons/items/eyes_of_the_eagle.svg",
     "rarity": ItemRarity.Uncommon
+  },
+  "eye_agate": {
+    "id": "eye_agate",
+    "name": "Eye Agate",
+    "description": "A circles of gray, white, brown, blue, or green gemstone....",
+    "type": "treasure",
+    "icon": "/assets/icons/items/eye_agate.svg",
+    "cost": "10 GP",
+    "costInGp": 10
+  },
+  "eye_of_vecna": {
+    "id": "eye_of_vecna",
+    "name": "Eye of Vecna",
+    "description": "Vecna was a mighty wizard who, through magic and conquest, forged a terrible empire. For all his power, however, Vecna feared death and took steps to ...",
+    "type": "accessory",
+    "icon": "/assets/icons/items/eye_of_vecna.svg",
+    "rarity": ItemRarity.Artifact,
+    "requiresAttunement": true,
+    "magicProperties": {
+      "isIdentified": true,
+      "attunement": {
+        "required": true,
+        "requirements": "Required"
+      },
+      "charges": {
+        "current": 8,
+        "max": 8,
+        "resetCondition": "dawn",
+        "resetDice": "1d4 + 4"
+      }
+    }
+  },
+  "eye_patch_decorated_with_tiny_blue_sapphires_and_moonstones": {
+    "id": "eye_patch_decorated_with_tiny_blue_sapphires_and_moonstones",
+    "name": "Eye patch decorated with tiny blue sapphires and moonstones",
+    "description": "$A...",
+    "type": "treasure",
+    "icon": "/assets/icons/items/eye_patch_decorated_with_tiny_blue_sapphires_and_moonstones.svg",
+    "cost": "2500 GP",
+    "costInGp": 2500
   },
   "feed_per_day": {
     "id": "feed_per_day",
@@ -2945,7 +3209,15 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "description": "A figurine_of_wondrous_power|Figurine of Wondrous Power is a statuette small enough to fit in a pocket. If you take a magic|Magic action to throw the ...",
     "type": "accessory",
     "icon": "/assets/icons/items/figurine_of_wondrous_power_ivory_goats.svg",
-    "rarity": ItemRarity.Rare
+    "rarity": ItemRarity.Rare,
+    "magicProperties": {
+      "isIdentified": true,
+      "charges": {
+        "current": 24,
+        "max": 24,
+        "resetCondition": "never"
+      }
+    }
   },
   "figurine_of_wondrous_power_marble_elephant": {
     "id": "figurine_of_wondrous_power_marble_elephant",
@@ -3016,15 +3288,6 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "cost": "10 GP",
     "costInGp": 10
   },
-  "fire_opal": {
-    "id": "fire_opal",
-    "name": "Fire Opal",
-    "description": "A fiery red gemstone....",
-    "type": "treasure",
-    "icon": "/assets/icons/items/fire_opal.svg",
-    "cost": "1000 GP",
-    "costInGp": 1000
-  },
   "firearm_bullet": {
     "id": "firearm_bullet",
     "name": "Firearm Bullet",
@@ -3044,6 +3307,15 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "weight": 2,
     "cost": "3 GP",
     "costInGp": 3
+  },
+  "fire_opal": {
+    "id": "fire_opal",
+    "name": "Fire Opal",
+    "description": "A fiery red gemstone....",
+    "type": "treasure",
+    "icon": "/assets/icons/items/fire_opal.svg",
+    "cost": "1000 GP",
+    "costInGp": 1000
   },
   "flail": {
     "id": "flail",
@@ -3140,13 +3412,18 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "description": "Your Strength score is 19 while you wear these gauntlets. They have no effect on you if your Strength is 19 or higher without them....",
     "type": "accessory",
     "icon": "/assets/icons/items/gauntlets_of_ogre_power.svg",
+    "slot": "Hands",
     "rarity": ItemRarity.Uncommon,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
         "required": true,
         "requirements": "Required"
       }
+    },
+    "statOverrides": {
+      "Strength": 19
     }
   },
   "gem_of_brightness": {
@@ -3155,7 +3432,15 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "description": "This prism has 50 charges. While you are holding it, you can take a magic|Magic action and use one of three command words to cause one of the followin...",
     "type": "accessory",
     "icon": "/assets/icons/items/gem_of_brightness.svg",
-    "rarity": ItemRarity.Uncommon
+    "rarity": ItemRarity.Uncommon,
+    "magicProperties": {
+      "isIdentified": true,
+      "charges": {
+        "current": 50,
+        "max": 50,
+        "resetCondition": "never"
+      }
+    }
   },
   "gem_of_seeing": {
     "id": "gem_of_seeing",
@@ -3164,11 +3449,18 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "type": "accessory",
     "icon": "/assets/icons/items/gem_of_seeing.svg",
     "rarity": ItemRarity.Rare,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
         "required": true,
         "requirements": "Required"
+      },
+      "charges": {
+        "current": 3,
+        "max": 3,
+        "resetCondition": "dawn",
+        "resetDice": "1d3"
       }
     }
   },
@@ -3219,7 +3511,22 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "slot": "Torso",
     "armorCategory": "Light",
     "baseArmorClass": 12,
-    "rarity": ItemRarity.Rare
+    "rarity": ItemRarity.Rare,
+    "armorClassBonus": 1,
+    "magicProperties": {
+      "isIdentified": true,
+      "acBonus": 1
+    }
+  },
+  "glassblower_s_tools": {
+    "id": "glassblower_s_tools",
+    "name": "Glassblower's Tools",
+    "description": "- Ability: Intelligence - Utilize: Discern what a glass object held in the past 24 hours (DC 15) - Craft: glass_bottle|Glass Bottle, magnifying_glass|...",
+    "type": "treasure",
+    "icon": "/assets/icons/items/glassblower_s_tools.svg",
+    "weight": 5,
+    "cost": "30 GP",
+    "costInGp": 30
   },
   "glass_bottle": {
     "id": "glass_bottle",
@@ -3232,23 +3539,15 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "costInGp": 2,
     "slot": "Ring"
   },
-  "glassblower_s_tools": {
-    "id": "glassblower_s_tools",
-    "name": "Glassblower's Tools",
-    "description": "- Ability: Intelligence - Utilize: Discern what a glass object held in the past 24 hours (DC 15) - Craft: glass_bottle|Glass Bottle, magnifying_glass|...",
-    "type": "treasure",
-    "icon": "/assets/icons/items/glassblower_s_tools.svg",
-    "weight": 5,
-    "cost": "30 GP",
-    "costInGp": 30
-  },
   "gloves_of_missile_snaring": {
     "id": "gloves_of_missile_snaring",
     "name": "Gloves of Missile Snaring",
     "description": "If you're hit by an attack roll made with a Ranged or Thrown weapon while wearing these gloves, you can take a reaction|Reaction to reduce the damage ...",
     "type": "accessory",
     "icon": "/assets/icons/items/gloves_of_missile_snaring.svg",
+    "slot": "Hands",
     "rarity": ItemRarity.Uncommon,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
@@ -3263,7 +3562,9 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "description": "While wearing these gloves, climbing and swimming don't cost you extra movement, and you gain a +5 bonus to Strength (athletics|Athletics) checks made...",
     "type": "accessory",
     "icon": "/assets/icons/items/gloves_of_swimming_and_climbing.svg",
+    "slot": "Hands",
     "rarity": ItemRarity.Uncommon,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
@@ -3278,6 +3579,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "description": "These gloves are imperceptible while worn. While wearing them, you gain a +5 bonus to Dexterity (sleight_of_hand|Sleight of Hand) checks....",
     "type": "accessory",
     "icon": "/assets/icons/items/gloves_of_thievery.svg",
+    "slot": "Hands",
     "rarity": ItemRarity.Uncommon
   },
   "goat": {
@@ -3295,6 +3597,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "description": "While wearing these dark lenses, you have darkvision|Darkvision out to 60 feet. If you already have darkvision|Darkvision, wearing the goggles increas...",
     "type": "accessory",
     "icon": "/assets/icons/items/goggles_of_night.svg",
+    "slot": "Head",
     "rarity": ItemRarity.Uncommon
   },
   "gold": {
@@ -3373,13 +3676,16 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "armorCategory": "Medium",
     "baseArmorClass": 14,
     "rarity": ItemRarity.VeryRare,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
         "required": true,
         "requirements": "Required"
-      }
-    }
+      },
+      "acBonus": 1
+    },
+    "armorClassBonus": 1
   },
   "gold_idol": {
     "id": "gold_idol",
@@ -3507,13 +3813,16 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "armorCategory": "Medium",
     "baseArmorClass": 14,
     "rarity": ItemRarity.VeryRare,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
         "required": true,
         "requirements": "Required"
-      }
-    }
+      },
+      "acBonus": 1
+    },
+    "armorClassBonus": 1
   },
   "grenade_launcher": {
     "id": "grenade_launcher",
@@ -3550,7 +3859,16 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "description": "A Hag Eye has 3 charges. While wearing or holding this item, you can expend 1 charge to cast darkvision|Darkvision (targeting yourself only) or see_in...",
     "type": "accessory",
     "icon": "/assets/icons/items/hag_eye.svg",
-    "rarity": ItemRarity.Uncommon
+    "rarity": ItemRarity.Uncommon,
+    "magicProperties": {
+      "isIdentified": true,
+      "charges": {
+        "current": 3,
+        "max": 3,
+        "resetCondition": "dawn",
+        "resetDice": "3"
+      }
+    }
   },
   "halberd": {
     "id": "halberd",
@@ -3583,39 +3901,6 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "armorCategory": "Medium",
     "baseArmorClass": 15
   },
-  "hand_crossbow": {
-    "id": "hand_crossbow",
-    "name": "Hand Crossbow",
-    "description": "R...",
-    "type": "weapon",
-    "icon": "/assets/icons/items/hand_crossbow.svg",
-    "weight": 3,
-    "cost": "75 GP",
-    "costInGp": 75,
-    "slot": "MainHand",
-    "damageDice": "1d6",
-    "damageType": "Piercing",
-    "properties": [
-      "Ammunition",
-      "Light",
-      "Loading"
-    ]
-  },
-  "hand_of_vecna": {
-    "id": "hand_of_vecna",
-    "name": "Hand of Vecna",
-    "description": "Vecna was a mighty wizard who, through magic and conquest, forged a terrible empire. For all his power, however, Vecna feared death and took steps to ...",
-    "type": "accessory",
-    "icon": "/assets/icons/items/hand_of_vecna.svg",
-    "rarity": ItemRarity.Artifact,
-    "magicProperties": {
-      "isIdentified": true,
-      "attunement": {
-        "required": true,
-        "requirements": "Required"
-      }
-    }
-  },
   "handaxe": {
     "id": "handaxe",
     "name": "Handaxe",
@@ -3642,13 +3927,58 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "cost": "25 GP",
     "costInGp": 25
   },
+  "hand_crossbow": {
+    "id": "hand_crossbow",
+    "name": "Hand Crossbow",
+    "description": "R...",
+    "type": "weapon",
+    "icon": "/assets/icons/items/hand_crossbow.svg",
+    "weight": 3,
+    "cost": "75 GP",
+    "costInGp": 75,
+    "slot": "MainHand",
+    "damageDice": "1d6",
+    "damageType": "Piercing",
+    "properties": [
+      "Ammunition",
+      "Light",
+      "Loading"
+    ]
+  },
+  "hand_of_vecna": {
+    "id": "hand_of_vecna",
+    "name": "Hand of Vecna",
+    "description": "Vecna was a mighty wizard who, through magic and conquest, forged a terrible empire. For all his power, however, Vecna feared death and took steps to ...",
+    "type": "accessory",
+    "icon": "/assets/icons/items/hand_of_vecna.svg",
+    "rarity": ItemRarity.Artifact,
+    "requiresAttunement": true,
+    "magicProperties": {
+      "isIdentified": true,
+      "attunement": {
+        "required": true,
+        "requirements": "Required"
+      },
+      "charges": {
+        "current": 8,
+        "max": 8,
+        "resetCondition": "dawn",
+        "resetDice": "1d4 + 4"
+      }
+    },
+    "statOverrides": {
+      "Strength": 20
+    }
+  },
   "hat_of_disguise": {
     "id": "hat_of_disguise",
     "name": "Hat of Disguise",
     "description": "While wearing this hat, you can cast the disguise_self|Disguise Self spell. The spell ends if the hat is removed....",
     "type": "accessory",
     "icon": "/assets/icons/items/hat_of_disguise.svg",
+    "slot": "Head",
     "rarity": ItemRarity.Uncommon,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
@@ -3664,6 +3994,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "type": "treasure",
     "icon": "/assets/icons/items/hat_of_many_spells.svg",
     "rarity": ItemRarity.VeryRare,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
@@ -3678,7 +4009,17 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "description": "This hat has 3 charges. While holding the hat, you can take a magic|Magic action to expend 1 charge and summon your choice of a Bat, a Frog, or a Rat....",
     "type": "accessory",
     "icon": "/assets/icons/items/hat_of_vermin.svg",
-    "rarity": ItemRarity.Common
+    "slot": "Head",
+    "rarity": ItemRarity.Common,
+    "magicProperties": {
+      "isIdentified": true,
+      "charges": {
+        "current": 3,
+        "max": 3,
+        "resetCondition": "dawn",
+        "resetDice": "3"
+      }
+    }
   },
   "hat_of_wizardry": {
     "id": "hat_of_wizardry",
@@ -3687,6 +4028,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "type": "treasure",
     "icon": "/assets/icons/items/hat_of_wizardry.svg",
     "rarity": ItemRarity.Common,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
@@ -3701,13 +4043,18 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "description": "Your Intelligence score is 19 while you wear this headband. It has no effect on you if your Intelligence is 19 or higher without it....",
     "type": "accessory",
     "icon": "/assets/icons/items/headband_of_intellect.svg",
+    "slot": "Head",
     "rarity": ItemRarity.Uncommon,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
         "required": true,
         "requirements": "Required"
       }
+    },
+    "statOverrides": {
+      "Intelligence": 19
     }
   },
   "healer_s_kit": {
@@ -3746,7 +4093,9 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "description": "This helm is set with 1d10 diamonds, 2d10 rubies, 3d10 fire opals, and 4d10 opals. Any gem pried from the helm crumbles to dust. When all the gems are...",
     "type": "accessory",
     "icon": "/assets/icons/items/helm_of_brilliance.svg",
+    "slot": "Head",
     "rarity": ItemRarity.VeryRare,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
@@ -3761,6 +4110,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "description": "While wearing this helm, you can cast comprehend_languages|Comprehend Languages from it....",
     "type": "accessory",
     "icon": "/assets/icons/items/helm_of_comprehending_languages.svg",
+    "slot": "Head",
     "rarity": ItemRarity.Uncommon
   },
   "helm_of_telepathy": {
@@ -3769,7 +4119,9 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "description": "While wearing this helm, you have telepathy with a range of 30 feet, and you can cast detect_thoughts|Detect Thoughts or suggestion|Suggestion (save D...",
     "type": "accessory",
     "icon": "/assets/icons/items/helm_of_telepathy.svg",
+    "slot": "Head",
     "rarity": ItemRarity.Uncommon,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
@@ -3784,12 +4136,20 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "description": "This helm has 3 charges. While wearing it, you can expend 1 charge to cast teleport|Teleport from it. The helm regains 1d3 expended charges daily at d...",
     "type": "accessory",
     "icon": "/assets/icons/items/helm_of_teleportation.svg",
+    "slot": "Head",
     "rarity": ItemRarity.Rare,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
         "required": true,
         "requirements": "Required"
+      },
+      "charges": {
+        "current": 3,
+        "max": 3,
+        "resetCondition": "dawn",
+        "resetDice": "1d3"
       }
     }
   },
@@ -3827,7 +4187,16 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "description": "This belt pouch appears empty and has 10 charges. While holding the pouch, you can take a magic|Magic action to expend 1 charge, name any nonmagical f...",
     "type": "accessory",
     "icon": "/assets/icons/items/heward_s_handy_spice_pouch.svg",
-    "rarity": ItemRarity.Common
+    "rarity": ItemRarity.Common,
+    "magicProperties": {
+      "isIdentified": true,
+      "charges": {
+        "current": 10,
+        "max": 10,
+        "resetCondition": "dawn",
+        "resetDice": "1d6 + 4"
+      }
+    }
   },
   "hide_armor": {
     "id": "hide_armor",
@@ -3888,7 +4257,16 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "description": "This horn has 4 charges and regains 1d4 expended charges daily at dawn. As a magic|Magic action, you can blow the horn while expending 1 charge. One c...",
     "type": "treasure",
     "icon": "/assets/icons/items/horn_of_silent_alarm.svg",
-    "rarity": ItemRarity.Common
+    "rarity": ItemRarity.Common,
+    "magicProperties": {
+      "isIdentified": true,
+      "charges": {
+        "current": 4,
+        "max": 4,
+        "resetCondition": "dawn",
+        "resetDice": "1d4"
+      }
+    }
   },
   "horn_of_valhalla_brass": {
     "id": "horn_of_valhalla_brass",
@@ -4009,7 +4387,16 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "description": "This musical_instrument|musical instrument has 3 charges and regains all expended charges daily at dawn. While you are playing it, you can take a magi...",
     "type": "accessory",
     "icon": "/assets/icons/items/instrument_of_scribing.svg",
-    "rarity": ItemRarity.Common
+    "rarity": ItemRarity.Common,
+    "magicProperties": {
+      "isIdentified": true,
+      "charges": {
+        "current": 3,
+        "max": 3,
+        "resetCondition": "dawn",
+        "resetDice": "3"
+      }
+    }
   },
   "instrument_of_the_bards_anstruth_harp": {
     "id": "instrument_of_the_bards_anstruth_harp",
@@ -4018,6 +4405,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "type": "accessory",
     "icon": "/assets/icons/items/instrument_of_the_bards_anstruth_harp.svg",
     "rarity": ItemRarity.VeryRare,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
@@ -4033,6 +4421,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "type": "accessory",
     "icon": "/assets/icons/items/instrument_of_the_bards_canaith_mandolin.svg",
     "rarity": ItemRarity.Rare,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
@@ -4048,6 +4437,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "type": "treasure",
     "icon": "/assets/icons/items/instrument_of_the_bards_cli_lyre.svg",
     "rarity": ItemRarity.Rare,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
@@ -4063,6 +4453,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "type": "treasure",
     "icon": "/assets/icons/items/instrument_of_the_bards_doss_lute.svg",
     "rarity": ItemRarity.Uncommon,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
@@ -4078,6 +4469,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "type": "treasure",
     "icon": "/assets/icons/items/instrument_of_the_bards_fochlucan_bandore.svg",
     "rarity": ItemRarity.Uncommon,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
@@ -4093,6 +4485,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "type": "treasure",
     "icon": "/assets/icons/items/instrument_of_the_bards_mac_fuirmidh_cittern.svg",
     "rarity": ItemRarity.Uncommon,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
@@ -4108,6 +4501,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "type": "accessory",
     "icon": "/assets/icons/items/instrument_of_the_bards_ollamh_harp.svg",
     "rarity": ItemRarity.Legendary,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
@@ -4123,6 +4517,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "type": "accessory",
     "icon": "/assets/icons/items/ioun_stone_absorption.svg",
     "rarity": ItemRarity.VeryRare,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
@@ -4138,12 +4533,16 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "type": "accessory",
     "icon": "/assets/icons/items/ioun_stone_agility.svg",
     "rarity": ItemRarity.VeryRare,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
         "required": true,
         "requirements": "Required"
       }
+    },
+    "statBonuses": {
+      "Dexterity": 2
     }
   },
   "ioun_stone_awareness": {
@@ -4153,6 +4552,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "type": "accessory",
     "icon": "/assets/icons/items/ioun_stone_awareness.svg",
     "rarity": ItemRarity.Rare,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
@@ -4168,12 +4568,16 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "type": "accessory",
     "icon": "/assets/icons/items/ioun_stone_fortitude.svg",
     "rarity": ItemRarity.VeryRare,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
         "required": true,
         "requirements": "Required"
       }
+    },
+    "statBonuses": {
+      "Constitution": 2
     }
   },
   "ioun_stone_greater_absorption": {
@@ -4183,6 +4587,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "type": "accessory",
     "icon": "/assets/icons/items/ioun_stone_greater_absorption.svg",
     "rarity": ItemRarity.Legendary,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
@@ -4198,12 +4603,16 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "type": "accessory",
     "icon": "/assets/icons/items/ioun_stone_insight.svg",
     "rarity": ItemRarity.VeryRare,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
         "required": true,
         "requirements": "Required"
       }
+    },
+    "statBonuses": {
+      "Wisdom": 2
     }
   },
   "ioun_stone_intellect": {
@@ -4213,12 +4622,16 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "type": "accessory",
     "icon": "/assets/icons/items/ioun_stone_intellect.svg",
     "rarity": ItemRarity.VeryRare,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
         "required": true,
         "requirements": "Required"
       }
+    },
+    "statBonuses": {
+      "Intelligence": 2
     }
   },
   "ioun_stone_leadership": {
@@ -4228,12 +4641,16 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "type": "accessory",
     "icon": "/assets/icons/items/ioun_stone_leadership.svg",
     "rarity": ItemRarity.VeryRare,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
         "required": true,
         "requirements": "Required"
       }
+    },
+    "statBonuses": {
+      "Charisma": 2
     }
   },
   "ioun_stone_mastery": {
@@ -4243,6 +4660,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "type": "accessory",
     "icon": "/assets/icons/items/ioun_stone_mastery.svg",
     "rarity": ItemRarity.Legendary,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
@@ -4258,13 +4676,16 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "type": "accessory",
     "icon": "/assets/icons/items/ioun_stone_protection.svg",
     "rarity": ItemRarity.Rare,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
         "required": true,
         "requirements": "Required"
-      }
-    }
+      },
+      "acBonus": 1
+    },
+    "armorClassBonus": 1
   },
   "ioun_stone_regeneration": {
     "id": "ioun_stone_regeneration",
@@ -4273,6 +4694,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "type": "accessory",
     "icon": "/assets/icons/items/ioun_stone_regeneration.svg",
     "rarity": ItemRarity.Legendary,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
@@ -4288,6 +4710,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "type": "accessory",
     "icon": "/assets/icons/items/ioun_stone_reserve.svg",
     "rarity": ItemRarity.Rare,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
@@ -4303,12 +4726,16 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "type": "accessory",
     "icon": "/assets/icons/items/ioun_stone_strength.svg",
     "rarity": ItemRarity.VeryRare,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
         "required": true,
         "requirements": "Required"
       }
+    },
+    "statBonuses": {
+      "Strength": 2
     }
   },
   "ioun_stone_sustenance": {
@@ -4318,6 +4745,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "type": "accessory",
     "icon": "/assets/icons/items/ioun_stone_sustenance.svg",
     "rarity": ItemRarity.Rare,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
@@ -4620,6 +5048,16 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
       "Two-Handed"
     ]
   },
+  "leatherworker_s_tools": {
+    "id": "leatherworker_s_tools",
+    "name": "Leatherworker's Tools",
+    "description": "- Ability: Dexterity - Utilize: Add a design to a leather item (DC 10) - Craft: sling|Sling, whip|Whip, hide_armor|Hide Armor, leather_armor|Leather A...",
+    "type": "treasure",
+    "icon": "/assets/icons/items/leatherworker_s_tools.svg",
+    "weight": 5,
+    "cost": "5 GP",
+    "costInGp": 5
+  },
   "leather_armor": {
     "id": "leather_armor",
     "name": "Leather Armor",
@@ -4632,16 +5070,6 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "slot": "Torso",
     "armorCategory": "Light",
     "baseArmorClass": 11
-  },
-  "leatherworker_s_tools": {
-    "id": "leatherworker_s_tools",
-    "name": "Leatherworker's Tools",
-    "description": "- Ability: Dexterity - Utilize: Add a design to a leather item (DC 10) - Craft: sling|Sling, whip|Whip, hide_armor|Hide Armor, leather_armor|Leather A...",
-    "type": "treasure",
-    "icon": "/assets/icons/items/leatherworker_s_tools.svg",
-    "weight": 5,
-    "cost": "5 GP",
-    "costInGp": 5
   },
   "light_crossbow": {
     "id": "light_crossbow",
@@ -4818,6 +5246,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "damageDice": "1d6",
     "damageType": "Bludgeoning",
     "rarity": ItemRarity.Rare,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
@@ -4836,7 +5265,11 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "slot": "MainHand",
     "damageDice": "1d6",
     "damageType": "Bludgeoning",
-    "rarity": ItemRarity.Rare
+    "rarity": ItemRarity.Rare,
+    "magicProperties": {
+      "isIdentified": true,
+      "magicalBonus": 1
+    }
   },
   "mace_of_terror": {
     "id": "mace_of_terror",
@@ -4849,11 +5282,18 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "damageDice": "1d6",
     "damageType": "Bludgeoning",
     "rarity": ItemRarity.Rare,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
         "required": true,
         "requirements": "Required"
+      },
+      "charges": {
+        "current": 3,
+        "max": 3,
+        "resetCondition": "dawn",
+        "resetDice": "1d3"
       }
     }
   },
@@ -4903,7 +5343,9 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "description": "You have advantage|Advantage on saving throws against spells while you wear this cloak....",
     "type": "accessory",
     "icon": "/assets/icons/items/mantle_of_spell_resistance.svg",
+    "slot": "Cloak",
     "rarity": ItemRarity.Rare,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
@@ -4919,7 +5361,10 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "type": "accessory",
     "icon": "/assets/icons/items/manual_of_bodily_health.svg",
     "weight": 5,
-    "rarity": ItemRarity.VeryRare
+    "rarity": ItemRarity.VeryRare,
+    "statBonuses": {
+      "Constitution": 2
+    }
   },
   "manual_of_clay_golems": {
     "id": "manual_of_clay_golems",
@@ -4946,7 +5391,10 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "type": "accessory",
     "icon": "/assets/icons/items/manual_of_gainful_exercise.svg",
     "weight": 5,
-    "rarity": ItemRarity.VeryRare
+    "rarity": ItemRarity.VeryRare,
+    "statBonuses": {
+      "Strength": 2
+    }
   },
   "manual_of_iron_golems": {
     "id": "manual_of_iron_golems",
@@ -4964,7 +5412,10 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "type": "accessory",
     "icon": "/assets/icons/items/manual_of_quickness_of_action.svg",
     "weight": 5,
-    "rarity": ItemRarity.VeryRare
+    "rarity": ItemRarity.VeryRare,
+    "statBonuses": {
+      "Dexterity": 2
+    }
   },
   "manual_of_stone_golems": {
     "id": "manual_of_stone_golems",
@@ -5039,12 +5490,20 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "type": "accessory",
     "icon": "/assets/icons/items/medallion_of_thoughts.svg",
     "weight": 1,
+    "slot": "Neck",
     "rarity": ItemRarity.Uncommon,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
         "required": true,
         "requirements": "Required"
+      },
+      "charges": {
+        "current": 5,
+        "max": 5,
+        "resetCondition": "dawn",
+        "resetDice": "1d4"
       }
     }
   },
@@ -5161,6 +5620,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "type": "treasure",
     "icon": "/assets/icons/items/nature_s_mantle.svg",
     "rarity": ItemRarity.Uncommon,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
@@ -5186,7 +5646,9 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "type": "accessory",
     "icon": "/assets/icons/items/necklace_of_adaptation.svg",
     "weight": 1,
+    "slot": "Neck",
     "rarity": ItemRarity.Uncommon,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
@@ -5202,6 +5664,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "type": "accessory",
     "icon": "/assets/icons/items/necklace_of_fireballs.svg",
     "weight": 1,
+    "slot": "Neck",
     "rarity": ItemRarity.Rare
   },
   "necklace_of_prayer_beads": {
@@ -5211,7 +5674,9 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "type": "accessory",
     "icon": "/assets/icons/items/necklace_of_prayer_beads.svg",
     "weight": 1,
+    "slot": "Neck",
     "rarity": ItemRarity.Rare,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
@@ -5313,7 +5778,11 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "type": "consumable",
     "icon": "/assets/icons/items/oil_of_sharpness.svg",
     "weight": 0.5,
-    "rarity": ItemRarity.VeryRare
+    "rarity": ItemRarity.VeryRare,
+    "magicProperties": {
+      "isIdentified": true,
+      "magicalBonus": 3
+    }
   },
   "oil_of_slipperiness": {
     "id": "oil_of_slipperiness",
@@ -5388,11 +5857,18 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "icon": "/assets/icons/items/orb_of_dragonkind.svg",
     "weight": 3,
     "rarity": ItemRarity.Artifact,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
         "required": true,
         "requirements": "Required"
+      },
+      "charges": {
+        "current": 7,
+        "max": 7,
+        "resetCondition": "dawn",
+        "resetDice": "1d4 + 3"
       }
     }
   },
@@ -5511,6 +5987,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "type": "accessory",
     "icon": "/assets/icons/items/pearl_of_power.svg",
     "rarity": ItemRarity.Uncommon,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
@@ -5554,7 +6031,9 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "type": "accessory",
     "icon": "/assets/icons/items/periapt_of_health.svg",
     "weight": 1,
+    "slot": "Neck",
     "rarity": ItemRarity.Uncommon,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
@@ -5570,7 +6049,9 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "type": "accessory",
     "icon": "/assets/icons/items/periapt_of_proof_against_poison.svg",
     "weight": 1,
+    "slot": "Neck",
     "rarity": ItemRarity.Rare,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
@@ -5586,7 +6067,9 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "type": "accessory",
     "icon": "/assets/icons/items/periapt_of_wound_closure.svg",
     "weight": 1,
+    "slot": "Neck",
     "rarity": ItemRarity.Uncommon,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
@@ -5640,21 +6123,22 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
       "Two-Handed"
     ]
   },
-  "pipe_of_smoke_monsters": {
-    "id": "pipe_of_smoke_monsters",
-    "name": "Pipe of Smoke Monsters",
-    "description": "While smoking this pipe, you can take a magic|Magic action to exhale a puff of smoke that takes the form of a creature, such as a dragon, a flumph, or...",
-    "type": "accessory",
-    "icon": "/assets/icons/items/pipe_of_smoke_monsters.svg",
-    "rarity": ItemRarity.Common
-  },
   "pipes_of_haunting": {
     "id": "pipes_of_haunting",
     "name": "Pipes of Haunting",
     "description": "These pipes have 3 charges and regain 1d3 expended charges daily at dawn. You can take a magic|Magic action to play them and expend 1 charge to create...",
     "type": "accessory",
     "icon": "/assets/icons/items/pipes_of_haunting.svg",
-    "rarity": ItemRarity.Uncommon
+    "rarity": ItemRarity.Uncommon,
+    "magicProperties": {
+      "isIdentified": true,
+      "charges": {
+        "current": 3,
+        "max": 3,
+        "resetCondition": "dawn",
+        "resetDice": "1d3"
+      }
+    }
   },
   "pipes_of_the_sewers": {
     "id": "pipes_of_the_sewers",
@@ -5663,13 +6147,28 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "type": "accessory",
     "icon": "/assets/icons/items/pipes_of_the_sewers.svg",
     "rarity": ItemRarity.Uncommon,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
         "required": true,
         "requirements": "Required"
+      },
+      "charges": {
+        "current": 3,
+        "max": 3,
+        "resetCondition": "dawn",
+        "resetDice": "1d3"
       }
     }
+  },
+  "pipe_of_smoke_monsters": {
+    "id": "pipe_of_smoke_monsters",
+    "name": "Pipe of Smoke Monsters",
+    "description": "While smoking this pipe, you can take a magic|Magic action to exhale a puff of smoke that takes the form of a creature, such as a dragon, a flumph, or...",
+    "type": "accessory",
+    "icon": "/assets/icons/items/pipe_of_smoke_monsters.svg",
+    "rarity": ItemRarity.Common
   },
   "pistol": {
     "id": "pistol",
@@ -5794,14 +6293,6 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "costInGp": 4,
     "slot": "Ring"
   },
-  "pot_of_awakening": {
-    "id": "pot_of_awakening",
-    "name": "Pot of Awakening",
-    "description": "If you plant an ordinary shrub in this 10-pound clay pot and let it grow for 30 days, the shrub magically transforms into an Awakened Shrub at the end...",
-    "type": "accessory",
-    "icon": "/assets/icons/items/pot_of_awakening.svg",
-    "rarity": ItemRarity.Common
-  },
   "potion_of_acid_resistance": {
     "id": "potion_of_acid_resistance",
     "name": "Potion of Acid Resistance",
@@ -5845,7 +6336,10 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "type": "consumable",
     "icon": "/assets/icons/items/potion_of_cloud_giant_strength.svg",
     "weight": 0.5,
-    "rarity": ItemRarity.VeryRare
+    "rarity": ItemRarity.VeryRare,
+    "statOverrides": {
+      "Strength": 27
+    }
   },
   "potion_of_cold_resistance": {
     "id": "potion_of_cold_resistance",
@@ -5890,7 +6384,10 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "type": "consumable",
     "icon": "/assets/icons/items/potion_of_fire_giant_strength.svg",
     "weight": 0.5,
-    "rarity": ItemRarity.Rare
+    "rarity": ItemRarity.Rare,
+    "statOverrides": {
+      "Strength": 25
+    }
   },
   "potion_of_fire_resistance": {
     "id": "potion_of_fire_resistance",
@@ -5926,7 +6423,10 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "type": "consumable",
     "icon": "/assets/icons/items/potion_of_frost_giant_strength.svg",
     "weight": 0.5,
-    "rarity": ItemRarity.Rare
+    "rarity": ItemRarity.Rare,
+    "statOverrides": {
+      "Strength": 23
+    }
   },
   "potion_of_gaseous_form": {
     "id": "potion_of_gaseous_form",
@@ -5996,7 +6496,10 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "type": "consumable",
     "icon": "/assets/icons/items/potion_of_hill_giant_strength.svg",
     "weight": 0.5,
-    "rarity": ItemRarity.Uncommon
+    "rarity": ItemRarity.Uncommon,
+    "statOverrides": {
+      "Strength": 21
+    }
   },
   "potion_of_invisibility": {
     "id": "potion_of_invisibility",
@@ -6113,7 +6616,10 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "type": "consumable",
     "icon": "/assets/icons/items/potion_of_stone_giant_strength.svg",
     "weight": 0.5,
-    "rarity": ItemRarity.Rare
+    "rarity": ItemRarity.Rare,
+    "statOverrides": {
+      "Strength": 23
+    }
   },
   "potion_of_storm_giant_strength": {
     "id": "potion_of_storm_giant_strength",
@@ -6122,7 +6628,10 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "type": "consumable",
     "icon": "/assets/icons/items/potion_of_storm_giant_strength.svg",
     "weight": 0.5,
-    "rarity": ItemRarity.Legendary
+    "rarity": ItemRarity.Legendary,
+    "statOverrides": {
+      "Strength": 29
+    }
   },
   "potion_of_superior_healing": {
     "id": "potion_of_superior_healing",
@@ -6178,6 +6687,14 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "weight": 3,
     "cost": "10 GP",
     "costInGp": 10
+  },
+  "pot_of_awakening": {
+    "id": "pot_of_awakening",
+    "name": "Pot of Awakening",
+    "description": "If you plant an ordinary shrub in this 10-pound clay pot and let it grow for 30 days, the shrub magically transforms into an Awakened Shrub at the end...",
+    "type": "accessory",
+    "icon": "/assets/icons/items/pot_of_awakening.svg",
+    "rarity": ItemRarity.Common
   },
   "pouch": {
     "id": "pouch",
@@ -6312,13 +6829,17 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
       "Versatile"
     ],
     "rarity": ItemRarity.VeryRare,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
         "required": true,
         "requirements": "Required"
-      }
-    }
+      },
+      "magicalBonus": 2,
+      "acBonus": 5
+    },
+    "armorClassBonus": 5
   },
   "quartz": {
     "id": "quartz",
@@ -6387,13 +6908,16 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "armorCategory": "Medium",
     "baseArmorClass": 14,
     "rarity": ItemRarity.VeryRare,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
         "required": true,
         "requirements": "Required"
-      }
-    }
+      },
+      "acBonus": 1
+    },
+    "armorClassBonus": 1
   },
   "reliquary": {
     "id": "reliquary",
@@ -6477,7 +7001,16 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "type": "accessory",
     "icon": "/assets/icons/items/ring_of_animal_influence.svg",
     "slot": "Ring",
-    "rarity": ItemRarity.Rare
+    "rarity": ItemRarity.Rare,
+    "magicProperties": {
+      "isIdentified": true,
+      "charges": {
+        "current": 3,
+        "max": 3,
+        "resetCondition": "dawn",
+        "resetDice": "1d3"
+      }
+    }
   },
   "ring_of_cold_resistance": {
     "id": "ring_of_cold_resistance",
@@ -6496,6 +7029,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "icon": "/assets/icons/items/ring_of_djinni_summoning.svg",
     "slot": "Ring",
     "rarity": ItemRarity.Legendary,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
@@ -6512,11 +7046,18 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "icon": "/assets/icons/items/ring_of_elemental_command_air.svg",
     "slot": "Ring",
     "rarity": ItemRarity.Legendary,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
         "required": true,
         "requirements": "Required"
+      },
+      "charges": {
+        "current": 5,
+        "max": 5,
+        "resetCondition": "dawn",
+        "resetDice": "1d4 + 1"
       }
     }
   },
@@ -6528,11 +7069,18 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "icon": "/assets/icons/items/ring_of_elemental_command_earth.svg",
     "slot": "Ring",
     "rarity": ItemRarity.Legendary,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
         "required": true,
         "requirements": "Required"
+      },
+      "charges": {
+        "current": 5,
+        "max": 5,
+        "resetCondition": "dawn",
+        "resetDice": "1d4 + 1"
       }
     }
   },
@@ -6544,11 +7092,18 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "icon": "/assets/icons/items/ring_of_elemental_command_fire.svg",
     "slot": "Ring",
     "rarity": ItemRarity.Legendary,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
         "required": true,
         "requirements": "Required"
+      },
+      "charges": {
+        "current": 5,
+        "max": 5,
+        "resetCondition": "dawn",
+        "resetDice": "1d4 + 1"
       }
     }
   },
@@ -6560,11 +7115,18 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "icon": "/assets/icons/items/ring_of_elemental_command_water.svg",
     "slot": "Ring",
     "rarity": ItemRarity.Legendary,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
         "required": true,
         "requirements": "Required"
+      },
+      "charges": {
+        "current": 5,
+        "max": 5,
+        "resetCondition": "dawn",
+        "resetDice": "1d4 + 1"
       }
     }
   },
@@ -6576,11 +7138,18 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "icon": "/assets/icons/items/ring_of_evasion.svg",
     "slot": "Ring",
     "rarity": ItemRarity.Rare,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
         "required": true,
         "requirements": "Required"
+      },
+      "charges": {
+        "current": 3,
+        "max": 3,
+        "resetCondition": "dawn",
+        "resetDice": "1d3"
       }
     }
   },
@@ -6592,6 +7161,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "icon": "/assets/icons/items/ring_of_feather_falling.svg",
     "slot": "Ring",
     "rarity": ItemRarity.Rare,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
@@ -6626,6 +7196,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "icon": "/assets/icons/items/ring_of_free_action.svg",
     "slot": "Ring",
     "rarity": ItemRarity.Rare,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
@@ -6642,6 +7213,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "icon": "/assets/icons/items/ring_of_invisibility.svg",
     "slot": "Ring",
     "rarity": ItemRarity.Legendary,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
@@ -6658,6 +7230,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "icon": "/assets/icons/items/ring_of_jumping.svg",
     "slot": "Ring",
     "rarity": ItemRarity.Uncommon,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
@@ -6683,6 +7256,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "icon": "/assets/icons/items/ring_of_mind_shielding.svg",
     "slot": "Ring",
     "rarity": ItemRarity.Uncommon,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
@@ -6717,13 +7291,16 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "icon": "/assets/icons/items/ring_of_protection.svg",
     "slot": "Ring",
     "rarity": ItemRarity.Rare,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
         "required": true,
         "requirements": "Required"
-      }
-    }
+      },
+      "acBonus": 1
+    },
+    "armorClassBonus": 1
   },
   "ring_of_psychic_resistance": {
     "id": "ring_of_psychic_resistance",
@@ -6751,6 +7328,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "icon": "/assets/icons/items/ring_of_regeneration.svg",
     "slot": "Ring",
     "rarity": ItemRarity.VeryRare,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
@@ -6767,11 +7345,18 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "icon": "/assets/icons/items/ring_of_shooting_stars.svg",
     "slot": "Ring",
     "rarity": ItemRarity.VeryRare,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
         "required": true,
         "requirements": "Required"
+      },
+      "charges": {
+        "current": 6,
+        "max": 6,
+        "resetCondition": "dawn",
+        "resetDice": "1d6"
       }
     }
   },
@@ -6783,6 +7368,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "icon": "/assets/icons/items/ring_of_spell_storing.svg",
     "slot": "Ring",
     "rarity": ItemRarity.Rare,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
@@ -6799,6 +7385,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "icon": "/assets/icons/items/ring_of_spell_turning.svg",
     "slot": "Ring",
     "rarity": ItemRarity.Legendary,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
@@ -6824,6 +7411,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "icon": "/assets/icons/items/ring_of_telekinesis.svg",
     "slot": "Ring",
     "rarity": ItemRarity.VeryRare,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
@@ -6840,11 +7428,18 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "icon": "/assets/icons/items/ring_of_the_ram.svg",
     "slot": "Ring",
     "rarity": ItemRarity.Rare,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
         "required": true,
         "requirements": "Required"
+      },
+      "charges": {
+        "current": 3,
+        "max": 3,
+        "resetCondition": "dawn",
+        "resetDice": "1d3"
       }
     }
   },
@@ -6874,6 +7469,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "icon": "/assets/icons/items/ring_of_warmth.svg",
     "slot": "Ring",
     "rarity": ItemRarity.Uncommon,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
@@ -6899,6 +7495,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "icon": "/assets/icons/items/ring_of_x_ray_vision.svg",
     "slot": "Ring",
     "rarity": ItemRarity.Rare,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
@@ -6913,7 +7510,16 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "description": "This gold coin has a creature embossed on each side. The two depicted creatures must be famous rivals or enemies of each other. For example, a Rival C...",
     "type": "accessory",
     "icon": "/assets/icons/items/rival_coin.svg",
-    "rarity": ItemRarity.Common
+    "rarity": ItemRarity.Common,
+    "magicProperties": {
+      "isIdentified": true,
+      "charges": {
+        "current": 1,
+        "max": 1,
+        "resetCondition": "dawn",
+        "resetDice": "1"
+      }
+    }
   },
   "robe": {
     "id": "robe",
@@ -6932,7 +7538,9 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "description": "This robe is adorned with eyelike patterns. While you wear the robe, you gain the following benefits: - All-Around Vision: The robe gives you advantag...",
     "type": "accessory",
     "icon": "/assets/icons/items/robe_of_eyes.svg",
+    "slot": "Torso",
     "rarity": ItemRarity.Rare,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
@@ -6947,12 +7555,20 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "description": "This robe has 3 charges, and it regains 1d3 expended charges daily at dawn. While you wear it, you can take a magic|Magic action and expend 1 charge t...",
     "type": "accessory",
     "icon": "/assets/icons/items/robe_of_scintillating_colors.svg",
+    "slot": "Torso",
     "rarity": ItemRarity.VeryRare,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
         "required": true,
         "requirements": "Required"
+      },
+      "charges": {
+        "current": 3,
+        "max": 3,
+        "resetCondition": "dawn",
+        "resetDice": "1d3"
       }
     }
   },
@@ -6962,12 +7578,20 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "description": "This black or dark-blue robe is embroidered with small white or silver stars. You gain a +1 bonus to saving throws while you wear it. Six stars, locat...",
     "type": "accessory",
     "icon": "/assets/icons/items/robe_of_stars.svg",
+    "slot": "Torso",
     "rarity": ItemRarity.VeryRare,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
         "required": true,
         "requirements": "Required"
+      },
+      "charges": {
+        "current": 6,
+        "max": 6,
+        "resetCondition": "never",
+        "resetDice": "1d6"
       }
     }
   },
@@ -6977,7 +7601,9 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "description": "This elegant garment is made from exquisite cloth and adorned with runes. You gain these benefits while wearing the robe.  Armor If you aren't wearing...",
     "type": "accessory",
     "icon": "/assets/icons/items/robe_of_the_archmagi.svg",
+    "slot": "Torso",
     "rarity": ItemRarity.Legendary,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
@@ -6992,6 +7618,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "description": "This robe has cloth patches of various shapes and colors covering it. While wearing the robe, you can take a magic|Magic action to detach one of the p...",
     "type": "accessory",
     "icon": "/assets/icons/items/robe_of_useful_items.svg",
+    "slot": "Torso",
     "rarity": ItemRarity.Uncommon
   },
   "rod": {
@@ -7013,6 +7640,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "weight": 2,
     "slot": "MainHand",
     "rarity": ItemRarity.VeryRare,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
@@ -7030,13 +7658,16 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "weight": 2,
     "slot": "MainHand",
     "rarity": ItemRarity.VeryRare,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
         "required": true,
         "requirements": "Required"
-      }
-    }
+      },
+      "acBonus": 1
+    },
+    "armorClassBonus": 1
   },
   "rod_of_lordly_might": {
     "id": "rod_of_lordly_might",
@@ -7047,12 +7678,14 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "weight": 2,
     "slot": "MainHand",
     "rarity": ItemRarity.Legendary,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
         "required": true,
         "requirements": "Required"
-      }
+      },
+      "magicalBonus": 3
     }
   },
   "rod_of_resurrection": {
@@ -7064,11 +7697,18 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "weight": 2,
     "slot": "MainHand",
     "rarity": ItemRarity.Legendary,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
         "required": true,
         "requirements": "Required by a cleric, druid, or paladin"
+      },
+      "charges": {
+        "current": 5,
+        "max": 5,
+        "resetCondition": "dawn",
+        "resetDice": "1"
       }
     }
   },
@@ -7081,6 +7721,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "weight": 2,
     "slot": "MainHand",
     "rarity": ItemRarity.Rare,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
@@ -7168,6 +7809,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "type": "treasure",
     "icon": "/assets/icons/items/ruby_of_the_war_mage.svg",
     "rarity": ItemRarity.Common,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
@@ -7253,14 +7895,23 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "type": "accessory",
     "icon": "/assets/icons/items/scarab_of_protection.svg",
     "weight": 1,
+    "slot": "Neck",
     "rarity": ItemRarity.Legendary,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
         "required": true,
         "requirements": "Required"
+      },
+      "acBonus": 1,
+      "charges": {
+        "current": 12,
+        "max": 12,
+        "resetCondition": "never"
       }
-    }
+    },
+    "armorClassBonus": 1
   },
   "scholar_s_pack": {
     "id": "scholar_s_pack",
@@ -7305,12 +7956,14 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
       "Light"
     ],
     "rarity": ItemRarity.VeryRare,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
         "required": true,
         "requirements": "Required"
-      }
+      },
+      "magicalBonus": 2
     }
   },
   "scroll_of_protection_aberrations": {
@@ -7590,6 +8243,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "armorCategory": "Shield",
     "armorClassBonus": 2,
     "rarity": ItemRarity.Rare,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
@@ -7607,14 +8261,16 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "weight": 6,
     "slot": "OffHand",
     "armorCategory": "Shield",
-    "armorClassBonus": 2,
+    "armorClassBonus": 4,
     "rarity": ItemRarity.VeryRare,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
         "required": true,
         "requirements": "Required"
-      }
+      },
+      "acBonus": 2
     }
   },
   "shortbow": {
@@ -7782,13 +8438,16 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "armorCategory": "Medium",
     "baseArmorClass": 14,
     "rarity": ItemRarity.VeryRare,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
         "required": true,
         "requirements": "Required"
-      }
-    }
+      },
+      "acBonus": 1
+    },
+    "armorClassBonus": 1
   },
   "silver_ewer": {
     "id": "silver_ewer",
@@ -7859,7 +8518,9 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "description": "While you wear these light shoes, you can move up, down, and across vertical surfaces and along ceilings, while leaving your hands free. You have a cl...",
     "type": "accessory",
     "icon": "/assets/icons/items/slippers_of_spider_climbing.svg",
+    "slot": "Feet",
     "rarity": ItemRarity.Uncommon,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
@@ -7912,6 +8573,26 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
       "Thrown",
       "Versatile"
     ]
+  },
+  "spellguard_shield": {
+    "id": "spellguard_shield",
+    "name": "Spellguard Shield",
+    "description": "While holding this Shield, you have advantage|Advantage on saving throws against spells and other magical effects, and spell attack rolls have disadva...",
+    "type": "armor",
+    "icon": "/assets/icons/items/spellguard_shield.svg",
+    "weight": 6,
+    "slot": "OffHand",
+    "armorCategory": "Shield",
+    "armorClassBonus": 2,
+    "rarity": ItemRarity.VeryRare,
+    "requiresAttunement": true,
+    "magicProperties": {
+      "isIdentified": true,
+      "attunement": {
+        "required": true,
+        "requirements": "Required"
+      }
+    }
   },
   "spell_scroll_cantrip": {
     "id": "spell_scroll_cantrip",
@@ -7997,25 +8678,6 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "icon": "/assets/icons/items/spell_scroll_level_9.svg",
     "rarity": ItemRarity.Legendary
   },
-  "spellguard_shield": {
-    "id": "spellguard_shield",
-    "name": "Spellguard Shield",
-    "description": "While holding this Shield, you have advantage|Advantage on saving throws against spells and other magical effects, and spell attack rolls have disadva...",
-    "type": "armor",
-    "icon": "/assets/icons/items/spellguard_shield.svg",
-    "weight": 6,
-    "slot": "OffHand",
-    "armorCategory": "Shield",
-    "armorClassBonus": 2,
-    "rarity": ItemRarity.VeryRare,
-    "magicProperties": {
-      "isIdentified": true,
-      "attunement": {
-        "required": true,
-        "requirements": "Required"
-      }
-    }
-  },
   "sphere_of_annihilation": {
     "id": "sphere_of_annihilation",
     "name": "Sphere of Annihilation",
@@ -8039,7 +8701,16 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "description": "This ornate wooden board has the letters of the Common alphabet printed on one side, alongside the words \"Yes\" and \"No\" and symbols representing \"Weal...",
     "type": "accessory",
     "icon": "/assets/icons/items/spirit_board.svg",
-    "rarity": ItemRarity.VeryRare
+    "rarity": ItemRarity.VeryRare,
+    "magicProperties": {
+      "isIdentified": true,
+      "charges": {
+        "current": 3,
+        "max": 3,
+        "resetCondition": "dawn",
+        "resetDice": "3"
+      }
+    }
   },
   "splint_armor": {
     "id": "splint_armor",
@@ -8126,7 +8797,16 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "properties": [
       "Versatile"
     ],
-    "rarity": ItemRarity.Common
+    "rarity": ItemRarity.Common,
+    "magicProperties": {
+      "isIdentified": true,
+      "charges": {
+        "current": 10,
+        "max": 10,
+        "resetCondition": "dawn",
+        "resetDice": "1d6 + 4"
+      }
+    }
   },
   "staff_of_charming": {
     "id": "staff_of_charming",
@@ -8142,11 +8822,18 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
       "Versatile"
     ],
     "rarity": ItemRarity.Rare,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
         "required": true,
         "requirements": "Required by a bard, cleric, druid, sorcerer, warlock, or wizard"
+      },
+      "charges": {
+        "current": 10,
+        "max": 10,
+        "resetCondition": "dawn",
+        "resetDice": "1d8 + 2"
       }
     }
   },
@@ -8164,11 +8851,18 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
       "Versatile"
     ],
     "rarity": ItemRarity.VeryRare,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
         "required": true,
         "requirements": "Required by a druid, sorcerer, warlock, or wizard"
+      },
+      "charges": {
+        "current": 10,
+        "max": 10,
+        "resetCondition": "dawn",
+        "resetDice": "1d6 + 4"
       }
     }
   },
@@ -8185,7 +8879,16 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "properties": [
       "Versatile"
     ],
-    "rarity": ItemRarity.Common
+    "rarity": ItemRarity.Common,
+    "magicProperties": {
+      "isIdentified": true,
+      "charges": {
+        "current": 10,
+        "max": 10,
+        "resetCondition": "dawn",
+        "resetDice": "1d6 + 4"
+      }
+    }
   },
   "staff_of_frost": {
     "id": "staff_of_frost",
@@ -8201,11 +8904,18 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
       "Versatile"
     ],
     "rarity": ItemRarity.VeryRare,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
         "required": true,
         "requirements": "Required by a druid, sorcerer, warlock, or wizard"
+      },
+      "charges": {
+        "current": 10,
+        "max": 10,
+        "resetCondition": "dawn",
+        "resetDice": "1d6 + 4"
       }
     }
   },
@@ -8223,11 +8933,18 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
       "Versatile"
     ],
     "rarity": ItemRarity.Rare,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
         "required": true,
         "requirements": "Required by a bard, cleric, or druid"
+      },
+      "charges": {
+        "current": 10,
+        "max": 10,
+        "resetCondition": "dawn",
+        "resetDice": "1d6 + 4"
       }
     }
   },
@@ -8245,13 +8962,23 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
       "Versatile"
     ],
     "rarity": ItemRarity.VeryRare,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
         "required": true,
         "requirements": "Required by a sorcerer, warlock, or wizard"
+      },
+      "magicalBonus": 2,
+      "acBonus": 2,
+      "charges": {
+        "current": 20,
+        "max": 20,
+        "resetCondition": "dawn",
+        "resetDice": "2d8 + 4"
       }
-    }
+    },
+    "armorClassBonus": 2
   },
   "staff_of_striking": {
     "id": "staff_of_striking",
@@ -8267,11 +8994,19 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
       "Versatile"
     ],
     "rarity": ItemRarity.VeryRare,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
         "required": true,
         "requirements": "Required"
+      },
+      "magicalBonus": 3,
+      "charges": {
+        "current": 10,
+        "max": 10,
+        "resetCondition": "dawn",
+        "resetDice": "1d6 + 4"
       }
     }
   },
@@ -8289,11 +9024,18 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
       "Versatile"
     ],
     "rarity": ItemRarity.Rare,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
         "required": true,
         "requirements": "Required by a bard, cleric, druid, sorcerer, warlock, or wizard"
+      },
+      "charges": {
+        "current": 10,
+        "max": 10,
+        "resetCondition": "dawn",
+        "resetDice": "1d6 + 4"
       }
     }
   },
@@ -8311,6 +9053,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
       "Versatile"
     ],
     "rarity": ItemRarity.Uncommon,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
@@ -8333,11 +9076,19 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
       "Versatile"
     ],
     "rarity": ItemRarity.Legendary,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
         "required": true,
         "requirements": "Required by a sorcerer, warlock, or wizard"
+      },
+      "magicalBonus": 2,
+      "charges": {
+        "current": 50,
+        "max": 50,
+        "resetCondition": "dawn",
+        "resetDice": "4d6 + 2"
       }
     }
   },
@@ -8355,6 +9106,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
       "Versatile"
     ],
     "rarity": ItemRarity.Uncommon,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
@@ -8377,11 +9129,19 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
       "Versatile"
     ],
     "rarity": ItemRarity.Rare,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
         "required": true,
         "requirements": "Required by a druid"
+      },
+      "magicalBonus": 2,
+      "charges": {
+        "current": 6,
+        "max": 6,
+        "resetCondition": "dawn",
+        "resetDice": "1d6"
       }
     }
   },
@@ -8399,12 +9159,14 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
       "Versatile"
     ],
     "rarity": ItemRarity.VeryRare,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
         "required": true,
         "requirements": "Required"
-      }
+      },
+      "magicalBonus": 2
     }
   },
   "staff_of_withering": {
@@ -8421,11 +9183,18 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
       "Versatile"
     ],
     "rarity": ItemRarity.Rare,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
         "required": true,
         "requirements": "Required by a cleric, druid, or warlock"
+      },
+      "charges": {
+        "current": 3,
+        "max": 3,
+        "resetCondition": "dawn",
+        "resetDice": "1d3"
       }
     }
   },
@@ -8471,6 +9240,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "type": "accessory",
     "icon": "/assets/icons/items/stone_of_good_luck.svg",
     "rarity": ItemRarity.Uncommon,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
@@ -8517,12 +9287,14 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
       "Versatile"
     ],
     "rarity": ItemRarity.Rare,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
         "required": true,
         "requirements": "Required"
-      }
+      },
+      "magicalBonus": 2
     }
   },
   "sword_of_answering": {
@@ -8539,12 +9311,14 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
       "Versatile"
     ],
     "rarity": ItemRarity.Legendary,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
         "required": true,
         "requirements": "Required"
-      }
+      },
+      "magicalBonus": 3
     }
   },
   "sword_of_kas": {
@@ -8561,12 +9335,14 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
       "Versatile"
     ],
     "rarity": ItemRarity.Artifact,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
         "required": true,
         "requirements": "Required"
-      }
+      },
+      "magicalBonus": 3
     }
   },
   "talisman_of_pure_good": {
@@ -8576,12 +9352,19 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "type": "accessory",
     "icon": "/assets/icons/items/talisman_of_pure_good.svg",
     "weight": 1,
+    "slot": "Neck",
     "rarity": ItemRarity.Legendary,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
         "required": true,
         "requirements": "Required by a cleric or paladin"
+      },
+      "charges": {
+        "current": 7,
+        "max": 7,
+        "resetCondition": "never"
       }
     }
   },
@@ -8592,7 +9375,9 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "type": "accessory",
     "icon": "/assets/icons/items/talisman_of_the_sphere.svg",
     "weight": 1,
+    "slot": "Neck",
     "rarity": ItemRarity.Legendary,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
@@ -8608,12 +9393,19 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "type": "accessory",
     "icon": "/assets/icons/items/talisman_of_ultimate_evil.svg",
     "weight": 1,
+    "slot": "Neck",
     "rarity": ItemRarity.Legendary,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
         "required": true,
         "requirements": "Required"
+      },
+      "charges": {
+        "current": 6,
+        "max": 6,
+        "resetCondition": "never"
       }
     }
   },
@@ -8624,6 +9416,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "type": "accessory",
     "icon": "/assets/icons/items/talking_doll.svg",
     "rarity": ItemRarity.Common,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
@@ -8660,6 +9453,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "weight": 2,
     "slot": "MainHand",
     "rarity": ItemRarity.Rare,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
@@ -8701,6 +9495,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
       "Two-Handed"
     ],
     "rarity": ItemRarity.VeryRare,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
@@ -8746,7 +9541,10 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "type": "accessory",
     "icon": "/assets/icons/items/tome_of_clear_thought.svg",
     "weight": 5,
-    "rarity": ItemRarity.VeryRare
+    "rarity": ItemRarity.VeryRare,
+    "statBonuses": {
+      "Intelligence": 2
+    }
   },
   "tome_of_leadership_and_influence": {
     "id": "tome_of_leadership_and_influence",
@@ -8755,7 +9553,10 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "type": "accessory",
     "icon": "/assets/icons/items/tome_of_leadership_and_influence.svg",
     "weight": 5,
-    "rarity": ItemRarity.VeryRare
+    "rarity": ItemRarity.VeryRare,
+    "statBonuses": {
+      "Charisma": 2
+    }
   },
   "tome_of_the_stilled_tongue": {
     "id": "tome_of_the_stilled_tongue",
@@ -8765,6 +9566,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "icon": "/assets/icons/items/tome_of_the_stilled_tongue.svg",
     "weight": 5,
     "rarity": ItemRarity.Legendary,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
@@ -8780,7 +9582,10 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "type": "accessory",
     "icon": "/assets/icons/items/tome_of_understanding.svg",
     "weight": 5,
-    "rarity": ItemRarity.VeryRare
+    "rarity": ItemRarity.VeryRare,
+    "statBonuses": {
+      "Wisdom": 2
+    }
   },
   "topaz": {
     "id": "topaz",
@@ -8864,11 +9669,18 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
       "Versatile"
     ],
     "rarity": ItemRarity.Uncommon,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
         "required": true,
         "requirements": "Required"
+      },
+      "charges": {
+        "current": 3,
+        "max": 3,
+        "resetCondition": "dawn",
+        "resetDice": "1d3"
       }
     }
   },
@@ -8964,11 +9776,18 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "weight": 1,
     "slot": "MainHand",
     "rarity": ItemRarity.Rare,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
         "required": true,
         "requirements": "Required"
+      },
+      "charges": {
+        "current": 7,
+        "max": 7,
+        "resetCondition": "dawn",
+        "resetDice": "1d6 + 1"
       }
     }
   },
@@ -8980,7 +9799,16 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "icon": "/assets/icons/items/wand_of_conducting.svg",
     "weight": 1,
     "slot": "MainHand",
-    "rarity": ItemRarity.Common
+    "rarity": ItemRarity.Common,
+    "magicProperties": {
+      "isIdentified": true,
+      "charges": {
+        "current": 3,
+        "max": 3,
+        "resetCondition": "dawn",
+        "resetDice": "3"
+      }
+    }
   },
   "wand_of_enemy_detection": {
     "id": "wand_of_enemy_detection",
@@ -8991,11 +9819,18 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "weight": 1,
     "slot": "MainHand",
     "rarity": ItemRarity.Rare,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
         "required": true,
         "requirements": "Required"
+      },
+      "charges": {
+        "current": 7,
+        "max": 7,
+        "resetCondition": "dawn",
+        "resetDice": "1d6 + 1"
       }
     }
   },
@@ -9008,11 +9843,18 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "weight": 1,
     "slot": "MainHand",
     "rarity": ItemRarity.Rare,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
         "required": true,
         "requirements": "Required"
+      },
+      "charges": {
+        "current": 7,
+        "max": 7,
+        "resetCondition": "dawn",
+        "resetDice": "1d6 + 1"
       }
     }
   },
@@ -9025,11 +9867,18 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "weight": 1,
     "slot": "MainHand",
     "rarity": ItemRarity.Rare,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
         "required": true,
         "requirements": "Required by a spellcaster"
+      },
+      "charges": {
+        "current": 7,
+        "max": 7,
+        "resetCondition": "dawn",
+        "resetDice": "1d6 + 1"
       }
     }
   },
@@ -9042,11 +9891,18 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "weight": 1,
     "slot": "MainHand",
     "rarity": ItemRarity.Rare,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
         "required": true,
         "requirements": "Required by a spellcaster"
+      },
+      "charges": {
+        "current": 7,
+        "max": 7,
+        "resetCondition": "dawn",
+        "resetDice": "1d6 + 1"
       }
     }
   },
@@ -9058,7 +9914,16 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "icon": "/assets/icons/items/wand_of_magic_detection.svg",
     "weight": 1,
     "slot": "MainHand",
-    "rarity": ItemRarity.Uncommon
+    "rarity": ItemRarity.Uncommon,
+    "magicProperties": {
+      "isIdentified": true,
+      "charges": {
+        "current": 3,
+        "max": 3,
+        "resetCondition": "dawn",
+        "resetDice": "1d3"
+      }
+    }
   },
   "wand_of_magic_missiles": {
     "id": "wand_of_magic_missiles",
@@ -9068,7 +9933,16 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "icon": "/assets/icons/items/wand_of_magic_missiles.svg",
     "weight": 1,
     "slot": "MainHand",
-    "rarity": ItemRarity.Uncommon
+    "rarity": ItemRarity.Uncommon,
+    "magicProperties": {
+      "isIdentified": true,
+      "charges": {
+        "current": 7,
+        "max": 7,
+        "resetCondition": "dawn",
+        "resetDice": "1d6 + 1"
+      }
+    }
   },
   "wand_of_orcus": {
     "id": "wand_of_orcus",
@@ -9081,13 +9955,23 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "damageDice": "1d6",
     "damageType": "Bludgeoning",
     "rarity": ItemRarity.Artifact,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
         "required": true,
         "requirements": "Required"
+      },
+      "magicalBonus": 3,
+      "acBonus": 3,
+      "charges": {
+        "current": 7,
+        "max": 7,
+        "resetCondition": "dawn",
+        "resetDice": "1d4 + 3"
       }
-    }
+    },
+    "armorClassBonus": 3
   },
   "wand_of_paralysis": {
     "id": "wand_of_paralysis",
@@ -9098,11 +9982,18 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "weight": 1,
     "slot": "MainHand",
     "rarity": ItemRarity.Rare,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
         "required": true,
         "requirements": "Required by a spellcaster"
+      },
+      "charges": {
+        "current": 7,
+        "max": 7,
+        "resetCondition": "dawn",
+        "resetDice": "1d6 + 1"
       }
     }
   },
@@ -9115,11 +10006,18 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "weight": 1,
     "slot": "MainHand",
     "rarity": ItemRarity.VeryRare,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
         "required": true,
         "requirements": "Required by a spellcaster"
+      },
+      "charges": {
+        "current": 7,
+        "max": 7,
+        "resetCondition": "dawn",
+        "resetDice": "1d6 + 1"
       }
     }
   },
@@ -9131,7 +10029,16 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "icon": "/assets/icons/items/wand_of_pyrotechnics.svg",
     "weight": 1,
     "slot": "MainHand",
-    "rarity": ItemRarity.Common
+    "rarity": ItemRarity.Common,
+    "magicProperties": {
+      "isIdentified": true,
+      "charges": {
+        "current": 7,
+        "max": 7,
+        "resetCondition": "dawn",
+        "resetDice": "1d6 + 1"
+      }
+    }
   },
   "wand_of_secrets": {
     "id": "wand_of_secrets",
@@ -9141,7 +10048,16 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "icon": "/assets/icons/items/wand_of_secrets.svg",
     "weight": 1,
     "slot": "MainHand",
-    "rarity": ItemRarity.Uncommon
+    "rarity": ItemRarity.Uncommon,
+    "magicProperties": {
+      "isIdentified": true,
+      "charges": {
+        "current": 3,
+        "max": 3,
+        "resetCondition": "dawn",
+        "resetDice": "1d3"
+      }
+    }
   },
   "wand_of_web": {
     "id": "wand_of_web",
@@ -9152,11 +10068,18 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "weight": 1,
     "slot": "MainHand",
     "rarity": ItemRarity.Uncommon,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
         "required": true,
         "requirements": "Required by a spellcaster"
+      },
+      "charges": {
+        "current": 7,
+        "max": 7,
+        "resetCondition": "dawn",
+        "resetDice": "1d6 + 1"
       }
     }
   },
@@ -9169,29 +10092,20 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "weight": 1,
     "slot": "MainHand",
     "rarity": ItemRarity.Rare,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
         "required": true,
         "requirements": "Required"
+      },
+      "charges": {
+        "current": 7,
+        "max": 7,
+        "resetCondition": "dawn",
+        "resetDice": "1d6 + 1"
       }
     }
-  },
-  "war_pick": {
-    "id": "war_pick",
-    "name": "War Pick",
-    "description": "M...",
-    "type": "weapon",
-    "icon": "/assets/icons/items/war_pick.svg",
-    "weight": 2,
-    "cost": "5 GP",
-    "costInGp": 5,
-    "slot": "MainHand",
-    "damageDice": "1d8",
-    "damageType": "Piercing",
-    "properties": [
-      "Versatile"
-    ]
   },
   "warhammer": {
     "id": "warhammer",
@@ -9227,6 +10141,22 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "cost": "25000 GP",
     "costInGp": 25000
   },
+  "war_pick": {
+    "id": "war_pick",
+    "name": "War Pick",
+    "description": "M...",
+    "type": "weapon",
+    "icon": "/assets/icons/items/war_pick.svg",
+    "weight": 2,
+    "cost": "5 GP",
+    "costInGp": 5,
+    "slot": "MainHand",
+    "damageDice": "1d8",
+    "damageType": "Piercing",
+    "properties": [
+      "Versatile"
+    ]
+  },
   "waterskin": {
     "id": "waterskin",
     "name": "Waterskin",
@@ -9253,11 +10183,19 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
       "Versatile"
     ],
     "rarity": ItemRarity.Artifact,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
         "required": true,
         "requirements": "Required"
+      },
+      "magicalBonus": 3,
+      "charges": {
+        "current": 3,
+        "max": 3,
+        "resetCondition": "dawn",
+        "resetDice": "1d3"
       }
     }
   },
@@ -9313,12 +10251,14 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
       "Versatile"
     ],
     "rarity": ItemRarity.Artifact,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
         "required": true,
         "requirements": "Required by a dwarf or a creature attuned to a belt of dwarvenkind"
-      }
+      },
+      "magicalBonus": 3
     }
   },
   "whip": {
@@ -9349,13 +10289,16 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "armorCategory": "Medium",
     "baseArmorClass": 14,
     "rarity": ItemRarity.VeryRare,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
         "required": true,
         "requirements": "Required"
-      }
-    }
+      },
+      "acBonus": 1
+    },
+    "armorClassBonus": 1
   },
   "wind_fan": {
     "id": "wind_fan",
@@ -9371,12 +10314,20 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "description": "These boots have 4 charges and regain 1d4 expended charges daily at dawn. While wearing the boots, you can take a magic|Magic action to expend 1 charg...",
     "type": "accessory",
     "icon": "/assets/icons/items/winged_boots.svg",
+    "slot": "Feet",
     "rarity": ItemRarity.Uncommon,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {
         "required": true,
         "requirements": "Required"
+      },
+      "charges": {
+        "current": 4,
+        "max": 4,
+        "resetCondition": "dawn",
+        "resetDice": "1d4"
       }
     }
   },
@@ -9387,6 +10338,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "type": "accessory",
     "icon": "/assets/icons/items/wings_of_flying.svg",
     "rarity": ItemRarity.Rare,
+    "requiresAttunement": true,
     "magicProperties": {
       "isIdentified": true,
       "attunement": {

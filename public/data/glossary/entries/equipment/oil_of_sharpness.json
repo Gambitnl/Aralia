@@ -15,6 +15,7 @@
   "itemMetadata": {
     "type": "Potion",
     "rarity": "Very rare",
-    "weight": 0.5
+    "weight": 0.5,
+    "bonusWeapon": "+3"
   }
 }

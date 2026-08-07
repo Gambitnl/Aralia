@@ -15,6 +15,9 @@
   "itemMetadata": {
     "type": "Wondrous Item",
     "rarity": "Very rare",
-    "weight": 5
+    "weight": 5,
+    "abilityBonus": {
+      "con": 2
+    }
   }
 }

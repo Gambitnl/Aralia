@@ -16,6 +16,9 @@
   "markdown": "# Horn of Silent Alarm\n\nThis horn has 4 charges and regains 1d4 expended charges daily at dawn. As a [[magic]] action, you can blow the horn while expending 1 charge. One creature of your choice hears the horn's blare, provided that creature is within 600 feet of the horn. No other creature hears the horn.",
   "itemMetadata": {
     "type": "Instrument",
-    "rarity": "Common"
+    "rarity": "Common",
+    "charges": 4,
+    "recharge": "dawn",
+    "rechargeAmount": "1d4"
   }
 }

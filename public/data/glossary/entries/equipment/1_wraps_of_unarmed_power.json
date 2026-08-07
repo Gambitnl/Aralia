@@ -14,6 +14,7 @@
   "markdown": "# +1 Wraps of Unarmed Power\n\nWhile wearing these wraps, you have a +1 bonus to attack rolls and damage rolls made with your Unarmed Strikes. Those strikes deal your choice of Force damage or their normal damage type.",
   "itemMetadata": {
     "type": "Wondrous Item",
-    "rarity": "Uncommon"
+    "rarity": "Uncommon",
+    "bonusWeapon": "+1"
   }
 }

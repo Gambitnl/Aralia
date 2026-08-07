@@ -17,6 +17,7 @@
   "itemMetadata": {
     "type": "Wondrous Item",
     "rarity": "Uncommon",
-    "reqAttune": "Required"
+    "reqAttune": "Required",
+    "bonusAc": "+1"
   }
 }

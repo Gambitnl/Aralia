@@ -19,6 +19,7 @@
     "type": "Wondrous Item",
     "rarity": "Legendary",
     "reqAttune": "Required by a cleric or paladin",
-    "weight": 1
+    "weight": 1,
+    "charges": 7
   }
 }

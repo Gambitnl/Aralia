@@ -52,6 +52,12 @@ interface Raw5eToolsItem {
     dmgType?: unknown;
     property?: unknown;
     ac?: unknown;
+    bonusWeapon?: unknown;
+    bonusAc?: unknown;
+    ability?: unknown;
+    charges?: unknown;
+    recharge?: unknown;
+    rechargeAmount?: unknown;
 }
 
 interface Raw5eToolsPropertyNote {
@@ -102,6 +108,37 @@ function buildItemProperties(value: unknown): string[] | undefined {
     }
 
     return properties;
+}
+
+// A "+N" bonus label such as "+1" is the only shape the runtime can turn into
+// a mechanical bonus. Other raw shapes carry no usable number.
+function readBonusLabel(value: unknown): string | undefined {
+    if (typeof value !== 'string') return undefined;
+    return /^\+\d+$/.test(value.trim()) ? value.trim() : undefined;
+}
+
+const ABILITY_KEYS = new Set(['str', 'dex', 'con', 'int', 'wis', 'cha']);
+
+// Reduce a raw ability map to the six known short keys with positive integer
+// values. Anything else (choose blocks, malformed values) is dropped.
+function readAbilityMap(value: unknown): Record<string, number> | undefined {
+    if (typeof value !== 'object' || value === null || Array.isArray(value)) return undefined;
+    const out: Record<string, number> = {};
+    for (const [key, raw] of Object.entries(value as Record<string, unknown>)) {
+        if (!ABILITY_KEYS.has(key)) continue;
+        if (typeof raw !== 'number' || !Number.isInteger(raw) || raw <= 0) continue;
+        out[key] = raw;
+    }
+    return Object.keys(out).length > 0 ? out : undefined;
+}
+
+// The recharge amount arrives as a number or as a "{@dice 1d6 + 1}" tag. The
+// glossary stores plain text, so unwrap the dice tag here.
+function readRechargeAmount(value: unknown): string | undefined {
+    if (typeof value === 'number' && Number.isFinite(value) && value > 0) return String(value);
+    if (typeof value !== 'string' || value.length === 0) return undefined;
+    const diceMatch = value.match(/\{@dice\s+([^|}]+)(?:\|[^}]+)?\}/i);
+    return (diceMatch ? diceMatch[1] : value).trim();
 }
 
 // This function is exported so focused tests can protect the ingest boundary
@@ -166,6 +203,24 @@ export function buildItemMetadata(
     const properties = buildItemProperties(item.property);
     if (properties) itemMetadata.properties = properties;
     if (isUsefulNumber(item.ac)) itemMetadata.ac = item.ac;
+
+    // Mechanical magic-item facts. 5eTools stores these as structured fields,
+    // so the runtime item registry can read them without prose parsing.
+    const bonusWeapon = readBonusLabel(item.bonusWeapon);
+    if (bonusWeapon) itemMetadata.bonusWeapon = bonusWeapon;
+    const bonusAc = readBonusLabel(item.bonusAc);
+    if (bonusAc) itemMetadata.bonusAc = bonusAc;
+    if (typeof item.ability === 'object' && item.ability !== null && !Array.isArray(item.ability)) {
+        const rawAbility = item.ability as Record<string, unknown>;
+        const abilitySet = readAbilityMap(rawAbility.static);
+        if (abilitySet) itemMetadata.abilitySet = abilitySet;
+        const abilityBonus = readAbilityMap(rawAbility);
+        if (abilityBonus) itemMetadata.abilityBonus = abilityBonus;
+    }
+    if (isUsefulNumber(item.charges) && item.charges > 0) itemMetadata.charges = item.charges;
+    if (typeof item.recharge === 'string' && item.recharge.length > 0) itemMetadata.recharge = item.recharge;
+    const rechargeAmount = readRechargeAmount(item.rechargeAmount);
+    if (rechargeAmount) itemMetadata.rechargeAmount = rechargeAmount;
 
     // Records containing only unrelated or malformed fields should not gain an
     // empty metadata object; downstream consumers use absence as the signal to skip it.

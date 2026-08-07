@@ -39,6 +39,9 @@
     "type": "Wand",
     "rarity": "Rare",
     "reqAttune": "Required",
-    "weight": 1
+    "weight": 1,
+    "charges": 7,
+    "recharge": "dawn",
+    "rechargeAmount": "1d6 + 1"
   }
 }

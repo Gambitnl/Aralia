@@ -27,6 +27,7 @@
     "damage": "1d6 B",
     "properties": [
       "V|XPHB"
-    ]
+    ],
+    "bonusWeapon": "+2"
   }
 }

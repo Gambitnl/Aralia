@@ -33,6 +33,11 @@
     "damage": "1d6 B",
     "properties": [
       "V|XPHB"
-    ]
+    ],
+    "bonusWeapon": "+2",
+    "bonusAc": "+2",
+    "charges": 20,
+    "recharge": "dawn",
+    "rechargeAmount": "2d8 + 4"
   }
 }
