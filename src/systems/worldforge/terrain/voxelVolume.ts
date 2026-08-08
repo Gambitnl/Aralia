@@ -96,6 +96,15 @@ export class VoxelVolume {
   }
 
   get(x: number, y: number, z: number): Material {
+    /* Outside the volume is Air, and the bound must be explicit.
+     *
+     * A negative index used to fall out as Air by luck: -1 >> 3 is -1, and a
+     * negative array slot is undefined. The HIGH side had no such luck — x = n
+     * indexes a real brick belonging to a different column, so a mesher that
+     * samples one step past the edge would read a neighbor's rock and seal the
+     * volume against the wrong thing. */
+    if (x < 0 || y < 0 || z < 0) return Material.Air;
+    if (x >= this.cells || y >= this.cells || z >= this.cells) return Material.Air;
     const b = this.grid[this.brickIndex(x >> 3, y >> 3, z >> 3)];
     if (!b) return Material.Air;
     if (b.cells === null) return b.uniform;

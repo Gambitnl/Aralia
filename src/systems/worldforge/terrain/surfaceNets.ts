@@ -73,17 +73,38 @@ export function voxelsToSurface(
   const col: number[] = [];
   const idx: number[] = [];
 
+  /* The lattice extends ONE step past the volume on all six sides.
+   *
+   * Without the pad, the border cell at y = 0 samples corners at y = 0 and
+   * y = 1, both solid, so it is never a boundary and no floor is emitted. The
+   * same held for all four sides. The result was an open shell: from below you
+   * looked straight through the missing floor at the underside of the terrain's
+   * own top surface, which reads convincingly enough as a dark plate that the
+   * fault survived a review — until a crater carved inside it appeared to hang
+   * in the middle of the "solid" ground.
+   *
+   * Padding is preferable to hand-building six cap faces. The caps come out of
+   * the same code path as every other face, so their winding and their vertex
+   * sharing are right by construction rather than by six separate arguments.
+   * That is the lesson from the shell version, where the rim, the cap and the
+   * surface each needed their own winding fix.
+   *
+   * Lattice index i addresses voxel i - 1, and `vol.get` reports Air outside. */
+  const lat = n + 2; // sample positions per edge, padded
+  const cn = lat - 1; // cells per edge
+  const pos0 = -1; // lattice-to-voxel offset
+
   // One vertex per boundary cell. -1 marks a cell that produced none.
-  const vertexAt = new Int32Array((n - 1) ** 3).fill(-1);
-  const cellIndex = (x: number, y: number, z: number) => (y * (n - 1) + z) * (n - 1) + x;
+  const vertexAt = new Int32Array(cn ** 3).fill(-1);
+  const cellIndex = (x: number, y: number, z: number) => (y * cn + z) * cn + x;
 
   const solid = (x: number, y: number, z: number) =>
-    vol.get(x, y, z) !== Material.Air ? 1 : 0;
+    vol.get(x + pos0, y + pos0, z + pos0) !== Material.Air ? 1 : 0;
 
   // Pass one: place a vertex in every cell whose corners disagree.
-  for (let z = 0; z < n - 1; z++) {
-    for (let y = 0; y < n - 1; y++) {
-      for (let x = 0; x < n - 1; x++) {
+  for (let z = 0; z < cn; z++) {
+    for (let y = 0; y < cn; y++) {
+      for (let x = 0; x < cn; x++) {
         let mask = 0;
         for (let c = 0; c < 8; c++) {
           const [dx, dy, dz] = CORNER[c];
@@ -109,9 +130,9 @@ export function voxelsToSurface(
           sz += (ca[2] + cb[2]) / 2;
           crossings++;
         }
-        const vx = originM[0] + (x + sx / crossings) * cellM;
-        const vy = originM[1] + (y + sy / crossings) * cellM;
-        const vz = originM[2] + (z + sz / crossings) * cellM;
+        const vx = originM[0] + (x + pos0 + sx / crossings) * cellM;
+        const vy = originM[1] + (y + pos0 + sy / crossings) * cellM;
+        const vz = originM[2] + (z + pos0 + sz / crossings) * cellM;
 
         vertexAt[cellIndex(x, y, z)] = pos.length / 3;
         pos.push(vx, vy, vz);
@@ -134,9 +155,9 @@ export function voxelsToSurface(
     else idx.push(a, b, c, b, d, c);
   };
 
-  for (let z = 0; z < n - 1; z++) {
-    for (let y = 0; y < n - 1; y++) {
-      for (let x = 0; x < n - 1; x++) {
+  for (let z = 0; z < cn; z++) {
+    for (let y = 0; y < cn; y++) {
+      for (let x = 0; x < cn; x++) {
         const here = solid(x, y, z);
 
         if (x > 0 && y > 0 && solid(x, y, z + 1) !== here) {

@@ -208,3 +208,38 @@ drop, so a cell and its deepest neighbor meet level instead of trading places.
 
 All three were invisible without a test that watched total volume, which is why
 that test was written before any behavior test.
+
+### A fourth bug, found by eye and not by test (2026-08-07)
+
+**The volume had no floor and no sides.** The mesher walked cells 0 to n-2 and
+sampled corners at x and x+1. A cell on the border therefore had all eight
+corners solid, so it was never a boundary and emitted no face. Only the top
+surface existed.
+
+The fault survived because it is invisible from above. From below, the open
+bottom showed the underside of the terrain's own top surface, which reads
+convincingly as a dark floor. It became visible only when a crater carved inside
+the ground appeared as a lit dome hanging in mid-air.
+
+**The fix seals the border by padding the sample lattice one step on all six
+sides**, where `VoxelVolume.get` reports Air. The caps then come from the same
+code path as every other face, so their winding and vertex sharing are correct by
+construction. The shell version in `groundSolid.ts` needed three separate winding
+fixes because its rim, cap and surface were each built by hand; padding avoids
+repeating that.
+
+`VoxelVolume.get` also gained an explicit bounds check. Negative indices returned
+Air by luck. The high side did not: `x = n` indexes a real brick in a neighboring
+column, so a mesher sampling past the edge would have sealed against the wrong
+material.
+
+**The test that was missing.** Every existing mesher test asked about contents —
+counts, smoothness, color, determinism — and a surface with no floor passed all
+of them. The new test asks about topology: every edge must be shared by exactly
+two triangles. One user is a hole, three is a fold. That is the only claim that
+separates a solid from a sheet, which is the point of the file.
+
+**A review note.** Two rounds of exposure tuning were spent on cut walls that
+looked blown out to white. A pixel readout put them at RGB 71, with the frame's
+brightest pixel at 146 of 255. Nothing was clipping; the near-black panel made
+mid-gray look white. Sample the buffer before trusting the eye on a dark UI.
