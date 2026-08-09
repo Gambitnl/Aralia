@@ -301,7 +301,14 @@ function buildEdgeSkirt(
   positions: Float32Array,
   normals: Float32Array,
   colors: Float32Array,
-  skirtDepth: number,
+  /**
+   * Where the bottom row sits, in world meters — a PLANE, not a drop.
+   *
+   * It was a per-chunk depth, which meant each chunk's wall ended at its own
+   * height and neighbors could never meet. A shared plane is what lets the
+   * frontier wall close against the world floor with no gap.
+   */
+  floorY: number,
 ): TerrainEdgeSkirt {
   const n = edgeVerts.length;
   const pos = new Float32Array(n * 2 * 3);
@@ -309,12 +316,12 @@ function buildEdgeSkirt(
   const col = new Float32Array(n * 2 * 3);
   for (let k = 0; k < n; k++) {
     const src = edgeVerts[k] * 3;
-    for (const [dst, drop] of [
-      [k, 0],
-      [n + k, skirtDepth],
+    for (const [dst, toFloor] of [
+      [k, false],
+      [n + k, true],
     ] as const) {
       pos[dst * 3] = positions[src];
-      pos[dst * 3 + 1] = positions[src + 1] - drop;
+      pos[dst * 3 + 1] = toFloor ? floorY : positions[src + 1];
       pos[dst * 3 + 2] = positions[src + 2];
       // Copy the source (top) normal so wall lighting matches the edge.
       nor[dst * 3] = normals[src];
@@ -398,7 +405,7 @@ export function buildTerrainMesh(data: ChunkData, opts: { skirtDepth?: number } 
     const edge = (at: (k: number) => number): number[] =>
       Array.from({ length: ANCHOR_SEGMENTS + 1 }, (_, k) => at(k));
     const build = (verts: number[]): TerrainEdgeSkirt =>
-      buildEdgeSkirt(verts, core.positions, core.normals, colors, skirtDepth);
+      buildEdgeSkirt(verts, core.positions, core.normals, colors, WORLD3D_CONFIG.GROUND_FLOOR_Y);
     skirts = {
       north: build(edge((k) => k * q)), // j = 0, west→east
       east: build(edge((k) => k * q * res + (res - 1))), // i = res-1, north→south

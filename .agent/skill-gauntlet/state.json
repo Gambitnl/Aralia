@@ -1,0 +1,174 @@
+{
+  "run": "skill-upgrade-gauntlet",
+  "created": "2026-08-09",
+  "phase": "phaseA-contract-extraction",
+  "originalsFrozen": true,
+  "originalsPath": ".agent/skill-gauntlet/originals/",
+  "checksums": ".agent/skill-gauntlet/originals.md5",
+  "dashboard": ".agent/skill-gauntlet/dashboard.html",
+  "dashboardPort": 4977,
+  "selected": [
+    "vite-dynamic-import-config-deps",
+    "codex-wtWaitFor-polling",
+    "interview",
+    "ralph-loop",
+    "pickle-rick",
+    "conductor",
+    "gemini-interactions-api",
+    "aralia-roadmap-node-authoring",
+    "agora-coordination",
+    "testkit"
+  ],
+  "skills": {
+    "editable": [
+      {
+        "id": "codex-wtWaitFor-polling",
+        "scope": "user",
+        "path": "C:/Users/Gambit/.claude/skills/codex-wtWaitFor-polling",
+        "lines": 93
+      },
+      {
+        "id": "vite-dynamic-import-config-deps",
+        "scope": "user",
+        "path": "C:/Users/Gambit/.claude/skills/vite-dynamic-import-config-deps",
+        "lines": 91
+      },
+      {
+        "id": "agora-coordination",
+        "scope": "project",
+        "path": "F:/Repos/Aralia/.claude/skills/agora-coordination",
+        "lines": 85
+      },
+      {
+        "id": "aralia-roadmap-node-authoring",
+        "scope": "project",
+        "path": "F:/Repos/Aralia/.claude/skills/aralia-roadmap-node-authoring",
+        "lines": 178
+      },
+      {
+        "id": "gemini-interactions-api",
+        "scope": "project",
+        "path": "F:/Repos/Aralia/.claude/skills/gemini-interactions-api",
+        "lines": 430,
+        "note": "frontmatter disabled: true"
+      },
+      {
+        "id": "testkit",
+        "scope": "project",
+        "path": "F:/Repos/Aralia/.claude/skills/testkit",
+        "lines": 86,
+        "resources": [
+          "workflows/troubleshoot.md",
+          "workflows/perf.md",
+          "workflows/smoke.md"
+        ]
+      },
+      {
+        "id": "conductor-setup",
+        "scope": "project-command",
+        "path": "F:/Repos/Aralia/.claude/commands/conductor-setup.md",
+        "lines": 170
+      },
+      {
+        "id": "conductor-newtrack",
+        "scope": "project-command",
+        "path": "F:/Repos/Aralia/.claude/commands/conductor-newtrack.md",
+        "lines": 117
+      },
+      {
+        "id": "conductor-implement",
+        "scope": "project-command",
+        "path": "F:/Repos/Aralia/.claude/commands/conductor-implement.md",
+        "lines": 122
+      },
+      {
+        "id": "conductor-status",
+        "scope": "project-command",
+        "path": "F:/Repos/Aralia/.claude/commands/conductor-status.md",
+        "lines": 49
+      },
+      {
+        "id": "conductor-revert",
+        "scope": "project-command",
+        "path": "F:/Repos/Aralia/.claude/commands/conductor-revert.md",
+        "lines": 125
+      },
+      {
+        "id": "interview",
+        "scope": "project-command",
+        "path": "F:/Repos/Aralia/.claude/commands/interview.md",
+        "lines": 7
+      },
+      {
+        "id": "pickle-rick",
+        "scope": "project-command",
+        "path": "F:/Repos/Aralia/.claude/commands/pickle-rick.md",
+        "lines": 126
+      },
+      {
+        "id": "ralph-loop",
+        "scope": "project-command",
+        "path": "F:/Repos/Aralia/.claude/commands/ralph-loop.md",
+        "lines": 78
+      }
+    ],
+    "pluginCache": {
+      "mattpocock-skills@1.2.0": {
+        "surfaced": 9,
+        "registered": 22,
+        "path": "C:/Users/Gambit/.claude/plugins/cache/mattpocock/mattpocock-skills/1.2.0",
+        "editable": "cache-clobbered-on-update"
+      },
+      "feature-dev": {
+        "kind": "commands+agents"
+      },
+      "code-simplifier": {
+        "kind": "agent"
+      },
+      "superpowers@6.1.1": {
+        "status": "cached-but-not-installed"
+      }
+    },
+    "builtin": "bundled in claude.exe, read-only"
+  },
+  "gauntlet": {
+    "vite-dynamic-import-config-deps": {
+      "state": "contract-extracting"
+    },
+    "codex-wtWaitFor-polling": {
+      "state": "contract-extracting"
+    },
+    "interview": {
+      "state": "contract-extracting"
+    },
+    "ralph-loop": {
+      "state": "contract-extracting"
+    },
+    "pickle-rick": {
+      "state": "contract-extracting"
+    },
+    "conductor": {
+      "state": "contract-extracting"
+    },
+    "gemini-interactions-api": {
+      "state": "contract-extracting"
+    },
+    "aralia-roadmap-node-authoring": {
+      "state": "contract-extracting"
+    },
+    "agora-coordination": {
+      "state": "contract-extracting"
+    },
+    "testkit": {
+      "state": "contract-extracting"
+    }
+  },
+  "harness": {
+    "runner": "harness/runner.py",
+    "engines_verified": [
+      "claude-opus-5",
+      "claude-opus-4-8"
+    ],
+    "sandboxRoot": "G:/Temp/skill-gauntlet"
+  }
+}

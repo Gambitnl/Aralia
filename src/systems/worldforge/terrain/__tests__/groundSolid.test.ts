@@ -15,13 +15,16 @@ import {
   probeGround,
   type PitCut,
 } from '../groundSolid';
+import { substance } from '../materials';
 
 describe('materialAtDepth', () => {
   it('reads litter at the surface and rock deep down', () => {
     const top = materialAtDepth(0);
     const deep = materialAtDepth(40);
-    expect(top).toEqual([...FOREST_FLOOR_STACK[0].rgb]);
-    expect(deep).toEqual([...FOREST_FLOOR_STACK[FOREST_FLOOR_STACK.length - 1].rgb]);
+    expect(top).toEqual([...substance(FOREST_FLOOR_STACK[0].substance).rgb]);
+    expect(deep).toEqual([
+      ...substance(FOREST_FLOOR_STACK[FOREST_FLOOR_STACK.length - 1].substance).rgb,
+    ]);
   });
 
   it('gets LIGHTER with depth, which is what real ground does', () => {
@@ -39,7 +42,7 @@ describe('materialAtDepth', () => {
     // is a transition a few centimeters thick.
     const justAbove = materialAtDepth(0.115);
     const atBoundary = materialAtDepth(0.12);
-    const band = FOREST_FLOOR_STACK[0].rgb;
+    const band = substance(FOREST_FLOOR_STACK[0].substance).rgb;
     // Inside the blend band the value has already left the pure litter tone.
     expect(justAbove[0]).not.toBeCloseTo(band[0], 5);
     expect(atBoundary[0]).toBeGreaterThan(band[0]);
@@ -212,7 +215,7 @@ describe('probeGround', () => {
   it('reads litter on open ground', () => {
     const p = probeGround(8, 8, [cut]);
     expect(p.depthM).toBe(0);
-    expect(p.layerId).toBe('litter');
+    expect(p.layerId).toBe('leaf litter');
     expect(p.toNextM).toBeCloseTo(0.12, 5);
   });
 
@@ -226,7 +229,7 @@ describe('probeGround', () => {
   it('reports no next material once it reaches bedrock', () => {
     const deep: PitCut = { x: 0, z: 0, radiusM: 1, depthM: 4, batter: 0 };
     const p = probeGround(0, 0, [deep]);
-    expect(p.layerId).toBe('bedrock');
+    expect(p.layerId).toBe('granite');
     expect(p.toNextM).toBeNull();
   });
 

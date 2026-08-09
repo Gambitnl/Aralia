@@ -56,6 +56,8 @@ import GroundAgents from './GroundAgents';
 import GroundProps from './GroundProps';
 import DungeonEntrances from './DungeonEntrances';
 import FarShells from './FarShells';
+import { substance } from '@/systems/worldforge/terrain/materials';
+import { Material } from '@/systems/worldforge/terrain/voxelVolume';
 import SceneCast, { type SceneCastMember } from './SceneCast';
 import PlayerAvatar from './PlayerAvatar';
 import GroundMovePlane from './GroundMovePlane';
@@ -81,6 +83,7 @@ import {
 import type { PlayerWorldPosition } from '@/types';
 import { useForgeTexture, getSemanticAssetKey } from '@/systems/worldforge/bridge/forgeMaterials';
 import type { ForgeAssetService } from '@/systems/worldforge/assets/forgeAssetService';
+import { PerfProbe } from '@/devtools/perf';
 
 export const ForgeAssetContext = React.createContext<ForgeAssetService | undefined>(undefined);
 
@@ -248,6 +251,8 @@ const FrontierSkirt: React.FC<{
         vertexColors
         flatShading
         map={tex || null}
+        // Opaque from both sides, for the same reason as the terrain surface.
+        side={THREE.DoubleSide}
         onBeforeCompile={applyTerrainSurfaceNoise}
         customProgramCacheKey={terrainProgramCacheKey}
       />
@@ -341,6 +346,18 @@ const TerrainPiece: React.FC<{
           normalMap={groundNormal}
           normalScale={GROUND_NORMAL_SCALE}
           roughness={0.95}
+          /* Two-sided, so the ground is opaque from BELOW.
+           *
+           * Single-sided terrain is the last hollow thing in the streamed
+           * world. The frontier walls close its sides and the underside plane
+           * closes its bottom, but a camera that dipped under the surface still
+           * looked up through the ground at open sky.
+           *
+           * There is no extra geometry and no lighting hack: three.js flips the
+           * normal on a back face, so the underside faces down, the sun above
+           * misses it, and it reads as dark rock rather than as grass on a
+           * ceiling. */
+          side={THREE.DoubleSide}
           onBeforeCompile={applyTerrainSurfaceNoise}
           customProgramCacheKey={terrainProgramCacheKey}
         />
@@ -936,6 +953,37 @@ const CanopyDampedLighting: React.FC<{
   );
 };
 
+/**
+ * The underside of the world.
+ *
+ * The streamed terrain is one triangle layer. Walls close the streaming
+ * frontier and nothing closed the bottom, so a camera below grade looked
+ * straight through the ground into an empty scene — the world was a sheet, not
+ * a solid.
+ *
+ * This is the floor of that solid. One plane, at the same `GROUND_FLOOR_Y` the
+ * frontier walls now reach, so the loaded region is closed on every side. It
+ * faces DOWN, because it is only ever seen from beneath; an upward face would
+ * be a second ground hiding under the real one.
+ *
+ * Its color is granite, read from the material registry rather than typed here.
+ * Deep rock is what you would actually be looking at, and taking the value from
+ * the registry stops the floor drifting away from the substance a cut face
+ * shows at that depth.
+ */
+const WorldUnderside: React.FC = () => {
+  const rock = substance(Material.Granite).rgb;
+  // Wide enough to cover the streaming window from any angle inside it. Two
+  // triangles, so the span costs nothing.
+  const SPAN = WORLD3D_CONFIG.CHUNK_WORLD_SIZE * 24;
+  return (
+    <mesh position={[0, WORLD3D_CONFIG.GROUND_FLOOR_Y, 0]} rotation={[Math.PI / 2, 0, 0]}>
+      <planeGeometry args={[SPAN, SPAN]} />
+      <meshStandardMaterial color={new THREE.Color(rock[0], rock[1], rock[2])} roughness={1} />
+    </mesh>
+  );
+};
+
 const World3DScene: React.FC<World3DSceneProps> = ({
   loader,
   start,
@@ -1107,6 +1155,7 @@ const World3DScene: React.FC<World3DSceneProps> = ({
           );
         }}
       >
+        <PerfProbe id="world3d" label="World 3D" />
         {/* Sun + sky + hemisphere fill + distance fog + soft follow-frustum
             shadows (ground profile). Time-of-day plumbed, fixed late-morning.
             Wrapped in the canopy damper (forests Task 11): under forest canopy
@@ -1199,6 +1248,9 @@ const World3DScene: React.FC<World3DSceneProps> = ({
         {/* Far-distance terrain shells (2026-07-21): the region ring + atlas
             horizon that replace the old visible world edge. Static, built once
             per window; fog dissolves their outer rim into the sky. */}
+        {/* The world's floor. Mounted with the ground profile, the only view
+            from which a camera can get beneath the terrain. */}
+        {viewProfile === 'ground' && <WorldUnderside />}
         {viewProfile === 'ground' && (
           <FarShells ground={groundWorld} sceneOrigin={sceneOrigin} />
         )}

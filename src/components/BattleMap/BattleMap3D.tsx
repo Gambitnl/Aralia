@@ -58,6 +58,7 @@ import { SpellArtifact3DMarker } from './SpellArtifact3DMarker';
 import { buildSpellMapArtifactMarkers, type SpellMapArtifacts } from './spellMapArtifacts';
 import { isWebGpuBattleMapEnabled } from './webgpuBattleMapFlag';
 import OpeningThreatScene3D, { selectOpeningThreatScene3DFacts } from './OpeningThreatScene3D';
+import { PerfProbe } from '../../devtools/perf';
 
 // Experimental WebGPU render path (opt-in via ?gpu=1). Lazily imported so
 // `three/webgpu` + TSL are never pulled onto the default WebGL battle-map path.
@@ -689,6 +690,7 @@ const BattleMap3D: React.FC<BattleMap3DProps> = ({ mapData, characters, spellMap
           gl.shadowMap.type = THREE.PCFSoftShadowMap;
         }}
       >
+        <PerfProbe id="battlemap" label="Battle Map" />
         {/* Sky dome — gradient background prevents fade-to-void */}
         <SkyDome biome={biome} mapCenter={cameraTarget} />
 

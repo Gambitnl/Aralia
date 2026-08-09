@@ -178,6 +178,26 @@
           "status": "active",
           "decision": true,
           "status_note": "ADR 0002 revision 2026-08-07 after a deep research pass. 3D water over the bubble was 16.8M cells at 108ms/step; the same ground in 2D is 65,536 cells and steps in under 16ms measured. Built shallowWater.ts: virtual-pipe fluxes, exact conservation, boundary ledger so water leaving the domain is recorded not deleted, and editBed() that conserves volume when a spell moves the ground. 11 tests. THREE conservation bugs found and fixed: lowering the bed created water, raising it deleted water, and the solver checkerboarded (a cell could shed its whole depth in one step, so cells swapped forever while conserving volume exactly - looked stable for 20k steps)."
+        },
+        {
+          "title": "Volume sandbox size guard: 240m at 50cm/25cm froze the tab (110M/884M cells built synchronously in render) — every size button now states its grid, over-ceiling pairs refuse",
+          "status": "done",
+          "open": 0
+        },
+        {
+          "title": "Off-thread chunked volume build — removes the 256-cell edge ceiling the sandbox now enforces (fill + surface nets both run on the main thread today)",
+          "status": "specced",
+          "open": 1
+        },
+        {
+          "title": "Water floated a cell above the hillside: surface nets now reports the height it DRAWS (columnTopY) and the water bed rests on that, not on the voxel column top",
+          "status": "done",
+          "open": 0
+        },
+        {
+          "title": "Water sheet still spans banks (relief test skips fully-wet quads) and breaks the ribbon in a steep ditch — one rule cannot serve both; needs a rule that separates a flowing surface from a sheet crossing a wall",
+          "status": "specced",
+          "open": 1
         }
       ],
       "history": {
@@ -185,7 +205,7 @@
         "built": "2026-07-04"
       },
       "tier": "strategic",
-      "updated": "2026-08-07"
+      "updated": "2026-08-08"
     },
     {
       "id": "perf-campaign",
@@ -198,6 +218,11 @@
           "id": "world-props",
           "kind": "hard",
           "why": "Nothing to optimize before the props, trees and lighting exist â€” this pass instances/LODs what the wave adds"
+        },
+        {
+          "id": "perf-toolkit-3d",
+          "kind": "chosen",
+          "why": "Optimizing without one shared instrument means every surface reports its own number; the toolkit is where the before/after readings come from"
         }
       ],
       "features": [
@@ -228,7 +253,7 @@
         "built": "2026-07-07"
       },
       "tier": "strategic",
-      "updated": "2026-07-07"
+      "updated": "2026-08-08"
     },
     {
       "id": "building-generator",
@@ -6107,6 +6132,51 @@
           "status_note": "Deleted 2026-08-05 with tests; 762 tests green; World3DDemo boot-probed headless."
         }
       ]
+    },
+    {
+      "id": "perf-toolkit-3d",
+      "title": "Universal 3D performance toolkit",
+      "sub": "BUILT 2026-08-08: one PerfProbe per canvas + one Alt+P overlay across all 19 3D surfaces; fps/p95/worst/stalls, GPU time per frame, CPU frame work, CPU-vs-GPU bottleneck verdict, draw calls, triangles, heap, per-frame spans, capture report, window.__araliaPerf headless hook",
+      "campaign": "tooling",
+      "status": "done",
+      "deps": [],
+      "features": [
+        {
+          "title": "Measurement core (frame window, spans, session, registry)",
+          "status": "done",
+          "open": 0
+        },
+        {
+          "title": "Shared overlay (graph, counters, capture, multi-canvas tabs)",
+          "status": "done",
+          "open": 0
+        },
+        {
+          "title": "Wired into all 19 3D surfaces + game shell",
+          "status": "done",
+          "open": 0
+        },
+        {
+          "title": "Post-processing draw-call fix (dungeon read 1 tri, really 2.2M)",
+          "status": "done",
+          "open": 0
+        },
+        {
+          "title": "GPU timer queries (EXT_disjoint_timer_query_webgl2) + CPU/GPU bottleneck verdict",
+          "status": "done",
+          "open": 0
+        },
+        {
+          "title": "WebGPU GPU timing (blocked: three r172 resolves timestamps only in renderAsync, which R3F does not call)",
+          "status": "parked",
+          "open": 1
+        }
+      ],
+      "history": {
+        "built": "2026-08-08"
+      },
+      "tier": "strategic",
+      "updated": "2026-08-08"
     }
   ]
 }

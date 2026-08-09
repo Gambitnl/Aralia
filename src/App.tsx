@@ -134,6 +134,7 @@ import { GameProvider } from "./state/GameContext";
 import { WORLD3D_CONFIG } from "./systems/world3d/config";
 import MainMenu from "./components/layout/MainMenu";
 import ErrorBoundary from "./components/ui/ErrorBoundary";
+import { PerfOverlay } from "./devtools/perf";
 import * as SaveLoadService from "./services/saveLoadService";
 import { LoadingSpinner } from "./components/ui/LoadingSpinner";
 import { ConversationPanel } from "./components/ConversationPanel";
@@ -2502,6 +2503,12 @@ const App: React.FC = () => {
     >
       <GameProvider state={gameState} dispatch={dispatch}>
         <div className="App min-h-screen bg-gray-900">
+          {/* The same performance display the design preview uses, so a reading
+            * taken in a sandbox and a reading taken in the running game are the
+            * same measurement. Development builds only, and it starts as a small
+            * fps pill; Alt+P cycles it to the full panel or off. */}
+          {import.meta.env.DEV && <PerfOverlay />}
+
           <Suspense fallback={null}>
             <NotificationSystem
               notifications={areNotificationsSuppressed ? [] : notifications}

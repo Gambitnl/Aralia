@@ -16,6 +16,7 @@ import { buildDemoTownPlan, DEMO_BURG_ID } from '../../systems/worldforge/town/d
 import { generateTownRoster } from '../../systems/worldforge/roster/generateTownRoster';
 import { groundSurfaceY, type GroundWorld } from '../../systems/worldforge/bridge/groundChunkLoader';
 import GroundAgents from '../World3D/GroundAgents';
+import { PerfProbe } from '../../devtools/perf';
 
 const FT = 0.3048;
 const SYLL = ['ar', 'be', 'cor', 'dun', 'el', 'fen', 'gor', 'hal', 'kel', 'mor', 'tan', 'wyn'];
@@ -97,6 +98,7 @@ const AgentSim3DPreview: React.FC = () => {
           camera={{ position: [0, span * 0.55, span * 0.7], fov: 45, far: 5000 }}
           onCreated={({ camera }) => camera.lookAt(0, surfaceY, 0)}
         >
+          <PerfProbe id="agentsim3d" label="Agent Sim 3D" />
           <ambientLight intensity={0.7} />
           <directionalLight position={[300, 400, 200]} intensity={1.6} />
           <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, surfaceY, 0]}>

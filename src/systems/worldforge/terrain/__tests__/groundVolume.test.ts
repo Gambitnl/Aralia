@@ -5,7 +5,7 @@
  * heightfield cannot. Every other test here supports that one.
  */
 import { describe, it, expect } from 'vitest';
-import { Material } from '../voxelVolume';
+import { Material, VoxelVolume } from '../voxelVolume';
 import { fillBubbleFromGround, groundSource } from '../groundVolumeFromWorld';
 import { voxelsToSurface } from '../surfaceNets';
 import { materialAtDepth } from '../groundSolid';
@@ -48,7 +48,7 @@ describe('fillBubbleFromGround', () => {
     const f = fillBubbleFromGround(flat, 0, 0, 8, 0.25);
     const surfCell = Math.floor((0 - f.originM[1]) / f.cellM);
     expect(f.volume.get(8, surfCell, 8)).toBe(Material.Litter);
-    expect(f.volume.get(8, surfCell - 12, 8)).toBe(Material.Bedrock);
+    expect(f.volume.get(8, surfCell - 12, 8)).toBe(Material.Granite);
   });
 
   it('reports the work it did', () => {
@@ -199,5 +199,45 @@ describe('the volume is CLOSED', () => {
     }
     const m = voxelsToSurface(f.volume, f.cellM, f.originM, (d) => materialAtDepth(d));
     expect(openEdges(m)).toBe(0);
+  });
+});
+
+describe('writes outside the volume', () => {
+  /* The regression the ADR claimed was already covered.
+   *
+   * `get` was bounds-checked and `set` was not. A negative index does not fall
+   * off the array — it lands inside a real brick up to eight cells away, so one
+   * out-of-range write silently changed an in-range cell. Carve loops run
+   * center plus or minus a radius, so the first spell near a bubble edge would
+   * have hit this.
+   */
+  it('does not corrupt a DIFFERENT cell', () => {
+    const v = new VoxelVolume(16);
+    for (let z = 0; z < 16; z++) {
+      for (let y = 0; y < 16; y++) {
+        for (let x = 0; x < 16; x++) v.set(x, y, z, Material.Air);
+      }
+    }
+    // Every out-of-range write below must change nothing at all.
+    v.set(-1, 0, 8, Material.Granite);
+    v.set(0, -1, 8, Material.Granite);
+    v.set(8, 8, -1, Material.Granite);
+    v.set(16, 8, 8, Material.Granite);
+    v.set(8, 16, 8, Material.Granite);
+    v.set(8, 8, 16, Material.Granite);
+
+    for (let z = 0; z < 16; z++) {
+      for (let y = 0; y < 16; y++) {
+        for (let x = 0; x < 16; x++) {
+          expect(v.get(x, y, z), `cell ${x},${y},${z}`).toBe(Material.Air);
+        }
+      }
+    }
+  });
+
+  it('reads back Air outside, in both directions', () => {
+    const v = new VoxelVolume(16);
+    expect(v.get(-1, 0, 0)).toBe(Material.Air);
+    expect(v.get(16, 0, 0)).toBe(Material.Air);
   });
 });

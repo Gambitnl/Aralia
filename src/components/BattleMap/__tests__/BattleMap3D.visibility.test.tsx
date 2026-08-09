@@ -18,6 +18,14 @@ const mockUseVisibility = vi.fn();
 const mockVFXSystem = vi.fn((_props: unknown) => null);
 
 vi.mock('@react-three/fiber', () => ({
+  // The shared performance probe sits inside every Canvas and reads the
+  // renderer through these two hooks. A mock without them throws before the
+  // scene under test renders at all.
+  useThree: (select?: (s: unknown) => unknown) => {
+    const state = { gl: { info: { render: {}, memory: {} } } };
+    return select ? select(state) : state;
+  },
+  useFrame: vi.fn(),
   Canvas: ({ children }: { children: React.ReactNode }) => <div data-testid="mock-canvas">{children}</div>
 }));
 

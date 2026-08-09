@@ -30,82 +30,34 @@
  * less than the doubt it removes. Judge from a frame, not from an argument.
  */
 
-/** A material band in the ground, measured downward from the surface. */
-export interface GroundLayer {
-  /** Name for a reader; never rendered. */
-  id: string;
-  /** How deep this band reaches below the surface, in meters. */
-  depthM: number;
-  /** Linear RGB, sampled onto a cut face. */
-  rgb: readonly [number, number, number];
-}
+import { GroundBand, DEFAULT_STACK, colorAtDepth, substance } from './materials';
+
+/* The layer stack now lives in `materials.ts`.
+ *
+ * It began here as four colors for a forest floor. It had to leave, because a
+ * color is the least of what the ground must answer: a spell asks how hard the
+ * substance is, water asks whether it drains, and a cut wall asks whether it
+ * stands or slumps. Those belong to the substance, and it must be the SAME
+ * substance the voxel stores, or the world has two material systems that agree
+ * only by accident.
+ *
+ * These re-exports keep this module's callers working. The stack itself is
+ * `BIOME_GROUND[6]`, temperate deciduous forest, which is what this file always
+ * described. */
+export type GroundLayer = GroundBand;
+export const FOREST_FLOOR_STACK: readonly GroundBand[] = DEFAULT_STACK;
 
 /**
- * The default stack for temperate forest floor.
+ * The color of the ground at a given depth.
  *
- * Three bands, ordered top to bottom, with depths that decide what a spell
- * actually hits. A shallow scrape stays in litter. A grave reaches soil. A
- * spell that digs past two meters strikes rock and stops, which is the answer a
- * single-material ground could never give.
- *
- * The colors run darkest at the top on purpose. Leaf litter is the darkest
- * thing on a forest floor, subsoil lightens as the organic content falls away,
- * and bedrock is lighter and grayer than both. A cut face that gets brighter
- * with depth is the visual signature of real ground, and getting it backwards
- * reads as a photograph turned upside down.
- */
-export const FOREST_FLOOR_STACK: readonly GroundLayer[] = [
-  { id: 'litter', depthM: 0.12, rgb: [0.055, 0.043, 0.026] },
-  { id: 'topsoil', depthM: 0.55, rgb: [0.085, 0.062, 0.038] },
-  { id: 'subsoil', depthM: 2.0, rgb: [0.165, 0.125, 0.080] },
-  { id: 'bedrock', depthM: Infinity, rgb: [0.230, 0.222, 0.208] },
-];
-
-/* Why these numbers are so low.
- *
- * They are LINEAR, and a renderer converts linear to sRGB on the way out. That
- * conversion lifts dark values hard: linear 0.16 leaves as sRGB 0.44. The first
- * version of this stack used values that looked like reasonable soil in a
- * color picker, and the patch rendered as a sand dune under a bright review
- * light. Litter is one of the darkest surfaces outdoors, so the linear value
- * has to be genuinely small for it to read that way once converted. */
-
-/**
- * What the ground is made of at a given depth.
- *
- * Blended across a short band at each boundary rather than switched. A hard
- * switch draws a contour line down a cut face, and a real soil horizon is a
- * transition a few centimeters thick, not a drawn edge. This is the same
- * lesson the vegetation clump field learned: a hard cutoff is visible from
- * across the room.
+ * A thin name over `colorAtDepth`. The blend across each horizon lives there
+ * now, beside the substances it blends between.
  */
 export function materialAtDepth(
   depthM: number,
-  stack: readonly GroundLayer[] = FOREST_FLOOR_STACK,
+  stack: readonly GroundBand[] = DEFAULT_STACK,
 ): [number, number, number] {
-  const BLEND_M = 0.06;
-  let top = 0;
-  for (let i = 0; i < stack.length; i++) {
-    const layer = stack[i];
-    const bottom = layer.depthM;
-    if (depthM <= bottom || !Number.isFinite(bottom)) {
-      const next = stack[i + 1];
-      // Inside the blend band above the next boundary, mix toward it.
-      if (next && Number.isFinite(bottom) && depthM > bottom - BLEND_M) {
-        const t = (depthM - (bottom - BLEND_M)) / BLEND_M;
-        return [
-          layer.rgb[0] + (next.rgb[0] - layer.rgb[0]) * t,
-          layer.rgb[1] + (next.rgb[1] - layer.rgb[1]) * t,
-          layer.rgb[2] + (next.rgb[2] - layer.rgb[2]) * t,
-        ];
-      }
-      return [layer.rgb[0], layer.rgb[1], layer.rgb[2]];
-    }
-    top = bottom;
-  }
-  const last = stack[stack.length - 1];
-  void top;
-  return [last.rgb[0], last.rgb[1], last.rgb[2]];
+  return colorAtDepth(depthM, stack);
 }
 
 export interface GroundSolidData {
@@ -179,7 +131,7 @@ export function buildGroundSolid(
   sizeM: number,
   resolution: number,
   cuts: readonly PitCut[] = [],
-  stack: readonly GroundLayer[] = FOREST_FLOOR_STACK,
+  stack: readonly GroundBand[] = DEFAULT_STACK,
 ): GroundSolidData {
   const n = resolution + 1;
   const step = sizeM / resolution;
@@ -388,7 +340,7 @@ export function probeGround(
   x: number,
   z: number,
   cuts: readonly PitCut[] = [],
-  stack: readonly GroundLayer[] = FOREST_FLOOR_STACK,
+  stack: readonly GroundBand[] = DEFAULT_STACK,
 ): GroundProbe {
   let drop = 0;
   for (const c of cuts) {
@@ -399,11 +351,11 @@ export function probeGround(
     const eased = t * t * (3 - 2 * t);
     drop = Math.max(drop, c.depthM * eased);
   }
-  let layerId = stack[stack.length - 1].id;
+  let layerId = substance(stack[stack.length - 1].substance).label;
   let toNextM: number | null = null;
   for (const layer of stack) {
     if (drop <= layer.depthM || !Number.isFinite(layer.depthM)) {
-      layerId = layer.id;
+      layerId = substance(layer.substance).label;
       toNextM = Number.isFinite(layer.depthM) ? layer.depthM - drop : null;
       break;
     }

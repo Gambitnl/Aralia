@@ -116,14 +116,28 @@ export function createFlipBuffers(params: FlipParams): FlipBuffers {
  * Spawn a block of particles. World-meter arguments; grid-unit storage.
  * Spacing targets the rest density (~4 particles per cell), so the block
  * starts relaxed instead of exploding outward.
+ *
+ * `velGrid` launches every particle with one shared velocity, in GRID units
+ * per sim-time unit — the same dimensionless units the kernels integrate
+ * (`x += v·dt`, `v.y -= 0.3·dt`). A block with a velocity is a fired SLUG:
+ * the jet moment, where a resting block is the dam moment.
  */
 export function spawnBlock(
   bufs: FlipBuffers,
   minM: [number, number, number],
   sizeM: [number, number, number],
+  velGrid?: [number, number, number],
 ): void {
   const { dx, origin, count } = bufs.params;
   const arr = bufs.pos.array as Float32Array;
+  if (velGrid) {
+    const varr = bufs.vel.array as Float32Array;
+    for (let p = 0; p < count; p++) {
+      varr[p * 3] = velGrid[0];
+      varr[p * 3 + 1] = velGrid[1];
+      varr[p * 3 + 2] = velGrid[2];
+    }
+  }
   const spacing = Math.cbrt(1 / MPM_REST_DENSITY); // grid units between particles
   const nx = Math.floor(sizeM[0] / dx / spacing);
   const ny = Math.floor(sizeM[1] / dx / spacing);

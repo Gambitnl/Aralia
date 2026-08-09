@@ -1,0 +1,15 @@
+{
+  "model_requested": "claude-opus-5",
+  "cwd": "G:\\Temp\\skill-gauntlet\\contract-aralia-roadmap-node--f13d4116",
+  "elapsed_s": 147.1,
+  "result": "Wrote `outcome-contract.md` (97 lines). `original/` is untouched, and the repo paths were read only.\n\nWhat I inspected: the skill file itself, plus the real repo to check whether its described mechanics are still live \u2014 the generator's curation list, the label-normalisation module and its weak/generic/collision rules, the pillar-inference step, the registration/provenance artifacts, the audit and dev-server scripts, and the plan-map's schema, data, readiness derivation, and the test proving plan-map topics are promoted into map nodes. All of it exists and matches, so the contract is grounded rather than paraphrased.\n\nKey judgment calls:\n\n- **Ends vs. means.** I dropped the specific file paths, symbol names, allowlist table, acronym list, shell/audit commands, and checklist wording \u2014 those are the implementation. What I kept as *ends*: the entry must reach the served data and the live viewer under the intended grouping, with unique identifiers, and the report must match what checks actually showed.\n- **One method kept deliberately, and flagged as such.** \"Entries must be produced through the source-record \u2192 registration \u2192 generation path, not hand-edited into the generated data\" is a means, but it *is* the owner's requirement (provenance and regenerability), so the contract says so explicitly rather than smuggling it in.\n- **Naming rules generalised.** Instead of the acronym/token-count specifics, the constraint is that labels must describe a capability and stay distinct *after* normalisation \u2014 the durable requirement behind the mutable rule list.\n- **Ambiguity stated, not resolved to preference.** The skill describes only the document-derived path, but the evidence shows a second curated dataset also promoted into the same map. I recorded the faithful reading (the contract governs the entries, whichever path supplies them) rather than picking one.\n\nOne thing worth flagging: the plan-map evidence carries owner constraints the skill text never mentions \u2014 counted values must be recounted not estimated, approximations must be marked, two kinds of ordering must never be unified. I folded these into hard constraints because the evidence names that map as the thing being fed; if the owner considers that dataset out of scope for this skill, those three lines are the ones to cut.",
+  "is_error": false,
+  "num_turns": 18,
+  "cost_usd": 0.8412499999999999,
+  "models_used": {
+    "claude-haiku-4-5-20251001": "claude-haiku-4-5",
+    "claude-opus-5": "claude-opus-5"
+  },
+  "session_id": "72f051b7-2f7d-452e-97e9-f819384b82aa",
+  "model_verified": true
+}

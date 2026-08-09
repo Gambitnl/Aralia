@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="refresh" content="20">
+<title>Skill Upgrade Gauntlet</title>
+<style>
+:root{--bg:#0f1115;--card:#171a21;--ink:#e6e8ee;--dim:#9aa3b2;--line:#262b36;--accent:#7aa2f7;--green:#9ece6a;--yellow:#e0af68;--red:#f7768e;--gray:#565f89}
+@media (prefers-color-scheme: light){:root{--bg:#f5f6f8;--card:#ffffff;--ink:#1a1d24;--dim:#5a6372;--line:#dde1e8;--accent:#2f5fd0;--gray:#8a93a6}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 "Segoe UI",system-ui,sans-serif;padding:32px 40px}
+h1{font-size:22px;margin:0 0 4px}
+h2{font-size:15px;margin:34px 0 10px;color:var(--accent);text-transform:uppercase;letter-spacing:.08em}
+.sub{color:var(--dim);margin-bottom:8px}
+.banner{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--yellow);padding:12px 16px;border-radius:8px;margin:18px 0}
+table{border-collapse:collapse;width:100%;background:var(--card);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+th,td{text-align:left;padding:8px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{color:var(--dim);font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.05em}
+tr:last-child td{border-bottom:none}
+.tag{display:inline-block;padding:1px 8px;border-radius:10px;font-size:11px;font-weight:600}
+.t-user{background:#2a3f5f;color:#9ecbff}.t-proj{background:#2f4a33;color:#b8e6a0}.t-cmd{background:#4a3a2f;color:#f0c9a0}.t-plugin{background:#42304f;color:#d7b3f0}.t-builtin{background:#333a45;color:#aab3c2}
+.t-edit{color:var(--green)}.t-caveat{color:var(--yellow)}.t-ro{color:var(--red)}
+.state{font-weight:600}
+.s-wait{color:var(--gray)}.s-run{color:var(--yellow)}.s-green{color:var(--green)}.s-red{color:var(--red)}
+.mono{font-family:Consolas,monospace;font-size:12px;color:var(--dim)}
+.note{color:var(--dim);font-size:12px}
+small{color:var(--dim)}
+</style>
+</head>
+<body>
+<h1>Skill Upgrade Gauntlet — Inventory</h1>
+<div class="sub">Aralia · scan of 2026-08-09 · auto-refreshes every 20 s · <b>view-only</b> — select skills by reply in Claude Code</div>
+
+<div class="banner"><b>Status: RUNNING — Phase C (benchmark design + audit). Contracts: 10/10 frozen after independent audit.</b> Remy selected all 14 editable skills = 10 gauntlet units (conductor family counts as one). Originals frozen at <span class="mono">.agent/skill-gauntlet/originals/</span> (330 files, MD5 manifest). No live skill has been edited yet. Engines verified by run JSON: <span class="mono">claude-opus-5</span> ✓ · <span class="mono">claude-opus-4-8</span> ✓ · isolation proven (sandbox runs see only the installed skill + built-ins).</div>
+
+<h2>Upgradable — user scope <span class="mono">(~/.claude/skills)</span></h2>
+<table>
+<tr><th>Skill</th><th>What it does</th><th>Size</th><th>Editable</th><th>Dependencies / notes</th><th>Gauntlet state</th></tr>
+<tr><td><b>codex-wtWaitFor-polling</b> <span class="tag t-user">user</span></td><td>Block on a Codex CLI turn (END_TURN) in an xterm.js PTY page instead of manual polling.</td><td>93 lines</td><td class="t-edit">yes</td><td>Requires the page to expose <span class="mono">window.wtWaitFor</span>. Pairs with the co-orchestration pipeline.</td><td class="state s-wait">not selected</td></tr>
+<tr><td><b>vite-dynamic-import-config-deps</b> <span class="tag t-user">user</span></td><td>Stop Vite full restarts by converting static vite.config.ts imports to dynamic imports.</td><td>91 lines</td><td class="t-edit">yes</td><td>Standalone knowledge skill. Overlaps the Vite dev-server crash-guard memory.</td><td class="state s-wait">not selected</td></tr>
+</table>
+
+<h2>Upgradable — project scope <span class="mono">(F:\Repos\Aralia\.claude\skills)</span></h2>
+<table>
+<tr><th>Skill</th><th>What it does</th><th>Size</th><th>Editable</th><th>Dependencies / notes</th><th>Gauntlet state</th></tr>
+<tr><td><b>agora-coordination</b> <span class="tag t-proj">project</span></td><td>Register presence, lock files, claim tasks, and message agents via the Agora daemon (:4319) so concurrent agents do not clobber the shared checkout.</td><td>85 lines</td><td class="t-edit">yes</td><td>Depends on <span class="mono">tools/agora</span> daemon + client.mjs + AGENT.md / PROTOCOL.md / ORCHESTRATOR.md. Live multi-agent infrastructure.</td><td class="state s-wait">not selected</td></tr>
+<tr><td><b>aralia-roadmap-node-authoring</b> <span class="tag t-proj">project</span></td><td>Author roadmap branches and nodes through the four-gate pipeline (capability doc → manifest → generator allowlist → normalization).</td><td>178 lines</td><td class="t-edit">yes</td><td>Depends on the plan-map generator pipeline. Related memory: alpha-signal roadmap capture.</td><td class="state s-wait">not selected</td></tr>
+<tr><td><b>gemini-interactions-api</b> <span class="tag t-proj">project</span></td><td>Reference for the Gemini Interactions API (models, chat, multimodal, streaming, function calling).</td><td>430 lines</td><td class="t-edit">yes</td><td><b>Frontmatter has <span class="mono">disabled: true</span></b> yet the skill still surfaces this session. Pure knowledge skill; risk of model-name drift.</td><td class="state s-wait">not selected</td></tr>
+<tr><td><b>testkit</b> <span class="tag t-proj">project</span></td><td>Drive Aralia in a real browser via the chrome-devtools MCP. Modes: troubleshoot | perf | smoke, each a workflow checklist.</td><td>86 + 3 workflow files</td><td class="t-edit">yes</td><td>Depends on chrome-devtools MCP, dev launch config, saved baselines. Overlaps mattpocock <i>diagnosing-bugs</i> (diagnosis loop) and the /run skill.</td><td class="state s-wait">not selected</td></tr>
+</table>
+
+<h2>Upgradable — project commands <span class="mono">(F:\Repos\Aralia\.claude\commands)</span></h2>
+<table>
+<tr><th>Skill</th><th>What it does</th><th>Size</th><th>Editable</th><th>Dependencies / notes</th><th>Gauntlet state</th></tr>
+<tr><td><b>conductor-setup / newtrack / implement / status / revert</b> <span class="tag t-cmd">command ×5</span></td><td>Context-driven development family: scaffold a <span class="mono">conductor/</span> workspace, create tracks with specs and plans, execute them, show progress, revert by git history.</td><td>583 lines total</td><td class="t-edit">yes</td><td>A five-command family that shares <span class="mono">conductor/*.md</span> state files. No conductor/ directory exists in the repo — apparently never adopted. Overlaps feature-dev plugin and mattpocock to-spec/to-tickets/implement.</td><td class="state s-wait">not selected</td></tr>
+<tr><td><b>interview</b> <span class="tag t-cmd">command</span></td><td>In-depth AskUserQuestion interview that ends in a written spec.</td><td>7 lines</td><td class="t-edit">yes</td><td>Overlaps mattpocock <i>grilling</i> / <i>grill-me</i> and the interview skill pattern.</td><td class="state s-wait">not selected</td></tr>
+<tr><td><b>pickle-rick</b> <span class="tag t-cmd">command</span></td><td>Persona mode: hyper-competent autonomous development, zero tolerance for slop.</td><td>126 lines</td><td class="t-edit">yes</td><td>Persona wrapper over normal autonomous work. Overlaps ralph-loop.</td><td class="state s-wait">not selected</td></tr>
+<tr><td><b>ralph-loop</b> <span class="tag t-cmd">command</span></td><td>Autonomous iterate-until-truly-complete loop.</td><td>78 lines</td><td class="t-edit">yes</td><td>Overlaps the built-in /loop skill and pickle-rick.</td><td class="state s-wait">not selected</td></tr>
+</table>
+
+<h2>Plugin skills — editable with a caveat</h2>
+<table>
+<tr><th>Source</th><th>Contents</th><th>Editable</th><th>Notes</th></tr>
+<tr><td><b>mattpocock-skills 1.2.0</b> <span class="tag t-plugin">plugin</span></td><td>22 skills registered; 9 surfaced this session (diagnosing-bugs, tdd, prototype, research, domain-modeling, codebase-design, code-review, resolving-merge-conflicts, grilling).</td><td class="t-caveat">cache only</td><td>Lives in the marketplace cache. A plugin update overwrites local edits. Upgrade path = copy to user or project scope, then disable the plugin copy.</td></tr>
+<tr><td><b>feature-dev / code-simplifier / context7</b> <span class="tag t-plugin">plugin</span></td><td>Commands and agents, not SKILL.md skills.</td><td class="t-caveat">cache only</td><td>Same clobber caveat.</td></tr>
+<tr><td><b>superpowers 6.1.1</b> <span class="tag t-plugin">stale cache</span></td><td>14 skills in cache (TDD, debugging, worktrees…).</td><td class="t-ro">not installed</td><td>Present in the cache but absent from installed_plugins.json and from this session. Not part of the gauntlet.</td></tr>
+</table>
+
+<h2>Built-in — read-only</h2>
+<table>
+<tr><th>Group</th><th>Skills</th><th>Why read-only</th></tr>
+<tr><td>anthropic-skills</td><td>docx, pdf, pptx, xlsx, morning, schedule, skill-creator, consolidate-memory, explain-usage, setup-cowork</td><td rowspan="4">Bundled inside <span class="mono">claude.exe</span>. No file on disk to edit. Cannot enter the gauntlet.</td></tr>
+<tr><td>data</td><td>analyze, build-dashboard, create-viz, data-visualization, explore-data, sql-queries, statistical-analysis, validate-data, write-query, data-context-extractor</td></tr>
+<tr><td>cowork / artifacts</td><td>cowork-plugin-customizer, create-cowork-plugin, dataviz, artifact-design, artifact-diagramming, artifact-capabilities</td></tr>
+<tr><td>harness</td><td>update-config, keybindings-help, simplify, fewer-permission-prompts, loop, schedule, claude-api, run, init, review, security-review</td></tr>
+</table>
+
+<h2>Gauntlet</h2>
+<table>
+<tr><th>Unit</th><th>Contract</th><th>Benchmark</th><th>Trials</th><th>Verdict</th></tr>
+<tr><td>vite-dynamic-import-config-deps</td><td class="s-green"><a href="skills/vite-dynamic-import-config-deps/contract/FROZEN-contract.md" style="color:inherit">frozen ✓</a></td><td class="s-run">designing…</td><td>—</td><td class="state s-run">RED — in progress</td></tr>
+<tr><td>codex-wtWaitFor-polling</td><td class="s-green"><a href="skills/codex-wtWaitFor-polling/contract/FROZEN-contract.md" style="color:inherit">frozen ✓</a></td><td class="s-run">designing…</td><td>—</td><td class="state s-run">RED — in progress</td></tr>
+<tr><td>interview</td><td class="s-green"><a href="skills/interview/contract/FROZEN-contract.md" style="color:inherit">frozen ✓</a></td><td class="s-run">designing…</td><td>—</td><td class="state s-run">RED — in progress</td></tr>
+<tr><td>ralph-loop</td><td class="s-green"><a href="skills/ralph-loop/contract/FROZEN-contract.md" style="color:inherit">frozen ✓</a></td><td class="s-run">designing…</td><td>—</td><td class="state s-run">RED — in progress</td></tr>
+<tr><td>pickle-rick</td><td class="s-green"><a href="skills/pickle-rick/contract/FROZEN-contract.md" style="color:inherit">frozen ✓</a></td><td class="s-run">designing…</td><td>—</td><td class="state s-run">RED — in progress</td></tr>
+<tr><td>conductor family</td><td class="s-green"><a href="skills/conductor/contract/FROZEN-contract.md" style="color:inherit">frozen ✓</a></td><td class="s-run">designing…</td><td>—</td><td class="state s-run">RED — in progress</td></tr>
+<tr><td>gemini-interactions-api</td><td class="s-green"><a href="skills/gemini-interactions-api/contract/FROZEN-contract.md" style="color:inherit">frozen ✓</a></td><td class="s-run">designing…</td><td>—</td><td class="state s-run">RED — in progress</td></tr>
+<tr><td>aralia-roadmap-node-authoring</td><td class="s-green"><a href="skills/aralia-roadmap-node-authoring/contract/FROZEN-contract.md" style="color:inherit">frozen ✓</a></td><td class="s-run">designing…</td><td>—</td><td class="state s-run">RED — in progress</td></tr>
+<tr><td>agora-coordination</td><td class="s-green"><a href="skills/agora-coordination/contract/FROZEN-contract.md" style="color:inherit">frozen ✓</a></td><td class="s-run">designing…</td><td>—</td><td class="state s-run">RED — in progress</td></tr>
+<tr><td>testkit</td><td class="s-green"><a href="skills/testkit/contract/FROZEN-contract.md" style="color:inherit">frozen ✓</a></td><td class="s-run">designing…</td><td>—</td><td class="state s-run">RED — in progress</td></tr>
+</table>
+<div class="note">Pipeline per unit: contract extraction → independent contract audit → freeze → benchmark design (iteration + sealed held-out) → benchmark audit → blind trials (Opus 4.8 + original · Opus 5 bare · Opus 5 + original · Opus 5 + candidate) → blind Opus 5 judges → iterate → final sealed eval → install. Evidence lives under <span class="mono">.agent/skill-gauntlet/skills/&lt;unit&gt;/</span>.</div>
+
+<p><small>Frozen originals: <span class="mono">F:\Repos\Aralia\.agent\skill-gauntlet\originals\</span> · state: <span class="mono">state.json</span> · this page is regenerated by the gauntlet and never accepts input.</small></p>
+</body>
+</html>

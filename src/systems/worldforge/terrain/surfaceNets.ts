@@ -37,6 +37,20 @@ export interface SurfaceMeshData {
   colors: Float32Array;
   indices: Uint32Array;
   triangles: number;
+  /**
+   * The height of the DRAWN top surface per voxel column, world meters.
+   *
+   * Laid out `z * cells + x`, `-Infinity` where no surface was placed over the
+   * column. Reported because the drawn surface is NOT the top of the voxel
+   * column: this mesher averages the edge crossings around each cell, so a
+   * vertex sits up to a cell below the column it belongs to. That is what
+   * smooths the staircase, and it means anything that has to SIT on the ground
+   * — water, a footprint, a decal — must ask the mesh where the ground is
+   * rather than ask the voxels.
+   *
+   * Water asked the voxels, and floated a metre above the hillside.
+   */
+  columnTopY: Float32Array;
 }
 
 /** Which corner of a cell each of the 8 samples sits at. */
@@ -96,15 +110,78 @@ export function voxelsToSurface(
 
   // One vertex per boundary cell. -1 marks a cell that produced none.
   const vertexAt = new Int32Array(cn ** 3).fill(-1);
+
+  /* The highest vertex placed over each DUAL cell column, gathered as we go.
+   *
+   * Per dual column rather than per voxel column, because a dual cell sits
+   * between two voxels on each axis. The caller-facing per-voxel height is
+   * averaged from the four dual columns that touch it, below. */
+  const dualTopY = new Float32Array(cn * cn).fill(-Infinity);
   const cellIndex = (x: number, y: number, z: number) => (y * cn + z) * cn + x;
+
+  /* Skip the bricks no surface can pass through.
+   *
+   * The volume is sparse — at 240 m and 1 m cells it holds 13.8 million cells
+   * in half a megabyte, because almost every brick is uniform rock or uniform
+   * air. A mesher that walks every cell pays for all of it: 4.3 seconds
+   * measured, against a surface that is a thin band.
+   *
+   * A brick can hold no boundary when it is uniform AND its six face neighbors
+   * are uniform with the same solidness. Marking those lets the y loop run over
+   * the surface band instead of the whole column, which is the difference
+   * between an interactive edit and a four-second freeze.
+   *
+   * The band is computed per BRICK column and widened by one brick, so the
+   * padded lattice and the diagonal neighbors are always inside it. Being
+   * generous here costs one brick of wasted work and removes a whole class of
+   * off-by-one hole.
+   */
+  const nb = vol.bricks;
+  const bandLo = new Int32Array(nb * nb).fill(nb);
+  const bandHi = new Int32Array(nb * nb).fill(-1);
+  const isSolid = (m: Material | null) => (m === null ? null : m !== Material.Air);
+  for (let bz = 0; bz < nb; bz++) {
+    for (let bx = 0; bx < nb; bx++) {
+      for (let by = 0; by < nb; by++) {
+        const here = isSolid(vol.brickMaterial(bx, by, bz));
+        let interesting = here === null;
+        if (!interesting) {
+          for (const [dx, dy, dz] of [
+            [1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [0, 0, 1], [0, 0, -1],
+          ] as const) {
+            const there = isSolid(vol.brickMaterial(bx + dx, by + dy, bz + dz));
+            if (there === null || there !== here) {
+              interesting = true;
+              break;
+            }
+          }
+        }
+        if (!interesting) continue;
+        const c = bz * nb + bx;
+        if (by < bandLo[c]) bandLo[c] = by;
+        if (by > bandHi[c]) bandHi[c] = by;
+      }
+    }
+  }
+  /** Cell-space y range worth visiting for a lattice column, padded one brick. */
+  const yRange = (x: number, z: number): [number, number] => {
+    const bx = Math.min(nb - 1, Math.max(0, (x + pos0) >> 3));
+    const bz = Math.min(nb - 1, Math.max(0, (z + pos0) >> 3));
+    const c = bz * nb + bx;
+    if (bandHi[c] < 0) return [0, -1]; // nothing in this column at all
+    const lo = Math.max(0, (bandLo[c] - 1) * 8 - pos0);
+    const hi = Math.min(cn - 1, (bandHi[c] + 2) * 8 - pos0);
+    return [lo, hi];
+  };
 
   const solid = (x: number, y: number, z: number) =>
     vol.get(x + pos0, y + pos0, z + pos0) !== Material.Air ? 1 : 0;
 
   // Pass one: place a vertex in every cell whose corners disagree.
   for (let z = 0; z < cn; z++) {
-    for (let y = 0; y < cn; y++) {
-      for (let x = 0; x < cn; x++) {
+    for (let x = 0; x < cn; x++) {
+      const [yLo, yHi] = yRange(x, z);
+      for (let y = yLo; y <= yHi; y++) {
         let mask = 0;
         for (let c = 0; c < 8; c++) {
           const [dx, dy, dz] = CORNER[c];
@@ -136,6 +213,8 @@ export function voxelsToSurface(
 
         vertexAt[cellIndex(x, y, z)] = pos.length / 3;
         pos.push(vx, vy, vz);
+        const dc = z * cn + x;
+        if (vy > dualTopY[dc]) dualTopY[dc] = vy;
 
         const depth = surfaceYAt ? Math.max(0, surfaceYAt(vx, vz) - vy) : 0;
         const c = colorAtDepth(depth);
@@ -156,8 +235,9 @@ export function voxelsToSurface(
   };
 
   for (let z = 0; z < cn; z++) {
-    for (let y = 0; y < cn; y++) {
-      for (let x = 0; x < cn; x++) {
+    for (let x = 0; x < cn; x++) {
+      const [yLo, yHi] = yRange(x, z);
+      for (let y = yLo; y <= yHi; y++) {
         const here = solid(x, y, z);
 
         if (x > 0 && y > 0 && solid(x, y, z + 1) !== here) {
@@ -216,11 +296,41 @@ export function voxelsToSurface(
     normals[i + 2] /= l;
   }
 
+  /* Fold the dual columns down to one height per voxel column.
+   *
+   * A voxel column is touched by the four dual columns around it, and the
+   * drawn surface over that voxel is the mesh interpolated between their
+   * vertices. The MEAN of the four is that interpolation at the column center;
+   * the max would put the water back on the staircase this mesher exists to
+   * remove. Dual columns that never produced a vertex are skipped rather than
+   * counted as zero. */
+  const columnTopY = new Float32Array(n * n).fill(-Infinity);
+  for (let z = 0; z < n; z++) {
+    for (let x = 0; x < n; x++) {
+      let sum = 0;
+      let hits = 0;
+      for (let dz = 0; dz <= 1; dz++) {
+        for (let dx = 0; dx <= 1; dx++) {
+          // Voxel (x,z) is spanned by dual cells x - pos0 and x - pos0 + 1.
+          const lx = x - pos0 + dx;
+          const lz = z - pos0 + dz;
+          if (lx < 0 || lz < 0 || lx >= cn || lz >= cn) continue;
+          const v = dualTopY[lz * cn + lx];
+          if (v === -Infinity) continue;
+          sum += v;
+          hits++;
+        }
+      }
+      if (hits > 0) columnTopY[z * n + x] = sum / hits;
+    }
+  }
+
   return {
     positions,
     normals,
     colors: new Float32Array(col),
     indices: new Uint32Array(idx),
     triangles: idx.length / 3,
+    columnTopY,
   };
 }

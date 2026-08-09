@@ -22,6 +22,7 @@ import { assembleFromGenome } from '../../systems/entities3d/skeleton/skeletonAs
 import type { AssembledSkeleton } from '../../systems/entities3d/skeleton/skeletonAssembler';
 import { generateCreatureMesh } from '../../systems/entities3d/skeleton/proceduralCreatureMesh';
 import { CreatureLocomotionController } from '../../systems/entities3d/skeleton/proceduralLocomotion';
+import { acquirePerfSession, releasePerfSession } from '../../devtools/perf';
 import { generateCreatureGenomeWithDeepSeek, createAAAWorldPreset } from '../../services/ai/deepseekCreatureGenerator';
 
 // ============================================================================
@@ -220,6 +221,12 @@ const CreatureViewport: React.FC<CreatureViewportProps> = ({
     // --- Initial Synchronous Render (Populates Canvas Buffer Immediately) ---
     renderer.render(scene, camera);
 
+    /* This viewport drives its own animation frame instead of React Three
+     * Fiber, so it cannot use <PerfProbe>. It reports to the SAME shared
+     * session the probe would have created, and the overlay cannot tell the
+     * difference. */
+    const perf = acquirePerfSession('creaturelab', 'Creature Lab');
+
     // --- Render Loop ---
     let lastTime = performance.now();
 
@@ -239,7 +246,9 @@ const CreatureViewport: React.FC<CreatureViewportProps> = ({
       skeletonHelper.visible = showSkeleton;
       (skeletonHelper as unknown as { update: () => void }).update?.();
 
+      perf.sampleRenderer(renderer); // last frame's counters, before this render resets them
       renderer.render(scene, camera);
+      perf.frame(now);
       animFrameRef.current = requestAnimationFrame(animate);
     };
 
@@ -257,6 +266,7 @@ const CreatureViewport: React.FC<CreatureViewportProps> = ({
 
     return () => {
       if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
+      releasePerfSession('creaturelab');
       window.removeEventListener('resize', handleResize);
       controls.dispose();
       mesh.geometry.dispose();

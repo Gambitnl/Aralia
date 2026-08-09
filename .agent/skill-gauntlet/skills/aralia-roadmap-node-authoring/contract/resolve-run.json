@@ -1,0 +1,15 @@
+{
+  "model_requested": "claude-opus-5",
+  "cwd": "G:\\Temp\\skill-gauntlet\\resolv-aralia-roadmap-nod-8ba9d5cb",
+  "elapsed_s": 152.6,
+  "result": "Wrote `final-contract.md` (106 lines) and `resolution-notes.md`.\n\n**Fixed (19 findings):** struck the fabricated constraint cluster (counted values, approximation markers, singleton cardinality, dual ordering) plus its `must never` clause and its leaked example vocabulary; struck the read-only-context constraint; struck the fabricated two-path ambiguity note. Added the required plain-language description on every entry, the documented-vs-built drift sweep, mirroring into the document/path companion registries (explicitly noting ingestion doesn't depend on them), in-label nesting under an existing entry, the weak-name threshold and its flagged forms, and the duty to diagnose which stage dropped a missing entry. Corrected the prefix mechanism (stripped, not supplied), demoted phase/number-leading names from \"invalid\" to \"weak but admitted\" while keeping section words a hard rejection, moved extend-don't-duplicate into hard constraints, dropped the invented \"avoid churn in shared configuration\", replaced \"fallback or catch-all\" with the real failure (wrong-but-real grouping), and reworded the `moduleLeavesMissingTestDefinitions` transliteration.\n\n**Rejected (4):** 4.2 \u2014 the capitalisation clause is a real, independently actionable owner rule (rule 6, \"don't rely on all-caps\"), not a leaked mechanism; kept and reworded. 5.1, 5.6, 4.1 \u2014 the auditor itself concedes these are unavoidable, template-level, or not defects.\n\n**Partial (3):** the six-way ranking (removed the asserted precedence and the invented sixth quality; kept a ranked section since the format requires one, and kept the source-backed verification ordering), the `canonicalDocs` link (part of the record shape rather than a separately mandated step, so phrased as a pointer back to the source record), and the tooling-vs-product filing rule (genuine requirement, reworded to drop the recognisable mirrored phrasing).",
+  "is_error": false,
+  "num_turns": 8,
+  "cost_usd": 0.7359889999999999,
+  "models_used": {
+    "claude-haiku-4-5-20251001": "claude-haiku-4-5",
+    "claude-opus-5": "claude-opus-5"
+  },
+  "session_id": "849b3eb8-d320-4934-a157-e1e46252c094",
+  "model_verified": true
+}

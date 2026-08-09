@@ -3,6 +3,7 @@ import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import type { Color, Mesh } from 'three';
 import { ACESFilmicToneMapping, Color as ThreeColor, DoubleSide, SRGBColorSpace } from 'three';
 import { BIOMES } from '../../constants';
+import { PerfProbe } from '../../devtools/perf';
 import { SeededRandom } from '../../utils/random/seededRandom';
 import type { PlayerCharacter } from '../../types';
 import { getLightingForTime } from './lighting';
@@ -730,6 +731,7 @@ const Scene3D = ({ pauseRender = false, ...props }: Scene3DProps) => (
     onPointerMissed={() => props.onEntitySelect?.(null)}
     className="w-full h-full"
   >
+    <PerfProbe id="scene3d" label="3D Test" />
     <SceneContents {...props} />
   </Canvas>
 );

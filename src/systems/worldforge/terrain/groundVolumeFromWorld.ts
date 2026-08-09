@@ -26,7 +26,7 @@
  * is the point: the volume can hold a tunnel the heightfield could never store.
  */
 import { Material, VoxelVolume } from './voxelVolume';
-import { FOREST_FLOOR_STACK, type GroundLayer } from './groundSolid';
+import { GroundBand, DEFAULT_STACK, substanceAtDepth } from './materials';
 
 /** Just enough of GroundWorld to fill from. Keeps this file off the bridge. */
 export interface GroundHeightSource {
@@ -47,31 +47,28 @@ export interface BubbleFill {
   solidCells: number;
 }
 
-/**
- * Map a layer id to a voxel material.
+/* The string-to-material switch that used to live here is gone.
  *
- * Kept as a switch rather than a lookup so an unhandled layer is a compile
- * error the day somebody adds one, instead of silently becoming air.
+ * It mapped layer names — 'litter', 'topsoil' — onto voxel values, and anything
+ * it did not recognize became bedrock. That silent default is what made a
+ * per-biome stack impossible: adding sand or peat produced granite and no
+ * error. A `GroundBand` now names its `Material` directly, so there is nothing
+ * left to translate and nothing left to guess wrong.
  */
-function materialForLayer(id: string): Material {
-  switch (id) {
-    case 'litter':
-      return Material.Litter;
-    case 'topsoil':
-      return Material.Topsoil;
-    case 'subsoil':
-      return Material.Subsoil;
-    default:
-      return Material.Bedrock;
-  }
-}
 
-/** Which layer a depth falls in. Mirrors materialAtDepth's banding. */
-function layerAtDepth(depthM: number, stack: readonly GroundLayer[]): GroundLayer {
-  for (const layer of stack) {
-    if (depthM <= layer.depthM || !Number.isFinite(layer.depthM)) return layer;
-  }
-  return stack[stack.length - 1];
+/**
+ * How many cells a bubble of this size will have along one edge.
+ *
+ * Exported because the cost of a fill is this number CUBED, and a caller that
+ * offers the user a choice of sizes has to know the cost before it commits to
+ * one. Deriving it a second time in the caller is how a size picker ends up
+ * disagreeing with the thing it sizes.
+ *
+ * The multiple of 8 is the brick edge in `VoxelVolume`, which rejects anything
+ * else.
+ */
+export function bubbleCellsPerEdge(extentM: number, cellM: number): number {
+  return Math.round(extentM / cellM / 8) * 8;
 }
 
 /**
@@ -92,10 +89,10 @@ export function fillBubbleFromGround(
   centerZM: number,
   extentM: number,
   cellM: number,
-  stack: readonly GroundLayer[] = FOREST_FLOOR_STACK,
+  stack: readonly GroundBand[] = DEFAULT_STACK,
 ): BubbleFill {
   const t0 = Date.now();
-  const cellsPerEdge = Math.round(extentM / cellM / 8) * 8;
+  const cellsPerEdge = bubbleCellsPerEdge(extentM, cellM);
   const vol = new VoxelVolume(cellsPerEdge);
 
   const half = (cellsPerEdge * cellM) / 2;
@@ -118,7 +115,7 @@ export function fillBubbleFromGround(
       const yMax = Math.min(cellsPerEdge - 1, topCell);
       for (let y = 0; y <= yMax; y++) {
         const depth = surface - (originY + y * cellM);
-        vol.set(x, y, z, materialForLayer(layerAtDepth(depth, stack).id));
+        vol.set(x, y, z, substanceAtDepth(depth, stack).id);
         solidCells++;
       }
     }

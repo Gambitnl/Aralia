@@ -33,14 +33,44 @@
  * to come from a measurement rather than from my estimate.
  */
 
-/** What a cell is made of. Kept to a byte; 0 is always air. */
+/**
+ * What one voxel is made of.
+ *
+ * These are SUBSTANCES, not color bands. Every member has an entry in
+ * `materials.ts` carrying its density, hardness, permeability and angle of
+ * repose, because the questions the world asks of the ground are not only "what
+ * color is this cut face". They are also "how long does this take to dig",
+ * "does water sink through it" and "does this wall stand or slump".
+ *
+ * Cells are stored in a Uint8Array, so the ceiling is 256 and nowhere near.
+ * A test in `materials.test.ts` asserts this list and the registry agree, which
+ * is the guard against the two drifting apart.
+ */
 export const enum Material {
   Air = 0,
+  // Organic covers.
   Litter = 1,
-  Topsoil = 2,
-  Subsoil = 3,
-  Bedrock = 4,
-  Water = 5,
+  Turf = 2,
+  Peat = 3,
+  // Soils.
+  Topsoil = 4,
+  Subsoil = 5,
+  Clay = 6,
+  Silt = 7,
+  // Loose mineral.
+  Sand = 8,
+  Gravel = 9,
+  // Cemented and frozen.
+  Hardpan = 10,
+  Permafrost = 11,
+  // Rock.
+  Limestone = 12,
+  Sandstone = 13,
+  Granite = 14,
+  // Frozen water and free water.
+  Ice = 15,
+  Snow = 16,
+  Water = 17,
 }
 
 /** Cells per brick edge. 8 gives 512 cells, which fits a cache line run. */
@@ -112,6 +142,21 @@ export class VoxelVolume {
   }
 
   set(x: number, y: number, z: number, m: Material): void {
+    /* Out of range is a NO-OP, and the bound must be explicit here too.
+     *
+     * `get` was given this guard and `set` was not, which left a silent
+     * world-corruption bug: -1 >> 3 is -1, and brickIndex(-1, ...) subtracts one
+     * from a valid slot, so an out-of-range write lands inside a REAL brick up
+     * to eight cells away. The `if (!b) return` below catches only indices past
+     * the end of the array, so the high side was covered by luck and the low
+     * side not at all.
+     *
+     * Every carve loop iterates center plus or minus a radius. A spell cast near
+     * the bubble edge therefore wrote rock into, or deleted rock from, a
+     * neighboring column — the exact fault the guard on `get` was added to
+     * prevent, left half-fixed because only the read path was considered. */
+    if (x < 0 || y < 0 || z < 0) return;
+    if (x >= this.cells || y >= this.cells || z >= this.cells) return;
     const bi = this.brickIndex(x >> 3, y >> 3, z >> 3);
     const b = this.grid[bi];
     if (!b) return;
@@ -122,6 +167,22 @@ export class VoxelVolume {
       b.cells = new Uint8Array(BRICK ** 3).fill(b.uniform);
     }
     b.cells[((y & 7) * BRICK + (z & 7)) * BRICK + (x & 7)] = m;
+  }
+
+  /**
+   * The material of a brick that is all one material, or null when it is mixed.
+   *
+   * This is the sparsity, exposed. A mesher that walks every cell pays for the
+   * whole bubble even though the surface is a thin band: at 240 m and 1 m cells
+   * that measured 4.3 seconds, against 0.5 MB of actual cell data. Almost every
+   * brick is uniform rock or uniform air, and no surface passes through one.
+   */
+  brickMaterial(bx: number, by: number, bz: number): Material | null {
+    if (bx < 0 || by < 0 || bz < 0) return Material.Air; // outside is air
+    if (bx >= this.bricks || by >= this.bricks || bz >= this.bricks) return Material.Air;
+    const b = this.grid[this.brickIndex(bx, by, bz)];
+    if (!b) return Material.Air;
+    return b.cells === null ? b.uniform : null;
   }
 
   /**
@@ -244,7 +305,7 @@ export function measureBubble(extentM: number, cellM: number): BubbleMeasurement
               ? Material.Topsoil
               : depth < 2
                 ? Material.Subsoil
-                : Material.Bedrock;
+                : Material.Granite;
         vol.set(x, y, z, m);
       }
     }

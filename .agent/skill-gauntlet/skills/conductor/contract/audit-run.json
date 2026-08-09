@@ -1,0 +1,15 @@
+{
+  "model_requested": "claude-opus-5",
+  "cwd": "G:\\Temp\\skill-gauntlet\\audit-conductor-8313c3b1",
+  "elapsed_s": 236.3,
+  "result": "Wrote `audit.md`. Verdict: **REVISE**.\n\nThe headline problem is one distortion that actually changes behavior: the draft scopes the draft\u2192present\u2192approve loop to project-level documents only \u2014 \"Documents that describe the project (*rather than a single unit of work*) \u2026 explicitly approved before being written\" \u2014 while the original requires approval three separate times for unit-level artifacts (`newtrack.md:46`, `:73`, `setup.md:142`). An implementation built to the draft could write a unit's spec and plan without ever showing them, and still satisfy every other line.\n\nBeyond that:\n\n- **Omitted** \u2014 two of the five context-document types are entirely absent (product guidelines: \"Prose style / tone, Brand messaging, Visual identity principles\"; and the code style guides directory). Also missing: the archive/delete/keep disposition offer on completion, user selection and confirmation of which unit to execute or undo, rewritten-history tolerance in undo, the coverage target and summary-location conventions, and the checkpoint record that makes resumption possible.\n- **Distorted** \u2014 \"Version control \u2026 is initialized if absent\" is unconditional in the draft but greenfield-only in the original; the elicitation affordances from two different operations are merged into one stronger rule; and the \u00a76 \"ambiguity note\" invents ambiguity about a point the original states plainly as a loop.\n- **Mislabeled** \u2014 bounded one-at-a-time elicitation and checkpointed resume are hard specs demoted to ranked qualities #6 and #4; conversely the entire second paragraph of the activation boundary (the silence rules) has no textual basis in any of the five files.\n- **Leaked means / fingerprints** overlap heavily \u2014 date-encoded identifiers, the per-unit folder triple, the markdown/JSON split, and \"never on a single confirmation for permanent deletion\" (which is `Confirm twice` barely disguised) are both over-constraining and identifying.\n\nThe audit notes that most of the leaked-means and fingerprint findings are the same sentences, so those two sections can be repaired together.",
+  "is_error": false,
+  "num_turns": 9,
+  "cost_usd": 0.859488,
+  "models_used": {
+    "claude-haiku-4-5-20251001": "claude-haiku-4-5",
+    "claude-opus-5": "claude-opus-5"
+  },
+  "session_id": "47c4392b-7be0-46f6-8453-c5f2057a5471",
+  "model_verified": true
+}

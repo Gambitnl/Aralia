@@ -1,0 +1,15 @@
+{
+  "model_requested": "claude-opus-5",
+  "cwd": "G:\\Temp\\skill-gauntlet\\contract-conductor-831ccdb2",
+  "elapsed_s": 96.0,
+  "result": "Wrote `outcome-contract.md` (98 lines). `original/` untouched.\n\n**What the skill actually is:** a five-operation command family for context-driven development \u2014 initialize project context documents, create a specified+planned unit of work, execute that plan, report progress, and undo at any granularity via version control.\n\n**Ends I kept:**\n- Durable on-disk record of project intent and progress as the actual product \u2014 continuity across sessions, readable cold by anyone.\n- Recorded state must match reality (registry, per-unit metadata, and plan agreeing).\n- Human authority over content and destructive acts \u2014 flagged explicitly as a case where the *method* is part of the requirement, since the owner wants drafting-with-approval, not just approved output.\n- Recoverability without history rewriting; checkpointed resumability; stable layout as the inter-operation interface.\n\n**Means I stripped:** the specific directory and filenames, the checkbox marker glyphs, the \"track\" vocabulary, ID format, exact question counts, the greenfield/brownfield labels, git command lines, all announcement strings, and the setup step-numbering scheme. Where these encoded a real requirement (unique dated identifiers, three-state markers, bounded elicitation with escape hatches) I restated the requirement neutrally.\n\n**Two judgment calls worth surfacing:**\n- The originals never say whether execution pauses between individual plan items. I recorded the most faithful reading \u2014 continuous through a unit's plan, pausing only at configured verification points or on error \u2014 and labeled it as an ambiguity note rather than resolving it silently.\n- The FACT that no such directory exists in the real repo shaped the activation boundary rather than the purpose: I read non-adoption as evidence about *when it must stay quiet*, not as evidence the skill's goal is different. Hence the explicit clause that in a repo which never adopted the system, nothing about it surfaces unless the user names it.",
+  "is_error": false,
+  "num_turns": 9,
+  "cost_usd": 0.44093050000000006,
+  "models_used": {
+    "claude-haiku-4-5-20251001": "claude-haiku-4-5",
+    "claude-opus-5": "claude-opus-5"
+  },
+  "session_id": "28d33787-e2f8-4828-8fcf-783d50872927",
+  "model_verified": true
+}

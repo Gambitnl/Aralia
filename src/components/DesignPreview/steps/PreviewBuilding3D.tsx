@@ -88,6 +88,7 @@ import {
   SMOKE_PARTICLES_PER_CHIMNEY,
   type ChimneySmokeSource,
 } from '../../../systems/world3d/buildingAtmosphere';
+import { PerfProbe } from '../../../devtools/perf';
 
 // ============================================================================
 // Storybook Render Style
@@ -633,6 +634,7 @@ const PreviewBuilding3D: React.FC<PreviewBuilding3DProps> = ({
       >
         {/* A cold hour or basement overwrites any plume receipt left by the
             previous frame, so automation never mistakes stale smoke for truth. */}
+        <PerfProbe id="building3d" label="Building 3D" />
         {smokeSources.length === 0 && <EmptySmokeReceipt />}
 
         {/* Background and distance fog share the same continuous hour recipe.

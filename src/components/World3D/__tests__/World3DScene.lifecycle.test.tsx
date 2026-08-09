@@ -32,6 +32,11 @@ vi.mock('@react-three/fiber', () => ({
   // SiteBuilding subscribes to the frame loop for roof auto-hide; the
   // structural proof does not run a render loop, so a no-op is sufficient.
   useFrame: vi.fn(),
+  // The shared performance probe reads the renderer through useThree.
+  useThree: (select?: (s: unknown) => unknown) => {
+    const state = { gl: { info: { render: {}, memory: {} } } };
+    return select ? select(state) : state;
+  },
   Canvas: ({ children, camera, onCreated }: any) => {
     React.useEffect(() => {
       const domElement = { addEventListener: vi.fn() };

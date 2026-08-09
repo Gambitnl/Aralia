@@ -53,6 +53,7 @@ import {
   type DungeonMoveDirection,
 } from '../../../systems/worldforge/dungeon/world/dungeonGameplay';
 import { revealedDungeonCellKeys } from '../../../systems/worldforge/dungeon/world/dungeonMap';
+import { PerfProbe } from '../../../devtools/perf';
 import {
   buildDungeonSceneModel,
   type DungeonSceneInstance,
@@ -1112,6 +1113,7 @@ export const Dungeon3DPreview: React.FC<Dungeon3DPreviewProps> = ({ plan, overla
         camera={{ fov: 46, near: 0.1, far: 600, position: [30, 34, 30] }}
         gl={{ antialias: true, alpha: false, preserveDrawingBuffer: true, toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: 1.35 }}
       >
+        <PerfProbe id="dungeon3d" label="Dungeon 3D" />
         <DungeonScene
           model={model}
           overlays={overlays}

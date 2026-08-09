@@ -17,6 +17,14 @@ const mockUseTargetSelection = vi.fn<(...args: unknown[]) => unknown>();
 const mockUseVisibility = vi.fn<(...args: unknown[]) => unknown>();
 
 vi.mock('@react-three/fiber', () => ({
+  // The shared performance probe sits inside every Canvas and reads the
+  // renderer through these two hooks. A mock without them throws before the
+  // scene under test renders at all.
+  useThree: (select?: (s: unknown) => unknown) => {
+    const state = { gl: { info: { render: {}, memory: {} } } };
+    return select ? select(state) : state;
+  },
+  useFrame: vi.fn(),
   Canvas: ({ children }: { children: React.ReactNode }) => <div data-testid="mock-canvas">{children}</div>
 }));
 

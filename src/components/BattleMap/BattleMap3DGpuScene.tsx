@@ -96,6 +96,7 @@ import {
   terrainFlatNormalNode,
 } from './gpu/terrainColorNode';
 import { buildGridColorNode, buildGridOpacityNode } from './gpu/gridOverlayNodes';
+import { PerfProbe } from '../../devtools/perf';
 
 // WebGPU R3F requires the JSX intrinsics (<mesh>, <group>, ...) to resolve
 // against the `three/webgpu` namespace, or WebGPURenderer cannot draw them.
@@ -856,6 +857,7 @@ const BattleMap3DGpuScene: React.FC<Props> = ({
           return renderer as any;
         }}
       >
+        <PerfProbe id="battlemap-gpu" label="Battle Map (GPU)" />
         <fog attach="fog" args={[fogHex, mapHalfDiag * 1.4, mapHalfDiag * 4]} />
         <CameraController
           mapCenter={cameraTarget}

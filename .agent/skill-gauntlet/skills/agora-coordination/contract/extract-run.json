@@ -1,0 +1,15 @@
+{
+  "model_requested": "claude-opus-5",
+  "cwd": "G:\\Temp\\skill-gauntlet\\contract-agora-coordination-37d68b94",
+  "elapsed_s": 115.5,
+  "result": "Wrote `outcome-contract.md` (107 lines). `original/` and the repo evidence paths are untouched.\n\nWhat I based it on: the skill front page (`original/SKILL.md`), plus the three authoritative references it routes to \u2014 the per-agent instructions, the protocol spec, and the fleet-coordinator playbook \u2014 and the CLI's identity-persistence contract.\n\nKey judgment calls:\n\n- **Ends vs. means.** I dropped everything version-specific: the daemon's name, port, endpoint paths, status codes, CLI command names, the pet/handle identity catalog, campaign records, reservations-as-a-named-feature, heartbeat intervals, TTL values, and the tool-call sequences. Those are how the current implementation meets the requirement, not the requirement.\n- **One method I did carry in deliberately, and flagged as such:** per-participant identity scoping across separate short-lived processes. The source treats this as the root safety invariant \u2014 a shared identity makes \"release only mine\" release someone else's ownership, with a dated real incident \u2014 so the mechanism is genuinely part of the owner's requirement, not an implementation choice. It's stated as a property (unique, pinned, reused) rather than as a specific environment variable.\n- **Advisory-not-enforcing** is the load-bearing fact behind the whole ranking: the service cannot block a write, so honesty and voluntary deference outrank convenience, and \"skipping check-in because it's inconvenient\" is listed as disqualifying rather than as a fallback.\n- **Ambiguity noted, not resolved to preference:** the sources never say plainly whether a lone agent in the shared tree must still check in. I recorded the faithful reading \u2014 expected whenever concurrency is *possible* \u2014 in the activation section rather than picking the stricter or looser rule myself.",
+  "is_error": false,
+  "num_turns": 13,
+  "cost_usd": 0.8935514999999999,
+  "models_used": {
+    "claude-haiku-4-5-20251001": "claude-haiku-4-5",
+    "claude-opus-5": "claude-opus-5"
+  },
+  "session_id": "c976c23d-1cea-4169-81fa-541199b709bb",
+  "model_verified": true
+}

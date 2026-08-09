@@ -1,0 +1,15 @@
+{
+  "model_requested": "claude-opus-5",
+  "cwd": "G:\\Temp\\skill-gauntlet\\audit-agora-coordination-51dbe177",
+  "elapsed_s": 229.2,
+  "result": "Wrote `audit.md`. Verdict: **REVISE**.\n\nThe four findings that drive it:\n\n1. **The central safety rule is missing.** The original's bolded rule before risky git ops is \"check who/what is active and **stop if someone else holds locks or is online**\" (`original/SKILL.md:38-39`). The draft keeps the check, drops the stop, drops \"or is online\" entirely, and adds an authorization precondition (\"unless the assignment explicitly authorizes them\") that the original never states.\n\n2. **Identity provenance is reversed.** Draft \u00a74: \"a participant that has none obtains a unique one from the authoritative registry rather than inventing one.\" The original has the agent supply its own handle \u2014 `{\"handle\":\"claude-A\"}`, \"registration is open\" (`:34`, `:79`). There is no issuing registry.\n\n3. **Three obligations are unimplementable** against the documented endpoint table: lock \"extension\" (only `ttlMs?` at creation exists), \"presence closed out\" (no deregistration endpoint), and task-timeout cleanup (the only timeout is the 30-min lock default). The draft also inverts the owner's posture \u2014 the original says \"don't sit on locks\u2026 release early.\"\n\n4. **A large block of \u00a73\u2013\u00a75 has no antecedent at all** in `SKILL.md`: untrusted peer output, the human command channel, partial-vs-complete proof, \"deployed\"/\"live\" honesty language, and resource restraint on concurrent verification.\n\nAlso omitted: announcing intent to peers and polling for replies (step 5 of the minimal loop) survive only as scenery, not as obligations.\n\nOn leakage the draft is lexically clean \u2014 no skill name, product name, port, URLs, status codes, or the 30-minute figure. But it leaks structurally: the env-var identity mechanism is restated as a three-clause requirement, and quality 2 quotes \"release only what is mine,\" which is `unlock --mine` verbatim in the original's idiom. Two asides (\"where the skill's summary is thin\", \"where the original guidance is ambiguous\u2026 the faithful reading is\") are audit commentary that leaked into the artifact and announce it as a derivative.",
+  "is_error": false,
+  "num_turns": 5,
+  "cost_usd": 0.748788,
+  "models_used": {
+    "claude-haiku-4-5-20251001": "claude-haiku-4-5",
+    "claude-opus-5": "claude-opus-5"
+  },
+  "session_id": "33ecc244-14f4-431d-9061-602a93f4fc6f",
+  "model_verified": true
+}

@@ -107,6 +107,7 @@ import { createLogGeometry } from '@/systems/worldforge/props/generators/logGeom
 import { createBushGeometry } from '@/systems/worldforge/props/generators/bushGeometry';
 import { buildTownPropForms } from '@/systems/worldforge/props/generators/townPropForms';
 import type { ProbeStatus } from './WebGPUProbe';
+import { PerfProbe } from '@/devtools/perf';
 import {
   buildSiteBoxBatches,
   buildSiteRoofBatches,
@@ -1233,6 +1234,7 @@ const WebGPUProbeScene: React.FC<Props> = ({ loader, ground, start, startSurface
           return renderer as any;
         }}
       >
+        <PerfProbe id="webgpu-probe" label="WebGPU Probe" />
         {/* Baked lighting: no scene lights (see PARITY FIX). Fog + tone mapping
             still apply; fog color matches the World3DLighting ground profile. */}
         <fog attach="fog" args={[fogC.getHex(), 450, 2000]} />
