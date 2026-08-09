@@ -12,14 +12,14 @@
     "dev": "tsx --watch src/index.ts"
   },
   "dependencies": {
-    "js-yaml": "^4.1.0",
-    "liquidjs": "^10.21.0",
-    "chokidar": "^4.0.3"
+    "chokidar": "^4.0.3",
+    "js-yaml": "^4.3.1",
+    "liquidjs": "^10.27.1"
   },
   "devDependencies": {
-    "tsx": "^4.20.6",
-    "typescript": "~5.9.3",
     "@types/js-yaml": "^4.0.9",
-    "@types/node": "^22.14.0"
+    "@types/node": "^22.14.0",
+    "tsx": "^4.23.9",
+    "typescript": "~5.9.3"
   }
 }

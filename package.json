@@ -90,7 +90,7 @@
     "@dgreenheck/ez-tree": "^1.0.1",
     "@google/genai": "^1.40.0",
     "@google/generative-ai": "^0.24.1",
-    "@modelcontextprotocol/sdk": "^1.25.1",
+    "@modelcontextprotocol/sdk": "^1.30.0",
     "@react-three/drei": "^10.7.7",
     "@react-three/fiber": "^9.0.0",
     "@react-three/postprocessing": "^3.0.4",
@@ -101,7 +101,7 @@
     "alea": "^1.0.1",
     "better-sqlite3": "^12.11.1",
     "delaunator": "^5.1.0",
-    "dompurify": "^3.4.0",
+    "dompurify": "^3.4.13",
     "dotenv": "^17.2.3",
     "framer-motion": "^12.23.3",
     "google-auth-library": "^10.5.0",
@@ -150,9 +150,9 @@
     "globals": "^16.5.0",
     "jsdom": "^27.2.0",
     "playwright": "^1.57.0",
-    "postcss": "^8.5.14",
+    "postcss": "^8.5.26",
     "rimraf": "^6.1.2",
-    "sharp": "^0.34.5",
+    "sharp": "^0.35.0",
     "tailwindcss": "^3.4.17",
     "tsd": "^0.33.0",
     "tsx": "^4.20.6",
@@ -165,7 +165,7 @@
     "vitest": "^4.0.16"
   },
   "overrides": {
-    "protobufjs": "^7.5.8",
+    "protobufjs": "^7.6.5",
     "qs": "^6.15.2",
     "vitepress": {
       "vite": "6.4.3"
