@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 23/07/2026, 21:41:09
+ * Last Sync: 09/08/2026, 22:29:07
  * Dependents: commands/effects/commandAreaMovementEffects.ts, commands/factory/AbilityCommandFactory.ts, components/BattleMap/BattleMapOverlay.tsx, components/BattleMap/vfx/VFXSystem.tsx, components/Combat/MaplessTerrainSummary.tsx, hooks/combat/useVisibility.ts, hooks/useAbilitySystem.ts, systems/spells/effects/AreaEffectTracker.ts, systems/spells/effects/index.ts, utils/combat/resistanceUtils.ts
  * Imports: 6 files
  *
@@ -212,6 +212,26 @@ export function matchesTargetFilter(
 
 type TriggerFrequency = EffectTrigger['frequency'] | undefined;
 
+// Composite source labels are expanded only at the event boundary. Keeping the
+// authored label in spell JSON preserves source fidelity while these sets let
+// the existing area tracker execute each real event exactly once.
+const AREA_ENTRY_TRIGGER_TYPES = new Set([
+    'on_enter_area',
+    'area_entry_or_turn_start',
+    'area_entry_or_turn_end',
+    'emanation_entry_or_turn_end'
+]);
+const AREA_START_TURN_TRIGGER_TYPES = new Set([
+    'turn_start',
+    'area_entry_or_turn_start'
+]);
+const AREA_END_TURN_TRIGGER_TYPES = new Set([
+    'on_end_turn_in_area',
+    'turn_end',
+    'area_entry_or_turn_end',
+    'emanation_entry_or_turn_end'
+]);
+
 /**
  * Frequency helper so entry/exit/end-turn triggers share the same guard rails.
  * We keep per-turn and per-encounter tracking separate to avoid clearing "once"
@@ -354,7 +374,7 @@ export function processAreaEntryTriggers(
         // Only trigger on actual entry (wasn't in zone before, is now)
         if (!wasInZone && isNowInZone) {
             const entryEffects = zone.effects.filter(effect =>
-                effect.trigger?.type === 'on_enter_area'
+                AREA_ENTRY_TRIGGER_TYPES.has(effect.trigger?.type ?? '')
             );
 
             for (const effect of entryEffects) {
@@ -639,7 +659,7 @@ export function processAreaEndTurnTriggers(
         if (!isInZone) continue;
 
         const endTurnEffects = zone.effects.flatMap(effect => {
-            const direct = effect.trigger?.type === 'on_end_turn_in_area' || effect.trigger?.type === 'turn_end'
+            const direct = AREA_END_TURN_TRIGGER_TYPES.has(effect.trigger?.type ?? '')
                 ? [{ effect, mechanic: undefined as RecurringMechanic | undefined }]
                 : [];
             const recurring = getRecurringMechanics(effect)
@@ -684,7 +704,7 @@ export function processAreaStartTurnTriggers(
         if (!isInZone) continue;
 
         const startTurnEffects = zone.effects.flatMap(effect => {
-            const direct = effect.trigger?.type === 'turn_start'
+            const direct = AREA_START_TURN_TRIGGER_TYPES.has(effect.trigger?.type ?? '')
                 ? [{ effect, mechanic: undefined as RecurringMechanic | undefined }]
                 : [];
             const recurring = getRecurringMechanics(effect)

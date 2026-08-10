@@ -53,3 +53,5 @@ The Worldforge atlas is now the only worldmap generator in the codebase.
 - `World3DDemo` — the legacy continent sandbox branch (generateMap → WorldData grid, inline chunk loader) is gone. `?phase=world3d` now always runs the canonical Worldforge ground pipeline. Boot-probed headless: mounts, canvas up, no error boundary.
 - `SpawnPreview` — was already atlas-native; its stale header said otherwise. Header fixed.
 - KEPT: `services/worldSim` + `worldDataMigration` — old-save migration only (`saveLoadService`). That is a save-compat transform, not a map generator. The DebugHUD keeps the `legacy-fallback` provenance label so old saves stay honest about their origin.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/specs/2026-08-05-azgaar-toggle-parity.md","sha256WithoutMarker":"67b06dd06e4aebc3179e5197586dc0f0d9b956363d9a6995341afd80a1e9a553","markedAtUtc":"2026-08-09T20:24:30.603Z"} -->

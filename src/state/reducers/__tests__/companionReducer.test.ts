@@ -1,3 +1,8 @@
+/**
+ * This file proves companion reducer behavior, including banter, party membership,
+ * message timestamps, and romance hysteresis. The romance checks use the same saved
+ * game clock that the app's world reducer advances before this reducer runs.
+ */
 
 import { companionReducer } from '../companionReducer';
 import { GameState } from '../../../types';
@@ -200,5 +205,72 @@ describe('companionReducer — recruit / dismiss', () => {
             expect(next.party!.some((m) => m.id === 'ghost')).toBe(false);
             expect(next.companions).toBeUndefined();
         });
+    });
+});
+
+/**
+ * The full app runs worldReducer before companionReducer for ADVANCE_TIME. This
+ * focused regression supplies that already-advanced saved clock and proves the
+ * companion slice consumes it without adding a new timer action or wall clock.
+ */
+describe('companionReducer — romance hysteresis time advance', () => {
+    it('exits an enemy-level romance after 24 hours on the existing in-world clock', () => {
+        const playerId = 'player';
+        const hostileSince = Date.UTC(351, 0, 1, 7, 0, 0);
+        const oneDayMs = 24 * 60 * 60 * 1000;
+        const romanticCompanion = {
+            id: 'kael',
+            identity: { name: 'Kaelen' },
+            relationships: {
+                [playerId]: {
+                    targetId: playerId,
+                    level: 'romance',
+                    approval: -350,
+                    history: [],
+                    unlocks: [],
+                    romanceHostileSinceGameTimeMs: hostileSince,
+                },
+            },
+        } as unknown as Companion;
+        const state = {
+            companions: { kael: romanticCompanion },
+            gameTime: new Date(hostileSince + oneDayMs),
+        } as unknown as GameState;
+
+        // The action payload remains unchanged. companionReducer reads the clock
+        // worldReducer already advanced in the app's normal reducer sequence.
+        const next = companionReducer(state, {
+            type: 'ADVANCE_TIME',
+            payload: { seconds: 24 * 60 * 60 },
+        } as AppAction);
+
+        expect(next.companions?.kael.relationships[playerId].level).toBe('enemy');
+        expect(next.companions?.kael.relationships[playerId].romanceHostileSinceGameTimeMs).toBeUndefined();
+    });
+
+    it('does not rewrite ordinary companions during unrelated time advances', () => {
+        const ordinaryCompanion = {
+            id: 'kael',
+            relationships: {
+                player: {
+                    targetId: 'player',
+                    level: 'friend',
+                    approval: 240,
+                    history: [],
+                    unlocks: [],
+                },
+            },
+        } as unknown as Companion;
+        const state = {
+            companions: { kael: ordinaryCompanion },
+            gameTime: new Date(Date.UTC(351, 0, 2, 7, 0, 0)),
+        } as unknown as GameState;
+
+        const next = companionReducer(state, {
+            type: 'ADVANCE_TIME',
+            payload: { seconds: 60 },
+        } as AppAction);
+
+        expect(next).toEqual({});
     });
 });

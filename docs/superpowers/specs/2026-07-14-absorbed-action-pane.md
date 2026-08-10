@@ -34,3 +34,5 @@ The Action Pane is the primary player command surface in the PLAYING layout. It 
 ## Next step
 
 Keep action contracts stable. Reopen only when new action types or dispatch paths are added to PLAYING phase.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/specs/2026-07-14-absorbed-action-pane.md","sha256WithoutMarker":"308076e85e102765d59c5b1c902a5acf9483f35c1f86e1d1994b4fd76d4f1cd9","markedAtUtc":"2026-08-09T20:24:29.256Z"} -->

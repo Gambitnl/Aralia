@@ -15,6 +15,7 @@ import {
   getPerfSessions,
   subscribePerfSessions,
   clearPerfSessions,
+  setPerfSceneDiagnostics,
 } from '../perfRegistry';
 
 describe('PerfSession frames', () => {
@@ -140,6 +141,46 @@ describe('PerfSession capture', () => {
   });
 });
 
+describe('PerfSession scene diagnostics', () => {
+  it('keeps the component breakdown in snapshots and pasted reports', () => {
+    const s = new PerfSession('world3d', 'World 3D');
+    s.sampleRenderer({
+      isWebGLRenderer: true,
+      info: {
+        render: { calls: 120, triangles: 1_500_000 },
+        memory: { geometries: 12, textures: 4 },
+        programs: [],
+      },
+    });
+    s.setSceneDiagnostics({
+      meshes: 20,
+      instances: 800,
+      triangles: 1_000_000,
+      shadowMeshes: 6,
+      shadowTriangles: 500_000,
+      geometries: 8,
+      materials: 3,
+      families: [
+        {
+          family: 'trees',
+          meshes: 6,
+          instances: 700,
+          triangles: 900_000,
+          shadowMeshes: 2,
+          shadowTriangles: 400_000,
+        },
+      ],
+    });
+
+    expect(s.snapshot().scene?.families[0].family).toBe('trees');
+    expect(s.report()).toContain('1.50x rendered/main');
+    expect(s.report()).toContain('trees');
+
+    s.setSceneDiagnostics(null);
+    expect(s.snapshot().scene).toBeNull();
+  });
+});
+
 describe('perf registry', () => {
   beforeEach(() => clearPerfSessions());
 
@@ -167,6 +208,21 @@ describe('perf registry', () => {
     stop();
     acquirePerfSession('b', 'B');
     expect(calls).toBe(2); // and nothing after the unsubscribe
+  });
+
+  it('lets a scene probe attach diagnostics without importing the overlay', () => {
+    acquirePerfSession('world3d', 'World 3D');
+    setPerfSceneDiagnostics('world3d', {
+      meshes: 1,
+      instances: 10,
+      triangles: 100,
+      shadowMeshes: 1,
+      shadowTriangles: 40,
+      geometries: 1,
+      materials: 1,
+      families: [],
+    });
+    expect(getPerfSession('world3d')?.snapshot().scene?.triangles).toBe(100);
   });
 });
 

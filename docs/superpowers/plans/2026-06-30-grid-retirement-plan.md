@@ -139,3 +139,5 @@ Ignore only pre-existing failures (the umbrella lists them; plus the `clever-sny
 ## First action
 Phase A1 (town/burg reader), TDD: failing golden test → `burgIdForCell` → flip `burgIdForLocation`
 to prefer the cell → callers pass `playerCell.cellId`.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/plans/2026-06-30-grid-retirement-plan.md","sha256WithoutMarker":"42bba56d75543132665b3c3177396b5dfad14bd02124745d1c694b6dadca46a2","markedAtUtc":"2026-08-09T20:23:18.412Z"} -->

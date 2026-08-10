@@ -86,3 +86,5 @@ Bake = drive the driver to the phase, run the segment sink into a throwaway `cre
 - [x] Debugger iteration (the real gate): dwarf wizard idle+walk (front/side), human fighter walk, goliath, fairy; Dragon Huge quad; spider hexapod; Ooze hopper; anchors overlay sanity. Fix proportions until humanoid reads: distinct head/neck/shoulders, visible elbows/knees, no sausage merging. Wireframe: clean lines.
 - [x] Proof: debugger/forge captures (fighter solid+wire, dwarf, dragon, lineup) eyeballed + shown; in-game cast scenario needs a gentler zoom tune (scenarios.ts locked by the lab agent — follow-up).
 - [x] Closeout: planmap (feature under `entity-generator-3d`: "Body v2: segmented humanoids (metaballs removed)" done — lock topics.json when free), memory update (entity-generator-3d + handover doc addendum), Agora say + unlock.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/plans/2026-07-15-entity-body-v2-segments.md","sha256WithoutMarker":"40ed9460e4fd58774fc7cc212644680cb77204423e5c593e84256d53ab92ce0d","markedAtUtc":"2026-08-09T20:23:18.301Z"} -->

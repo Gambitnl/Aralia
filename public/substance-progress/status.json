@@ -1,0 +1,375 @@
+{
+  "updated": "2026-08-10T14:00:00Z",
+  "headline": "The cliff is dead: one height function now grounds the combat map to the horizon (+1 draw call, 0.51% of triangles). The arena color patch is the loudest remainder — D1, your call. Four builders live.",
+  "decisions": [
+    {
+      "id": "D0",
+      "title": "Which water is THE water",
+      "question": "Three water models exist: the thin layer (ponds/streams), the droplets (splashes/pours — beat the reference), and the legacy cell grid (the old experiment). Remy signaled the current mix may not be the water he wants. NOTE: IMPL-8 finished — its sparse-memory machinery carries to the droplet water almost unchanged (~50 MB vs 2 GB), so the droplets-everywhere option got materially cheaper.",
+      "options": "Decide on the new one-page side-by-side (?step=water, IMPL-10, in flight) — same terrain, same pour, ledger printed per mode",
+      "evidence": "IMPL-10 lands the comparison page; impl-8-checkpoint.md holds the paused sparse work"
+    },
+    {
+      "id": "D1",
+      "title": "Ground palette direction",
+      "question": "The volume ground renders fixed substance colors; the world is biome-tinted. The rim is a hard tonal line on both the combat arena and the World3D bubble.",
+      "options": "A: biome-tint the volume's TOP surface (aTint wire exists; cut faces stay substance-true) · B: move the world onto substance colors · C: decide from IMPL-5's uTintMix triptych (0 / 0.65 / 1.0) when it lands",
+      "evidence": "impl-4-15-rim-over.png; the triptych lands as impl-5-palette-*"
+    },
+    {
+      "id": "D2",
+      "title": "Particles: the splash or the fall?",
+      "question": "At 0.5 m spacing a 3,000-particle budget holds ~94 m³ against ~600 m³ of fall transit — particles cannot be both the droplets and the mass.",
+      "options": "A: particles stay the SPLASH at the foot, curtains carry the fall (current) · B: coarser quanta carry the whole fall but stop reading as droplets",
+      "evidence": "impl-2.md §open calls"
+    },
+    {
+      "id": "D3",
+      "title": "The 69% invisible seal",
+      "question": "472,712 of 686,120 bubble triangles seal a bottom nobody can see, because VoxelVolume is cubic.",
+      "options": "A: make the volume a slab (64 m wide, ~16 m tall) and delete the seal · B: keep the cube for the carve-depth headroom",
+      "evidence": "impl-1.md §open calls"
+    },
+    {
+      "id": "D4",
+      "title": "Picturing water behind rock",
+      "question": "Water inside a tunnel exists and is ledgered but cannot be seen — Teardown never shows a place where mass moves invisibly.",
+      "options": "A: a section cut through the volume mesh near the camera · B: an x-ray water silhouette through rock · C: accept until a real need",
+      "evidence": "impl-3.md §6; impl3-33-balls-cutaway-near-t10.jpg"
+    },
+    {
+      "id": "D5",
+      "title": "In-rock particle tolerance",
+      "question": "~0.5% of GPU particles (~490 of 100k) sit transiently inside the bore wall at the tunnel.",
+      "options": "A: accept (invisible in practice) · B: widen the standoff (costs tunnel width) · C: a real lateral wall test (costs per-substep math)",
+      "evidence": "impl-3.md §6"
+    },
+    {
+      "id": "D6",
+      "title": "SPAN_SLOTS headroom",
+      "question": "Span packing carries 2 spans per column (covers every current world; stacked bores overflow to a counted number).",
+      "options": "A: stay at 2 until the overflow count says otherwise (recommended by the data) · B: pay for 4 now",
+      "evidence": "impl-3.md §span census"
+    },
+    {
+      "id": "D7",
+      "title": "Final Fable wow gates",
+      "question": "G1 and W2 retired at/near reference parity without a final formal wow verdict (the budget pivot ended the loops).",
+      "options": "A: run one Fable critic per piece for the formal wow · B: the record stands as is",
+      "evidence": "g1-critic-round8.md, w2-critic-round8.md"
+    },
+    {
+      "id": "D8",
+      "title": "W2 grazing skim puff",
+      "question": "One pale skim-water puff over bright sand survives at one grazing pose — mostly honest refraction of the tan hillside, parked as the last W2 look item.",
+      "options": "A: a Fable look pass decides · B: accept as physically honest",
+      "evidence": "w2-r8c-critic-grazing.jpg"
+    }
+  ],
+  "pieces": [
+    {
+      "id": "G1",
+      "name": "Cut faces read as substance",
+      "bar": "Teardown",
+      "harness": "?step=volume",
+      "status": "wowed",
+      "round": 9,
+      "verdict": "R9 delivered the full five-item wow list: chip cascade at arm's length (1 m and 25 cm speak the same language), sun/shade separation 11 units (root cause: world-space facets mixed into a view-space normal), the ledger never prints a false 0.0 (317-982 m³ unpictured shown during a big pour), curtains lean onto the wall + crest tiles dissolved, and the page loss was the IMPL-1 worker's own file saves (tripwire installed). 204 tests. Retired per the budget pivot — final critic gate on request; trajectory 2/10 → four axes at 8 + two distance ties."
+    },
+    {
+      "id": "G2",
+      "name": "Granular settling after a dig",
+      "bar": "Teardown",
+      "harness": "?step=volume",
+      "status": "building",
+      "round": 1,
+      "verdict": "UNPARKED (Remy: more parallel Opus). A cellular relaxation solver sheds loose substance past its angle of repose — exact cell-count conservation, rock immune, sand fans wider than soil, time-sliced under the 111 ms budget; debris rides the settled surface; water displaces honestly."
+    },
+    {
+      "id": "W1",
+      "name": "Particles collide with the volume",
+      "bar": "webgpu-ocean",
+      "harness": "?step=fluid",
+      "status": "wowed",
+      "round": 1,
+      "verdict": "DELIVERED BY IMPL-3: spanField.ts packs column spans into one vec4 (width chosen from a census, overflow counted); gridUpdate + g2p resolve spans with tangent-plane projection; ~10,000 of 100,000 particles sustained UNDER ROCK for 35 s through a sagging adit on real GPU; +0.06 ms/frame (+2.7%); 194 terrain tests. The last ADR open item."
+    },
+    {
+      "id": "W2",
+      "name": "Screen-space water render",
+      "bar": "webgpu-ocean",
+      "harness": "?step=fluid",
+      "status": "wowed",
+      "round": 8,
+      "verdict": "R8: OURS WINS 49.5-49 (TIE under the conservative read) — the campaign's first win, on hostile same-GPU capture. The critic shot the reference's grazing angle for the first time and found ITS broken angle. 'Not wowed by one artifact': the over-sky ridge glow — clamped post-verdict (foam-sparing sky clamp, tongue verified intact, 134 tests green). Remainder logged: the pale skim puff over bright sand at one grazing pose. Piece retires to implementation."
+    },
+    {
+      "id": "J1",
+      "name": "Sheet + particle mass join",
+      "bar": "mass identity holds",
+      "harness": "?step=volume",
+      "status": "wowed",
+      "round": 1,
+      "verdict": "IMPL-2 BUILT: waterHandoff.ts contract (whole-particle debits, lifetime quanta, keepDepthM), bounded CPU MLS-MPM domain at the fall foot, parked by default. Ledger prints '+ particles'; sum = poured at 24 live samples; disarm residual 0.000e+0. 25 new tests assert the identity every frame. OPEN CALL for Remy: should particles be the splash at the foot (current) or carry the whole fall at coarser quanta?"
+    },
+    {
+      "id": "INT",
+      "name": "Coherence pass per wave",
+      "bar": "one coherent system",
+      "harness": "all",
+      "status": "wowed",
+      "round": 1,
+      "verdict": "DONE: ADR 0002 carries the four closures + three lessons as rules; the substance material is ONE module (the two copies proved byte-identical — 450 lines deleted); park gates unified (__volCam gained start/park/status); no dead code found by the reachability sweep; 264 tests green; both protected frames verified on real GPU. Campaign closed."
+    },
+    {
+      "id": "IMPL-1",
+      "name": "Worker fill + live World3D bubble",
+      "bar": "no main-thread block; no seam",
+      "harness": "World3D entry",
+      "status": "wowed",
+      "round": 1,
+      "verdict": "DONE: fill+mesh in a worker (2.9 s main-thread block → 28 ms total, worst 1.1 ms; all buffers transferred). Bubble mounted in World3DScene: rim ramp against the DRAWN terrain height, 0.00% core columns below terrain; a perforated-mountain fault found by looking (bilinear vs the real triangle planes). OPEN CALLS: biome-tint the stack vs substance-color the world; the 69% invisible seal; the G1-locked material duplicate."
+    },
+    {
+      "id": "IMPL-3",
+      "name": "GPU water enters tunnels",
+      "bar": "span-aware collision, 60 fps",
+      "harness": "?step=fluid",
+      "status": "wowed",
+      "round": 1,
+      "verdict": "DONE: spanField census-sized span collision; ~10k particles under rock 35 s live at +2.7%; 194 tests."
+    },
+    {
+      "id": "IMPL-4",
+      "name": "Combat map adopts the stack",
+      "bar": "same ground, same water, mechanics intact",
+      "harness": "?step=battlemap&render=3d",
+      "status": "wowed",
+      "round": 1,
+      "verdict": "Slice 1 DONE: worker-filled voxel arena (800 ms off-thread, 20 draw calls, first ground at 55 ms), shared material with an aTint wire, exact ledger to 5e-8, one groundSampler for every height consumer (caught a real mesh-vs-height bug), carve proof -6.6 m. All 3D BattleMap suites green. Open: the palette line at the rim, black deep cuts, streams need cellsY beds."
+    },
+    {
+      "id": "IMPL-5",
+      "name": "Combat slice 2: carve + beds + light",
+      "bar": "spells crater the arena; streams hold; craters readable",
+      "harness": "?step=battlemap&render=3d",
+      "status": "building",
+      "round": 1,
+      "verdict": "One effect class carves end to end (brush → remesh → sampler republish → honest water reaction → tokens re-plant); VoxelVolume gains cellsY so a 0.42 m basin holds two cells; the G1 shadow-floor recipe reaches the combat lighting preset; a uTintMix triptych (0 / 0.65 / 1.0) lands for Remy's palette call. SCOPE ADDED (Remy): wire BIOME_GROUND per column into the World3D bubble (the hard-coded forest-litter stack was the gap), and prove top-surface differentiation with a 5-stack contact sheet (litter, sand, rock, peat, snow) at 2 m + 10 m + one cut face each — near-identical pairs get named, not silently tuned."
+    }
+  ],
+  "log": [
+    {
+      "time": "2026-08-09",
+      "text": "Campaign start. Pieces defined. Wave 1 = G1 + W2. Builders spawned with fresh-context critics to follow."
+    },
+    {
+      "time": "2026-08-09",
+      "text": "G1 round 1 done: strata on cut walls, per-substance grain, baked AO, edge chips. 147 tests green. Builder self-flags: granite lacks fracture facets, crater interiors too bright. Critic spawned."
+    },
+    {
+      "time": "2026-08-09",
+      "text": "W2 round 1 done: full screen-space pipeline (sphere-impostor depth, bilateral blur, thickness, absorption, refraction, fresnel, foam). Found + fixed 3 silent bugs — the MLS-MPM sim had NEVER run (WGSL compile failure at healthy fps). Critic spawned."
+    },
+    {
+      "time": "2026-08-09",
+      "text": "G1 critic (vs 5 Teardown frames): REFERENCE WINS, knockout. Scores 1-3 of 10 on every axis. Biggest gap: no volumetric material on cut faces. Hard failures: 4.5-6.8 s blocking remesh per carve at 240³; black viewport on grid switch. Protected: water sits on land, carve speed, probe data. Round 2 launched."
+    },
+    {
+      "time": "2026-08-09",
+      "text": "W2 critic (vs live webgpu-ocean demo): REFERENCE WINS. Motion character 3/8, settling 3/8 — waves die in 2-4 s vs tens of seconds of ring-down. Also: jet fire stalls to 28 fps, a static teal emitter pillar haunts the pool, ground-drag hijacks orbit. Protected: terrain refraction, surface continuity 7/8, park gate. Round 2 launched."
+    },
+    {
+      "time": "2026-08-09",
+      "text": "W2 round 2: dissipation root cause = round 1's own floor-friction term (0.6x horizontal velocity per substep near ground; vendor floor is free-slip). Waves now reflect and ring down ~60 s. Jet: in-place GPU spawn kernels replace the per-shot Canvas remount — 60 fps, 0 stalls. Pillar was the spout marker mesh (water-blue); now bronze. Orbit/aim/zoom separated. Critic 2 spawned."
+    },
+    {
+      "time": "2026-08-09",
+      "text": "G1 round 2: the R1 discrepancy solved — the shader was fine, its depth input was 0 on every carved floor (depth measured against post-carve tops). New originalTopY datum; chunked range mesher (190 chunks, dirty-only, 43-68 ms worst slice); camera reframe on grid switch; volumetric strata + rim chips + graded AO + sun/sky relight. 178 tests green. Critic 2 spawned."
+    },
+    {
+      "time": "2026-08-09",
+      "text": "W2 critic 2: REFERENCE WINS — the dissipation knob went to the opposite wall. 'A slow-motion lava lamp wearing a foam parka.' Biggest gap: no equilibrium (boundary geyser at the sloped pool edge + foam without lifetime). Caught: pillar recolored not removed, shots ignore aim, cube slugs, wheel zoom dead. Round 3 launched: tangent-plane terrain collision + per-particle foam decay."
+    },
+    {
+      "time": "2026-08-09",
+      "text": "G1 critic 2: REFERENCE WINS on points, not knockout. Every R1 hard failure verifiably dead (remesh one dropped frame, no black viewport, shafts readable, 2 m inspection works). Biggest gap: exposed faces render one smooth material — the fix is per-cell quantized albedo, no cross-cell interpolation, 3 strata bands. Also: topsoil tiles wallpaper glyphs, CNC seams, no debris. Round 3 launched."
+    },
+    {
+      "time": "2026-08-09",
+      "text": "W2 round 3: geyser root cause = vertical-only floor collision deleted the along-slope restoring force, and nearest-cell ground made 25 cm stair steps that teleported particles up for free. Now: terrain normal from central differences, tangent-plane projection, bilinear ground. Foam decays (τ=2.5 s, crust gone). Slow-motion goo = an inFlight guard skipping sim frames; the compute chain now enqueues synchronously — dam collapses in ~5 s. Pillar removed. Aimed ball slugs at 6 verified points. Critic 3 spawned."
+    },
+    {
+      "time": "2026-08-09",
+      "text": "G1 round 3: per-cell material snap (floor((wp-origin)/cell - n*0.5)) with hard step() bands — dark cap, warm soil, cool gray rock nameable at 30/9/2 m. Calibration lesson: ±40% jitter reads as a quilt; ±8-16% with punch at boundaries is the Teardown read. Debris clods (288, one draw), crumbled seams, wallpaper killed, slivers clamped. 188 tests green. Critic 3 spawned."
+    },
+    {
+      "time": "2026-08-09",
+      "text": "W2 critic 3: REFERENCE WINS 49.5-36 but 'a contest, not a massacre.' The equilibrium disease is cured (calm blue pool verified at 110 s; fps 60-63 through every shot). First axis WE win: splash (6/6 — the reference has no splash system) and foam existence. Biggest gap: surface reconstruction — orange-peel speckle up close. Aim still misses (4/5 into one gully). Round 4 launched."
+    },
+    {
+      "time": "2026-08-09",
+      "text": "G1 critic 3: REFERENCE WINS on points — 'blind at 30 m I hesitate.' Scores rose across the board (5-6 vs 8-9; strata read 6/8). The R2 fix was delivered and is now protected. Biggest gap: the PAINT — plaster-white sun / slate-blue shade on rock; retint mid-value warm gray, make ambient albedo-preserving. Hard failures: shaft water-fall confetti, flat cells at arm's length. Round 4 launched."
+    },
+    {
+      "time": "2026-08-09",
+      "text": "G1 round 4: granite albedo 0.52 → 0.43 sRGB warm gray; hemisphere and bounce lights neutralized; the shader's blue bed-shift replaced warm-neutral. Micro-dither carries the 2 m look. Debris tripled with slope-fitted contact blots. Confetti fall culled behind a flag + 1 pinning test (14 waterSheet tests now). Honest remainder: a culled fall has NO visual — the spill ribbon is the natural next slice. Critic 4 spawned."
+    },
+    {
+      "time": "2026-08-09",
+      "text": "Session limit hit ~6:00; the W2 round-4 builder and the G1 critic 4 both died mid-flight. Resumed 10:56: G1 critic 4 relaunched fresh; the W2 builder relaunched with orders to diff the crashed builder's on-disk edits first (flipCompute.ts carries uncommitted changes) and keep or revert per change."
+    },
+    {
+      "time": "2026-08-09",
+      "text": "G1 critic 4: REFERENCE WINS on points, closest ever (strata 7/8, edge damage 7/8; 30 m 'narrow'). Sun rock is now one warm umber stone; shade is neutral, cyan/quilt/streaks all dead. New headline gap: the shadow floor — shade crushes to 13% luminance murk. Also: popcorn debris, tarp spill sheets, and the culled fall teleports mass (13.7 m³ undrawn). Round 5 launched: shade lift + substrate debris + fall ribbon."
+    },
+    {
+      "time": "2026-08-09",
+      "text": "W2 round 4: the crashed builder's edits audited and ALL kept. Speckle root cause = MAX_FILTER_SIZE 24 px vs the 58-100+ px the projected width demands inside 7 m — uncapped to 100, blur 4 passes, specular thickness-gated; the calm close-up is one glassy sheet on camera. Aim was never ballistics: out-of-domain clicks clamped to the wall and every wall drains to the same gully — now rejected with a red ring. Foam brick killed by per-source deadzones. Honest gap: the aimed-shots contract was not re-run live (pane died mid-session) — handed to critic 4 explicitly."
+    },
+    {
+      "time": "2026-08-09",
+      "text": "W2 critic 4: NO VERDICT — the Browser pane never composited (11 preview_start revive cycles, visibilityState hidden on every tab, screenshots refused). The critic declined to score pixels it did not see; the R3 scoreboard stands. W2 pauses until the pane is visible in the app. G1 continues unblocked (its __volCam rig verifies headless)."
+    },
+    {
+      "time": "2026-08-09",
+      "text": "G1 round 5: shade wall lifted to 71/62/50 (target ×2, measured ×1.9) with the praised hueless shade held; debris sheds the substance it broke from (granite → gray rubble, soil → tan) with micro-dither and stronger blots; a tighter water cull was tried and honestly reverted (it hid a cascade). New fallRibbon.ts merges per-edge falls into curtains — harp strings rejected on camera — and the ledger prints in-transit mass with exact balance. Honest remainder: steep mid-cascade chutes still undrawn. Critic 5 spawned."
+    },
+    {
+      "time": "2026-08-09",
+      "text": "G1 critic 5: REFERENCE WINS on points, narrowest yet — every axis 6-7 vs 8-9; AO recovered to 7 ('the blots can finally be SEEN now that the floors aren't black'). Shadow floor CLOSED. The loudest lie is now the water: fall spokes that vanish from inside the shaft, the last CNC sawtooth on the page, 1375 of 2555 m³ invisible in transit — and the R5 'exact balance' claim measured FALSE live (13.7 m³ short). Also: granite hue lost in the lift, dice debris, 173 ms crater slice. Round 6 launched with an integrity note."
+    },
+    {
+      "time": "2026-08-09",
+      "text": "G1 round 6: the 13.7 m³ leak was TWO real bugs that only fire when carving under standing water — syncBed deleted displaced water, clampToCeiling dropped overflow. Identity restructured with in-transit printed; exact at five live readings of the critic's own leak scenario. Curtain = per-edge fence chained at cell corners, verified from inside the bore. Steep film = second index pass over the sheet's own buffers (the chute-ribbon attempt failed on camera and was replaced). Transit 1375 → 0.1 m³. Crater slice 173 → 55 ms via slab chunks. Critic 6 spawned."
+    },
+    {
+      "time": "2026-08-09",
+      "text": "The Browser pane composits again (live screenshot verified). W2 critic 4 relaunched — the aim contract is its explicit test; ordered to reuse the existing visible tab, not open new hidden ones."
+    },
+    {
+      "time": "2026-08-09",
+      "text": "W2 critic 4 retry: NO VERDICT — the pane composited ~10 minutes then died; the sim advanced ~1 frame per capture pulse (rAF-coupled) so a 90 s settle is unwatchable even alive. Real find: resize-before-start freezes render targets at 300×150 = black canvas + WebGPU validation flood. Pane infrastructure has now killed 3 agent sessions. Round 5 pivots: fix the resize bug + build window.__fluidCam (sim-side timed runner + aimTest API with GPU readback) so the aim contract becomes a number, not a screenshot."
+    },
+    {
+      "time": "2026-08-09",
+      "text": "G1 critic 6: MILESTONE — TIE at 30 m on substance ('their scene dressing is ahead; the cut matter itself is not losing'). Strata read 8. The water spill now WORKS (curtains from every viewpoint, exact ledger at ~20 readings) but 'looks like milk-thinned sky.' Round 7 launched: single-alpha depth-tinted water resolve, real fractured boulders (2 rounds owed), the 247 ms overlap-carve budget, the transit asymptote deposit."
+    },
+    {
+      "time": "2026-08-09",
+      "text": "W2 round 5: the resize/black-canvas bug fixed and verified on real WebGPU (renderer size stuck at 300×150 through async init). __fluidCam rig proven end to end: 6 dam frames captured from a hidden non-compositing tab via explicit sim-side stepping; aimTest printed 5 distances from GPU particle readback — rings sit AT the clicks. KEY DISCOVERY: headless Chrome gets a WebGPU SwiftShader adapter with the right flags — judgment no longer depends on the pane. Critic 5 spawned, numbers-first."
+    },
+    {
+      "time": "2026-08-09",
+      "text": "G1 round 7: the whitening fix is structural — a colorWrite:false water depth prepass means exactly one water layer shades per pixel; overlap milk is impossible by construction, no render targets. Bore curtain sampled 89/83/72 (was bright haze). Boulder root cause: R6's fracture snap ran on an INDEXED icosahedron so normals smooth-shaded it — the comment claimed toNonIndexed, the code never called it. Overlap carve 38 ms via 4-cell slabs. Lone crest panes refused by an edge-sharing rule. Critic 7 spawned."
+    },
+    {
+      "time": "2026-08-09",
+      "text": "W2 critic 5: REFERENCE WINS 39.5-49.5 — the first full W2 verdict in three rounds, all on real GPU (new capture path: headed Chrome off-screen gets the NVIDIA adapter; SwiftShader agrees ±0.3 m). The aim is measured broken: 4/5 slugs deposit at one hollow within 0.2 s of firing, min-ever distances 3.75-16.45 m. Foam brick alive at t0.9 (round-4 claim contradicted). Close-up traded orange-peel for smear + comb striations. Praised: the physics arc, the rig, 71-118 fps. Round 6 launched with the sweep as the acceptance test."
+    },
+    {
+      "time": "2026-08-09",
+      "text": "G1 critic 7: REFERENCE WINS on points, and 'wow is now within one honest round's reach.' Edge damage 8 (the d20 shame is over), water honesty 7, the hue pair held TO THE DIGIT, ledger exact at ~25 readings, the depth prepass verified in pixels (81/91/88 at curtain crossings). Remaining: the steep-flow film's grazing white-beige, sawtooth crest fringes, bloom glints, a 154 ms slice beside deep shafts, and a transit rebound after the spring stops. Round 8 launched."
+    },
+    {
+      "time": "2026-08-09",
+      "text": "W2 round 6: the three-round aim mystery ends — the slug has landed at the click since round 4; aimTest's centroid read the vec4-padded GPU buffer at stride 3 (1024/4096 particles matched under stride 3, 4096 under stride 4). Sweep: 3.75-16.45 m → 0.01-0.04 m; near-edge rejects per the ruling. Foam brick killed by a free-surface density gate. R32F scene depth: no floating wall, real waterline, domain box faded. Remy's :3000 server died mid-session (not this work); I restarted it via dev:3000. Critic 6 spawned — the first same-hardware side-by-side."
+    },
+    {
+      "time": "2026-08-09",
+      "text": "W2 critic 6 (post-reboot, all frames fresh on real GPU): REFERENCE WINS 43.5-49.5, closest yet. Every builder claim survived hostile measurement. WE now beat the reference on splash AND foam. The sweep passes 60x inside the bar; the telemetry tells the truth. Biggest gap: comb striations — 'a wall of dripping hairs' at the close shoreline (depth plateaus from the iterated bilateral filter; the vendor's narrow-range clamp is the fix). Round 7 launched: 'fix the comb… and round 7 is a genuine coin flip.'"
+    },
+    {
+      "time": "2026-08-09",
+      "text": "G1 round 8 verified (the reboot-killed builder's edits were complete on disk; the verifier changed no code): every deliverable landed — film through the prepass at grazing, feathered crests, 3 px glints, 28-30 ms beside the shafts, rebound dead, two-family debris, cubic facet snap at 15 m. One honest deviation flagged: the facet snap (the critic's own request) darkens the sun edge face below the protected hue — critic 8 rules on it. Critic 8 decides whether this is the wow round."
+    },
+    {
+      "time": "2026-08-09",
+      "text": "G1 critic 8: REFERENCE WINS — 'this was NOT the wow round, and I am not wowed.' But: 9 m TIES for the first time, four axes at 8, four named gaps died on fresh carves, the facet-snap deviation ACCEPTED as better than the protection ('the corner frame is the campaign's best cut-face evidence'). New hard failures: the ledger lied by omission at big pours ('0.0 unpictured' over 1,196 invisible m³ — the trust anchor cracked), the transit rebound resurrected at mid-size, and the page vanished mid-carve in 2 of 5 sessions. Round 9 launched against the full five-item wow list. 'Reference wins round 8. It should be nervous about round 9.'"
+    },
+    {
+      "time": "2026-08-09",
+      "text": "W2 round 7: the comb root cause named — the separable bilateral REJECTS neighbors across depth discontinuities, so X and Y passes stop at the same silhouette and every column keeps its own plateau. The vendor author's own fix (Splash repo, narrowRangeFilter.wgsl, Truong-Yuksel 2018) clamps outliers into range at full weight — isotropic across silhouettes. Ported to TSL with two documented deviations. Shoreline = smooth lobed meniscus on camera. Specular, domain fade, ghost cull, absorption all retuned. Critic 7 spawned to call the coin flip."
+    },
+    {
+      "time": "2026-08-10",
+      "text": "W2 critic 7: REFERENCE WINS 48-49.5 — 'the coin landed on its edge and tipped toward the reference for one reason: the grazing angle.' The comb-kill close-up PASSED as the round-deciding test. We win splash + foam outright; specular within half a point after re-scoring the reference honestly DOWN. 'Ours is now the more INTERESTING water… the reference is the more CONVINCING water. Level on ambition, not yet level on discipline.' Round 8 launched: thickness-gated over-sky presence, thickness blur for the crinkle, distance-scaled sheen. 'Round 8 is not a coin flip — it is ours to lose.'"
+    },
+    {
+      "time": "2026-08-10",
+      "text": "W2 round 8: the critic's prescribed gate implemented first and FAILED — recorded as a negative result (the haze pixels are thick + facing + calm, the exact signature of the protected tongue; no gate can separate them). Real mechanisms: over-sky water must have raw particle support within ±6 px (kills the filter's silhouette dilation), and the reflection sky was ~10x brighter than the scene background (edge-on water now mirrors the true sky — also cured the milky distance). Crinkle lived in the depth normals, not thickness (that diagnosis tested and rejected). The t0.9 tongue verified after every batch — the cadence caught one erasure. Critic 8 spawned."
+    },
+    {
+      "time": "2026-08-10",
+      "text": "W2 critic 8: OURS WINS 49.5-49 — the first win. All three R7 kills confirmed dead on hostile capture; the critic also shot the reference at true grazing for the FIRST time and found its own broken angle ('a fuzzy navy loaf in gray void with blocky waterline stipple'). 'Ours is water in a world at dusk; the reference is a blue lab loaf on a gray card.' One artifact short of wowed: the over-sky ridge glow."
+    },
+    {
+      "time": "2026-08-10",
+      "text": "The orchestrator applied the critic's prescribed clamp directly (over-sky pixels: sheen and foam stripped from calm water, sparing genuine spray — the first unconditional cut turned the t0.9 spray ghost-gray and was refined). Frames re-shot on real GPU: sky-side glow gone, tongue intact with white spray, 134 tests green. Remainder: a pale skim puff over bright sand at one grazing pose — honest refraction, logged for a final Fable gate only if Remy asks. W2 retires to implementation."
+    },
+    {
+      "time": "2026-08-10",
+      "text": "G1 round 9 closed — the full wow list delivered in one file: three-layer chip cascade (arm's-length matter at 1 m now matches the 25 cm gold standard), sun/shade 11 units apart on cut faces (a second root cause found: world-space facets fed a view-space lighting normal), the ledger prints hundreds of unpictured m³ instead of a false 0.0, curtains lean onto the wall, crest tiles dissolve — and the mid-carve page loss was caught live: an IMPL-1 worker file save forces a full reload; tripwire installed, HMR-survival specced as the top follow-up. G1 retires per the pivot. Final critic gates for both pieces available on request."
+    },
+    {
+      "time": "2026-08-10",
+      "text": "IMPL-2 (Opus): the water-models join is REAL. waterHandoff.ts moves mass sheet↔particles in whole-particle quanta (a rounded request would manufacture mass every frame); a bounded CPU MLS-MPM domain arms at the fall foot, parked by default; the ledger prints '+ particles' and summed to poured at all 24 live samples; disarm residual 0.000e+0. Best catch: the first conservation test passed on ZERO particles — traffic assertions now guard against green lights wired to nothing. Particle budget set from measured cost (2.4 µs/particle-substep → 1,200 cap). OPEN CALL for Remy: particles as foot-splash (current) or the whole fall at coarser quanta."
+    },
+    {
+      "time": "2026-08-10",
+      "text": "IMPL-1 (Opus): the game wiring is REAL. volumeBubbleCore + a worker + snapshot()/fromSnapshot() (brick objects flattened to two Uint8Arrays); 64 m fill+mesh off-thread — main thread pays 28 ms total, worst single block 1.1 ms (was ~2.9 s). The bubble mounts in World3DScene against the DRAWN terrain height (differs from stored by up to 1.3 m); rim ramp = higher-of-two-surfaces, 0.00% core columns below terrain. Fault found by LOOKING: bilinear sampling perforated a mountain — the sampler now evaluates the actual split-triangle plane. 64³ slabs = 78 draw calls vs 932. IMPL-3 launched: span-aware GPU collision so water enters bored tunnels — the LAST ADR open item."
+    },
+    {
+      "time": "2026-08-10",
+      "text": "IMPL-3 (Opus): TUNNELS WORK. spanField.ts packs column spans into one vec4 (2 slots chosen from a 256²-column census per world; overflow is a counted number, not a silent wrong picture); the kernels resolve solid/void per span with tangent-plane projection; a sagging adit bored through the proof ridge carries ~10,000 particles UNDER ROCK for a sustained 35 s on real GPU at +2.7% frame cost; 194 terrain tests. Two lessons paid for: a dead kernel is fast (a 97% phantom regression), and git show HEAD reverts uncommitted fleet work (a day of W2 work wiped and restored within seconds). W1 is thereby delivered. The INT coherence agent launched — ADR closure, material dedup, seam sweep. G2 parked per the pivot."
+    },
+    {
+      "time": "2026-08-10",
+      "text": "CAMPAIGN CLOSED by the INT agent. ADR 0002 append-only closure (~190 lines): the four items, three lessons as rules, seven Remy calls in decision form. The material dedup found the two copies byte-identical — G1's round-9 work was already shared; 450 duplicate lines deleted. Park gates unified; __volCam rigs merged (two owners were clobbering each other on mount order). Gates: 264 tests, tsc clean twice, sun/shade 10.0 at 15 m (the round-9 bar met exactly), the t0.9 tongue holds on real GPU, everything parked. Full close in NOTES.md + int-close.md."
+    },
+    {
+      "time": "2026-08-10",
+      "text": "NEW LEG (Remy): the 3D combat map adopts the stack. IMPL-4 slice 1 launched on Opus: the BattleMap3D tile-grid heightfield becomes a voxel arena (BIOME_GROUND stacks, throw on unknown — no silent defaults), the shared substanceGroundMaterial renders it (now a three-surface material), the map's own WaterSystem gives way to the exact-ledger sheet with honest boundary flow for streams, grass/props/tokens ride the drawn surface, and a dev carve proves real cut faces in combat. Combat mechanics untouched. The dev server is back up for the work."
+    },
+    {
+      "time": "2026-08-10",
+      "text": "IMPL-4 slice 1 landed: the arena is a worker-filled voxel volume (64x32 slabs from a sweep — 20 draw calls, first ground at 55 ms), the shared material gained a stack parameter + a gated aTint wire (both default to previous behavior; sandbox and bubble re-tested clean), one groundSampler feeds every height consumer and republishes per carve (caught a crater that changed the mesh but not the height), the water ledger closes to 5e-8. Remy asked to see the palette line visually — the live page and the rim frames were shown. IMPL-5 launched: combat carving, cellsY beds, the shadow-floor recipe for the forest preset, and a uTintMix triptych so the palette call is made from frames."
+    },
+    {
+      "time": "2026-08-10",
+      "text": "BUDGET PIVOT (Remy): ~10% Fable left — polish loops end after the in-flight verdicts; implementation begins on Opus. IMPL-1 launched: bubble fill off the main thread (worker + transferable chunks) + the volume ground wired into the live World3D with the substance material. Next in queue: the water-models join, then GPU fluid vs the volume."
+    },
+    {
+      "time": "2026-08-10",
+      "text": "Remy (with a circled screenshot): the combat map still sits on a giant FLOATING SHEET — the kept heightfield fringe is zero-thickness and the map has no underside or grounded horizon. Scope added to IMPL-5 at top priority: the campaign's own world-edge cure (global floor plane + skirt walls + rock underside + DoubleSide fringe + fog/horizon so the arena sits ON something). Also: his perf overlay reads 23.8M tris / 2,010 draws — the builder reports where the triangles come from, per contributor."
+    },
+    {
+      "time": "2026-08-10",
+      "text": "Remy correction: no dressed cliff — NO EDGE AT ALL. The combat map happens at a place in the continuous world; terrain must continue past the playable rect to the horizon (apron from the map's edge heights + biome this slice; real world-position sampling named as the follow-up if mapData lacks it). Skirts demoted to a safety net under the apron, never the visible answer. The bar: no silhouette line, no rectangle, from any combat-camera angle."
+    },
+    {
+      "time": "2026-08-10",
+      "text": "Remy: more parallel Opus. The overloaded IMPL-5 split four ways with disjoint file ownership under Agora locks: IMPL-5 keeps the combat carve + cellsY beds + crater lighting + palette triptych + the triangle audit; IMPL-6 takes the biome ground types (bubble wire + 5-stack contact sheet); IMPL-7 takes the no-edge world continuation (apron to the horizon, skirts demoted to safety net); G2 unparked (angle-of-repose settling with exact matter conservation). Four builders live."
+    },
+    {
+      "time": "2026-08-10",
+      "text": "Remy: any other parked work for Opus? Two launched — IMPL-8: sparse brick-list GPU compute (ADR item 5; 64 m at 12 cm in ~100 MB, or the current domain at a fraction of 320 MB; census-sized bricks, conservation proven on the CPU twin including brick-boundary flux). IMPL-9: the g1-round9 §8 spec the pivot cut — the sandbox survives fleet reloads (world + water + ledger restore exactly, rigs re-arm via a generation counter). Held back for cause: the W2 skim puff (a Fable look call) and the combat splash/cover slices (depend on IMPL-5 in flight). SIX builders live."
+    },
+    {
+      "time": "2026-08-10",
+      "text": "Remy: the grid water is not the water he wants, and the concept lives in too many places. IMPL-8 paused at a measurement checkpoint (its sparse-brick analysis carries over if repointed at the particle grid). IMPL-10 launched: ONE ?step=water page — thin layer | droplets | legacy grid on the same terrain with the same pour and printed ledgers, plain-English labels, ?step=fluid retired to a redirect, rigs moved along. The which-water decision becomes D0, decided from the page."
+    },
+    {
+      "time": "2026-08-10",
+      "text": "IMPL-9: the sandbox-survival module is built and proven — sessionStorage blob (1.63 M chars vs a 5.24 M measured ceiling; the 1.4 KB edit journal REJECTED because it replays through the very code the peer just changed), written on vite:beforeFullReload and pagehide. The bug was reproduced on demand: a whitespace touch of shallowWater.ts silently re-filled the whole 13.8 M-cell bubble (fill 287 → 3,303 ms; poured 3,951 → 0). The wiring into PreviewVolumeGround.tsx was BLOCKED by G2's live lock — IMPL-9 refused to force a holder that was alive on disk, posted the diff as Agora task dd6140c0, and retired clean. G2 instructed to apply it before releasing. Also flagged: the workstation saturates under 5+ concurrent agents (test timeouts at 307 s vs 36 s) — fleet size holds, no new agents."
+    },
+    {
+      "time": "2026-08-10",
+      "text": "IMPL-8 checkpoint: the sparse work was already built and live when the pause arrived. 512-cubed at 12.5 cm in 113 MB at 59-64 fps (dense: 256-cubed, 320 MB, 35-40 fps; dense at 12.5 cm would cost 2,560 MB). Census: 0.23% of cells carry water. Load-bearing idea: an UNALLOCATED BRICK IS A SOLID WALL — mass conserved to the bit whatever the allocator does (worst-cell diff 0 in the rock-vs-unallocated test). CPU allocator beat GPU compaction structurally (r172 has no indirect dispatch). THE REPOINT SECTION IS WRITTEN: census method, brick/slot structure, allocator and readback design carry to the MLS-MPM particle grid unchanged (~50 MB vs 2 GB at 512-cubed) — the sparse work pays off WHICHEVER water Remy picks on the new Water page."
+    },
+    {
+      "time": "2026-08-10",
+      "text": "IMPL-7: Remy's cliff had three stacked causes, all named by number — the fringe eased down to a shelf datum, the datum quad ENDED (its far edge was the line: the biggest row-to-row luma step sat on scanline 171 from all eight azimuths), and two drifted fog-color duplicates met at the sky dome equator. Fix: apronField.ts is ONE height function sampled by board fringe AND a new TerrainApron to the horizon — no blend, no seam; the terrain shader moved to one shared material (the first apron baked its own palette and drew a tonal rectangle — sharing removed it); fog/sky/camera resolved together (far 125 → 975). After: the biggest row step lands on eight different scanlines; the overview reads ground, not fog. Cost: 53,760 tris, +1 draw call, 0.51%. Follow-up named: world-derived boards carry provenance.anchorWorldMeters — wire REAL surrounding-world sampling there (farShells already builds those rings). The loudest remaining rectangle is the arena albedo vs the grass shader = D1."
+    }
+  ]
+}

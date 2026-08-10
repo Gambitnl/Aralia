@@ -32,6 +32,7 @@ import { getPerfSessions, subscribePerfSessions } from './perfRegistry';
 import { STALL_MS } from './frameStats';
 import { classifyBottleneck } from './perfSession';
 import type { Bottleneck, PerfSnapshot } from './perfSession';
+import type { StallRecord } from './stallLog';
 
 /** One color per verdict, so the label reads at a glance. */
 const BOUND_COLOR: Record<Bottleneck, string> = {
@@ -56,6 +57,21 @@ function fpsColor(fps: number): string {
   if (fps >= GOOD_FPS) return '#4ade80';
   if (fps >= POOR_FPS) return '#fbbf24';
   return '#f87171';
+}
+
+/** Keep large scene counts readable inside the diagnostic panel. */
+function compactCount(value: number): string {
+  if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(1)}m`;
+  if (value >= 1_000) return `${(value / 1_000).toFixed(value >= 100_000 ? 0 : 1)}k`;
+  return value.toLocaleString();
+}
+
+function signed(value: number, digits = 1): string {
+  return `${value >= 0 ? '+' : ''}${value.toFixed(digits)}`;
+}
+
+function signedCount(value: number): string {
+  return `${value >= 0 ? '+' : '-'}${compactCount(Math.abs(value))}`;
 }
 
 function readMode(): HudMode {
@@ -154,12 +170,50 @@ const button: React.CSSProperties = {
   cursor: 'pointer',
 };
 
+/**
+ * One slow frame.
+ *
+ * The headline is the cost that MOVED, not the largest cost. A span that always
+ * takes 20 ms did not cause this frame; a span that jumped from 2 ms to 20 did.
+ */
+const StallRow: React.FC<{ rec: StallRecord }> = ({ rec }) => {
+  const top = rec.contributors[0];
+  const over = rec.frameMs - rec.baselineMs;
+  return (
+    <div style={{ display: 'flex', gap: 6, alignItems: 'baseline' }}>
+      <span style={{ color: '#f87171', width: 52, flex: '0 0 auto' }}>
+        {rec.frameMs.toFixed(1)} ms
+      </span>
+      {top ? (
+        <>
+          <span
+            style={{
+              color: '#e2e8f0',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+            }}
+            title={`${top.valueMs.toFixed(1)} ms against a usual ${top.baselineMs.toFixed(1)} ms · frame ran ${over.toFixed(1)} ms over`}
+          >
+            {top.name}
+          </span>
+          <span style={{ flex: 1 }} />
+          <span style={{ color: '#fbbf24', flex: '0 0 auto' }}>+{top.deltaMs.toFixed(1)}</span>
+        </>
+      ) : (
+        <span style={{ color: '#64748b' }}>nothing measured explains it</span>
+      )}
+    </div>
+  );
+};
+
 export const PerfOverlay: React.FC = () => {
   const [mode, setMode] = useState<HudMode>(() => readMode());
   const [snapshots, setSnapshots] = useState<PerfSnapshot[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [capture, setCapture] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [baselines, setBaselines] = useState<Record<string, PerfSnapshot>>({});
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, mode);
@@ -200,6 +254,7 @@ export const PerfOverlay: React.FC = () => {
     () => (active ? classifyBottleneck(active.gpu.meanMs, active.cpuMs, active.frame.meanMs) : null),
     [active],
   );
+  const baseline = active ? baselines[active.id] ?? null : null;
 
   const sessionFor = useCallback(
     (id: string) => getPerfSessions().find((s) => s.id === id) ?? null,
@@ -255,7 +310,7 @@ export const PerfOverlay: React.FC = () => {
   }
 
   return createPortal(
-    <div style={{ ...shell, width: 272, padding: 8 }}>
+    <div style={{ ...shell, width: 320, padding: 8 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
         <strong style={{ flex: 1, fontSize: 10, letterSpacing: 0.6, color: '#7dd3fc' }}>
           PERFORMANCE
@@ -328,7 +383,7 @@ export const PerfOverlay: React.FC = () => {
           </div>
 
           <div style={{ margin: '4px 0 5px' }}>
-            <FrameGraph history={active.history} width={256} height={38} />
+            <FrameGraph history={active.history} width={304} height={38} />
           </div>
 
           {/* Three cells rather than one sentence. As a sentence the line wrapped
@@ -387,6 +442,37 @@ export const PerfOverlay: React.FC = () => {
             </div>
           )}
 
+          {/* A marked baseline makes a tuning pass self-comparing. Without it,
+            * the rolling window replaces the old reading and leaves the user
+            * transcribing numbers before every edit. Negative time/work
+            * deltas are improvements; counts are kept exact or compact. */}
+          {baseline && (
+            <div
+              style={{
+                marginTop: 4,
+                padding: '3px 5px',
+                color: '#bae6fd',
+                background: 'rgba(14,116,144,0.12)',
+                border: '1px solid rgba(56,189,248,0.25)',
+                borderRadius: 3,
+              }}
+            >
+              <div>
+                Δ frame {signed(active.frame.meanMs - baseline.frame.meanMs)} ms
+                {active.gpu.meanMs !== null && baseline.gpu.meanMs !== null
+                  ? ` · gpu ${signed(active.gpu.meanMs - baseline.gpu.meanMs, 2)} ms`
+                  : ''}
+                {active.cpuMs !== null && baseline.cpuMs !== null
+                  ? ` · cpu ${signed(active.cpuMs - baseline.cpuMs, 2)} ms`
+                  : ''}
+              </div>
+              <div>
+                Δ draws {signedCount(active.counters.drawCalls - baseline.counters.drawCalls)}
+                {' · '}tris {signedCount(active.counters.triangles - baseline.counters.triangles)}
+              </div>
+            </div>
+          )}
+
           <div style={{ height: 1, background: '#1e293b', margin: '6px 0' }} />
 
           <div style={row}>
@@ -417,6 +503,54 @@ export const PerfOverlay: React.FC = () => {
             </span>
           </div>
 
+          {/* Renderer totals include every pass, but cannot identify who made
+            * them. A scene probe supplies that missing component breakdown so
+            * the panel points to a fix instead of stopping at a symptom. */}
+          {active.scene && (
+            <>
+              <div style={{ height: 1, background: '#1e293b', margin: '6px 0' }} />
+              <div style={{ ...row, color: '#7dd3fc' }}>
+                <span>SCENE COST</span>
+                <span
+                  title="Submitted triangles divided by mounted main-pass triangles. Values above 1 include shadow and post-processing work."
+                >
+                  {(active.counters.triangles / Math.max(1, active.scene.triangles)).toFixed(2)}x pass load
+                </span>
+              </div>
+              <div style={row}>
+                <span>mounted</span>
+                <span style={{ color: '#e2e8f0' }}>
+                  {compactCount(active.scene.triangles)} main ·{' '}
+                  {compactCount(active.scene.shadowTriangles)} shadow
+                </span>
+              </div>
+              <div style={row}>
+                <span>objects</span>
+                <span style={{ color: '#e2e8f0' }}>
+                  {compactCount(active.scene.meshes)} meshes · {compactCount(active.scene.instances)} instances
+                </span>
+              </div>
+              {active.scene.families.slice(0, 5).map((family) => {
+                const share = active.scene!.triangles > 0
+                  ? Math.round((family.triangles / active.scene!.triangles) * 100)
+                  : 0;
+                return (
+                  <div
+                    style={{ ...row, paddingLeft: 6 }}
+                    key={family.family}
+                    title={`${family.meshes.toLocaleString()} meshes · ${family.instances.toLocaleString()} instances · ${family.shadowTriangles.toLocaleString()} potential shadow triangles`}
+                  >
+                    <span style={{ color: '#cbd5e1' }}>{family.family}</span>
+                    <span style={{ color: '#e2e8f0' }}>
+                      {share}% · {compactCount(family.triangles)} tris
+                      {family.shadowTriangles > 0 ? ` · ${compactCount(family.shadowTriangles)} shadow` : ''}
+                    </span>
+                  </div>
+                );
+              })}
+            </>
+          )}
+
           {active.spans.length > 0 && (
             <>
               <div style={{ height: 1, background: '#1e293b', margin: '6px 0' }} />
@@ -425,6 +559,23 @@ export const PerfOverlay: React.FC = () => {
                   <span>{sp.name}</span>
                   <span style={{ color: '#e2e8f0' }}>{sp.ms.toFixed(2)} ms</span>
                 </div>
+              ))}
+            </>
+          )}
+
+          {/* The slow frames, and what made each one slow.
+            *
+            * Everything above this line describes the frames that were fine.
+            * These are the ones being complained about, and each carries the
+            * cost that moved — not the biggest cost, the one that CHANGED. */}
+          {active.stallLog.length > 0 && (
+            <>
+              <div style={{ height: 1, background: '#1e293b', margin: '6px 0' }} />
+              <div style={{ fontSize: 10, letterSpacing: 0.5, color: '#f87171', marginBottom: 2 }}>
+                SLOW FRAMES
+              </div>
+              {active.stallLog.slice(0, 4).map((rec) => (
+                <StallRow key={rec.frame} rec={rec} />
               ))}
             </>
           )}
@@ -460,6 +611,28 @@ export const PerfOverlay: React.FC = () => {
               title="Copy the live reading as text"
             >
               {copied ? 'copied' : 'copy'}
+            </button>
+            <button
+              type="button"
+              style={{
+                ...button,
+                color: baseline ? '#082f49' : '#cbd5e1',
+                background: baseline ? '#7dd3fc' : 'rgba(30,41,59,0.9)',
+              }}
+              onClick={() => {
+                if (baseline) {
+                  setBaselines((current) => {
+                    const next = { ...current };
+                    delete next[active.id];
+                    return next;
+                  });
+                } else {
+                  setBaselines((current) => ({ ...current, [active.id]: active }));
+                }
+              }}
+              title={baseline ? 'Clear the marked comparison' : 'Mark this window for live before/after deltas'}
+            >
+              {baseline ? 'unmark' : 'mark'}
             </button>
             <button
               type="button"

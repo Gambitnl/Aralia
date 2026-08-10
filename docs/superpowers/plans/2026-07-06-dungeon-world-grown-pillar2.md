@@ -48,3 +48,5 @@ Burgs within `radiusFt` of a site carry that dungeon's `rumorHooks` (a `rumorsFo
 
 ### Task 9: Close-out
 Plan-map node features update (pillar 2 → done), design doc status, handover append, memory update, final whole-feature review of the world/ layer + surfacing diffs.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/plans/2026-07-06-dungeon-world-grown-pillar2.md","sha256WithoutMarker":"4769ad755a0b944e5a78f76e165f958585790e06880a5fb21644286bd9895033","markedAtUtc":"2026-08-09T20:24:24.657Z"} -->

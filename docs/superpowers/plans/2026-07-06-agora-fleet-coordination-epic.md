@@ -81,3 +81,5 @@ riskiest wake question is already de-risked.
 Each piece is TDD'd against the existing `tools/agora/*.test.mjs` pattern, and each daemon change is
 additive (no rewrite of the campaign/task/lock model). Waves ship independently — the fleet keeps
 running on the old behavior between waves.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/plans/2026-07-06-agora-fleet-coordination-epic.md","sha256WithoutMarker":"312fbb69e4ca5e835a4d63d9d8baaafcd6f58866fc756be0a417e82e083856b1","markedAtUtc":"2026-08-09T20:24:24.657Z"} -->

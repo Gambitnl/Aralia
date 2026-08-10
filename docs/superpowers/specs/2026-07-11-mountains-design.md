@@ -112,3 +112,5 @@ Doctrine tests as before (own-stream proof, fmgWorld goldens byte-identical, det
 - **2D relief glyph sizing (found in visual proof):** peak carets / hill chevrons render via the validated shared pipeline but read subtle at modest coastal hills on seed world-42; glyph size/density is a tuning call for Remy's screenshot review (same posture as forests' glyph-density call). The snow-capped high spines and grey highlands read clearly at full-atlas zoom.
 - High/steep glacier cells still classify as rock (not ice) — the brown-glacier bug is killed only for low-slope glacier sheets; a classification follow-up.
 - Ground-mode slope vs mesh-normal slope agree only on linear ramps (rock-blend look not pixel-identical on noisy terrain) — acceptable, documented.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/specs/2026-07-11-mountains-design.md","sha256WithoutMarker":"c58bd1cf510db4a2e7526b53a5307c388d3b17ed5863e0b1d4a71c2a832a0d7c","markedAtUtc":"2026-08-09T20:24:29.255Z"} -->

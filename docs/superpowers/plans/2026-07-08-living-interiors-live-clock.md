@@ -968,3 +968,5 @@ git commit -m "feat(interiors): occupants walk their day on the live clock"
 - **Streaming constraint respected:** no task re-inits the worker or forces a chunk re-mesh; all liveness is render-side against `agentClock`, which already flows to the scene.
 - **No-fallback:** Task 1 turns the silent `(0,0)` anchor default into a throw; window/hearth identity no longer depends on the bake hour.
 - **Open design choice deferred, not skipped:** occupants SNAP between stations (v1). Walk-path animation and any eventual merge with the street agent-sim are follow-ups, flagged on the plan-map — not silently dropped.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/plans/2026-07-08-living-interiors-live-clock.md","sha256WithoutMarker":"379115273a192eb795c0fdcba13305451fc44fbf368c76e2ca42183b921443ea","markedAtUtc":"2026-08-09T20:22:07.615Z"} -->

@@ -3,8 +3,8 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 12/06/2026, 23:50:22
- * Dependents: commands/factory/SpellCommandFactory.ts
+ * Last Sync: 09/08/2026, 22:48:28
+ * Dependents: commands/effects/ReactiveEffectCommand.ts, commands/factory/AbilityCommandFactory.ts, commands/factory/SpellCommandFactory.ts
  * Imports: 4 files
  *
  * MULTI-AGENT SAFETY:
@@ -15,7 +15,7 @@
 // @dependencies-end
 
 import { SpellCommand, CommandContext, CommandMetadata } from '../base/SpellCommand';
-import { CombatState, ActiveEffect } from '../../types/combat';
+import { CombatState, CombatCharacter, ActiveEffect } from '../../types/combat';
 import { DefensiveEffect } from '../../types/spells';
 import { getAbilityModifierValue } from '../../utils/character';
 import { v4 as uuidv4 } from 'uuid';
@@ -206,7 +206,28 @@ export class DefensiveCommand implements SpellCommand {
           logMessage = `${this.context.spellName} grants immunity to ${damageTypes.join(', ') || 'listed damage'}`;
           break;
         }
+
+        case 'advantage_on_saves': {
+          // Ability-specific advantage rows already match the saving-throw
+          // utility's structured text contract. Store them on the combat
+          // character so every later save path consumes the same metadata.
+          const activeEffect = this.createActiveEffect(
+            updatedCharacter.id,
+            this.effect.defenseType,
+            effectValue,
+            state.turnState.currentTurn
+          );
+          updatedCharacter.activeEffects = [...(updatedCharacter.activeEffects || []), activeEffect];
+          logMessage = `${this.context.spellName} grants advantage on listed saving throws`;
+          break;
+        }
       }
+
+      // Warding Bond is an AC bonus row with an additional flat save bonus.
+      // Apply only the source shape that is unambiguous in the current model;
+      // qualified creature/effect rows remain available for richer adapters.
+      const withSavingThrowModifiers = this.withSavingThrowModifiers(updatedCharacter);
+      updatedCharacter.modifiers = withSavingThrowModifiers.modifiers;
 
       // Update character in state
       newState.characters[targetIndex] = updatedCharacter;
@@ -255,6 +276,43 @@ export class DefensiveCommand implements SpellCommand {
     return (this.effect.damageType || []).find(damageType =>
       damageType.toLowerCase() === chosenDamageType.toLowerCase()
     );
+  }
+
+  private withSavingThrowModifiers(character: CombatCharacter): CombatCharacter {
+    const rows = this.effect.savingThrow ?? [];
+    const abilityNames = new Set(['strength', 'dexterity', 'constitution', 'intelligence', 'wisdom', 'charisma']);
+    const advantage = [...(character.modifiers?.advantage ?? [])];
+    const bonuses = [...(character.modifiers?.bonuses ?? [])];
+
+    for (const row of rows) {
+      if (typeof row === 'string' && abilityNames.has(row.toLowerCase())) {
+        advantage.push(`${row} saving throws have advantage`);
+        continue;
+      }
+
+      if (typeof row !== 'object' || row === null) continue;
+      const modifier = String(row.modifier ?? row.type ?? '').toLowerCase();
+      const appliesTo = String(row.appliesTo ?? '').toLowerCase();
+      const flat = row.flat;
+      if (modifier === 'bonus' && appliesTo === 'all_saving_throws' && typeof flat === 'number') {
+        bonuses.push(`${flat >= 0 ? '+' : ''}${flat} to saving throws`);
+      }
+    }
+
+    if (advantage.length === (character.modifiers?.advantage ?? []).length &&
+      bonuses.length === (character.modifiers?.bonuses ?? []).length) {
+      return character;
+    }
+
+    return {
+      ...character,
+      modifiers: {
+        ...(character.modifiers ?? {}),
+        advantage,
+        bonuses,
+        disadvantage: [...(character.modifiers?.disadvantage ?? [])]
+      }
+    };
   }
 
   private createActiveEffect(

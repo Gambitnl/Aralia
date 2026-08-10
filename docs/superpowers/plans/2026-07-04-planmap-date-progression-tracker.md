@@ -582,3 +582,5 @@ Run `node tools/agora/planmap-history.mjs` once more, reload, and confirm: timel
 
 - **Spec coverage:** momentum → Task 4; staleness heat → Task 6; time-travel replay → Tasks 3+5; git-derived history → Task 1; topic+step granularity → `flatNodes` (Task 2); daily grain → `collapseDaily` (Task 1); no-forecast guardrail → Global Constraints; empty-history graceful absence → Task 4 Step 3; layout-shift-is-honest → inherent to `buildAndShow(snapshot)`; view preservation → Task 3.
 - **Type consistency:** `buildAndShow`, `timeline`, `momentum`, `dayIndex`, `goToDay`, `heatOn`, `HEAT`, node `key` scheme, and `window.PlanmapHistory` names are used identically across tasks.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/plans/2026-07-04-planmap-date-progression-tracker.md","sha256WithoutMarker":"3d6d199e283e4e626edec2eceefb9ebd4a41b49a182e194db69fe6d99eae8d19","markedAtUtc":"2026-08-09T20:22:07.609Z"} -->

@@ -206,3 +206,5 @@ scene) is replaced whenever a streamed world is live.
   context-picked view model.
 - Building-generator project (separate discussion; its walkability output
   should eventually feed the same referee rasterizer).
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/specs/2026-07-02-fight-in-place-combat-design.md","sha256WithoutMarker":"7e3ccce752a429abc7cab44cd6849683d52293c96a8e63f91cee26bed7c8f982","markedAtUtc":"2026-08-09T20:24:29.248Z"} -->

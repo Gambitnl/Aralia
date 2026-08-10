@@ -131,3 +131,5 @@ Neither alone is sufficient. A slice that looks good but fails the audit is hidi
 - Asset/prop polish (realistic rocks, vegetation detail) — deferred per the breadth-over-polish decision.
 - Sub-cell elevation fidelity upgrades (Terrain Diffusion) — separate track.
 - Writing back up the hierarchy / player-authored world edits.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/specs/2026-06-27-voronoi-3d-world-goal-design.md","sha256WithoutMarker":"1dc9a8aac84fd6b27c4defb18af84630ce6eb7b9a5df57b8f1c9472a22f65711","markedAtUtc":"2026-08-09T20:24:29.236Z"} -->

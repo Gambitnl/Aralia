@@ -47,3 +47,5 @@ Combat ground truth: 1 tile = 5 ft (1.524 m); `CharacterActor` converts meters �
 - **`sizeCategoryForPlan(plan)`** (this campaign): derive the D&D size from max(heightFt, lengthFt): ≤2.5 Tiny, ≤5 Small/Medium (height splits at 4), ≤10 Large, ≤15 Huge, else Gargantuan; export `footprintTiles(size)` (½, 1, 1, 2, 3, 4). Library entries store the derived size; the forge Library panel shows it.
 - **Prompt guidance**: the CLI prompt gains the size table ("a Large monster is 10 ft — two tiles") so generated monsters land on sensible footprints instead of arbitrary dimensions.
 - Combat spawn wiring (recipeFromCombatant reading library plans + footprint) is a later slice — the derivation ships now so the data is already on every entry.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/specs/2026-07-16-creature-space-expansion.md","sha256WithoutMarker":"20cedf1fa8c9ea9f18918e739155bd45329362c3e6ca6d06f98bca4fae6498bf","markedAtUtc":"2026-08-09T20:24:30.601Z"} -->

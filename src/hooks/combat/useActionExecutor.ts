@@ -55,6 +55,7 @@ import { combatEvents } from '../../systems/events/CombatEvents';
 import { OpportunityAttackSystem } from '../../systems/combat/reactions/OpportunityAttackSystem';
 import { applyRuntimeStatusCondition } from '../../utils/combat/statusConditionUtils';
 import { validateTauntWillingMove } from '../../systems/combat/tauntConstraint';
+import { groundImpactOfAbility, type ImpactAbilityLike } from '../../systems/combat/groundImpact';
 
 export interface UseActionExecutorProps {
   characters: CombatCharacter[];
@@ -1266,6 +1267,37 @@ export const useActionExecutor = ({
       targets: action.targetCharacterIds || []
     });
 
+    /* THE GROUND IMPACT. An explosion-class effect that lands on the 3D map
+     * digs a real crater in the voxel arena, and this is where the world learns
+     * that it happened: the ability is in hand here, so the classification is
+     * made once and travels as a plain fact.
+     *
+     * It rides the existing spell_effect animation rather than a new channel,
+     * because an animation is exactly what this is — a thing that happened at a
+     * place at a time, which the renderer consumes and then forgets. The 2D map
+     * ignores it (it has no ground to dig), and a cast with no target position
+     * has no impact point and produces nothing. */
+    if (action.targetPosition) {
+      const impact = groundImpactOfAbility(ability as ImpactAbilityLike | undefined);
+      if (impact) {
+        queueAnimation({
+          id: generateId(),
+          type: 'spell_effect',
+          characterId: action.characterId,
+          startPosition: updatedCharacter.position,
+          endPosition: action.targetPosition,
+          duration: 650,
+          startTime: Date.now(),
+          data: {
+            spellId: action.abilityId,
+            areaOfEffect: ability?.areaOfEffect,
+            groundImpact: impact,
+            targetPositions: [action.targetPosition],
+          },
+        });
+      }
+    }
+
     if (ability && (ability.type === 'attack' || (ability.spell?.attackType && ability.spell.attackType !== 'none'))) {
       action.targetCharacterIds?.forEach(targetId => {
         // Command-backed attack actions can now carry the actual hit/miss
@@ -1299,7 +1331,7 @@ export const useActionExecutor = ({
         resolveOnTargetAttackReactiveEffects(action, updatedCharacter, targetId, ability, resolvedAttackResult);
       });
     }
-  }, [characters, resolveOnTargetAttackReactiveEffects]);
+  }, [characters, resolveOnTargetAttackReactiveEffects, queueAnimation]);
 
   // ============================================================================
   // Main Action Coordinator

@@ -218,6 +218,9 @@ export function getDummyParty(): PlayerCharacter[] {
 	    const tempPlayer: PlayerCharacter = {
 	        id: 'player', // STANDARD PLAYER ID
 	        name: "Dev Player",
+	        // This capability is restricted to the disposable dev seed. Design
+	        // Preview replaces this player with a configurable playtest version.
+	        devPlaytest: { unlimitedSpellSlots: true },
 	        age: 30,
 	        level: 1, proficiencyBonus: 2, xp: 0,
 	        race: playerRace, class: playerClass,

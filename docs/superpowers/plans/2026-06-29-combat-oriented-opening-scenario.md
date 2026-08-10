@@ -947,3 +947,5 @@ export const SkillClarificationPane: React.FC<Props> = ({ candidates, onPick, on
 - **No-fallback:** T3 drops malformed threats (peaceful), T5 throws on unreachable/unparseable, T9 surfaces the throw inline — never a canned fight.
 - **Type consistency:** `SituationThreat` (T1) used identically in T2/T3/T8; `IntentResolution`/`IntentSkillInfo` (T5) reused in T8/T9/T10; `resolveCheck`/`computeSkillModifier`/`getActiveCheckBoosts` (T6/T7) consumed only in T8.
 - **Deferred detail (flagged, not hidden):** casting a not-yet-active buff spell mid-flow (T7 note) and adding Guidance bonus-DICE to the rolled notation (T8 note) are wired during T8/T9 against the real spellbook cast path and verified live — the deterministic flat-modifier core is fully tested; the dice-bonus rider is additive.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/plans/2026-06-29-combat-oriented-opening-scenario.md","sha256WithoutMarker":"33d7501a9593b95e503d9d376ac615d0f9ee94c6b1c600fc595af11bce68fd4b","markedAtUtc":"2026-08-09T20:22:07.605Z"} -->

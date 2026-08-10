@@ -449,4 +449,4 @@ Last Updated: 2025-12-04 16:34 UTC
 
 Notes: Page citations are sourced from Kassoon and reference the printed  2024. Cross-check unusual entries before data use.
 
-<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spell-completeness-audit/output/PHB-2024-REFERENCE.md","sha256WithoutMarker":"154cc8ce1fb783dcba392ecda56495ecb85826c0e40f62048ed00cd4be87566b","markedAtUtc":"2026-06-25T22:29:38.648Z"} -->
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spell-completeness-audit/output/PHB-2024-REFERENCE.md","sha256WithoutMarker":"a8d3c8569bd4aa25ceca578edef5cb94f17e878f70d634907a0e5f1fe6aca51d","markedAtUtc":"2026-08-09T20:14:15.852Z"} -->

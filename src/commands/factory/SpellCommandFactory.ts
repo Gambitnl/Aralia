@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 04/08/2026, 01:51:04
+ * Last Sync: 09/08/2026, 22:29:03
  * Dependents: commands/index.ts
- * Imports: 33 files
+ * Imports: 34 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -66,6 +66,7 @@ import {
 import { addDice } from '@/utils/diceUtils'
 import { breakTauntsForEvent, hasTauntAttackDisadvantage } from '@/systems/combat/tauntConstraint'
 import type { SavingThrowModifier, SavingThrowResult } from '@/utils/character/savingThrowUtils'
+import { isDeferredAreaZoneTrigger } from '@/hooks/spellEffectUtils'
 
 type SpellWithPerTargetChoices = Spell & {
   perTargetChoicesByTargetId?: EnhanceAbilityChoiceMap
@@ -1723,12 +1724,9 @@ export class SpellCommandFactory {
    * Create a single command from an effect, filtering targets if necessary
    */
   private static isPersistentAreaZoneTrigger(effect: SpellEffect): boolean {
-    return [
-      'on_enter_area',
-      'on_exit_area',
-      'on_end_turn_in_area',
-      'on_move_in_area'
-    ].includes(effect.trigger.type)
+    // Composite source rows are delayed unless their areaTiming or controlled
+    // entity explicitly requires an initial command to create live state.
+    return isDeferredAreaZoneTrigger(effect)
   }
 
   private static isScheduledRuntimeTrigger(effect: SpellEffect): boolean {

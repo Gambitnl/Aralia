@@ -853,3 +853,5 @@ git commit -m "feat(provenance): runnable audit harness + gap-list output"
 - **Phasing honesty:** schema gaps are reported, not failed — documented in the header and Task 3. The orphan-zero invariant is the hard gate.
 - **Type consistency:** `EntityVerdict`, `ProvenanceState`, `Severity`, `SchemaGap`, `ProvenanceReport` defined once in `types.ts` (Task 2) and used unchanged in Tasks 3–7. `CellFacts` defined in `worldCell.ts` (Task 2), consumed by `cellSchema.ts` and `groundProvenance.ts`. `GoldenDrillPath` defined in Task 1, reused as `AuditInput` in Task 6.
 - **Open integration risk:** Task 1 is the de-risking task — if `getTownTilesForGrid` yields no burg tile at 64×64 for the golden seed, raise the grid resolution (noted inline). All later tasks depend on it being green first.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/plans/2026-06-27-cell-provenance-audit.md","sha256WithoutMarker":"5e2fa832bf26c177af5240ba8fb474bda2bd32b9c3963c176eddadd611c4f11e","markedAtUtc":"2026-08-09T20:22:07.603Z"} -->

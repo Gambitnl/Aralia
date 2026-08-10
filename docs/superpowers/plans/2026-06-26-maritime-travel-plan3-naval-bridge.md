@@ -129,4 +129,4 @@ hotter). Non-tactical roll in v1 (Plan 6 makes piracy/weather playable). Scope a
 - Visual-inspection rule: before declaring Plan 3 done, render a headless mainland→island trip
   showing a **ferry** route and an **owned-ship open-water** route, and eyeball the segmented line.
 
-<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/plans/2026-06-26-maritime-travel-plan3-naval-bridge.md","sha256WithoutMarker":"c03b68d756bef5c2bb0b59090a88086eab6eb1f1c351b95172cce46f6b087d98","markedAtUtc":"2026-06-26T13:41:46.767Z"} -->
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/plans/2026-06-26-maritime-travel-plan3-naval-bridge.md","sha256WithoutMarker":"93e7f199451a2e49fe480742df77dac8e04dc0615b3483fa682663c4394c318d","markedAtUtc":"2026-08-09T20:14:16.182Z"} -->

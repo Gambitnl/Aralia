@@ -303,3 +303,5 @@ it is running under the lean static server).
 ## Open questions
 
 None outstanding — all design decisions are settled.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/specs/2026-07-09-planmap-roadmap-live-status.md","sha256WithoutMarker":"c6e8142f1c910bfbd6c43164f1497fafe8f97984b1948bf61f41279177b78715","markedAtUtc":"2026-08-09T20:24:24.664Z"} -->

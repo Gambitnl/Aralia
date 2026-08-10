@@ -83,3 +83,5 @@ Driver: for each chain with `blendM > 0.02`, emit `collar('col-' + chain.id, roo
 - [x] Fixtures: ooze gains `skin: { blend: 1 }`; serpent gains `skin: { blend: 0 }`; dragon untouched (per-kind defaults).
 - [x] Full suite: `npx vitest run src/systems/entities3d scripts/vite-plugins/devhub` → all green.
 - [x] Visual gate on :3000 — contact sheets of ooze (melted), dragon (muscled roots), serpent (sharp), plus a walking shoulder close-up in the debugger; Remy eyeballs.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/plans/2026-07-23-junction-blend.md","sha256WithoutMarker":"d360db3a0d7fb4d72a1a0980c3085fecd927ee3d6e10988a12ddbe2bd65b41bd","markedAtUtc":"2026-08-09T20:23:18.360Z"} -->

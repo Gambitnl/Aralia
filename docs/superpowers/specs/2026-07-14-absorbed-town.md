@@ -25,3 +25,5 @@ Worldforge town generator.
 Town-description persistence belongs to the town-description-system lane; world-level
 contracts belong to the world lane. The six absorbed gaps (G1-G6) live as step
 features on the `shipped-styled-town` planmap topic.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/specs/2026-07-14-absorbed-town.md","sha256WithoutMarker":"406ad31f6ae145dea56a415dc4379c9fc1528e75116b6226985bfb4b36d1b705","markedAtUtc":"2026-08-09T20:23:18.416Z"} -->

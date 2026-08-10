@@ -2816,4 +2816,4 @@ Verification status:
 - Required dependency-map sync only.
 - No tests, typecheck, or rendered visual verification were run in this slice.
 
-<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spell-system-overhaul/AUDIT_OR_PROOF.md","sha256WithoutMarker":"025ca25c6b47582cb668c7dfdc5fa067ab5043304e966cbc6257e43162c5a59d","markedAtUtc":"2026-06-25T22:29:38.650Z"} -->
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/archive/spell-system/SSO-AUDIT-OR-PROOF.md","sha256WithoutMarker":"e3996f9b34e4d1a99505f697e3155cc9aadadacc215d843e7ebb9a97eb5d2989","markedAtUtc":"2026-08-09T20:22:07.625Z"} -->

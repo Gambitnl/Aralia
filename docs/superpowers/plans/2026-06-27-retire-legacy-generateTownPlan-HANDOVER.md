@@ -96,3 +96,5 @@ and `World3DWrapper` (business/NPC registration) call it, so plot IDs match by c
   `canonicalArtifactTownForSite` — the regression test in `groundChunkLoader.test.ts` guards
   this.
 - Work in master only (no branches/worktrees). Don't commit unless asked.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/plans/2026-06-27-retire-legacy-generateTownPlan-HANDOVER.md","sha256WithoutMarker":"b41971ee380d84a8731c5f363add07ce5662cac6f16d3faaa72bf47327a28d18","markedAtUtc":"2026-08-09T20:24:28.229Z"} -->

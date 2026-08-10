@@ -90,3 +90,5 @@ Plan-map header links (added 2026-07-03: 🗺️ Doc atlas, 📚 Doc library) be
 
 ## Sequencing
 A first (foundation) → B (task harvest, needs A's open-task + role data) and C (launcher buttons, independent, small) in parallel after.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/specs/2026-07-03-doc-inventory-explorer-design.md","sha256WithoutMarker":"998e7654a5984b09a263dde438d0be967ee5900424f36f6128c36dd81920ca6d","markedAtUtc":"2026-08-09T20:24:24.662Z"} -->

@@ -381,3 +381,5 @@ recenters; "Dynamic Combat Camera" auto-switches to the active character.
 - Camera controls: https://dotesports.com/baldurs-gate/news/baldurs-gate-3-camera-controls-guide-all-camera-controls-in-bg3-explained ·
   https://www.pcgamesn.com/baldurs-gate-3/camera-controls
 - Rivington context: https://www.pcgamer.com/why-rivington-is-my-favourite-area-in-baldurs-gate-3/
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/research/2026-07-03-bg3-reference-pack.md","sha256WithoutMarker":"7ac547246da29b58e0be4419bc6e34f2626e02f06ec0a25221f605b5bcd18348","markedAtUtc":"2026-08-09T20:24:28.251Z"} -->

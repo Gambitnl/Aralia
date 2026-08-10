@@ -137,3 +137,5 @@ dedup, gamma-aware overlay palette, token min-size floor at Fit zoom.
 - Keep the linter's a11y tweaks (min-h-11 touch targets) in `PartyDisplay`/`InitiativeTracker`/`combatUiTheme`.
 - Work only in master (no branches/worktrees). Leave changes uncommitted; the 2am snapshot commits them.
 - Throwaway scripts live in `.agent/scratch/` — safe to delete.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/handovers/2026-07-06-combat-map-reskin-handover.md","sha256WithoutMarker":"3384d2af3f5347adfea01152cdf63072a3c706209912229d624e1eb38c531122","markedAtUtc":"2026-08-09T20:24:28.247Z"} -->

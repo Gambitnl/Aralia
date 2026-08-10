@@ -184,3 +184,4 @@ gaps, so Wave 4 does not duplicate them into `docs/projects/GLOBAL_GAPS.md`.
 
 Full git history: `git log docs/projects/worldforge/GAPS.md`
 
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/specs/2026-07-14-absorbed-worldforge.md","sha256WithoutMarker":"924bce38741bb3f190e9c96f1d4d7fab379e435ecffca52eae6f2da31024f986","markedAtUtc":"2026-08-09T20:24:30.599Z"} -->

@@ -51,3 +51,5 @@ An age/wear dimension that shows: a newer wing in different stone, a bricked-up 
 2. Brainstorm + interview Remy on the open design questions (each ambition lists them; batch questions, use AskUserQuestion).
 3. Write the spec to `docs/superpowers/specs/2026-07-07-building-generator-v2-living-buildings.md` — all four ambitions, phased (Remy's priority: inhabited first, then roofs/styles, blocks, history — confirm with him).
 4. Get explicit approval, flip the plan-map node to `specced`, then write the build plan via `superpowers:writing-plans`.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/plans/2026-07-07-building-generator-v2-DESIGN-PROMPT.md","sha256WithoutMarker":"fed74567a63a2a97ac09e4d17c1658b911a97758f0806525fbea4bfaf97a10d1","markedAtUtc":"2026-08-09T20:24:24.659Z"} -->

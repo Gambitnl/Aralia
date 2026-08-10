@@ -124,3 +124,5 @@ npx vitest run src/systems/gameEntry/ src/hooks/__tests__/useDeEscalation.test.t
 npx tsc -b 2>&1 | grep -iE "deEscalation|resolveDeEscalationIntent|runDeEscalationCheck|SkillClarification|ConversationPanel|gameEntry/types|generateOpeningSituation|useDeEscalation"
 ```
 (Full `tsc -b` has ~pre-existing unrelated errors — vite-plugin `tsconfig.node` include noise + spell-command test drift — not from this work.)
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/plans/2026-06-29-combat-oriented-opening-HANDOVER.md","sha256WithoutMarker":"4bce5e45eb4fd45bf948fc19f73ed21fc152a66f0801b31421f98a2eaf5d8383","markedAtUtc":"2026-08-09T20:23:18.411Z"} -->

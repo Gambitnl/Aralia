@@ -43,4 +43,4 @@ preserved as historical evidence only.
   `docs/projects/spells/subprojects/spell-completeness-audit/GAPS.md`.
 - Route unrelated issues to `docs/projects/GLOBAL_GAPS.md`.
 
-<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spell-completeness-audit/TRACKER.md","sha256WithoutMarker":"7472c8aa96699bb586490ae53be02f0651633daa7c9e91f9b37603b566c397f4","markedAtUtc":"2026-06-25T22:29:38.620Z"} -->
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spell-completeness-audit/TRACKER.md","sha256WithoutMarker":"85bb77fe8f63e73b25763e8023ecd660c620405fd3b34a41efccc2ccb461ec43","markedAtUtc":"2026-08-09T20:14:15.787Z"} -->

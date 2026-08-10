@@ -160,4 +160,4 @@ Proof after decision: Validator tests reject out-of-range selections, runtime te
 6. Inspect current source/tests for that stream.
 7. Add one focused proof and update the matching gap row.
 
-<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/testing-overhaul/NORTH_STAR.md","sha256WithoutMarker":"30ffbbabde780350c7ffcbf7d626df54eabc32c2216562cfe639d4099100b1a8","markedAtUtc":"2026-06-25T22:29:38.630Z"} -->
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/testing-overhaul/NORTH_STAR.md","sha256WithoutMarker":"53fdf9307d84e30a239d5c34223b5a486d5b34a42702af716e29711166938a0d","markedAtUtc":"2026-08-09T20:14:15.819Z"} -->

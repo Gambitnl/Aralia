@@ -216,3 +216,5 @@ Schema additions for the wave: feature-level `decision` (boolean) joins Revision
 ## Open defaults
 
 - archive age for done tasks: 14 days
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/specs/2026-07-14-planning-surface-freshness-design.md","sha256WithoutMarker":"0119ded7cdd67a1f5340cbc8f04acea5701d64f05cf4064c18be46f2c6074c6c","markedAtUtc":"2026-08-09T20:22:07.602Z"} -->

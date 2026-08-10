@@ -54,8 +54,10 @@ import {
   SphereGeometry,
   Uint16BufferAttribute,
   Vector3,
+  type Bone,
 } from 'three';
 import type { Frame, SegmentSink } from '../types';
+import type { PlanHeadSocket } from './gaits';
 import { buildBipedSkeleton, createBipedPoseSink } from './skeletonBuilder';
 import { buildPlanSkeleton, createPlanPoseSink } from './planSkeleton';
 import { buildSmoothBipedGeometry } from './smoothBipedGeometry';
@@ -81,6 +83,18 @@ export interface SkinnedBody {
   readonly skinnedMesh: SkinnedMesh;
   /** Hand this to driver.buildBody() each frame (the pose adapter). */
   readonly sink: SegmentSink;
+  /**
+   * Plan bodies only (Task 3): pose the formed-head bones from the driver's
+   * live head sockets. Formed heads emit no ball, so the pose sink never
+   * writes their `head<i>` bones — call this after buildBody and before
+   * finishFrame each frame. Absent on biped bodies (no formed heads).
+   */
+  readonly poseHeadSockets?: (sockets: PlanHeadSocket[]) => void;
+  /**
+   * Look up a bone by its driver emission id (e.g. 'head0'). Task 3 uses this
+   * to parent formed-head meshes to their head bone in skinned mode.
+   */
+  readonly boneNamed(id: string): Bone | undefined;
   /** Resolve this frame's emissions into bone transforms — call after buildBody. */
   finishFrame(): void;
   /** Fill + shell triangles (2 draw calls total). */
@@ -90,6 +104,14 @@ export interface SkinnedBody {
 
 const UP = new Vector3(0, 1, 0);
 const IDENTITY = new Matrix4();
+
+/** Bone lookup by driver emission id, shared by both skinned body factories. */
+function boneLookup(index: ReadonlyMap<string, number>, bones: Bone[]): (id: string) => Bone | undefined {
+  return (id) => {
+    const i = index.get(id);
+    return i === undefined ? undefined : bones[i];
+  };
+}
 
 /** One geometry piece bound rigidly to one bone. */
 interface Piece {
@@ -227,6 +249,9 @@ export function createSkinnedBiped(frame: Frame, options: SkinnedBodyOptions): S
     root,
     skinnedMesh: fill,
     sink: pose.sink,
+    // bipeds have no formed heads, so no poseHeadSockets — the head ball is
+    // an ordinary emission the biped sink already writes.
+    boneNamed: boneLookup(built.index, built.bones),
     finishFrame: pose.finishFrame,
     triangles: () => (geometry.index!.count / 3) * 2,
     dispose: () => {
@@ -368,6 +393,10 @@ export function createSkinnedPlan(frame: Frame, spec: import('../types').PlanSpe
     root,
     skinnedMesh: fill,
     sink: pose.sink,
+    // Task 3: formed-head bones are posed from live sockets (they emit no
+    // ball), and the assembler parents sculpted head meshes to these bones.
+    poseHeadSockets: pose.writeHeadSockets,
+    boneNamed: boneLookup(built.index, built.bones),
     finishFrame: pose.finishFrame,
     triangles: () => (geometry.index!.count / 3) * 2,
     dispose: () => {

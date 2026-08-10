@@ -73,3 +73,5 @@ The two authored, richly-written companions (Kaelen, Elara) are seeded into stat
 
 ## Verification standard
 Per Remy's visual-inspection rule: every slice that changes something observable gets rendered and eyeballed in a running app (or a deterministic in-page replay for 3D), not just unit tests.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/specs/2026-07-04-early-game-playability-campaign.md","sha256WithoutMarker":"73da788b234bf4efdd89cd78618bd07bb0ef6845ba4a62cb559159ef7b9debf6","markedAtUtc":"2026-08-09T20:24:29.249Z"} -->

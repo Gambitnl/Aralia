@@ -604,3 +604,5 @@ Render additions (match the approved mocks' glyph language):
 - Spec coverage: builder layouts (T2+T3), event simulation + evidence (T4), derived text + rumor hooks (T5), contract additions (T1, filled T6), replay/planAtYear (T4+T6 `asOfYearsAgo`), 11 tests green (T6), eyeball surface (T7), plan-map same-turn rule (T8). Town-radius NPC wiring is Pillar 2 (out of scope here; the contract carries `rumorHooks` for it).
 - Type consistency: `HistoryResult.evidenceProps` uses working-grid cell indices remapped in T6 step 3 (crop); `DungeonDoor.cell` is cropped-grid; `Room.purpose` lives on the working `Room` (T3) and maps onto `DungeonRoom.purpose` at the feet boundary (T6).
 - The `delaunay` dead field flagged by critique C4 no longer exists in types.ts (already removed in the earlier wave) — verified against the current file.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/plans/2026-07-06-dungeon-history-first-pillar1.md","sha256WithoutMarker":"937dee44884ce1b99209de553be0437115b007c0d78a284b37136ff223915799","markedAtUtc":"2026-08-09T20:22:07.612Z"} -->

@@ -25,4 +25,4 @@ Last updated: 2026-07-01
 
 The gap registry for this folder lives only in `docs/tasks/feature-capabilities/GAPS.md`; the duplicated table that used to sit here drifted and was removed 2026-07-01.
 
-<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/feature-capabilities/TRACKER.md","sha256WithoutMarker":"ccfc5b0ee848474df2bb8a8d0863d99b6c49892544d0b7eb997891c336eafd81","markedAtUtc":"2026-06-25T22:29:38.606Z"} -->
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/feature-capabilities/TRACKER.md","sha256WithoutMarker":"9f1a6ca02039d5ed11be3405c2583aa61f101cc81594874d7dc682ff11fdbe73","markedAtUtc":"2026-08-09T20:14:15.735Z"} -->

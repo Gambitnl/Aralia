@@ -172,3 +172,5 @@ deterministic framing; mouse WHEEL/TILT barely works on MapControls headless.
 **Still open for full open-region (next slice):** dynamic neighbour streaming in the
 PLAYING ground loader (`groundChunkLoader.ts`/`World3DWrapper.tsx`) and the
 canonical-scale region-window tiling decision (§4).
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/plans/2026-07-01-open-region-seam-visual-handover.md","sha256WithoutMarker":"8df310dc38df5dd6586f22d1828d0700f634aead6ea4ef3229abe9f0f6a54a83","markedAtUtc":"2026-08-09T20:23:18.431Z"} -->

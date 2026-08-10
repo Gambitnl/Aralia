@@ -31,3 +31,5 @@ A 14× triangle increase cost nothing measurable. Per-tree counts: cones 66–50
 | after | 16 | 146.3 | 208 | **1.2 ms** |
 
 Triangles drawn stayed 2,489,806 and instances stayed 2,340 — proof nothing was dropped or double-drawn — and the in-game frame is visually identical. The old per-chunk layer was deleted rather than left as a second path. Note the earlier variant bump 3→4 had made the fragmentation 33% worse (9 → 12 buckets per chunk); batching makes variant count cost nothing.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/specs/subspecs/beautification--vegetation-migration.md","sha256WithoutMarker":"fa3d30820dae64a924cbadb2b24b7607962f74202912fff7fe00810265ecf801","markedAtUtc":"2026-08-09T20:24:28.237Z"} -->

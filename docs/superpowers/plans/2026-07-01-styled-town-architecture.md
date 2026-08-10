@@ -1026,3 +1026,5 @@ Mark deferred follow-up #1 as done in a short handover note under `docs/superpow
 - **Color-sniffed role** (`World3DScene.tsx:263`) is removed in Task 7 — REQUIRED, otherwise palette walls silently lose their wall/roof textures. ✔
 - **`??` legacy-compat vs no-fallback:** the `colorHex`/roof `??` defaults in Tasks 7 only cover non-Worldforge sites (continent mode) that never had styling; canonical towns always stamp. This is compatibility, not a silent style fallback.
 - **Type consistency:** `RoofForm`/`GatehouseForm`/`DeckDetail` defined once in `architectureStyle.ts`; world3d imports the type (type-only import keeps the worker bundle clean).
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/plans/2026-07-01-styled-town-architecture.md","sha256WithoutMarker":"9245cfa632ff3947509b5c86aecefab4ec97fe556e7401b272624206d68ed382","markedAtUtc":"2026-08-09T20:22:07.606Z"} -->

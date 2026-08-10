@@ -103,7 +103,7 @@ export function PerfProbe({
      * for the display, and every vsync-locked scene would report its GPU time
      * as the frame time. */
     const timer = gpu.current;
-    if (timer) session.recordGpu(timer.beginFrame());
+    if (timer) session.recordGpu(timer.beginFrame(session.currentFrame));
 
     /* The same microtask closes the CPU measurement.
      *

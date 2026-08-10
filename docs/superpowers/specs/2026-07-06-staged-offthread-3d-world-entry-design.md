@@ -229,3 +229,5 @@ Everything up to that boundary is proven.
   path runs live in the real game (proven via `window.__wfEntry` + a rendered
   scene, no errors), but the loading-label frames themselves were not captured —
   Stage A completes sub-second on a warm atlas.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/specs/2026-07-06-staged-offthread-3d-world-entry-design.md","sha256WithoutMarker":"88448e2e778206f620628a753bfd79f93831928ef87a02f3a0b8e8eed5c46e5d","markedAtUtc":"2026-08-09T20:24:29.251Z"} -->

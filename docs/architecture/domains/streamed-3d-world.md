@@ -204,3 +204,5 @@ listed under Verified Current Entry Points.
 
 Re-verify when a geometry builder changes. A stale inventory is worse than none,
 because a reader trusts it.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/architecture/domains/streamed-3d-world.md","sha256WithoutMarker":"79f00ec35d49c4a80c5f3053c31f2e2a0949c0893549b4c9514abdd4adafcfe5","markedAtUtc":"2026-08-09T20:24:28.242Z"} -->

@@ -312,3 +312,5 @@ UI: R3F canvas (ground disc + hemisphere/directional light, blobfolk sky `#bfe8f
 - [x] Forge `wireframe` checkbox (`?wire=0` = solid) for A/B; `EntityForgeScene`/`PreviewEntityForge` thread `renderMode`.
 - [x] assemble.test.ts updated: default (wireframe) asserts NO outlines; explicit `renderMode:'solid'` test asserts both outlines present. 285 tests green; typecheck clean on touched files.
 - [x] Eyeballed forge (dwarf/fighter/dragon wireframe + solid toggle) and in-game (world3d cast diorama figures wireframe — proves global default reaches game surfaces).
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/plans/2026-07-11-entity-generator-3d.md","sha256WithoutMarker":"c2578d7caa7ef2c9fab95d9dcf2e94decc46989d318bdc6535ced2231437f3f0","markedAtUtc":"2026-08-09T20:22:07.617Z"} -->

@@ -101,3 +101,5 @@ Bones: one per spine segment (`spine.0`…`spine.<n-1>`, parented root→tip), o
 - Mixamo clip playback (PARKED, Remy 2026-07-23).
 - Crowd bake from bone transforms and segment-renderer deletion (spec slice 5 — only after every surface and the wireframe/solid compatibility gates are proven).
 - Part re-parenting beyond heads (anchors remain the compatibility view).
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/plans/2026-07-24-skeleton-creature-skeletons.md","sha256WithoutMarker":"32b3c11fb6f44b2a382d760e337b9b0618c7e0945c58540248185e35c7f5b4db","markedAtUtc":"2026-08-09T20:23:18.380Z"} -->

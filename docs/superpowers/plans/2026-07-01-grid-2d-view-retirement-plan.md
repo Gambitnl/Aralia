@@ -236,3 +236,5 @@ Work in master (no branches/worktrees). Edit on a clean tree, commit
 **my-files-only** (the concurrent spell agent's uncommitted work stays untouched).
 `tsc` clean on touched files + targeted tests green before each commit. Verify
 every deletion's importers first — the auto map has been wrong 3×.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/plans/2026-07-01-grid-2d-view-retirement-plan.md","sha256WithoutMarker":"70e79d67e7f8b71d32c39d24a429c85e8001e62f6054b1afeb175aef821a08ad","markedAtUtc":"2026-08-09T20:23:18.430Z"} -->

@@ -1225,3 +1225,5 @@ Deliberately excluded, each named in the audit as its own step:
 - **Roads** (finding 4) — still 6-7 points across a 25,000 ft window. Same treatment as rivers.
 - **Biome sites** (finding 6), **markers and zones** (findings 5 and 7).
 - **The harbour apron.** Coast still rides `canonAffine`. A shoreline is defined by the cell's own coast edges, so the shrink argument does not apply the same way; it needs its own look.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/plans/2026-07-29-region-rivers-end-to-end.md","sha256WithoutMarker":"1d6bcbdba5e35c20a9205d64d55654cea9986165600e1c925f4cedfa806bf806","markedAtUtc":"2026-08-09T20:23:18.387Z"} -->

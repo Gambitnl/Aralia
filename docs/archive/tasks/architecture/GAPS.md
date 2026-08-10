@@ -21,4 +21,4 @@ Last updated: 2026-07-01
 - `blocked_human_decision`: requires explicit owner input before continuation.
 - `blocked_external_state`: waiting on another system, PR, or person.
 
-<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/architecture/GAPS.md","sha256WithoutMarker":"deea3e41998b4a447f575c4b7e7a6e4b6cf945dc64cea1de0bc1710f6de0dd6a","markedAtUtc":"2026-06-25T22:29:38.633Z"} -->
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/archive/tasks/architecture/GAPS.md","sha256WithoutMarker":"b9ae0736273ed0ee91c85d52c3065d40088e89bcc7d8c0de7971a54f585ffb6d","markedAtUtc":"2026-08-09T20:22:07.641Z"} -->

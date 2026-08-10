@@ -577,3 +577,181 @@ collection and geometry disposal — both real faults, neither the cause — bec
 I read aggregate numbers and never asked what the user was DOING when the
 numbers moved. A capture says what happened. It does not say what triggered it.
 The person holding the mouse knows.
+
+---
+
+## The four open items are closed (2026-08-09)
+
+This record listed four consequences that were named but not built: two water
+models with no seam, a fluid that collided against a height, a fill that blocked
+the main thread, and a volume that existed only on a sandbox page. All four are
+built, measured and proved on a live surface. Item 5 — sparse compute — is still
+open, and is still the correct next step.
+
+**Item 1, the two water models meet.** `waterHandoff.ts` is the contract, and it
+is plain data: a sheet is any object with `n`, `cellM` and a `depth` array, so a
+test can hand over three fields instead of building a solver. The rule that
+carries the file is that **a particle is a quantum of volume**. The sheet is
+debited in WHOLE particles and never by the amount requested, so a request for
+1.7 quanta moves 1 and leaves 0.7 where it was; rounding the request would
+manufacture or destroy the remainder at frame rate. Every particle carries that
+quantum for its whole life, so the volume a domain holds is `live * quantum` — a
+product, not a sum, and it cannot drift however long the domain runs. Volume
+aimed off the grid is returned as `strandedM3` and booked against the boundary
+ledger, never dropped. `mpmDomain.ts` is the bounded CPU MLS-MPM domain the
+sheet feeds: it runs the same five kernels as the GPU sim and adds the one thing
+the GPU sim does not need — a lifecycle, because a particle at rest hands its
+mass back and a resting body of water is the sheet's job. Measured on
+`?step=volume`, the printed identity equalled `poured` at all 24 samples across
+three phases, and a domain parked mid-fall returned every cubic meter:
+`toParticles 4.7188 = inFlight 0.0000 + toSheet 4.7188 + stranded 0.0000`.
+
+**Item 2, the GPU fluid collides against the volume.** The sim read one float
+per column, which is the heightfield assumption this record exists to break.
+`spanField.ts` packs what `volumeSurface.columnSpans` already reads into one
+flat array a storage buffer binds directly. A census over every world this repo
+builds gave the width: **one span, plus one more for every void with rock over
+it**, so a vertical shaft adds none and no measured world exceeds two.
+`SPAN_SLOTS = 2` packs a column into exactly one vec4 — the same number of
+buffer elements as the single float it replaced. The encoding needs no count: a
+short column pads by REPLICATING its last real pair, so "take the first slot
+whose floor is at or below y, else the last" resolves with no length, no branch
+and no second buffer, identically on the CPU and in TSL. The lateral wall then
+comes free, because the bilinear floor climbs from a tunnel floor to the
+hillside inside one cell and its tangent plane points back into the passage. Two
+bugs came with it, and the second is the one to remember: **capping the vertical
+lift at one cell is a cliff**, and under a dam head 2,400 of 100,000 particles
+slipped past it into rock. The fix asks the SURFACE, not the depth — `nrm.y`
+near 1 is a floor and clamps vertically at any depth, near 0 is a wall and the
+only honest response is to push out of it. Measured on the real GPU: about
+**10,000 particles in a void with rock over it**, held for 35 simulated seconds,
+the adit entered at one mouth and discharging at the other, at **+0.06 ms per
+frame (+2.7%)**.
+
+**Item 3, the fill runs in a worker.** `volumeBubbleCore.ts` holds the whole
+build as pure functions — fill, datum capture, slab plan, slab mesh, rim blend,
+transfer lists — with no worker, no three.js and no `GroundWorld` in it, so
+vitest exercises all of it. `VoxelVolume.snapshot()` is what makes the crossing
+cheap: the storage is an array of brick objects, which is exactly what
+structured clone is worst at, so it flattens to two `Uint8Array`s — one byte per
+brick, then the cells of every allocated brick concatenated in ascending brick
+index. Order is implied, so no index table travels, and **nothing is cloned**:
+every buffer is named in the transfer list. There is ONE owner and never two —
+the worker fills, transfers, and is done; the main thread's `fromSnapshot`
+produces the only live copy, so no edit channel and no second source of truth
+can drift. Slabs are delivered in order of distance from the bubble's vertical
+middle, where the terrain surface is, so the ground under the player is drawn
+while the buried rock is still being walked. The slab size is a draw-call
+decision and was measured: 64³ ships at 78 draw calls with the first ground
+visible 37 ms in. **The main thread's entire share of a 256³ bubble is 28 ms, in
+pieces of at most 1.1 ms**, against roughly 2.9 seconds of hard block before.
+
+**Item 4, the volume is in the live world.** `VolumeGroundBubble` mounts in
+`World3DScene` under the ground profile, builds a 64 m / 25 cm bubble around the
+player from the same `GroundWorld` the streamed terrain meshes, and rebuilds
+when the player has walked a quarter of the extent. **The seam is geometric and
+needs nothing from the renderer.** The fill height is offset by radius: inside
+24 m the bubble is lifted 1.2 cells (30 cm), because the fill makes a column
+solid up to `floor(...)` and the drawn surface therefore lands up to one cell
+below the height it was filled from; over the last 8 m the lift ramps down
+through zero to −1.2 m, so the rim and its cut wall finish under the terrain.
+What the camera sees is the higher of two continuous surfaces, and that is
+continuous. Measured on cell 1240, the hard mountain case: 24,344 core columns,
+mean +0.283 m, worst +0.155 m, **0 columns below the terrain**. The band where a
+depth fight is even possible is about 0.5 m of radius wide. Cost on the page:
+about 60 draw calls and 539,000 triangles.
+
+### Three lessons worth more than the code
+
+**Ledger honesty: a term that prints only when it is non-zero teaches the reader
+to stop looking for it.** Every water figure on `?step=volume` prints at all
+times, including the particles term and the unpictured clause, and including
+"0.0" — because "0.0" and "not measured" must not look the same. The same
+principle caught a subtler fault: the handoff had to run BEFORE the transit
+ledger splits the field, not after, or one frame of particle volume would be
+counted in the sheet AND in the domain — and the printed sum would still have
+been right, which is exactly what would have let it survive. A picture must be
+honest by the same rule: film-covered cells count as pictured only to two cells
+of depth, so "0.0 m³ unpictured" over a thousand invisible cubic meters is now
+structurally impossible.
+
+**A dead kernel is fast.** The first cost measurement for item 2 reported +97%
+and was garbage. The "before" variant emitted invalid WGSL, every dispatch was
+dropped in silence, and four rounds of ablation chased a cost that did not
+exist. Invalid WGSL produces a silent no-op plus an entry in the device error
+list — never a JS exception. **Never report a GPU number unless the water moved
+in the same run and the device error list is empty.** The harness refuses to
+print one otherwise.
+
+**The height a surface DRAWS is not the height it STORES.** `groundSurfaceY`
+interpolates the 1.524 m cell grid; the streamed mesh samples that on an 8 m
+lattice and draws flat triangles between. Over one bubble footprint the two
+differ by mean 0.26 m and up to 1.30 m, so a bubble built from the detail
+surface carries relief the world around it does not have, and tears at its edge.
+`streamedTerrainSurfaceY` reproduces the lattice exactly. The first version of
+it interpolated the lattice quad BILINEARLY, with a comment arguing the error
+was far below the 25 cm quantization — true on a hillside, and wrong on a
+mountain, where eight meters of relief sit inside one 8 m quad. **The first live
+capture came back perforated**, a lace of holes with pale terrain poking
+through. The sampler picks its triangle by `fx + fz` and evaluates that plane
+now: the same arithmetic cost, exact instead of nearly right, 0.00% holes.
+
+### One shader, one copy
+
+The substance ground material grew over nine critic rounds inside
+`PreviewVolumeGround.tsx`. The live world draws the same voxels, so the material
+moved to `src/components/World3D/terrain/substanceGroundMaterial.ts` and both
+surfaces call it. Two copies of a shader that is judged by eye cannot be kept in
+step, and the first divergence would be a fault nobody could see, because both
+pictures would look plausible.
+
+### What is still open
+
+**Item 5, sparse compute, is unchanged and is still the route out of 25 cm.**
+Brick allocation on the GPU, dispatched over a live list of bricks that can hold
+water, restores 64 m at 12 cm for roughly 100 MB.
+
+**The bubble is the wrong color.** The join is geometrically seamless and
+tonally a hard edge: the material's top band is the fixed `DEFAULT_STACK`
+(forest litter) while the streamed terrain is biome-tinted, so a dark disc sits
+on a pale mountain. Either the bubble imitates the heightfield — build the band
+stack per column from `BIOME_GROUND`, which exists for this — or the heightfield
+imitates the bubble, because the substance registry is the more honest ground
+description. They point in opposite directions and the second is a look
+decision. Remy's call.
+
+**69% of the bubble's triangles are a seal nobody can see.** Of 686,120
+triangles, 472,712 are the outer boundary cap. It is drawn because this record
+holds a hard-won lesson about an unsealed volume, and that will not be quietly
+re-opened. It can go if a camera can never get below grade near the player, or
+it disappears entirely if the bubble stops being a cube and becomes 64 m wide by
+about 16 m tall.
+
+**0.5% of GPU particles sit inside rock at a bore wall.** Transient, about 90%
+within one cell of the boundary, worst case five cells, zero on the CPU twin.
+The options are to leave it (a 25 cm step is already an accepted limit here and
+nothing is visible in any frame), to widen the standoff at the cost of tunnel
+width, or to give the wall a real lateral test — which would be the first place
+this design stops being one rule.
+
+**Water inside a tunnel cannot be pictured yet.** The screen-space surface
+shades against what is behind the water, so with rock in front it shows nothing;
+the particle look shows the body plainly but only with the rock hidden. The
+answer is a section cut through the volume mesh, so rock and the water inside it
+appear in one frame. That is a look decision and new machinery.
+
+**Particles are the splash, not the fall.** At 0.5 m spacing a particle is
+0.031 m³, so a 1,200 budget holds 37 m³ against roughly 600 m³ in transit down a
+100 m shaft. Coarser particles carry more and read less like droplets. What the
+particles should BE is Remy's call.
+
+**Smaller open calls, recorded so they are not re-derived:** the rim notches
+steep faces and wants a slope-aware ramp; the player avatar plants on a third
+surface again (`groundSurfaceY`) and should move onto `voxelCollide`;
+`SPAN_SLOTS` is 2 and stacked passages would want 4; the visual blend where
+particles meet the sheet has never been judged by eye; and the volume sandbox
+loses its carved world to any fleet edit of its import graph, because Vite Fast
+Refresh rebuilds the `useMemo` caches — a tripwire logs the cause now, but
+persisting the world across a refresh is not built.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/adr/0002-volume-ground-and-gpu-fluid.md","sha256WithoutMarker":"3b9fc85c25c0481fe0edc99223afb951e46d75b4b5a1f743909396f7fce0c3db","markedAtUtc":"2026-08-09T20:24:28.240Z"} -->

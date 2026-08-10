@@ -306,3 +306,5 @@ it('style never moves walls: same seed under 3 styles ⇒ identical floors/walls
 - **Determinism:** solver RNG-free; `resolveStyle` fixed 3-draw stream; footprint mass emission adds zero draws (v1 A8 golden guards it).
 - **Type consistency:** `FootprintMass`/`RoofPlan`/`StyleResolved` defined once (Task 1), consumed by 3/4/5/6; `ClimateClass` defined in Task 2, used by Task 7's biome table.
 - **Flagged coordination point:** `StyleContext.cultureType` vs the 1A-reserved `cultureId` field — Task 4 names the reconciliation explicitly; the two plans touching `blueprintTypes.ts`/`generateBuilding.ts` must sequence those tasks (parallel-track note at top).
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/plans/2026-07-07-building-generator-v2-phase1b-roofscapes.md","sha256WithoutMarker":"b4ed76e2eac56ea318d8c44c4520437fa092f1fbba0bbe34c4707b02b25f4f93","markedAtUtc":"2026-08-09T20:22:07.614Z"} -->

@@ -125,4 +125,4 @@ The glossary-rules coverage standard remains:
 4. Do not use the full `Rules Glossary` category size as proof of canonical rules
    coverage.
 
-<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/glossary/GLOSSARY_RELEVANT_RULES_TARGET_SET.md","sha256WithoutMarker":"5ac0b8e98c290f4b24bfc97919f0af90ea18cfbabe469485952ae2559c1a12d7","markedAtUtc":"2026-06-25T22:29:38.307Z"} -->
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/glossary/GLOSSARY_RELEVANT_RULES_TARGET_SET.md","sha256WithoutMarker":"329f31fc7c0f1dc4f0d171dc52215e1e85185e209863878057b5f3789e4915e0","markedAtUtc":"2026-08-09T20:14:15.534Z"} -->

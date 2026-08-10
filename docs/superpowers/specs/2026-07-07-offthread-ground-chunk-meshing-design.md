@@ -161,3 +161,5 @@ drop-in loader swap.
   running game. Blocked this attempt by dummy-party state (no entry cell); no
   errors came from the change, and the worker meshed a real chunk off-thread in
   a browser.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/specs/2026-07-07-offthread-ground-chunk-meshing-design.md","sha256WithoutMarker":"2a70bfd4df3ee06bd6f5eafdf562e7021aab835417eb44286a4ac78eb508622e","markedAtUtc":"2026-08-09T20:24:29.253Z"} -->

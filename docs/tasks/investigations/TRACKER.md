@@ -33,4 +33,4 @@ Last updated: 2026-06-25
 - Keep active rows with owner, evidence, and next proof action.
 - Keep in-project gaps in `GAPS.md` when they are durable and specific to this cluster.
 
-<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/investigations/TRACKER.md","sha256WithoutMarker":"d519129b6037f6292998d7c81bdad761df93d13857cea696a9f43bdc3f519b72","markedAtUtc":"2026-06-25T22:29:38.637Z"} -->
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/investigations/TRACKER.md","sha256WithoutMarker":"8ac4809ba9df3cdf71b63ec96b17197b446dd83bcdd911ff6cb937da700275fd","markedAtUtc":"2026-08-09T20:14:15.837Z"} -->

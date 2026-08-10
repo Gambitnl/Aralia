@@ -491,3 +491,5 @@ Expected: new skill files and `tools/testkit/` show as untracked/modified; nothi
 - [ ] **Step 4: Report to the user**
 
 Send the smoke table + screenshots and the perf findings. Ask (via AskUserQuestion) whether to `--promote` these runs as the initial baselines.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/plans/2026-07-14-testkit-devtools-toolkit.md","sha256WithoutMarker":"00501b925f7872a0ca9b76a4c2b48d877c77178134c962a60e3eb07353cd08da","markedAtUtc":"2026-08-09T20:23:18.246Z"} -->

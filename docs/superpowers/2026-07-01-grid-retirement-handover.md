@@ -161,3 +161,5 @@ errors) is theirs, not this program's — filter it out when typechecking.
 - Grid gone: `grep -rnE "MAP_GRID_SIZE|SUBMAP_DIMENSIONS|\.mapCoordinates|subMapCoordinates" src --include=*.ts --include=*.tsx | grep -v __tests__`
   → only comment lines should return.
 - Live: run the app, cast a spell in different biomes, read the material context.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/2026-07-01-grid-retirement-handover.md","sha256WithoutMarker":"f581c9ba6d76465d1bdf749560e89355990bc3cb7fb9b3bf6ef68047bd52149d","markedAtUtc":"2026-08-09T20:24:28.245Z"} -->

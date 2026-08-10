@@ -76,3 +76,5 @@ For each surface: navigate, wait for ready, count console errors, capture a scre
 - CI integration.
 - Subagent dispatch for heavy runs (add later if token cost bites).
 - Chrome extension management and `--experimentalMemory` flags; the standard MCP heap tools cover current needs.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/specs/2026-07-14-testkit-devtools-toolkit-design.md","sha256WithoutMarker":"4639eee8cef94d75521ce13522c4bcff59e8f60cef71c5d9796e3a21e9dcd171","markedAtUtc":"2026-08-09T20:24:30.600Z"} -->

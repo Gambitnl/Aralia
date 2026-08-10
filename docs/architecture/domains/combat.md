@@ -85,4 +85,4 @@ Death-saving throws, unconscious recovery, and concentration drop on 0 HP are im
 - Which combat docs should point to battle-map integration explicitly instead of implying combat owns all map rendering concerns?
 - Which combat rule surfaces need tighter current-state documentation for reactions, bonus actions, and sustained actions?
 
-<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/architecture/domains/combat.md","sha256WithoutMarker":"9cf3ca8155f893a9866b1311279c496223a821c699e28a43ee618a5ba283735a","markedAtUtc":"2026-06-26T00:12:35.432Z"} -->
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/architecture/domains/combat.md","sha256WithoutMarker":"7be8a201694574b322e2ea06afe9477155be3aba7764cad941367ed91ef18b33","markedAtUtc":"2026-08-09T20:14:15.936Z"} -->

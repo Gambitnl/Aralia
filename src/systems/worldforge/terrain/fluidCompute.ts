@@ -1,5 +1,19 @@
 /**
- * @file fluidCompute.ts — the fluid solver as a GPU compute pass.
+ * @file fluidCompute.ts — the fluid solver as a DENSE GPU compute pass.
+ *
+ * SUPERSEDED, 2026-08-10 (IMPL-8). `?step=fluid` Grid mode now runs
+ * `fluidBrickCompute.ts`: the same gather arithmetic over a sparse pool of
+ * 8-cubed brick slots, which holds 64 m at 12.5 cm in 113 MB where this file
+ * needs 320 MB for 64 m at 25 cm. A census of this very scene, read off the
+ * live GPU, found 0.23% of its cells carrying water.
+ *
+ * Still live from this file: `buildSurfaceSmoothPass`, which is resolution
+ * agnostic and shared, and the BUBBLE_* constants, which `fluidProofTerrain.ts`
+ * uses to build the ground both water proofs stand on. Everything else —
+ * `createFluidBuffers`, `buildFluidStep`, `buildPourStep`, `buildClearStep`,
+ * `buildColumnSurfacePass`, `swapFluidBuffers`, `fillSolidFromVolume` — has no
+ * caller left and is kept only as the measured baseline the ADR records. It
+ * should be deleted when ADR 0002's item 5 is closed.
  *
  * WHY THIS EXISTS, IN NUMBERS
  *

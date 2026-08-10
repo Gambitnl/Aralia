@@ -1623,4 +1623,4 @@ These entries continue directly from the same official D&D Beyond glossary page:
 - Notes:
   - Present as a standalone combat-resolution rule.
 
-<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/glossary/DND_BEYOND_RULES_GLOSSARY_FIRST_PASS_AUDIT.md","sha256WithoutMarker":"34da47a2fbb5878f367638a2eaddc3958c5c966a50c6cb07576151dcb76634f8","markedAtUtc":"2026-06-25T22:29:38.308Z"} -->
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/glossary/DND_BEYOND_RULES_GLOSSARY_FIRST_PASS_AUDIT.md","sha256WithoutMarker":"7f8b7491b4aeed7595614c477f4c11d9f9e956b40ff2b24b2ece8f749f4a7e7e","markedAtUtc":"2026-08-09T20:14:15.536Z"} -->

@@ -53,3 +53,5 @@ the adapter records provenance for those unmapped fields.
 - G6: save/load has no dedicated crafting-state migration/backfill path for
   older/new shapes (`saveLoadService.ts`, `types/crafting.ts`,
   `initialState.ts`).
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/specs/2026-07-14-absorbed-crafting.md","sha256WithoutMarker":"d5dbfb9e99d6cc3dc5d14c5819cbddd65ea0eb84a6d20ff43c067c914f62602b","markedAtUtc":"2026-08-09T20:24:29.263Z"} -->

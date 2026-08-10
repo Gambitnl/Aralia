@@ -570,6 +570,22 @@ const BattleMapDemo: React.FC<BattleMapDemoProps> = ({
   const [characters, setCharacters] = useState<CombatCharacter[]>(
     initialSetup.positionedCharacters,
   );
+  // Design Preview may replace only its explicitly marked Dev Player while a
+  // board is live. Keep everyone else and the player's square untouched so a
+  // quick class/race/level experiment does not restart the encounter.
+  useEffect(() => {
+    const devPlayer = party.find((member) => member.devPlaytest);
+    if (!devPlayer) return;
+
+    const freshCombatant = createPlayerCombatCharacter(devPlayer, spellsRecord);
+    setCharacters((previousCharacters) => previousCharacters.map((character) => {
+      if (character.id !== devPlayer.id) return character;
+      return {
+        ...freshCombatant,
+        position: character.position,
+      };
+    }));
+  }, [party, spellsRecord]);
   const [sheetCharacter, setSheetCharacter] = useState<PlayerCharacter | null>(
     null,
   );
@@ -1129,7 +1145,7 @@ const BattleMapDemo: React.FC<BattleMapDemoProps> = ({
           <PartyDisplay
             characters={characters}
             onCharacterSelect={handleCharacterSelect}
-            onCharacterInspect={() => {}}
+            onCharacterInspect={handleSheetOpen}
             currentTurnCharacterId={turnManager.turnState.currentCharacterId}
             autoCharacters={autoCharacters}
             onToggleAuto={handleToggleAuto}

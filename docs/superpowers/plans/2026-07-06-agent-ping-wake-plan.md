@@ -101,3 +101,5 @@ machines, and any push to a truly-exited process that left no relaunch recipe.
 1. Resolve the open question (test Path B on a throwaway session).
 2. `ping <handle>` on Agora: look up identity, actuate SSE-push + headless-relaunch cases.
 3. The desktop-thread case via the chosen bridge (relay agent, or CLI-resume).
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/plans/2026-07-06-agent-ping-wake-plan.md","sha256WithoutMarker":"88fdf59e1b2c07c845897fdaa7e322c0eacb832b9681e8ddc7e7b5734d6e9b31","markedAtUtc":"2026-08-09T20:24:24.655Z"} -->

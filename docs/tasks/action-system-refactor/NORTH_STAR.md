@@ -109,4 +109,4 @@ Out of scope:
 - `docs/superpowers/specs/2026-07-14-absorbed-command-factory-runtime.md`
 - `docs/architecture/domains/commands.md`
 
-<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/action-system-refactor/NORTH_STAR.md","sha256WithoutMarker":"763863d64f2d72e73848939f58a4ec6e5e0c9f7b13cde9decb11013d99aae5e2","markedAtUtc":"2026-06-25T22:29:38.299Z"} -->
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/action-system-refactor/NORTH_STAR.md","sha256WithoutMarker":"e4219480bcc796ba09d560b61f2dda69f2ece2dedc12a31aa0766fda5b66464a","markedAtUtc":"2026-08-09T20:14:15.522Z"} -->

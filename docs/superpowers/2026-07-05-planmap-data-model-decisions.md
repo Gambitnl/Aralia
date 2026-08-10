@@ -57,3 +57,5 @@ presentation can drop the visible grid entirely) without rewriting any data.
   open item in the plan-map v3 design and not yet built.
 
 Ready to archive.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/2026-07-05-planmap-data-model-decisions.md","sha256WithoutMarker":"a075d5ee0ce2e5c43240f7ab476c800cc0995d789a8abe2e12b3980514ebff88","markedAtUtc":"2026-08-09T20:23:18.425Z"} -->

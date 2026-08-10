@@ -120,3 +120,5 @@ recovery routing). W02 proofs 2026-07-11: dependency-down opening retry,
 `aralia-1783789990974`, 758 burgs), keyboard descent to Cell #26, World3D
 performance recoveries, hostile-route encounter handoffs (Wolf at 2761,
 two-Bandit at halt 2371), ferry water-rejection and honest transport.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/specs/2026-07-14-absorbed-game-systems-audit.md","sha256WithoutMarker":"50964084ef6180544e0ec658f0aedd222a53dce9af0e932c0e2163f0f9bfd30d","markedAtUtc":"2026-08-09T20:23:18.401Z"} -->

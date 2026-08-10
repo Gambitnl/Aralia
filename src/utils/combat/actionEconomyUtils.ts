@@ -27,6 +27,7 @@ import { CombatCharacter, ActionEconomyState, AbilityCost, ActiveEffect, StatusE
 import { SpellSlots } from '../../types';
 import { resolveRacialSpellLimitedUseId } from '../character/characterUtils';
 import { isIncapacitated, isMovementBlocked } from './deathSaveUtils';
+import { isUnlimitedSpellSlotCombatant } from './combatUtils';
 
 const SPEED_ZERO_CONDITIONS = new Set(['grappled', 'paralyzed', 'petrified', 'restrained', 'unconscious']);
 
@@ -187,6 +188,11 @@ export function canAffordActionCost(character: CombatCharacter | undefined, cost
 
     const economy = character.actionEconomy;
     const castSource = cost.castSource;
+    // Preview-only Dev Player casting still needs the normal action, bonus
+    // action, reaction, and movement resources. It bypasses only spell-slot
+    // availability, so trying a high-level spell cannot weaken real casters.
+    const ignoresSpellSlotCaps = isUnlimitedSpellSlotCombatant(character)
+        && castSource?.type !== 'racial';
     const racialGrant = castSource?.type === 'racial'
         ? getRacialGrantForSpell(character, castSource.spellId)
         : undefined;
@@ -236,7 +242,7 @@ export function canAffordActionCost(character: CombatCharacter | undefined, cost
 
     // Leveled spells consume from the same action path, but also need an
     // available spell slot at the requested level.
-    if (cost.spellSlotLevel && cost.spellSlotLevel > 0) {
+    if (!ignoresSpellSlotCaps && cost.spellSlotLevel && cost.spellSlotLevel > 0) {
         if (!character.spellSlots) return false;
         const slotKey = `level_${cost.spellSlotLevel}` as keyof SpellSlots;
         const slot = character.spellSlots[slotKey];
@@ -337,7 +343,10 @@ export function consumeActionCost(character: CombatCharacter, cost: AbilityCost)
 
     // Spell slots are part of the same "pay the cost" operation, so a spell
     // cannot resolve and then restore the slot by replaying an older character.
-    if (cost.spellSlotLevel && cost.spellSlotLevel > 0 && newCharacter.spellSlots) {
+    // Spending an unlimited Dev Player spell leaves the slot pool intact while
+    // the action economy above remains spent. Ordinary combatants still follow
+    // the existing decrement path exactly.
+    if (!isUnlimitedSpellSlotCombatant(character) && cost.spellSlotLevel && cost.spellSlotLevel > 0 && newCharacter.spellSlots) {
         const slotKey = `level_${cost.spellSlotLevel}` as keyof SpellSlots;
         const currentSlot = newCharacter.spellSlots[slotKey];
         if (currentSlot && currentSlot.current > 0) {

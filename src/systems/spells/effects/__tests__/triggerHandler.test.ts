@@ -18,6 +18,9 @@ import { AoECalculator } from '@/systems/spells/targeting/AoECalculator'
 import type { CombatCharacter, Position } from '@/types/combat'
 import type { SpellEffect } from '@/types/spells'
 import type { Class } from '@/types/character'
+import sleetStorm from '../../../../../public/data/spells/level-3/sleet-storm.json'
+import spiritGuardians from '../../../../../public/data/spells/level-3/spirit-guardians.json'
+import evardsBlackTentacles from '../../../../../public/data/spells/level-4/evards-black-tentacles.json'
 
 const baseStats = {
   strength: 10,
@@ -266,6 +269,59 @@ describe('processAreaStartTurnTriggers', () => {
       dice: '2d6',
       damageType: 'Cold'
     })
+  })
+
+  it('expands area_entry_or_turn_start into entry and start-turn events', () => {
+    const effect = {
+      type: 'STATUS_CONDITION',
+      trigger: { type: 'area_entry_or_turn_start', frequency: 'every_time' },
+      condition: { type: 'always' },
+      statusCondition: { name: 'Prone', duration: { type: 'rounds', value: 1 } }
+    } as unknown as SpellEffect
+    const zone = makeZone([effect])
+    const occupant = makeCharacter({ x: 0, y: 0 })
+
+    expect(processAreaEntryTriggers([zone], occupant, { x: 0, y: 0 }, { x: 2, y: 0 }, 1)[0].triggerType)
+      .toBe('on_enter_area')
+    expect(processAreaStartTurnTriggers([zone], occupant, 1)[0].triggerType)
+      .toBe('on_start_turn_in_area')
+  })
+})
+
+describe('composite area end-turn triggers', () => {
+  it('expands area_entry_or_turn_end and emanation_entry_or_turn_end', () => {
+    const effects = (['area_entry_or_turn_end', 'emanation_entry_or_turn_end'] as const).map(type => ({
+      type: 'DAMAGE',
+      trigger: { type, frequency: 'every_time' },
+      condition: { type: 'always' },
+      damage: { dice: '1d6', type: 'Radiant' }
+    })) as unknown as SpellEffect[]
+    const zone = makeZone(effects)
+    const occupant = makeCharacter({ x: 0, y: 0 })
+
+    expect(processAreaEntryTriggers([zone], occupant, { x: 0, y: 0 }, { x: 2, y: 0 }, 1)).toHaveLength(2)
+    expect(processAreaEndTurnTriggers([zone], occupant, 1)).toHaveLength(2)
+  })
+})
+
+describe('live composite area records', () => {
+  it('runs current Sleet Storm, Evard, and Spirit Guardians payloads through area events', () => {
+    const sleetEffect = (sleetStorm as unknown as { effects: SpellEffect[] }).effects[0]
+    const evardEffects = (evardsBlackTentacles as unknown as { effects: SpellEffect[] }).effects.slice(0, 2)
+    const spiritEffect = (spiritGuardians as unknown as { effects: SpellEffect[] }).effects[0]
+    const occupant = makeCharacter({ x: 0, y: 0 })
+
+    const sleetZone = makeZone([sleetEffect])
+    expect(processAreaEntryTriggers([sleetZone], occupant, { x: 0, y: 0 }, { x: 2, y: 0 }, 1)).toHaveLength(1)
+    expect(processAreaStartTurnTriggers([sleetZone], occupant, 1)).toHaveLength(1)
+
+    const evardZone = makeZone(evardEffects)
+    expect(processAreaEntryTriggers([evardZone], occupant, { x: 0, y: 0 }, { x: 2, y: 0 }, 1)).toHaveLength(2)
+    expect(processAreaEndTurnTriggers([evardZone], occupant, 1)).toHaveLength(2)
+
+    const spiritZone = makeZone([spiritEffect])
+    expect(processAreaEntryTriggers([spiritZone], occupant, { x: 0, y: 0 }, { x: 2, y: 0 }, 1)).toHaveLength(1)
+    expect(processAreaEndTurnTriggers([spiritZone], occupant, 1)).toHaveLength(1)
   })
 })
 

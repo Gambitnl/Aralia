@@ -28,4 +28,4 @@ Last updated: 2026-06-26
 - Add a gap row in `GAPS.md` for any missing governance or ownership decision.
 - Keep this tracker focused on docs continuity; do not move runtime tasks here.
 
-<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/glossary/TRACKER.md","sha256WithoutMarker":"8bca265f43d053decd3cb5a0d6954aae9728125d85d832864e89d1485c94d162","markedAtUtc":"2026-06-25T23:48:24.816Z"} -->
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/glossary/TRACKER.md","sha256WithoutMarker":"ba471df04af2eb3fdc0f626d1599b6a7752990ac33ce0ecfe45db34cf1e6c548","markedAtUtc":"2026-08-09T20:14:15.531Z"} -->

@@ -59,4 +59,4 @@ widened 2026-07-01 to include the 2026-06-29 combat-oriented-opening path.
 The optional narrative-model preference cleanup is closed; `gemma4:12b` is now
 listed in the prose model preference chain used by `opening_situation`.
 
-<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/game-entry-situation/TRACKER.md","sha256WithoutMarker":"662e26cae9e7d0cf68cb170f2d3386ea9ca66fd6da1f37947fd6f5521fe9b80f","markedAtUtc":"2026-06-25T22:29:38.626Z"} -->
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/game-entry-situation/TRACKER.md","sha256WithoutMarker":"ae776720ea0aab8ccd8a8f5f960e0499f90dc8224a66d454468e37d1e0ad9865","markedAtUtc":"2026-08-09T20:14:15.795Z"} -->

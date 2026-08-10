@@ -332,3 +332,5 @@ actually composite can only be confirmed on real WebGPU hardware.
   tokens with selection/active rings, and a bottom-left **red MISSING list**
   naming exactly what is NOT yet ported. If bloom/vignette failed to construct,
   that line appears in the list.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/research/2026-07-04-webgpu-probe-report.md","sha256WithoutMarker":"445277dc1dbf6bd65919f58b70891f82b0e205d442d733cfc133d7e44d793a9c","markedAtUtc":"2026-08-09T20:24:24.661Z"} -->

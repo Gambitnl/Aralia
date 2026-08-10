@@ -136,3 +136,5 @@ the compass out.
 - Removing the compass / `subMapCoordinates` / the grid — Stage 6.
 - Multi-cell simultaneous render (more than current + prefetched neighbour) — only if the single
   prefetch proves insufficient.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/specs/2026-06-30-stage5-seamless-edges-design.md","sha256WithoutMarker":"2ad08aaabfe3e4d72829a76ae43ab61a78596ba0e1f8e82e0be29e38cd4e5457","markedAtUtc":"2026-08-09T20:24:29.244Z"} -->

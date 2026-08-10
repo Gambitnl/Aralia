@@ -53,3 +53,5 @@ Owns executable effect logic under `src/commands/effects`. Applies spell and abi
 ---
 
 Absorbed from `docs/projects/command-effects-runtime/` via absorption wave 2026-07-14. Source archive in git history.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/specs/2026-07-14-absorbed-command-effects-runtime.md","sha256WithoutMarker":"ec531a9c92dfd4bc78a0c8602a0dd24ce3a9c5f78ea544edc89d6441ef1fe912","markedAtUtc":"2026-08-09T20:22:07.601Z"} -->

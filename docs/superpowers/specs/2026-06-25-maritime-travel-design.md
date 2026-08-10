@@ -337,4 +337,4 @@ Mojibake fixed; 28/28 tests green. **Holding — no commits** (per 2026-06-26 de
 2am snapshot will capture the working tree). Reachability pass remains default-off pending
 the decision to enable it.
 
-<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/specs/2026-06-25-maritime-travel-design.md","sha256WithoutMarker":"a6b8a825fe1a438c847c43fd15ff4fd57d9050a893641fc09ed263da7dfc5bc1","markedAtUtc":"2026-06-25T23:38:33.387Z"} -->
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/specs/2026-06-25-maritime-travel-design.md","sha256WithoutMarker":"cfc74fcbbf8a231b504a6e5e4ebad10dda86055a4ff774ada82ffc8c14459e32","markedAtUtc":"2026-08-09T20:14:15.542Z"} -->

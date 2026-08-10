@@ -96,3 +96,5 @@ recipe with one camera.
 
 Mixamo clips (2), smooth weights (3), creature/plan skeletons + parts on bones (4),
 crowd bake + segment-renderer kill + wireframe answer (5).
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/plans/2026-07-18-entity-skeleton-pivot-slice1.md","sha256WithoutMarker":"b7a79c70e1a806c3b5c16a25f8e37bf9c26172f5fb82c842280321585ceb8627","markedAtUtc":"2026-08-09T20:24:24.660Z"} -->

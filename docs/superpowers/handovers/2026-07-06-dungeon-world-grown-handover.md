@@ -30,3 +30,5 @@
 ## Where Pillar 3 hooks in
 
 The 3D dungeon body (`buildDungeonScene`, WebGPU/TSL baked lighting — Gozzys tile reference in project memory) replaces the sealed door's "descent unlocks later": the entrance interaction hands off into the generated plan. The diegetic fog-of-war parchment consumes the same plan; `asOfYearsAgo` already supports honestly outdated bought maps. Multi-level descent (Pillar 4) extends `childSeedPath` from stairs/cellars already in the room vocabulary.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/handovers/2026-07-06-dungeon-world-grown-handover.md","sha256WithoutMarker":"cff2b05483f2006797c329fd4a392f6c8840bf25f7180e7205c6de87f4370664","markedAtUtc":"2026-08-09T20:24:28.249Z"} -->

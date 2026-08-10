@@ -25,4 +25,4 @@ Last updated: 2026-06-26
 - Route cross-project or unrelated findings to `docs/projects/GLOBAL_GAPS.md`.
 - Keep implementation behavior assumptions in code-owned project trackers; keep this folder for continuity and handoff.
 
-<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/ui-features/GAPS.md","sha256WithoutMarker":"0fb1a69bc3d68711a8122d3f6ac17b7180af6829030e62c523b833c4b384578f","markedAtUtc":"2026-06-25T22:29:38.628Z"} -->
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/ui-features/GAPS.md","sha256WithoutMarker":"e9ea30afb4239f007faf8f3d17aca6d597881be4283d131b23b157aa21ab8a4b","markedAtUtc":"2026-08-09T20:14:15.811Z"} -->

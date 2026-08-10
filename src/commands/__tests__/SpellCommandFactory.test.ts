@@ -476,6 +476,50 @@ describe('SpellCommandFactory', () => {
       expect(commands).toHaveLength(0)
     })
 
+    it('defers generic composite area rows but preserves initial-cast rows', async () => {
+      const delayedSleet = createMockSpell('sleet-storm-composite', {
+        effects: [{
+          type: 'STATUS_CONDITION',
+          trigger: {
+            type: 'area_entry_or_turn_start',
+            areaTiming: ['enters_area_first_time_on_turn', 'starts_turn_in_area']
+          },
+          condition: { type: 'always' },
+          statusCondition: { name: 'Prone', duration: { type: 'rounds', value: 1 } }
+        }]
+      })
+      const initialEvard = createMockSpell('evards-initial-composite', {
+        effects: [{
+          type: 'DAMAGE',
+          trigger: {
+            type: 'area_entry_or_turn_end',
+            areaTiming: ['initial_area_creation', 'creature_enters_area', 'creature_ends_turn_in_area']
+          },
+          condition: { type: 'always' },
+          damage: { dice: '3d6', type: 'Bludgeoning' }
+        }]
+      })
+
+      const delayedCommands = await SpellCommandFactory.createCommands(
+        delayedSleet,
+        mockCaster,
+        [mockTarget],
+        1,
+        createMockGameState()
+      )
+      const initialCommands = await SpellCommandFactory.createCommands(
+        initialEvard,
+        mockCaster,
+        [mockTarget],
+        1,
+        createMockGameState()
+      )
+
+      expect(delayedCommands).toHaveLength(0)
+      expect(initialCommands).toHaveLength(1)
+      expect(initialCommands[0]).toBeInstanceOf(DamageCommand)
+    })
+
     it('should not create immediate commands for bare scheduled triggers', async () => {
       // turn_start/turn_end spell effects are registered into the scheduled
       // effect runtime by useAbilitySystem and should not fire at cast time.

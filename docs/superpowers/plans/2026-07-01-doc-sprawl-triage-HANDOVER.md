@@ -163,3 +163,5 @@ Leave it alone unless Remy asks you to pick one of those threads up specifically
 | `docs/projects/PROJECT_VERIFICATION_SCHEMA.md` | T/B/V/M/D evidence vocabulary to reuse |
 | `tools/agora/ORCHESTRATOR.md` | Template for the campaign-orchestrator playbook to write |
 | `tools/agora/PROTOCOL.md` | Agora API + worker etiquette |
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/plans/2026-07-01-doc-sprawl-triage-HANDOVER.md","sha256WithoutMarker":"4993eabcd1a38c8dec3c8f8d46f5148640c59690db7e8d7ce9f0c87506066da0","markedAtUtc":"2026-08-09T20:23:18.429Z"} -->

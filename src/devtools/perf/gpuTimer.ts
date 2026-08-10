@@ -66,10 +66,16 @@ interface TimerExt {
  */
 const POOL_SIZE = 8;
 
+/** A GPU time, and the frame it belongs to. */
+export interface GpuResult {
+  frame: number;
+  ms: number;
+}
+
 export class GpuFrameTimer {
   private readonly free: WebGLQuery[] = [];
-  private readonly inFlight: WebGLQuery[] = [];
-  private open: WebGLQuery | null = null;
+  private readonly inFlight: { query: WebGLQuery; frame: number }[] = [];
+  private open: { query: WebGLQuery; frame: number } | null = null;
   private disposed = false;
 
   private constructor(
@@ -116,7 +122,7 @@ export class GpuFrameTimer {
    * @returns milliseconds for every frame whose result arrived since the last
    *   call. Usually zero or one, occasionally more after a hitch.
    */
-  beginFrame(): number[] {
+  beginFrame(frame = 0): GpuResult[] {
     if (this.disposed) return [];
 
     const results = this.collect();
@@ -125,7 +131,7 @@ export class GpuFrameTimer {
     // query per frame while results lagged would leak GPU objects steadily.
     const next = this.free.pop() ?? (this.total() < POOL_SIZE ? this.gl.createQuery() : null);
     if (next) {
-      this.open = next;
+      this.open = { query: next, frame };
       this.gl.beginQuery(this.ext.TIME_ELAPSED_EXT, next);
     }
 
@@ -161,20 +167,20 @@ export class GpuFrameTimer {
    * A disjoint GPU invalidates EVERY in-flight result, not only the newest, so
    * the whole queue is recycled without reporting any of it.
    */
-  private collect(): number[] {
+  private collect(): GpuResult[] {
     if (this.gl.getParameter(this.ext.GPU_DISJOINT_EXT) === true) {
-      while (this.inFlight.length > 0) this.free.push(this.inFlight.shift()!);
+      while (this.inFlight.length > 0) this.free.push(this.inFlight.shift()!.query);
       return [];
     }
 
-    const out: number[] = [];
+    const out: GpuResult[] = [];
     while (this.inFlight.length > 0) {
-      const q = this.inFlight[0];
-      if (this.gl.getQueryParameter(q, this.gl.QUERY_RESULT_AVAILABLE) !== true) break;
-      const ns = this.gl.getQueryParameter(q, this.gl.QUERY_RESULT) as number;
+      const { query, frame } = this.inFlight[0];
+      if (this.gl.getQueryParameter(query, this.gl.QUERY_RESULT_AVAILABLE) !== true) break;
+      const ns = this.gl.getQueryParameter(query, this.gl.QUERY_RESULT) as number;
       this.inFlight.shift();
-      this.free.push(q);
-      if (typeof ns === 'number' && Number.isFinite(ns) && ns >= 0) out.push(ns / 1e6);
+      this.free.push(query);
+      if (typeof ns === 'number' && Number.isFinite(ns) && ns >= 0) out.push({ frame, ms: ns / 1e6 });
     }
     return out;
   }
@@ -188,10 +194,10 @@ export class GpuFrameTimer {
     this.disposed = true;
     if (this.open) {
       this.gl.endQuery(this.ext.TIME_ELAPSED_EXT);
-      this.free.push(this.open);
+      this.free.push(this.open.query);
       this.open = null;
     }
-    for (const q of this.inFlight) this.gl.deleteQuery(q);
+    for (const q of this.inFlight) this.gl.deleteQuery(q.query);
     for (const q of this.free) this.gl.deleteQuery(q);
     this.inFlight.length = 0;
     this.free.length = 0;

@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * This file appears to be an ISOLATED UTILITY or ORPHAN.
  *
- * Last Sync: 21/07/2026, 14:19:10
+ * Last Sync: 09/08/2026, 16:02:49
  * Dependents: None (Orphan)
- * Imports: 85 files
+ * Imports: 84 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -475,7 +475,7 @@ const App: React.FC = () => {
   // Keep the check side-effect active; UI wiring can consume this state later.
   const {
     ollamaWarningDismissed: _ollamaWarningDismissed,
-    setOllamaWarningDismissed: _setOllamaWarningDismissed,
+    setOllamaWarningDismissed,
   } = useOllamaCheck(dispatch);
 
   const addMessage = useCallback(
@@ -2561,7 +2561,11 @@ const App: React.FC = () => {
           {/* Opening-situation entry gate (GAME-ENTRY-SITUATION): runs the
               generator and renders the generating overlay / honest model block. */}
           {gameState.phase === GamePhase.PLAYING && (
-            <OpeningSituationGate gameState={gameState} dispatch={dispatch} />
+            <OpeningSituationGate
+              gameState={gameState}
+              dispatch={dispatch}
+              onOllamaDontShowAgain={setOllamaWarningDismissed}
+            />
           )}
 
           {/* Modal Manager: Handles all overlays (Inventory, Map, Logs, etc.) */}

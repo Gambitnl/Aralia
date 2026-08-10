@@ -62,3 +62,5 @@ These are logged-only items — none block anything:
 - **No branches or worktrees.** Work only in master. Coordinate concurrent sessions through Agora locks.
 - **Determinism.** All randomness flows from named seed streams off the dungeon's seed path (for example the `'history'` and `'sprawl'` streams). Never add an RNG draw that shifts existing streams; new draws get their own stream.
 - **Looks-first with approval gates.** Any visual change to layouts or the sheet gets mocked and approved by Remy before build, and every visual slice gets rendered and eyeballed — green tests alone are not enough.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/handovers/2026-07-06-dungeon-history-first-handover.md","sha256WithoutMarker":"8dfd33ed5e1b60cb1d3ae4a7fc40b77592e388f96645db564ae176a4012efab3","markedAtUtc":"2026-08-09T20:24:28.248Z"} -->

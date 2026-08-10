@@ -41,3 +41,5 @@ D-G2 (persist roll history beyond the session) is now unblocked if wanted.
 
 - Seeded silent-path RNG API landed and the legacy roller aligned (D-2 partial, 2026-06-08):
   `src/utils/combat/combatUtils.ts`, `src/systems/spells/mechanics/DiceRoller.ts`.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/specs/2026-07-14-absorbed-dice.md","sha256WithoutMarker":"eb4c390ee33053dc39817820abd7c4baf1b5de3e931d9a8e098dc4422979ee21","markedAtUtc":"2026-08-09T20:24:24.664Z"} -->

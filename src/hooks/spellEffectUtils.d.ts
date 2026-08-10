@@ -21,6 +21,8 @@ import type { RecurringMechanic } from '../types/spellEffectTypes';
  */
 export declare const getRecurringMechanics: (effect: Pick<SpellEffect, "recurringMechanics">) => RecurringMechanic[];
 export declare const getRuntimeRecurringMechanics: (effect: Pick<SpellEffect, "recurringMechanics">) => RecurringMechanic[];
+/** Returns true when a composite area effect should wait for a later zone event. */
+export declare const isDeferredAreaZoneTrigger: (effect: SpellEffect) => boolean;
 export declare const hasPersistentAreaTrigger: (effect: SpellEffect) => boolean;
 export declare const isTerrainEffect: (effect: SpellEffect) => effect is TerrainEffect;
 export declare const hasScheduledEffectTrigger: (effect: SpellEffect) => boolean;

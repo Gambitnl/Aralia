@@ -33,7 +33,10 @@ export interface RayHit {
 
 export interface RayTarget {
   volume: VoxelVolume;
+  /** Cell size on X and Z, meters. */
   cellM: number;
+  /** Cell size on Y, meters. Defaults to `cellM` — see `SurfaceTarget`. */
+  cellHM?: number;
   originM: readonly [number, number, number];
 }
 
@@ -52,7 +55,9 @@ export function raycastVoxels(
   maxDistanceM = 200,
 ): RayHit | null {
   const { volume, cellM } = target;
+  const cellHM = target.cellHM ?? cellM;
   const n = volume.cells;
+  const nY = volume.cellsY;
 
   const len = Math.hypot(dir[0], dir[1], dir[2]);
   if (len === 0) return null;
@@ -60,9 +65,22 @@ export function raycastVoxels(
   const dy = dir[1] / len;
   const dz = dir[2] / len;
 
+  /* The march runs on a lattice whose cells are no longer cubes, so the
+   * traversal parameter `t` is now WORLD METERS and the direction is carried
+   * in CELLS PER METER, one rate per axis. That is the whole adaptation: with
+   * cubic cells `t` was cells and every distance was multiplied by `cellM` on
+   * the way out, and the two forms agree exactly there.
+   *
+   * Doing it the other way round — keeping `t` in cells and scaling only the
+   * Y index — would have made `distanceM` a lie on any ray with vertical
+   * component, and every caller of this file trusts that number. */
+  const rx = dx / cellM;
+  const ry = dy / cellHM;
+  const rz = dz / cellM;
+
   // Ray position in cell units, where cell (i,j,k) spans [i, i+1).
   const px = (originM[0] - target.originM[0]) / cellM;
-  const py = (originM[1] - target.originM[1]) / cellM;
+  const py = (originM[1] - target.originM[1]) / cellHM;
   const pz = (originM[2] - target.originM[2]) / cellM;
 
   /* Skip the empty space before the volume.
@@ -73,7 +91,7 @@ export function raycastVoxels(
    * the cost of a pick depend on the view rather than on the volume. The slab
    * test below jumps straight to the entry face. */
   let tMin = 0;
-  let tMax = maxDistanceM / cellM;
+  let tMax = maxDistanceM;
   /* Which face the ray came in through, if it came in from outside.
    *
    * This is needed because the entry cell may already be solid — a ray fired
@@ -83,9 +101,10 @@ export function raycastVoxels(
   let entryAxis = -1;
   let entryStep = 0;
   const slab = (p: number, d: number, axis: number): boolean => {
-    if (Math.abs(d) < 1e-12) return p >= 0 && p <= n; // parallel: inside or never
+    const lim = axis === 1 ? nY : n;
+    if (Math.abs(d) < 1e-12) return p >= 0 && p <= lim; // parallel: inside or never
     let t0 = (0 - p) / d;
-    let t1 = (n - p) / d;
+    let t1 = (lim - p) / d;
     if (t0 > t1) [t0, t1] = [t1, t0];
     if (t0 > tMin) {
       tMin = t0;
@@ -95,17 +114,17 @@ export function raycastVoxels(
     tMax = Math.min(tMax, t1);
     return tMin <= tMax;
   };
-  if (!slab(px, dx, 0) || !slab(py, dy, 1) || !slab(pz, dz, 2)) return null;
+  if (!slab(px, rx, 0) || !slab(py, ry, 1) || !slab(pz, rz, 2)) return null;
 
   // Nudge inside so the entry cell is unambiguous on an exact face hit.
   const t0 = tMin + 1e-6;
   if (t0 > tMax) return null;
 
-  let x = Math.floor(px + dx * t0);
-  let y = Math.floor(py + dy * t0);
-  let z = Math.floor(pz + dz * t0);
+  let x = Math.floor(px + rx * t0);
+  let y = Math.floor(py + ry * t0);
+  let z = Math.floor(pz + rz * t0);
   x = Math.min(n - 1, Math.max(0, x));
-  y = Math.min(n - 1, Math.max(0, y));
+  y = Math.min(nY - 1, Math.max(0, y));
   z = Math.min(n - 1, Math.max(0, z));
 
   /* The entry cell may already be solid, and there are two ways that happens.
@@ -128,10 +147,10 @@ export function raycastVoxels(
     const t = fromOutside ? tMin : 0;
     return {
       pointM: fromOutside
-        ? [originM[0] + dx * t * cellM, originM[1] + dy * t * cellM, originM[2] + dz * t * cellM]
+        ? [originM[0] + dx * t, originM[1] + dy * t, originM[2] + dz * t]
         : [originM[0], originM[1], originM[2]],
       normal,
-      distanceM: t * cellM,
+      distanceM: t,
       cell: [x, y, z],
       material: volume.get(x, y, z),
     };
@@ -144,22 +163,22 @@ export function raycastVoxels(
   // Distance along the ray to the next cell boundary on each axis, and the
   // distance between boundaries. Infinity handles an axis the ray never crosses.
   const big = Number.POSITIVE_INFINITY;
-  const tDeltaX = Math.abs(dx) < 1e-12 ? big : Math.abs(1 / dx);
-  const tDeltaY = Math.abs(dy) < 1e-12 ? big : Math.abs(1 / dy);
-  const tDeltaZ = Math.abs(dz) < 1e-12 ? big : Math.abs(1 / dz);
+  const tDeltaX = Math.abs(rx) < 1e-12 ? big : Math.abs(1 / rx);
+  const tDeltaY = Math.abs(ry) < 1e-12 ? big : Math.abs(1 / ry);
+  const tDeltaZ = Math.abs(rz) < 1e-12 ? big : Math.abs(1 / rz);
 
   const bound = (p: number, cell: number, step: number, d: number): number => {
     if (Math.abs(d) < 1e-12) return big;
     const next = step > 0 ? cell + 1 : cell;
     return (next - p) / d;
   };
-  let tMaxX = bound(px, x, stepX, dx);
-  let tMaxY = bound(py, y, stepY, dy);
-  let tMaxZ = bound(pz, z, stepZ, dz);
+  let tMaxX = bound(px, x, stepX, rx);
+  let tMaxY = bound(py, y, stepY, ry);
+  let tMaxZ = bound(pz, z, stepZ, rz);
 
   let normal: [number, number, number] = [0, 0, 0];
   // Three cells per axis crossed is the worst case, plus slack for the entry.
-  const budget = 3 * n + 8;
+  const budget = 2 * n + nY + 8;
 
   for (let i = 0; i < budget; i++) {
     if (tMaxX < tMaxY && tMaxX < tMaxZ) {
@@ -179,7 +198,7 @@ export function raycastVoxels(
       tMaxZ += tDeltaZ;
     }
 
-    if (x < 0 || y < 0 || z < 0 || x >= n || y >= n || z >= n) return null;
+    if (x < 0 || y < 0 || z < 0 || x >= n || y >= nY || z >= n) return null;
 
     const m = volume.get(x, y, z);
     if (m === Material.Air) continue;
@@ -188,9 +207,9 @@ export function raycastVoxels(
     const tHit =
       normal[0] !== 0 ? tMaxX - tDeltaX : normal[1] !== 0 ? tMaxY - tDeltaY : tMaxZ - tDeltaZ;
     return {
-      pointM: [originM[0] + dx * tHit * cellM, originM[1] + dy * tHit * cellM, originM[2] + dz * tHit * cellM],
+      pointM: [originM[0] + dx * tHit, originM[1] + dy * tHit, originM[2] + dz * tHit],
       normal,
-      distanceM: tHit * cellM,
+      distanceM: tHit,
       cell: [x, y, z],
       material: m,
     };

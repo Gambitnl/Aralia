@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 19/07/2026, 08:34:15
+ * Last Sync: 09/08/2026, 17:24:12
  * Dependents: App.tsx
- * Imports: 56 files
+ * Imports: 57 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -65,6 +65,11 @@ import {
 } from './clickMoveAuthority';
 import { localeFeetToGroundMeters } from '../../systems/worldforge/local/localePosition';
 import { requestMapCenterOnPlayer, requestMapDrillToPlayerTown } from '../Worldforge/mapFocusSignal';
+import {
+  OPEN_AGENT_SIM_EVENT,
+  OPEN_TOWN_HISTORY_EVENT,
+  requestDevOverlay,
+} from '../debug/devOverlayEvents';
 import { type DisposableChunkLoader } from './createWorkerChunkLoader';
 import { resolveGroundEntryCellId } from './entryCellIdentity';
 import { usePlayerWorldPos, useWorldViewMode } from '../../hooks/useWorldViewMode';
@@ -334,6 +339,10 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({
   // Initialized from the URL parameters (?wf_legacy=1 starts in Continent Mode).
   // Toggling this value tears down the existing scene streamer and rebuilds it dynamically.
   const [isGroundMode, setIsGroundMode] = useState(() => wfParam('wf_legacy') !== '1');
+
+  // The click-to-move Locale map is available in ground mode but no longer
+  // occupies the scene by default. Controls owns its explicit visibility.
+  const [isLocaleMapOpen, setIsLocaleMapOpen] = useState(false);
 
   // Bumped by the HUD "Town Cell" button to pull the 3D camera up to an overhead
   // framing of the spawn town (stays in the scene — see World3DScene.frameTownCellNonce).
@@ -1897,7 +1906,7 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({
           it renders the player marker from that state and writes back to it on
           click via the shared SET_PLAYER_GROUND_POS action. Additive — it sits
           beside the compass / drill views, replacing none of them. */}
-      {wfGroundView ? (
+      {wfGroundView && isLocaleMapOpen ? (
         <div style={{ position: 'absolute', left: 12, bottom: 12, zIndex: 20 }}>
           <LocaleMovePane
             localeExtent={wfGroundView.localeExtent}
@@ -1917,6 +1926,15 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({
         streamerStats={streamerStats}
         onOpenMap={() => setMode('atlas')}
         onExitToMenu={() => dispatch({ type: 'SET_GAME_PHASE', payload: GamePhase.MAIN_MENU })}
+        isLocaleMapAvailable={Boolean(wfGroundView)}
+        isLocaleMapOpen={isLocaleMapOpen}
+        onToggleLocaleMap={() => setIsLocaleMapOpen((open) => !open)}
+        onOpenAgentSim={isDevModeEnabled
+          ? () => requestDevOverlay(OPEN_AGENT_SIM_EVENT)
+          : undefined}
+        onOpenTownHistory={isDevModeEnabled
+          ? () => requestDevOverlay(OPEN_TOWN_HISTORY_EVENT)
+          : undefined}
         isGroundMode={isGroundMode}
         onToggleGroundMode={() => setIsGroundMode(prev => !prev)}
         // The PLAYING title is the same canonical focus and Atlas burg receipt

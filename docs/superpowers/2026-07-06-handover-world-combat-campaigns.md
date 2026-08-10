@@ -258,3 +258,5 @@ entries: `beautification-wave-build-status`, `aralia-plan-map`,
 3. Form the §4 open decisions into an AskUserQuestion for Remy — lead with your
    own recommendation for each. Do NOT start big WebGPU work until decision A is
    settled (his eyeball).
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/2026-07-06-handover-world-combat-campaigns.md","sha256WithoutMarker":"1d42f0f1d26e1a38ae28a2929fa58b02b1ff75aaca8bfa2df5d56cf234d60799","markedAtUtc":"2026-08-09T20:24:28.246Z"} -->

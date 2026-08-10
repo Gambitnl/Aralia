@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 04/08/2026, 01:49:33
+ * Last Sync: 09/08/2026, 22:43:58
  * Dependents: commands/effects/AttackRollModifierCommand.ts, commands/effects/DamageCommand.ts, commands/effects/ReactiveEffectCommand.ts, commands/factory/AbilityCommandFactory.ts, commands/factory/SpellCommandFactory.ts
  * Imports: 12 files
  *
@@ -25,7 +25,7 @@
 import { BaseEffectCommand } from '../base/BaseEffectCommand';
 import { CombatState, StatusEffect, ActiveCondition, ActiveEffect, ActiveEnvironmentalControl } from '../../types/combat';
 import { isStatusConditionEffect, EffectDuration, ConditionName, BindingControl, DominationControl, StatusCondition, StatusConditionEffect, RepeatSave, SpellcastingRestriction } from '../../types/spells';
-import { calculateSpellDC, rollSavingThrow } from '../../utils/character';
+import { calculateSpellDC, rollSavingThrow, resolveSaveOutcomeOverride } from '../../utils/character';
 import { generateId } from '../../utils/combat';
 import { STATUS_ICONS, DEFAULT_STATUS_ICON } from '@/config/statusIcons';
 import { SavePenaltySystem } from '../../systems/combat/SavePenaltySystem';
@@ -162,12 +162,20 @@ export class StatusConditionCommand extends BaseEffectCommand {
         const savePenaltySystem = new SavePenaltySystem();
         const saveModifiers = savePenaltySystem.getActivePenalties(target);
 
-        const saveResult = rollSavingThrow(target, this.effect.condition.saveType, dc, saveModifiers);
+        const saveResult = resolveSaveOutcomeOverride(
+          this.effect.condition.saveOutcomeOverrides,
+          target,
+          dc
+        ) ?? rollSavingThrow(target, this.effect.condition.saveType, dc, saveModifiers);
 
         // Consume next_save penalties
         currentState = savePenaltySystem.consumeNextSavePenalties(currentState, target.id);
 
+        const saveWasOverridden = saveResult.roll === undefined;
         let saveLogMessage = `${target.name} ${saveResult.success ? 'succeeds' : 'fails'} ${this.effect.condition.saveType} save (${saveResult.total} vs DC ${dc})`;
+        if (saveWasOverridden) {
+          saveLogMessage += ' (source-backed outcome override)';
+        }
 
         if (saveResult.modifiersApplied && saveResult.modifiersApplied.length > 0) {
           const modDetails = saveResult.modifiersApplied.map(m => `${m.value >= 0 ? '+' : ''}${m.value} [${m.source}]`).join(', ');

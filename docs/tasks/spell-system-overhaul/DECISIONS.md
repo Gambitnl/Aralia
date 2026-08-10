@@ -32,4 +32,4 @@ Rationale:
 Boundary:
 - This does not make JSON schema more canonical than src/systems/spells/validation/spellValidator.ts; the project still has multiple validation surfaces that need parity decisions.
 
-<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spell-system-overhaul/DECISIONS.md","sha256WithoutMarker":"7b2a40b9d222b306c60a530cd4f1e88ee64ff470375b880d2d93015e252d1eb3","markedAtUtc":"2026-06-25T22:29:38.585Z"} -->
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spell-system-overhaul/DECISIONS.md","sha256WithoutMarker":"92c8741f88d0febb7b8d53f4446530a69685ec3cc6c4f3b04006a35f7955b513","markedAtUtc":"2026-08-09T20:14:15.708Z"} -->

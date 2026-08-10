@@ -11,5 +11,16 @@ export { default as FordStones } from './FordStones';
 export { default as DecorationProps } from './DecorationProps';
 export { default as GroundScatter } from './GroundScatter';
 export { default as EzTreeLayer } from './EzTreeLayer';
-export { default as DistantTerrain } from './DistantTerrain';
+export { default as TerrainApron, buildApronGeometry } from './TerrainApron';
+export {
+  apronReachTiles,
+  makeApronField,
+  resolveApronProfile,
+  resolveHorizon,
+  FRINGE_TILES,
+  APRON_PROFILES,
+  type ApronField,
+  type ApronProfile,
+  type HorizonSetup,
+} from './apronField';
 export { default as GroundMist } from './GroundMist';

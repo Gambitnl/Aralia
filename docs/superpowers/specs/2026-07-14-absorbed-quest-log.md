@@ -25,3 +25,5 @@ broader Quests domain (formerly `docs/projects/quests`), not here.
 |---|---|---|
 | G2 | Replace hardcoded item/location quest triggers with data-driven quest hooks | `src/hooks/actions/handleItemInteraction.ts`, `src/hooks/actions/handleMovement.ts` |
 | G5 | Resolve schema mismatch between legacy `Quest` and richer staged `QuestDefinition` in runtime flow | `src/types/quests.ts`, `src/state/reducers/questReducer.ts` |
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/specs/2026-07-14-absorbed-quest-log.md","sha256WithoutMarker":"85ce49cb019b37d975c1a7b059bb327bcf50e2604d409555ce0bf923f001176d","markedAtUtc":"2026-08-09T20:24:24.666Z"} -->

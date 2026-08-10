@@ -3,8 +3,8 @@
  * ARCHITECTURAL ADVISORY:
  * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 08/06/2026, 14:04:04
- * Dependents: components/CharacterSheet/CharacterSheetModal.tsx, components/CharacterSheet/Details/CharacterDetailsTab.tsx, components/DesignPreview/steps/PreviewComponents.tsx, components/Party/RelationshipsPane.tsx, components/ui/CollapsibleBanterPanel.tsx, components/ui/CompanionCard.tsx, components/ui/CompanionReaction.tsx, data/banter.ts, data/companions.ts, hooks/useCompanionBanter.ts, hooks/useCompanionCommentary.ts, services/BanterDisplayService.ts, services/ollama/banter.ts, services/ollama/facts.ts, services/ollama/index.ts, systems/companions/BanterManager.ts, systems/companions/CompanionReactionSystem.ts, systems/companions/RelationshipManager.ts, types/index.ts, utils/character/companionFactories.ts
+ * Last Sync: 09/08/2026, 22:42:25
+ * Dependents: components/CharacterSheet/CharacterSheetModal.tsx, components/CharacterSheet/Details/CharacterDetailsTab.tsx, components/DesignPreview/steps/PreviewComponents.tsx, components/Party/RelationshipsPane.tsx, components/ui/CollapsibleBanterPanel.tsx, components/ui/CompanionCard.tsx, components/ui/CompanionReaction.tsx, data/banter.ts, data/companions.ts, hooks/useCompanionBanter.ts, hooks/useCompanionCommentary.ts, services/BanterDisplayService.ts, services/ollama/banter.ts, services/ollama/facts.ts, services/ollama/index.ts, systems/companions/BanterManager.ts, systems/companions/CompanionReactionSystem.ts, systems/companions/RelationshipManager.ts, systems/party/authoredCompanionToRichNpc.ts, systems/party/npcToPartyMember.ts, systems/party/recruitConsent.ts, systems/party/recruitTypes.ts, types/index.ts, utils/character/companionFactories.ts
  * Imports: None
  *
  * MULTI-AGENT SAFETY:
@@ -87,6 +87,11 @@ export interface Relationship {
   approval: number; // -500 to 500, matching the runtime approval clamp
   history: RelationshipEvent[];
   unlocks: RelationshipUnlock[];
+
+  // Romance uses the game's saved clock to distinguish a temporary conflict from
+  // a sustained collapse. Older saves omit this field and begin timing only when
+  // the live relationship manager next observes hostile approval.
+  romanceHostileSinceGameTimeMs?: number;
 }
 
 export interface CompanionQuestline {

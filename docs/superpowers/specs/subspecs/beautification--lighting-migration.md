@@ -8,3 +8,5 @@ The battle map's theme lighting/atmosphere moves into ground mode. Sky: adopt th
 ## Open
 - Time-of-day integration with the game clock (occupant schedules already keyed to hours).
 - Whether Bruneton-quality sky (`@takram/three-atmosphere` trial) is worth the lift now or later.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/specs/subspecs/beautification--lighting-migration.md","sha256WithoutMarker":"dd45af937a657a83c95a755271e49b82e46f6056c8e068bb429624b5e2852e5b","markedAtUtc":"2026-08-09T20:24:28.237Z"} -->

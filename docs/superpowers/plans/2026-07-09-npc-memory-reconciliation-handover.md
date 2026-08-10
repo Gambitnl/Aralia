@@ -22,3 +22,5 @@
 
 ## Why this is decision-gated
 The fact shapes conflict semantically, and "merge vs keep separate" depends on the *original intent* of the richer system — which is a design question, not a mechanical one. Getting it wrong means either rewriting ~20 live consumers for no reason, or deleting a system that was meant for a feature not yet built.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/plans/2026-07-09-npc-memory-reconciliation-handover.md","sha256WithoutMarker":"fe852c6cc7aab9ec856e964617e77f5ef27d4621b21cf5d3aa62fae1ff0a4948","markedAtUtc":"2026-08-09T20:24:24.660Z"} -->

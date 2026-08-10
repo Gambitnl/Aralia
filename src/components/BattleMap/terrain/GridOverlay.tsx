@@ -148,6 +148,17 @@ interface GridOverlayProps {
   mapData: BattleMapData;
   validMoves: Set<string>;
   activePath: { id: string }[];
+  /**
+   * The surface this layer must sit ON, in tile coordinates.
+   *
+   * The board's drawn ground is no longer only the heightfield: inside the
+   * playable rect the voxel arena volume draws over it, a little higher, and
+   * anything planted on the old surface would sink. The host passes the
+   * combined drawn surface; without it this layer falls back to the
+   * heightfield, which is the whole drawn ground on any scene that has no
+   * volume (the WebGPU path, tests, older callers).
+   */
+  surfaceY?: (tileX: number, tileZ: number) => number;
   actionMode: 'move' | 'ability' | null;
 }
 
@@ -157,6 +168,7 @@ interface GridOverlayProps {
 
 const GridOverlay: React.FC<GridOverlayProps> = ({
   mapData,
+  surfaceY,
   validMoves,
   activePath,
   actionMode,
@@ -264,7 +276,8 @@ const GridOverlay: React.FC<GridOverlayProps> = ({
         grid[y][x] = mapData.tiles.get(`${x}-${y}`) ?? null;
       }
     }
-    const sampleGround = makeTerrainHeightSampler(grid, width, height, mapData.seed ?? 42);
+    const sampleGround =
+      surfaceY ?? makeTerrainHeightSampler(grid, width, height, mapData.seed ?? 42);
 
     // Shift to match terrain positioning (origin at tile 0,0) and conform
     const positions = geo.attributes.position as THREE.BufferAttribute;
@@ -277,7 +290,7 @@ const GridOverlay: React.FC<GridOverlayProps> = ({
     }
     positions.needsUpdate = true;
     return geo;
-  }, [width, height, mapData]);
+  }, [width, height, mapData, surfaceY]);
 
   // Rebuilds with mapData now — release the old GPU buffers.
   React.useEffect(() => () => { geometry.dispose(); }, [geometry]);

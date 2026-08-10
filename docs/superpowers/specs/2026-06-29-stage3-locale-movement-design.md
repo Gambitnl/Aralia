@@ -281,3 +281,5 @@ re-entry. **It does not replace** the compass or the drill views.
   integer sub-tiles (legacy tile path) or feet (ground path). Stage 4+ readers must treat
   `localeCoords` as authoritative ONLY alongside an active ground/Locale session; otherwise read
   the cell + legacy fields. Documented to avoid a reader assuming a single unit.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/specs/2026-06-29-stage3-locale-movement-design.md","sha256WithoutMarker":"f314b132dfc302ea4c06253285ee353b2c4ccf06b432fdf4b5a74f593a5dadbd","markedAtUtc":"2026-08-09T20:24:29.239Z"} -->

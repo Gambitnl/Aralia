@@ -211,6 +211,7 @@ export const GrassLayer: React.FC<{
   if (!field || field.count === 0) return null;
   return (
     <instancedMesh
+      name="world3d:grass"
       ref={ref}
       key={field.cacheKey}
       args={[BLADE_GEOMETRY, GRASS_MATERIAL, field.count]}

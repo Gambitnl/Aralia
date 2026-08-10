@@ -23,3 +23,5 @@ This list separates remaining `stitch` search hits that were not removed during 
 ## Follow-Up Rule
 
 Before removing anything above, confirm whether it is runtime game behavior, generated output, or local operator state. Only delete it when the owning system confirms it is disposable or has a replacement.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/tooling/STITCH_CLEANUP_CAREFUL_REMOVAL.md","sha256WithoutMarker":"15e3b6eb2e39091e8efd2169fa197d398ae8634d3898e7aa4a2a11e35110e653","markedAtUtc":"2026-08-09T20:24:24.669Z"} -->

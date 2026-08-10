@@ -95,3 +95,5 @@ math, and ingested data all agree.
 - `src/types/magicItems.ts`, `src/types/items.ts`
 - `src/data/items/generatedGlossaryItems.ts`
 - `scripts/ingestPhbGlossary.ts`
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/magic-items/magic-item-boons-and-attunement.md","sha256WithoutMarker":"82a91143677002e213b3d6ceb0183a707a702dd0fa57d2cb3d0855b5641212a6","markedAtUtc":"2026-08-09T20:24:24.669Z"} -->

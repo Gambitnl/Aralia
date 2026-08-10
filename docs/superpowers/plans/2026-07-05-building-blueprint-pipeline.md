@@ -733,3 +733,5 @@ describe('buildBuildingMeshData', () => {
 ---
 
 *After Task 12, decide whether `PreviewFloorplans.tsx` retires (Blueprint now covers it) or stays as a look-lab.*
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/plans/2026-07-05-building-blueprint-pipeline.md","sha256WithoutMarker":"10bac9ac7078e3072e329a2399592a7a606317e34b8527967b5e7dd35ae0691b","markedAtUtc":"2026-08-09T20:22:07.610Z"} -->

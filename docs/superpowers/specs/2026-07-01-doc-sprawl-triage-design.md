@@ -151,3 +151,5 @@ For every file the classification pass marks plan/spec/status-shaped:
   goal is named, the trigger/hook mechanism is not designed.
 - The actual code-grounded replacement for Atlas's self-reported-status check —
   in scope by decision 1, but its detection logic is not designed in this spec.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/specs/2026-07-01-doc-sprawl-triage-design.md","sha256WithoutMarker":"1d48fc733849b271c741c6f5c403e020bd310dd37496a6d6a7bb546b127de0a2","markedAtUtc":"2026-08-09T20:24:29.246Z"} -->

@@ -151,3 +151,5 @@ data. Form your own view.
 (mirrors L4 contract), `world-props` → prop-schema-placement-engine (decoration is
 props), `fip-slice1` (encounters use the tile referee). When you finish a slice,
 update this node's feature statuses in the same turn (Remy's alpha-signal rule).
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/handovers/2026-07-06-dungeon-generator-handover.md","sha256WithoutMarker":"5cca34c684b9133e6c06bd619f1705f534715c47c803483e212534daefbc0f5b","markedAtUtc":"2026-08-09T20:24:28.248Z"} -->

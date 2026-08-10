@@ -7,6 +7,8 @@ import type { ActiveEffect, CombatCharacter, CombatState, Position } from '@/typ
 import type { DamageEffect, DefensiveEffect } from '@/types/spells';
 import type { Class, GameState } from '@/types';
 import { createMockGameState, createMockPlayerCharacter } from '../../utils/core';
+import wardingBond from '../../../public/data/spells/level-2/warding-bond.json';
+import motivationalSpeech from '../../../public/data/spells/level-3/motivational-speech.json';
 
 const baseStats = {
   strength: 10,
@@ -101,6 +103,28 @@ const makeContext = (caster: CombatCharacter, targets: CombatCharacter[]): Comma
 });
 
 describe('DefensiveCommand', () => {
+  it('bridges live Warding Bond and Motivational Speech save metadata', async () => {
+    const caster = makeCharacter('caster', { x: 0, y: 0 });
+    const target = makeCharacter('target', { x: 1, y: 0 });
+    const state = makeState([caster, target]);
+
+    const wardingBondEffect = (wardingBond as unknown as { effects: DefensiveEffect[] }).effects[0];
+    const wardingResult = await new DefensiveCommand(
+      wardingBondEffect,
+      { ...makeContext(caster, [target]), spellId: 'warding-bond', spellName: 'Warding Bond' }
+    ).execute(state);
+    const wardingTarget = wardingResult.characters.find(character => character.id === target.id)!;
+    expect(wardingTarget.modifiers?.bonuses).toContain('+1 to saving throws');
+
+    const motivationalEffect = (motivationalSpeech as unknown as { effects: DefensiveEffect[] }).effects[1];
+    const motivationalResult = await new DefensiveCommand(
+      motivationalEffect,
+      { ...makeContext(caster, [target]), spellId: 'motivational-speech', spellName: 'Motivational Speech' }
+    ).execute(state);
+    const motivationalTarget = motivationalResult.characters.find(character => character.id === target.id)!;
+    expect(motivationalTarget.modifiers?.advantage).toContain('Wisdom saving throws have advantage');
+  });
+
   it('adds an AC bonus and tracks the active effect', async () => {
     const caster = makeCharacter('caster', { x: 0, y: 0 });
     const target = makeCharacter('target', { x: 1, y: 0 });

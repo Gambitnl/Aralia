@@ -115,3 +115,5 @@ Placing rivers at true scale with no attraction would dry out any town the cours
 The atlas already states the intent: `cells.r[2186] = 5` marks Epicea's cell as carrying river 5. The 4,045 ft offset is an artifact of cell-center resolution, not a claim that the river avoids the town. So when a burg's cell carries a river, the generated sub-cell course is pulled to pass through the settlement. Everywhere else the course follows the heightfield's valleys.
 
 This keeps three things true at once: the world map still decides which river runs where, the town and the wilderness draw the same continuous river, and riverside towns stay riverside.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/specs/2026-07-29-region-tier-audit.md","sha256WithoutMarker":"a99e70fbea9f65e6ba216bd8e1a680049d1555a7830228d0f83444a4b6c88031","markedAtUtc":"2026-08-09T20:24:24.667Z"} -->

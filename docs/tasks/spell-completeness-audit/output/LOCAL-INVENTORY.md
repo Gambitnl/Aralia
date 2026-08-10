@@ -91,4 +91,4 @@ animal-shapes, antimagic-field, antipathy-sympathy, clone, control-weather, demi
 
 astral-projection, foresight, gate, imprisonment, mass-heal, meteor-swarm, power-word-kill, prismatic-wall, shapechange, storm-of-vengeance, time-stop, true-polymorph, true-resurrection, weird, wish
 
-<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spell-completeness-audit/output/LOCAL-INVENTORY.md","sha256WithoutMarker":"db423d2137ca3c54ddc9bba91e87d0ad393e1b8bb4cdae752dfe8d177bca5cd7","markedAtUtc":"2026-06-25T22:29:38.646Z"} -->
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spell-completeness-audit/output/LOCAL-INVENTORY.md","sha256WithoutMarker":"366b913ae518a51567bce45fe7bbaa992821a2ad4dbc6c73e3d7374ffaf958ad","markedAtUtc":"2026-08-09T20:14:15.848Z"} -->

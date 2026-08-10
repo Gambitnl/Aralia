@@ -3,8 +3,8 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 08/07/2026, 01:10:13
- * Dependents: components/DesignPreview/steps/PreviewComponents.tsx, components/layout/GameModals.tsx
+ * Last Sync: 09/08/2026, 16:22:21
+ * Dependents: components/DesignPreview/steps/PreviewComponents.tsx, components/gameEntry/OpeningSituationGate.tsx, components/layout/GameModals.tsx
  * Imports: 6 files
  *
  * MULTI-AGENT SAFETY:
@@ -68,6 +68,100 @@ interface OllamaDependencyModalProps {
   onProviderChanged?: (provider: 'ollama' | 'groq') => void;
 }
 
+type GroqProxyCheckState =
+  | { status: 'idle' }
+  | { status: 'checking' }
+  | { status: 'starting' }
+  | { status: 'ready' }
+  | { status: 'reachable' }
+  | { status: 'missing-key' }
+  | { status: 'unreachable' }
+  | { status: 'start-failed' };
+
+type GroqProxyHealthResult = Extract<
+  GroqProxyCheckState,
+  { status: 'ready' | 'reachable' | 'missing-key' | 'unreachable' }
+>;
+
+interface GroqProxyHealthResponse {
+  ok?: boolean;
+  keyLoaded?: boolean;
+}
+
+// Proxy checks should fail quickly enough to help during setup instead of
+// inheriting the much longer generation timeout used for actual model calls.
+const GROQ_PROXY_CHECK_TIMEOUT_MS = 3_000;
+const GROQ_PROXY_START_CHECK_TIMEOUT_MS = 750;
+const GROQ_PROXY_START_POLL_DELAY_MS = 400;
+const GROQ_PROXY_START_POLL_ATTEMPTS = 15;
+const GROQ_PROXY_START_ENDPOINT = '/__groq/start';
+
+// Both supported proxy hosts expose health beside their `/v1` API mount:
+// `http://localhost:8787/v1` becomes `.../health`, while the Vite-integrated
+// `/__groq/v1` becomes `/__groq/health` on the current Aralia origin.
+const getGroqProxyHealthUrl = (proxyUrl: string): string => {
+  const normalizedUrl = proxyUrl.trim().replace(/\/+$/, '');
+  return normalizedUrl.endsWith('/v1')
+    ? `${normalizedUrl.slice(0, -3)}/health`
+    : `${normalizedUrl}/health`;
+};
+
+// The dev server will only launch the bundled proxy on an explicit unprivileged
+// loopback port. Keeping the same rule in the UI avoids presenting a Start
+// button for remote services or for Vite's already-integrated `/__groq/v1` path.
+const getStartableGroqProxyPort = (proxyUrl: string): number | null => {
+  try {
+    const parsedUrl = new URL(proxyUrl.trim());
+    const normalizedPath = parsedUrl.pathname.replace(/\/+$/, '');
+    const isLoopbackHost = parsedUrl.hostname === 'localhost'
+      || parsedUrl.hostname === '127.0.0.1'
+      || parsedUrl.hostname === '[::1]';
+    const port = Number(parsedUrl.port);
+
+    return parsedUrl.protocol === 'http:'
+      && isLoopbackHost
+      && normalizedPath === '/v1'
+      && Number.isInteger(port)
+      && port >= 1_024
+      && port <= 65_535
+      ? port
+      : null;
+  } catch {
+    return null;
+  }
+};
+
+// Health checks never send the browser's Groq key or a generation prompt. A
+// shorter timeout can be supplied while polling a newly launched process.
+const checkGroqProxyHealth = async (
+  proxyUrl: string,
+  timeoutMs = GROQ_PROXY_CHECK_TIMEOUT_MS,
+): Promise<GroqProxyHealthResult> => {
+  const controller = new AbortController();
+  const timeoutId = window.setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    const response = await fetch(getGroqProxyHealthUrl(proxyUrl), {
+      method: 'GET',
+      signal: controller.signal,
+    });
+    if (!response.ok) return { status: 'unreachable' };
+
+    const health = await response.json() as GroqProxyHealthResponse;
+    return health.keyLoaded === true
+      ? { status: 'ready' }
+      : health.keyLoaded === false
+        ? { status: 'missing-key' }
+        : { status: 'reachable' };
+  } catch {
+    // A refused port, CORS rejection, or timeout all mean the current browser
+    // cannot use this proxy URL, which is the player-facing fact that matters.
+    return { status: 'unreachable' };
+  } finally {
+    window.clearTimeout(timeoutId);
+  }
+};
+
 const shouldUseCompactPane = (): boolean =>
   typeof window !== 'undefined' && (window.innerWidth < 640 || window.innerHeight < 720);
 
@@ -95,6 +189,9 @@ export const OllamaDependencyModal: React.FC<OllamaDependencyModalProps> = ({
   const [groqProxyUrlInput, setGroqProxyUrlInput] = useState<string>(() =>
     typeof window !== 'undefined' ? getGroqProxyUrl() : ''
   );
+  // This state reports whether Aralia can reach the selected local proxy and
+  // whether that proxy has loaded its server-side Groq credential.
+  const [groqProxyCheck, setGroqProxyCheck] = useState<GroqProxyCheckState>({ status: 'idle' });
   const [currentProvider, setCurrentProvider] = useState<'ollama' | 'groq'>(() =>
     typeof window !== 'undefined' ? getAiTextProvider() : 'ollama'
   );
@@ -131,7 +228,66 @@ export const OllamaDependencyModal: React.FC<OllamaDependencyModalProps> = ({
     setGroqKeyStorage(mode);
     setGroqKeyStorageState(mode);
     setGroqKeyInput(getGroqApiKey());
+    setGroqProxyCheck({ status: 'idle' });
   };
+
+  // Ask the proxy's dedicated health route whether it is reachable. This does
+  // not send a prompt or a credential from the browser, and it distinguishes a
+  // running proxy with no loaded key from a port that Aralia cannot reach at all.
+  const handleCheckGroqProxy = async () => {
+    setGroqProxyCheck({ status: 'checking' });
+    setGroqProxyCheck(await checkGroqProxyHealth(groqProxyUrlInput));
+  };
+
+  // Ask the local Vite server to launch the repository's fixed proxy script,
+  // then poll health until the new process is ready. The browser supplies only
+  // the loopback URL; it never supplies a command, executable, path, or key.
+  const handleStartGroqProxy = async () => {
+    if (getStartableGroqProxyPort(groqProxyUrlInput) === null) return;
+    setGroqProxyCheck({ status: 'starting' });
+
+    try {
+      // Avoid spawning a duplicate process when the configured proxy is already
+      // healthy but the operator has not pressed Check yet.
+      const currentHealth = await checkGroqProxyHealth(
+        groqProxyUrlInput,
+        GROQ_PROXY_START_CHECK_TIMEOUT_MS,
+      );
+      if (currentHealth.status !== 'unreachable') {
+        setGroqProxyCheck(currentHealth);
+        return;
+      }
+
+      const response = await fetch(GROQ_PROXY_START_ENDPOINT, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ proxyUrl: groqProxyUrlInput.trim() }),
+      });
+      if (!response.ok) throw new Error('proxy start request failed');
+
+      for (let attempt = 0; attempt < GROQ_PROXY_START_POLL_ATTEMPTS; attempt += 1) {
+        const health = await checkGroqProxyHealth(
+          groqProxyUrlInput,
+          GROQ_PROXY_START_CHECK_TIMEOUT_MS,
+        );
+        if (health.status !== 'unreachable') {
+          setGroqProxyCheck(health);
+          return;
+        }
+        if (attempt < GROQ_PROXY_START_POLL_ATTEMPTS - 1) {
+          await new Promise<void>((resolve) => {
+            window.setTimeout(resolve, GROQ_PROXY_START_POLL_DELAY_MS);
+          });
+        }
+      }
+
+      setGroqProxyCheck({ status: 'start-failed' });
+    } catch {
+      setGroqProxyCheck({ status: 'start-failed' });
+    }
+  };
+
+  const startableGroqProxyPort = getStartableGroqProxyPort(groqProxyUrlInput);
 
   // In proxy mode there is no key in the browser: only a reachable proxy URL is
   // required. Otherwise a key must be present. This gates the "Use Groq" button.
@@ -527,15 +683,72 @@ export const OllamaDependencyModal: React.FC<OllamaDependencyModalProps> = ({
                       </fieldset>
 
                       {groqKeyStorage === 'proxy' ? (
-                        <Input
-                          type="text"
-                          label="Local proxy URL"
-                          placeholder="http://localhost:8787/v1"
-                          value={groqProxyUrlInput}
-                          data-testid="groq-proxy-url-input"
-                          onChange={(e) => setGroqProxyUrlInput(e.target.value)}
-                          autoComplete="off"
-                        />
+                        <>
+                          <Input
+                            type="text"
+                            label="Local proxy URL"
+                            placeholder="http://localhost:8787/v1"
+                            value={groqProxyUrlInput}
+                            data-testid="groq-proxy-url-input"
+                            onChange={(e) => {
+                              setGroqProxyUrlInput(e.target.value);
+                              setGroqProxyCheck({ status: 'idle' });
+                            }}
+                            autoComplete="off"
+                          />
+                          {/* A model request is too slow and expensive for setup
+                              diagnostics. The health check gives an immediate,
+                              credential-safe answer about this exact proxy URL. */}
+                          <div className="mt-3 rounded border border-gray-600/70 bg-gray-900/50 p-3">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <Button
+                                onClick={handleCheckGroqProxy}
+                                variant="secondary"
+                                size="sm"
+                                className="min-h-11"
+                                disabled={groqProxyCheck.status === 'checking' || groqProxyCheck.status === 'starting'}
+                                data-testid="groq-proxy-check-button"
+                              >
+                                {groqProxyCheck.status === 'checking' ? 'Checking proxy…' : 'Check proxy'}
+                              </Button>
+                              {startableGroqProxyPort !== null && (
+                                <Button
+                                  onClick={handleStartGroqProxy}
+                                  variant="action"
+                                  size="sm"
+                                  className="min-h-11"
+                                  disabled={groqProxyCheck.status === 'checking' || groqProxyCheck.status === 'starting'}
+                                  data-testid="groq-proxy-start-button"
+                                >
+                                  {groqProxyCheck.status === 'starting' ? 'Starting proxy…' : 'Start proxy'}
+                                </Button>
+                              )}
+                              <p
+                                role="status"
+                                aria-live="polite"
+                                data-testid="groq-proxy-check-status"
+                                className={`text-xs leading-relaxed ${
+                                  groqProxyCheck.status === 'ready' || groqProxyCheck.status === 'reachable'
+                                    ? 'text-emerald-300'
+                                    : groqProxyCheck.status === 'idle'
+                                      || groqProxyCheck.status === 'checking'
+                                      || groqProxyCheck.status === 'starting'
+                                      ? 'text-gray-400'
+                                      : 'text-red-300'
+                                }`}
+                              >
+                                {groqProxyCheck.status === 'idle' && 'Check whether Aralia can reach this proxy.'}
+                                {groqProxyCheck.status === 'checking' && 'Contacting the proxy health endpoint…'}
+                                {groqProxyCheck.status === 'starting' && 'Starting the bundled proxy and waiting for its health endpoint…'}
+                                {groqProxyCheck.status === 'ready' && 'Proxy is running and its Groq credential is loaded.'}
+                                {groqProxyCheck.status === 'reachable' && 'Proxy is running and responding.'}
+                                {groqProxyCheck.status === 'missing-key' && 'Proxy is running, but no Groq credential is loaded.'}
+                                {groqProxyCheck.status === 'unreachable' && 'Proxy is not reachable from Aralia at this URL.'}
+                                {groqProxyCheck.status === 'start-failed' && 'The proxy process could not be started or did not become reachable.'}
+                              </p>
+                            </div>
+                          </div>
+                        </>
                       ) : (
                         <Input
                           type="password"

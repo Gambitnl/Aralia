@@ -167,3 +167,5 @@ also works while scrubbed into the past.
 3. Timeline bar + momentum bars (static, at Now).
 4. Playhead drag + play → replay via `renderMap`, preserving view.
 5. Staleness heat overlay toggle.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/specs/2026-07-04-planmap-date-progression-tracker-design.md","sha256WithoutMarker":"35850961c4793dfe997499d07316839113b262192b2980d05da0dcfa09d6fa0e","markedAtUtc":"2026-08-09T20:24:24.663Z"} -->

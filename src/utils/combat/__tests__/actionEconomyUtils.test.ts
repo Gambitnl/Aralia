@@ -1,6 +1,47 @@
 import { describe, it, expect } from 'vitest';
 import { canAffordActionCost, consumeActionCost, createDefaultActionEconomy, resetEconomy } from '../actionEconomyUtils';
 import { createMockCombatCharacter } from '../../core/factories';
+
+// ============================================================================
+// Dev Player Spell-Slot Exception
+// ============================================================================
+// These cases prove the preview-only marker skips only spell-slot accounting.
+// The character still spends its action, while an ordinary caster keeps the
+// existing refusal and decrement behavior.
+// ============================================================================
+
+describe('Dev Player unlimited spell slots', () => {
+    it('casts without a slot and still spends the normal action', () => {
+        const character = {
+            ...createMockCombatCharacter(),
+            devPlaytest: { unlimitedSpellSlots: true },
+            spellSlots: {
+                level_1: { current: 0, max: 1 },
+            },
+        } as ReturnType<typeof createMockCombatCharacter>;
+        const cost = { type: 'action' as const, spellSlotLevel: 1 };
+
+        expect(canAffordActionCost(character, cost)).toBe(true);
+        const spent = consumeActionCost(character, cost);
+        expect(spent.actionEconomy.action.used).toBe(true);
+        expect(spent.spellSlots?.level_1?.current).toBe(0);
+    });
+
+    it('keeps ordinary casters blocked or decremented by their slot pool', () => {
+        const emptySlots = {
+            ...createMockCombatCharacter(),
+            spellSlots: { level_1: { current: 0, max: 1 } },
+        };
+        const availableSlot = {
+            ...createMockCombatCharacter(),
+            spellSlots: { level_1: { current: 1, max: 1 } },
+        };
+        const cost = { type: 'action' as const, spellSlotLevel: 1 };
+
+        expect(canAffordActionCost(emptySlots, cost)).toBe(false);
+        expect(consumeActionCost(availableSlot, cost).spellSlots?.level_1?.current).toBe(0);
+    });
+});
 import { resolveRacialSpellLimitedUseId } from '../../character/characterUtils';
 
 type LimitedUseEntry = {

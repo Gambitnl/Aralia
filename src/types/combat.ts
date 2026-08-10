@@ -2930,6 +2930,14 @@ export interface SpellEffectAnimationData {
   color?: string;
   areaOfEffect?: AreaOfEffect;
   targetPositions?: Position[];
+  /**
+   * The hole this effect left in the ground, when it is an effect that leaves
+   * one. Classified once at the point of resolution (`groundImpactOfAbility`),
+   * because that is where the ability is in hand; the 3D map reads it and digs.
+   * Absent on every other effect, and absent entirely on the 2D map, which has
+   * no ground to dig.
+   */
+  groundImpact?: { radiusM: number; depthM: number };
 }
 
 export interface DamageNumberAnimationData {

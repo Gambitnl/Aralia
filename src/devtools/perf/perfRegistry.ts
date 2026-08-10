@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 09/08/2026, 17:09:28
+ * Dependents: components/World3D/World3DScene.tsx, devtools/perf/PerfOverlay.tsx, devtools/perf/PerfProbe.tsx, devtools/perf/index.ts
+ * Imports: 1 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * The list of 3D surfaces currently being measured.
  *
@@ -11,7 +27,7 @@
  * lazy chunks, portals, or the game shell rather than by the design preview.
  */
 
-import { PerfSession } from './perfSession';
+import { PerfSession, type SceneDiagnostics } from './perfSession';
 
 const sessions = new Map<string, { session: PerfSession; refs: number }>();
 const listeners = new Set<() => void>();
@@ -56,6 +72,16 @@ export function getPerfSessions(): PerfSession[] {
 
 export function getPerfSession(id: string): PerfSession | undefined {
   return sessions.get(id)?.session;
+}
+
+/**
+ * Attach a component-level scene inventory without coupling the scene probe to
+ * the overlay. A surface that has no diagnostic probe continues to work with
+ * the ordinary renderer counters alone.
+ */
+export function setPerfSceneDiagnostics(id: string, diagnostics: SceneDiagnostics | null): void {
+  sessions.get(id)?.session.setSceneDiagnostics(diagnostics);
+  notify();
 }
 
 /** Watch for surfaces appearing and disappearing. Returns the unsubscribe. */

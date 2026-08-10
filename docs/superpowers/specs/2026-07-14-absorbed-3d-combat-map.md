@@ -87,3 +87,5 @@ on any shared World3D/ThreeDModal dependency impact.
   token survive the pop-out round trip); `?dev_combat=1` fixture landed the same day.
 - TargetingDecals implemented + live-eye verified 2026-06-11; durable before/after PNG
   proof still owed (gap G11).
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/specs/2026-07-14-absorbed-3d-combat-map.md","sha256WithoutMarker":"438bd15c32673283ac3dcf490cdd9509b80f22036be468717a50b41d38b700d4","markedAtUtc":"2026-08-09T20:23:18.414Z"} -->

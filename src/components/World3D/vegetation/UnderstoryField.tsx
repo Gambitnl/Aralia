@@ -258,6 +258,7 @@ const UnderstoryBatchMesh: React.FC<{ batch: Batch }> = ({ batch }) => {
   if (count === 0) return null;
   return (
     <instancedMesh
+      name={`world3d:understory:${batch.species}:v${batch.variant}`}
       ref={ref}
       args={[geometry, UNDERSTORY_MATERIAL, count]}
       receiveShadow

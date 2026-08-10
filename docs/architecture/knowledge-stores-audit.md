@@ -116,3 +116,5 @@ Six stores is not itself a fault. They hold genuinely different things.
 The fault is that no rule says which store owns which kind of knowledge. Fix
 the rule and the sprawl stops, because a new file stops being the only safe
 answer.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/architecture/knowledge-stores-audit.md","sha256WithoutMarker":"70ba3586d2348cb5577849fd75cdafb4e330d4fc716c9c0bb2cda38738f75d76","markedAtUtc":"2026-08-09T20:23:18.418Z"} -->

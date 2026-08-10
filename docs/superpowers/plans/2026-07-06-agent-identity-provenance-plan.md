@@ -114,3 +114,5 @@ machines, and any anti-spoofing beyond the current token.
 2. Add `type`, `spawnedBy`, `campaign`, and `cwd` to the record, the server, and the client.
 3. Add `whois`, `lineage`, and `tree`. Extend `whoami`.
 4. Add `retireAgent` and its command.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/plans/2026-07-06-agent-identity-provenance-plan.md","sha256WithoutMarker":"7f7ab9157d4fff19b9b0e969f06150f10e85ee8dbbd7045bea447dfb82e7f73e","markedAtUtc":"2026-08-09T20:24:28.232Z"} -->

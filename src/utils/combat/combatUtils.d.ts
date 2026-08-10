@@ -288,6 +288,18 @@ export declare function getStatusEffectIcon(effect: StatusEffect): string;
  * @returns A fully hydrated CombatCharacter ready for the BattleMap.
  */
 export declare function createPlayerCombatCharacter(player: PlayerCharacter, allSpells?: Record<string, Spell>): CombatCharacter;
+/** Preview-only combat intersection used to carry the explicit Dev Player exception. */
+export type DevPlaytestCombatant = CombatCharacter & {
+    devPlaytest?: {
+        unlimitedSpellSlots: boolean;
+    };
+};
+/** Returns true only for the explicit Design Preview unlimited-slot marker. */
+export declare function isUnlimitedSpellSlotCombatant(character: CombatCharacter): character is DevPlaytestCombatant & {
+    devPlaytest: {
+        unlimitedSpellSlots: true;
+    };
+};
 export interface AttackResult {
     isHit: boolean;
     isCritical: boolean;

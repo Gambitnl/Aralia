@@ -27,4 +27,4 @@ This file records durable, in-project gaps that block a full "combat messaging c
 
 - Keep these rows in this project unless the issue clearly belongs elsewhere.
 
-<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/combat-messaging-enhancement/GAPS.md","sha256WithoutMarker":"50e38c440e9096819b329c5d5b09fa311839eed18e572b5f595ae2bdb8a4de24","markedAtUtc":"2026-06-25T22:29:38.622Z"} -->
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/combat-messaging-enhancement/GAPS.md","sha256WithoutMarker":"3e575fec6b9c4fd44a465b967cb517f2b382f76cbabf97db795eb172eb6031cf","markedAtUtc":"2026-08-09T20:14:15.790Z"} -->

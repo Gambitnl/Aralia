@@ -68,4 +68,4 @@ longer the current-status authority.
 4. Consult this folder only when you need the provenance of the original
    Dec 2025 audit.
 
-<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spell-completeness-audit/NORTH_STAR.md","sha256WithoutMarker":"b625631e635a59be10150cb2df9925f36a4e88cd51fc8718959c83a01f3c8b85","markedAtUtc":"2026-06-25T22:29:38.619Z"} -->
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spell-completeness-audit/NORTH_STAR.md","sha256WithoutMarker":"3a692e158b9fee17595e98242e311287d029dc35674ef2441c22c2f25c78f801","markedAtUtc":"2026-08-09T20:14:15.780Z"} -->

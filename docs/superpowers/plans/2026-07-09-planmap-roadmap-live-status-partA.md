@@ -923,3 +923,5 @@ With `PLANMAP_TOPIC_BY_NODE_ID` holding at least one real mapping: open the road
 ## Notes for Part B (separate plan, after this ships)
 
 Part B (jump / embed / peek between the two tools) builds directly on this plan's outputs: the `planmapTopic` mapping, the shared `ready-derive.mjs`, and the `?topic=` deep link already added in Task 2. It adds the reverse `?planmapTopic=` / `?peek=` URL modes, jump buttons, an iframe embed panel, a picture-in-picture peek card, and a `postMessage` focus channel (same-origin, full app dev server only). It will be written as its own plan once Part A is built, so its iframe/postMessage code is written against the real, shipped fields rather than speculatively.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/plans/2026-07-09-planmap-roadmap-live-status-partA.md","sha256WithoutMarker":"81d2b575880e144d63883e31fbdce259fb02aaad3af891a43d34343a689cf8f2","markedAtUtc":"2026-08-09T20:22:07.616Z"} -->

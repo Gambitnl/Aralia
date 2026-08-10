@@ -96,3 +96,5 @@ Each task in the plan has exact files, interfaces, and concrete Vitest tests. Th
 5. Keep the plan-map node and the `building-blueprint-pipeline` memory honest as you land tasks.
 
 Good luck. The design work is solid — trust the plan, let the tests drive.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/plans/2026-07-06-building-blueprint-HANDOVER.md","sha256WithoutMarker":"32da9e0357f0b066875e57257cf28ef2cd2b633e2e4d7d8aae739f93d91f0a92","markedAtUtc":"2026-08-09T20:24:28.233Z"} -->

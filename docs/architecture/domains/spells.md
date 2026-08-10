@@ -1,6 +1,6 @@
 # Spells
 
-Verified: unknown — predates the verification rule (see AGENTS.md)
+Verified: 2026-08-09
 
 ## Purpose
 
@@ -27,6 +27,10 @@ The domain currently includes these active lanes:
 - AI-assisted spell support under src/systems/spells/ai/
 - spell JSON data and manifest files under public/data/
 - React consumers through spellbook, glossary, character, and combat-facing surfaces
+- composite area-trigger routing through src/hooks/spellEffectUtils.ts,
+  src/commands/factory/SpellCommandFactory.ts, and
+  src/systems/spells/effects/triggerHandler.ts; specialized controlled-entity
+  and initial-cast branches remain separate runtime paths
 
 ## Boundaries And Constraints
 
@@ -59,4 +63,4 @@ This pass verified that the following are materially present:
 - Which spell gap documents remain live inputs versus purely historical migration records?
 - Which spell-facing docs should remain active reference surfaces versus preserved migration history?
 
-<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/architecture/domains/spells.md","sha256WithoutMarker":"fd7903f1011c0347d4a18e6165f8545170124e20a74b2ac8e5429c0ce91c4ecd","markedAtUtc":"2026-06-26T00:12:35.436Z"} -->
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/architecture/domains/spells.md","sha256WithoutMarker":"22c0799fbce8736b6fe5733ca0dee90c431a0502cbc243019525b3ca57ae27d7","markedAtUtc":"2026-08-09T20:14:15.941Z"} -->

@@ -183,6 +183,7 @@ const TreeBatchMesh: React.FC<{ batch: TreeBatch }> = ({ batch }) => {
 
   return (
     <instancedMesh
+      name={`world3d:trees:${batch.species}:v${batch.variant}${batch.castShadow ? ':shadow' : ''}`}
       ref={ref}
       args={[geometry, TREE_MATERIAL, batch.count]}
       castShadow={batch.castShadow}

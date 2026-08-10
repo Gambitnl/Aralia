@@ -14,13 +14,19 @@ import { generateId } from '@/utils/combat';
 import { BreakConcentrationCommand } from '../ConcentrationCommands';
 import { DamageCommand } from '../DamageCommand';
 import friends from '../../../../public/data/spells/level-0/friends.json';
+import sleep from '../../../../public/data/spells/level-1/sleep.json';
+import enemiesAbound from '../../../../public/data/spells/level-3/enemies-abound.json';
 import type { ActiveSpellZone } from '@/systems/spells/effects';
 
 // We mock saving throws so we don't have to deal with RNG in tests
-vi.mock('@/utils/character/savingThrowUtils', () => ({
-  calculateSpellDC: vi.fn(() => 13),
-  rollSavingThrow: vi.fn()
-}));
+vi.mock('@/utils/character/savingThrowUtils', async importOriginal => {
+  const actual = await importOriginal<typeof import('@/utils/character/savingThrowUtils')>();
+  return {
+    ...actual,
+    calculateSpellDC: vi.fn(() => 13),
+    rollSavingThrow: vi.fn()
+  };
+});
 
 // Mock unique ID generation for predictable tests
 vi.mock('@/utils/combat', async (importOriginal) => {
@@ -746,6 +752,57 @@ describe('StatusConditionCommand', () => {
       expect(updatedFriendTarget.statusEffects.some(effect => effect.name === 'Charmed')).toBe(false);
       expect(updatedFriendTarget.socialAwareness?.some(entry => entry.sourceSpellId === 'friends' && entry.casterId === 'caster')).toBe(true);
       expect(result.combatLog.some(entry => entry.data?.earlyEndReason === 'caster_forces_saving_throw')).toBe(true);
+    });
+  });
+
+  describe('source-backed save outcome overrides', () => {
+    it('auto-succeeds live Sleep targets with Exhaustion immunity without rolling', async () => {
+      const sleepEffect = (sleep as unknown as { effects: StatusConditionEffect[] }).effects[0];
+      const target = createMockCombatCharacter({
+        id: 'sleep-immune',
+        name: 'Elf Target',
+        conditions: [],
+        statusEffects: [],
+        creatureTypes: ['Humanoid', 'Elf'],
+        conditionImmunities: ['Exhaustion']
+      });
+      const command = new StatusConditionCommand(sleepEffect, {
+        ...context,
+        caster: state.characters[0],
+        targets: [target],
+        spellId: 'sleep',
+        spellName: 'Sleep'
+      });
+
+      const result = await command.execute({ ...state, characters: [state.characters[0], target] });
+
+      expect(savingThrowUtils.rollSavingThrow).not.toHaveBeenCalled();
+      expect(result.characters.find(character => character.id === target.id)?.conditions).toEqual([]);
+      expect(result.combatLog.some(entry => entry.message.includes('source-backed outcome override'))).toBe(true);
+    });
+
+    it('auto-succeeds live Enemies Abound targets immune to Frightened', async () => {
+      const effect = (enemiesAbound as unknown as { effects: StatusConditionEffect[] }).effects[0];
+      const target = createMockCombatCharacter({
+        id: 'frightened-immune',
+        name: 'Frightened-Immune Target',
+        conditions: [],
+        statusEffects: [],
+        creatureTypes: ['Humanoid'],
+        conditionImmunities: ['Frightened']
+      });
+      const command = new StatusConditionCommand(effect, {
+        ...context,
+        caster: state.characters[0],
+        targets: [target],
+        spellId: 'enemies-abound',
+        spellName: 'Enemies Abound'
+      });
+
+      const result = await command.execute({ ...state, characters: [state.characters[0], target] });
+
+      expect(savingThrowUtils.rollSavingThrow).not.toHaveBeenCalled();
+      expect(result.characters.find(character => character.id === target.id)?.conditions).toEqual([]);
     });
   });
 });

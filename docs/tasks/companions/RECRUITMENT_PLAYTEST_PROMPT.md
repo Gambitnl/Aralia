@@ -9,3 +9,5 @@ live in-game playtest proof) is tracked as `docs/projects/companions/GAPS.md` ro
 
 This stub exists because `docs/superpowers/2026-06-27-travel-provisioning-fork1-handover.md`
 references the old path.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/companions/RECRUITMENT_PLAYTEST_PROMPT.md","sha256WithoutMarker":"54fc960c2fcbb49cc642752d7ede19ff75ff1814ef32ecf5f677276654f158ba","markedAtUtc":"2026-08-09T20:24:28.239Z"} -->

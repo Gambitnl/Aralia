@@ -123,3 +123,5 @@ party-location entry (no click) ─→ tile ─→ legacyGridToAtlasCell + snapT
 - The continent-scale legacy streamer.
 - The marker's visual path.
 - Grid resolution changes (the cell anchor is grid-resolution-independent by construction).
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/specs/2026-06-27-grid-atlas-bridge-unification-design.md","sha256WithoutMarker":"1c861234e7f021ba1fa8799cdb3d605a890cd56614f8ce1ad5367c6155fbad22","markedAtUtc":"2026-08-09T20:24:29.235Z"} -->

@@ -30,3 +30,5 @@ Key files: `src/types/dialogue.ts`, `src/data/dialogue/topics.ts`,
 | DIAL-004 | RESOLVED 2026-07-21 (with DIAL-002) — durable global unlock-fact model live: `WorldFactStore` serializes with saves, heals legacy saves on read/write, keys facts semantically (`topic_unlocked:<id>`), carries provenance (source NPC + topic) and a scope field (`global`/`region`/`npc`) for future region-ripple gating | `src/types/facts.ts`, `worldFactStore.ts` |
 | DIAL-005 | Dialogue vs companion-chat ownership boundary not formalized | `ConversationPanel`, `useConversation.ts` |
 | DIAL-006 | Companion banter orchestration (`useCompanionBanter.ts`) is cross-flow; boundary note needed before extraction (CMA-G12) | `src/hooks/useCompanionBanter.ts` |
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/specs/2026-07-14-absorbed-dialogue.md","sha256WithoutMarker":"466d98122d8ed65ae97067247daf8345ae9732a32480ae010fff1843253e4c60","markedAtUtc":"2026-08-09T20:24:24.664Z"} -->

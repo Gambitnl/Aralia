@@ -399,3 +399,5 @@ props are shared across contexts (that reuse is exactly why they're WAVE-1).
    crag) likely ship as PC-blockout placeholders in the wave, detailed later.
 5. **Defile as arrangement, not family** — agree it's a placement *pattern*
    over hill+forest props rather than new meshes? (Section 16 assumes yes.)
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/research/2026-07-03-prop-catalog-strawman.md","sha256WithoutMarker":"41572993633a833d4751d4ff3054321001122c81c6409335055be15f71d27eb9","markedAtUtc":"2026-08-09T20:24:28.252Z"} -->

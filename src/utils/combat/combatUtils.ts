@@ -3,8 +3,8 @@
  * ARCHITECTURAL ADVISORY:
  * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 04/08/2026, 02:06:40
- * Dependents: App.tsx, components/BattleMap/characters/characterActor/CharacterActor.tsx, state/reducers/characterReducer.ts, systems/spells/mechanics/DiceRoller.ts, utils/character/checkUtils.ts, utils/character/savingThrowUtils.ts, utils/combat/combatAI.ts, utils/combat/index.ts, utils/combat/mechanicsUtils.ts, utils/sandbox/quickCharacterGenerator.ts, utils/spells/outOfCombatCasting.ts
+ * Last Sync: 10/08/2026, 01:16:48
+ * Dependents: App.tsx, components/BattleMap/characters/characterActor/CharacterActor.tsx, state/reducers/characterReducer.ts, systems/spells/mechanics/DiceRoller.ts, utils/character/checkUtils.ts, utils/character/savingThrowUtils.ts, utils/combat/actionEconomyUtils.ts, utils/combat/combatAI.ts, utils/combat/index.ts, utils/combat/mechanicsUtils.ts, utils/sandbox/quickCharacterGenerator.ts, utils/spells/outOfCombatCasting.ts
  * Imports: 10 files
  *
  * MULTI-AGENT SAFETY:
@@ -38,6 +38,27 @@ import { buildHitPointDicePools, resolveRacialResourceId } from '../character/ch
 import { ResistanceCalculator } from './resistanceUtils';
 
 import { bresenhamLine } from '../spatial/lineOfSight';
+
+// ============================================================================
+// Preview-Only Combat Capability
+// ============================================================================
+// CombatCharacter remains the shared production contract. This small local
+// intersection carries an explicit runtime marker only for the disposable
+// Design Preview player, avoiding a broad combat-type change while keeping the
+// exception visible and impossible to trigger from a name or id heuristic.
+// ============================================================================
+
+export type DevPlaytestCombatant = CombatCharacter & {
+  devPlaytest?: {
+    unlimitedSpellSlots: boolean;
+  };
+};
+
+export function isUnlimitedSpellSlotCombatant(
+  character: CombatCharacter,
+): character is DevPlaytestCombatant & { devPlaytest: { unlimitedSpellSlots: true } } {
+  return (character as DevPlaytestCombatant).devPlaytest?.unlimitedSpellSlots === true;
+}
 
 type DiceRandomSource = () => number;
 
@@ -1106,10 +1127,16 @@ export function createPlayerCombatCharacter(player: PlayerCharacter, allSpells: 
   // 2. Convert Spells to Combat Abilities using the Factory
   // THIS IS THE WIRING POINT: We iterate the known spell IDs, find the JSON data, and convert it.
   if (player.spellbook) {
+    // Dev Player receives the entire selected class list for spell playtests.
+    // Every ordinary character continues to hydrate only its real spellbook.
+    const previewClassSpellIds = player.devPlaytest?.unlimitedSpellSlots
+      ? (player.class.spellcasting?.spellList ?? [])
+      : [];
     const spellsToCheck = [
       ...(player.spellbook.preparedSpells || []),
       ...(player.spellbook.cantrips || []),
-      ...(player.spellbook.knownSpells || []) // For known casters like Bards/Sorcerers
+      ...(player.spellbook.knownSpells || []), // For known casters like Bards/Sorcerers
+      ...previewClassSpellIds,
     ];
 
     const uniqueSpellIds = Array.from(new Set(spellsToCheck));
@@ -1130,7 +1157,7 @@ export function createPlayerCombatCharacter(player: PlayerCharacter, allSpells: 
     });
   }
 
-  const combatChar: CombatCharacter = {
+  const combatChar: DevPlaytestCombatant = {
     id: player.id || `player_${player.name.toLowerCase().replace(' ', '_')}`,
     name: player.name,
     level: player.level || 1,
@@ -1169,6 +1196,9 @@ export function createPlayerCombatCharacter(player: PlayerCharacter, allSpells: 
     },
     spellbook: player.spellbook,
     spellSlots: player.spellSlots,    savingThrowProficiencies: player.savingThrowProficiencies,
+    // Keep the exception explicitly attached to this transient combatant. The
+    // action-economy gate reads it to bypass only slot accounting, never turns.
+    ...(player.devPlaytest ? { devPlaytest: { ...player.devPlaytest } } : {}),
     // WHAT CHANGED: Added feats array mapping.
     // WHY IT CHANGED: To support feat-based mechanics in the combat loop. 
     // By passing the feat IDs (e.g., ['great_weapon_master']) to the 

@@ -244,4 +244,4 @@ After verification completes, execute `/session-ritual` to:
 - Extract terminal learnings discovered during this task.
 - Review and propose inline TODOs for future work.
 
-<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"CHARACTER_PORTRAIT_IMPLEMENTATION_PLAN.md","sha256WithoutMarker":"f5b740eb7d217d21e7076f0db26b8003e519c9c931e8df5c6d5bb2974ab32558","markedAtUtc":"2026-06-26T00:40:14.566Z"} -->
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"CHARACTER_PORTRAIT_IMPLEMENTATION_PLAN.md","sha256WithoutMarker":"8a48ff9a1e0612c28d1a259ca8be4733600e2fac2d1117abdb84fd47b1576c54","markedAtUtc":"2026-08-09T20:14:16.034Z"} -->

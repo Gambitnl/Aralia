@@ -20,9 +20,10 @@
 // ============================================================================
 
 import React from 'react';
-import { render, screen } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { OllamaDependencyModal } from './OllamaDependencyModal';
+import { setGroqKeyStorage, setGroqProxyUrl } from '../../services/ai/aiProviderSettings';
 
 // ============================================================================
 // Layout Regression Coverage
@@ -33,6 +34,12 @@ import { OllamaDependencyModal } from './OllamaDependencyModal';
 // ============================================================================
 
 describe('OllamaDependencyModal', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+    localStorage.clear();
+    sessionStorage.clear();
+  });
+
   it('keeps the action footer outside the scroll body so Continue remains reachable', () => {
     // Render the pane in its normal open state, matching the startup warning
     // that appears before a player can dismiss the Ollama dependency notice.
@@ -92,5 +99,116 @@ describe('OllamaDependencyModal', () => {
 
     Object.defineProperty(window, 'innerWidth', { configurable: true, value: originalWidth });
     Object.defineProperty(window, 'innerHeight', { configurable: true, value: originalHeight });
+  });
+
+  it('checks the selected Groq proxy health route and confirms its credential is loaded', async () => {
+    // Proxy mode hides browser-key fields and checks the server that owns the
+    // credential. The standalone `/v1` API exposes health at the host root.
+    setGroqKeyStorage('proxy');
+    setGroqProxyUrl('http://localhost:8787/v1');
+    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue({
+      ok: true,
+      json: async () => ({ ok: true, keyLoaded: true }),
+    } as Response);
+
+    render(
+      <OllamaDependencyModal
+        isOpen
+        isDevModeEnabled
+        onClose={vi.fn()}
+        onDontShowAgain={vi.fn()}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Check proxy' }));
+
+    await waitFor(() => {
+      expect(fetchSpy).toHaveBeenCalledWith(
+        'http://localhost:8787/health',
+        expect.objectContaining({ method: 'GET' }),
+      );
+      expect(screen.getByRole('status')).toHaveTextContent(
+        'Proxy is running and its Groq credential is loaded.',
+      );
+    });
+  });
+
+  it('starts the bundled local proxy and waits until it is healthy', async () => {
+    // The first health read proves the port is stopped. Aralia then asks its own
+    // Vite server to launch the fixed proxy and confirms the child became ready.
+    setGroqKeyStorage('proxy');
+    setGroqProxyUrl('http://localhost:8787/v1');
+    const fetchSpy = vi.spyOn(globalThis, 'fetch')
+      .mockRejectedValueOnce(new TypeError('connection refused'))
+      .mockResolvedValueOnce({ ok: true } as Response)
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ ok: true, keyLoaded: true }),
+      } as Response);
+
+    render(
+      <OllamaDependencyModal
+        isOpen
+        isDevModeEnabled
+        onClose={vi.fn()}
+        onDontShowAgain={vi.fn()}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Start proxy' }));
+
+    await waitFor(() => {
+      expect(fetchSpy).toHaveBeenNthCalledWith(
+        1,
+        'http://localhost:8787/health',
+        expect.objectContaining({ method: 'GET' }),
+      );
+      expect(fetchSpy).toHaveBeenNthCalledWith(
+        2,
+        '/__groq/start',
+        expect.objectContaining({
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ proxyUrl: 'http://localhost:8787/v1' }),
+        }),
+      );
+      expect(fetchSpy).toHaveBeenNthCalledWith(
+        3,
+        'http://localhost:8787/health',
+        expect.objectContaining({ method: 'GET' }),
+      );
+      expect(screen.getByRole('status')).toHaveTextContent(
+        'Proxy is running and its Groq credential is loaded.',
+      );
+    });
+  });
+
+  it('reports a Groq proxy that the browser cannot reach', async () => {
+    // Network rejection covers a stopped port as well as a proxy that cannot
+    // be reached from this browser because its CORS policy blocks Aralia.
+    setGroqKeyStorage('proxy');
+    setGroqProxyUrl('/__groq/v1');
+    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockRejectedValue(new TypeError('Failed to fetch'));
+
+    render(
+      <OllamaDependencyModal
+        isOpen
+        isDevModeEnabled
+        onClose={vi.fn()}
+        onDontShowAgain={vi.fn()}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Check proxy' }));
+
+    await waitFor(() => {
+      expect(fetchSpy).toHaveBeenCalledWith(
+        '/__groq/health',
+        expect.objectContaining({ method: 'GET' }),
+      );
+      expect(screen.getByRole('status')).toHaveTextContent(
+        'Proxy is not reachable from Aralia at this URL.',
+      );
+    });
   });
 });

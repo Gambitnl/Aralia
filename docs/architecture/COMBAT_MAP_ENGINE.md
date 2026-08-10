@@ -231,4 +231,4 @@ Recorded so future readers don't trip on the same things:
 - **Asset locality.** 3D assets (glTF models, KTX2 textures) are loaded from `/models/` and `/textures/`. Keep them out of the JS bundle.
 - **Performance target.** 60fps on GTX 1060+. Prefer `InstancedMesh` for any repeated geometry. Profile before optimising.
 
-<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/architecture/COMBAT_MAP_ENGINE.md","sha256WithoutMarker":"783cccdbca2b3a984f7740ea3f28941db9034624962f283deff774f34bc5eeee","markedAtUtc":"2026-06-26T00:12:35.430Z"} -->
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/architecture/COMBAT_MAP_ENGINE.md","sha256WithoutMarker":"ec03953556ea3a2755ea5d68dc728b8d003614f944b8ad849827dc2df3e07817","markedAtUtc":"2026-08-09T20:14:15.933Z"} -->

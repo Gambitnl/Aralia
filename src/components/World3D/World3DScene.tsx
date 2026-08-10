@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 18/07/2026, 20:25:42
- * Dependents: components/Combat/InPlaceCombatScene.tsx, components/World3D/World3DDemo.tsx, components/World3D/World3DWrapper.tsx, components/Worldforge/WorldforgeGroundDrilldown.tsx
- * Imports: 29 files
+ * Last Sync: 09/08/2026, 17:09:45
+ * Dependents: components/Combat/InPlaceCombatScene.tsx, components/DesignPreview/steps/PreviewTown3D.tsx, components/World3D/World3DDemo.tsx, components/World3D/World3DWrapper.tsx, components/Worldforge/WorldforgeGroundDrilldown.tsx
+ * Imports: 38 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -33,7 +33,7 @@
  */
 
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
-import { Canvas, useFrame } from '@react-three/fiber';
+import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import World3DLighting from './World3DLighting';
 import { canopyInterior, NEUTRAL_INTERIOR, type CanopyInterior } from './canopyInterior';
@@ -56,6 +56,7 @@ import GroundAgents from './GroundAgents';
 import GroundProps from './GroundProps';
 import DungeonEntrances from './DungeonEntrances';
 import FarShells from './FarShells';
+import VolumeGroundBubble from './VolumeGroundBubble';
 import { substance } from '@/systems/worldforge/terrain/materials';
 import { Material } from '@/systems/worldforge/terrain/voxelVolume';
 import SceneCast, { type SceneCastMember } from './SceneCast';
@@ -84,6 +85,7 @@ import type { PlayerWorldPosition } from '@/types';
 import { useForgeTexture, getSemanticAssetKey } from '@/systems/worldforge/bridge/forgeMaterials';
 import type { ForgeAssetService } from '@/systems/worldforge/assets/forgeAssetService';
 import { PerfProbe } from '@/devtools/perf';
+import { setPerfSceneDiagnostics } from '@/devtools/perf/perfRegistry';
 
 export const ForgeAssetContext = React.createContext<ForgeAssetService | undefined>(undefined);
 
@@ -171,6 +173,156 @@ interface World3DSceneProps {
 const SHADOWS = WORLD3D_CONFIG.STREAMED_WORLD_SHADOWS;
 
 /**
+ * Ferns, saplings and fallen forest-floor pieces are walking-scale detail.
+ * Keep them for the five-by-five chunk window around the player; beyond 256 m
+ * their geometry is sub-pixel beneath the tree canopy, while the terrain,
+ * trees and fog continue to carry the distant forest silhouette.
+ */
+const UNDERSTORY_CHUNK_RADIUS = 2;
+
+// ============================================================================
+// Opt-in mounted-scene census
+// ============================================================================
+// Development builds attach a factual inventory of the live scene to the
+// performance session. `?perfCensus=1` additionally exposes the full raw rows
+// on the document for deep browser investigations. Neither path writes game
+// state, and the traversal runs only when the streamed scene composition moves.
+// ============================================================================
+
+interface World3DMeshCensusRow {
+  path: string;
+  type: string;
+  geometry: string;
+  material: string;
+  instances: number;
+  triangles: number;
+  castShadow: boolean;
+}
+
+const World3DPerfCensusProbe: React.FC<{ loadedSignature: string }> = ({ loadedSignature }) => {
+  const { scene } = useThree();
+  const enabled = import.meta.env.DEV && typeof window !== 'undefined';
+  const exposeRawRows = enabled
+    && new URLSearchParams(window.location.search).get('perfCensus') === '1';
+
+  useEffect(() => {
+    // Lightweight R3F mocks used by structural tests may not provide a scene.
+    // The diagnostic is optional, so absence must never affect the world shell.
+    if (!enabled || !scene) return;
+
+    // Wait one animation turn so every streamed child has committed its Three
+    // object before the inventory walks the scene graph.
+    const timeoutId = window.setTimeout(() => {
+      const rows: World3DMeshCensusRow[] = [];
+      const geometries = new Set<THREE.BufferGeometry>();
+      const materials = new Set<THREE.Material>();
+
+      scene.traverse((object) => {
+        if (!(object instanceof THREE.Mesh)) return;
+        const mesh = object as THREE.Mesh<THREE.BufferGeometry, THREE.Material | THREE.Material[]>;
+        const geometry = mesh.geometry;
+        const instanceCount = object instanceof THREE.InstancedMesh ? object.count : 1;
+        const baseTriangles = geometry.index
+          ? geometry.index.count / 3
+          : (geometry.getAttribute('position')?.count ?? 0) / 3;
+        const path: string[] = [];
+        let cursor: THREE.Object3D | null = object;
+        while (cursor) {
+          if (cursor.name) path.unshift(cursor.name);
+          cursor = cursor.parent;
+        }
+
+        geometries.add(geometry);
+        const meshMaterials = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+        meshMaterials.forEach((material) => materials.add(material));
+        rows.push({
+          path: path.join(' > ') || '(unnamed)',
+          type: object.type,
+          geometry: geometry.type,
+          material: meshMaterials.map((material) => material.type).join('+'),
+          instances: instanceCount,
+          triangles: Math.round(baseTriangles * instanceCount),
+          castShadow: object.castShadow,
+        });
+      });
+
+      const totals = rows.reduce(
+        (sum, row) => ({
+          meshes: sum.meshes + 1,
+          instances: sum.instances + row.instances,
+          triangles: sum.triangles + row.triangles,
+          shadowMeshes: sum.shadowMeshes + (row.castShadow ? 1 : 0),
+          shadowTriangles: sum.shadowTriangles + (row.castShadow ? row.triangles : 0),
+        }),
+        { meshes: 0, instances: 0, triangles: 0, shadowMeshes: 0, shadowTriangles: 0 },
+      );
+
+      // Group the full inventory by its nearest named render family. Unnamed
+      // instanced meshes remain together rather than being omitted; those are
+      // usually vegetation and are often the dominant triangle source.
+      const byFamily = new Map<string, typeof totals>();
+      rows.forEach((row) => {
+        const family = row.path.includes('world3d:trees:')
+          ? 'trees'
+          : row.path.includes('world3d:understory:')
+            ? 'understory'
+            : row.path.includes('world3d:grass')
+              ? 'grass'
+              : row.path.includes('groundAgentsCrowd')
+                ? 'agents'
+              : row.path.includes('ground-props')
+          ? 'ground-props'
+          : row.path.includes('world3d:site-building') || row.path.includes('world3d:sites')
+            ? 'sites'
+            : row.path.startsWith('world3d:')
+              ? row.path.split(' > ')[0]
+              : row.type === 'Mesh' && row.instances > 1
+                ? 'unnamed-instanced'
+                : 'unnamed-individual';
+        const sum = byFamily.get(family)
+          ?? { meshes: 0, instances: 0, triangles: 0, shadowMeshes: 0, shadowTriangles: 0 };
+        sum.meshes += 1;
+        sum.instances += row.instances;
+        sum.triangles += row.triangles;
+        if (row.castShadow) {
+          sum.shadowMeshes += 1;
+          sum.shadowTriangles += row.triangles;
+        }
+        byFamily.set(family, sum);
+      });
+
+      const families = [...byFamily.entries()]
+        .map(([family, values]) => ({ family, ...values }))
+        .sort((a, b) => b.triangles - a.triangles);
+      const diagnostics = {
+        ...totals,
+        geometries: geometries.size,
+        materials: materials.size,
+        families,
+      };
+      setPerfSceneDiagnostics('world3d', diagnostics);
+
+      if (exposeRawRows) {
+        document.documentElement.dataset.world3dCensus = JSON.stringify({
+          loadedSignature,
+          totals: diagnostics,
+          byFamily: families,
+          topTriangleRows: rows.sort((a, b) => b.triangles - a.triangles).slice(0, 40),
+        });
+      }
+    }, 0);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+      setPerfSceneDiagnostics('world3d', null);
+      delete document.documentElement.dataset.world3dCensus;
+    };
+  }, [enabled, exposeRawRows, loadedSignature, scene]);
+
+  return null;
+};
+
+/**
  * World metres one tile of the ground texture spans.
  *
  * Chosen against the failure it has to avoid: too small and the tiling period is
@@ -243,7 +395,7 @@ const FrontierSkirt: React.FC<{
   const geometry = useDisposableGeometry(rebased);
   if (!visible) return null;
   return (
-    <mesh geometry={geometry} position={scenePos} receiveShadow={SHADOWS}>
+    <mesh name="world3d:terrain-skirt" geometry={geometry} position={scenePos} receiveShadow={SHADOWS}>
       {/* The skirt carries the same surface noise as the terrain it hangs off:
           without it the wall reads as a different material along the top edge,
           which is the one place a frontier skirt has to be invisible. */}
@@ -339,7 +491,7 @@ const TerrainPiece: React.FC<{
           metre and the 8 m per-vertex colour lattice — which is why natural
           material boundaries rendered as straight diagonal lines and why the
           ground measured as a numerically flat plane at walking distance. */}
-      <mesh geometry={geometry} position={scenePos} receiveShadow={SHADOWS}>
+      <mesh name="world3d:terrain" geometry={geometry} position={scenePos} receiveShadow={SHADOWS}>
         <meshStandardMaterial
           vertexColors
           map={tex ?? groundDetail}
@@ -403,7 +555,7 @@ const WaterPiece: React.FC<{ chunk: LoadedChunk; origin: SceneOrigin }> = ({ chu
 
   if (!water) return null;
   return (
-    <mesh geometry={geometry} position={scenePos} material={getWaterSurfaceMaterial()} />
+    <mesh name="world3d:water" geometry={geometry} position={scenePos} material={getWaterSurfaceMaterial()} />
   );
 };
 
@@ -427,7 +579,7 @@ const RoadPiece: React.FC<{ chunk: LoadedChunk; origin: SceneOrigin }> = ({ chun
   // packed-dirt lanes read under one white-base vertex-colored material. Inherited
   // regional roads bake the same #a08b62 dirt they used before this slice.
   return (
-    <mesh geometry={geometry} position={chunkScenePos(chunk.cx, chunk.cy, origin)} receiveShadow={SHADOWS}>
+    <mesh name="world3d:roads" geometry={geometry} position={chunkScenePos(chunk.cx, chunk.cy, origin)} receiveShadow={SHADOWS}>
       <meshStandardMaterial vertexColors color="#ffffff" roughness={0.95} />
     </mesh>
   );
@@ -443,7 +595,7 @@ const WallPiece: React.FC<{ chunk: LoadedChunk; origin: SceneOrigin }> = ({ chun
   // wall tint as per-vertex colors (buildWallMesh); the white base avoids
   // re-tinting them. Runs without a tint bake the legacy #9a9387 stone.
   return (
-    <mesh geometry={geometry} position={chunkScenePos(chunk.cx, chunk.cy, origin)} castShadow={SHADOWS} receiveShadow={SHADOWS}>
+    <mesh name="world3d:walls" geometry={geometry} position={chunkScenePos(chunk.cx, chunk.cy, origin)} castShadow={SHADOWS} receiveShadow={SHADOWS}>
       <meshStandardMaterial vertexColors color="#ffffff" roughness={0.95} side={THREE.DoubleSide} />
     </mesh>
   );
@@ -458,7 +610,7 @@ const GatePiece: React.FC<{ chunk: LoadedChunk; origin: SceneOrigin }> = ({ chun
   // Gatehouse towers/lintels at town road gates (buildGateMesh), vertex-tinted
   // with the burg's wall color so they read as part of the same rampart.
   return (
-    <mesh geometry={geometry} position={chunkScenePos(chunk.cx, chunk.cy, origin)} castShadow={SHADOWS} receiveShadow={SHADOWS}>
+    <mesh name="world3d:gates" geometry={geometry} position={chunkScenePos(chunk.cx, chunk.cy, origin)} castShadow={SHADOWS} receiveShadow={SHADOWS}>
       <meshStandardMaterial vertexColors color="#ffffff" roughness={0.95} side={THREE.DoubleSide} />
     </mesh>
   );
@@ -475,7 +627,7 @@ const DeckPiece: React.FC<{ chunk: LoadedChunk; origin: SceneOrigin }> = ({ chun
   // quay and a bridge span read distinctly. `vertexColors` consumes the per-deck
   // colors emitted by buildDeckMesh; the white base avoids tinting them.
   return (
-    <mesh geometry={geometry} position={chunkScenePos(chunk.cx, chunk.cy, origin)} castShadow={SHADOWS} receiveShadow={SHADOWS}>
+    <mesh name="world3d:decks" geometry={geometry} position={chunkScenePos(chunk.cx, chunk.cy, origin)} castShadow={SHADOWS} receiveShadow={SHADOWS}>
       <meshStandardMaterial vertexColors color="#ffffff" roughness={0.9} side={THREE.DoubleSide} />
     </mesh>
   );
@@ -654,7 +806,7 @@ const SiteBuilding: React.FC<{
   const hasSolvedRoof = !!solvedRoofGeom;
 
   return (
-    <group ref={groupRef} position={[s.localX, s.surfaceY, s.localZ]} rotation={[0, s.rotationY ?? 0, 0]}>
+    <group name="world3d:site-building" ref={groupRef} position={[s.localX, s.surfaceY, s.localZ]} rotation={[0, s.rotationY ?? 0, 0]}>
       {hasLiveInterior ? (
         // Seamless interior (Worldforge L4): perimeter + room walls with real
         // door gaps, plus furnishing blocks. Parts use +z = inward-from-street;
@@ -787,7 +939,7 @@ const SitePieces: React.FC<{
   const renderInteriors = chunk.cx === detailAnchor.cx && chunk.cy === detailAnchor.cy;
   const chunkWorldOrigin = chunkOriginWorld(chunk.cx, chunk.cy);
   return (
-    <group position={chunkScenePos(chunk.cx, chunk.cy, origin)}>
+    <group name="world3d:sites" position={chunkScenePos(chunk.cx, chunk.cy, origin)}>
       {chunk.bundle.sites.map((s) =>
         s.markerOnly ? null : s.boxWidth && s.boxDepth && s.boxHeight ? (
           <SiteBuilding
@@ -854,7 +1006,7 @@ const VegetationPiece: React.FC<{
   return (
     <group position={chunkScenePos(chunk.cx, chunk.cy, origin)}>
       {bushCount > 0 && (
-        <instancedMesh ref={bushRef} args={[undefined, undefined, bushCount]} castShadow={castsNearbyShadow}>
+        <instancedMesh name="world3d:bushes" ref={bushRef} args={[undefined, undefined, bushCount]} castShadow={castsNearbyShadow}>
           <sphereGeometry args={[1, 6, 4]} />
           <meshStandardMaterial color="#ffffff" flatShading />
         </instancedMesh>
@@ -1156,6 +1308,9 @@ const World3DScene: React.FC<World3DSceneProps> = ({
         }}
       >
         <PerfProbe id="world3d" label="World 3D" />
+        <World3DPerfCensusProbe
+          loadedSignature={loaded.map((chunk) => `${chunk.cx}|${chunk.cy}|${chunk.lod}`).join(';')}
+        />
         {/* Sun + sky + hemisphere fill + distance fog + soft follow-frustum
             shadows (ground profile). Time-of-day plumbed, fixed late-morning.
             Wrapped in the canopy damper (forests Task 11): under forest canopy
@@ -1236,6 +1391,11 @@ const World3DScene: React.FC<World3DSceneProps> = ({
           chunks={loaded.flatMap((c) => {
             const u = c.bundle.understory;
             if (!u || u.count === 0) return [];
+            const distance = Math.max(
+              Math.abs(c.cx - detailAnchor.cx),
+              Math.abs(c.cy - detailAnchor.cy),
+            );
+            if (distance > UNDERSTORY_CHUNK_RADIUS) return [];
             return [{ understory: u, offset: chunkScenePos(c.cx, c.cy, sceneOrigin) }];
           })}
         />
@@ -1251,6 +1411,19 @@ const World3DScene: React.FC<World3DSceneProps> = ({
         {/* The world's floor. Mounted with the ground profile, the only view
             from which a camera can get beneath the terrain. */}
         {viewProfile === 'ground' && <WorldUnderside />}
+        {/* ADR 0002, wiring slice 1: the ground around the player is a real
+            VOLUME, filled from this same GroundWorld in a worker and drawn with
+            the substance material. It lies over the heightfield skin and dives
+            under it at its rim, so the join has no seam and no wall. Nothing
+            digs it yet — that is a later slice — but the volume it hands out is
+            the object that carve will run against. */}
+        {viewProfile === 'ground' && (
+          <VolumeGroundBubble
+            ground={groundWorld}
+            sceneOrigin={sceneOrigin}
+            playerGroundPos={playerGroundPos}
+          />
+        )}
         {viewProfile === 'ground' && (
           <FarShells ground={groundWorld} sceneOrigin={sceneOrigin} />
         )}

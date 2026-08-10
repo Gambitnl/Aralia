@@ -10,7 +10,7 @@
  * decorative delegate; (e) guards: species gaits refuse skinned.
  */
 import { describe, it, expect } from 'vitest';
-import { Vector3 } from 'three';
+import { AnimationClip, QuaternionKeyframeTrack, Vector3 } from 'three';
 import type { EntityBlueprint, Frame, PlanSpec, SegmentSink, Palette } from '../types';
 import { deriveFrame } from '../types';
 import { compilePlan } from '../textPlan/compilePlan';
@@ -171,6 +171,87 @@ describe('assembleEntity — slice 4 guards (e)', () => {
     const handle = assembleEntity(blueprint, { bodyTech: 'skinned' });
     expect(handle.stats().triangles).toBeGreaterThan(0);
     expect(handle.stats().triangles).toBeLessThan(PLAN_TRIANGLE_BUDGET);
+    handle.dispose();
+  });
+});
+
+describe('assembleEntity — Task 3: formed heads ride their head<i> bone', () => {
+  it('skinned mode parents the sculpted head to its head bone on the live socket; segments mode keeps the anchor path', () => {
+    const { frame, planSpec } = compilePlan(PLAN_FIXTURES.dragon);
+    const spec = planSpec!;
+    // the dragon's serpent head is a formed head — the fixture must exercise this
+    expect(spec.heads.some((h) => h.form)).toBe(true);
+    const blueprint: EntityBlueprint = {
+      gait: 'plan',
+      frame,
+      palette: PALETTE,
+      parts: [],
+      label: 'Dragon',
+      planSpec: spec,
+    };
+
+    // skinned: the sculpted head group hangs under the head0 BONE, and lands
+    // exactly on the live socket of the same driver state (assemble settles
+    // with update(0, 1/60) at idle, so a fresh driver reproduces it).
+    const skinned = assembleEntity(blueprint, { bodyTech: 'skinned' });
+    const formGroup = skinned.group.getObjectByName('head0:form');
+    expect(formGroup, 'skinned formed head exists').toBeTruthy();
+    const boneParent = formGroup!.parent as import('three').Bone;
+    expect(boneParent.isBone, 'skinned formed head rides a bone').toBe(true);
+    expect(boneParent.name).toBe('head0');
+    const driver = createGaitDriver('plan', frame, spec);
+    driver.update(0, 1 / 60, { position: new Vector3(), heading: new Vector3(0, 0, 1), speed: 0 });
+    const socket = driver.headSockets!()[0];
+    skinned.group.updateMatrixWorld(true);
+    const world = new Vector3();
+    formGroup!.getWorldPosition(world);
+    expect(world.distanceTo(new Vector3(socket.x, socket.y, socket.z)), 'formed head sits on its socket').toBeLessThan(1e-6);
+    skinned.dispose();
+
+    // segments (default): no bones exist — the head keeps the direct socket path
+    const segments = assembleEntity(blueprint);
+    const segForm = segments.group.getObjectByName('head0:form');
+    expect(segForm, 'segments formed head exists').toBeTruthy();
+    expect(((segForm!.parent as import('three').Bone).isBone ?? false), 'segments formed head stays off bones').toBe(false);
+    segments.dispose();
+  });
+});
+
+describe('assembleEntity — clip contract guards (the ONE mixer door)', () => {
+  const bipedBlueprint: EntityBlueprint = {
+    gait: 'biped',
+    frame: deriveFrame('biped', 6, 1, 1),
+    palette: PALETTE,
+    parts: [],
+    label: 'ClipGuard',
+  };
+
+  it("animSource 'clip' on a non-skinned body throws — a clip needs bones", () => {
+    expect(() => assembleEntity(bipedBlueprint, { animSource: 'clip', clips: new Map() })).toThrow(/needs bodyTech 'skinned'/);
+  });
+
+  it("animSource 'clip' without a loaded pack throws", () => {
+    expect(() => assembleEntity(bipedBlueprint, { bodyTech: 'skinned', animSource: 'clip' })).toThrow(/needs a loaded clip pack/);
+  });
+
+  it('clip mode animates bones while the group never moves (gait owns locomotion/facing)', () => {
+    // in-place rotation-only clip through the canonical contract
+    const track = new QuaternionKeyframeTrack('.bones[upperArmL].quaternion', [0, 1], [0, 0, 0, 1, 0, 0.7071, 0, 0.7071]);
+    const clips = new Map([
+      ['Idle', new AnimationClip('Idle', 1, [track])],
+      ['Walk', new AnimationClip('Walk', 1, [track.clone()])],
+    ]);
+    const handle = assembleEntity(bipedBlueprint, { bodyTech: 'skinned', animSource: 'clip', clips });
+    const bone = handle.group.getObjectByName('upperArmL') as import('three').Bone;
+    expect(bone?.isBone, 'skinned biped carries the arm bone').toBe(true);
+    handle.update(1 / 60, 1 / 60, { position: new Vector3(), heading: new Vector3(0, 0, 1), speed: 1.4 });
+    const q1 = bone.quaternion.clone();
+    for (let k = 2; k <= 20; k++) {
+      handle.update(k / 60, 1 / 60, { position: new Vector3(), heading: new Vector3(0, 0, 1), speed: 1.4 });
+    }
+    expect(bone.quaternion.angleTo(q1), 'mixer time advances the bone').toBeGreaterThan(1e-4);
+    // clip root translation must never drive locomotion: the group stays put
+    expect(handle.group.position.length(), 'clip never moves the entity group').toBe(0);
     handle.dispose();
   });
 });

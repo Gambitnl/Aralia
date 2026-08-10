@@ -86,10 +86,10 @@ const rendererWith = (gl: unknown, extra: Record<string, unknown> = {}) => ({
 });
 
 /** One frame, driven the way the probe drives it: open, draw, close. */
-const frame = (timer: GpuFrameTimer): number[] => {
-  const results = timer.beginFrame();
+const frame = (timer: GpuFrameTimer, id = 0): number[] => {
+  const results = timer.beginFrame(id);
   timer.endFrame();
-  return results;
+  return results.map((r) => r.ms);
 };
 
 describe('GpuFrameTimer availability', () => {
@@ -165,7 +165,7 @@ describe('GpuFrameTimer measurement', () => {
     expect(gl.created).toBe(8);
 
     gl.finish(1, 2_000_000);
-    expect(timer.beginFrame()).toEqual([2]);
+    expect(timer.beginFrame().map((r) => r.ms)).toEqual([2]);
     expect(gl.open).not.toBeNull(); // the freed query went straight back to work
     timer.endFrame();
   });
@@ -248,6 +248,28 @@ describe('GpuFrameTimer measurement', () => {
     frame(timer);
     timer.dispose();
     expect(frame(timer)).toEqual([]);
+  });
+});
+
+describe('GpuFrameTimer frame pairing', () => {
+  it('returns each result WITH the frame it measured', () => {
+    /* The result arrives one to three frames late, so by the time it lands the
+     * frame that produced it is history. Without the frame number the spike and
+     * the frame it ruined stay two unrelated numbers in the same panel. */
+    const gl = new FakeGl();
+    const timer = GpuFrameTimer.forRenderer(rendererWith(gl)).timer!;
+    const opened: number[] = [];
+    for (const id of [41, 42, 43]) {
+      timer.beginFrame(id);
+      opened.push(gl.open!);
+      timer.endFrame();
+    }
+    gl.finish(opened[0], 5_000_000);
+    gl.finish(opened[1], 30_000_000);
+    expect(timer.beginFrame(44)).toEqual([
+      { frame: 41, ms: 5 },
+      { frame: 42, ms: 30 },
+    ]);
   });
 });
 

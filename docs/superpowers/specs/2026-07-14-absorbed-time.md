@@ -58,3 +58,5 @@ handlers: `handleMovement.ts`, `handleResourceActions.ts`, `handleObservation.ts
   sky/lighting hour sources (`EnhancedSkyDome`, `lighting.ts`, `World3DWrapper`,
   `App.tsx` ambush loader) still use host-local `.getHours()` — visual clock, flagged
   separately.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/specs/2026-07-14-absorbed-time.md","sha256WithoutMarker":"03d24eb56a0efa4ed4b260e0e14588390b710f0a4d9a14c33e0d7fc4511dc8da","markedAtUtc":"2026-08-09T20:24:24.666Z"} -->

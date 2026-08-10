@@ -14,6 +14,13 @@ import magicMissile from '../../../../../public/data/spells/level-1/magic-missil
 import shield from '../../../../../public/data/spells/level-1/shield.json';
 import sleep from '../../../../../public/data/spells/level-1/sleep.json';
 
+/**
+ * This file checks that Character Creator preview assembly preserves the choices
+ * a player made instead of expanding or dropping them before the final sheet exists.
+ *
+ * Called by: focused Character Creator Vitest verification.
+ * Depends on: useCharacterAssembly, the initial creator state, and live race/class data.
+ */
 const onCharacterCreate = vi.fn();
 
 // The creator hook should assemble only the spells the player actually picked.
@@ -74,5 +81,36 @@ describe('useCharacterAssembly', () => {
       'sleep'
     ]);
     expect(character.spellbook?.knownSpells).not.toContain('burning-hands');
+  });
+
+  it('carries both selected feats and their completed choices into the preview character', () => {
+    // Use two choice-bearing feats so this proof covers the complete handoff from
+    // the creator draft to the final character, not only the smaller ID helper.
+    const featChoices = {
+      skilled: {
+        selectedSkills: ['acrobatics', 'arcana', 'stealth']
+      },
+      magic_initiate: {
+        selectedAbilityScore: 'Intelligence',
+        selectedSpellSource: 'wizard',
+        selectedCantrips: ['mage-hand', 'minor-illusion'],
+        selectedLeveledSpells: ['shield']
+      }
+    } satisfies NonNullable<CharacterCreationState['featChoices']>;
+    const previewState: CharacterCreationState = {
+      ...buildWizardPreviewState(),
+      backgroundFeatId: 'skilled',
+      racialFeatId: 'magic_initiate',
+      featChoices
+    };
+
+    const { result } = renderHook(() => useCharacterAssembly({ onCharacterCreate }));
+    const preview = result.current.generatePreviewCharacter(previewState, 'Aster Vale');
+
+    expect(preview).not.toBeNull();
+
+    const character = preview as PlayerCharacter;
+    expect(character.feats).toEqual(['skilled', 'magic_initiate']);
+    expect(character.featChoices).toEqual(featChoices);
   });
 });

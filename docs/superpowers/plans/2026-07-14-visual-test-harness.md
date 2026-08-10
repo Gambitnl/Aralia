@@ -131,3 +131,5 @@ Scene: single entity at origin on the forge's toon yard (reuse `Ground`/`SceneCh
 - **Spec coverage:** registry (T1), runner (T2), harness page (T4), debugger + API (T3+T5), tests (T1–T3), proof-by-own-runner (T6). Out-of-scope items untouched. ✓
 - **Placeholders:** none; every step names files, ids, commands. ✓
 - **Type consistency:** `VisScenario`/`CaptureStep` (T1) consumed by T2/T4/T5; `captureCommand` (T2) used in T4; `setGaitPhase`/`stats`/`pose` (T3) used in T5. ✓
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/plans/2026-07-14-visual-test-harness.md","sha256WithoutMarker":"dfc0f5224eb5beda4b91cca6c0db2c97e410c69082030609e1622832378c528c","markedAtUtc":"2026-08-09T20:23:18.281Z"} -->

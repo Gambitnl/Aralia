@@ -71,4 +71,4 @@ Out of scope:
 2. Confirm active follow-up decisions exist for each initiative in their owning tracker.
 3. If ownership is ambiguous, add the gap here with a concrete next proof check and evidence path.
 
-<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/ui-features/NORTH_STAR.md","sha256WithoutMarker":"6eb7bae16acec5fd4182c692118c41e79af1f7b2f4163cd707eef4c22dc87857","markedAtUtc":"2026-06-25T22:29:38.627Z"} -->
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/ui-features/NORTH_STAR.md","sha256WithoutMarker":"287727b7843600a57d7a66cbad52c441ac3b0fa685157c86f47c11efde78939c","markedAtUtc":"2026-08-09T20:14:15.803Z"} -->

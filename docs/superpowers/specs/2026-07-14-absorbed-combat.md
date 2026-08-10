@@ -59,3 +59,5 @@ Done and backdated: G33 total-party defeat now routes through teardown into GAME
 resistance, G21 speed recalc, G23 log persistence, G24/G25 OA feats, G26 AI await
 sequencing, G27 OA reach, G28/G29 concentration cleanup parity, and G20 2D/3D defense
 badge parity.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/specs/2026-07-14-absorbed-combat.md","sha256WithoutMarker":"91d1ec9146cdf422cd83fb8cd307add414b2bbbaab09562f1376e648fd76e587","markedAtUtc":"2026-08-09T20:23:18.416Z"} -->

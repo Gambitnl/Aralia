@@ -122,3 +122,5 @@ Slice 1 is the foundation; 2–5 each depend on it; 3 before 4 (dens behave by k
 - Whether forest POIs should later anchor dungeon entrances (dungeon placement work).
 - Canopy atmosphere numbers need the in-3D eyeball to tune (light/fog deltas are guesses until seen).
 - Whether the travel readout names every forest crossed or only the largest on the route.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/specs/2026-07-11-forests-design.md","sha256WithoutMarker":"2859538a4851976aaf09105328fa41a247d14757b0c50a8904286931ab4a25aa","markedAtUtc":"2026-08-09T20:24:29.254Z"} -->

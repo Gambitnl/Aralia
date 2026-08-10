@@ -36,4 +36,4 @@ Last updated: 2026-07-01
 - Add queue rows before attempting new implementation scope.
 - Mark task rows with clear next-check and evidence before closing.
 
-<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/combat-messaging-enhancement/TRACKER.md","sha256WithoutMarker":"24f1a6499d25269d37fc6a605f06ac44fc993b24127b66f4dcf5a4082b5b1fd7","markedAtUtc":"2026-06-25T22:29:38.623Z"} -->
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/combat-messaging-enhancement/TRACKER.md","sha256WithoutMarker":"2f0695ec5bbd2d06028576499d80ba83464c5cb17ebb91c10f22ed5e092f29eb","markedAtUtc":"2026-08-09T20:14:15.791Z"} -->

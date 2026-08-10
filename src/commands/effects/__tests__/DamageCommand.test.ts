@@ -6,6 +6,7 @@ import { StateTag } from '../../../types/elemental'
 import { CommandContext } from '../../base/SpellCommand'
 import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '../../../utils/core'
 import * as combatUtils from '../../../utils/combat/combatUtils'
+import blight from '../../../../public/data/spells/level-4/blight.json'
 
 vi.mock('../../../utils/combat/combatUtils', async (importOriginal) => {
     const actual = await importOriginal<typeof import('../../../utils/combat/combatUtils')>()
@@ -767,5 +768,33 @@ describe('DamageCommand', () => {
         const failedTarget = failureResult.characters.find(c => c.id === failureTarget.id);
 
         expect(failedTarget?.currentHP).toBe(failureTarget.currentHP - failedDamage);
+    });
+
+    it('applies live Blight auto-failure to plant targets without rolling', async () => {
+        const effect = (blight as unknown as { effects: SpellEffect[] }).effects[0];
+        const plantTarget = createMockCombatCharacter({
+            ...mockTarget,
+            creatureTypes: ['Plant'],
+            currentHP: 100,
+            maxHP: 100
+        });
+        const state = createMockCombatState({
+            characters: [mockCaster, plantTarget],
+            combatLog: []
+        });
+        vi.mocked(combatUtils.rollDice).mockClear();
+
+        const result = await new DamageCommand(effect, {
+            ...mockContext,
+            spellId: 'blight',
+            spellName: 'Blight',
+            targets: [plantTarget]
+        }).execute(state);
+
+        // The source override means the plant fails the save, so the damage
+        // command keeps its normal full-damage path and skips the d20 roll.
+        expect(vi.mocked(combatUtils.rollDice).mock.calls.some(([dice]) => dice === '1d20')).toBe(false);
+        expect(result.characters.find(character => character.id === plantTarget.id)?.currentHP).toBeLessThan(100);
+        expect(result.combatLog.some(entry => entry.message.includes('source-backed outcome override'))).toBe(true);
     });
 });

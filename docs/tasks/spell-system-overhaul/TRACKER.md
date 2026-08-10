@@ -355,3 +355,5 @@ Open rows are now categorized by two orthogonal axes:
 
 The append-only dated slice log (2026-05-31/06-01 implementation and investigation updates, ~1,070 lines)
 was moved on 2026-07-01 to `docs/archive/spell-system/SSO-TRACKER-SLICE-LOG.md`.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spell-system-overhaul/TRACKER.md","sha256WithoutMarker":"4f0eac672bc4c4a3cd3986b181c4886e57ca5e34df005ed321fdd460ad23a552","markedAtUtc":"2026-08-09T20:14:15.869Z"} -->

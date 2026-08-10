@@ -8044,7 +8044,6 @@ Verification status:
 - Static source/data/doc audit only.
 - No code changes, tests, typecheck, broad validation, or rendered verification were run in this slice.
 
-
 ### 2026-06-01 - Parallel status-check refresh: geometry, AC, status stacking, summoning
 
 - Delegation: read-only sub-agents checked geometry, AC mechanics, and status stacking; the main thread checked summoning locally.
@@ -8159,4 +8158,4 @@ pm run validate:spells -- --spell public/data/spells/level-2/animal-messenger.js
 - 
 pm run test:types passed.
 
-<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spell-system-overhaul/GAPS.md","sha256WithoutMarker":"3acf2c56716282e1e12d5eece72833fdf5c4a803d4ccda6a7790ede6ef65b3b2","markedAtUtc":"2026-06-25T22:29:38.659Z"} -->
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/archive/spell-system/SSO-GAPS-EVIDENCE-LOG.md","sha256WithoutMarker":"71ef9040051d0ed94bcde7f483fdb1dfb855b5713f4190cf78af92caaaccf6bf","markedAtUtc":"2026-08-09T20:22:07.633Z"} -->

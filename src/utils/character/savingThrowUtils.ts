@@ -1,10 +1,10 @@
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
- * SHARED UTILITY: Multiple systems rely on these exports.
+ * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 27/02/2026, 09:30:59
- * Dependents: SkillSelection.tsx, character/index.ts, concentrationUtils.ts, savingThrowUtils.ts, skillModifierUtils.ts
+ * Last Sync: 09/08/2026, 22:43:58
+ * Dependents: commands/effects/GrantedActionCommand.ts, commands/factory/SpellCommandFactory.ts, commands/factory/boomingBladeAttackBridge.ts, commands/factory/greenFlameBladeAttackBridge.ts, commands/factory/trueStrikeAttackBridge.ts, components/CharacterCreator/SkillSelection.tsx, systems/perception/eventDetection.ts, systems/spells/socialServiceResolution.ts, systems/travel/forcedMarch.ts, utils/character/concentrationUtils.ts, utils/character/index.ts, utils/character/skillModifierUtils.ts
  * Imports: 4 files
  *
  * MULTI-AGENT SAFETY:
@@ -25,7 +25,7 @@ import { rollDice } from '../combat/combatUtils';
 import { getAbilityModifierValue } from './statUtils';
 import {
     SavingThrowAbility,
-    // StatusConditionEffect // Not used yet but good for future
+    SaveOutcomeOverride
 } from '../../types/spells';
 
 /**
@@ -74,6 +74,58 @@ export interface SaveEffectContext {
     damageType?: string;
     /** Free-form descriptive tags for the effect, e.g. ['poison', 'magic', 'disease']. */
     tags?: string[];
+}
+
+/**
+ * Resolve only save-outcome overrides whose condition is represented by the
+ * current combat character model. Source rows that require size, language,
+ * player choice, or a richer relationship model remain available to their
+ * owning adapters instead of being guessed at this shared boundary.
+ */
+export function resolveSaveOutcomeOverride(
+    overrides: SaveOutcomeOverride[] | undefined,
+    target: Pick<CombatCharacter, 'creatureTypes' | 'conditionImmunities'>,
+    dc: number
+): SavingThrowResult | undefined {
+    if (!overrides?.length) return undefined;
+
+    const creatureTypes = (target.creatureTypes ?? []).map(type => type.toLowerCase());
+    const conditionImmunities = new Set(
+        (target.conditionImmunities ?? []).map(condition => condition.toLowerCase())
+    );
+
+    for (const override of overrides) {
+        const condition = String(override.condition ?? '').toLowerCase();
+        let matches = false;
+
+        if (override.outcome === 'auto_success' && condition === 'not_humanoid') {
+            matches = creatureTypes.length > 0 && !creatureTypes.includes('humanoid');
+        } else if (override.outcome === 'auto_success' && condition === 'immune_to_frightened') {
+            matches = conditionImmunities.has('frightened');
+        } else if (override.outcome === 'auto_success' && condition === 'immune_to_charmed') {
+            matches = conditionImmunities.has('charmed');
+        } else if (
+            override.outcome === 'auto_success' &&
+            condition === 'creature_does_not_sleep_or_has_exhaustion_immunity'
+        ) {
+            matches = creatureTypes.includes('elf') || conditionImmunities.has('exhaustion');
+        } else if (override.outcome === 'auto_failure' && condition === 'is_plant_creature') {
+            matches = creatureTypes.includes('plant');
+        }
+
+        if (matches) {
+            // The override is a save result, not a replacement damage/status
+            // outcome. Callers still apply their normal success/failure rules.
+            return {
+                success: override.outcome === 'auto_success',
+                total: override.outcome === 'auto_success' ? dc : 0,
+                dc,
+                modifiersApplied: []
+            };
+        }
+    }
+
+    return undefined;
 }
 
 /**

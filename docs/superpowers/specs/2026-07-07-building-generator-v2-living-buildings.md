@@ -496,3 +496,5 @@ reopened for Phase 3.
 - Interior NPC dialogue/interaction changes — existing systems keep working; occupants at
   stations are bodies-in-place, not new conversation logic.
 - Player home ownership/furnishing — nothing here blocks it later.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/specs/2026-07-07-building-generator-v2-living-buildings.md","sha256WithoutMarker":"b1ab0ed1d82070afebbec77548189841c89154beb0ff9c6930dd8899e9eb3e82","markedAtUtc":"2026-08-09T20:24:29.252Z"} -->

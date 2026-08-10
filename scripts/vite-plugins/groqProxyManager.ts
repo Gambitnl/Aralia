@@ -18,7 +18,10 @@
  *
  *   ANY  /__groq/v1/*  → https://api.groq.com/openai/v1/*  (Authorization added)
  *   GET  /__groq/health → { ok, keyLoaded }   (never returns the key)
+ *   POST /__groq/start  → starts the bundled standalone loopback proxy
  */
+import { spawn } from 'node:child_process';
+import { resolve } from 'node:path';
 import { Readable } from 'node:stream';
 // Reuse the exact Credential Manager reader the standalone proxy uses. Importing
 // proxy.mjs does NOT start a server — it only listens when run as the main module.
@@ -26,9 +29,13 @@ import { readWinCred } from '../../tools/groq-proxy/proxy.mjs';
 
 const MOUNT = '/__groq/v1';
 const HEALTH = '/__groq/health';
+const START = '/__groq/start';
 const CRED_TARGET = process.env.GROQ_PROXY_CRED || 'AgentMatrix/Groq/GROQ_API_KEY';
 const UPSTREAM = 'https://api.groq.com/openai/v1';
 const MISSING_KEY_RETRY_DELAY_MS = 1_000;
+// Vite launches from the repository root. Resolving from that stable boundary
+// also keeps Vitest's transformed module URL from changing the script path.
+const STANDALONE_PROXY_SCRIPT = resolve(process.cwd(), 'tools/groq-proxy/proxy.mjs');
 
 // ============================================================================
 // Credential loading and retry policy
@@ -122,6 +129,78 @@ export function createGroqKeyLoader(
 const getKey = createGroqKeyLoader(() => readWinCred(CRED_TARGET));
 
 // ============================================================================
+// Standalone proxy launch boundary
+// ============================================================================
+// The browser may request one bundled process only. It supplies a validated
+// loopback port, never a command or path, and the child runs without a visible
+// terminal window or inherited input/output streams.
+// ============================================================================
+
+export type StartGroqProxy = (port: number) => Promise<void>;
+
+const startStandaloneGroqProxy: StartGroqProxy = async (port) => {
+  const child = spawn(process.execPath, [STANDALONE_PROXY_SCRIPT, '--port', String(port)], {
+    cwd: process.cwd(),
+    detached: true,
+    stdio: 'ignore',
+    windowsHide: true,
+  });
+
+  // Wait until Node confirms that the child process was created. The UI then
+  // polls `/health`; process creation alone does not claim the proxy is ready.
+  await new Promise<void>((resolve, reject) => {
+    child.once('spawn', resolve);
+    child.once('error', reject);
+  });
+  child.unref();
+};
+
+const isLoopbackRequest = (req: { socket?: { remoteAddress?: string } }): boolean => {
+  const remoteAddress = req.socket?.remoteAddress ?? '';
+  return remoteAddress === '127.0.0.1'
+    || remoteAddress === '::1'
+    || remoteAddress === '::ffff:127.0.0.1';
+};
+
+const isSameOriginRequest = (req: { headers?: Record<string, string | undefined> }): boolean => {
+  const origin = req.headers?.origin;
+  const host = req.headers?.host;
+  if (!origin || !host) return false;
+
+  try {
+    return new URL(origin).host === host;
+  } catch {
+    return false;
+  }
+};
+
+// Accept only the bundled proxy's normal loopback shape. Privileged ports and
+// remote hosts are rejected before the server-side launcher sees a value.
+const getStartableProxyPort = (proxyUrl: unknown): number | null => {
+  if (typeof proxyUrl !== 'string') return null;
+
+  try {
+    const parsedUrl = new URL(proxyUrl);
+    const normalizedPath = parsedUrl.pathname.replace(/\/+$/, '');
+    const isLoopbackHost = parsedUrl.hostname === 'localhost'
+      || parsedUrl.hostname === '127.0.0.1'
+      || parsedUrl.hostname === '[::1]';
+    const port = Number(parsedUrl.port);
+
+    return parsedUrl.protocol === 'http:'
+      && isLoopbackHost
+      && normalizedPath === '/v1'
+      && Number.isInteger(port)
+      && port >= 1_024
+      && port <= 65_535
+      ? port
+      : null;
+  } catch {
+    return null;
+  }
+};
+
+// ============================================================================
 // Same-origin request forwarding
 // ============================================================================
 // This section reads request bodies, handles the private key boundary, and sends
@@ -142,6 +221,7 @@ function readBody(req: { on: (e: string, cb: (c?: Buffer) => void) => void }): P
 // exercise failure boundaries without accessing the real credential store.
 export const groqProxyManager = (
   loadKey: () => Promise<string | null> = getKey,
+  startProxy: StartGroqProxy = startStandaloneGroqProxy,
 ) => ({
   name: 'groq-proxy-manager',
   configureServer(server: { middlewares: { use: (h: (req: any, res: any, next: any) => void) => void } }) {
@@ -150,7 +230,52 @@ export const groqProxyManager = (
 
       // Leave unrelated Vite routes alone. Only Groq health and proxy requests
       // should wake the external credential reader.
-      if (urlPath !== HEALTH && !urlPath.startsWith(MOUNT + '/')) { next(); return; }
+      if (urlPath !== HEALTH && urlPath !== START && !urlPath.startsWith(MOUNT + '/')) { next(); return; }
+
+      // Starting a process is more privileged than forwarding a model request.
+      // Require the local machine, the exact page origin, JSON POST, and a
+      // validated loopback `/v1` target before calling the fixed launcher.
+      if (urlPath === START) {
+        if (req.method !== 'POST') {
+          res.writeHead(405, { 'Content-Type': 'application/json', Allow: 'POST' });
+          res.end(JSON.stringify({ error: 'use POST to start the Groq proxy' }));
+          return;
+        }
+        if (!isLoopbackRequest(req) || !isSameOriginRequest(req)) {
+          res.writeHead(403, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: 'Groq proxy start is restricted to this local Aralia origin' }));
+          return;
+        }
+        if (!(req.headers?.['content-type'] ?? '').toLowerCase().includes('application/json')) {
+          res.writeHead(415, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: 'expected an application/json request' }));
+          return;
+        }
+
+        let port: number | null = null;
+        try {
+          const payload = JSON.parse((await readBody(req)).toString('utf8')) as { proxyUrl?: unknown };
+          port = getStartableProxyPort(payload.proxyUrl);
+        } catch {
+          // Invalid JSON follows the same bounded validation response as an
+          // invalid URL; parsing details are not useful to the browser.
+        }
+        if (port === null) {
+          res.writeHead(400, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: 'proxyUrl must be an HTTP loopback /v1 URL with a port' }));
+          return;
+        }
+
+        try {
+          await startProxy(port);
+          res.writeHead(202, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ ok: true, port }));
+        } catch {
+          res.writeHead(500, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: 'Groq proxy process could not be started' }));
+        }
+        return;
+      }
 
       // Reader errors stay server-side and become a retryable response instead
       // of escaping the asynchronous middleware and leaving the request open.

@@ -26,4 +26,4 @@ Last updated: 2026-07-01
 
 - Route cross-project gaps to `docs/projects/GLOBAL_GAPS.md` only when they do not belong here.
 
-<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/feature-capabilities/GAPS.md","sha256WithoutMarker":"e042a7ab9f9ebb5e3a0dcf997ef39bc7ccc981d0bf80606298d1b8a04e9ca2ee","markedAtUtc":"2026-06-25T22:29:38.607Z"} -->
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/feature-capabilities/GAPS.md","sha256WithoutMarker":"514e80a92ac43d2949100782ea61b5f2cf06281164ec9e8f3e72efe556246c8d","markedAtUtc":"2026-08-09T20:14:15.767Z"} -->

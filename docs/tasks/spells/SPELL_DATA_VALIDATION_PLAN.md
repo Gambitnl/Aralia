@@ -1,6 +1,6 @@
 # Spell Data Validation Plan
 
-Last Updated: 2026-07-23
+Last Updated: 2026-08-09
 
 This file captures the current plan for validating spell JSON structure and spell reference parity.
 
@@ -27,7 +27,11 @@ This file captures the current plan for validating spell JSON structure and spel
   `src/utils/character/__tests__/checkUtils.test.ts` (3 tests).
 - The `effects[].condition.saveOutcomeOverrides[]` family is now clear in the
   live replay: canonical auto-outcome rows and source-backed metadata validate,
-  while the save-resolution consumer remains a separate deferred runtime lane.
+  while the shared save boundary now executes the safe character-model subset:
+  known non-humanoid and condition-immunity auto-success cases plus plant-target
+  auto-failure. Live Sleep, Enemies Abound, and Blight proof passes. Size,
+  language, voluntary-choice, and narrative state-change outcomes remain
+  separate deferred adapters.
   Focused proof passed in
   `src/systems/spells/validation/__tests__/saveOutcomeOverrides.test.ts` (2
   tests).
@@ -51,7 +55,10 @@ This file captures the current plan for validating spell JSON structure and spel
 - The defensive `savingThrow` family now preserves executable ability names,
   source-backed condition labels, and structured modifier packets. Focused proof
   passes for Protection from Evil and Good, Warding Bond, Aura of Purity, and
-  Circle of Power; no runtime save resolver consumes this metadata field yet.
+  Circle of Power. Warding Bond's flat all-save bonus and ability-specific
+  advantage rows such as Motivational Speech now project into the shared save
+  modifier contract with focused live proof. Qualified condition, spell-source,
+  and effect-source rows remain deferred until their roll context is available.
 - The targeting metadata family now preserves source-backed target labels such
   as `corpse`, `surfaces`, and `magical_effects`, accepts source consent and
   perception values, and normalizes `any_number` to an unlimited runtime count.
@@ -79,7 +86,11 @@ This file captures the current plan for validating spell JSON structure and spel
   `repeatAction` payloads. Focused proof covers seven live records, and the
   replay emits no `trigger.type` errors. Source-backed `turn_start` and
   `turn_end` recurring payloads now use the existing scheduled-effect contract
-  and combat engine; composite labels still require event-specific adapters.
+  and combat engine. Focused runtime proof now covers generic composite area
+  routing for Sleet Storm, Evard's Black Tentacles, and Spirit Guardians,
+  while preserving their initial-cast and controlled-entity branches. The
+  remaining composite runtime lanes are `on_damage`, prose-conditioned save
+  modifiers, and the bonus-action family.
 - The attack-augment family now preserves both normalized weapon bridges and
   source-backed summon/control/spell-attack packets, requiring a nonempty
   discriminator while allowing richer fields such as `attackKinds`,
@@ -1865,4 +1876,4 @@ The following working answers now guide the spell-data validation lane:
 - the isolated spell-only schema validator now exists as a working command and currently passes across the live spell dataset
 - the spell validation lane now also includes a repeatable repair step for zero-byte spell reference docs so blank placeholders stop polluting the grouped parity results
 
-<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/SPELL_DATA_VALIDATION_PLAN.md","sha256WithoutMarker":"b9b3b5af5faf779545d7f9c59d4c88f8388b8d587ca87a992d7cd38e0dfdfa9b","markedAtUtc":"2026-06-25T22:29:38.343Z"} -->
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/SPELL_DATA_VALIDATION_PLAN.md","sha256WithoutMarker":"20b4638fb96d9b15b8247289ce04f9c6ae352842578690b1b9cc5c7c0a6f5b79","markedAtUtc":"2026-08-09T20:14:15.576Z"} -->

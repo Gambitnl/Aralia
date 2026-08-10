@@ -47,7 +47,9 @@ export type {
 } from './perfSession';
 
 export { GpuFrameTimer } from './gpuTimer';
-export type { GpuTimerUnavailable, GpuTimerAttempt } from './gpuTimer';
+export { StallLog, describeStall } from './stallLog';
+export type { StallRecord, StallContributor } from './stallLog';
+export type { GpuTimerUnavailable, GpuTimerAttempt, GpuResult } from './gpuTimer';
 
 export {
   acquirePerfSession,

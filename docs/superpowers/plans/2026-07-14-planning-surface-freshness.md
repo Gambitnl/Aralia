@@ -1020,3 +1020,5 @@ Insert `${healthBadges(t)}` into the topic tile template (find the tile HTML con
 - No placeholders: every code step carries real code or an exact verbatim-move instruction with line ranges.
 - Type consistency: `runSync`/`rollUpStatus`/`reconcileBoardToPlanmap`/`buildPlanmapNodes` signatures match across tasks; `planmap_<topicId>__<featureSlug>` used consistently; health.json shape identical in T4 and T11.
 - Repo rules honored: no commit steps anywhere; Agora lock called out where topics.json is written (T10 gate); external ps1 edit marked as a human step (T7).
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/plans/2026-07-14-planning-surface-freshness.md","sha256WithoutMarker":"bd33748b99b6f515d5cc3782c5e60b20ffed2acbb3d34914c7540cd3ff341f15","markedAtUtc":"2026-08-09T20:22:07.622Z"} -->

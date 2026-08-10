@@ -76,3 +76,5 @@ Distance to "logical shop inventories, logical pricing": add a persisted `stock:
 **Reuse:** `gameState.party` names are already available in the hook.
 
 Order: A → B → D can land independently and each is player-visible on its own; C deepens B; E is a one-afternoon fix. A+B alone turn a wf town from scenery into a place with people and working shops.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/research/2026-07-04-town-interaction-seams.md","sha256WithoutMarker":"b0df8a785d025678e682a051356f4282696aa601bf6f5770a7991948b162578c","markedAtUtc":"2026-08-09T20:24:28.253Z"} -->

@@ -40,7 +40,10 @@ export interface Brush {
 
 export interface BrushTarget {
   volume: VoxelVolume;
+  /** Cell size on X and Z, meters. */
   cellM: number;
+  /** Cell size on Y, meters. Defaults to `cellM` — see `SurfaceTarget`. */
+  cellHM?: number;
   originM: readonly [number, number, number];
 }
 
@@ -54,7 +57,7 @@ export interface BrushResult {
 
 /** Topmost solid cell in a column, or -1 when the column is empty. */
 export function topSolidCell(vol: VoxelVolume, x: number, z: number): number {
-  for (let y = vol.cells - 1; y >= 0; y--) {
+  for (let y = vol.cellsY - 1; y >= 0; y--) {
     if (vol.get(x, y, z) !== Material.Air) return y;
   }
   return -1;
@@ -74,25 +77,33 @@ export function applyBrush(
   stack: readonly GroundBand[] = DEFAULT_STACK,
 ): BrushResult {
   const { volume, cellM, originM } = t;
+  const cellHM = t.cellHM ?? cellM;
   const n = volume.cells;
+  const nY = volume.cellsY;
 
   const toCell = (m: number, o: number) => Math.floor((m - o) / cellM);
   const cx = toCell(centerM[0], originM[0]);
-  const cy = toCell(centerM[1], originM[1]);
+  const cy = Math.floor((centerM[1] - originM[1]) / cellHM);
   const cz = toCell(centerM[2], originM[2]);
 
+  /* A radius in METERS becomes a different number of CELLS on each axis. The
+   * shape stays a sphere in the world; only its footprint on the lattice is
+   * anisotropic, and the distance test below normalizes per axis so it stays
+   * one. A single `r` would have cut an egg — flattened by exactly the ratio
+   * between the two cell sizes. */
   const r = Math.max(1, Math.round(brush.radiusM / cellM));
-  const h = Math.max(1, Math.round((brush.heightM ?? brush.radiusM) / cellM));
+  const rY = Math.max(1, Math.round(brush.radiusM / cellHM));
+  const h = Math.max(1, Math.round((brush.heightM ?? brush.radiusM) / cellHM));
   const half = Math.max(1, Math.round((brush.lengthM ?? brush.radiusM * 6) / cellM / 2));
 
   let changed = 0;
-  const min: [number, number, number] = [n, n, n];
+  const min: [number, number, number] = [n, nY, n];
   const max: [number, number, number] = [-1, -1, -1];
   /** Columns this brush filled, so material can be assigned by depth after. */
   const filled: number[] = [];
 
   const write = (x: number, y: number, z: number, m: Material): void => {
-    if (x < 0 || y < 0 || z < 0 || x >= n || y >= n || z >= n) return;
+    if (x < 0 || y < 0 || z < 0 || x >= n || y >= nY || z >= n) return;
     if (volume.get(x, y, z) === m) return;
     volume.set(x, y, z, m);
     changed++;
@@ -111,15 +122,14 @@ export function applyBrush(
   const FILL = Material.Subsoil;
 
   if (brush.shape === 'sphere' || brush.shape === 'box') {
-    const r2 = r * r;
-    for (let y = cy - r; y <= cy + r; y++) {
+    for (let y = cy - rY; y <= cy + rY; y++) {
       for (let z = cz - r; z <= cz + r; z++) {
         for (let x = cx - r; x <= cx + r; x++) {
           if (brush.shape === 'sphere') {
-            const dx = x - cx;
-            const dy = y - cy;
-            const dz = z - cz;
-            if (dx * dx + dy * dy + dz * dz > r2) continue;
+            const dx = (x - cx) / r;
+            const dy = (y - cy) / rY;
+            const dz = (z - cz) / r;
+            if (dx * dx + dy * dy + dz * dz > 1) continue;
           }
           write(x, y, z, brush.mode === 'dig' ? Material.Air : FILL);
         }
@@ -170,7 +180,7 @@ export function applyBrush(
     const z = filled[i + 2];
     const top = topSolidCell(volume, x, z);
     if (top < 0) continue;
-    const depthM = (top - y) * cellM;
+    const depthM = (top - y) * cellHM;
     volume.set(x, y, z, substanceAtDepth(depthM, stack).id);
   }
 

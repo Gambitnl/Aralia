@@ -167,6 +167,18 @@ export class SpanTimer {
     return [...this.spans.entries()].map(([name, s]) => ({ name, ms: s.ema }));
   }
 
+  /**
+   * The most recent reading for each span, unsmoothed.
+   *
+   * The average is right for a live display and wrong for a stall. A 400 ms
+   * rebuild moves its own average by 40 ms, so a second later the span that
+   * ruined the frame reads as almost normal. Whatever inspects one BAD frame
+   * has to see what that frame actually cost.
+   */
+  lastEntries(): { name: string; ms: number }[] {
+    return [...this.spans.entries()].map(([name, s]) => ({ name, ms: s.last }));
+  }
+
   clear(): void {
     this.spans.clear();
   }

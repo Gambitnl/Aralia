@@ -130,4 +130,4 @@ Keep the project actionable by separating **what is currently implemented** from
 - Repeat-save behavior has tests and schema surface; use current child gap files and proof logs rather than the retired mixed TODO before treating timing or UI behavior as complete.
 - Validation/data-status claims that once lived in `TODO.md` have been routed into Spells child lanes and still need fresh command proof before implementation priority is locked.
 
-<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spell-system-overhaul/NORTH_STAR.md","sha256WithoutMarker":"63b2407fbdc9a276321ea3072216ce1a4f452d0dd968bc14cce6fa9add4875e2","markedAtUtc":"2026-06-25T22:29:38.668Z"} -->
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spell-system-overhaul/NORTH_STAR.md","sha256WithoutMarker":"823625f13f16c79d788add6e2b330c0be4fba11698881fa90017327c5f94dcf1","markedAtUtc":"2026-08-09T20:14:15.864Z"} -->

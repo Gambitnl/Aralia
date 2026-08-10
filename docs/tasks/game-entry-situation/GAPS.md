@@ -14,4 +14,4 @@ Last updated: 2026-07-01
 
 `BRIEF-GAME-ENTRY-SITUATION.md` was an executor directive with verification checkboxes. The feature is implemented and the remaining follow-ups now live in this gap file.
 
-<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/game-entry-situation/GAPS.md","sha256WithoutMarker":"e740912ca07bd5b3f94a7b4663909cd1e7e3f21a9175d89ab2630dcb2a8921c0","markedAtUtc":"2026-06-25T22:29:38.626Z"} -->
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/game-entry-situation/GAPS.md","sha256WithoutMarker":"048115368424ddcbe873d8cbc567abf5abae1118297de63056dcb723ffea37ad","markedAtUtc":"2026-08-09T20:14:15.794Z"} -->

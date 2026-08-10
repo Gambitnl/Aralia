@@ -50,4 +50,4 @@ Historical operator workflow for the retired task-folder surface. This folder is
 3. This folder's `NORTH_STAR.md` and `TRACKER.md` (historical anchors only)
 4. Archived evidence, if needed: `docs/archive/spell-system/SSO-GAPS-EVIDENCE-LOG.md`, `SSO-TASK-SLICE.md`, `SSO-AUDIT-OR-PROOF.md`
 
-<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spell-system-overhaul/RUNBOOK.md","sha256WithoutMarker":"05d0edb9948e7f8da81a1a00365bdf9216dfbab37e5e41b39263aa6c11527fd0","markedAtUtc":"2026-06-25T22:29:38.588Z"} -->
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spell-system-overhaul/RUNBOOK.md","sha256WithoutMarker":"7fce563599e099527cec503d7d8c726f929428d12b0b5a48f3696e32d8e6c089","markedAtUtc":"2026-08-09T20:14:15.715Z"} -->

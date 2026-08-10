@@ -95,3 +95,5 @@ subject moved underneath it.
 **Store verdicts only beside the subject.** Correct locality, no overview.
 Rejected on its own: nobody could see what awaits an eye. Adopted together
 with the plan map as an index.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/adr/0001-judgment-surfaces-and-recorded-verdicts.md","sha256WithoutMarker":"6b0f2a5612b346cf3d02d406806576e0d2da782b6b9657acf003f339ec7f04bf","markedAtUtc":"2026-08-09T20:24:28.239Z"} -->

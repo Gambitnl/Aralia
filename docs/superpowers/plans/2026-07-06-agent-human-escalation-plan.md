@@ -96,3 +96,5 @@ dedup. Out: multiple humans / assignment, and auth beyond the existing Agora tok
 1. Escalation record + `escalate` command + `escalations [--open]` list, with tests.
 2. Master funnel: poll the queue → present open blocking ones via AskUserQuestion → write the answer.
 3. Answer-routing: wake the waiting agent (Path C) with the decision; dedup/fan-out.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/plans/2026-07-06-agent-human-escalation-plan.md","sha256WithoutMarker":"c5f9db839534e47db2843f8c527cef89710dd201e58f140604596c7516662ccf","markedAtUtc":"2026-08-09T20:22:07.610Z"} -->

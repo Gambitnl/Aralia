@@ -140,3 +140,5 @@ universal one.
 - World3DWrapper and groundTowns stay on the same `canonicalArtifactTownForSite`.
 - Master only, no branches/worktrees. Leave work uncommitted (2am snapshots).
 - No fallback paths: unresolvable culture type is an error, not a default style.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/specs/2026-07-01-styled-town-architecture-design.md","sha256WithoutMarker":"2af1fe884ca1fa05b85876eff3300ce204f6dd88819a35bdfc151177dc2bc887","markedAtUtc":"2026-08-09T20:24:29.247Z"} -->

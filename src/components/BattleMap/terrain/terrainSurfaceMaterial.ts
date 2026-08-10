@@ -1,0 +1,721 @@
+/**
+ * @file terrainSurfaceMaterial.ts — the combat map's ground SHADER, and the one
+ * material every piece of ground on the board is painted with.
+ *
+ * This lived inside `TerrainMesh.tsx`, which was correct while the heightfield
+ * was the only thing outside the playable rect. It stopped being correct when
+ * the apron arrived: the apron continues the fringe, and a surface that
+ * continues another surface but paints itself from a second palette does not
+ * read as the same ground. The first live capture of the apron showed exactly
+ * that — geometrically seamless, tonally a hard rectangle around the board, a
+ * bright shader-painted collar against a flat vertex-coloured plain.
+ *
+ * So the shader moved here, verbatim, and both meshes ask for it. The board,
+ * its fringe and the country beyond the fringe are now one material, one set of
+ * noise functions, one set of palettes. There is nothing left to keep in sync.
+ *
+ * The ONE thing the apron needs that the heightfield does not is `apron: true`,
+ * which stops water and wall tiles from being extruded to the horizon: the
+ * type map clamps at the map edge, so a lake on the border would otherwise
+ * paint a silt wedge a kilometre long. A lake does not reach the horizon; the
+ * land around it does.
+ */
+import * as THREE from "three";
+import { BattleMapData } from "../../../types/combat";
+
+// ---------------------------------------------------------------------------
+// Terrain type encoding for the GPU data texture
+// ---------------------------------------------------------------------------
+
+const TERRAIN_TYPE_INDEX: Record<string, number> = {
+  grass: 0,
+  rock: 1,
+  difficult: 2,
+  sand: 3,
+  water: 4,
+  wall: 5,
+  floor: 6,
+  mud: 2, // same visual as difficult
+};
+
+/**
+ * Creates a DataTexture encoding the terrain type per tile.
+ * R channel = type index (0–7), used by the fragment shader.
+ */
+export function createTerrainTypeTexture(
+  mapData: BattleMapData,
+  width: number,
+  height: number,
+): THREE.DataTexture {
+  const data = new Uint8Array(width * height * 4);
+
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const idx = (y * width + x) * 4;
+      const tile = mapData.tiles.get(`${x}-${y}`);
+      const terrainType = tile?.terrain ?? "grass";
+      data[idx] = TERRAIN_TYPE_INDEX[terrainType] ?? 0;
+      // G channel flags a ford crossing so the shader can trade the deep
+      // silt bed for pale gravel — the bed a traveler actually wades on.
+      data[idx + 1] = tile?.crossing?.kind === "ford" ? 255 : 0;
+      data[idx + 2] = 0;
+      data[idx + 3] = 0; // A: woodland-floor intensity, filled below
+    }
+  }
+
+  // B channel: churned mud at ford approaches. Land tiles within reach of a
+  // ford cell are the funnel every crossing animal and cart tramples — the
+  // 2D painter draws mud fans there; this keeps 3D in the same story.
+  const MUD_REACH = 2.5;
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const tile = mapData.tiles.get(`${x}-${y}`);
+      if (!tile || tile.terrain === "water") continue;
+      let nearFord = false;
+      for (let oy = -3; oy <= 3 && !nearFord; oy++) {
+        for (let ox = -3; ox <= 3 && !nearFord; ox++) {
+          if (Math.hypot(ox, oy) > MUD_REACH) continue;
+          const n = mapData.tiles.get(`${x + ox}-${y + oy}`);
+          if (n?.crossing?.kind === "ford") nearFord = true;
+        }
+      }
+      if (nearFord) data[(y * width + x) * 4 + 2] = 255;
+    }
+  }
+
+  // A channel: woodland-floor intensity. Ground under and around source
+  // trees darkens toward humus so tree clusters read as a wood, not lone
+  // glyphs on lawn — the 3D twin of the 2D painter's litter halos.
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const tile = mapData.tiles.get(`${x}-${y}`);
+      if (!tile || tile.terrain === "water") continue;
+      let floor = 0;
+      for (let oy = -2; oy <= 2; oy++) {
+        for (let ox = -2; ox <= 2; ox++) {
+          const n = mapData.tiles.get(`${x + ox}-${y + oy}`);
+          if (!n?.decoration) continue;
+          const d = Math.hypot(ox, oy);
+          if (n.decoration === "tree" && d <= 2.2) {
+            floor += Math.max(0, 1 - d / 2.2);
+          } else if (n.decoration === "bush" && d <= 1.3) {
+            floor += Math.max(0, 1 - d / 1.3) * 0.5;
+          }
+        }
+      }
+      data[(y * width + x) * 4 + 3] = Math.min(255, Math.round(floor * 170));
+    }
+  }
+
+  const tex = new THREE.DataTexture(data, width, height, THREE.RGBAFormat);
+  tex.magFilter = THREE.NearestFilter;
+  tex.minFilter = THREE.NearestFilter;
+  tex.needsUpdate = true;
+  return tex;
+}
+
+// ---------------------------------------------------------------------------
+// GLSL procedural terrain texturing — injected via onBeforeCompile
+// ---------------------------------------------------------------------------
+
+const TERRAIN_GLSL_PREAMBLE = /* glsl */ `
+  varying vec3 vTerrainWorldPos;
+  varying vec3 vTerrainNormal;
+  uniform sampler2D uTerrainTypeMap;
+  uniform float uMapWidth;
+  uniform float uMapHeight;
+  uniform float uDapple;
+  uniform float uApronLand;
+
+  // ---- Hash / noise functions (Dave Hoskins style) ----
+  float hash21(vec2 p) {
+    vec3 p3 = fract(vec3(p.xyx) * 0.1031);
+    p3 += dot(p3, p3.yzx + 33.33);
+    return fract((p3.x + p3.y) * p3.z);
+  }
+
+  float vnoise(vec2 p) {
+    vec2 i = floor(p);
+    vec2 f = fract(p);
+    f = f * f * (3.0 - 2.0 * f);
+    float a = hash21(i);
+    float b = hash21(i + vec2(1.0, 0.0));
+    float c = hash21(i + vec2(0.0, 1.0));
+    float d = hash21(i + vec2(1.0, 1.0));
+    return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);
+  }
+
+  float fbm4(vec2 p) {
+    float v = 0.0;
+    float a = 0.5;
+    for (int i = 0; i < 4; i++) {
+      v += a * vnoise(p);
+      p = p * 2.03 + vec2(1.7, 9.2);
+      a *= 0.5;
+    }
+    return v;
+  }
+
+  float voronoi(vec2 p) {
+    vec2 i = floor(p);
+    vec2 f = fract(p);
+    float md = 1.0;
+    for (int y = -1; y <= 1; y++) {
+      for (int x = -1; x <= 1; x++) {
+        vec2 nb = vec2(float(x), float(y));
+        float h = hash21(i + nb);
+        vec2 pt = vec2(fract(h * 17.31), fract(h * 43.47));
+        md = min(md, length(nb + pt - f));
+      }
+    }
+    return md;
+  }
+
+  // ---- Per-terrain-type color functions ----
+  //
+  // Each function uses a 3-scale hierarchy so terrain reads as landscape,
+  // not math noise:
+  //   macro  (freq 0.15–0.35): 3–7 tile patches — regional color zones
+  //   mid    (freq 0.6–1.5):   0.7–1.7 tile blending — sub-biome variation
+  //   micro  (freq 5–10):      surface grain — very subtle, ±0.04 at most
+  //
+  // wXZ = vTerrainWorldPos.xz where 1 unit = 1 tile.
+
+  vec3 getGrassColor(vec2 wXZ) {
+    // Macro: lush vs meadow vs dry-grass zones spanning several tiles
+    float macro = fbm4(wXZ * 0.20 + vec2(1.7, 3.1));
+    // Mid: local density/shade variation
+    float mid   = fbm4(wXZ * 0.85 + vec2(8.3, 2.4));
+    // Fine surface grain
+    float grain = vnoise(wXZ * 8.0);
+
+    vec3 lush  = vec3(0.09, 0.30, 0.07);  // deep forest floor green
+    vec3 field = vec3(0.20, 0.40, 0.13);  // open meadow green
+    vec3 faded = vec3(0.28, 0.38, 0.16);  // dry / sun-bleached
+
+    vec3 c = mix(lush, field, smoothstep(0.25, 0.65, macro));
+    c      = mix(c, faded,   smoothstep(0.58, 0.82, macro) * 0.65);
+
+    // Heather/scrub moment (GOAL #30): rare multi-tile olive-purple sweeps so
+    // grassland has distinct "different plant community" zones, not one green.
+    float heather = smoothstep(0.68, 0.84, fbm4(wXZ * 0.11 + vec2(57.0, 5.0)));
+    c = mix(c, vec3(0.26, 0.24, 0.20), heather * 0.55);
+
+    // Continent-scale value drift: at tactical distance the mid/fine noise
+    // averages into one uniform tone; multi-tile light/dark meadow sweeps
+    // keep far grass alive without touching close-up texture.
+    float sweep = fbm4(wXZ * 0.045 + vec2(3.1, 9.7));
+    c *= 0.88 + 0.24 * sweep;
+
+    // Mid-scale brightening in open patches
+    c += vec3(0.0, 0.03, 0.0) * smoothstep(0.48, 0.72, mid);
+
+    // Dirt bare patches at medium-large scale (not sub-tile)
+    float dp = fbm4(wXZ * 0.42 + vec2(42.7, 17.3));
+    c = mix(c, vec3(0.28, 0.22, 0.12), smoothstep(0.60, 0.76, dp) * 0.42);
+
+    // Subtle grain
+    c += (grain - 0.5) * 0.05;
+    return clamp(c, 0.0, 1.0);
+  }
+
+  vec3 getRockColor(vec2 wXZ) {
+    // Macro: mineral zone variation (light granite vs dark basalt vs ochre)
+    float macro  = fbm4(wXZ * 0.18 + vec2(51.0, 17.3));
+    float mid    = fbm4(wXZ * 0.80 + vec2(7.0, 33.0));
+    // Visible crack structure at 1-tile and 0.3-tile scale
+    float crack  = voronoi(wXZ * 1.1);
+    float fine   = voronoi(wXZ * 3.2);
+
+    vec3 light = vec3(0.58, 0.55, 0.50);
+    vec3 dark  = vec3(0.24, 0.22, 0.20);
+    vec3 ochre = vec3(0.48, 0.38, 0.26);  // iron-oxide mineral stain
+
+    // Wider mineral-zone contrast (GOAL #30): granite vs basalt zones now span
+    // most of the light↔dark range so a rocky area reads as distinct formations.
+    vec3 c = mix(dark, light, smoothstep(0.22, 0.78, macro) * 0.72 + 0.16);
+
+    // Crack darkening — large cracks clearly visible at viewing distance
+    c *= 0.55 + 0.45 * smoothstep(0.0, 0.18, crack);
+    // Fine surface cracks
+    c *= 0.88 + 0.12 * smoothstep(0.0, 0.08, fine);
+
+    // Ochre mineral staining in macro patches
+    float stain = smoothstep(0.62, 0.80, fbm4(wXZ * 0.28 + vec2(71.0, 59.0)));
+    c = mix(c, ochre, stain * 0.35);
+
+    c += (mid - 0.5) * 0.06;
+    return clamp(c, 0.0, 1.0);
+  }
+
+  vec3 getDirtColor(vec2 wXZ) {
+    // Macro: wet dark soil vs dry pale earth zones
+    float macro = fbm4(wXZ * 0.22 + vec2(17.0, 23.0));
+    float mid   = fbm4(wXZ * 0.80 + vec2(43.0, 11.0));
+    float grain = vnoise(wXZ * 9.0);
+
+    vec3 wet  = vec3(0.16, 0.10, 0.05);  // dark wet soil
+    vec3 dryr = vec3(0.40, 0.30, 0.18);  // dry earth
+    vec3 clay = vec3(0.50, 0.38, 0.24);  // pale clay
+
+    // Stronger wet↔dry macro push (GOAL #30) so soil zones read as distinct
+    // materials rather than one averaged brown.
+    vec3 c = mix(wet, dryr, smoothstep(0.34, 0.66, macro));
+
+    // Clay patches — mid-scale, not sub-tile
+    float clayPatch = smoothstep(0.58, 0.74, fbm4(wXZ * 0.38 + vec2(29.0, 53.0)));
+    c = mix(c, clay, clayPatch * 0.38);
+
+    // Pebble highlights — sparse bright specks at medium frequency
+    float pebble = step(0.86, vnoise(wXZ * 6.0));
+    c = mix(c, vec3(0.55, 0.50, 0.42), pebble * 0.55);
+
+    c += (grain - 0.5) * 0.04;
+    return clamp(c, 0.0, 1.0);
+  }
+
+  vec3 getSandColor(vec2 wXZ) {
+    // Dune shape — elongated macro noise along X to simulate wind direction
+    float dune = fbm4(wXZ * vec2(0.14, 0.28) + vec2(33.0, 41.0));
+    float mid  = fbm4(wXZ * 0.55 + vec2(11.0, 7.0));
+    // Ripple: sine wave perpendicular to dune axis
+    float ripple = sin(wXZ.x * 6.0 + wXZ.y * 2.5 + dune * 4.5) * 0.5 + 0.5;
+
+    vec3 pale   = vec3(0.90, 0.82, 0.62);  // pale dune crest
+    vec3 medium = vec3(0.72, 0.60, 0.40);  // mid tone
+    vec3 shadow = vec3(0.54, 0.43, 0.27);  // shadow between dunes
+
+    vec3 c = mix(shadow, pale, smoothstep(0.28, 0.72, dune));
+    // Ripple brightening — visible but subtle
+    c += vec3(0.05, 0.04, 0.02) * ripple * 0.6;
+
+    // Occasional rusty-red iron patches
+    float red = smoothstep(0.64, 0.80, fbm4(wXZ * 0.22 + vec2(91.0, 37.0)));
+    c = mix(c, vec3(0.72, 0.48, 0.26), red * 0.28);
+
+    c += (mid - 0.5) * 0.04;
+    return clamp(c, 0.0, 1.0);
+  }
+
+  vec3 getWaterBedColor(vec2 wXZ) {
+    // Soft silt with pebble texture — mostly obscured by water above
+    float macro  = fbm4(wXZ * 0.45 + vec2(7.0, 13.0));
+    float pebble = voronoi(wXZ * 1.8);
+    vec3 silt = mix(vec3(0.08, 0.18, 0.26), vec3(0.14, 0.28, 0.36),
+                    macro * 0.5 + 0.35);
+    silt *= 0.78 + 0.22 * smoothstep(0.0, 0.14, pebble);
+    return clamp(silt, 0.0, 1.0);
+  }
+
+  vec3 getWallColor(vec2 wXZ) {
+    // Large stone blocks at ~0.8 tile scale with visible mortar lines
+    float block  = voronoi(wXZ * 0.75);  // block cell boundaries
+    float fine   = voronoi(wXZ * 2.8);   // surface cracks within blocks
+    float macro  = fbm4(wXZ * 0.22 + vec2(71.0, 59.0));
+
+    vec3 stone = mix(vec3(0.22, 0.20, 0.18), vec3(0.44, 0.40, 0.36),
+                     macro * 0.45 + 0.40);
+
+    // Mortar lines: dark at block boundaries
+    stone *= 0.40 + 0.60 * smoothstep(0.0, 0.14, block);
+    // Fine crack darkening
+    stone *= 0.88 + 0.12 * smoothstep(0.0, 0.08, fine);
+
+    // Moss/damp staining concentrated at low block edges
+    float mossEdge = smoothstep(0.10, 0.22, 1.0 - block);
+    stone = mix(stone, vec3(0.18, 0.26, 0.16), mossEdge * 0.38);
+
+    return clamp(stone, 0.0, 1.0);
+  }
+
+  vec3 getFloorColor(vec2 wXZ) {
+    // Dungeon/indoor flagstone: 1-tile slab pattern with wear variation
+    float macro   = fbm4(wXZ * 0.25 + vec2(51.0, 37.0));
+    float mid     = fbm4(wXZ * 0.90 + vec2(13.0, 71.0));
+    // Grout lines between tiles
+    float grout = smoothstep(0.04, 0.09, fract(wXZ.x))
+                * smoothstep(0.04, 0.09, fract(wXZ.y));
+
+    vec3 slab = mix(vec3(0.30, 0.26, 0.22), vec3(0.50, 0.46, 0.40),
+                    macro * 0.45 + 0.40);
+    // Grout lines slightly darker
+    slab *= 0.75 + 0.25 * grout;
+
+    // Wear/scuff patches vary by mid noise
+    float wear = smoothstep(0.55, 0.72, 1.0 - mid);
+    slab = mix(slab, slab * 0.70, wear * 0.35);
+
+    return clamp(slab, 0.0, 1.0);
+  }
+
+  vec3 getTerrainColor(float idx, vec2 wXZ) {
+    int t = int(idx + 0.5);
+    // Seed the output with grass so the compiler sees every path as initialized.
+    vec3 color = getGrassColor(wXZ);
+    if (t == 1) {
+      color = getRockColor(wXZ);
+    } else if (t == 2) {
+      color = getDirtColor(wXZ);
+    } else if (t == 3) {
+      color = getSandColor(wXZ);
+    } else if (t == 4) {
+      color = getWaterBedColor(wXZ);
+    } else if (t == 5) {
+      color = getWallColor(wXZ);
+    } else if (t == 6) {
+      color = getFloorColor(wXZ);
+    }
+    return color;
+  }
+`;
+
+const TERRAIN_COLOR_FRAGMENT = /* glsl */ `
+  // ---- Procedural terrain texturing ----
+  vec2 _tileUV = vec2(
+    (floor(vTerrainWorldPos.x) + 0.5) / uMapWidth,
+    (floor(vTerrainWorldPos.z) + 0.5) / uMapHeight
+  );
+  float _terrainIdx = texture2D(uTerrainTypeMap, _tileUV).r * 255.0;
+  // APRON ONLY (uApronLand >= 0): the type map CLAMPS at the map edge, so every
+  // border tile is extruded outward for as far as the apron reaches. On the
+  // board that run-out is twelve tiles and reads as continuation. Across a
+  // thousand tiles it reads as what it is: a lake stretched into a silt wedge,
+  // a wall into a stone wedge, a muddy track into a dead-straight brown line
+  // running to the horizon. The first apron capture had four of those lines.
+  //
+  // So the apron paints ONE land type, the biome's, and takes all its variety
+  // from the shader's own world-space noise — which is the same noise, at the
+  // same scale, that the board is painted with. Everything else in this shader
+  // is identical on both meshes, which is the whole point of sharing it.
+  if (uApronLand >= 0.0) _terrainIdx = uApronLand;
+  bool _isApron = uApronLand >= 0.0;
+  // Ford flag sampled BILINEARLY by hand (the data texture must stay
+  // nearest-filtered for the type index): a per-tile hard flag draws the
+  // gravel bar as a tile-staircase along any diagonal crossing.
+  float _fordFlag;
+  {
+    vec2 _fTile = vTerrainWorldPos.xz - 0.5;
+    vec2 _fBase = floor(_fTile);
+    vec2 _fFrac = _fTile - _fBase;
+    vec2 _mapWH = vec2(uMapWidth, uMapHeight);
+    float _f00 = texture2D(uTerrainTypeMap, (_fBase + vec2(0.5, 0.5)) / _mapWH).g;
+    float _f10 = texture2D(uTerrainTypeMap, (_fBase + vec2(1.5, 0.5)) / _mapWH).g;
+    float _f01 = texture2D(uTerrainTypeMap, (_fBase + vec2(0.5, 1.5)) / _mapWH).g;
+    float _f11 = texture2D(uTerrainTypeMap, (_fBase + vec2(1.5, 1.5)) / _mapWH).g;
+    _fordFlag = mix(mix(_f00, _f10, _fFrac.x), mix(_f01, _f11, _fFrac.x), _fFrac.y);
+  }
+  vec3 _terrainColor = getTerrainColor(_terrainIdx, vTerrainWorldPos.xz);
+  // Ford bed: pale waded gravel instead of deep silt — reads through the
+  // ankle-deep water as the raised crossing bar it is.
+  if (int(_terrainIdx + 0.5) == 4 && _fordFlag > 0.03) {
+    vec3 _gravel = getSandColor(vTerrainWorldPos.xz) * vec3(0.92, 0.88, 0.78);
+    float _pebble = voronoi(vTerrainWorldPos.xz * 2.4);
+    _gravel *= 0.82 + 0.18 * smoothstep(0.0, 0.12, _pebble);
+    // Ragged organic margin: noise perturbs the interpolated flag so the
+    // bar's edge wanders instead of tracing tile geometry.
+    float _fEdge = fbm4(vTerrainWorldPos.xz * 1.9 + vec2(11.0, 53.0));
+    float _fMix = smoothstep(0.25, 0.75, _fordFlag + (_fEdge - 0.5) * 0.5);
+    _terrainColor = mix(_terrainColor, _gravel, 0.78 * _fMix);
+  }
+  // Churned mud at ford approaches (B flag): dark trampled wet earth with
+  // noise breakup so the fan reads organic, mirroring the 2D mud mouths.
+  float _mudFlag = texture2D(uTerrainTypeMap, _tileUV).b;
+  if (!_isApron && _mudFlag > 0.5 && int(_terrainIdx + 0.5) != 4) {
+    float _mudN = fbm4(vTerrainWorldPos.xz * 1.4 + vec2(23.0, 47.0));
+    vec3 _mud = vec3(0.23, 0.17, 0.11) * (0.8 + 0.4 * _mudN);
+    _terrainColor = mix(_terrainColor, _mud, 0.30 + 0.30 * _mudN);
+  }
+  // Woodland floor (A intensity): humus/needle litter under tree clusters —
+  // the 3D twin of the 2D painter's litter halos. Noise keeps the blend from
+  // reading as a stamped disc around each trunk.
+  float _floorI = texture2D(uTerrainTypeMap, _tileUV).a;
+  if (!_isApron && _floorI > 0.03 && int(_terrainIdx + 0.5) == 0) {
+    float _fN = fbm4(vTerrainWorldPos.xz * 1.1 + vec2(61.0, 29.0));
+    vec3 _humus = vec3(0.10, 0.13, 0.06) * (0.85 + 0.3 * _fN);
+    _terrainColor = mix(_terrainColor, _humus, clamp(_floorI * (0.55 + 0.45 * _fN), 0.0, 0.75));
+  }
+
+  // Edge blending: organic borders between terrain types (GOAL #23). The
+  // original straight, evenly-soft strip along tile edges read as a grid seam;
+  // FBM-jittered edge distance makes the boundary wander into ragged fingers,
+  // and the deeper mix reads as a real material border instead of a gradient.
+  vec2 _tileFrac = fract(vTerrainWorldPos.xz);
+  float _edgeW = 0.16;
+  float _ex = min(_tileFrac.x, 1.0 - _tileFrac.x);
+  float _ez = min(_tileFrac.y, 1.0 - _tileFrac.y);
+  float _edgeDist = min(_ex, _ez);
+  float _eNoise = fbm4(vTerrainWorldPos.xz * 2.7 + vec2(7.3, 13.7));
+  _edgeDist = clamp(_edgeDist + (_eNoise - 0.5) * 0.24, 0.0, 1.0);
+
+  if (!_isApron && _edgeDist < _edgeW) {
+    float _blend = 1.0 - smoothstep(0.02, _edgeW, _edgeDist);
+    vec2 _nOff = vec2(0.0);
+    if (_ex < _ez) {
+      _nOff.x = _tileFrac.x < 0.5 ? -1.0 : 1.0;
+    } else {
+      _nOff.y = _tileFrac.y < 0.5 ? -1.0 : 1.0;
+    }
+    vec2 _nUV = vec2(
+      (floor(vTerrainWorldPos.x + _nOff.x) + 0.5) / uMapWidth,
+      (floor(vTerrainWorldPos.z + _nOff.y) + 0.5) / uMapHeight
+    );
+    if (_nUV.x >= 0.0 && _nUV.x <= 1.0 && _nUV.y >= 0.0 && _nUV.y <= 1.0) {
+      float _nIdx = texture2D(uTerrainTypeMap, _nUV).r * 255.0;
+      if (abs(_nIdx - _terrainIdx) > 0.5) {
+        vec3 _nColor = getTerrainColor(_nIdx, vTerrainWorldPos.xz);
+        _terrainColor = mix(_terrainColor, _nColor, _blend * 0.85);
+      }
+    }
+  }
+
+  // ---- Blocked-tile rim: unmistakable "can't walk here" read (GOAL #29) ----
+  // Rock and wall tiles get a carved dark seam where they border walkable
+  // ground, plus a bright lip just inside it — the border reads as a raised
+  // obstacle edge, not a soft material gradient. Interior edges between two
+  // blocked tiles stay untouched so formations remain one mass.
+  {
+    int _bType = int(_terrainIdx + 0.5);
+    if (_bType == 1 || _bType == 5) {
+      float _rimDist = min(_ex, _ez); // clean (un-jittered) edge distance
+      if (_rimDist < 0.30) {
+        // Which neighbor does this fragment face?
+        vec2 _rOff = vec2(0.0);
+        if (_ex < _ez) {
+          _rOff.x = _tileFrac.x < 0.5 ? -1.0 : 1.0;
+        } else {
+          _rOff.y = _tileFrac.y < 0.5 ? -1.0 : 1.0;
+        }
+        vec2 _rUV = vec2(
+          (floor(vTerrainWorldPos.x + _rOff.x) + 0.5) / uMapWidth,
+          (floor(vTerrainWorldPos.z + _rOff.y) + 0.5) / uMapHeight
+        );
+        int _rIdx = int(texture2D(uTerrainTypeMap, _rUV).r * 255.0 + 0.5);
+        bool _rWalkable = !(_rIdx == 1 || _rIdx == 5 || _rIdx == 4);
+        if (_rWalkable && _rUV.x >= 0.0 && _rUV.x <= 1.0 && _rUV.y >= 0.0 && _rUV.y <= 1.0) {
+          // Slight organic wobble so the seam isn't a ruler line
+          float _rN = fbm4(vTerrainWorldPos.xz * 3.1 + vec2(19.0, 67.0));
+          float _rD = clamp(_rimDist + (_rN - 0.5) * 0.10, 0.0, 1.0);
+          // Dark carved seam hugging the border
+          float _seam = 1.0 - smoothstep(0.02, 0.14, _rD);
+          _terrainColor *= 1.0 - 0.62 * _seam;
+          // Bright lip just inside the seam — catches the eye as a hard edge
+          float _lip = smoothstep(0.10, 0.16, _rD) * (1.0 - smoothstep(0.16, 0.28, _rD));
+          _terrainColor += vec3(0.10, 0.095, 0.085) * _lip;
+        }
+      }
+    }
+  }
+
+  // ---- Slope-exposed rock: steep ground breaks into rock faces (GOAL #28) ----
+  // Geometric world normal drives a rock blend on grass/dirt/sand so hillsides
+  // and carved banks read as terrain relief instead of tinted flat ground.
+  // Gentle hills (<~20°) stay untouched; erosion streaking breaks up the band.
+  {
+    int _sType = int(_terrainIdx + 0.5);
+    if (_sType == 0 || _sType == 2 || _sType == 3) {
+      float _slope = 1.0 - clamp(vTerrainNormal.y, 0.0, 1.0);
+      // Onset ~24° / full ~40°: calibrated to the generator's bluff faces
+      // (gap #28 — the original 0.12/0.30 band asked for near-cliffs the
+      // generator never produces, so rock faces stayed invisible).
+      float _rocky = smoothstep(0.09, 0.24, _slope);
+      if (_rocky > 0.001) {
+        vec3 _rockC = getRockColor(vTerrainWorldPos.xz) * 0.92;
+        float _streak = fbm4(vTerrainWorldPos.xz * vec2(0.9, 2.6) + vec2(31.0, 5.0));
+        _rocky *= 0.55 + 0.45 * smoothstep(0.35, 0.65, _streak);
+        _terrainColor = mix(_terrainColor, _rockC, clamp(_rocky, 0.0, 1.0) * 0.85);
+      }
+    }
+  }
+
+  // ---- Wet bank: damp, darkened earth in a band along waterlines (GOAL #43) ----
+  // Land fragments near a water tile darken toward wet earth; pairs with the
+  // water sheet's shoreline foam (WaterSystem) so shores read wet on both sides.
+  if (!_isApron && int(_terrainIdx + 0.5) != 4) {
+    float _wetDist = 9.0;
+    for (int _wy = -1; _wy <= 1; _wy++) {
+      for (int _wx = -1; _wx <= 1; _wx++) {
+        if (_wx == 0 && _wy == 0) continue;
+        vec2 _wTile = floor(vTerrainWorldPos.xz) + vec2(float(_wx), float(_wy));
+        vec2 _wUV = (_wTile + 0.5) / vec2(uMapWidth, uMapHeight);
+        if (_wUV.x < 0.0 || _wUV.x > 1.0 || _wUV.y < 0.0 || _wUV.y > 1.0) continue;
+        float _wIdx = texture2D(uTerrainTypeMap, _wUV).r * 255.0;
+        if (int(_wIdx + 0.5) == 4) {
+          vec2 _wNear = clamp(vTerrainWorldPos.xz, _wTile, _wTile + 1.0);
+          _wetDist = min(_wetDist, distance(vTerrainWorldPos.xz, _wNear));
+        }
+      }
+    }
+    float _wet = 1.0 - smoothstep(0.04, 0.42, _wetDist);
+    _terrainColor = mix(_terrainColor, _terrainColor * vec3(0.52, 0.50, 0.52), _wet * 0.65);
+  }
+
+  // ---- Canopy dapple: pooled warm light + soft shade for forested biomes ----
+  // (GOAL #55) Large soft FBM blobs sell "light filtering through trees" at
+  // tactical zoom without real projected shadows. uDapple is 0 outside
+  // forest/swamp, making this a no-op for open/underground biomes.
+  if (uDapple > 0.001) {
+    float _dap = fbm4(vTerrainWorldPos.xz * 0.55 + vec2(17.0, 83.0));
+    float _pool = smoothstep(0.48, 0.72, _dap);
+    _terrainColor = _terrainColor * (1.0 - 0.20 * uDapple)
+                  + _terrainColor * vec3(1.0, 0.96, 0.80) * (0.50 * uDapple) * _pool;
+  }
+
+  // ---- Close-up detail octave (GOAL #26) ----
+  // Under ~8u camera distance an extra high-frequency albedo octave fades in,
+  // so leaning the camera in reveals grain instead of smooth procedural math.
+  // Zero-cost at tactical zoom: fully faded out beyond 8u.
+  float _closeUp = 1.0 - smoothstep(4.0, 8.0, length(vViewPosition));
+  if (_closeUp > 0.001) {
+    float _det = vnoise(vTerrainWorldPos.xz * 23.0) * 0.6
+               + vnoise(vTerrainWorldPos.xz * 53.0) * 0.4;
+    _terrainColor *= 1.0 + (_det - 0.5) * 0.20 * _closeUp;
+  }
+
+  diffuseColor.rgb = _terrainColor;
+`;
+
+const TERRAIN_NORMAL_FRAGMENT = /* glsl */ `
+  // ---- Procedural normal perturbation for terrain bumps ----
+  float _bs = 0.2;
+  vec2 _bu1 = vTerrainWorldPos.xz * 4.0;
+  vec2 _bu2 = vTerrainWorldPos.xz * 12.0;
+  float _bh  = vnoise(_bu1) * 0.6 + vnoise(_bu2) * 0.4;
+  float _bhx = vnoise(_bu1 + vec2(0.05, 0.0)) * 0.6 + vnoise(_bu2 + vec2(0.05, 0.0)) * 0.4;
+  float _bhz = vnoise(_bu1 + vec2(0.0, 0.05)) * 0.6 + vnoise(_bu2 + vec2(0.0, 0.05)) * 0.4;
+  vec3 _wb = normalize(vec3(-(_bh - _bhx) / 0.05 * _bs, 1.0, -(_bh - _bhz) / 0.05 * _bs));
+  vec3 _vb = normalize(mat3(viewMatrix) * _wb);
+  normal = normalize(mix(normal, _vb, 0.3));
+  // Close-up micro-normal (GOAL #26): a third, finer bump octave fades in
+  // under ~8u so near ground catches light like real grit, not smooth shading.
+  float _cnF = 1.0 - smoothstep(4.0, 8.0, length(vViewPosition));
+  if (_cnF > 0.001) {
+    vec2 _mu = vTerrainWorldPos.xz * 34.0;
+    float _mh  = vnoise(_mu);
+    float _mhx = vnoise(_mu + vec2(0.68, 0.0));
+    float _mhz = vnoise(_mu + vec2(0.0, 0.68));
+    vec3 _mw = normalize(vec3(-(_mh - _mhx) / 0.02 * 0.12, 1.0, -(_mh - _mhz) / 0.02 * 0.12));
+    vec3 _mv = normalize(mat3(viewMatrix) * _mw);
+    normal = normalize(mix(normal, _mv, 0.35 * _cnF));
+  }
+`;
+
+// ---------------------------------------------------------------------------
+// Custom terrain material factory
+// ---------------------------------------------------------------------------
+
+export function createTerrainMaterial(
+  terrainTypeTex: THREE.DataTexture,
+  mapWidth: number,
+  mapHeight: number,
+  seed: number,
+  dapple: number,
+  /** -1 on the heightfield; the land type index the apron substitutes for
+   *  water and wall tiles beyond the map edge. */
+  apronLand = -1,
+  side: THREE.Side = THREE.FrontSide,
+): THREE.MeshStandardMaterial {
+  const mat = new THREE.MeshStandardMaterial({
+    roughness: 0.88,
+    metalness: 0.02,
+    side,
+  });
+
+  mat.onBeforeCompile = (shader) => {
+    shader.uniforms.uTerrainTypeMap = { value: terrainTypeTex };
+    shader.uniforms.uMapWidth = { value: mapWidth };
+    shader.uniforms.uMapHeight = { value: mapHeight };
+    shader.uniforms.uDapple = { value: dapple };
+    shader.uniforms.uApronLand = { value: apronLand };
+
+    // --- Vertex shader: pass world position + world normal (for slope) ---
+    shader.vertexShader = shader.vertexShader.replace(
+      "#include <common>",
+      "#include <common>\nvarying vec3 vTerrainWorldPos;\nvarying vec3 vTerrainNormal;",
+    );
+    shader.vertexShader = shader.vertexShader.replace(
+      "#include <begin_vertex>",
+      "#include <begin_vertex>\nvTerrainWorldPos = (modelMatrix * vec4(transformed, 1.0)).xyz;\nvTerrainNormal = normalize(mat3(modelMatrix) * objectNormal);",
+    );
+
+    // --- Fragment shader: inject noise functions + uniforms ---
+    shader.fragmentShader = shader.fragmentShader.replace(
+      "#include <common>",
+      `#include <common>\n${TERRAIN_GLSL_PREAMBLE}`,
+    );
+
+    // Replace vertex-color fragment with procedural terrain color
+    shader.fragmentShader = shader.fragmentShader.replace(
+      "#include <color_fragment>",
+      TERRAIN_COLOR_FRAGMENT,
+    );
+
+    // Add normal perturbation after normal mapping
+    shader.fragmentShader = shader.fragmentShader.replace(
+      "#include <normal_fragment_maps>",
+      `#include <normal_fragment_maps>\n${TERRAIN_NORMAL_FRAGMENT}`,
+    );
+  };
+
+  mat.customProgramCacheKey = () =>
+    `terrain-pbr-v9-${mapWidth}-${mapHeight}-${seed}-${dapple}-${apronLand}`;
+  return mat;
+}
+
+
+// ---------------------------------------------------------------------------
+// The one entry point both ground meshes use
+// ---------------------------------------------------------------------------
+
+/** Land type the apron substitutes for water/wall beyond the map edge. */
+const APRON_LAND_TYPE: Record<string, number> = {
+  forest: 0,   // grass
+  swamp: 2,    // difficult / mud
+  desert: 3,   // sand
+  cave: 1,     // rock
+  dungeon: 6,  // flagstone floor
+};
+
+export interface TerrainSurface {
+  material: THREE.MeshStandardMaterial;
+  /** Dispose BOTH — the data texture is owned by the material's closure. */
+  dispose: () => void;
+}
+
+/**
+ * Build the ground material for one map.
+ *
+ * Called twice per board — once by the heightfield, once by the apron — which
+ * is deliberate. They are two meshes with two model matrices and two sides, so
+ * they need two materials; what they must NOT have is two SHADERS. Both come
+ * out of this function, share a program cache key up to the apron flag, and
+ * therefore paint the same grass with the same noise at the same scale. Before
+ * this existed the apron carried a hand-written palette and the seam between
+ * them was a visible rectangle around the board.
+ */
+export function makeTerrainSurfaceMaterial(
+  mapData: BattleMapData,
+  opts: { apron?: boolean; side?: THREE.Side } = {},
+): TerrainSurface {
+  const { width, height } = mapData.dimensions;
+  const biome =
+    (mapData as BattleMapData & { biome?: string }).biome ?? mapData.theme ?? "forest";
+  // Canopy dapple only where trees plausibly overhang the ground.
+  const dapple = biome === "forest" ? 1.0 : biome === "swamp" ? 0.45 : 0.0;
+  const tex = createTerrainTypeTexture(mapData, width, height);
+  const material = createTerrainMaterial(
+    tex,
+    width,
+    height,
+    mapData.seed ?? 42,
+    dapple,
+    opts.apron ? (APRON_LAND_TYPE[biome] ?? 0) : -1,
+    opts.side ?? THREE.FrontSide,
+  );
+  return {
+    material,
+    dispose: () => {
+      material.dispose();
+      tex.dispose();
+    },
+  };
+}

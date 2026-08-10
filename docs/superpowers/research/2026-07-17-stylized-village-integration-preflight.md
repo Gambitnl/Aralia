@@ -320,3 +320,5 @@ Matrix dispatch and live integration remain incomplete.
 - `src/systems/world3d/types.ts:295-345` — current site contract and doorway gap
 - `src/systems/worldforge/interior/blueprintTypes.ts:174-175`, `730-743` — exact
   blueprint entry and door data exists upstream
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/research/2026-07-17-stylized-village-integration-preflight.md","sha256WithoutMarker":"457f1f34f3a2c5c65cad373d12982b72dad69ffd7c4e3eb89203745e5124a688","markedAtUtc":"2026-08-09T20:24:28.254Z"} -->

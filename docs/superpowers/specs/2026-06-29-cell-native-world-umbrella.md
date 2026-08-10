@@ -134,3 +134,5 @@ src/components/__tests__/MapPane.test.tsx`. IGNORE only these pre-existing failu
 - The continent-scale legacy streamer.
 - The 3D rendering technology itself.
 - Grid-resolution tweaks (the cell anchor is resolution-independent by construction).
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/specs/2026-06-29-cell-native-world-umbrella.md","sha256WithoutMarker":"8a035549dce1d3711c345de31fb85a10e05b943beda396ea50fb9be46b5c29cd","markedAtUtc":"2026-08-09T20:24:29.238Z"} -->

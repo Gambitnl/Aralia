@@ -862,3 +862,5 @@ Expected: the second (cached) call is markedly faster than the first; the `?refr
 
 ## Out of scope (Plan 2 — the UI)
 Folder-tree view, per-doc badges, the used/unused/role/duplicate/confidence filters, headline counts, Rescan button, and diagnostics disclosure in `PreviewMdLibrary.tsx`. Consumes this plan's `/api/docs/usage` payload unchanged.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/plans/2026-07-04-doc-usage-scanner.md","sha256WithoutMarker":"af1b563d42700a465817b87d7d654cfdbbb174c08605ebf9b38b3912122bb7c4","markedAtUtc":"2026-08-09T20:22:07.608Z"} -->

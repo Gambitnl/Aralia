@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, fireEvent, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import React from 'react';
 
 // Mock the game context so the overlay reads a fixed seed + clock without a provider.
@@ -9,19 +9,24 @@ vi.mock('../../../state/GameContext', () => ({
 }));
 
 import AgentSimDevOverlay from '../AgentSimDevOverlay';
+import { OPEN_AGENT_SIM_EVENT, requestDevOverlay } from '../devOverlayEvents';
+
+function openPanel() {
+  act(() => requestDevOverlay(OPEN_AGENT_SIM_EVENT));
+}
 
 describe('AgentSimDevOverlay', () => {
-  it('starts collapsed (a toggle button, no snapshot yet)', () => {
-    const { container, getByText } = render(<AgentSimDevOverlay />);
-    expect(getByText(/Agent sim/i)).toBeTruthy();
+  it('starts hidden with no separate World 3D launcher', () => {
+    const { container } = render(<AgentSimDevOverlay />);
+    expect(screen.queryByText(/Agent sim/i)).toBeNull();
     expect(container.querySelector('[data-testid="town-agent-snapshot"]')).toBeNull();
-    // Protect the primary World3D transition controls from the dev launcher.
-    expect(screen.getByTestId('agent-sim-dev-overlay')).toHaveStyle({ right: '220px' });
   });
 
   it('expands to a live town snapshot at the current game hour', () => {
-    const { getByText, container } = render(<AgentSimDevOverlay />);
-    fireEvent.click(getByText(/Agent sim/i));
+    const { container } = render(<AgentSimDevOverlay />);
+    openPanel();
+    expect(screen.getByRole('dialog', { name: /Agent sim · demo burg/i })).toBeTruthy();
+    expect(screen.getByTestId('window-agent-sim-window')).toBeTruthy();
     const snap = container.querySelector('[data-testid="town-agent-snapshot"]');
     expect(snap).toBeTruthy();
     // gameTime is 12:00 → schedule hour 12.
@@ -32,8 +37,8 @@ describe('AgentSimDevOverlay', () => {
 
   it('reflects the game clock: midnight shows everyone asleep', () => {
     mockState.gameTime = new Date(Date.UTC(351, 0, 1, 3, 0, 0));
-    const { getByText, container } = render(<AgentSimDevOverlay />);
-    fireEvent.click(getByText(/Agent sim/i));
+    const { container } = render(<AgentSimDevOverlay />);
+    openPanel();
     expect(container.querySelector('[data-testid="town-agent-snapshot"]')!.getAttribute('data-hour')).toBe('3');
     const acts = [...container.querySelectorAll('circle[data-activity]')].map((d) => d.getAttribute('data-activity'));
     expect(acts.length).toBeGreaterThan(0);

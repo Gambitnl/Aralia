@@ -253,3 +253,5 @@ Driven by the Lovecraftian stress test (library lineage 214b68cf → 5987d7d0 �
 - Driver: hand/ring/cilia emissions; arm sibling fanning (starburst, not broom-bundles); floating arms level, not dangling.
 - New part: `crystalSpikes` (jagged accent shards, params scale/jaggedness/count).
 - 143 tests green (entities3d + devhub). Proof sheets: .agent/vistest/sheet-horror*.png (v1 dangle → v4 ringed starburst).
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/plans/2026-07-15-text-to-creature.md","sha256WithoutMarker":"3f5d1e9a11f278c82f9a432146b94ffc21844b1d80f2d2cd336f895be8d148de","markedAtUtc":"2026-08-09T20:23:18.320Z"} -->

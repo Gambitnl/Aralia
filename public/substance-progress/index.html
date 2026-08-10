@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Substance-True Campaign — Live Progress</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root { color-scheme: dark; }
+  body { margin: 0; padding: 24px; background: #0e1116; color: #dfe6ef; font: 15px/1.5 "Segoe UI", system-ui, sans-serif; }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  .headline { color: #9fb4cc; margin-bottom: 20px; }
+  .updated { color: #5c6b7d; font-size: 12px; margin-bottom: 16px; }
+  table { border-collapse: collapse; width: 100%; max-width: 980px; margin-bottom: 28px; }
+  th, td { text-align: left; padding: 8px 12px; border-bottom: 1px solid #222a35; }
+  th { color: #7d8da1; font-size: 12px; text-transform: uppercase; letter-spacing: .05em; }
+  .status { font-weight: 600; padding: 2px 8px; border-radius: 10px; font-size: 12px; display: inline-block; }
+  .status.queued   { background: #2a2f38; color: #8b97a6; }
+  .status.building { background: #2c3a17; color: #a8d94f; }
+  .status.critic   { background: #3a2c17; color: #e9b44f; }
+  .status.rework   { background: #3a1c17; color: #ef8a6a; }
+  .status.wowed    { background: #17313a; color: #4fd0e9; }
+  .log { max-width: 980px; }
+  .log h2 { font-size: 15px; color: #7d8da1; }
+  .log li { margin-bottom: 6px; }
+  .log time { color: #5c6b7d; margin-right: 8px; font-size: 12px; }
+  a { color: #6ab0f3; }
+</style>
+</head>
+<body>
+<h1>Substance-True Terrain + Water</h1>
+<div class="headline" id="headline">Loading…</div>
+<div class="updated" id="updated"></div>
+<div class="decisions" id="decisionsBox" style="display:none; max-width: 980px; margin-bottom: 28px; border: 1px solid #7a5b1e; border-radius: 8px; padding: 14px 18px; background: #171307;">
+  <h2 style="margin: 0 0 10px; font-size: 15px; color: #e9b44f;">Decisions waiting for Remy</h2>
+  <ul id="decisions" style="margin: 0; padding-left: 18px;"></ul>
+</div>
+<table>
+  <thead><tr><th>Piece</th><th>What it is</th><th>Reference bar</th><th>Harness</th><th>Round</th><th>Status</th><th>Last critic verdict</th></tr></thead>
+  <tbody id="rows"></tbody>
+</table>
+<div class="log"><h2>Log</h2><ul id="log"></ul></div>
+<script>
+async function refresh() {
+  try {
+    const r = await fetch('status.json?ts=' + Date.now());
+    const s = await r.json();
+    document.getElementById('headline').textContent = s.headline;
+    document.getElementById('updated').textContent = 'Updated: ' + s.updated + ' — this page reloads itself every 10 s.';
+    document.getElementById('rows').innerHTML = s.pieces.map(p =>
+      `<tr><td><b>${p.id}</b></td><td>${p.name}</td><td>${p.bar}</td>` +
+      `<td><a href="/Aralia/misc/design.html${p.harness.startsWith('?') ? p.harness : ''}">${p.harness}</a></td>` +
+      `<td>${p.round || '—'}</td><td><span class="status ${p.status}">${p.status}</span></td><td>${p.verdict || '—'}</td></tr>`
+    ).join('');
+    document.getElementById('log').innerHTML = s.log.slice().reverse().map(e =>
+      `<li><time>${e.time}</time>${e.text}</li>`).join('');
+    const dbox = document.getElementById('decisionsBox');
+    if (s.decisions && s.decisions.length) {
+      dbox.style.display = 'block';
+      document.getElementById('decisions').innerHTML = s.decisions.map(d =>
+        `<li style="margin-bottom:10px"><b>${d.id} — ${d.title}.</b> ${d.question}<br>` +
+        `<span style="color:#9fb4cc">${d.options}</span><br>` +
+        `<span style="color:#5c6b7d; font-size:12px">Evidence: ${d.evidence}</span></li>`).join('');
+    } else { dbox.style.display = 'none'; }
+  } catch (e) { document.getElementById('headline').textContent = 'status.json not readable: ' + e; }
+}
+refresh();
+setInterval(refresh, 10000);
+</script>
+</body>
+</html>

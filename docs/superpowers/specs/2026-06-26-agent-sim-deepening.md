@@ -75,3 +75,5 @@ camera). Surnames and genealogy may fall out of the deepen work.
   (deterministic, truthful "who is where at hour H"). Street-walking is only shown during
   playback. If we want walking *frames* under a paused scrub too, extend `simulateMindsTo`
   to also fold the route positions (needs the street graph + centroids).
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/specs/2026-06-26-agent-sim-deepening.md","sha256WithoutMarker":"36d718bc44633fbe4539e7dc8b5fe583455f751a39497e67983879e60186183c","markedAtUtc":"2026-08-09T20:24:28.255Z"} -->

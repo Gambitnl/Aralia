@@ -44,6 +44,7 @@ import {
   Quaternion,
   SphereGeometry,
   Vector3,
+  type Bone,
 } from 'three';
 import type { Anchor, EntityBlueprint, PartAnchors, PartPhase, Vec3Like } from '../types';
 import { ANCHORS, headRadiusM, heightM } from '../types';
@@ -265,16 +266,23 @@ export function assembleEntity(blueprint: EntityBlueprint, options: AssembleOpti
     meshContainers.push({ container, anchor: instance.anchor });
   }
 
-  // --- sculpted head forms (planned bodies) — posed at live sockets per frame
-  const formHeads: Array<{ group: Group; head: number }> = [];
+  // --- sculpted head forms (planned bodies)
+  // Task 3 (skeleton pivot slice 4): in SKINNED mode each formed head is
+  // parented to its `head<i>` bone, which the pose sink writes from the
+  // driver's live sockets every frame — the sculpted skull rides the skeleton
+  // like every ball head does. In segments mode there are no bones, so the
+  // head keeps the original per-frame socket placement below.
+  const formHeads: Array<{ group: Group; head: number; bone: Bone | null }> = [];
   if (blueprint.planSpec && !wireframe) {
     const toothMaterial = toonMaterial('#e8e2d4');
     blueprint.planSpec.heads.forEach((headSpec, h) => {
       if (!headSpec.form) return;
       const formGroup = buildHeadForm(headSpec.form, toonMaterial(palette.skinHex), toothMaterial);
       formGroup.name = `head${h}:form`;
-      bodyRoot.add(formGroup);
-      formHeads.push({ group: formGroup, head: h });
+      const headBone = skinnedBody?.boneNamed(`head${h}`) ?? null;
+      if (headBone) headBone.add(formGroup);
+      else bodyRoot.add(formGroup);
+      formHeads.push({ group: formGroup, head: h, bone: headBone });
     });
   }
 
@@ -370,6 +378,12 @@ export function assembleEntity(blueprint: EntityBlueprint, options: AssembleOpti
       clipPlayer.update(dt);
     } else if (skinnedBody) {
       driver.buildBody(skinnedBody.sink);
+      // Task 3: formed heads emit no ball, so the pose sink never sees their
+      // head<i> bones — write them from the driver's live sockets before the
+      // locals resolve, or bone-parented sculpted heads freeze at bind pose.
+      if (driver.headSockets && skinnedBody.poseHeadSockets) {
+        skinnedBody.poseHeadSockets(driver.headSockets());
+      }
       skinnedBody.finishFrame();
     } else {
       driver.buildBody(body.sink);
@@ -420,6 +434,13 @@ export function assembleEntity(blueprint: EntityBlueprint, options: AssembleOpti
       for (const fh of formHeads) {
         const socket = sockets[fh.head];
         if (!socket) continue;
+        if (fh.bone) {
+          // Skinned mode (Task 3): the head<i> bone already carries position
+          // and facing — the mesh only keeps its radius scale (buildHeadForm
+          // geometry is unit-radius by construction).
+          fh.group.scale.setScalar(socket.r);
+          continue;
+        }
         fh.group.position.set(socket.x, socket.y, socket.z);
         tmpVecA.set(socket.fx, socket.fy, socket.fz);
         fh.group.quaternion.setFromUnitVectors(FORWARD, tmpVecA);

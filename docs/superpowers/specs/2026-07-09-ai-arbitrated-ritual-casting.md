@@ -49,3 +49,5 @@ In a more dangerous place the ritual is threatened by the world:
 - Where do NPC personality traits live, and are quiet/comedian/paranoid/careless already modeled or do they need adding?
 - Should aborting cost anything (partial backlash, wasted components, time)?
 - How does this interact with combat (a ritual interrupted into a fight)?
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/specs/2026-07-09-ai-arbitrated-ritual-casting.md","sha256WithoutMarker":"964c2f9e2d7f22611d360fe0d845c75e147e5bc30aaa0f6de34b1c5664acb73e","markedAtUtc":"2026-08-09T20:24:29.253Z"} -->

@@ -88,6 +88,27 @@ interface Brick {
   cells: Uint8Array | null;
 }
 
+/**
+ * The `brickUniform` byte that means "this brick's cells follow in
+ * `brickCells`". Outside the `Material` range on purpose.
+ */
+export const BRICK_ALLOCATED = 255;
+
+/** A volume flattened into transferable buffers. See `VoxelVolume.snapshot`. */
+export interface VolumeSnapshot {
+  cellsPerEdge: number;
+  /**
+   * Cells on Y. Absent in a snapshot written before the volume grew an
+   * independent vertical resolution, and read back as `cellsPerEdge` — a cubic
+   * volume, which is what those snapshots were.
+   */
+  cellsY?: number;
+  /** One byte per brick: a `Material`, or `BRICK_ALLOCATED`. */
+  brickUniform: Uint8Array;
+  /** Cells of every allocated brick, concatenated in ascending brick index. */
+  brickCells: Uint8Array;
+}
+
 export interface VolumeStats {
   /** Bricks that hold a boundary and therefore allocate cells. */
   allocatedBricks: number;
@@ -106,21 +127,49 @@ export interface VolumeStats {
  * this class never needs to know where in the world it sits.
  */
 export class VoxelVolume {
+  /** Cells on X and Z. The horizontal resolution. */
   readonly cells: number;
+  /**
+   * Cells on Y. Defaults to `cells`, which is what every caller had before this
+   * existed, so a cubic volume behaves exactly as it always did.
+   *
+   * WHY THE AXES CAME APART. A combat arena is 120 units wide and about 14
+   * tall. One `cellsPerEdge` sized all three, so buying a fine horizontal cell
+   * meant buying 120 units of vertical lattice that is nine tenths open sky —
+   * 32,768 brick headers for a board that needs a twelfth of them. Worse, the
+   * cell the budget could afford (0.47 m) was COARSER THAN THE FEATURES: the
+   * heightfield's stream basin is 0.42 m deep, less than one voxel, so the
+   * arena's streams had no bed and 89% of their water ran off the boundary
+   * inside the settle. Y is where the detail is, and Y is the cheap axis to
+   * refine, because refining it costs a factor and refining X and Z costs that
+   * factor squared.
+   */
+  readonly cellsY: number;
+  /** Bricks on X and Z. */
   readonly bricks: number;
+  /** Bricks on Y. */
+  readonly bricksY: number;
   private readonly grid: Brick[];
 
-  constructor(cellsPerEdge: number) {
+  constructor(cellsPerEdge: number, cellsY: number = cellsPerEdge) {
     if (cellsPerEdge % BRICK !== 0) {
       throw new Error(`cellsPerEdge must be a multiple of ${BRICK}`);
     }
+    if (cellsY % BRICK !== 0) {
+      throw new Error(`cellsY must be a multiple of ${BRICK}`);
+    }
     this.cells = cellsPerEdge;
+    this.cellsY = cellsY;
     this.bricks = cellsPerEdge / BRICK;
-    const total = this.bricks ** 3;
+    this.bricksY = cellsY / BRICK;
+    const total = this.bricks * this.bricks * this.bricksY;
     this.grid = new Array(total);
     for (let i = 0; i < total; i++) this.grid[i] = { uniform: Material.Air, cells: null };
   }
 
+  /* Y is the OUTER term, so the row count can change without disturbing the
+   * XZ layout: a brick's index inside its own Y row is `bz * bricks + bx`
+   * either way. That is why the split cost no reshuffling of the grid. */
   private brickIndex(bx: number, by: number, bz: number): number {
     return (by * this.bricks + bz) * this.bricks + bx;
   }
@@ -134,7 +183,7 @@ export class VoxelVolume {
      * samples one step past the edge would read a neighbor's rock and seal the
      * volume against the wrong thing. */
     if (x < 0 || y < 0 || z < 0) return Material.Air;
-    if (x >= this.cells || y >= this.cells || z >= this.cells) return Material.Air;
+    if (x >= this.cells || y >= this.cellsY || z >= this.cells) return Material.Air;
     const b = this.grid[this.brickIndex(x >> 3, y >> 3, z >> 3)];
     if (!b) return Material.Air;
     if (b.cells === null) return b.uniform;
@@ -156,7 +205,7 @@ export class VoxelVolume {
      * neighboring column — the exact fault the guard on `get` was added to
      * prevent, left half-fixed because only the read path was considered. */
     if (x < 0 || y < 0 || z < 0) return;
-    if (x >= this.cells || y >= this.cells || z >= this.cells) return;
+    if (x >= this.cells || y >= this.cellsY || z >= this.cells) return;
     const bi = this.brickIndex(x >> 3, y >> 3, z >> 3);
     const b = this.grid[bi];
     if (!b) return;
@@ -179,10 +228,80 @@ export class VoxelVolume {
    */
   brickMaterial(bx: number, by: number, bz: number): Material | null {
     if (bx < 0 || by < 0 || bz < 0) return Material.Air; // outside is air
-    if (bx >= this.bricks || by >= this.bricks || bz >= this.bricks) return Material.Air;
+    if (bx >= this.bricks || by >= this.bricksY || bz >= this.bricks) return Material.Air;
     const b = this.grid[this.brickIndex(bx, by, bz)];
     if (!b) return Material.Air;
     return b.cells === null ? b.uniform : null;
+  }
+
+  /**
+   * Flatten the volume into two plain arrays that a Web Worker can TRANSFER.
+   *
+   * The storage is an array of small objects, and an array of objects is the
+   * one thing `postMessage` cannot hand over cheaply: structured clone walks
+   * every brick, allocates a twin, and copies its cells. At 256³ that is
+   * 32,768 objects and megabytes of copying on both threads — paid twice, once
+   * to serialize and once to rebuild, on top of the fill this whole exercise
+   * exists to move off the main thread.
+   *
+   * Two flat buffers instead:
+   *
+   * - `brickUniform`, one byte per brick. A material value means the brick is
+   *   uniform and costs nothing more. `BRICK_ALLOCATED` (255) means its cells
+   *   follow. 255 is safe as a sentinel because `Material` tops out at 17 and
+   *   the enum is capped by the Uint8Array it lives in.
+   * - `brickCells`, the cells of every allocated brick, concatenated in
+   *   ascending brick index. The order is implied, so no index table is sent.
+   *
+   * Both are `Uint8Array`s, so their buffers go in `postMessage`'s transfer
+   * list and change owner without a copy.
+   */
+  snapshot(): VolumeSnapshot {
+    const brickUniform = new Uint8Array(this.grid.length);
+    let allocated = 0;
+    for (let i = 0; i < this.grid.length; i++) {
+      const b = this.grid[i];
+      if (b.cells === null) {
+        brickUniform[i] = b.uniform;
+      } else {
+        brickUniform[i] = BRICK_ALLOCATED;
+        allocated++;
+      }
+    }
+    const cellsPerBrick = BRICK ** 3;
+    const brickCells = new Uint8Array(allocated * cellsPerBrick);
+    let at = 0;
+    for (const b of this.grid) {
+      if (b.cells === null) continue;
+      brickCells.set(b.cells, at);
+      at += cellsPerBrick;
+    }
+    return { cellsPerEdge: this.cells, cellsY: this.cellsY, brickUniform, brickCells };
+  }
+
+  /**
+   * Rebuild a volume from `snapshot`. The inverse, and the receiving half of
+   * the worker hand-off: the worker fills, transfers, and is done — after this
+   * call the main thread owns the only copy, so an edit cannot desynchronize
+   * two versions of the ground because there is only ever one.
+   */
+  static fromSnapshot(s: VolumeSnapshot): VoxelVolume {
+    const vol = new VoxelVolume(s.cellsPerEdge, s.cellsY ?? s.cellsPerEdge);
+    const cellsPerBrick = BRICK ** 3;
+    let at = 0;
+    for (let i = 0; i < vol.grid.length; i++) {
+      const u = s.brickUniform[i];
+      if (u === BRICK_ALLOCATED) {
+        vol.grid[i] = {
+          uniform: Material.Air,
+          cells: s.brickCells.slice(at, at + cellsPerBrick),
+        };
+        at += cellsPerBrick;
+      } else {
+        vol.grid[i] = { uniform: u as Material, cells: null };
+      }
+    }
+    return vol;
   }
 
   /**
@@ -217,7 +336,7 @@ export class VoxelVolume {
       allocatedBricks: allocated,
       uniformBricks: this.grid.length - allocated,
       cellBytes: allocated * BRICK ** 3,
-      denseBytes: this.cells ** 3,
+      denseBytes: this.cells * this.cells * this.cellsY,
     };
   }
 }

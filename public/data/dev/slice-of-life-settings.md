@@ -481,4 +481,4 @@ Generated at: 2026-02-24T12:59:05.812Z
 | 106m | yuan_ti | Yuan-Ti | male | beastfolk | repairing a fishing net on a dock, with practical tools laid out nearby. | (unset) | - | pending | non_keeper | no | yes | regen | 102m |  | no | no | yes |
 | 106f | yuan_ti | Yuan-Ti | female | beastfolk | sweeping a courtyard or temple steps, quiet routine and grounded mood. | (unset) | - | pending | non_keeper | no | yes | regen | 22m |  | no | no | yes |
 
-<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"public/data/dev/slice-of-life-settings.md","sha256WithoutMarker":"f4af3dd4788906160577d26864a6afaff3c1da1b9b7f777a83f1b9116d51939e","markedAtUtc":"2026-06-26T00:53:11.781Z"} -->
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"public/data/dev/slice-of-life-settings.md","sha256WithoutMarker":"07119251b118482b0f268b8d79b0e532dc24881768f422d8693d1adeb6b69984","markedAtUtc":"2026-08-09T20:14:16.138Z"} -->

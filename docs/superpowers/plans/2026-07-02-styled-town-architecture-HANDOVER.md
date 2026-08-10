@@ -70,3 +70,5 @@ Plan (all 9 tasks executed): `docs/superpowers/plans/2026-07-01-styled-town-arch
 - Keep World3DWrapper + groundTowns on `canonicalArtifactTownForSite` (regression test guards).
 - Re-run `townIdentityProof.mjs` after any town change.
 - Master only; leave work uncommitted.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/plans/2026-07-02-styled-town-architecture-HANDOVER.md","sha256WithoutMarker":"bfa10b80cdd9ad19aa1e6baaf8765cf63b855b2c40a9599b9eeb444e7370c9f7","markedAtUtc":"2026-08-09T20:24:24.654Z"} -->

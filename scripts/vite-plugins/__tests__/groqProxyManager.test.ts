@@ -129,6 +129,99 @@ describe('createGroqKeyLoader', () => {
 });
 
 // ============================================================================
+// Local process launch boundary
+// ============================================================================
+// These tests pin the narrow browser-to-server contract. The test injects a
+// fake launcher, so no process is created and no credential is read.
+// ============================================================================
+
+describe('groqProxyManager proxy start route', () => {
+  const captureMiddleware = (startProxy: (port: number) => Promise<void>) => {
+    let middleware: ((req: object, res: object, next: () => void) => Promise<void>) | undefined;
+
+    groqProxyManager(vi.fn(), startProxy).configureServer({
+      middlewares: {
+        use: (handler) => {
+          middleware = async (req, res, next) => {
+            await handler(req, res, next);
+          };
+        },
+      },
+    });
+
+    return () => middleware!;
+  };
+
+  const createJsonRequest = (proxyUrl: string, overrides: Record<string, unknown> = {}) => ({
+    url: '/__groq/start',
+    method: 'POST',
+    headers: {
+      origin: 'http://localhost:3000',
+      host: 'localhost:3000',
+      'content-type': 'application/json',
+    },
+    socket: { remoteAddress: '127.0.0.1' },
+    on: (event: string, callback: (chunk?: Buffer) => void) => {
+      if (event === 'data') callback(Buffer.from(JSON.stringify({ proxyUrl })));
+      if (event === 'end') callback();
+    },
+    ...overrides,
+  });
+
+  it('starts the fixed proxy launcher with the validated loopback port', async () => {
+    const startProxy = vi.fn().mockResolvedValue(undefined);
+    const getMiddleware = captureMiddleware(startProxy);
+    const response = { writeHead: vi.fn(), end: vi.fn() };
+
+    await getMiddleware()(
+      createJsonRequest('http://localhost:8787/v1'),
+      response,
+      vi.fn(),
+    );
+
+    expect(startProxy).toHaveBeenCalledWith(8787);
+    expect(response.writeHead).toHaveBeenCalledWith(202, { 'Content-Type': 'application/json' });
+    expect(response.end).toHaveBeenCalledWith(JSON.stringify({ ok: true, port: 8787 }));
+  });
+
+  it('rejects a remote target before it reaches the process launcher', async () => {
+    const startProxy = vi.fn().mockResolvedValue(undefined);
+    const getMiddleware = captureMiddleware(startProxy);
+    const response = { writeHead: vi.fn(), end: vi.fn() };
+
+    await getMiddleware()(
+      createJsonRequest('https://api.groq.com/openai/v1'),
+      response,
+      vi.fn(),
+    );
+
+    expect(startProxy).not.toHaveBeenCalled();
+    expect(response.writeHead).toHaveBeenCalledWith(400, { 'Content-Type': 'application/json' });
+  });
+
+  it('rejects a cross-origin browser request even when its target is loopback', async () => {
+    const startProxy = vi.fn().mockResolvedValue(undefined);
+    const getMiddleware = captureMiddleware(startProxy);
+    const response = { writeHead: vi.fn(), end: vi.fn() };
+
+    await getMiddleware()(
+      createJsonRequest('http://localhost:8787/v1', {
+        headers: {
+          origin: 'http://malicious.example',
+          host: 'localhost:3000',
+          'content-type': 'application/json',
+        },
+      }),
+      response,
+      vi.fn(),
+    );
+
+    expect(startProxy).not.toHaveBeenCalled();
+    expect(response.writeHead).toHaveBeenCalledWith(403, { 'Content-Type': 'application/json' });
+  });
+});
+
+// ============================================================================
 // Middleware failure boundary
 // ============================================================================
 // Credential-reader exceptions must become a controlled server response. The

@@ -487,3 +487,5 @@ This plan delivers the **engine**. The remaining subsystems each get their own p
 - **Plan E — Festivals:** extend `CalendarSystem.HOLIDAYS` + temple-deity holy days (`templeUtils`/`DEITIES`) + per-town founding day; emit `festival` chronicle events; present-day plaza behaviour reuses existing agentSim gathering.
 - **Plan F — Preview surface (play-and-eyeball, D12):** new `?phase=livingworld` preview (append `GamePhase` tail + `PHASE_SLUG_OVERRIDES`); run `advanceTownDays` over N years on a demo town, render `summarizeChronicle` + a `window.__livingWorldPreview` hook for headless proof.
 - **Later layers (per §5):** economy events (good/bad years, levy, boom → wealth meter), relationships (affinity → courtship → marriage, building on `came_of_age` + `socialized`), town-scale orchestrators (fire/crime).
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/plans/2026-06-29-living-world-life-event-core.md","sha256WithoutMarker":"74d6f5cef73b7c1367ed826aad314f8d7225444ff745bd5261454532d7687259","markedAtUtc":"2026-08-09T20:22:07.605Z"} -->

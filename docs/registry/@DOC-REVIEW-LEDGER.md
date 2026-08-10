@@ -308,15 +308,6 @@ Interpretation defaults:
 - Scripts may help list files or confirm path existence, but reasoning, interpretation, and disposition remain manual.
 - The first-wave task does not stop when one review band is cleared. Work continues until every in-scope first-wave doc under `docs/` has a final ledger status, unless a hard blocker or explicit user redirect intervenes.
 
-
-
-
-
-
-
-
-
-
 ## Architecture Domain Slice D
 
 | Path | Class | Review Status | Disposition | Evidence / Notes |
@@ -1299,4 +1290,4 @@ Batch executed under the doc-sprawl triage design (`docs/superpowers/specs/2026-
 | `docs/tasks/spell-system-overhaul/ARCHITECTURE_NOTE.md` + `COMBAT_MAP_PRESENTATION_MATRIX.md` | `reference` + `spec` | `processed` | `move` | Relocated 2026-07-01 to `docs/projects/spells/subprojects/structured-spell-execution/`; two stale seam bullets corrected; presentation-matrix rendered-proof debt routed as parent Spells G62; pointer stubs left. |
 | `docs/tasks/spell-system-overhaul/00-PARALLEL-ARCHITECTURE.md` + `DECISIONS.md` | `index` + `spec` | `processed` | `keep in place` | Verified 2026-07-01: tombstone pointer resolves; decision record load-bearing (one archived-GAPS link repaired in DECISIONS.md). |
 
-<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/registry/@DOC-REVIEW-LEDGER.md","sha256WithoutMarker":"48343a9a2e88a0e86265f9da874052a7f9c8ed04654fb5200c95d1100615a285","markedAtUtc":"2026-06-25T23:48:24.943Z"} -->
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/registry/@DOC-REVIEW-LEDGER.md","sha256WithoutMarker":"05bea7e4c5195572101644d0eab9c82a808fc233b9ad968f34106b448cf4d2bf","markedAtUtc":"2026-08-09T20:14:15.897Z"} -->

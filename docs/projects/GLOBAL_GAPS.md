@@ -125,4 +125,4 @@ Spell-side dependency:
 
 | GG-DEVHUB-TRACKER-COLS | open | 2026-06-11 | devHubApiManager.ts tracker-fallback parser reads status/confidence/evidence from cells[2]/[3]/[4], but the "Projectized Planning Areas" table header is Project|Status|Confidence|Evidence|... (status at cells[1]) â€” every fallback card shows its metadata shifted one column left (e.g. confidence displays the Evidence text). Affects display only; per-project schema fields override when present. Fix the index map or the table header, in one place, for all projects. |
 
-<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/projects/GLOBAL_GAPS.md","sha256WithoutMarker":"5c717ab0927bc3a2ac036791edb5d7d9079f1fc82b31be35fdf81ecd6e7b7cde","markedAtUtc":"2026-06-25T22:54:19.194Z"} -->
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/projects/GLOBAL_GAPS.md","sha256WithoutMarker":"7e343cc9f0e0134c86a9cf5badd07cd8bee486451ee85bd435f307670b17df09","markedAtUtc":"2026-08-09T20:14:15.551Z"} -->

@@ -177,4 +177,4 @@ Last Updated: 2025-12-04 16:35 UTC
 - Level differences surface as missing/extra pairs (e.g., `shining-smite` appears at level 2 in PHB 2024 but level 5 locally).
 - PHB spell list derived from Kassoon's 2024 reference; verify against the printed handbook for publication-critical changes.
 
-<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spell-completeness-audit/@SPELL-COMPLETENESS-REPORT.md","sha256WithoutMarker":"66df744497b4960cd21f99582279ba4f0d3b270943b8baa3d0ddf394e2e0b234","markedAtUtc":"2026-06-25T22:29:38.644Z"} -->
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spell-completeness-audit/@SPELL-COMPLETENESS-REPORT.md","sha256WithoutMarker":"4595fd9edc880958eb863c7b2511b1deb6728671190fc271ce22cf2dfe11e991","markedAtUtc":"2026-08-09T20:14:15.843Z"} -->

@@ -79,4 +79,4 @@ Source code edits are out of scope.
 3. Read `GAPS.md`.
 4. Continue from the active row with the next action and required proof.
 
-<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/architecture/NORTH_STAR.md","sha256WithoutMarker":"3c468dbe4e10f7a8fbe3b009bc36cd86471371343ebaeb351997c506f93a15b9","markedAtUtc":"2026-06-25T22:29:38.632Z"} -->
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/archive/tasks/architecture/NORTH_STAR.md","sha256WithoutMarker":"5a595ea2403f53f828352442046de99a3942a52c0bb5c7c95cb75fdfe01bf4bf","markedAtUtc":"2026-08-09T20:22:07.641Z"} -->

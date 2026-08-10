@@ -18,3 +18,5 @@
 
 ## Why this is decision-gated (context for whoever assigns it)
 The merchant modal has no player open-path, so "where gold moves in play" is a genuine product/UX decision — it can't be defaulted safely. That's why it's a supervised UX pass with Remy in the loop, not an autonomous packet.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/plans/2026-07-09-economy-ux-pass-handover.md","sha256WithoutMarker":"834c90079fe285c31f6319e4989bb3b33578fd2cdb28d7d73f441113498b7168","markedAtUtc":"2026-08-09T20:24:28.234Z"} -->

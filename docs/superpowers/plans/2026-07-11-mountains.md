@@ -114,3 +114,5 @@ export function rollTripEvent(
 - Spec coverage: slice 1 → T1–3; slice 2 → T4; slice 3 → T5–7; slice 4 → T8–9; slice 5 → T10–11; proof → T12. Forest-priority move → T3. Dedupe-share refactor → T2. All covered.
 - Placeholder scan: discovery steps are bounded with stated rules (note-id template, latitude derivation, SLOPE01 calibration); no TBDs.
 - Type consistency: RangeCluster/PackRange/AtlasRange/rangeForCell exports/climbFactorFor/TripEventOutcome names used consistently across tasks; `elevationCurveFt` defined T11 and used only there; `snowLineH` local to T10.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/plans/2026-07-11-mountains.md","sha256WithoutMarker":"a593621f3fcfd18124b18c9364b19fb3ed4d801f4459356f75e765ae2cb948be","markedAtUtc":"2026-08-09T20:22:07.618Z"} -->

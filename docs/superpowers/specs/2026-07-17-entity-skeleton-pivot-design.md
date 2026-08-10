@@ -50,3 +50,5 @@ Imported rigged hero meshes (the Meshy slice — this pivot builds the skeleton 
 ## Testing
 
 Skeleton builder: bone counts and lengths per `Frame` and per stress fixture (centaur, gelatinous cube, beholder, ghost). Skinned body: weights sum to 1; rigid-weight joint positions match segment joints exactly; a bind-pose-freeze regression proves the outline deforms. Clips: retargeted foot ground contact, speed sync, ownership arbitration. Perf gates extend to draw calls per entity (body = 2) alongside the existing triangle budgets. Visual: A/B contact sheets per slice, harsh critique pass, all 8 stress fixtures plus a race and class spread.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/specs/2026-07-17-entity-skeleton-pivot-design.md","sha256WithoutMarker":"0af158f706df701c81557819df2d22bd2f60736a3843ed00002692047757327a","markedAtUtc":"2026-08-09T20:24:30.602Z"} -->

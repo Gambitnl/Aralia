@@ -22,3 +22,5 @@ click-to-move proved the state contract; this brings picking to the 3D view.
 
 ## Open
 None — slice-2 scope complete. Slice 3 (in-scene spell/AoE targeting) layers on top; it does not reopen picking.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/specs/subspecs/fip--ground-picking.md","sha256WithoutMarker":"ff3ae69dac7b77f9f01fce8e1ba9393eca07530da6fe8e11665d7e30f8f053ef","markedAtUtc":"2026-08-09T20:24:30.605Z"} -->

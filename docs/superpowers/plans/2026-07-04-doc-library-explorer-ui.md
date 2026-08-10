@@ -653,3 +653,5 @@ Expected: PASS — all three util suites still green.
 
 ## Depends on
 Plan 1 (`2026-07-04-doc-usage-scanner.md`) — the `/api/docs/usage` endpoint must exist and return `DocUsagePayload`.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/plans/2026-07-04-doc-library-explorer-ui.md","sha256WithoutMarker":"ca0876ade6e143c285410a59ac5be6209b3418acd8a86d65f337a18fcc24f542","markedAtUtc":"2026-08-09T20:22:07.607Z"} -->

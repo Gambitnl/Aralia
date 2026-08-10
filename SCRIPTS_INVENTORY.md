@@ -55,7 +55,6 @@ Total Executable Scripts: 136
 - [ ] **scripts\open-gemini-profile.ts**: *Tombstone for the old open-gemini-profile.ts location. This script was moved into the Gemini image-gen workflow folder.*
   - *Referenced by*: docs/architecture/_generated/deps.json, docs/architecture/_generated/file-inventory.json, package.json
 
-
 ### ?? Environment & CLI Tooling (5)
 
 - [ ] **scripts\tooling\script-tracker.ts**: *Technical: Utility that records execution metadata into the calling script's own source file header and into a central run-log. Safe to call from a...*
@@ -69,12 +68,10 @@ Total Executable Scripts: 136
 - [ ] **.claude\hooks\session-cleanup-hook.js**: *Delete backup directory for this session*
   - *Status*: Orphaned / Manual entry only
 
-
 ### ? Uncategorized (1)
 
 - [ ] **scripts\raceImageStatus.ts**
   - *Referenced by*: docs/architecture/_generated/file-inventory.json, scripts/validateRaceImages.ts, tsconfig.node.json
-
 
 ### ?? Roadmap & Progress Tracking (37)
 
@@ -153,7 +150,6 @@ Total Executable Scripts: 136
 - [ ] **scripts\roadmap-session-close.ts**
   - *Referenced by*: docs/architecture/_generated/file-inventory.json, docs/plans/2026-02-27-roadmap-branch-completion-design.md, package.json, scripts/roadmap-orchestrate-one-doc.ts
 
-
 ### ?? MCP & System Tooling (3)
 
 - [ ] **scripts\mcp-util.ts**: *MCP Utility Wrapper Provides convenient access to MCP CLI operations CHANGE LOG: 2026-02-27 09:24:00: [Preservationist] Added 'as any' casts to 'sh...*
@@ -162,7 +158,6 @@ Total Executable Scripts: 136
   - *Referenced by*: docs/architecture/_generated/file-inventory.json
 - [ ] **scripts\test-mcp-servers.ts**: *Test suite for MCP servers Validates that all configured MCP servers are working correctly CHANGE LOG: 2026-02-27 09:24:00: [Preservationist] Added...*
   - *Referenced by*: docs/MCP_INTEGRATION.md, docs/architecture/_generated/file-inventory.json, package.json
-
 
 ### ??? Content Creation Helpers (7)
 
@@ -180,7 +175,6 @@ Total Executable Scripts: 136
   - *Referenced by*: docs/CHANGELOG.md, docs/architecture/_generated/deps.json, docs/architecture/_generated/file-inventory.json, docs/architecture/domains/data-pipelines.md, docs/features/GLOSSARY-SPELL-TEMPLATE-PROPOSAL.md, docs/guides/@GLOSSARY-CONTRIBUTOR-GUIDE.md, docs/guides/CLASS_ADDITION_GUIDE.md, docs/guides/GLOSSARY_ENTRY_DESIGN_GUIDE.md, docs/guides/RACE_ADDITION_GUIDE.md, docs/tasks/spells/agent_prompts/00_overview_and_execution_order.md, docs/tasks/spells/agent_prompts/01_missing_references_and_json.md, docs/tasks/spells/agent_prompts/03_aoe_shapes_schema_and_mechanics.md, docs/tasks/spells/agent_prompts/05_material_components_split_model.md, docs/tasks/spells/agent_prompts/06_subclass_spell_access_glossary_feature.md, docs/tasks/spells/agent_prompts/07_feat_spell_access_glossary_feature.md, scripts/add_spell.js, skills/glossary-modal-editor/SKILL.md, skills/glossary-modal-editor/references/data-editing.md, src/components/Glossary/Glossary.README.md
 - [ ] **scripts\regenerate-manifest.ts**: *glob.sync returns relative paths from cwd*
   - *Referenced by*: docs/architecture/_generated/file-inventory.json, docs/architecture/domains/data-pipelines.md, docs/tasks/spell-completeness-audit/2A-EXTRACT-LEVEL-1-DESCRIPTIONS.md, docs/tasks/spell-completeness-audit/2B-EXTRACT-REMAINING-LEVELS.md, docs/tasks/spell-completeness-audit/@WORKFLOW.md, docs/tasks/spell-system-overhaul/1J-MIGRATE-CANTRIPS-BATCH-2.md, docs/tasks/spell-system-overhaul/1K-MIGRATE-CANTRIPS-BATCH-3.md, docs/tasks/spell-system-overhaul/1L-MIGRATE-CANTRIPS-BATCH-4.md, docs/tasks/spell-system-overhaul/1M-MIGRATE-CANTRIPS-BATCH-5.md, docs/tasks/spell-system-overhaul/1N-MIGRATE-CANTRIPS-BATCH-6.md, docs/tasks/spell-system-overhaul/1O-MIGRATE-CANTRIPS-BATCH-7.md, docs/tasks/spell-system-overhaul/1P-MIGRATE-CANTRIPS-BATCH-8.md, docs/tasks/spell-system-overhaul/1Q-MIGRATE-CANTRIPS-BATCH-9.md, docs/tasks/spell-system-overhaul/@DISPATCH-SPELLS-TO-JULES.md, docs/tasks/spell-system-overhaul/BATCH-CREATION-GUIDE.md, docs/tasks/spell-system-overhaul/JULES_ACCEPTANCE_CRITERIA.md, docs/tasks/spell-system-overhaul/LEVEL-1-BATCHES.md, docs/tasks/spell-system-overhaul/LEVEL-2-BATCHES.md, docs/tasks/spell-system-overhaul/LEVELS-1-9-MIGRATION-GUIDE.md, docs/tasks/spell-system-overhaul/SPELL_MIGRATION_PROMPT.md, docs/tasks/spell-system-overhaul/gaps/LEVEL-1-GAPS.md, docs/tasks/spells/agent_prompts/00_overview_and_execution_order.md, docs/tasks/spells/agent_prompts/01_missing_references_and_json.md, docs/tasks/spells/agent_prompts/03_aoe_shapes_schema_and_mechanics.md, docs/tasks/spells/agent_prompts/05_material_components_split_model.md, docs/tasks/spells/agent_prompts/06_subclass_spell_access_glossary_feature.md, docs/tasks/spells/agent_prompts/07_feat_spell_access_glossary_feature.md, scripts/check-spell-integrity.ts, scripts/migrate-legacy-spells-to-v2.ts
-
 
 ### ??? Extension & Hook Scripts (8)
 
@@ -200,7 +194,6 @@ Total Executable Scripts: 136
   - *Status*: Orphaned / Manual entry only
 - [ ] **.uplink\scripts\wait_for_server.py**: *Polls a URL until it returns HTTP 200.*
   - *Status*: Orphaned / Manual entry only
-
 
 ### ??? Data Integrity & Consistency Audits (42)
 
@@ -289,7 +282,6 @@ Total Executable Scripts: 136
 - [ ] **scripts\verify-architecture-coverage.ts**: *Architecture Coverage Verification Script Validates that code files are accounted for in architecture documentation. Usage: npx --no-install tsx sc...*
   - *Referenced by*: docs/architecture/_generated/file-inventory.json
 
-
 ### ?? Cleanup & Maintenance (12)
 
 - [ ] **scripts\compressGlossaryLinks.js**: *Compresses verbose glossary link spans to shorthand syntax. This script transforms: <span data-term-id="rage" class="glossary-term-link-from-markdo...*
@@ -315,4 +307,4 @@ Total Executable Scripts: 136
 - [ ] **scripts\update-spell-json-from-references.ts**: *CHANGE LOG: 2026-02-27 09:24:00: [Preservationist] Added '@ts-ignore' to imports to suppress script-specific resolution warnings. Replaced 'unknown...*
   - *Referenced by*: docs/architecture/_generated/deps.json, docs/architecture/_generated/file-inventory.json, docs/architecture/domains/data-pipelines.md, docs/tasks/spells/agent_prompts/01_missing_references_and_json.md, docs/tasks/spells/agent_prompts/03_aoe_shapes_schema_and_mechanics.md, docs/tasks/spells/agent_prompts/04_targeting_type_and_attack_save_mechanics.md, docs/tasks/spells/agent_prompts/05_material_components_split_model.md
 
-<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"SCRIPTS_INVENTORY.md","sha256WithoutMarker":"935db5af3fbca4a022b77b931e5b18ff31a8ae2233d55f3c7f494e4f376a242c","markedAtUtc":"2026-06-25T22:29:38.329Z"} -->
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"SCRIPTS_INVENTORY.md","sha256WithoutMarker":"173cea71a7dfcd6ce94e807754fd52907f949af5d966654b735204d0dcc3264d","markedAtUtc":"2026-08-09T20:14:15.558Z"} -->

@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 09/08/2026, 17:24:36
+ * Dependents: components/World3D/World3DWrapper.tsx
+ * Imports: 9 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file src/components/World3D/InWorldHUD.tsx
  * HUD container that overlays the 3D canvas without blocking R3F interaction.
@@ -46,6 +62,16 @@ interface InWorldHUDProps {
   onOpenMap: () => void;
   /** Callback when "Exit to Menu" is clicked — returns to main menu. */
   onExitToMenu: () => void;
+  /** Whether the walking-scale Locale map can be shown from Controls. */
+  isLocaleMapAvailable?: boolean;
+  /** Whether the Locale map is currently visible. */
+  isLocaleMapOpen?: boolean;
+  /** Toggle the Locale map without changing 3D mode or player position. */
+  onToggleLocaleMap?: () => void;
+  /** Open the dev-only Agent sim inspector from Controls. */
+  onOpenAgentSim?: () => void;
+  /** Open the dev-only Town history inspector from Controls. */
+  onOpenTownHistory?: () => void;
   /** Whether we are currently in Ground/Village mode (vs Continent mode). */
   isGroundMode?: boolean;
   /** Callback to toggle between Ground and Continent views. */
@@ -178,6 +204,11 @@ const InWorldHUD: React.FC<InWorldHUDProps> = ({
   streamerStats,
   onOpenMap,
   onExitToMenu,
+  isLocaleMapAvailable,
+  isLocaleMapOpen,
+  onToggleLocaleMap,
+  onOpenAgentSim,
+  onOpenTownHistory,
   isGroundMode = false,
   onToggleGroundMode,
   onFrameTownCell,
@@ -244,7 +275,16 @@ const InWorldHUD: React.FC<InWorldHUDProps> = ({
             worldGen={worldGen}
           />
         </WorldViewTitle>
-        <HUDControlPanel onOpenMap={onOpenMap} onExitToMenu={onExitToMenu} />
+        <HUDControlPanel
+          onOpenMap={onOpenMap}
+          onExitToMenu={onExitToMenu}
+          isLocaleMapAvailable={isLocaleMapAvailable}
+          isLocaleMapOpen={isLocaleMapOpen}
+          onToggleLocaleMap={onToggleLocaleMap}
+          isDevModeEnabled={isDevModeEnabled}
+          onOpenAgentSim={onOpenAgentSim}
+          onOpenTownHistory={onOpenTownHistory}
+        />
       </div>
 
       {/* Bottom right: Enter Village / Ascend toggle + View Mode toggle */}

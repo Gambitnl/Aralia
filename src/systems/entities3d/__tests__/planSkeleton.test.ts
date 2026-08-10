@@ -205,6 +205,39 @@ describe('createPlanPoseSink — driver emissions drive the bones', () => {
     expect(() => pose.sink.seg('mysteryPart.0', 0, 0, 0, 0, 1, 0, 0.1, 0.1)).toThrow(/no bone mapped/);
     expect(() => pose.sink.ball('extraEye', 0, 0, 0, 0.1)).toThrow(/no bone mapped/);
   });
+
+  // Task 3: formed heads emit no ball, so their head<i> bone never receives an
+  // emission. The assembler writes those bones from the driver's live sockets
+  // each frame (outside the pure sink) so sculpted heads ride the skeleton.
+  it('writeHeadSockets poses formed-head bones from the live driver sockets (1e-6)', () => {
+    let formedSeen = 0;
+    for (const [name, { frame, planSpec }] of fixtureCases()) {
+      const spec = planSpec!;
+      const formed = spec.heads.map((h, i) => i).filter((i) => spec.heads[i].form);
+      if (formed.length === 0) continue;
+      formedSeen += formed.length;
+      const built = buildPlanSkeleton(frame, spec);
+      const pose = createPlanPoseSink(built);
+      const driver = createGaitDriver('plan', frame, spec);
+      const loco = { position: new Vector3(), heading: new Vector3(0, 0, 1), speed: 1.4 };
+      for (let k = 0; k < 30; k++) {
+        driver.update(k / 60, 1 / 60, loco);
+        driver.buildBody(pose.sink);
+        pose.writeHeadSockets(driver.headSockets!());
+        pose.finishFrame();
+      }
+      built.root.updateMatrixWorld(true);
+      const sockets = driver.headSockets!();
+      for (const i of formed) {
+        const bone = built.bones[built.index.get(`head${i}`)!];
+        const p = new Vector3().setFromMatrixPosition(bone.matrixWorld);
+        const s = sockets[i];
+        expect(p.distanceTo(new Vector3(s.x, s.y, s.z)), `${name} head${i} on socket`).toBeLessThan(1e-6);
+      }
+    }
+    // at least one stress fixture must actually exercise formed heads
+    expect(formedSeen).toBeGreaterThan(0);
+  });
 });
 
 

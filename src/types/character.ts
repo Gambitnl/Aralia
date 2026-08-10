@@ -521,6 +521,14 @@ export interface RacialBreathWeapon {
 export interface PlayerCharacter {
   id: string;
   name: string;
+  /**
+   * Preview-only capability switches. These never come from campaign saves or
+   * character creation; Design Preview uses them to make a disposable playtest
+   * character inspectable without weakening ordinary resource rules.
+   */
+  devPlaytest?: {
+    unlimitedSpellSlots: boolean;
+  };
   soul?: any; // CompanionSoul; - defined as any to avoid circular deps
   age?: number;
   ageSizeOverride?: 'Tiny' | 'Small' | 'Medium' | 'Large' | 'Huge' | 'Gargantuan';

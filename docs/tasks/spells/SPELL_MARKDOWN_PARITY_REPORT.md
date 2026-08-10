@@ -276,3 +276,5 @@ This report is grouped so arbitration can start with repeated mismatch families 
 - Sample spells: elemental-bane
 - Sample findings:
   - Elemental Bane is missing the structured markdown field Save Stat even though the JSON provides Constitution.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/SPELL_MARKDOWN_PARITY_REPORT.md","sha256WithoutMarker":"121fb2fa5752f1eb33612423f733a443fddff2e4098ed427523dd7a04a76c431","markedAtUtc":"2026-08-09T20:14:15.682Z"} -->

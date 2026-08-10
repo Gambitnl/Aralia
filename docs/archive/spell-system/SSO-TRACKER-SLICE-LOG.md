@@ -1063,7 +1063,6 @@ Remaining tracked work:
 - Finding: schema, data fields, resolver filtering, and command effect filtering exist. Remaining work is taxonomy normalization, AI path parity, data completeness for real restricted spells, and 2D/3D player feedback for illegal creature-type targets.
 - New gaps: SSO-CREATURE-TAXONOMY-NORMALIZATION-001, SSO-AI-CREATURE-FILTER-PATH-PARITY-001, SSO-SPELL-FILTER-DATA-COMPLETENESS-001, and SSO-TARGET-FILTER-FEEDBACK-001.
 
-
 ### 2026-06-01 - Parallel status-check refresh: geometry, AC, status stacking, summoning
 
 - Delegation: read-only sub-agents checked geometry, AC mechanics, and status stacking; the main thread checked summoning locally.
@@ -1073,4 +1072,4 @@ Remaining tracked work:
 - Summoning finding: schema, command routing, command implementation, hook scaffolding, data, templates, cleanup, and tests exist; remaining gaps are runtime ownership/parity, form/count choice, command economy/control behavior, and 2D/3D map readability.
 - New rows added: `SSO-GEOMETRY-CYLINDER-HEIGHT-001`, `SSO-GEOMETRY-CUBE-CENTERING-001`, `SSO-AC-DEFENSIVE-PERSISTENCE-001`, `SSO-AC-REACTION-WIREUP-001`, `SSO-STATUS-STACKING-CONSISTENCY-001`, `SSO-STATUS-CONDITION-EXPIRY-MIRROR-001`, `SSO-SUMMONING-RUNTIME-PARITY-001`, `SSO-SUMMONING-FORM-SELECTION-001`, `SSO-SUMMONING-COMMAND-ECONOMY-001`, and `SSO-SUMMONING-MAP-VISUALS-001`.
 
-<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spell-system-overhaul/TRACKER.md","sha256WithoutMarker":"9e33a0ecaa6caa9c4e70a5d7bdbaa58b768596a675107e606df47be057839023","markedAtUtc":"2026-06-25T22:29:38.671Z"} -->
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/archive/spell-system/SSO-TRACKER-SLICE-LOG.md","sha256WithoutMarker":"be193d4f416c34a4d0eb78e139ee30d55207fe7a2c3fe55caf9bc9c4361a20a0","markedAtUtc":"2026-08-09T20:22:07.639Z"} -->

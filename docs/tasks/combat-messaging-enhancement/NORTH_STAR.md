@@ -81,4 +81,4 @@ Closed since the last refresh: the payload-alias inconsistency (`damage` vs `dam
 3. Read `GAPS.md`.
 4. Execute tracker next checks and record results.
 
-<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/combat-messaging-enhancement/NORTH_STAR.md","sha256WithoutMarker":"158c09adf0cadb89185c849768751813c01c39f67aa2d9fe7a8f84178c4c4127","markedAtUtc":"2026-06-25T22:29:38.622Z"} -->
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/combat-messaging-enhancement/NORTH_STAR.md","sha256WithoutMarker":"96150afc553c209c262e58b4c63dec80fb69dc95ac2e861b4421bf14275434b5","markedAtUtc":"2026-08-09T20:14:15.790Z"} -->

@@ -42,3 +42,5 @@ Companion banter (`src/hooks/useCompanionBanter.ts`) and interactive
 conversation can overlap without an exclusivity policy. The policy decision is
 OWNED by the code-modularization audit, gap `CMA-G12` — do not expand
 Conversation Panel scope until that boundary note and sequencing policy exist.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/specs/2026-07-14-absorbed-conversation-panel.md","sha256WithoutMarker":"75a73c267881ff404e8d4ec4fcedb517182c7f168fc744fd4f7088ea90543ad3","markedAtUtc":"2026-08-09T20:24:29.262Z"} -->

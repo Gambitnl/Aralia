@@ -53,7 +53,7 @@
  */
 import { Bone, Quaternion, Vector3 } from 'three';
 import type { Frame, PlanSpec, SegmentSink } from '../types';
-import { createGaitDriver } from './gaits';
+import { createGaitDriver, type PlanHeadSocket } from './gaits';
 
 /** One rigid rest bone: a tapered segment between two joints (meters, entity-local). */
 interface RestRel {
@@ -383,11 +383,21 @@ export function buildPlanSkeleton(frame: Frame, spec: PlanSpec): BuiltPlanSkelet
 export interface PlanPoseSink {
   /** Hand this to driver.buildBody() each frame instead of the segment renderer's sink. */
   sink: SegmentSink;
+  /**
+   * Task 3: pose formed-head bones from the driver's live head sockets.
+   * Formed heads emit no ball (the assembler owns their sculpted mesh), so
+   * their `head<i>` bone never receives an emission — call this with
+   * `driver.headSockets()` AFTER buildBody and BEFORE finishFrame, each frame,
+   * or those bones freeze at the bind pose. Ball-headed bones are untouched
+   * here (their ball emissions already write them).
+   */
+  writeHeadSockets(sockets: PlanHeadSocket[]): void;
   /** Resolve the received world transforms into local bone transforms (parents first). */
   finishFrame(): void;
 }
 
 const UP = new Vector3(0, 1, 0);
+const FWD = new Vector3(0, 0, 1);
 const DIR = new Vector3();
 
 /**
@@ -411,6 +421,17 @@ export function createPlanPoseSink(skeleton: BuiltPlanSkeleton, decorativeDelega
   const spec = (skeleton as BuiltPlanSkeletonWithSpec).spec;
   const chainIds = new Set(spec.chains.map((c) => c.id));
   const headCount = spec.heads.length;
+
+  // Formed heads (sculpted skulls from headForms.ts) emit no ball, so no
+  // seg/ball/box/tube emission ever names their head<i> bone. The assembler
+  // feeds the driver's live sockets through writeHeadSockets instead (Task 3).
+  const formedHeads: Array<{ head: number; bone: number }> = [];
+  spec.heads.forEach((h, hi) => {
+    if (!h.form) return;
+    const bone = index.get(`head${hi}`);
+    if (bone === undefined) throw new Error(`plan pose sink: no bone mapped for formed head "head${hi}"`);
+    formedHeads.push({ head: hi, bone });
+  });
 
   /** True when a seg/ball id is a known decorative emission (no bone). */
   const isDecorative = (id: string): boolean => {
@@ -490,6 +511,24 @@ export function createPlanPoseSink(skeleton: BuiltPlanSkeleton, decorativeDelega
     },
   };
 
+  /**
+   * Write formed-head bones from live sockets: position at the socket center,
+   * orientation facing the socket's look direction — the exact placement the
+   * assembler used to apply to the head mesh directly, now carried by the
+   * bone so the mesh can ride the skeleton (Task 3).
+   */
+  function writeHeadSockets(sockets: PlanHeadSocket[]): void {
+    for (const { head, bone } of formedHeads) {
+      const s = sockets[head];
+      if (!s) continue; // no socket this frame: hold the last pose
+      worldPos[bone].set(s.x, s.y, s.z);
+      DIR.set(s.fx, s.fy, s.fz);
+      if (DIR.lengthSq() < 1e-12) DIR.copy(FWD);
+      worldQuat[bone].setFromUnitVectors(FWD, DIR.normalize());
+      written[bone] = true;
+    }
+  }
+
   function finishFrame(): void {
     for (let i = 1; i < n; i++) {
       if (!written[i]) continue;
@@ -507,7 +546,7 @@ export function createPlanPoseSink(skeleton: BuiltPlanSkeleton, decorativeDelega
     }
   }
 
-  return { sink, finishFrame };
+  return { sink, writeHeadSockets, finishFrame };
 }
 
 

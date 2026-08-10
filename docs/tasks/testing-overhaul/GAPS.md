@@ -39,4 +39,4 @@ The old phase checklist files were valid as broad testing intent but stale as ex
 - Keep only project-relevant gaps in this file.
 - Route out-of-scope or cross-project findings into `docs/projects/GLOBAL_GAPS.md`.
 
-<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/testing-overhaul/GAPS.md","sha256WithoutMarker":"02b639640bb25ea5d320994d7f6187e614f4e8635edf4f98260928cd9f3557d8","markedAtUtc":"2026-06-25T22:29:38.631Z"} -->
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/testing-overhaul/GAPS.md","sha256WithoutMarker":"4851b756bab53f9723c2ea453f9f37cd5666891adb6e0d7fbd4359d8ce86cd44","markedAtUtc":"2026-08-09T20:14:15.823Z"} -->

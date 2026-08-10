@@ -25,7 +25,9 @@ export interface GroqKeyLoaderOptions {
  * touching Windows Credential Manager.
  */
 export declare function createGroqKeyLoader(readKey: () => Promise<string | null>, { missingKeyRetryDelayMs, now, }?: GroqKeyLoaderOptions): () => Promise<string | null>;
-export declare const groqProxyManager: (loadKey?: () => Promise<string | null>) => {
+/** Starts the bundled standalone proxy on one validated loopback port. */
+export type StartGroqProxy = (port: number) => Promise<void>;
+export declare const groqProxyManager: (loadKey?: () => Promise<string | null>, startProxy?: StartGroqProxy) => {
     name: string;
     configureServer(server: {
         middlewares: {

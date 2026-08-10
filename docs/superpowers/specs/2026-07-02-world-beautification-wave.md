@@ -174,3 +174,5 @@ AND (later) combat.
   blocks-sight data feeds.
 - Plan-map nodes: `world-props` (this wave), `battlemap-polish-migration`
   (absorbed into this wave), downstream `fip-slice1`, `ambush-generation`.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/specs/2026-07-02-world-beautification-wave.md","sha256WithoutMarker":"d02fd332ccbe974e9cdd75b48a52e10dfeb3cb184aa8004fc25d4dbc1dd2f81a","markedAtUtc":"2026-08-09T20:24:29.249Z"} -->

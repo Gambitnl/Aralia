@@ -117,3 +117,5 @@ rollback machinery. Those are phase C (`master watch` daemon) if ever wanted.
 1. `POST /campaigns/:id/adopt` + `store.mjs` adopt logic + tests (the only daemon change).
 2. `tools/agora/master.mjs` with `roster` / `rollup` / `conflicts` / `nudge` / `watch` / `adopt`.
 3. `tools/agora/MASTER-ORCHESTRATOR.md` doctrine + glossary entries in `tools/agora/GLOSSARY.md`.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/plans/2026-07-06-master-orchestrator-plan.md","sha256WithoutMarker":"802ac23976fce039ef536b55619c6ce6f84eb3b889d9a1cb404ffa01cc9d9e07","markedAtUtc":"2026-08-09T20:24:24.658Z"} -->

@@ -192,3 +192,5 @@ Auth: `register` returns a `token`; all mutating calls send `Authorization: Bear
 - `git clean -fdx` would still remove gitignored runtime state.
 - Agents in single-shot Bash calls can't hold a long-lived SSE stream within one tool call;
   they poll `?since=` instead. SSE is primarily for the dashboard and `client.mjs watch`.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/specs/2026-06-27-agora-agent-coordination-design.md","sha256WithoutMarker":"0107e03ef6cbe3b454e3e28c6cfa3ba6d37bdda88e1a59a1e0d192eb3562067e","markedAtUtc":"2026-08-09T20:24:28.256Z"} -->

@@ -54,3 +54,5 @@ and any full social/relationship schema redesign.
   egregious witness-gossip recency. NOT yet mapped: combat and ritual branches. Next: build
   the explicit action-to-memory mapping matrix before adding social mechanics; prove one
   representative combat path and one ritual path.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/specs/2026-07-14-absorbed-memory.md","sha256WithoutMarker":"b30e00cc2e29a71426bd1d40d2d342c101be0c772812d311f7785a40b614169a","markedAtUtc":"2026-08-09T20:24:24.670Z"} -->

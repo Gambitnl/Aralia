@@ -106,3 +106,5 @@ Follow the existing `tools/agora/*.test.mjs` pattern:
 1. Preserve-on-reap in `sweepExpired` + the `retrace` record shape + `reapCount` + tests.
 2. `task checkpoint` command + field.
 3. `retrace <taskId>` command (dossier + git diff) + the successor-flag on claim.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/plans/2026-07-06-agent-retrace-plan.md","sha256WithoutMarker":"05dd145b0a3b0585d5a8f42aa3059c02e4be879e2e21b9be5cd702c210a80d80","markedAtUtc":"2026-08-09T20:24:24.656Z"} -->

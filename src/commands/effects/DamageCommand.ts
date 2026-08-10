@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 04/08/2026, 01:47:56
+ * Last Sync: 09/08/2026, 22:43:58
  * Dependents: commands/effects/AttackRollModifierCommand.ts, commands/effects/GrantedActionCommand.ts, commands/effects/ReactiveEffectCommand.ts, commands/factory/AbilityCommandFactory.ts, commands/factory/SpellCommandFactory.ts
- * Imports: 17 files
+ * Imports: 16 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -31,7 +31,7 @@ import { CombatState, CombatCharacter, StatusEffect, ActiveEffect, ActiveEnviron
 import { isDamageEffect } from '../../types/spells'
 import type { DamageEffect } from '../../types/spells'
 import { checkConcentration } from '../../utils/character';
-import { calculateSpellDC, rollSavingThrow, calculateSaveDamage } from '../../utils/character';
+import { calculateSpellDC, rollSavingThrow, calculateSaveDamage, resolveSaveOutcomeOverride } from '../../utils/character';
 import type { SavingThrowModifier } from '../../utils/character';
 import { rollDamage as rollDamageUtil, calculateCover, generateId } from '../../utils/combat';
 import { BreakConcentrationCommand, breakFriendsConcentrationForCaster } from './ConcentrationCommands'
@@ -228,7 +228,11 @@ export class DamageCommand extends BaseEffectCommand<DamageEffect> {
           : activeSaveModifiers;
 
         // Roll the save: 1d20 + ability mod + proficiency (if proficient) + modifiers
-        const saveResult = rollSavingThrow(target, this.effect.condition.saveType, dc, saveModifiers);
+        const saveResult = resolveSaveOutcomeOverride(
+          this.effect.condition.saveOutcomeOverrides,
+          target,
+          dc
+        ) ?? rollSavingThrow(target, this.effect.condition.saveType, dc, saveModifiers);
 
         // Adjust damage based on save outcome:
         // - Failed save: full damage
@@ -246,7 +250,11 @@ export class DamageCommand extends BaseEffectCommand<DamageEffect> {
         currentState = savePenaltySystem.consumeNextSavePenalties(currentState, target.id);
 
         // Build and log the save outcome message
+        const saveWasOverridden = saveResult.roll === undefined;
         let saveLogMessage = `${target.name} ${saveResult.success ? 'succeeds' : 'fails'} ${this.effect.condition.saveType} save (${saveResult.total} vs DC ${dc})`;
+        if (saveWasOverridden) {
+          saveLogMessage += ' (source-backed outcome override)';
+        }
 
         // Append modifier details if any were applied (e.g., "-3 [Mind Sliver]")
         if (saveResult.modifiersApplied && saveResult.modifiersApplied.length > 0) {

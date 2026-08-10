@@ -94,3 +94,5 @@ export function createSkinnedClipPlayer(skeletonRoot: Object3D, clips: Map<strin
 - [ ] `AssembleOptions.animSource?: 'procedural' | 'clip'` (default procedural). `clip` requires `bodyTech: 'skinned'` (throw otherwise). When clip + a loaded clip map is provided, the handle drives the `AnimationMixer` in `update()` instead of posing bones from the driver; the driver still advances for locomotion/facing.
 - [ ] Debugger: `?planId`-less humanoid with `&clip=1` loads the pack, mounts the player, plays `Walk`. Prove on :3000 — screenshot the skinned biped mid-stride under clip motion vs procedural.
 - [ ] `npx vitest run src/systems/entities3d` green; typecheck clean; NOTICES.md written.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/plans/2026-07-24-cc0-clip-slice1.md","sha256WithoutMarker":"a75ce537f3782e1a8a2c92f783210fe9d77c5c59103620b79f0721a375bbc977","markedAtUtc":"2026-08-09T20:23:18.413Z"} -->

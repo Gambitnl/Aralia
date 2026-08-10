@@ -34,3 +34,5 @@ Only write split plans after:
 3. Preservation/test boundary is explicit
 
 Monitor owner GAPS.md rows for status changes from `not_started` to `accepted`.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/specs/2026-07-14-absorbed-code-modularization-audit.md","sha256WithoutMarker":"a227aa969d8f923b8cec0ef56addf8c5d0a143beb3ec4e5c9b637e27a437fdf3","markedAtUtc":"2026-08-09T20:22:07.601Z"} -->

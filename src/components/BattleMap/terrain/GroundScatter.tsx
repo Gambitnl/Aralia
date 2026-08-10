@@ -215,9 +215,20 @@ function createScatterTypes(): ScatterType[] {
 
 interface GroundScatterProps {
   mapData: BattleMapData;
+  /**
+   * The surface this layer must sit ON, in tile coordinates.
+   *
+   * The board's drawn ground is no longer only the heightfield: inside the
+   * playable rect the voxel arena volume draws over it, a little higher, and
+   * anything planted on the old surface would sink. The host passes the
+   * combined drawn surface; without it this layer falls back to the
+   * heightfield, which is the whole drawn ground on any scene that has no
+   * volume (the WebGPU path, tests, older callers).
+   */
+  surfaceY?: (tileX: number, tileZ: number) => number;
 }
 
-const GroundScatter: React.FC<GroundScatterProps> = ({ mapData }) => {
+const GroundScatter: React.FC<GroundScatterProps> = ({ mapData, surfaceY }) => {
   const scatterTypes = useMemo(() => createScatterTypes(), []);
 
   // Collect open grass tiles (no decoration)
@@ -252,8 +263,11 @@ const GroundScatter: React.FC<GroundScatterProps> = ({ mapData }) => {
         grid[y][x] = mapData.tiles.get(`${x}-${y}`) ?? null;
       }
     }
-    return makeTerrainHeightSampler(grid, width, height, mapData.seed ?? 42);
-  }, [mapData]);
+    // The host's drawn surface wins when there is one: inside the arena the
+    // voxel volume draws above the heightfield, and a tuft planted on the
+    // heightfield would be buried by it.
+    return surfaceY ?? makeTerrainHeightSampler(grid, width, height, mapData.seed ?? 42);
+  }, [mapData, surfaceY]);
 
   // Build instance data per scatter type
   const scatterInstances = useMemo(() => {

@@ -39,7 +39,15 @@ export interface Span {
 
 export interface SurfaceTarget {
   volume: VoxelVolume;
+  /** Cell size on X and Z, meters. */
   cellM: number;
+  /**
+   * Cell size on Y, meters. Defaults to `cellM` — the cubic volume every caller
+   * had before the axes came apart. A bed read with the wrong vertical cell is
+   * a bed at the wrong HEIGHT, which the water then sits on, so this is not an
+   * optional nicety: it is the same number `meshCellRange` was given.
+   */
+  cellHM?: number;
   originM: readonly [number, number, number];
 }
 
@@ -50,8 +58,10 @@ export interface SurfaceTarget {
  * wants, so the common case is `spans[0]` and needs no search.
  */
 export function columnSpans(t: SurfaceTarget, x: number, z: number): Span[] {
-  const { volume, cellM, originM } = t;
+  const { volume, originM } = t;
+  const cellHM = t.cellHM ?? t.cellM;
   const n = volume.cells;
+  const nY = volume.cellsY;
   const out: Span[] = [];
   if (x < 0 || z < 0 || x >= n || z >= n) return out;
 
@@ -62,20 +72,20 @@ export function columnSpans(t: SurfaceTarget, x: number, z: number): Span[] {
    * solver a floor that is not there, and the water would pour through. */
   let ceilY = Number.POSITIVE_INFINITY; // open sky above the first gap
   let inGap = true;
-  for (let y = n - 1; y >= 0; y--) {
+  for (let y = nY - 1; y >= 0; y--) {
     const m = volume.get(x, y, z);
     if (m === Material.Air) {
       if (!inGap) {
         // Just left solid on the way down: this solid is the ceiling below.
         inGap = true;
-        ceilY = originM[1] + (y + 1) * cellM;
+        ceilY = originM[1] + (y + 1) * cellHM;
       }
       continue;
     }
     if (inGap) {
       // Solid under a gap. That gap has a real floor, so it is a span.
       out.push({
-        floorY: originM[1] + (y + 1) * cellM,
+        floorY: originM[1] + (y + 1) * cellHM,
         ceilY,
         floorMaterial: m,
       });
@@ -102,6 +112,72 @@ export interface VolumeBed {
   cells: number;
 }
 
+/** The open-air bed of ONE column, in world meters. */
+export interface BedColumn {
+  bedY: number;
+  ceilY: number;
+  floor: Material;
+  bottomless: boolean;
+}
+
+/**
+ * Read one column's open-air bed — the per-column heart of `volumeBed`,
+ * exposed so an EDIT can re-read only the columns it touched. Re-reading the
+ * whole 240² grid after every brush stroke was a third of a second on the
+ * main thread, all of it spent on columns the brush never came near.
+ */
+export function bedColumn(
+  t: SurfaceTarget,
+  x: number,
+  z: number,
+  drawnTopY?: Float32Array,
+): BedColumn {
+  const n = t.volume.cells;
+  const nY = t.volume.cellsY;
+  const cellHM = t.cellHM ?? t.cellM;
+  const floorOfBubble = t.originM[1];
+  const spans = columnSpans(t, x, z);
+  if (spans.length === 0) {
+    /* No open span at all: either solid to the top, or empty throughout.
+     *
+     * Solid to the top means the bed is the top of the bubble. Empty
+     * throughout means there is nothing to hold water, and the column is
+     * marked bottomless so the caller can drain it rather than pretend a
+     * floor exists at the bubble's base. */
+    const solidAtTop = t.volume.get(x, nY - 1, z) !== Material.Air;
+    return {
+      bedY: solidAtTop ? floorOfBubble + nY * cellHM : floorOfBubble,
+      ceilY: Number.POSITIVE_INFINITY,
+      floor: solidAtTop ? t.volume.get(x, nY - 1, z) : Material.Air,
+      bottomless: !solidAtTop,
+    };
+  }
+  const top = spans[0];
+  /* Rest the water on the surface that is DRAWN, not on the voxel column.
+   *
+   * The mesher averages edge crossings, so the drawn ground sits up to a
+   * cell below the column top. A bed taken from the column top therefore
+   * floats the water above the hillside by up to a whole cell, in
+   * cell-shaped slabs — which is exactly what it did.
+   *
+   * Only the top span is corrected, and only downward by less than a cell.
+   * A cave floor deep in the volume has its own drawn surface that this
+   * height field knows nothing about, and clamping the drop keeps a
+   * mismatch from ever pushing a bed through the floor below it. */
+  const drawn = drawnTopY?.[z * n + x];
+  const useDrawn =
+    drawn !== undefined &&
+    Number.isFinite(drawn) &&
+    drawn < top.floorY &&
+    top.floorY - drawn < cellHM;
+  return {
+    bedY: useDrawn ? (drawn as number) : top.floorY,
+    ceilY: top.ceilY,
+    floor: top.floorMaterial,
+    bottomless: false,
+  };
+}
+
 /**
  * Read the open-air bed of the whole volume, one pass.
  *
@@ -116,48 +192,15 @@ export function volumeBed(t: SurfaceTarget, drawnTopY?: Float32Array): VolumeBed
   const ceilY = new Float32Array(n * n);
   const floor = new Uint8Array(n * n);
   const bottomless = new Uint8Array(n * n);
-  const floorOfBubble = t.originM[1];
 
   for (let z = 0; z < n; z++) {
     for (let x = 0; x < n; x++) {
       const i = z * n + x;
-      const spans = columnSpans(t, x, z);
-      if (spans.length === 0) {
-        /* No open span at all: either solid to the top, or empty throughout.
-         *
-         * Solid to the top means the bed is the top of the bubble. Empty
-         * throughout means there is nothing to hold water, and the column is
-         * marked bottomless so the caller can drain it rather than pretend a
-         * floor exists at the bubble's base. */
-        const solidAtTop = t.volume.get(x, n - 1, z) !== Material.Air;
-        bedY[i] = solidAtTop ? floorOfBubble + n * t.cellM : floorOfBubble;
-        ceilY[i] = Number.POSITIVE_INFINITY;
-        floor[i] = solidAtTop ? t.volume.get(x, n - 1, z) : Material.Air;
-        bottomless[i] = solidAtTop ? 0 : 1;
-        continue;
-      }
-      const top = spans[0];
-      /* Rest the water on the surface that is DRAWN, not on the voxel column.
-       *
-       * The mesher averages edge crossings, so the drawn ground sits up to a
-       * cell below the column top. A bed taken from the column top therefore
-       * floats the water above the hillside by up to a whole cell, in
-       * cell-shaped slabs — which is exactly what it did.
-       *
-       * Only the top span is corrected, and only downward by less than a cell.
-       * A cave floor deep in the volume has its own drawn surface that this
-       * height field knows nothing about, and clamping the drop keeps a
-       * mismatch from ever pushing a bed through the floor below it. */
-      const drawn = drawnTopY?.[i];
-      const useDrawn =
-        drawn !== undefined &&
-        Number.isFinite(drawn) &&
-        drawn < top.floorY &&
-        top.floorY - drawn < t.cellM;
-      bedY[i] = useDrawn ? (drawn as number) : top.floorY;
-      ceilY[i] = top.ceilY;
-      floor[i] = top.floorMaterial;
-      bottomless[i] = 0;
+      const col = bedColumn(t, x, z, drawnTopY);
+      bedY[i] = col.bedY;
+      ceilY[i] = col.ceilY;
+      floor[i] = col.floor;
+      bottomless[i] = col.bottomless ? 1 : 0;
     }
   }
   return { bedY, ceilY, floor, bottomless, cells: n };

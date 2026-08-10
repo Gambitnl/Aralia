@@ -95,7 +95,10 @@ export const SUBSTANCES: Readonly<Record<Material, Substance>> = {
     friction: 0.65, state: 'granular',
   },
   [Material.Subsoil]: {
-    id: Material.Subsoil, label: 'subsoil', rgb: [0.165, 0.125, 0.080],
+    // Round 4: a step darker, so the lighter-with-depth ordering holds against
+    // the retinted mid-value rock below it (and the soil-to-rock value jump
+    // narrows from BOTH ends — the round-3 "no real substance has that gap").
+    id: Material.Subsoil, label: 'subsoil', rgb: [0.135, 0.100, 0.062],
     densityKgM3: 1600, hardness: 0.18, permeabilityMS: 1e-6, angleOfReposeDeg: 38,
     friction: 0.65, state: 'granular',
   },
@@ -119,14 +122,14 @@ export const SUBSTANCES: Readonly<Record<Material, Substance>> = {
     friction: 0.5, state: 'granular',
   },
   [Material.Gravel]: {
-    id: Material.Gravel, label: 'gravel', rgb: [0.200, 0.195, 0.185],
+    id: Material.Gravel, label: 'gravel', rgb: [0.152, 0.145, 0.133],
     densityKgM3: 1800, hardness: 0.25, permeabilityMS: 1e-2, angleOfReposeDeg: 37,
     friction: 0.7, state: 'granular',
   },
 
   // Cemented and frozen ground.
   [Material.Hardpan]: {
-    id: Material.Hardpan, label: 'hardpan', rgb: [0.260, 0.225, 0.170],
+    id: Material.Hardpan, label: 'hardpan', rgb: [0.190, 0.163, 0.124],
     densityKgM3: 2000, hardness: 0.45, permeabilityMS: 1e-8, angleOfReposeDeg: 70,
     friction: 0.7, state: 'solid',
   },
@@ -136,19 +139,32 @@ export const SUBSTANCES: Readonly<Record<Material, Substance>> = {
     friction: 0.6, state: 'solid',
   },
 
-  // Rock. The bottom of every stack.
+  /* Rock. The bottom of every stack.
+   *
+   * ROUND-4 RETINT: every rock albedo dropped to MID-VALUE WARM GRAY. The old
+   * values (granite 0.230 linear = sRGB ~0.52) rendered near-plaster-white
+   * under the sun and took the ambient's hue in shade — the round-3 critique's
+   * single biggest gap: "crater floor and wall should sit around the middle of
+   * the frame's value range, not its top". Linear ~0.13 leaves as sRGB ~0.39,
+   * which IS the middle of the range against dark forest soil, and the warm
+   * bias keeps the stone nameable ("warm gray granite") in sun and shade. */
   [Material.Limestone]: {
-    id: Material.Limestone, label: 'limestone', rgb: [0.290, 0.285, 0.265],
+    id: Material.Limestone, label: 'limestone', rgb: [0.172, 0.164, 0.147],
     densityKgM3: 2500, hardness: 0.60, permeabilityMS: 1e-6, angleOfReposeDeg: 85,
     friction: 0.75, state: 'solid',
   },
   [Material.Sandstone]: {
-    id: Material.Sandstone, label: 'sandstone', rgb: [0.300, 0.230, 0.160],
+    id: Material.Sandstone, label: 'sandstone', rgb: [0.192, 0.150, 0.106],
     densityKgM3: 2300, hardness: 0.55, permeabilityMS: 1e-6, angleOfReposeDeg: 80,
     friction: 0.75, state: 'solid',
   },
+  /* Round 6: hue re-injected UNDER the round-5 shade-value lift. The lifted
+   * neutral ambience rendered the shade edge face at 82/82/82, sat 0.10 —
+   * value won, hue lost, "dead neutral gray". The warmth has to live in the
+   * ALBEDO to survive neutral light, so granite's R/B spread widens while its
+   * luminance stays put: the shade keeps its lift and gets its stone back. */
   [Material.Granite]: {
-    id: Material.Granite, label: 'granite', rgb: [0.230, 0.222, 0.208],
+    id: Material.Granite, label: 'granite', rgb: [0.164, 0.143, 0.109],
     densityKgM3: 2700, hardness: 0.95, permeabilityMS: 1e-11, angleOfReposeDeg: 89,
     friction: 0.8, state: 'solid',
   },
@@ -353,6 +369,96 @@ export function colorAtDepth(
   }
   const last = substance(stack[stack.length - 1].substance).rgb;
   return [last[0], last[1], last[2]];
+}
+
+/**
+ * The procedural grain a CUT face of this substance shows.
+ *
+ * A cut through soil must show soil and a cut through granite must show
+ * granite, and a renderer cannot read that from one flat RGB. These three
+ * numbers drive a world-space noise in the terrain shader:
+ *
+ * - `freqPerM` — how fine the body texture is. Sand is fine; rock mottles
+ *   at hand scale.
+ * - `amp` — how far the albedo swings around the registry color. Organic
+ *   litter is chunky and swings hard; silt barely varies.
+ * - `speckle` — bright clasts: mineral glints in granite, stones in gravel.
+ *
+ * Derived from the PHYSICAL properties rather than hand-listed per member, so
+ * a substance added to the registry gets a plausible cut face for free — the
+ * same total-over-the-enum discipline the registry itself keeps.
+ */
+export interface CutGrain {
+  /** Body-noise spatial frequency, cycles per meter. */
+  freqPerM: number;
+  /** Albedo modulation amplitude, 0 to 1, around the registry color. */
+  amp: number;
+  /** Bright clast / crystal speckle strength, 0 to 1. */
+  speckle: number;
+}
+
+export function cutGrainFor(s: Substance): CutGrain {
+  if (s.state === 'gas' || s.state === 'liquid') {
+    return { freqPerM: 0, amp: 0, speckle: 0 };
+  }
+  if (s.state === 'solid' && s.hardness >= 0.5) {
+    // Rock: broad mottling at hand scale, with mineral speckle that reads as
+    // crystal facets and fracture faces catching the light.
+    return { freqPerM: 1.6, amp: 0.3, speckle: 0.5 };
+  }
+  if (s.state === 'solid') {
+    // Cemented or frozen ground: tighter than rock, duller speckle.
+    return { freqPerM: 3.5, amp: 0.28, speckle: 0.15 };
+  }
+  // Granular. Light organics — litter, peat, snow — are chunky and swing
+  // hard; mineral grains are finer and calmer. Hard granular (gravel) shows
+  // its stones as speckle.
+  const organic = s.densityKgM3 < 1000;
+  return {
+    freqPerM: organic ? 5.5 : 8.0,
+    amp: organic ? 0.55 : 0.35,
+    /* The threshold sits below subsoil's 0.18: a cut through subsoil must show
+     * the stones in it, or it reads as smooth cake — the round-one critique's
+     * "no stone flecks where topsoil ends". Silt (0.14) stays calm. */
+    speckle: s.hardness > 0.15 ? 0.3 : 0.08,
+  };
+}
+
+/**
+ * The structural motifs a CUT face of this substance carries, beyond grain.
+ *
+ * Grain is a statistical texture; these two are FEATURES the eye names:
+ *
+ * - `rootiness` — dark root strands lacing the face. Living soil near the
+ *   surface is full of them, and they are the single strongest "this was
+ *   ground, not clay" signal a fresh cut can show. Only light, soft, granular
+ *   substances qualify; the shader additionally fades roots out with depth.
+ * - `banding` — sedimentary strata within the substance itself. Limestone and
+ *   sandstone lay down in visible beds; granite shows only a faint gneissic
+ *   waver; soil shows none (its banding is the layer STACK, drawn separately).
+ *
+ * Derived from physical properties, same total-over-the-enum discipline as
+ * `cutGrainFor`: a new registry member gets a plausible answer for free.
+ */
+export interface CutAux {
+  /** Root-strand strength on a cut face, 0 to 1. */
+  rootiness: number;
+  /** Internal sedimentary banding strength, 0 to 1. */
+  banding: number;
+}
+
+export function cutAuxFor(s: Substance): CutAux {
+  if (s.state === 'gas' || s.state === 'liquid') return { rootiness: 0, banding: 0 };
+  // Light, soft, and grippy: living soil. The friction floor keeps snow —
+  // light and soft, but sterile — from growing roots.
+  const rooty =
+    s.densityKgM3 < 1500 && s.hardness < 0.15 && s.friction >= 0.4 ? 0.85 : 0;
+  let banding = 0;
+  if (s.state === 'solid' && s.hardness >= 0.5) {
+    // Sedimentary rock beds strongly; the hardest crystalline rock only wavers.
+    banding = s.hardness > 0.8 ? 0.3 : 0.85;
+  }
+  return { rootiness: rooty, banding };
 }
 
 /**

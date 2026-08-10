@@ -143,3 +143,5 @@ Then **call AskUserQuestion** with options such as:
 - **Live playthrough eyeball** of the full gate + a UX-issues pass from `ISSUES.md`.
 
 Do not pick for Remy — surface the options and let them steer.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/2026-06-27-travel-provisioning-fork1-handover.md","sha256WithoutMarker":"e8f6efc78be82de7812dc674c9bca59d7b6ad7c8b9aa8b688aba1c90c70c6d68","markedAtUtc":"2026-08-09T20:24:28.243Z"} -->

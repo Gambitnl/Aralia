@@ -213,3 +213,5 @@ reset on inter-cell travel rather than left stale), but BA-5 still stands until 
 - **Edge crossing has no `TravelMeta`** (no trip commit) — Stage 5 will need its own
   reducer signal to change `playerCell.cellId` mid-ground-session; the `destinationCell`
   field here is travel-commit-only and should NOT be overloaded for streaming.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/specs/2026-06-29-stage4-atlas-travel-design.md","sha256WithoutMarker":"65cf9537de2b2f0bdd613bfdf5d127e2fbbf326391d4d5c963b533263e11746d","markedAtUtc":"2026-08-09T20:24:29.240Z"} -->

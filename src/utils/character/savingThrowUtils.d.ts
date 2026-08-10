@@ -65,6 +65,7 @@ export interface SaveEffectContext {
     /** Free-form descriptive tags for the effect, e.g. ['poison', 'magic', 'disease']. */
     tags?: string[];
 }
+export declare function resolveSaveOutcomeOverride(overrides: import("../../types/spellEffectTypes").SaveOutcomeOverride[] | undefined, target: Pick<CombatCharacter, "creatureTypes" | "conditionImmunities">, dc: number): SavingThrowResult | undefined;
 /**
  * Structured saving-throw advantage/disadvantage modifier.
  *

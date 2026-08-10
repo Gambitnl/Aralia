@@ -56,3 +56,5 @@ Boundary between:
 
 - `command-base-runtime` (planmap topic, done): contract + execution semantics.
 - `command-effects-runtime` (planmap topic, active): concrete command classes.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/specs/2026-07-14-absorbed-command-factory-runtime.md","sha256WithoutMarker":"e22847b664de3d6835f5ce8d0ec306b015be9367f79bf703a2c59d33d3cbf6c5","markedAtUtc":"2026-08-09T20:24:29.262Z"} -->

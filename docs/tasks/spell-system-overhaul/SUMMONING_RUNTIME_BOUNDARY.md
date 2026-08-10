@@ -149,4 +149,4 @@ Until one of those paths is implemented and proved, keep `SSO-SUMMONING-RUNTIME-
 - `useAbilitySystem` now imports the existing helper files directly, and those helper files now use corrected relative imports for their current location.
 - This repair is recorded as `SSO-ABILITY-SYSTEM-HELPER-PATH-001` until a focused TypeScript/build proof is allowed.
 
-<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spell-system-overhaul/SUMMONING_RUNTIME_BOUNDARY.md","sha256WithoutMarker":"eb26d53de2550ca95681b929c922f6c7efc96b7351b36d67a235f49b280cd0d2","markedAtUtc":"2026-06-25T22:29:38.593Z"} -->
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spell-system-overhaul/SUMMONING_RUNTIME_BOUNDARY.md","sha256WithoutMarker":"159e35ffe5431ac5cc5662b97308a005b076801ed9537f055366d5588ab55bed","markedAtUtc":"2026-08-09T20:14:15.721Z"} -->

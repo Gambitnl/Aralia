@@ -64,3 +64,5 @@ functionally complete end to end. Remaining maritime work:
 carry their original "in progress" / "holding" status lines from 2026-06-25/26 — stale
 relative to the 2026-06-29 work. Both now point here for current state; consider
 updating their headers directly the next time either is touched for real work.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/plans/2026-06-30-maritime-travel-status.md","sha256WithoutMarker":"35e30ad7d7ff6ded23296c3b4c6b390557e11a183ae5629668328196f804ac91","markedAtUtc":"2026-08-09T20:23:18.426Z"} -->

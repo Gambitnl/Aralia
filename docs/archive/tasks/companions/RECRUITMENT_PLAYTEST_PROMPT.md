@@ -126,3 +126,5 @@ Propose a concrete, codebase-grounded design for:
   player recruit one NPC end-to-end.
 
 Keep it grounded in what the code actually does — verify every claim against the files.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/archive/tasks/companions/RECRUITMENT_PLAYTEST_PROMPT.md","sha256WithoutMarker":"86d77ed688805a2f36f54df8e617e7da4994a4c172ab24ae7bee4e7af083f710","markedAtUtc":"2026-08-09T20:23:18.420Z"} -->

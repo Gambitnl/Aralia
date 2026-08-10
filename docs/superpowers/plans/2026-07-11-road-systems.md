@@ -1492,3 +1492,5 @@ In travel mode, hover a destination along a highway vs the same distance off-roa
 
 - Update the spec's `## Open` with anything discovered.
 - Add the planmap topic (`public/planmap/topics.json` — Agora-lock it first; it is frequently locked by others): campaign `travel`, id `road-systems`, status `active`, link to the spec, features per slice.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/plans/2026-07-11-road-systems.md","sha256WithoutMarker":"0d83cbecb0c2411a026ff008c4f62d715f93e5523cfe4fc15690bd017e2d9913","markedAtUtc":"2026-08-09T20:22:07.620Z"} -->

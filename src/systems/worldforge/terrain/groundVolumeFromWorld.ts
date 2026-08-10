@@ -47,6 +47,22 @@ export interface BubbleFill {
   solidCells: number;
 }
 
+/**
+ * What a column is made of: one stack for the whole fill, or a stack chosen per
+ * column from where it stands.
+ *
+ * A single stack was the only option for nine critic rounds, and IMPL-1's first
+ * open call is what it cost — a disc of forest litter let into a snow-and-sand
+ * mountainside. A 64 m bubble is 42 artifact cells across and the biome grid is
+ * finer than that, so "which biome is this bubble in" has no single answer at
+ * the edge of a river or the foot of a scree slope. The union is one parameter
+ * rather than two because a column HAS one ground, and a caller that knows the
+ * same answer everywhere should not have to say so twice.
+ */
+export type ColumnStackSource =
+  | readonly GroundBand[]
+  | ((xM: number, zM: number) => readonly GroundBand[]);
+
 /* The string-to-material switch that used to live here is gone.
  *
  * It mapped layer names — 'litter', 'topsoil' — onto voxel values, and anything
@@ -89,9 +105,14 @@ export function fillBubbleFromGround(
   centerZM: number,
   extentM: number,
   cellM: number,
-  stack: readonly GroundBand[] = DEFAULT_STACK,
+  stackSource: ColumnStackSource = DEFAULT_STACK,
 ): BubbleFill {
   const t0 = Date.now();
+  /* Resolved ONCE, not per cell. The inner loop runs cellsPerEdge cubed times —
+   * 16.7 million at the shipped size — and a `typeof` in there is a branch the
+   * fill cannot afford. */
+  const stackAt =
+    typeof stackSource === 'function' ? stackSource : (): readonly GroundBand[] => stackSource;
   const cellsPerEdge = bubbleCellsPerEdge(extentM, cellM);
   const vol = new VoxelVolume(cellsPerEdge);
 
@@ -113,6 +134,9 @@ export function fillBubbleFromGround(
       const topCell = Math.floor((surface - originY) / cellM);
       if (topCell < 0) continue;
       const yMax = Math.min(cellsPerEdge - 1, topCell);
+      // One stack lookup per COLUMN, not per cell — the answer cannot change
+      // going down, and asking 256 times per column would triple the fill.
+      const stack = stackAt(wx, wz);
       for (let y = 0; y <= yMax; y++) {
         const depth = surface - (originY + y * cellM);
         vol.set(x, y, z, substanceAtDepth(depth, stack).id);

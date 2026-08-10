@@ -173,3 +173,5 @@ Open — tracked on the planmap:
   + spell-zone parity anchors), `CharacterActor.tsx`/`TerrainMesh.tsx` splits need
   actor/terrain render-parity proof, and control-option commands (approach, flee, drop,
   grovel, halt) need a non-blocking visual pose/variant contract.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/specs/2026-07-14-absorbed-battle-map.md","sha256WithoutMarker":"22a3b71acf46c085c76b0b518321b3b7155b7718e9162c6885f8064fcc2ec2a7","markedAtUtc":"2026-08-09T20:22:07.600Z"} -->

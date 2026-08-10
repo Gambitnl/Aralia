@@ -1122,3 +1122,5 @@ The bridge exposes the overlay for a real town building so the 3D scene can plac
 - **Determinism:** every RNG use names its stream; Tasks 7/9 explicitly preserve stream draw counts for briefless calls; Task 8 snapshot-guards briefless byte-identity until Task 12's deliberate re-freeze.
 - **Type consistency:** `HouseholdBrief`/`MemberSlot`/`BriefWealth`/`FrontageInfo` defined once in Task 3 and imported everywhere; `ProgramSlot` exported in Task 6; `BedroomAssignment` defined in Task 6, consumed in Tasks 7/8; `BuildingOccupancy`/`ContainerManifest` defined in Task 10, consumed in 13/14.
 - **Known soft spot (flagged, not hidden):** Task 11's artifact-plot field threading depends on the exact `townPlanAdapter.ts` mapping shape — the task starts with a trace step and names the fallback-free rule (unpopulated towns pass no brief).
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/plans/2026-07-07-building-generator-v2-phase1a-inhabited.md","sha256WithoutMarker":"b828f8b4646f10154f344a1bacb4a352bfc95c807bde3e9cede775a5f85cf37d","markedAtUtc":"2026-08-09T20:22:07.613Z"} -->

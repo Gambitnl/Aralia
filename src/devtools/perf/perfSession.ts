@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 09/08/2026, 17:09:06
+ * Dependents: devtools/perf/PerfOverlay.tsx, devtools/perf/index.ts, devtools/perf/perfRegistry.ts
+ * Imports: 3 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * One measured 3D surface.
  *
@@ -13,7 +29,8 @@
  */
 
 import { FrameStats, RollingMs, SpanTimer, STALL_MS, type FrameReading } from './frameStats';
-import { type GpuTimerUnavailable } from './gpuTimer';
+import { type GpuResult, type GpuTimerUnavailable } from './gpuTimer';
+import { StallLog, describeStall, type StallRecord } from './stallLog';
 
 export type GraphicsApi = 'webgl' | 'webgpu' | 'unknown';
 
@@ -49,6 +66,35 @@ export interface SurfaceSize {
   dpr: number;
 }
 
+/** One named render family from an opt-in scene inventory. */
+export interface SceneFamilyDiagnostics {
+  family: string;
+  meshes: number;
+  instances: number;
+  triangles: number;
+  shadowMeshes: number;
+  shadowTriangles: number;
+}
+
+/**
+ * Static scene composition attached by a surface-specific probe.
+ *
+ * Renderer counters say how much work the finished frame submitted, including
+ * shadow and post-processing passes. This inventory says which mounted scene
+ * families created that work, which is the missing bridge from a slow number
+ * to an actionable component.
+ */
+export interface SceneDiagnostics {
+  meshes: number;
+  instances: number;
+  triangles: number;
+  shadowMeshes: number;
+  shadowTriangles: number;
+  geometries: number;
+  materials: number;
+  families: SceneFamilyDiagnostics[];
+}
+
 export interface PerfSnapshot {
   id: string;
   label: string;
@@ -71,6 +117,10 @@ export interface PerfSnapshot {
   live: boolean;
   /** Seconds captured so far, or null when no capture is running. */
   recordingSec: number | null;
+  /** The slow frames, newest first, each with what made it slow. */
+  stallLog: StallRecord[];
+  /** Mounted-scene composition, where the surface supplies an inventory. */
+  scene: SceneDiagnostics | null;
 }
 
 const ZERO_COUNTERS: RendererCounters = {
@@ -112,6 +162,10 @@ export class PerfSession {
   readonly spans = new SpanTimer();
   private readonly gpu = new RollingMs();
   private readonly cpu = new RollingMs();
+  private readonly stallLog = new StallLog();
+  /** Counts every frame, so a late GPU result can name the frame it measured. */
+  private frameIndex = 0;
+  private pendingCpuMs: number | null = null;
   private gpuUnavailable: GpuTimerUnavailable | null = null;
 
   private counters: RendererCounters = { ...ZERO_COUNTERS };
@@ -120,6 +174,7 @@ export class PerfSession {
   private heapMB: number | null = null;
   private lastFrameAt = 0;
   private recording: Recording | null = null;
+  private sceneDiagnostics: SceneDiagnostics | null = null;
 
   constructor(
     readonly id: string,
@@ -145,6 +200,30 @@ export class PerfSession {
     }
     this.frames.push(delta);
     if (this.recording) this.recording.frames.push(delta);
+
+    /* Judge the frame that just ENDED, with everything known about it.
+     *
+     * Called here rather than anywhere else because this is the one moment the
+     * evidence agrees: the counters, the spans and this delta all describe the
+     * same finished frame. Sampled a step earlier or later they would describe
+     * two different ones, and the log would blame the wrong frame's work. */
+    this.frameIndex++;
+    this.stallLog.observe(
+      {
+        frame: this.frameIndex,
+        frameMs: delta,
+        cpuMs: this.pendingCpuMs,
+        drawCalls: this.counters.drawCalls,
+        triangles: this.counters.triangles,
+        spans: this.spans.lastEntries(),
+      },
+      nowMs,
+    );
+  }
+
+  /** The frame a GPU query opened now belongs to. */
+  get currentFrame(): number {
+    return this.frameIndex + 1;
   }
 
   /** Attribute a piece of per-frame work by name. */
@@ -158,10 +237,14 @@ export class PerfSession {
    * Results lag the frame that produced them by one to three frames, so a call
    * often brings nothing and occasionally brings several. Both are normal.
    */
-  recordGpu(msPerFrame: number[]): void {
-    for (const ms of msPerFrame) {
-      this.gpu.push(ms);
-      if (this.recording) this.recording.gpuFrames.push(ms);
+  recordGpu(results: GpuResult[]): void {
+    for (const r of results) {
+      // The baseline is read BEFORE this result joins it, or a spike would be
+      // compared against a window it had already inflated.
+      const base = this.gpu.read();
+      this.stallLog.attachGpu(r.frame, r.ms, base.samples > 0 ? base.meanMs : null);
+      this.gpu.push(r.ms);
+      if (this.recording) this.recording.gpuFrames.push(r.ms);
     }
   }
 
@@ -175,6 +258,8 @@ export class PerfSession {
    */
   recordCpuFrame(ms: number): void {
     this.cpu.push(ms);
+    // Held for the next `frame` call, which is where the whole frame is judged.
+    this.pendingCpuMs = ms;
     if (this.recording) this.recording.cpuFrames.push(ms);
   }
 
@@ -182,6 +267,11 @@ export class PerfSession {
   setGpuUnavailable(reason: GpuTimerUnavailable | null): void {
     this.gpuUnavailable = reason;
     if (reason !== null) this.gpu.clear();
+  }
+
+  /** Attach or clear the component-level scene inventory for this surface. */
+  setSceneDiagnostics(diagnostics: SceneDiagnostics | null): void {
+    this.sceneDiagnostics = diagnostics;
   }
 
   /** Time `fn` and file it under `name`. Returns whatever `fn` returns. */
@@ -263,6 +353,7 @@ export class PerfSession {
     this.frames.clear();
     this.gpu.clear();
     this.cpu.clear();
+    this.stallLog.clear();
     this.lastFrameAt = 0;
   }
 
@@ -310,6 +401,8 @@ export class PerfSession {
       spans: this.spans.entries(),
       live: this.lastFrameAt > 0 && nowMs - this.lastFrameAt < LIVE_TIMEOUT_MS,
       recordingSec: this.recording ? (nowMs - this.recording.startedAt) / 1000 : null,
+      stallLog: this.stallLog.records(),
+      scene: this.sceneDiagnostics,
     };
   }
 
@@ -340,9 +433,20 @@ export class PerfSession {
       }${s.heapMB === null ? '' : ` · heap ${s.heapMB.toFixed(0)} MB`}`,
       `  surface  ${s.surface.width}x${s.surface.height} at dpr ${s.surface.dpr}`,
     ];
+    if (s.scene) lines.push(...describeSceneDiagnostics(s.scene, s.counters.triangles));
     if (s.counters.computeCalls > 0) lines.push(`  compute  ${s.counters.computeCalls} passes/frame`);
     if (s.spans.length > 0) {
       lines.push(`  spans    ${s.spans.map((sp) => `${sp.name} ${sp.ms.toFixed(2)} ms`).join(' · ')}`);
+    }
+    /* The slow frames go into the pasted report, not only on screen.
+     *
+     * A performance complaint travels as text. Everything above describes the
+     * frames that were FINE; these are the ones being complained about. */
+    if (s.stallLog.length > 0) {
+      lines.push('', `  slow frames (${s.stallLog.length}, newest first)`);
+      for (const rec of s.stallLog.slice(0, 5)) {
+        lines.push(...describeStall(rec).split('\n').map((l) => `  ${l}`));
+      }
     }
     return lines.join('\n');
   }
@@ -374,8 +478,28 @@ export class PerfSession {
         c.programs === null ? '' : ` · ${c.programs} programs`
       }${this.heapMB === null ? '' : ` · heap ${this.heapMB.toFixed(0)} MB`}`,
       `  surface  ${this.surface.width}x${this.surface.height} at dpr ${this.surface.dpr}`,
+      ...(this.sceneDiagnostics
+        ? describeSceneDiagnostics(this.sceneDiagnostics, c.triangles)
+        : []),
     ].join('\n');
   }
+}
+
+/** Plain-text scene diagnosis shared by live and recorded reports. */
+function describeSceneDiagnostics(scene: SceneDiagnostics, renderedTriangles: number): string[] {
+  const amplification = scene.triangles > 0 ? renderedTriangles / scene.triangles : 0;
+  const lines = [
+    `  scene    ${scene.meshes.toLocaleString()} meshes · ${scene.instances.toLocaleString()} instances · ${scene.triangles.toLocaleString()} main-pass triangles`,
+    `  shadows  ${scene.shadowMeshes.toLocaleString()} casters · ${scene.shadowTriangles.toLocaleString()} potential shadow triangles · ${amplification.toFixed(2)}x rendered/main`,
+  ];
+  for (const family of scene.families.slice(0, 5)) {
+    lines.push(
+      `    ${family.family.padEnd(18)} ${family.meshes.toLocaleString()} meshes · ${family.instances.toLocaleString()} instances · ${family.triangles.toLocaleString()} tris${
+        family.shadowTriangles > 0 ? ` · ${family.shadowTriangles.toLocaleString()} shadow` : ''
+      }`,
+    );
+  }
+  return lines;
 }
 
 /**

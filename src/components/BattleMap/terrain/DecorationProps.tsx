@@ -567,13 +567,24 @@ const PROP_FACTORIES: Record<NonNullable<BattleMapDecoration>, () => PropGeometr
 
 interface DecorationPropsProps {
   mapData: BattleMapData;
+  /**
+   * The surface this layer must sit ON, in tile coordinates.
+   *
+   * The board's drawn ground is no longer only the heightfield: inside the
+   * playable rect the voxel arena volume draws over it, a little higher, and
+   * anything planted on the old surface would sink. The host passes the
+   * combined drawn surface; without it this layer falls back to the
+   * heightfield, which is the whole drawn ground on any scene that has no
+   * volume (the WebGPU path, tests, older callers).
+   */
+  surfaceY?: (tileX: number, tileZ: number) => number;
 }
 
 // ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
 
-const DecorationProps: React.FC<DecorationPropsProps> = ({ mapData }) => {
+const DecorationProps: React.FC<DecorationPropsProps> = ({ mapData, surfaceY }) => {
   // Group tiles by decoration type
   const decorationGroups = useMemo(() => {
     const groups = new Map<NonNullable<BattleMapDecoration>, { x: number; y: number; elevation: number }[]>();
@@ -606,8 +617,11 @@ const DecorationProps: React.FC<DecorationPropsProps> = ({ mapData }) => {
         grid[y][x] = mapData.tiles.get(`${x}-${y}`) ?? null;
       }
     }
-    return makeTerrainHeightSampler(grid, width, height, mapData.seed ?? 42);
-  }, [mapData]);
+    // The host's drawn surface wins when there is one: inside the arena the
+    // voxel volume draws above the heightfield, and a tuft planted on the
+    // heightfield would be buried by it.
+    return surfaceY ?? makeTerrainHeightSampler(grid, width, height, mapData.seed ?? 42);
+  }, [mapData, surfaceY]);
 
   // Build instanced meshes for each decoration type
   const instancedGroups = useMemo(() => {

@@ -48,3 +48,5 @@ Mechanics:
 - Exact response-shape adaptation between Groq's OpenAI schema and each Ollama client return type (resolved by reading the real interface).
 - Where the "switch back to Ollama" and "current provider" indicator best live beyond the modal (dev menu / settings) — modal-only is enough for slice 1.
 </content>
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/specs/2026-07-06-groq-inference-toggle-design.md","sha256WithoutMarker":"7e7f9b75201e0c5b1b8085d597eb99e0dd0b78a8e5c68cbfbe6f403d30431572","markedAtUtc":"2026-08-09T20:24:29.250Z"} -->
