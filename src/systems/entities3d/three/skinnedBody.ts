@@ -198,6 +198,11 @@ export function buildBipedBindGeometry(frame: Frame, skeleton: ReturnType<typeof
     }
   }
   for (const ball of skeleton.restPose.balls) {
+    // round 7 (humanoid-anatomy): the head ball is not baked — the sculpted
+    // humanoid head (headForms.buildHumanoidHead) mounts on the head bone in
+    // assembleEntity, and the old sphere would poke through its skull planes.
+    // The rest-pose ball itself stays: it binds and drives the head bone.
+    if (ball.id === 'head') continue;
     const sphere = new SphereGeometry(ball.r, 12, 9);
     sphere.translate(ball.center[0], ball.center[1], ball.center[2]);
     pieces.push({ geometry: sphere, bone: skeleton.index.get(ball.bone)! });
@@ -218,6 +223,11 @@ export function createSkinnedBiped(frame: Frame, options: SkinnedBodyOptions): S
   const skeleton = new Skeleton(built.bones);
 
   const fillMaterial = toonMaterial(options.colorHex);
+  // round 13 (humanoid-anatomy): the smooth loft carries greyscale value
+  // tints (trousers/boots/belt band) in its color attribute — multiplicative
+  // over the skin tone, so the material color stays the entity's skin hex.
+  // Same 2 draw calls; the ink shell's shader ignores vertex colors.
+  if (geometry.hasAttribute('color')) fillMaterial.vertexColors = true;
   if (options.opacity !== undefined && options.opacity < 1) {
     fillMaterial.transparent = true;
     fillMaterial.opacity = options.opacity;

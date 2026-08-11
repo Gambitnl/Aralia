@@ -61,6 +61,30 @@
  *    no staircase ever does and every carved wall does immediately. Material
  *    still comes to rest at the TRUE angle, because the walk's stopping rule has
  *    no such slack — the threshold gates starting, not resting.
+ *
+ * A CELL IS NOT A CUBE ANY MORE, AND THE ANGLE IS AN ANGLE IN THE WORLD
+ *
+ * Column tops are cell INDICES and neighbour distances are cell COUNTS, so
+ * `h[i] - h[j] > tan(repose) * dist` is only the repose angle while one cell is
+ * as tall as it is wide. The combat arena's cells are 0.469 m across and 0.15 m
+ * tall — a ratio of 3.13 — and read raw, that criterion calls a 17-degree slope
+ * a 45-degree cliff and sands the whole board flat inside the settling window.
+ * So the metre-slope is converted into cells-per-horizontal-cell once, by
+ * `cellM / cellHM`, and everything downstream compares cells against cells.
+ * `cellHM` defaults to `cellM`, so a cubic volume is arithmetically identical
+ * and the sandbox's call site never learns this happened.
+ *
+ * AND A BUBBLE HAS A FLOOR THAT IS NOT ITS GROUND
+ *
+ * The live World3D bubble is a 64 m cube of matter with the terrain surface
+ * running through its middle, and on steep ground a column near its edge can be
+ * EMPTY — the land there is below the cube. Left alone the walk would happily
+ * roll a clod thirty metres down into that hole, out of the ~30 cm lid the
+ * bubble draws and under the heightfield, where it is matter nobody can ever
+ * see again. `floorCell` is the bound: a column whose top is below it is out of
+ * the field entirely — nothing sheds from it, nothing lands in it — so material
+ * comes to rest at the last column above the bound instead of vanishing over
+ * the edge. `-1` (the default) can never bite, because an empty column is -1.
  */
 import { BRICK, Material, VoxelVolume } from './voxelVolume';
 import { SUBSTANCES, substance } from './materials';
@@ -161,6 +185,23 @@ export interface SettleOptions {
   budgetMs?: number;
 }
 
+/** What the volume's own geometry tells the solver. See the file header. */
+export interface SettleSetup {
+  /**
+   * Height of one cell, meters, when the lattice is not cubic. Defaults to
+   * `cellM`, which is what every cubic caller means and costs them nothing.
+   */
+  cellHM?: number;
+  /**
+   * Lowest cell ROW material may come to rest on.
+   *
+   * Columns whose top is below it are out of the field: not seeded, never
+   * walked into. `-1` — the default — cannot bite, because the lowest a column
+   * top can read is -1 for an empty one.
+   */
+  floorCell?: number;
+}
+
 /**
  * The slump, as plain arrays.
  *
@@ -171,6 +212,15 @@ export interface SettleOptions {
 export interface SettleField {
   readonly volume: VoxelVolume;
   readonly cellM: number;
+  /** Height of one cell, meters. Equal to `cellM` on a cubic volume. */
+  readonly cellHM: number;
+  /**
+   * Vertical cells per horizontal cell — `cellM / cellHM`.
+   *
+   * The one number that turns a repose angle in the WORLD into the comparison
+   * this solver makes between cell indices. 1 on a cubic lattice.
+   */
+  readonly slopeScale: number;
   readonly x0: number;
   readonly z0: number;
   readonly w: number;
@@ -185,6 +235,13 @@ export interface SettleField {
   qTail: number;
   /** 1 while a column sits in the queue, so it is never queued twice. */
   readonly queued: Uint8Array;
+  /** 1 where the floor bound put this column out of the field. */
+  readonly blocked: Uint8Array;
+  readonly floorCell: number;
+  /** Columns the floor bound excluded when the window was scanned. */
+  readonly blockedColumns: number;
+  /** Downhill hops the floor bound refused. Where the bound BITES. */
+  boundStops: number;
   /** Cells lifted and set down. One number, because it is one operation. */
   moved: number;
   steps: number;
@@ -208,7 +265,7 @@ export interface SettleStepResult {
 
 /** Cubic meters of matter that has moved so far. */
 export function movedVolumeM3(f: SettleField): number {
-  return f.moved * f.cellM * f.cellM * f.cellM;
+  return f.moved * f.cellM * f.cellM * f.cellHM;
 }
 
 /**
@@ -223,10 +280,15 @@ export function movedVolumeM3(f: SettleField): number {
 function topSolidFast(vol: VoxelVolume, x: number, z: number): number {
   const bx = Math.floor(x / BRICK);
   const bz = Math.floor(z / BRICK);
-  for (let by = vol.bricks - 1; by >= 0; by--) {
+  /* `bricksY` / `cellsY`, not `bricks` / `cells`. The volume stopped being a
+   * cube when the land got a width and a height of its own, and starting this
+   * scan at the horizontal brick count walks rows that do not exist — harmless
+   * on a slab, where the extra rows read as Air, and a MISSED SURFACE on
+   * anything taller than it is wide. */
+  for (let by = vol.bricksY - 1; by >= 0; by--) {
     const bm = vol.brickMaterial(bx, by, bz);
     if (bm === Material.Air) continue;
-    const yTop = Math.min(vol.cells - 1, by * BRICK + BRICK - 1);
+    const yTop = Math.min(vol.cellsY - 1, by * BRICK + BRICK - 1);
     if (bm !== null) return yTop;
     for (let y = yTop; y >= by * BRICK; y--) {
       if (vol.get(x, y, z) !== Material.Air) return y;
@@ -272,11 +334,13 @@ function push(f: SettleField, i: number): void {
  * The steepest overhang at a column, and where it points.
  *
  * Returns the neighbour index, or -1 when the column is stable, cannot flow, or
- * has nothing loose left to give. `slope` is the sliding material's own repose,
- * not the neighbour's: it is the clod that decides how far it can rest.
+ * has nothing loose left to give. `slopeCells` is the sliding material's own
+ * repose expressed in VERTICAL CELLS per horizontal cell — it is the clod that
+ * decides how far it can rest, and it decides in the world's units, not the
+ * lattice's.
  */
-function worstNeighbour(f: SettleField, i: number, slope: number): number {
-  const { w, d, h } = f;
+function worstNeighbour(f: SettleField, i: number, slopeCells: number): number {
+  const { w, d, h, blocked } = f;
   const x = i % w;
   const z = (i / w) | 0;
   let best = -1;
@@ -286,18 +350,22 @@ function worstNeighbour(f: SettleField, i: number, slope: number): number {
     const nz = z + NB_DZ[k];
     if (nx < 0 || nz < 0 || nx >= w || nz >= d) continue;
     const j = nz * w + nx;
-    const excess = h[i] - h[j] - slope * NB_DIST[k];
-    if (excess >= bestExcess) {
-      bestExcess = excess;
-      best = j;
+    const excess = h[i] - h[j] - slopeCells * NB_DIST[k];
+    if (excess < bestExcess) continue;
+    // Below the floor bound. The clod stops here rather than leaving the world.
+    if (blocked[j]) {
+      f.boundStops++;
+      continue;
     }
+    bestExcess = excess;
+    best = j;
   }
   return best;
 }
 
 /** The next hop of a sliding cell, or -1 when it has found its rest. */
-function nextHop(f: SettleField, i: number, slope: number): number {
-  const { w, d, h } = f;
+function nextHop(f: SettleField, i: number, slopeCells: number): number {
+  const { w, d, h, blocked } = f;
   const x = i % w;
   const z = (i / w) | 0;
   let best = -1;
@@ -307,11 +375,14 @@ function nextHop(f: SettleField, i: number, slope: number): number {
     const nz = z + NB_DZ[k];
     if (nx < 0 || nz < 0 || nx >= w || nz >= d) continue;
     const j = nz * w + nx;
-    const excess = h[i] - h[j] - slope * NB_DIST[k];
-    if (excess > bestExcess) {
-      bestExcess = excess;
-      best = j;
+    const excess = h[i] - h[j] - slopeCells * NB_DIST[k];
+    if (excess <= bestExcess) continue;
+    if (blocked[j]) {
+      f.boundStops++;
+      continue;
     }
+    bestExcess = excess;
+    best = j;
   }
   return best;
 }
@@ -326,13 +397,23 @@ export function beginSettle(
   volume: VoxelVolume,
   region: SettleRegion,
   cellM: number,
+  setup: SettleSetup = {},
 ): SettleField | null {
   const n = volume.cells;
+  const cellHM = setup.cellHM ?? cellM;
+  const slopeScale = cellM / cellHM;
+  const floorCell = setup.floorCell ?? -1;
   /* Pad for the RUNOUT, not just for the edit. Material shed from a wall of
    * depth D travels about D / tan(repose) cells before it comes to rest, so a
    * fixed pad would dam a deep bore behind an invisible wall at the window
-   * edge. The flattest substance in the registry sets the multiplier. */
-  const depthCells = region.max[1] - region.min[1] + 1;
+   * edge. The flattest substance in the registry sets the multiplier.
+   *
+   * The runout is a distance in METERS on both axes, so a lattice whose cells
+   * are three times shorter than they are wide has three times as many vertical
+   * cells for the same wall — and padding on the raw count would arm three
+   * times the window a slump can ever reach. `/ slopeScale` is the conversion,
+   * and it is 1 on a cube. */
+  const depthCells = (region.max[1] - region.min[1] + 1) / slopeScale;
   const pad = Math.min(
     MAX_PAD_CELLS,
     Math.max(MIN_PAD_CELLS, Math.ceil(depthCells / FLATTEST_SLOPE)),
@@ -347,21 +428,31 @@ export function beginSettle(
 
   const h = new Int32Array(w * d);
   const bedrock = new Int32Array(w * d);
+  const blocked = new Uint8Array(w * d);
+  let blockedColumns = 0;
   for (let z = 0; z < d; z++) {
     for (let x = 0; x < w; x++) {
       const i = z * w + x;
       const top = topSolidFast(volume, x0 + x, z0 + z);
       h[i] = top;
       bedrock[i] = top < 0 ? -1 : bedrockBelow(volume, x0 + x, z0 + z, top);
+      if (top < floorCell) {
+        blocked[i] = 1;
+        blockedColumns++;
+      }
     }
   }
 
   const f: SettleField = {
-    volume, cellM, x0, z0, w, d, h, bedrock,
+    volume, cellM, cellHM, slopeScale, x0, z0, w, d, h, bedrock,
     queue: new Int32Array(Math.max(64, w * d)),
     qHead: 0,
     qTail: 0,
     queued: new Uint8Array(w * d),
+    blocked,
+    floorCell,
+    blockedColumns,
+    boundStops: 0,
     moved: 0,
     steps: 0,
     done: false,
@@ -369,11 +460,14 @@ export function beginSettle(
 
   // Seed with every column that is standing too steep for what it is made of.
   for (let i = 0; i < h.length; i++) {
-    if (h[i] <= bedrock[i]) continue;
+    if (blocked[i] || h[i] <= bedrock[i]) continue;
     const slope = REPOSE_TAN[volume.get(x0 + (i % w), h[i], z0 + ((i / w) | 0))];
     if (slope <= 0) continue;
-    if (worstNeighbour(f, i, slope) >= 0) push(f, i);
+    if (worstNeighbour(f, i, slope * slopeScale) >= 0) push(f, i);
   }
+  /* The seeding scan's own bound hits are KEPT. A column that would have shed
+   * toward a below-floor neighbour and was refused is precisely where the bound
+   * bites, and it is refused here before it is ever refused in a walk. */
   if (f.qTail === f.qHead) return null;
   return f;
 }
@@ -410,8 +504,18 @@ export function settleStep(f: SettleField, opts: SettleOptions = {}): SettleStep
     maxX: -Infinity, maxY: -Infinity, maxZ: -Infinity,
     any: false,
   };
-  const { volume, w, x0, z0, h, bedrock, queued } = f;
-  const n = volume.cells;
+  const { volume, w, x0, z0, h, bedrock, queued, blocked, slopeScale } = f;
+  /* The CEILING of the volume, which is not its width.
+   *
+   * This read `volume.cells` while the volume was always a cube. On a volume
+   * TALLER than it is wide the roof test below then refuses every landing above
+   * row `cells`, which on a 16 x 48 volume is every landing there is: measured,
+   * the slump moved ZERO cells and reported itself done. A wide slab is only
+   * saved from the mirror fault by arithmetic — a grain has to fall two rows to
+   * be set down, so `dy` cannot reach `cellsY` when `cellsY - 1` is already the
+   * highest column — which is luck, not a guarantee, and not something the next
+   * edit to the hop rule should have to rediscover. */
+  const nY = volume.cellsY;
   const waiting = f.qTail - f.qHead;
   const budgetCells =
     opts.cellsPerStep ??
@@ -428,11 +532,15 @@ export function settleStep(f: SettleField, opts: SettleOptions = {}): SettleStep
 
     const sx = x0 + (i % w);
     const sz = z0 + ((i / w) | 0);
-    if (h[i] <= bedrock[i]) continue;
+    if (blocked[i] || h[i] <= bedrock[i]) continue;
     const m = volume.get(sx, h[i], sz);
     const slope = REPOSE_TAN[m];
     if (slope <= 0) continue;
-    const first = worstNeighbour(f, i, slope);
+    /* The repose angle, converted from the world into this lattice ONCE per
+     * lifted cell. See the file header: on the arena's 0.469 x 0.15 m cells the
+     * raw comparison is wrong by a factor of 3.13 and flattens honest ground. */
+    const slopeCells = slope * slopeScale;
+    const first = worstNeighbour(f, i, slopeCells);
     if (first < 0) continue;
 
     /* Walk the cell downhill until the substance's own repose says it can lie
@@ -440,7 +548,7 @@ export function settleStep(f: SettleField, opts: SettleOptions = {}): SettleStep
      * not, so the material comes to rest on the TRUE angle. */
     let at = first;
     for (let hop = 1; hop < MAX_HOPS; hop++) {
-      const nxt = nextHop(f, at, slope);
+      const nxt = nextHop(f, at, slopeCells);
       if (nxt < 0) break;
       at = nxt;
     }
@@ -453,7 +561,7 @@ export function settleStep(f: SettleField, opts: SettleOptions = {}): SettleStep
     const dz = z0 + ((at / w) | 0);
     const dy = h[at] + 1;
     // A roof over the landing column: the cell will not fit, so it stays put.
-    if (dy >= n || volume.get(dx, dy, dz) !== Material.Air) continue;
+    if (dy >= nY || volume.get(dx, dy, dz) !== Material.Air) continue;
 
     const sy = h[i];
     volume.set(sx, sy, sz, Material.Air);
@@ -462,6 +570,27 @@ export function settleStep(f: SettleField, opts: SettleOptions = {}): SettleStep
     note(wr, dx, dy, dz);
     h[i] = sy - 1;
     h[at] = dy;
+
+    /* THE CAP CAME OFF A LEDGE, AND `h` MUST NOT LIE ABOUT IT.
+     *
+     * `h` is "topmost non-air cell", and stepping it down by one is only that
+     * while the cell below is solid. A carve that undercuts a column leaves a
+     * void with matter over it, and shedding the last of that matter drops `h`
+     * onto AIR — the column then reports a surface a cell higher than the one
+     * it has. It never bites the column itself, which is finished, and it bites
+     * every NEIGHBOUR: one cell of overstated height is exactly the difference
+     * between "sheds" and "stable" at the activation threshold, and a wall that
+     * should have come down stands there instead. Measured on the arena: a
+     * fireball crater came to rest, and a fresh field over the same region
+     * immediately found eight unstable columns and moved seventeen more cells.
+     *
+     * So the column falls to its real top and re-derives its own loose cap. The
+     * cost is one brick-skipping scan, in the rare case only. */
+    if (h[i] >= 0 && volume.get(sx, h[i], sz) === Material.Air) {
+      const t = topSolidFast(volume, sx, sz);
+      h[i] = t;
+      bedrock[i] = t < 0 ? -1 : bedrockBelow(volume, sx, sz, t);
+    }
     f.moved++;
     spent++;
 
@@ -505,8 +634,9 @@ export function settleToRest(
   volume: VoxelVolume,
   region: SettleRegion,
   cellM: number,
+  setup: SettleSetup = {},
 ): SettleStepResult | null {
-  const f = beginSettle(volume, region, cellM);
+  const f = beginSettle(volume, region, cellM, setup);
   if (!f) return null;
   let r = settleStep(f, { cellsPerStep: 1 << 20, budgetMs: Infinity });
   let guard = 0;

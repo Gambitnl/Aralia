@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 09/08/2026, 22:43:58
- * Dependents: commands/effects/AttackRollModifierCommand.ts, commands/effects/DamageCommand.ts, commands/effects/ReactiveEffectCommand.ts, commands/factory/AbilityCommandFactory.ts, commands/factory/SpellCommandFactory.ts
- * Imports: 12 files
+ * Last Sync: 10/08/2026, 13:45:04
+ * Dependents: commands/effects/AttackRollModifierCommand.ts, commands/effects/DamageCommand.ts, commands/effects/GraspingVineCommand.ts, commands/effects/ReactiveEffectCommand.ts, commands/factory/AbilityCommandFactory.ts, commands/factory/SpellCommandFactory.ts
+ * Imports: 13 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -34,6 +34,7 @@ import { applyStateToTags } from '../../systems/physics/ElementalInteractionSyst
 import { breakFriendsConcentrationForCaster } from './ConcentrationCommands';
 import { refreshConditionsByName, refreshStatusEffectsByName } from '../../utils/combat/statusConditionUtils';
 import { getRecurringMechanics } from '../../hooks/spellEffectUtils';
+import { resolveSourceSaveAdvantageModifiers } from '../../systems/spells/mechanics/sourceSaveModifierResolution';
 
 const FRIENDS_MEMORY_DURATION_ROUNDS = 24 * 60 * 10;
 const SPECIAL_STATUS_DURATION_ROUNDS = Number.MAX_SAFE_INTEGER;
@@ -161,12 +162,26 @@ export class StatusConditionCommand extends BaseEffectCommand {
 
         const savePenaltySystem = new SavePenaltySystem();
         const saveModifiers = savePenaltySystem.getActivePenalties(target);
+        // Source-backed Advantage and Disadvantage are resolved from explicit
+        // target/condition fields. Free-text reasons never control the roll.
+        const structuredSaveModifiers = resolveSourceSaveAdvantageModifiers(
+          this.effect.condition.saveModifiers,
+          caster,
+          target
+        );
 
         const saveResult = resolveSaveOutcomeOverride(
           this.effect.condition.saveOutcomeOverrides,
           target,
           dc
-        ) ?? rollSavingThrow(target, this.effect.condition.saveType, dc, saveModifiers);
+        ) ?? rollSavingThrow(
+          target,
+          this.effect.condition.saveType,
+          dc,
+          saveModifiers,
+          undefined,
+          structuredSaveModifiers
+        );
 
         // Consume next_save penalties
         currentState = savePenaltySystem.consumeNextSavePenalties(currentState, target.id);

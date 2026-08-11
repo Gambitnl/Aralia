@@ -33,6 +33,16 @@ export interface SweptTubeOptions {
    * tightly coiled curves, so this is tuned for gentle spines/tails/necks.
    */
   countershade?: { body: Color; belly: Color };
+  /**
+   * round 18 (creature-anatomy): scale-ring VALUE bands — evenly spaced
+   * darkened rings along the tube's length, baked into the countershade tint
+   * (the toon ramp erases displacement, so trunk ornament must read through
+   * value). `count` rings darken the body tint by up to `strength` (0..1) at
+   * each ring center; the banding fades toward the belly so the underside
+   * keeps its clean countershade scute strip. Requires `countershade` — the
+   * bands ride its vertex-color attribute.
+   */
+  bands?: { count: number; strength: number };
 }
 
 export interface SweptTube {
@@ -72,6 +82,7 @@ export function createSweptTube(options: SweptTubeOptions): SweptTube {
   geometry.setAttribute('position', new BufferAttribute(positions, 3));
   geometry.setAttribute('normal', new BufferAttribute(normals, 3));
   const shade = options.countershade ?? null;
+  const bands = shade ? options.bands ?? null : null;
   const colors = shade ? new Float32Array(vertCount * 3) : null;
   if (colors) geometry.setAttribute('color', new BufferAttribute(colors, 3));
   const TINT = shade ? new Color() : null;
@@ -135,24 +146,38 @@ export function createSweptTube(options: SweptTubeOptions): SweptTube {
           // underside factor: 1 pointing straight down, 0 from the equator up
           const under = Math.min(1, Math.max(0, -DIR.y * 1.5 + 0.2));
           TINT.copy(shade.body).lerp(shade.belly, under);
+          if (bands) {
+            // narrow dark ring at every t = (k + 0.5) / count, fading toward
+            // the belly so the scute strip below stays clean — value, never
+            // displacement (the toon ramp erases relief at sheet distance)
+            const ring = Math.pow(Math.abs(Math.sin(t * Math.PI * bands.count)), 6);
+            // partial belly fade (0.65): full fade erased the rings on the
+            // mid-flank — the only face the side panel shows — while the
+            // scute strip below still reads lighter than the ring line
+            TINT.multiplyScalar(1 - bands.strength * ring * (1 - under * 0.65));
+          }
           colors[i] = TINT.r;
           colors[i + 1] = TINT.g;
           colors[i + 2] = TINT.b;
         }
       }
+      // round 4 (creature-anatomy): cap centers push 0.75 × radius along the
+      // tangent (was 0.35 — that shallow fan read as a FLAT DISC on every
+      // spine/tail end at sheet distance). 0.75 domes the fan into a rounded
+      // tip; ends whose radius profile already tapers near zero read pointed.
       if (s === 0) {
         curve.getTangentAt(0, DIR);
-        positions[capA * 3] = P.x - DIR.x * radius * 0.35;
-        positions[capA * 3 + 1] = P.y - DIR.y * radius * 0.35;
-        positions[capA * 3 + 2] = P.z - DIR.z * radius * 0.35;
+        positions[capA * 3] = P.x - DIR.x * radius * 0.75;
+        positions[capA * 3 + 1] = P.y - DIR.y * radius * 0.75;
+        positions[capA * 3 + 2] = P.z - DIR.z * radius * 0.75;
         normals[capA * 3] = -DIR.x;
         normals[capA * 3 + 1] = -DIR.y;
         normals[capA * 3 + 2] = -DIR.z;
       } else if (s === S) {
         curve.getTangentAt(1, DIR);
-        positions[capB * 3] = P.x + DIR.x * radius * 0.35;
-        positions[capB * 3 + 1] = P.y + DIR.y * radius * 0.35;
-        positions[capB * 3 + 2] = P.z + DIR.z * radius * 0.35;
+        positions[capB * 3] = P.x + DIR.x * radius * 0.75;
+        positions[capB * 3 + 1] = P.y + DIR.y * radius * 0.75;
+        positions[capB * 3 + 2] = P.z + DIR.z * radius * 0.75;
         normals[capB * 3] = DIR.x;
         normals[capB * 3 + 1] = DIR.y;
         normals[capB * 3 + 2] = DIR.z;

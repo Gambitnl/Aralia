@@ -27,6 +27,13 @@ export interface SweptTubeOptions {
         body: Color;
         belly: Color;
     };
+    /** Scale-ring VALUE bands (round 18, creature-anatomy): `count` evenly
+     * spaced darkened rings along the tube, up to `strength` (0..1) darkening,
+     * fading toward the belly. Requires `countershade`. */
+    bands?: {
+        count: number;
+        strength: number;
+    };
 }
 export interface SweptTube {
     readonly mesh: Mesh;

@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 16/07/2026, 10:29:18
+ * Last Sync: 10/08/2026, 15:44:21
  * Dependents: components/BattleMap/BattleMapDemo.tsx, components/Combat/CombatView.tsx, components/DesignPreview/steps/PreviewCombatScenarios.tsx
- * Imports: 19 files
+ * Imports: 23 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -870,7 +870,9 @@ const BattleMap3D: React.FC<BattleMap3DProps> = ({ mapData, characters, spellMap
         {/* Lighting rig */}
         <SceneLighting biome={biome} mapCenter={cameraTarget} shadowHalf={mapHalfDiag + 8} />
 
-        {/* Camera controller — BG3-style orbit with snap-to-character and cinematic cam */}
+        {/* Camera controller — BG3-style orbit with snap-to-character and cinematic cam.
+            Its zoom ceiling comes from the same horizon contract as fog, so a
+            legal overview can never move its camera target beyond fogFar. */}
         <CameraController
           mapCenter={cameraTarget}
           groundYAt={groundSampler ?? undefined}
@@ -878,15 +880,7 @@ const BattleMap3D: React.FC<BattleMap3DProps> = ({ mapData, characters, spellMap
           selectedCharacter={selectedCharacter}
           characters={characters}
           cinematicEnabled={true}
-          // Dark biomes (cave/dungeon) get a lower zoom-out cap: at the open-biome
-          // max distance their heavy fog/ambient swallows the whole field into
-          // black (gap #21). Clamping keeps overview inside the readable range
-          // without touching the close-zoom mood lighting.
-          maxDistance={
-            biome === 'cave' || biome === 'dungeon'
-              ? Math.max(20, mapHalfDiag * 0.9)
-              : Math.max(35, mapHalfDiag * 1.6)
-          }
+          maxDistance={horizon.cameraMaxDistance}
           onCameraSelectCharacter={handleCharacterClick ? (id) => {
             const char = characters.find(c => c.id === id);
             if (char) handleCharacterClick(char);

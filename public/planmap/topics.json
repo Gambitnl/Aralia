@@ -171,7 +171,7 @@
           "title": "Volume ground + GPU fluid: 64m bubble at 25cm, WebGPU compute",
           "status": "active",
           "decision": true,
-          "status_note": "ADR 0002. VISUAL PROOF LIVE at design.html?step=fluid (2026-08-06): pour falls, runs downhill in runnels, pools, spills a saddle, levels; 56fps with 2 steps/frame at 256^3; GPU-readback total mass flat with pour off. The scatter kernel RACED (out[neighbor]+= from parallel cells loses mass; WGSL has no float atomics) - rebuilt gather-form: each cell recomputes neighbor outflows and writes only itself; CPU twin fluidGather.ts proves conservation in vitest. Velocity now double-buffered: FIVE buffers, 320MB (ADR said four/256MB). GOTCHA: TSL .mod() emits WGSL mod() which has no i32 overload - use .modInt(); the shader failed silently every frame at 56fps. Open: bubble fill 778ms must move to a worker; wire into live World3D ground; water look REBUILT after Remy rejected v1: shade from true column depth (mass sum), never surface-minus-terrain (25cm quantization noise = checkered mottling); clamp surface to ground+depth; alpha 0 at dry verts kills skirt slivers; fresnel+specular from finite-difference normals; 39fps at 4 steps/frame; still awaits Remy's eyeball; sparse compute restores 64m/12cm for ~100MB when 25cm proves too coarse."
+          "status_note": "ADR 0002. VISUAL PROOF LIVE at design.html?step=water (was ?step=fluid, merged 2026-08-10) (2026-08-06): pour falls, runs downhill in runnels, pools, spills a saddle, levels; 56fps with 2 steps/frame at 256^3; GPU-readback total mass flat with pour off. The scatter kernel RACED (out[neighbor]+= from parallel cells loses mass; WGSL has no float atomics) - rebuilt gather-form: each cell recomputes neighbor outflows and writes only itself; CPU twin fluidGather.ts proves conservation in vitest. Velocity now double-buffered: FIVE buffers, 320MB (ADR said four/256MB). GOTCHA: TSL .mod() emits WGSL mod() which has no i32 overload - use .modInt(); the shader failed silently every frame at 56fps. Open: bubble fill 778ms must move to a worker; wire into live World3D ground; water look REBUILT after Remy rejected v1: shade from true column depth (mass sum), never surface-minus-terrain (25cm quantization noise = checkered mottling); clamp surface to ground+depth; alpha 0 at dry verts kills skirt slivers; fresnel+specular from finite-difference normals; 39fps at 4 steps/frame; still awaits Remy's eyeball; sparse compute restores 64m/12cm for ~100MB when 25cm proves too coarse."
         },
         {
           "title": "Substance-true campaign: builder/critic loops to the Teardown + webgpu-ocean bar",
@@ -184,6 +184,24 @@
           "status": "active",
           "decision": true,
           "status_note": "Remy 2026-08-10, straight after the campaign close. The BattleMap3D arena (tile-grid heightfield: TerrainMesh + makeTerrainHeightSampler + its own WaterSystem) moves onto the campaign's volume stack: voxel arena filled from the map's tiles + substance registry, ONE shared substanceGroundMaterial, chunked remesh for in-combat destruction (spells carve real cut faces), waterSheet ponds/streams with the exact ledger. Slice 1 DONE (worker-filled arena, aTint wire, 5e-8 ledger, one groundSampler, carve proof; all 3D suites green). Slice 2 (IMPL-5) runs: one spell class carves end to end with honest water reaction + token re-plant, VoxelVolume cellsY for real stream beds, the G1 shadow-floor recipe on the forest preset, and a uTintMix 0/0.65/1.0 rim triptych for Remy's palette call (no default change). Remy escalated to four parallel Opus agents with disjoint ownership: IMPL-5 (carve + cellsY + lighting + triptych + tri audit), IMPL-6 (BIOME_GROUND into the bubble + 5-stack contact sheet — Remy caught the single-stack gap), IMPL-7 (no-edge world continuation — Remy: no 'cliff down to nothingness'; apron to the horizon, real world-position sampling if mapData carries it), G2 unparked (angle-of-repose settling, exact matter ledger). Two more parked items launched on Remy's ask: IMPL-8 = ADR item 5 sparse brick-list GPU compute (census-sized bricks, CPU-twin conservation with brick-boundary flux, prize = 64 m at 12 cm in ~100 MB); IMPL-9 = the g1-round9 §8 sandbox HMR-survival spec (world + water + ledger restore exactly across fleet reloads, rigs re-arm via generation counter). SIX Opus builders concurrent. Later: full spell matrix, span-aware LoS/cover, MLS-MPM splash domains, one Fable eyeball gate."
+        },
+        {
+          "title": "Fire on substance ground: scorch as a substance state",
+          "status": "parked",
+          "status_note": "Seed from the Environment-step retirement (Remy 2026-08-11): the old Bonfire/Grease prototypes hint at surface effects the substance registry can carry honestly — a scorched cell is a STATE (albedo char, hardness change, vegetation cleared), and fire spreads by substance flammability the way water soaks by permeability. Unbuilt; waits behind the land-page consolidation."
+        },
+        {
+          "title": "The LAND page: one home for every land concept",
+          "status": "done",
+          "open": 7,
+          "decision": true,
+          "status_note": "Remy 2026-08-11, the third consolidation (after water and biomes). BUILT: ?step=land is the step id, \"Land\" in the nav, \"DP: Land\" in the tab title; ?step=volume, ?step=biomes3d, ?step=environment and ?step=3d are all aliases onto it (biomes3d still opens its biome tab THROUGH the rename, verified live). Environment ABSORBED: Mold Earth is the first spell-shaped tool in the tool row (violet, school + convention on it), click raises and shift-click lowers through the ordinary brush/remesh/slump/syncBed path — verified live at 781/755/766 cells raised and 329 lowered with a 21 m3 slump, water identity exact across the casts (5.2 = 5.2 m3, delta 0.000); the TIME slider now MOVES the sun (biomeSkyPresets.sunAtHour anchors noon on the preset vector exactly, so no biome judgement shifts) in both Preset sky and Sandbox light. Bonfire/Grease stay parked as the fire-on-substance seed. 3D Test ABSORBED: its seeded Scene3D biome view died; the full ez-tree preset editor is the collapsible Trees panel with every per-setting description kept, and the tree is planted on the REAL ground at the middle of the patch (leaves.count 18 to 104 rebuilt 13,806 to 61,966 triangles live). Both orphan components deleted. WORKER FILL + PROGRESSIVE MESH: volumeBubbleCore.fillLandSlab moved the fill, datum walk, pre-carves and biome census off the main thread (landVolumeWorker + createLandVolumeClient); the FIRST mesh now drains through the page own remesh pump, so 360 m shows first ground at 1.05 s instead of a 10.2 s frozen tab. INVISIBLE FLOOR CUT at mesh time (surfaceNets suppressFloor, guarded by an orbit polar clamp that makes below-grade impossible): 480 m goes 1,314,124 to 853,324 triangles, minus 35.1 percent. THREE LIVE FAULTS FOUND AND FIXED under Remy: StrictMode disposed the fill client permanently (retain/release now), the survival blob could save an EMPTY world and poison every later reload (capture refuses a world with no voxels), and requestAnimationFrame does not fire in a hidden tab so every progressive path stalled (visibility-aware scheduler). Open: repaint of the chunk list is the remaining >100 ms block on a big build, and makeGroundWorld is still 670 ms on the main thread per tab. Report: .agent/substance-true/reports/land-consolidation.md"
+        },
+        {
+          "title": "World hydrology: the water notebook (rivers that truly flow, seas that never leak)",
+          "status": "specced",
+          "decision": true,
+          "status_note": "Designed with Remy 2026-08-10 from his question: if rivers truly flow, what stops the sea from depleting, and how do rivers dry when a lake drops below its bed? The shape: far water is a NOTEBOOK, not a simulation — every lake/sea one fullness number, every river a chain of REACHES each carrying one flow-per-second, every lake exit a DOORSTEP height. The notebook balances via the SKY BUCKET (sun lifts from seas, rain pays the mountains back) so the total never changes. Drying is automatic: water below the doorstep stops the river and the downstream reaches dry at their rates. Real fluid runs only in the LIVE WINDOW, fed at its edges by the notebook (upstream reach rate in, boundaryLedgerM3 out) — window and notebook can never disagree about a cubic meter. Terms in tools/agora/GLOSSARY.md. Prereqs mostly exist: FMG rivers carry discharge + watersheds, coarseWater + the boundary ledger are built, the sandbox ledger identity is the proven honesty pattern. NOT yet built; awaits Remy's go."
         },
         {
           "title": "Water is 2D first: conservative shallow-water solver over a changing bed",
@@ -6196,6 +6214,55 @@
       },
       "tier": "strategic",
       "updated": "2026-08-09"
+    },
+    {
+      "id": "entity-quality-perfection",
+      "title": "Entity quality perfection loop",
+      "sub": "blind-critic loop vs Valheim/WoW/Mixamo until every contact sheet ships",
+      "campaign": "rendering",
+      "status": "active",
+      "updated": "2026-08-10",
+      "status_note": "Remy-directed 2026-08-10: builders per piece (humanoid anatomy, humanoid motion, creature anatomy, surface materials), fresh-context critics judge actual entitydebug sheets blind against references, no round cap. Live page public/entity-quality/index.html; contract tools/entityQuality/CAMPAIGN.md; rig capture.mjs. Round-0 baseline captured (10 sheets).",
+      "deps": [
+        {
+          "id": "entity-generator-3d",
+          "kind": "hard",
+          "why": "raises the generator this topic owns"
+        },
+        {
+          "id": "entity-skeleton-pivot",
+          "kind": "hard",
+          "why": "motion piece rides skinned bodies + clips"
+        }
+      ],
+      "link": "tools/entityQuality/CAMPAIGN.md",
+      "tier": "strategic",
+      "features": [
+        {
+          "title": "Campaign rig: capture + live page + contract",
+          "status": "done"
+        },
+        {
+          "title": "Wave A: humanoid anatomy to wowed",
+          "status": "active"
+        },
+        {
+          "title": "Wave A: creature anatomy to wowed",
+          "status": "active"
+        },
+        {
+          "title": "Wave B: humanoid motion to wowed",
+          "status": "parked"
+        },
+        {
+          "title": "Wave B: surface materials to wowed",
+          "status": "parked"
+        },
+        {
+          "title": "Coherence passes between waves",
+          "status": "parked"
+        }
+      ]
     }
   ]
 }

@@ -42,6 +42,30 @@ const KIND_STEM: Record<CreaturePlan['appendages'][number]['kind'], string> = {
   torso: 'torso',
 };
 
+/**
+ * Root-mass swell (creature-anatomy round 1): a chain must ROOT into the body
+ * through a muscled swell — a haunch, a wing shoulder, a neck base — not plug
+ * in as a constant-width pipe. Value = target root-to-tip radius ratio (the
+ * WoW-drake reference thigh is ~3x its ankle). The swell grades toward the
+ * tip; the tip link keeps its authored radius so ankles stay slim.
+ */
+const ROOT_SWELL: Partial<Record<CreaturePlan['appendages'][number]['kind'], number>> = {
+  leg: 3.0,
+  neck: 1.9,
+  tail: 2.2,
+  wing: 1.8,
+};
+
+/** Collar-reach boost at limb roots — the junction skirt must read as muscle.
+ * round 10 (creature-anatomy): tentacles melt hardest — a gel pseudopod must
+ * pour out of the mound, not plug into it (the round-9 ooze "flipper stubs"
+ * verdict), so their root collars reach 1.7×. */
+const ROOT_COLLAR_BOOST: Partial<Record<CreaturePlan['appendages'][number]['kind'], number>> = {
+  leg: 1.25,
+  wing: 1.25,
+  tentacle: 1.7,
+};
+
 export function compilePlan(
   plan: CreaturePlan,
 ): Pick<EntityBlueprint, 'gait' | 'frame' | 'palette' | 'parts' | 'label' | 'planSpec'> {
@@ -56,7 +80,10 @@ export function compilePlan(
   const bodyRadM = Math.max(
     0.04,
     heightM * 0.13 * (0.6 + pf.bulk),
-    pf.stance === 'serpentine' ? bodyLenM * 0.032 * (0.6 + pf.bulk) : 0,
+    // round 7 (creature-anatomy): 0.032 → 0.042 — the serpent trunk must
+    // carry serpent MASS in plan view; at 0.032 the 26 ft fixture's grounded
+    // body read as a line next to its own heads.
+    pf.stance === 'serpentine' ? bodyLenM * 0.042 * (0.6 + pf.bulk) : 0,
     pf.stance === 'horizontal' && legless ? heightM * 0.36 * (0.4 + 0.6 * pf.bulk) : 0,
   );
 
@@ -79,6 +106,15 @@ export function compilePlan(
   /** appendage index → ids of its expanded chains (for head binding). */
   const chainsByAppendage: string[][] = [];
 
+  // round 14 (creature-anatomy): a multi-neck crown must keep its AUTHORED
+  // width stagger. The neck hull floor (0.4 × hull) plus tip × swell pulled
+  // the serpent's 0.82/0.52/0.44 roots up to within 12% of each other — the
+  // round-13 "three thin equal-width necks" verdict. With siblings, the floor
+  // drops away and the swell honors the author's ratios.
+  const neckChainTotal = plan.appendages
+    .filter((a) => a.kind === 'neck')
+    .reduce((total, a) => total + a.count * (a.perSide ? 2 : 1), 0);
+
   plan.appendages.forEach((a) => {
     const ids: string[] = [];
     const sides: Array<-1 | 0 | 1> = a.perSide ? [-1, 1] : [0];
@@ -95,15 +131,50 @@ export function compilePlan(
       for (const side of sides) {
         const id = `${KIND_STEM[a.kind]}${n}${side === -1 ? 'L' : side === 1 ? 'R' : ''}`;
         ids.push(id);
-        const rootRM = a.chain[0].r * bodyRadM;
+        const links = a.chain.map((l) => ({ lenM: l.lenFt * FT_TO_M, rM: l.r * bodyRadM }));
+        const swellRatio = ROOT_SWELL[a.kind];
+        const hullR = hullRadiusAt(attach);
+        if (swellRatio) {
+          // Root target: ratio × tip radius, floored against the hull so
+          // twig-legged plans still read rooted, capped so the haunch never
+          // dwarfs the body it joins.
+          const tipRM = links[links.length - 1].rM;
+          // per-kind hull floor: haunches read at half body width, a tail
+          // flows from the hips at over half body width, necks/wings at 0.4.
+          // round 14 (creature-anatomy): sibling necks drop the floor — a
+          // crown's runts must stay runts (see neckChainTotal above).
+          // round 20 (creature-anatomy): leg floor 0.5 → 1.0 — the round-19
+          // verdict read "thigh ~= ankle width". The swollen root EXISTED in
+          // the compiled data (0.466 on the dragon) but sat entirely INSIDE
+          // the body hull (0.507 at the hip), so the haunch never crossed the
+          // belly silhouette and the visible thigh started at ~0.40. A haunch
+          // must stand PROUD of the hull (WoW drake / Valheim boar: the
+          // haunch is a distinct mass on the body line); the 1.15 cap holds.
+          const hullFloor =
+            a.kind === 'leg' ? 1.0
+            : a.kind === 'tail' ? 0.55
+            : a.kind === 'neck' && neckChainTotal > 1 ? 0.18
+            : 0.4;
+          const target = Math.min(
+            hullR * 1.15,
+            Math.max(links[0].rM, tipRM * swellRatio, hullR * hullFloor),
+          );
+          const last = links.length - 1;
+          for (let li = 0; li < links.length; li++) {
+            // graded falloff root→tip; a single-link chain takes half swell
+            const u = last === 0 ? 0.5 : li / last;
+            const fall = Math.pow(1 - u, 1.6);
+            links[li].rM = Math.max(links[li].rM, target * fall + links[li].rM * (1 - fall));
+          }
+        }
         chains.push({
           id,
           kind: a.kind,
           side,
           attach,
           heightFrac,
-          links: a.chain.map((l) => ({ lenM: l.lenFt * FT_TO_M, rM: l.r * bodyRadM })),
-          blendM: blendFrac(a) * Math.min(rootRM, hullRadiusAt(attach)) * 2,
+          links,
+          blendM: blendFrac(a) * Math.min(links[0].rM, hullR) * 2 * (ROOT_COLLAR_BOOST[a.kind] ?? 1),
           phaseOffset: 0,
           tips: a.tips,
           jointRings: a.jointRings,
@@ -189,11 +260,22 @@ export function compilePlan(
     heads,
   };
 
-  const parts: PartInstance[] = (plan.garnish ?? []).map((g) => ({
-    partId: g.partId,
-    anchor: getPart(g.partId).anchor,
-    params: g.params,
-  }));
+  // Head-anchored garnish (horns, ears) must root against the REAL skull the
+  // driver draws — its socket radius (max of frame head and 0.4×body, times
+  // sizeScale) can far outgrow the frame head radius the parts assume. Inject
+  // it so horn bases sit inside the skull surface instead of floating above
+  // it (round 1: the dragon's detached horns). Explicit plan params win.
+  const headSocketRM = plan.heads.length
+    ? Math.max(headRadiusM(frame), bodyRadM * 0.4) * plan.heads[0].sizeScale
+    : undefined;
+  const parts: PartInstance[] = (plan.garnish ?? []).map((g) => {
+    const anchor = getPart(g.partId).anchor;
+    const params =
+      anchor === 'head' && headSocketRM !== undefined
+        ? { anchorRadM: headSocketRM, ...(g.params ?? {}) }
+        : g.params;
+    return { partId: g.partId, anchor, params };
+  });
 
   return {
     gait: 'plan',

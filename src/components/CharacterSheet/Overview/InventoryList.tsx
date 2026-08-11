@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 01/06/2026, 00:45:56
+ * Last Sync: 10/08/2026, 14:00:38
  * Dependents: components/CharacterSheet/Overview/index.ts
- * Imports: 5 files
+ * Imports: 6 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -30,7 +30,7 @@ import { ChevronRight, ChevronDown, FilterX, AlertTriangle } from 'lucide-react'
 import { PlayerCharacter, Item, Action, ItemContainer, InventoryEntry, EquipmentSlotType, ItemType as _ItemType } from '../../../types';
 import { canEquipItem, calculatePotentialAcChange } from '../../../utils/character';
 import { ENV } from '../../../config/env';
-import { resolveItemVisual } from '../../../utils/visuals/visualUtils';
+import { resolveItemAssetSrc, resolveItemVisual } from '../../../utils/visuals/visualUtils';
 import Tooltip from '../../ui/Tooltip';
 import { CoinBadge } from '../../ui/CoinPurseDisplay';
 
@@ -174,17 +174,6 @@ const ITEM_TYPE_FILTERS: { id: ItemTypeFilter; label: string; icon: string; type
   { id: 'accessories', label: 'Accessories', icon: 'diamond', types: ['accessory', 'clothing'] },
   { id: 'other', label: 'Other', icon: 'category', types: ['note', 'book', 'map', 'key', 'spell_component', 'crafting_material', 'treasure', 'reagent', 'ammunition', 'trap'] },
 ];
-
-/**
- * Inventory item visuals may come from Vite-served public assets or from
- * absolute/external URLs. Relative public paths need the app base URL so
- * `/Aralia/` preview builds and localhost roots both resolve correctly.
- */
-const resolveInventoryAssetSrc = (src?: string): string | undefined => {
-  if (!src) return undefined;
-  if (src.startsWith('/') || src.startsWith('http') || src.startsWith('data:')) return src;
-  return `${ENV.BASE_URL}${src}`;
-};
 
 // ============================================================================
 // Perishable Food Timing
@@ -534,7 +523,9 @@ const InventoryList: React.FC<InventoryListProps> = ({ inventory, gold, characte
               // Calculate potential AC change for armor items
               const acChange = child.type === 'armor' ? calculatePotentialAcChange(character, child) : 0;
               const childVisual = resolveItemVisual(child);
-              const childIconSrc = resolveInventoryAssetSrc(childVisual.src);
+              // Use the same base-aware URL resolver as equipped slots so an
+              // item keeps one SVG while moving between backpack and mannequin.
+              const childIconSrc = resolveItemAssetSrc(childVisual.src);
               const childFallbackIcon = childVisual.fallbackContent;
 
               return (

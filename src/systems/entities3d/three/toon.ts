@@ -73,12 +73,19 @@ export function entityMaterial(mode: EntityRenderMode): (colorHex: string) => Me
  * but on a skinned body the ink shell follows the bones instead of freezing in
  * bind pose. The inflation happens in bind space along the bind normal, then
  * the bone transform carries the inflated vertex — exact for rigid weights. */
-export function outlineMaterial(colorHex: string, thickness = 0.02): ShaderMaterial {
+export function outlineMaterial(colorHex: string, thickness = 0.02, opacity = 1): ShaderMaterial {
+  // round 7 (creature-anatomy): translucent bodies (opacity < 1) carry a
+  // matching translucent ink — an opaque black hull around a see-through gel
+  // read as "a green rock wall with heavy black outlines".
+  const translucent = opacity < 1;
   return new ShaderMaterial({
     side: BackSide,
+    transparent: translucent,
+    depthWrite: !translucent,
     uniforms: {
       uC: { value: new Color(colorHex).multiplyScalar(0.22) },
       uT: { value: thickness },
+      uA: { value: opacity },
     },
     vertexShader: `
       uniform float uT;
@@ -91,7 +98,8 @@ export function outlineMaterial(colorHex: string, thickness = 0.02): ShaderMater
       }`,
     fragmentShader: `
       uniform vec3 uC;
-      void main() { gl_FragColor = vec4(uC, 1.0); }`,
+      uniform float uA;
+      void main() { gl_FragColor = vec4(uC, uA); }`,
   });
 }
 

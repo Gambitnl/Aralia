@@ -149,6 +149,7 @@ const GARNISH_PHRASES: Record<string, string> = {
   wingsFeathered: 'large feathered wings',
   hornsCurved: 'curved horns',
   crystalSpikes: 'jagged crystal spikes along the back',
+  finRidge: 'a low dorsal fin ridge running along the spine',
   crest: 'jagged crest',
   shellBack: 'armored shell on the back',
 };

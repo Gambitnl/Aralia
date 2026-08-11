@@ -59,6 +59,10 @@ async function refresh() {
       document.getElementById('decisions').innerHTML = s.decisions.map(d =>
         `<li style="margin-bottom:10px"><b>${d.id} — ${d.title}.</b> ${d.question}<br>` +
         `<span style="color:#9fb4cc">${d.options}</span><br>` +
+        ((d.links && d.links.length)
+          ? '<span style="font-size:13px">Decide here: ' + d.links.map(l =>
+              `<a href="${l.href}" target="_blank" style="margin-right:12px">${l.label} ↗</a>`).join('') + '</span><br>'
+          : '') +
         `<span style="color:#5c6b7d; font-size:12px">Evidence: ${d.evidence}</span></li>`).join('');
     } else { dbox.style.display = 'none'; }
   } catch (e) { document.getElementById('headline').textContent = 'status.json not readable: ' + e; }

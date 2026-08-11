@@ -131,4 +131,74 @@ const antennae: PartDef = {
   },
 };
 
-export const CHAIN_PARTS: PartDef[] = [tailThin, tailThick, tentacles, antennae];
+/** round 2 (creature-anatomy): a low continuous dorsal blade strip along the
+ * spine — the serpent's fin ridge. A CHAIN part, not a rigid mesh: the blades
+ * ride the live chest→back→hips anchor curve every frame, so they follow a
+ * rearing serpentine front and the slither wave instead of detaching like a
+ * fixed strip would. Params: scale (blade size), count (5–14 blades). */
+const finRidge: PartDef = {
+  id: 'finRidge',
+  anchor: 'back',
+  kind: 'chain',
+  buildChain(frame, params, _phase, anchors) {
+    const chest = anchors.chest;
+    const back = anchors.back;
+    const hips = anchors.hips;
+    const count = Math.max(5, Math.min(14, Math.round(num(params, 'count', 9))));
+    // ≈ the plan body radius (bodyRadM ≈ heightM × 0.4 on low serpentine
+    // frames) so blades clear the hull without a schema hook
+    const base = heightM(frame) * 0.4 * num(params, 'scale', 1);
+    const out: BodySegment[] = [];
+    // a reared serpentine front descends steeply below the chest→back chord —
+    // bow the front half of the curve down toward the real spine
+    const sag = Math.max(0, chest.y - back.y) * 0.3;
+    for (let k = 0; k < count; k++) {
+      // the ridge runs the GROUNDED back half onto the lower rise (u 0.3–1);
+      // the raised neck stays clean — the Valheim reference carries its fins
+      // along the back, and blades on a near-vertical spine point backward
+      const u = 0.3 + 0.7 * (k / (count - 1));
+      // quadratic bezier through the three spine anchors
+      const w0 = (1 - u) * (1 - u);
+      const w1 = 2 * (1 - u) * u;
+      const w2 = u * u;
+      const px = w0 * chest.x + w1 * back.x + w2 * hips.x;
+      const py = w0 * chest.y + w1 * back.y + w2 * hips.y - Math.sin(Math.min(1, u * 2) * Math.PI) * sag;
+      const pz = w0 * chest.z + w1 * back.z + w2 * hips.z;
+      // tangent (bezier derivative) for the backward rake
+      let tx = 2 * (1 - u) * (back.x - chest.x) + 2 * u * (hips.x - back.x);
+      let ty = 2 * (1 - u) * (back.y - chest.y) + 2 * u * (hips.y - back.y);
+      let tz = 2 * (1 - u) * (back.z - chest.z) + 2 * u * (hips.z - back.z);
+      const tl = Math.hypot(tx, ty, tz) || 1;
+      tx /= tl; ty /= tl; tz /= tl;
+      // blade direction: up perpendicularized against the tangent, so blades
+      // stand off a reared (near-vertical) front instead of lying along it
+      let dx = -ty * tx;
+      let dy = 1 - ty * ty;
+      let dz = -ty * tz;
+      const dl = Math.hypot(dx, dy, dz);
+      if (dl < 0.2) {
+        // near-vertical tangent: rake the blade backward off the neck
+        dx = 0; dy = 0.45; dz = -0.9;
+      } else {
+        dx /= dl; dy /= dl; dz /= dl;
+      }
+      // swept-back rake like a sail fin; a LOW continuous blade strip, not a
+      // needle comb: wide overlapping roots sunk 0.55 base below the curve so
+      // an imperfect anchor fit still reads rooted, short graded heights.
+      const h = base * (0.9 + Math.sin(u * Math.PI) * 0.35);
+      const rootSink = base * 0.55;
+      out.push({
+        id: `fin.${k}`,
+        ax: px - dx * rootSink, ay: py - dy * rootSink, az: pz - dz * rootSink,
+        bx: px + (dx - tx * 0.45) * h,
+        by: py + (dy - ty * 0.45) * h,
+        bz: pz + (dz - tz * 0.45) * h,
+        r0: Math.max(0.014, base * 0.3),
+        r1: Math.max(0.006, base * 0.05),
+      });
+    }
+    return out;
+  },
+};
+
+export const CHAIN_PARTS: PartDef[] = [tailThin, tailThick, tentacles, antennae, finRidge];

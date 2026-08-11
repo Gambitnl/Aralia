@@ -52,7 +52,7 @@ describe('smooth biped weights', () => {
     expect(rigidUpper).toBeGreaterThan(5); // mid-bone stays owned by one bone
   });
 
-  it('stays within 6% of the rigid geometry bounds per axis', () => {
+  it('stays within 6% of the rigid geometry bounds per axis (z allows the torso depth ellipse)', () => {
     const { geometry, skeleton } = build();
     const rigid = buildBipedBindGeometry(frame, skeleton);
     const smoothBox = new Box3().setFromBufferAttribute(geometry.getAttribute('position') as never);
@@ -60,7 +60,12 @@ describe('smooth biped weights', () => {
     const smoothSize = smoothBox.getSize(new Vector3());
     const rigidSize = rigidBox.getSize(new Vector3());
     for (const axis of ['x', 'y', 'z'] as const) {
-      expect(Math.abs(smoothSize[axis] - rigidSize[axis])).toBeLessThan(rigidSize[axis] * 0.06 + 0.02);
+      // round 13 (humanoid-anatomy): the smooth torso is deliberately
+      // ELLIPTICAL (chest 1.18 / hips 1.12 deep — flatOf) to fix the
+      // paper-thin side view; the rigid comparison body is round by
+      // construction, so the z axis carries that intended extra depth.
+      const tolerance = axis === 'z' ? rigidSize.z * 0.14 + 0.02 : rigidSize[axis] * 0.06 + 0.02;
+      expect(Math.abs(smoothSize[axis] - rigidSize[axis])).toBeLessThan(tolerance);
     }
   });
 
@@ -135,13 +140,21 @@ describe('smooth biped weights', () => {
     }
   });
 
-  it('chain table covers torso, both arms, both legs', () => {
+  it('chain table covers torso, both arms (through the palms), thumbs, both legs, both feet', () => {
+    // round 2 (humanoid-anatomy): arm chains loft through the wrist into the
+    // palm; thumbs are their own short capped tubes
+    // round 5 (humanoid-anatomy): heel-to-toe wedge feet are their own capped
+    // tubes (the terminal foot spheres are gone)
     expect(SMOOTH_CHAINS.map((c) => c.segIds.join('>'))).toEqual([
       'torso.pelvis>torso.chest>neck',
-      'armL.upper>armL.fore',
-      'armR.upper>armR.fore',
+      'armL.upper>armL.fore>handL.palm',
+      'handL.thumb',
+      'armR.upper>armR.fore>handR.palm',
+      'handR.thumb',
       'legL.thigh>legL.shin',
       'legR.thigh>legR.shin',
+      'footL',
+      'footR',
     ]);
   });
 });

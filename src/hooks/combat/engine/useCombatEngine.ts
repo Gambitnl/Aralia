@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 04/08/2026, 01:55:43
+ * Last Sync: 10/08/2026, 13:59:47
  * Dependents: hooks/combat/useTurnManager.ts
  * Imports: 13 files
  *
@@ -47,6 +47,7 @@ import { hasLineOfSight } from '../../../utils/spatial/lineOfSight';
 import { findPath } from '../../../utils/spatial/pathfinding';
 import { applyDamageAndCheckDowned, applyHealingAndRestore } from '../../../utils/combat/deathSaveUtils';
 import { applyRuntimeStatusCondition } from '../../../utils/combat/statusConditionUtils';
+import { resolveOnDamageSpellEffect } from '../../../systems/spells/effects/onDamageSpellEffects';
 
 // Repeat-save metadata now lives on StatusEffect, but not every repeat-save
 // shape is a saving throw. Some spell data asks for ability checks such as
@@ -567,19 +568,40 @@ export const useCombatEngine = ({
         character: CombatCharacter,
         amount: number,
         source: string,
-        damageType?: string
+        damageType?: string,
+        currentTurnNumber = 0
     ): CombatCharacter => {
         let updatedCharacter = { ...character };
 
         // Apply Resistance/Vulnerability if damageType provided
         // We pass null for caster as environmental damage has no specific caster usually,
         // or we don't have the caster object handy here.
-        const finalAmount = calculateDamage(amount, null, character, damageType, {
+        const triggeringDamage = calculateDamage(amount, null, character, damageType, {
             spellZones,
             characters
         });
+        const onDamageResolution = resolveOnDamageSpellEffect(
+            character,
+            damageType,
+            currentTurnNumber,
+            triggeringDamage
+        );
+        const extraDamage = onDamageResolution.damageDice
+            ? rollDice(onDamageResolution.damageDice)
+            : 0;
 
-        const updatedTarget = applyDamageAndCheckDowned(character, finalAmount);
+        // Fold any matching rider into the same typed damage packet. This lets
+        // Elemental Bane suppress resistance and lets vulnerability or immunity
+        // affect both the triggering and extra damage consistently.
+        updatedCharacter = onDamageResolution.character;
+        const finalAmount = extraDamage > 0
+            ? calculateDamage(amount + extraDamage, null, updatedCharacter, damageType, {
+                spellZones,
+                characters
+            })
+            : triggeringDamage;
+
+        const updatedTarget = applyDamageAndCheckDowned(updatedCharacter, finalAmount);
         updatedCharacter = {
             ...updatedCharacter,
             currentHP: updatedTarget.currentHP,
@@ -605,6 +627,8 @@ export const useCombatEngine = ({
                 damage: amount,
                 damageType,
                 source,
+                damageDealt: finalAmount,
+                spellId: onDamageResolution.sourceSpellId,
                 isDeath,
                 targetTags: character.creatureTypes
             }

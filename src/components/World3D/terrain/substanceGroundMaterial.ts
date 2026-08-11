@@ -112,6 +112,26 @@ function rotMat3(ax: number, ay: number, az: number): string {
 export const CUT_FACET_SNAP = 0.5;
 
 /**
+ * Where a face stops being weathered ground and starts being a CUT, in cells.
+ *
+ * The threshold clears the datum quantization — original-top heights are
+ * cell-quantized, so open-ground vertices can read a fraction of a cell of
+ * false depth. Exported because it is not only a shader constant: anything that
+ * wants to DRAW this material as a cut (the `?step=volume` land-type swatches)
+ * has to know how deep a face must be before the cut treatment is fully on, and
+ * a second copy of the number would drift the first time this one is tuned.
+ */
+export const CUT_ENGAGE_START_CELLS = 0.34;
+
+/** How far below that start the cut treatment reaches full strength, meters. */
+export const CUT_ENGAGE_RAMP_M = 0.3;
+
+/** The depth at which a face of this material draws as a full cut, meters. */
+export function cutEngagedDepthM(cellM: number): number {
+  return cellM * CUT_ENGAGE_START_CELLS + CUT_ENGAGE_RAMP_M;
+}
+
+/**
  * @param stack Which ground column the bands are read from.
  *
  * The stack was `DEFAULT_STACK` and nothing else for nine critic rounds, and
@@ -414,7 +434,7 @@ float vgFbm(vec3 p) {
   // Slightly higher start and a tighter ramp than round 3 (0.28/+0.45): the
   // wide ramp let quantized-datum fractions on open slopes sit half-blended,
   // and the half-damp drew faint topo-contour streaks across the 240 m top.
-  gCut = smoothstep(uCellM * 0.34, uCellM * 0.34 + 0.30, vCutDepth);
+  gCut = smoothstep(uCellM * ${CUT_ENGAGE_START_CELLS.toFixed(2)}, uCellM * ${CUT_ENGAGE_START_CELLS.toFixed(2)} + ${CUT_ENGAGE_RAMP_M.toFixed(2)}, vCutDepth);
   vec3 alb = mix(topAlb, cutAlb, gCut);
   // Fresh-cut damp, mild: the per-cell value jitter now separates faces, so
   // the heavy round-two darkening would just re-murk the strata.

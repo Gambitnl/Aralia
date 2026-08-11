@@ -245,14 +245,16 @@ describe("BattleMap parity proof", () => {
       />,
     );
 
-    const moveTile = screen.getByRole("button", { name: "Tile floor at 1, 0" });
-    const pathTile = screen.getByRole("button", { name: "Tile floor at 0, 0" });
+    // Tile names carry a trailing elevation phrase whose wording is owned by
+    // BattleMapTile.test.tsx, so match only the coordinate prefix here.
+    const moveTile = screen.getByRole("button", { name: /^Tile floor at 1, 0,/ });
+    const pathTile = screen.getByRole("button", { name: /^Tile floor at 0, 0,/ });
     const targetTile = screen.getByRole("button", {
-      name: "Tile floor at 2, 0",
+      name: /^Tile floor at 2, 0,/,
     });
-    const aoeTile = screen.getByRole("button", { name: "Tile floor at 0, 1" });
+    const aoeTile = screen.getByRole("button", { name: /^Tile floor at 0, 1,/ });
     const teleportTile = screen.getByRole("button", {
-      name: "Tile floor at 1, 1",
+      name: /^Tile floor at 1, 1,/,
     });
 
     // Reachability remains a real per-cell state, but the visual hierarchy now

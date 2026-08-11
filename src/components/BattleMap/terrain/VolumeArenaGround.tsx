@@ -33,6 +33,13 @@ import { BattleMapData, BattleMapTile } from '../../../types/combat';
 import { canUseDevTools } from '../../../utils/core';
 import { makeSubstanceGroundMaterial } from '@/components/World3D/terrain/substanceGroundMaterial';
 import { applyBrush } from '@/systems/worldforge/terrain/voxelBrush';
+import {
+  beginSettle,
+  settleStep,
+  movedVolumeM3,
+  type SettleField,
+  type SettleRegion,
+} from '@/systems/worldforge/terrain/granularSettle';
 import { colorAtDepth } from '@/systems/worldforge/terrain/materials';
 import { meshCellRange, aoReachCellsY, AO_REACH_CELLS } from '@/systems/worldforge/terrain/surfaceNets';
 import { resolveTerrainTileCoordinates } from './terrainTileMapping';
@@ -101,7 +108,7 @@ interface VolumeArenaGroundProps {
   onTileHover?: (tile: BattleMapTile) => void;
 }
 
-interface SlabEntry {
+export interface SlabEntry {
   geometry: THREE.BufferGeometry;
   dualTopY: Float32Array;
   dualRect: { x0: number; z0: number; w: number; h: number };
@@ -132,6 +139,48 @@ export const ARENA_TINT_MIX = 1;
  * chosen to make small.
  */
 const CARVE_FRAME_BUDGET_MS = 8;
+
+/**
+ * A slump ledger line, in the campaign's one format.
+ *
+ * Printed rather than stored: a slump moves matter around the board mid-combat
+ * and the only thing that makes that trustworthy is a number nobody had to ask
+ * for. `moved` is cells, and the cubic metres are `cells * cellM² * cellHM` —
+ * the arena's cells are not cubes, so the naive cube would over-report the
+ * arena's own volume by 3.1x.
+ */
+function slumpLine(f: SettleField, steps: number, msTotal: number, maxSlice: number): string {
+  return (
+    `slump: ${f.moved.toLocaleString()} cells moved ` +
+    `(${movedVolumeM3(f).toFixed(2)} m³) · ${steps} slices in ${Math.round(msTotal)} ms ` +
+    `(worst ${maxSlice.toFixed(1)} ms)`
+  );
+}
+
+/** Grow an inclusive cell window to cover another. Null starts one. */
+function unionWindow(
+  a: { min: [number, number, number]; max: [number, number, number] } | null,
+  min: readonly [number, number, number],
+  max: readonly [number, number, number],
+): { min: [number, number, number]; max: [number, number, number] } {
+  if (!a) return { min: [min[0], min[1], min[2]], max: [max[0], max[1], max[2]] };
+  for (let k = 0; k < 3; k++) {
+    if (min[k] < a.min[k]) a.min[k] = min[k];
+    if (max[k] > a.max[k]) a.max[k] = max[k];
+  }
+  return a;
+}
+
+/** The slice of R3F state the dev scene audit reads. */
+interface R3FPeek {
+  scene: { traverse: (fn: (o: unknown) => void) => void };
+  gl: {
+    info: {
+      render: { calls: number; triangles: number };
+      memory: { geometries: number; textures: number };
+    };
+  };
+}
 
 /** `?tintmix=0.65` — the A/B, set before the first frame. Dev surfaces only. */
 function arenaTintMixOverride(): number | null {
@@ -168,7 +217,7 @@ function slabGeometry(s: ArenaSlabMessage): THREE.BufferGeometry {
  * x reads dual columns x+1 and x+2, which is why the voxel fold trails the dual
  * one by two.
  */
-function foldDrawnTops(
+export function foldDrawnTops(
   slabs: Map<number, SlabEntry>,
   cells: number,
 ): { dualTopY: Float32Array; columnTopY: Float32Array } {
@@ -254,15 +303,50 @@ const VolumeArenaGround: React.FC<VolumeArenaGroundProps> = ({
   const slabsRef = useRef<Map<number, SlabEntry>>(new Map());
   /** Slab keys a carve dirtied, in the order they were dirtied. */
   const queueRef = useRef<Array<[number, number, number]>>([]);
+  /**
+   * The same slabs, as a set, so a slump cannot queue one twice.
+   *
+   * A carve dirties a dozen slabs once. A slump dirties an overlapping handful
+   * on EVERY one of its fifteen-odd slices, and without this the queue holds
+   * the same slab fifteen times and the board re-meshes it fifteen times for
+   * one picture. The sandbox learnt this as "the first wiring gave each slice
+   * its own full drain"; the coalescing is what makes the slump affordable.
+   */
+  const pendingRef = useRef<Set<number>>(new Set());
+  /**
+   * The slump in flight.
+   *
+   * `pending` is a region a carve armed; `field` is the live avalanche. A
+   * running field is never restarted, because its queue holds the columns that
+   * are mid-slide and dropping it would strand them.
+   *
+   * `armed` is false until the carve's own slabs have been drawn once. The cut
+   * lands and is SEEN, and only then does it fail — a slump that starts in the
+   * same frame as the blast reads as the spell having dug a bowl, not as a wall
+   * giving way.
+   */
+  const settleRef = useRef<{
+    field: SettleField | null;
+    pending: SettleRegion | null;
+    armed: boolean;
+    steps: number;
+    msTotal: number;
+    maxSlice: number;
+  } | null>(null);
+  /** The last slump's ledger line. Printed on completion; readable by a rig. */
+  const slumpRef = useRef('');
   const drainRef = useRef<{
     handle: ArenaVolumeHandle;
     slabs: Map<number, SlabEntry>;
     publish: () => Float32Array;
+    /** One slump slice, or 0 ms when nothing is settling. */
+    settleSlice: () => number;
   } | null>(null);
   const worstFrameRef = useRef(0);
   /** The window of the carve currently in flight. Null on the build. */
   const windowRef = useRef<{ min: [number, number, number]; max: [number, number, number] } | null>(null);
   const worstSlabRef = useRef(0);
+  const r3fRef = useRef<R3FPeek | null>(null);
   const slabsDoneRef = useRef(0);
   const handleRef = useRef<ArenaVolumeHandle | null>(null);
   const surfaceRef = useRef<((x: number, z: number) => number) | null>(null);
@@ -350,10 +434,95 @@ const VolumeArenaGround: React.FC<VolumeArenaGroundProps> = ({
             { shape: 'sphere', mode: 'dig', radiusM },
             h.biomeStack,
           );
-          for (const key of slabsInRegion(h, res.min, res.max)) queueRef.current.push(key);
-          windowRef.current = res.changed > 0 ? { min: res.min, max: res.max } : null;
-          drainRef.current = { handle: h, slabs, publish };
+          enqueueSlabs(queueRef.current, pendingRef.current, h, res.min, res.max);
+          /* THE WATER'S WINDOW SURVIVES A SECOND BLAST. A drain in flight means
+           * no publish has happened since the last carve, so everything already
+           * in the window is still owed to `syncBedWindow` — replacing it there
+           * would hand the water the second crater and silently drop the first
+           * one and its whole slump. A fresh drain starts a fresh window. */
+          const draining = drainRef.current !== null;
+          if (res.changed > 0) {
+            windowRef.current = draining
+              ? unionWindow(windowRef.current, res.min, res.max)
+              : { min: [...res.min], max: [...res.max] };
+          } else if (!draining) {
+            windowRef.current = null;
+          }
+          drainRef.current = { handle: h, slabs, publish, settleSlice };
+
+          /* ARM THE SLUMP over the cells this blast touched.
+           *
+           * A region, not a field: `beginSettle` walks a padded window and it
+           * should walk it once the crater has been DRAWN, not while the spell
+           * is still resolving. A slump already in flight keeps its own field —
+           * it holds the columns that are mid-slide — and this region waits
+           * behind it as `pending`, which is what a second fireball into the
+           * same crater does. */
+          if (res.changed > 0) {
+            const region: SettleRegion = { min: res.min, max: res.max };
+            const st = settleRef.current;
+            if (!st) {
+              settleRef.current = {
+                field: null, pending: region, armed: false, steps: 0, msTotal: 0, maxSlice: 0,
+              };
+              slumpRef.current = '';
+            } else if (st.pending) {
+              st.pending = {
+                min: [
+                  Math.min(st.pending.min[0], region.min[0]),
+                  Math.min(st.pending.min[1], region.min[1]),
+                  Math.min(st.pending.min[2], region.min[2]),
+                ],
+                max: [
+                  Math.max(st.pending.max[0], region.max[0]),
+                  Math.max(st.pending.max[1], region.max[1]),
+                  Math.max(st.pending.max[2], region.max[2]),
+                ],
+              };
+            } else {
+              st.pending = region;
+            }
+          }
           return { ...res, ms: performance.now() - t };
+        };
+
+        /** One time slice of the slump, folded into this frame's dirty set. */
+        const settleSlice = (): number => {
+          const st = settleRef.current;
+          if (!st || !st.armed) return 0;
+          if (!st.field && st.pending) {
+            /* The arena's cells are 0.469 m across and 0.15 m tall, and the
+             * repose angle is an angle in the WORLD. Without `cellHM` the
+             * solver reads one vertical cell as one horizontal cell, calls
+             * every 18-degree bank a cliff, and sands the board flat inside the
+             * settling window. */
+            st.field = beginSettle(h.volume, st.pending, h.cellM, { cellHM: h.cellHM });
+            st.pending = null;
+            // Nothing loose in reach — a bore in the arena's rock keeps its
+            // walls, and costs one window scan and no frames.
+            if (!st.field) settleRef.current = null;
+          }
+          if (!st.field) return 0;
+          const r = settleStep(st.field);
+          st.steps++;
+          st.msTotal += r.ms;
+          if (r.ms > st.maxSlice) st.maxSlice = r.ms;
+          if (r.changed) {
+            enqueueSlabs(queueRef.current, pendingRef.current, h, r.min, r.max);
+            /* The water syncs the window the published surface carries, so the
+             * cells the SLUMP moved have to be in it. Without the union the
+             * bed under the debris never gets re-read and a pool sits on a
+             * ground that is no longer there. */
+            windowRef.current = unionWindow(windowRef.current, r.min, r.max);
+          }
+          if (r.done) {
+            slumpRef.current = slumpLine(st.field, st.steps, st.msTotal, st.maxSlice);
+            // eslint-disable-next-line no-console
+            console.info(`[arena] ${slumpRef.current}`);
+            st.field = null;
+            if (!st.pending) settleRef.current = null;
+          }
+          return r.ms;
         };
 
         const publish = (): Float32Array => {
@@ -404,14 +573,93 @@ const VolumeArenaGround: React.FC<VolumeArenaGroundProps> = ({
               if (!d) return 0;
               const t = performance.now();
               let n = 0;
-              while (queueRef.current.length > 0) {
-                remeshSlab(d.handle, d.slabs, queueRef.current.shift() as [number, number, number]);
-                n++;
+              /* Drain, then slump, then drain what the slump moved, until both
+               * are quiet. The guard is the slice count: `settleStep` is
+               * proven to terminate, and a rig that hangs is worse than a rig
+               * that reports a truncated slump. */
+              if (settleRef.current) settleRef.current.armed = true;
+              for (let guard = 0; guard < 4096; guard++) {
+                while (queueRef.current.length > 0) {
+                  const next = queueRef.current.shift() as [number, number, number];
+                  pendingRef.current.delete(slabKeyOf(d.handle, next));
+                  remeshSlab(d.handle, d.slabs, next);
+                  n++;
+                }
+                if (!settleRef.current) break;
+                d.settleSlice();
               }
               d.publish();
               drainRef.current = null;
               bump((k) => k + 1);
-              return { slabs: n, ms: +(performance.now() - t).toFixed(1) };
+              return {
+                slabs: n,
+                ms: +(performance.now() - t).toFixed(1),
+                slump: slumpRef.current,
+              };
+            },
+            /* WHERE THE TRIANGLES ARE. A combat map reading 23.8 M triangles
+             * and 2,010 draw calls is a number somebody has to be able to
+             * ATTRIBUTE, and nothing on this page could: the renderer's own
+             * counters give one total. This walks the live scene once and
+             * groups every drawable by its nearest named ancestor, so the
+             * answer is per contributor. Dev surfaces only, on demand. */
+            sceneAudit: () => {
+              const st = r3fRef.current;
+              if (!st) return null;
+              const rows: Record<string, { tris: number; objs: number; instances: number }> = {};
+              let total = 0;
+              st.scene.traverse((o) => {
+                const g = (o as { geometry?: { index?: { count: number }; attributes?: { position?: { count: number } } } }).geometry;
+                const mesh = o as unknown as { isMesh?: boolean; isInstancedMesh?: boolean; isPoints?: boolean; isLine?: boolean; count?: number; visible?: boolean; type: string; name: string; parent: unknown };
+                if (!g || !(mesh.isMesh || mesh.isInstancedMesh || mesh.isPoints || mesh.isLine)) return;
+                if (mesh.visible === false) return;
+                const verts = g.index ? g.index.count : (g.attributes?.position?.count ?? 0);
+                const per = mesh.isPoints || mesh.isLine ? 1 : 3;
+                const inst = mesh.isInstancedMesh ? (mesh.count ?? 1) : 1;
+                const tris = Math.floor(verts / per) * inst;
+                let n: { name?: string; parent?: unknown } | null = o as never;
+                const parts: string[] = [];
+                for (let i = 0; n && i < 12; i++) {
+                  if (n.name) parts.push(n.name);
+                  n = n.parent as { name?: string; parent?: unknown } | null;
+                }
+                /* Most of this scene is UNNAMED — instanced grass, scatter,
+                 * trees and the volume slabs all arrive as bare meshes — so an
+                 * ancestor-name grouping puts eight million triangles in one
+                 * bucket called "Mesh" and answers nothing. Unnamed drawables
+                 * are keyed by what they ARE instead: the attributes that only
+                 * one system supplies, then their instance/geometry shape. */
+                const attrs = (g as { attributes?: Record<string, unknown> }).attributes ?? {};
+                const matName = (o as unknown as { material?: { type?: string } | Array<{ type?: string }> }).material;
+                const matType = Array.isArray(matName) ? matName[0]?.type : matName?.type;
+                let key = parts.reverse().join('/');
+                if (!key) {
+                  if ('aCutDepth' in attrs) key = 'volume-arena-slab';
+                  else if ('aWaterDepth' in attrs) key = 'volume-arena-water';
+                  else if (mesh.isInstancedMesh) {
+                    key = `instanced[x${inst}] ${Math.floor(verts / per)}tri/inst ${matType ?? '?'}`;
+                  } else {
+                    key = `mesh ${Math.floor(verts / per)}tri ${matType ?? '?'}`;
+                  }
+                }
+                if (!rows[key]) rows[key] = { tris: 0, objs: 0, instances: 0 };
+                rows[key].tris += tris;
+                rows[key].objs += 1;
+                rows[key].instances += inst;
+                total += tris;
+              });
+              const info = st.gl.info;
+              return {
+                totalTris: total,
+                rendererCalls: info.render.calls,
+                rendererTris: info.render.triangles,
+                geometries: info.memory.geometries,
+                textures: info.memory.textures,
+                byOwner: Object.entries(rows)
+                  .sort((a, b) => b[1].tris - a[1].tris)
+                  .slice(0, 25)
+                  .map(([k, v]) => `${v.tris} tris / ${v.objs} obj / ${v.instances} inst  ${k}`),
+              };
             },
             carveStats: () => ({
               pending: queueRef.current.length,
@@ -419,6 +667,34 @@ const VolumeArenaGround: React.FC<VolumeArenaGroundProps> = ({
               worstFrameMs: +worstFrameRef.current.toFixed(1),
               worstSlabMs: +worstSlabRef.current.toFixed(1),
             }),
+            /**
+             * THE SLUMP LEDGER, as the page's own words and as numbers.
+             *
+             * `line` is the string printed to the console when the slump came
+             * to rest; the rest is what it was made of, so a rig can assert on
+             * a number rather than parse a sentence. `running` says whether
+             * matter is still moving, which is what a capture rig has to wait
+             * on before it photographs a settled crater.
+             */
+            slumpLedger: () => {
+              const st = settleRef.current;
+              return {
+                line: slumpRef.current,
+                running: st !== null,
+                armed: st?.armed ?? false,
+                moved: st?.field?.moved ?? 0,
+                movedM3: st?.field ? +movedVolumeM3(st.field).toFixed(3) : 0,
+                waiting: st?.field ? st.field.qTail - st.field.qHead : 0,
+                slices: st?.steps ?? 0,
+                worstSliceMs: +(st?.maxSlice ?? 0).toFixed(2),
+                /* The floor bound, which the arena does not set: a combat map
+                 * is solid rock to the volume floor and has no void to shed
+                 * into. Reported anyway so the two surfaces answer the same
+                 * question in the same words. */
+                floorCell: st?.field?.floorCell ?? -1,
+                boundStops: st?.field?.boundStops ?? 0,
+              };
+            },
             /* The dev carve hook calls the SAME function live combat does. */
             carve,
             /* THE PALETTE A/B. `uTintMix` blends the per-tile surface tint onto
@@ -452,6 +728,12 @@ const VolumeArenaGround: React.FC<VolumeArenaGroundProps> = ({
       slabs.clear();
       handleRef.current = null;
       surfaceRef.current = null;
+      /* A new map orphans any slump: the field's column heights index a volume
+       * that no longer exists, and its ledger belongs to that volume. */
+      settleRef.current = null;
+      queueRef.current = [];
+      pendingRef.current.clear();
+      drainRef.current = null;
       onSurface?.(null);
       if (typeof window !== 'undefined') {
         delete (window as unknown as { __bmArena?: unknown }).__bmArena;
@@ -465,17 +747,32 @@ const VolumeArenaGround: React.FC<VolumeArenaGroundProps> = ({
 
   /* THE DRAIN. Nothing runs here unless a carve queued work, so an untouched
    * board pays one array-length check per frame. */
-  useFrame(() => {
+  useFrame((state) => {
+    /* The scene, kept for the dev audit below. This component already has the
+     * only per-frame callback on this canvas, so borrowing it costs an
+     * assignment rather than a second `useFrame`. */
+    r3fRef.current = state as unknown as R3FPeek;
     const q = queueRef.current;
     const d = drainRef.current;
-    if (q.length === 0 || !d) return;
+    if (!d) return;
     const t0 = performance.now();
+
+    /* THE SLUMP RUNS FIRST, so the cells it moves join the dirty set the
+     * re-mesh below is about to walk. A column that slides for fifteen
+     * consecutive slices marks its slab fifteen times and the slab is still
+     * rebuilt once per drain — that coalescing is the whole reason a slump is
+     * affordable beside a carve. Two budgets stack in the worst frame: one
+     * settle slice (4 ms ceiling) plus one re-mesh slice. */
+    d.settleSlice();
+
     let did = 0;
     /* Budget checked BEFORE a slab, never during: a half-meshed slab is a hole
      * in the ground, and there is no such thing as resuming one. */
     while (q.length > 0 && (did === 0 || performance.now() - t0 < CARVE_FRAME_BUDGET_MS)) {
+      const next = q.shift() as [number, number, number];
+      pendingRef.current.delete(slabKeyOf(d.handle, next));
       const ts = performance.now();
-      remeshSlab(d.handle, d.slabs, q.shift() as [number, number, number]);
+      remeshSlab(d.handle, d.slabs, next);
       const slabMs = performance.now() - ts;
       if (slabMs > worstSlabRef.current) worstSlabRef.current = slabMs;
       slabsDoneRef.current++;
@@ -484,8 +781,17 @@ const VolumeArenaGround: React.FC<VolumeArenaGroundProps> = ({
     const ms = performance.now() - t0;
     if (ms > worstFrameRef.current) worstFrameRef.current = ms;
     if (q.length === 0) {
-      d.publish();
-      drainRef.current = null;
+      if (settleRef.current) {
+        /* The cut is drawn. NOW the walls may give way — and the surface is
+         * NOT republished yet: `publish` re-plants every token, decal, marker
+         * and grass blade on the board, and doing that on each of fifteen
+         * slices would rebuild the whole scene fifteen times for one slump.
+         * Tokens re-plant once, on the settled ground. */
+        settleRef.current.armed = true;
+      } else {
+        d.publish();
+        drainRef.current = null;
+      }
     }
     bump((n) => n + 1);
   });
@@ -585,6 +891,33 @@ function slabsInRegion(
     }
   }
   return out;
+}
+
+/** The map key of a slab coordinate on this arena's plan. */
+function slabKeyOf(h: ArenaVolumeHandle, [cx, cy, cz]: [number, number, number]): number {
+  return slabKey(cx, cy, cz, Math.ceil((h.cells + 1) / ARENA_SLAB_XZ));
+}
+
+/**
+ * Queue every slab an edit dirtied, ONCE.
+ *
+ * The set is the whole point: a carve calls this once and a slump calls it on
+ * every slice, over an overlapping handful of slabs. Pushing blind turns a
+ * fifteen-slice slump into fifteen re-meshes of the same geometry.
+ */
+function enqueueSlabs(
+  q: Array<[number, number, number]>,
+  pending: Set<number>,
+  h: ArenaVolumeHandle,
+  min: readonly [number, number, number],
+  max: readonly [number, number, number],
+): void {
+  for (const c of slabsInRegion(h, min, max)) {
+    const k = slabKeyOf(h, c);
+    if (pending.has(k)) continue;
+    pending.add(k);
+    q.push(c);
+  }
 }
 
 /** Re-mesh ONE slab in place. The unit of work the frame budget spends. */

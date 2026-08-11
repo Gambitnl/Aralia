@@ -3,15 +3,36 @@ import type { BattleMapData, BattleMapTile } from '../../../../types/combat';
 import { makeTerrainHeightSampler } from '../terrainHeightSampler';
 import {
   APRON_PROFILES,
+  CAMERA_TO_FOG_FAR_RATIO,
   FRINGE_TILES,
   apronReachTiles,
   makeApronField,
+  resolveHorizon,
   resolveApronProfile,
 } from '../apronField';
 import { buildApronGeometry } from '../TerrainApron';
 
+/**
+ * This file proves that the 3D battle map's playable ground, surrounding land,
+ * fog, and camera share one continuous distance budget.
+ *
+ * The terrain fixtures protect physical seams and geometry cost. The horizon
+ * fixtures protect tactical readability without mounting WebGL, so small and
+ * large maps fail deterministically if camera and fog ranges drift apart.
+ *
+ * Exercises: apronField.ts and TerrainApron.tsx
+ * Depends on: the production terrain height sampler for realistic edge relief
+ */
+
 const WIDTH = 40;
 const HEIGHT = 30;
+
+// ============================================================================
+// Shared Terrain Fixture
+// ============================================================================
+// The relief fixture lets apron continuity tests exercise real height changes
+// without making the distance-budget checks depend on renderer state.
+// ============================================================================
 
 /** A board with real relief: a ridge across it and a pond in one corner. */
 function makeGrid(): { grid: (BattleMapTile | null)[][]; mapData: BattleMapData } {
@@ -101,6 +122,54 @@ describe('apronField', () => {
       expect(resolveApronProfile(key)).toBe(APRON_PROFILES[key]);
     }
     expect(resolveApronProfile('nonsense')).toBe(APRON_PROFILES.forest);
+  });
+});
+
+// ============================================================================
+// Camera, Fog, and Horizon Distance Contract
+// ============================================================================
+// These pure checks protect both small sandbox chambers and expanded maps.
+// A legal camera zoom must always stop before fog becomes fully opaque.
+// ============================================================================
+
+describe('horizon distance budget', () => {
+  it('keeps a small dungeon atmospheric while clearing its complete zoom range', () => {
+    const horizon = resolveHorizon({
+      dimensions: { width: 16, height: 12 },
+      biome: 'dungeon',
+    });
+
+    // The authored dungeon end was 6.8 units, behind both the initial camera
+    // and the legal 20-unit overview. The near fog remains the authored 2.2,
+    // while the far end now reserves a readable margin beyond max zoom.
+    expect(horizon.fogNear).toBeCloseTo(2.2);
+    expect(horizon.cameraMaxDistance).toBe(20);
+    expect(horizon.fogFar).toBe(20 * CAMERA_TO_FOG_FAR_RATIO);
+  });
+
+  it('scales the same visibility margin for a large enclosed battlefield', () => {
+    const horizon = resolveHorizon({
+      dimensions: { width: 80, height: 60 },
+      biome: 'dungeon',
+    });
+
+    // Large maps derive a larger orbit cap instead of relying on the small-map
+    // floor. Fog must scale with that cap so size cannot recreate the defect.
+    expect(horizon.cameraMaxDistance).toBe(45);
+    expect(horizon.fogFar).toBe(45 * CAMERA_TO_FOG_FAR_RATIO);
+    expect(horizon.fogFar).toBeGreaterThan(horizon.cameraMaxDistance);
+  });
+
+  it('preserves an open biome whose authored horizon already clears the camera', () => {
+    const horizon = resolveHorizon({
+      dimensions: { width: 16, height: 12 },
+      biome: 'forest',
+    });
+
+    // Forest fog is part of the distant-landscape composition and already has
+    // ample range, so the reliability floor must not flatten that tuning.
+    expect(horizon.cameraMaxDistance).toBe(35);
+    expect(horizon.fogFar).toBe(130);
   });
 });
 

@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import type { BattleMapData, LightLevel } from '../../../../types/combat';
-import { buildTileVisibilityOverlays } from '../VFXSystem';
+import {
+  buildTileVisibilityOverlays,
+  LIGHT_SOURCE_MARKER_HTML_PROPS,
+} from '../VFXSystem';
 
 /**
  * These tests protect the 3D map's tactical visibility mask decisions.
@@ -60,5 +63,19 @@ describe('buildTileVisibilityOverlays', () => {
       { id: '3-0', position: { x: 3, y: 0 }, color: '#020617', opacity: 0.78 },
       { id: '4-0', position: { x: 4, y: 0 }, color: '#020617', opacity: 0.66 }
     ]);
+  });
+});
+
+// ============================================================================
+// Visibility Marker Screen-Space Contract
+// ============================================================================
+// Light rings remain world-sized because they communicate spell mechanics.
+// Their LIGHT label is UI and must not shrink as the camera moves away.
+// ============================================================================
+
+describe('light-source visibility marker presentation', () => {
+  it('uses fixed screen-space sizing instead of a camera distance factor', () => {
+    expect(LIGHT_SOURCE_MARKER_HTML_PROPS).toEqual({ transform: false });
+    expect('distanceFactor' in LIGHT_SOURCE_MARKER_HTML_PROPS).toBe(false);
   });
 });

@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 09/08/2026, 22:29:03
+ * Last Sync: 10/08/2026, 13:59:06
  * Dependents: commands/index.ts
- * Imports: 34 files
+ * Imports: 36 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -32,6 +32,8 @@ import { ReactiveEffectCommand } from '../effects/ReactiveEffectCommand'
 import { RegisterRiderCommand } from '../effects/RegisterRiderCommand'
 import { NarrativeCommand } from '../effects/NarrativeCommand'
 import { EnhanceAbilityCommand, type EnhanceAbilityChoiceMap } from '../effects/EnhanceAbilityCommand'
+import { ElementalBaneCommand } from '../effects/ElementalBaneCommand'
+import { GraspingVineCommand } from '../effects/GraspingVineCommand'
 import { WeaponAttackCommand } from './AbilityCommandFactory'
 import { GameState } from '@/types'
 import { TargetValidationUtils } from '@/systems/spells/targeting/TargetValidationUtils'
@@ -1402,6 +1404,36 @@ export class SpellCommandFactory {
       }
     }
 
+    // Elemental Bane's utility row is a cast-time save plus a delayed damage
+    // event. Route it into its explicit owner before generic utility narration
+    // can discard the chosen type and recurring damage state.
+    if (spell.id === 'elemental-bane') {
+      const elementalBaneEffect = activeEffects.find(isUtilityEffect)
+      if (elementalBaneEffect) {
+        const scaledEffect = this.applyScaling(
+          elementalBaneEffect,
+          spell.level,
+          effectiveCastLevel,
+          caster.level
+        ) as UtilityEffect
+        return this.withConcentrationLifecycle([
+          new ElementalBaneCommand(scaledEffect, context)
+        ], spell, caster, context)
+      }
+    }
+
+    // Grasping Vine is the one live composite trigger whose same attack fires
+    // immediately and on later Bonus Actions. Its command stores the vine
+    // origin and delegates all three hit rows through one shared event owner.
+    if (spell.id === 'grasping-vine') {
+      const scaledEffects = activeEffects.map(effect =>
+        this.applyScaling(effect, spell.level, effectiveCastLevel, caster.level)
+      )
+      return this.withConcentrationLifecycle([
+        new GraspingVineCommand(context, scaledEffects, 'initial_cast')
+      ], spell, caster, context)
+    }
+
     // Booming Blade is a blade cantrip: the spell cast is only real if it
     // creates a weapon attack first. Keep this bridge ahead of generic damage
     // command creation so the thunder payload stays gated behind hit or miss.
@@ -1816,6 +1848,16 @@ export class SpellCommandFactory {
       case 'TERRAIN':
         return new TerrainCommand(effect, context)
       case 'UTILITY':
+        // Some older control records keep their Charmed payload inside a
+        // utility row. StatusConditionCommand already normalizes that shape and
+        // owns its save, repeat-save, and domination metadata; routing it here
+        // prevents the generic utility logger from bypassing the initial save.
+        if (
+          (effect as { statusCondition?: unknown }).statusCondition &&
+          effect.summonControl?.summonsNewEntity === false
+        ) {
+          return new StatusConditionCommand(effect as unknown as StatusConditionEffect, context)
+        }
         return new UtilityCommand(effect, context)
       case 'DEFENSIVE':
         return new DefensiveCommand(effect, context)

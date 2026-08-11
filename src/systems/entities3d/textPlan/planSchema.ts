@@ -66,9 +66,14 @@ export interface PlanHead {
   neckIndex?: number;
   /** Sculpted head form (platonic-solid skull + jaw + teeth); omitted = plain ball. */
   form?: 'serpent' | 'beast' | 'blunt' | 'skull';
-  /** 0.4–2 of the frame-derived head radius. */
+  /** 0.4–3 of the frame-derived head radius (3: trunk-thick serpent maws). */
   sizeScale: number;
   eyes: { count: number; sizeScale: number; pupil?: 'round' | 'slit' | 'goat' };
+  /** Cone snout on BALL heads. On FORMED heads (which carry their own
+   * sculpted muzzle) the cone is skipped and `droop` instead scales the
+   * resting jaw gape (factor 1 + droop: -0.6 nearly closes the hinge, 0
+   * keeps the form's default, +0.8 gapes wider) — per-head mouth character
+   * for multi-head creatures. */
   snout?: { lengthScale: number; droop: number };
   /** Ring of twitching fleshy lashes around each eye instead of lids. */
   cilia?: boolean;
@@ -88,8 +93,10 @@ export interface CreaturePlan {
    * bulge 0–1 swells the mid-body (muscle mass).
    * mass [chest, waist, hips] (each 0.5–1.6 of bodyRadM) replaces the
    * single-sine bulge with a three-lobe profile — predators get a deep chest,
-   * tucked waist, and strong hips instead of a sausage. Omit for the
-   * historical taper+bulge tube. */
+   * tucked waist, and strong hips instead of a sausage. With mass set, taper
+   * is the REAR-TIP fraction of the hips lobe (0.3 = near-pointed tail,
+   * 1 = blunt rump) and the front rounds off at 0.6 × chest. Omit mass for
+   * the historical taper+bulge tube. */
   spine: { segments: number; taper: number; arch: number; shape?: 'round' | 'box'; bulge?: number; mass?: [number, number, number] };
   appendages: PlanAppendage[];
   heads: PlanHead[];
@@ -122,7 +129,10 @@ export const PLAN_LIMITS = {
   linkR: [0.02, 1],
   heads: [1, 12],
   opacity: [0.2, 1],
-  headSizeScale: [0.4, 2],
+  // round 3 (creature-anatomy): ceiling 2 → 3. A Valheim-class serpent head
+  // must reach ~1x body radius; at the old cap the sculpted maw rendered at
+  // pea scale (socket r 0.177 m on a 0.3 m trunk) and read as a closed bill.
+  headSizeScale: [0.4, 3],
   eyeCount: [0, 8],
   eyeSizeScale: [0.4, 2],
   snoutLengthScale: [0.3, 2.5],

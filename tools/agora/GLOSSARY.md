@@ -277,3 +277,37 @@ src/systems/worldforge/forests/clumpField.ts.
 thicket, 1 well inside it. Stored on each placed feature. The 3D loader
 scales plants by it, so the biggest trees stand in the middle of a stand and
 the seedlings ring the outside.
+
+**Water notebook** — the world-scale water record (designed 2026-08-10, not
+yet built): far-away water is numbers, not simulation. Every lake and sea
+keeps one fullness number, every river keeps one flow-per-second number,
+and the whole notebook always sums to the same total. The formal name in
+code discussion is the "water graph"; the notebook is the plain word for it.
+
+**Doorstep** — the height of a lake's exit (formally the "sill"). A lake
+feeds its river only while its water stands higher than its doorstep.
+Water below the doorstep stops the river, and the riverbed downstream
+dries by itself — drought as bookkeeping, not simulation.
+
+**Reach** — one stretch of river between two points on the water notebook,
+carrying a single flow-per-second number. A river is a chain of reaches.
+
+**Sky bucket** — the notebook's closing entry (formally the "atmosphere
+term"): what the sun lifts out of seas and lakes, and what rain pays back
+to the mountains. It is printed like every other term, so the world's
+water identity stays exact — the same honesty rule as the sandbox's
+"unpictured" line.
+
+**Live window** — the area around the player where water is real, visible
+and simulated (sheet, curtains, droplets). The notebook feeds its edges:
+inflow walks in at the upstream reach's rate, and whatever leaves is
+written back out through the boundary ledger, so window and notebook can
+never disagree about a cubic meter.
+
+**Noise field** — a recipe that turns a position into a smooth random value:
+ask at the same spot, get the same answer, and nearby spots get nearby
+answers. It is how the world varies without storing the variation — the
+clump field decides where plants crowd with one, the ground grain speckles
+cut faces with one, and the curtain jitter roughens waterfalls with one.
+Layering several at different scales (octaves) gives detail that reads
+natural at every distance.

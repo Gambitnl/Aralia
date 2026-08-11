@@ -184,7 +184,10 @@ export interface SegmentSink {
     /** Continuous swept tube through control points (flat xyz triples) with a
      * radius profile (knots spread evenly along the curve) — smooth spines and
      * chains. Optional: sinks without it receive per-segment seg() fallbacks. */
-    tube?(id: string, points: number[], radii: number[]): void;
+    tube?(id: string, points: number[], radii: number[], bands?: {
+        count: number;
+        strength: number;
+    }): void;
     /** Junction smoothing skirt at a chain root (junction blend, slice 1):
      * a flared ring bridging the limb wall into the hull wall. root = the
      * chain's root joint, (axX,axY,axZ) = unit vector down the root link,

@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 10/08/2026, 15:25:56
+ * Dependents: components/BattleMap/BattleMap3D.tsx, components/BattleMap/terrain/TerrainApron.tsx, components/BattleMap/terrain/TerrainMesh.tsx, components/BattleMap/terrain/index.ts
+ * Imports: 1 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file apronField.ts — the land OUTSIDE the playable rect, as one formula.
  *
@@ -146,6 +162,35 @@ export interface HorizonSetup {
    * can look at renders anywhere near this.
    */
   cameraNear: number;
+  /**
+   * Furthest tactical orbit distance allowed by the camera controls.
+   * Keeping this beside fog makes it impossible for the two systems to drift.
+   */
+  cameraMaxDistance: number;
+}
+
+/**
+ * The fog end must leave breathing room beyond the camera target.
+ *
+ * Linear fog is fully opaque at `fogFar`. A 1.5 ratio reserves another half
+ * orbit distance beyond the camera's legal maximum, so dungeon atmosphere
+ * remains visible without erasing the active camera target.
+ */
+export const CAMERA_TO_FOG_FAR_RATIO = 1.5;
+
+/**
+ * Resolve the orbit distance from the same map scale and biome enclosure that
+ * drive the rest of the horizon. Open landscapes retain their broad overview;
+ * caves and dungeons retain the closer cap that keeps their walls meaningful.
+ */
+export function resolveCameraMaxDistance(
+  mapData: Pick<BattleMapData, 'dimensions'> & { theme?: string; biome?: string },
+): number {
+  const halfDiag = Math.hypot(mapData.dimensions.width, mapData.dimensions.height) / 2;
+  const profile = resolveApronProfile(mapData.biome ?? mapData.theme ?? 'forest');
+  return profile.enclosed
+    ? Math.max(20, halfDiag * 0.9)
+    : Math.max(35, halfDiag * 1.6);
 }
 
 /**
@@ -166,13 +211,25 @@ export function resolveHorizon(
   const profile = resolveApronProfile(mapData.biome ?? mapData.theme ?? 'forest');
   const reachTiles = apronReachTiles(mapData);
   const skyRadius = (reachTiles + halfDiag) * 1.15;
+  const cameraMaxDistance = resolveCameraMaxDistance(mapData);
+
+  // Preserve every biome's authored fog distance when it already clears the
+  // camera. Enclosed biomes get only the missing safety floor: their fog still
+  // begins close to the player and keeps its dark color, but it cannot become
+  // fully opaque before the camera reaches a legal overview position.
+  const authoredFogFar = halfDiag * profile.fogFarMul;
+  const fogFar = Math.max(
+    authoredFogFar,
+    cameraMaxDistance * CAMERA_TO_FOG_FAR_RATIO,
+  );
   return {
     reachTiles,
     fogNear: halfDiag * profile.fogNearMul,
-    fogFar: halfDiag * profile.fogFarMul,
+    fogFar,
     skyRadius,
     cameraFar: skyRadius * 1.3,
     cameraNear: 0.2,
+    cameraMaxDistance,
   };
 }
 

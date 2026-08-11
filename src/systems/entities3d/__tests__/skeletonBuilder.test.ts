@@ -16,6 +16,7 @@ import {
   BIPED_BONE_NAMES,
   BIPED_BONE_PARENT,
   bipedRestPose,
+  bipedSkullRadiusM,
   buildBipedSkeleton,
   createBipedPoseSink,
   type BipedBoneName,
@@ -117,18 +118,45 @@ describe('buildBipedSkeleton — hierarchy and proportions', () => {
       // pelvis/chest/neck/head follow the driver height ladder
       const legLen = frame.limbLengthFt * FT_TO_M;
       const r = frame.heightFt * FT_TO_M * 0.105 * frame.bulk;
-      expect(at('pelvis').y).toBeCloseTo(legLen - r * 0.35, 6);
-      expect(at('head').y).toBeCloseTo(
-        frame.heightFt * FT_TO_M - frame.heightFt * FT_TO_M * 0.11 * frame.headScale * 0.7,
-        6,
-      );
+      // round 5 (humanoid-anatomy): upright idle — the pelvis rides at 0.96 of
+      // full leg reach (1.04 legLen) plus the hip-socket drop (mirror of
+      // bipedRestPose pelvisY)
+      const pelvisY = legLen * 1.04 * 0.96 + r * 0.3;
+      // round 13 (humanoid-anatomy): pelvis root rises to −0.2 r (the smooth
+      // loft rounds a glute tuck below it — the hem-disc is gone)
+      expect(at('pelvis').y).toBeCloseTo(pelvisY - r * 0.2, 6);
+      // round 3 (humanoid-anatomy): the head rises when the frame leaves no
+      // daylight for a neck — min visible neck height hM * 0.04 + skullR * 0.25
+      // between the chest top and the skull base (mirror of bipedRestPose)
+      // round 6 (humanoid-anatomy): the head ladder runs on the DRAWN skull
+      // radius (bipedSkullRadiusM ≤ headRadiusM — slim frames carry a smaller
+      // skull), mirroring bipedRestPose headY
+      // round 10 (humanoid-anatomy): SEATED head — collar-driven mount. The
+      // loft chin (headY − 0.59 skullR) rides a bulk-shrinking neckLift above
+      // the chest top (human ≈ 0.46 skullR, orc/dwarf ≈ 0.2); the old hM
+      // floor and skull-stack minimum are gone. Mirrors driver + restPose.
+      const hM = frame.heightFt * FT_TO_M;
+      const skullR = bipedSkullRadiusM(frame);
+      const chestTopY = pelvisY + (hM - legLen) * 0.45 + r * 0.35;
+      // round 13 (humanoid-anatomy): lift floor 0.2, slope 0.45 — mirror
+      const neckLift = Math.min(0.55, Math.max(0.2, 0.46 - 0.45 * Math.max(0, frame.bulk - 1)));
+      expect(at('head').y).toBeCloseTo(chestTopY + skullR * (0.59 + neckLift), 6);
       expect(at('chest').y).toBeGreaterThan(at('pelvis').y);
       expect(at('neck').y).toBeGreaterThan(at('chest').y);
       expect(at('head').y).toBeGreaterThan(at('neck').y);
       // stance width carries into the thigh roots
-      const stanceHalf = (frame.stanceWidthFt * FT_TO_M) / 2;
-      expect(at('thighL').x).toBeCloseTo(-stanceHalf * 0.8, 6);
-      expect(at('thighR').x).toBeCloseTo(stanceHalf * 0.8, 6);
+      // round 1 (humanoid-anatomy): stance widened 1.12x, hip roots at 0.85
+      // round 2 (humanoid-anatomy): bulk-independent stance floor (hM * 0.089)
+      // round 4 (humanoid-anatomy): shoulder-derived stance floor — feet at
+      // 68% of the visual shoulder span (deltoid outer edge), planting the
+      // legs under the hips instead of under the spine
+      const armR = Math.max(r * 0.3, frame.armLengthFt * FT_TO_M * 0.085);
+      const stanceHalf = Math.max(
+        ((frame.stanceWidthFt * FT_TO_M) / 2) * 1.12,
+        ((frame.shoulderWidthFt * FT_TO_M) / 2 + armR * 1.6) * 0.68,
+      );
+      expect(at('thighL').x).toBeCloseTo(-stanceHalf * 0.85, 6);
+      expect(at('thighR').x).toBeCloseTo(stanceHalf * 0.85, 6);
     }
   });
 

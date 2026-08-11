@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 01/06/2026, 00:50:52
+ * Last Sync: 10/08/2026, 13:56:23
  * Dependents: components/CharacterSheet/Overview/index.ts
- * Imports: 18 files
+ * Imports: 17 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -61,7 +61,7 @@ import HandsIcon from '../../../assets/icons/HandsIcon';
 import DynamicMannequinSlotIcon from './DynamicMannequinSlotIcon';
 import { isWeaponProficient, isWeaponMartial } from '../../../utils/character';
 import { getCharacterMaxArmorProficiency, getArmorCategoryHierarchy, getAbilityModifierValue } from '../../../utils/character';
-import { resolveItemVisual } from '../../../utils/visuals';
+import { resolveItemAssetSrc, resolveItemVisual } from '../../../utils/visuals';
 
 interface EquipmentMannequinProps {
   character: PlayerCharacter;
@@ -123,20 +123,30 @@ const EquippedItemVisual: React.FC<{ item: Item }> = ({ item }) => {
   const [imgError, setImgError] = React.useState(false);
   const imgRef = React.useRef<HTMLImageElement>(null);
   const visual = resolveItemVisual(item);
+  // Catalog paths are portable and relative. Resolve them against the same app
+  // base used by InventoryList so nested Character Sheet routes request the
+  // exact SVG that the backpack displayed before the item was equipped.
+  const itemAssetSrc = resolveItemAssetSrc(visual.src);
+
+  React.useEffect(() => {
+    // A slot keeps this component mounted when one item replaces another. Let
+    // the replacement asset try to load even if the prior image had failed.
+    setImgError(false);
+  }, [itemAssetSrc]);
 
   React.useEffect(() => {
     const img = imgRef.current;
-    if (!img || !visual.src || imgError) return;
+    if (!img || !itemAssetSrc || imgError) return;
     const handleError = () => setImgError(true);
     img.addEventListener('error', handleError);
     return () => img.removeEventListener('error', handleError);
-  }, [visual.src, imgError]);
+  }, [itemAssetSrc, imgError]);
 
-  if (visual.src && !imgError) {
+  if (itemAssetSrc && !imgError) {
     return (
       <img
         ref={imgRef}
-        src={visual.src}
+        src={itemAssetSrc}
         alt={visual.label}
         className="w-10 h-10 object-contain drop-shadow-md"
       />

@@ -67,9 +67,17 @@ export function generateEntityBlueprint(recipe: EntityRecipe): EntityBlueprint {
     } else if (recipe.ageBand === 'elder') {
       heightFt *= 0.96;
     }
+    // round 9 (humanoid-anatomy): race frame character — parametric
+    // multipliers on top of the shared derivation (speciesProfiles.frameMods).
+    const frame = deriveFrame(profile.gait, heightFt, bulk, headScale);
+    if (profile.frameMods) {
+      frame.shoulderWidthFt *= profile.frameMods.shoulder ?? 1;
+      frame.limbLengthFt *= profile.frameMods.limb ?? 1;
+      frame.armLengthFt *= profile.frameMods.arm ?? 1;
+    }
     return {
       gait: profile.gait,
-      frame: deriveFrame(profile.gait, heightFt, bulk, headScale),
+      frame,
       palette: {
         skinHex: pick(paletteRng, profile.skinTones),
         eyeHex: pick(paletteRng, profile.eyeTones),

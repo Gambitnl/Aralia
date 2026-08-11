@@ -43,8 +43,10 @@ describe('heroImagePrompt', () => {
     expect(dragonPrompt).toContain('four-legged posture');
   });
 
-  it('names the serpent head form', () => {
-    expect(dragonPrompt).toContain('wedge-shaped reptilian head');
+  it('names the head form', () => {
+    // round 6 (creature-anatomy): the dragon fixture moved from the serpent
+    // form to the drake 'beast' skull, so the prompt names the beast head.
+    expect(dragonPrompt).toContain('broad-muzzled beast head');
   });
 
   it('ends with exactly the sculpt style phrase', () => {

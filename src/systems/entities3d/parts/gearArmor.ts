@@ -15,13 +15,17 @@ import {
   TorusGeometry,
 } from 'three';
 import type { Frame, PartDef } from '../types';
-import { FT_TO_M, headRadiusM, heightM } from '../types';
+import { FT_TO_M, heightM } from '../types';
+import { bipedSkullRadiusM } from '../three/skeletonBuilder';
 
 const STEEL = '#aab4bf';
 const LEATHER = '#6e4a32';
 
+/** round 6 (humanoid-anatomy): gear scales from the DRAWN skull radius, not
+ * headRadiusM — slim frames draw a smaller skull, and a helmet sized to the
+ * old radius would keep the oversized-dome read the skull fix removes. */
 function hr(frame: Frame): number {
-  return headRadiusM(frame);
+  return bipedSkullRadiusM(frame);
 }
 
 const shieldOff: PartDef = {
@@ -49,15 +53,26 @@ const helmet: PartDef = {
   anchor: 'head',
   kind: 'mesh',
   buildMesh(ctx) {
-    const r = hr(ctx.frame) * 1.12;
+    // round 7 (humanoid-anatomy): fitted to the SCULPTED skull
+    // (headForms.buildHumanoidHead — crown 0.88, half-width 0.74, eyes at
+    // y 0.16 / z 0.6 in skull radii). The old 1.12-radius dome with its rim
+    // at head-center height swallowed the new deeper-set face whole — the
+    // round-7 first capture showed helmet, neck, and no eyes.
+    // round 9 (humanoid-anatomy): OPEN-FACE for real. The round-8 rim
+    // (~0.26 r) still sat ON the brow shelf (loft station y 0.30), hiding the
+    // carved sockets, and the nasal bar eclipsed the recessed right eye at
+    // the face camera's parallax — the verdict's "one floating iris dot".
+    // The dome now rides higher (rim ≈ 0.44 r, above the brow shelf, below
+    // the forehead station at 0.46) and the nasal bar is gone: the skull
+    // loft's own brow shelf, sockets, and lidded eyes stay visible under it.
+    const r = hr(ctx.frame) * 0.98;
     const group = new Group();
-    const dome = new Mesh(new SphereGeometry(r, 12, 8, 0, Math.PI * 2, 0, Math.PI * 0.55), ctx.material(STEEL));
-    dome.position.y = r * 0.15;
-    const nose = new Mesh(new BoxGeometry(r * 0.16, r * 0.5, r * 0.1), ctx.material(STEEL));
-    nose.position.set(0, -r * 0.05, r * 0.92);
+    const dome = new Mesh(new SphereGeometry(r, 12, 8, 0, Math.PI * 2, 0, Math.PI * 0.46), ctx.material(STEEL));
+    dome.position.y = r * 0.32;
+    dome.scale.set(0.88, 1, 1);
     const crestRidge = new Mesh(new BoxGeometry(r * 0.1, r * 0.22, r * 1.3), ctx.material(ctx.palette.accentHex));
-    crestRidge.position.y = r * 0.75;
-    group.add(dome, nose, crestRidge);
+    crestRidge.position.y = r * 0.93;
+    group.add(dome, crestRidge);
     return { object: group };
   },
 };

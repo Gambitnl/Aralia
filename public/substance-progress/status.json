@@ -1,69 +1,182 @@
 {
-  "updated": "2026-08-10T14:00:00Z",
-  "headline": "The cliff is dead: one height function now grounds the combat map to the horizon (+1 draw call, 0.51% of triangles). The arena color patch is the loudest remainder — D1, your call. Four builders live.",
+  "updated": "2026-08-11T16:30:00Z",
+  "headline": "ALL GREEN, ALL RECORDED. The last red test fixed on the right side (a 6-week-stale mock; the assertion untouched, live-verified). The ADR carries the Land era. The frontier is the decision board below.",
   "decisions": [
     {
       "id": "D0",
       "title": "Which water is THE water",
-      "question": "Three water models exist: the thin layer (ponds/streams), the droplets (splashes/pours — beat the reference), and the legacy cell grid (the old experiment). Remy signaled the current mix may not be the water he wants. NOTE: IMPL-8 finished — its sparse-memory machinery carries to the droplet water almost unchanged (~50 MB vs 2 GB), so the droplets-everywhere option got materially cheaper.",
-      "options": "Decide on the new one-page side-by-side (?step=water, IMPL-10, in flight) — same terrain, same pour, ledger printed per mode",
-      "evidence": "IMPL-10 lands the comparison page; impl-8-checkpoint.md holds the paused sparse work"
+      "question": "NARROWED by Remy live: the water he wants BEHAVES like the volume sandbox's — runs downhill, falls, pools naturally. That IS the thin layer at full presentation; the Water page pane under-sold it (bare sheet, mild ground). The honest side-by-side is being rebuilt with relief terrain + the full costume.",
+      "options": "DECIDE NOW BY LOOKING: ?step=water on the relief terrain — frame 04 is the argument (the legacy grid heaps its water at the spring while the thin layer runs the gully, drops the cliff, pools in the basin). Same pour, same ground.",
+      "evidence": "waterpage-relief-02/-04/-05.jpg; the live page",
+      "links": [
+        {
+          "label": "The Water side-by-side",
+          "href": "/Aralia/misc/design.html?step=water"
+        }
+      ]
     },
     {
       "id": "D1",
       "title": "Ground palette direction",
-      "question": "The volume ground renders fixed substance colors; the world is biome-tinted. The rim is a hard tonal line on both the combat arena and the World3D bubble.",
-      "options": "A: biome-tint the volume's TOP surface (aTint wire exists; cut faces stay substance-true) · B: move the world onto substance colors · C: decide from IMPL-5's uTintMix triptych (0 / 0.65 / 1.0) when it lands",
-      "evidence": "impl-4-15-rim-over.png; the triptych lands as impl-5-palette-*"
+      "question": "REFRAMED by IMPL-5: the tint has shipped at FULL strength since slice 1 — the rim line Remy circled exists WITH the tint on, and a forest board cannot show the A/B (tint only bites where terrain contradicts biome). UPDATE: the winding fix revealed flat ground baked AO at 0.054 instead of 1.0 — the volume drew at ~half brightness all along. RE-SHOOT the rim before ruling; part of the darkness was a bug, not a palette.",
+      "options": "The triptych needs a MIXED board (desert/rock tiles inside a forest map) to show anything — or the rim line is not tint at all and wants a Fable look pass on the join itself",
+      "evidence": "impl-5.md §4; impl-5-palette-*.png (three near-identical frames)",
+      "links": [
+        {
+          "label": "The combat rim",
+          "href": "/Aralia/misc/design.html?step=battlemap&render=3d"
+        },
+        {
+          "label": "The Land page",
+          "href": "/Aralia/misc/design.html?step=land"
+        }
+      ]
     },
     {
       "id": "D2",
       "title": "Particles: the splash or the fall?",
-      "question": "At 0.5 m spacing a 3,000-particle budget holds ~94 m³ against ~600 m³ of fall transit — particles cannot be both the droplets and the mass.",
+      "question": "At 0.5 m spacing a 3,000-particle budget holds ~94 m³ against ~600 m³ of fall transit — particles cannot be both the droplets and the mass. SIGNAL (Remy, 2026-08-10): 'I do love the droplets though' — lean toward generous droplet presence; the sparse repoint (parked, impl-8-checkpoint.md) is the enabler when wanted.",
       "options": "A: particles stay the SPLASH at the foot, curtains carry the fall (current) · B: coarser quanta carry the whole fall but stop reading as droplets",
-      "evidence": "impl-2.md §open calls"
+      "evidence": "impl-2.md §open calls",
+      "links": [
+        {
+          "label": "Land: the fall with the droplet toggle",
+          "href": "/Aralia/misc/design.html?step=land"
+        },
+        {
+          "label": "Water: the droplets pane",
+          "href": "/Aralia/misc/design.html?step=water"
+        }
+      ]
     },
     {
       "id": "D3",
       "title": "The 69% invisible seal",
-      "question": "472,712 of 686,120 bubble triangles seal a bottom nobody can see, because VoxelVolume is cubic.",
+      "question": "472,712 of 686,120 bubble triangles seal a bottom nobody can see, because VoxelVolume is cubic. RESOLVING: Remy asked for independent width and height on the sandbox — the slab direction; a builder implements it with measured ceilings and reports the seal dividend. LANDED: the sandbox defaults to a 240x64 slab — -168,960 triangles, 99.85% of them seal, visible surface unchanged within 0.16%. The remaining prize is the FLOOR (32-36% of the mesh): cutting it is the follow-up if wanted.",
       "options": "A: make the volume a slab (64 m wide, ~16 m tall) and delete the seal · B: keep the cube for the carve-depth headroom",
-      "evidence": "impl-1.md §open calls"
+      "evidence": "impl-1.md §open calls",
+      "links": [
+        {
+          "label": "Land: the wide/tall rows (slab live)",
+          "href": "/Aralia/misc/design.html?step=land"
+        }
+      ]
     },
     {
       "id": "D4",
       "title": "Picturing water behind rock",
       "question": "Water inside a tunnel exists and is ledgered but cannot be seen — Teardown never shows a place where mass moves invisibly.",
       "options": "A: a section cut through the volume mesh near the camera · B: an x-ray water silhouette through rock · C: accept until a real need",
-      "evidence": "impl-3.md §6; impl3-33-balls-cutaway-near-t10.jpg"
+      "evidence": "impl-3.md §6; impl3-33-balls-cutaway-near-t10.jpg",
+      "links": [
+        {
+          "label": "Water: droplets (the tunnel demo scene)",
+          "href": "/Aralia/misc/design.html?step=water"
+        }
+      ]
     },
     {
       "id": "D5",
       "title": "In-rock particle tolerance",
       "question": "~0.5% of GPU particles (~490 of 100k) sit transiently inside the bore wall at the tunnel.",
       "options": "A: accept (invisible in practice) · B: widen the standoff (costs tunnel width) · C: a real lateral wall test (costs per-substep math)",
-      "evidence": "impl-3.md §6"
+      "evidence": "impl-3.md §6",
+      "links": [
+        {
+          "label": "Water: droplets",
+          "href": "/Aralia/misc/design.html?step=water"
+        }
+      ]
     },
     {
       "id": "D6",
       "title": "SPAN_SLOTS headroom",
       "question": "Span packing carries 2 spans per column (covers every current world; stacked bores overflow to a counted number).",
       "options": "A: stay at 2 until the overflow count says otherwise (recommended by the data) · B: pay for 4 now",
-      "evidence": "impl-3.md §span census"
+      "evidence": "impl-3.md §span census",
+      "links": []
     },
     {
       "id": "D7",
       "title": "Final Fable wow gates",
       "question": "G1 and W2 retired at/near reference parity without a final formal wow verdict (the budget pivot ended the loops).",
       "options": "A: run one Fable critic per piece for the formal wow · B: the record stands as is",
-      "evidence": "g1-critic-round8.md, w2-critic-round8.md"
+      "evidence": "g1-critic-round8.md, w2-critic-round8.md",
+      "links": [
+        {
+          "label": "Land (G1 ground)",
+          "href": "/Aralia/misc/design.html?step=land"
+        },
+        {
+          "label": "Water (W2 droplets)",
+          "href": "/Aralia/misc/design.html?step=water"
+        }
+      ]
     },
     {
       "id": "D8",
       "title": "W2 grazing skim puff",
       "question": "One pale skim-water puff over bright sand survives at one grazing pose — mostly honest refraction of the tan hillside, parked as the last W2 look item.",
       "options": "A: a Fable look pass decides · B: accept as physically honest",
-      "evidence": "w2-r8c-critic-grazing.jpg"
+      "evidence": "w2-r8c-critic-grazing.jpg",
+      "links": [
+        {
+          "label": "Water: droplets at grazing",
+          "href": "/Aralia/misc/design.html?step=water"
+        }
+      ]
+    },
+    {
+      "id": "D9",
+      "title": "Registry look collisions",
+      "question": "The contact sheet names near-identical pairs, straight from the registry data: paved/floor (1% apart), desert vs river-bed sand (same top band), the forest/jungle/tundra litter group (one look), grassland/dirt (hue only), wetland vs litter (value only).",
+      "options": "Per pair: differentiate in the registry (a data edit) or accept as真 — the campaign never silently tunes; each pair is one line to change once ruled",
+      "evidence": "impl-6.md §named pairs; the impl-6-groundtypes-* sheet",
+      "links": [
+        {
+          "label": "Land types panel, open on load",
+          "href": "/Aralia/misc/design.html?step=land&landtypes=1"
+        }
+      ]
+    },
+    {
+      "id": "D10",
+      "title": "The snow line is unreachable",
+      "question": "Ground-mode snow effectively never appears: 8.31% of columns sit above the snow line, 0.01% capped, 14 of 15 windows have none. The heightfield runs the same shed rule — one decision covers both.",
+      "options": "A: lower the snow line for ground-mode reachability · B: accept (snow is a mountaintop rarity by design)",
+      "evidence": "impl-6.md §also measured",
+      "links": [
+        {
+          "label": "Land: the Snow Tundra tab",
+          "href": "/Aralia/misc/design.html?step=land&biome=tundra"
+        }
+      ]
+    },
+    {
+      "id": "D11",
+      "title": "Preset sky vs sandbox light on the biome tabs",
+      "question": "The ported per-biome atmosphere washes the ground (swamp peat reads 130/117/135 pale lilac under the preset vs 72/59/48 legible bands under the sandbox rig) — a faithful port of a preset tuned over palette-bright terrain. Bonus finding: the retired page's sky was blown flat white ALL ALONG (three-stdlib Sky bypasses tone mapping).",
+      "options": "The page ships preset-ON with a toggle + an amber note. Rule per biome: keep the atmospheric preset, keep the sandbox light, or commission a retune of the presets over substance ground",
+      "evidence": "biomes-move-ab-swamp-*.jpg; biomes-move.md findings",
+      "links": [
+        {
+          "label": "Land: swamp under Preset sky vs Sandbox light",
+          "href": "/Aralia/misc/design.html?step=land&biome=swamp"
+        }
+      ]
+    },
+    {
+      "id": "D12",
+      "title": "Side-by-side solver budget",
+      "question": "Arming Droplets beside a RUNNING Thin layer starves the loader (the thin solver owns the main thread at 8 fps in split view). The fix is a per-frame budget on that solver — which changes how fast the water visibly moves. The fixer refused to retune your water silently.",
+      "options": "A: budget the thin solver in split view only (water moves slower there, solo view untouched) · B: accept (pause one pane before arming the other — works today) · C: budget everywhere",
+      "links": [
+        {
+          "label": "Water: side by side",
+          "href": "/Aralia/misc/design.html?step=water"
+        }
+      ],
+      "evidence": "waterfix.md §one thing I did not fix"
     }
   ],
   "pieces": [
@@ -81,9 +194,9 @@
       "name": "Granular settling after a dig",
       "bar": "Teardown",
       "harness": "?step=volume",
-      "status": "building",
+      "status": "wowed",
       "round": 1,
-      "verdict": "UNPARKED (Remy: more parallel Opus). A cellular relaxation solver sheds loose substance past its angle of repose — exact cell-count conservation, rock immune, sand fans wider than soil, time-sliced under the 111 ms budget; debris rides the settled surface; water displaces honestly."
+      "verdict": "BUILT: granularSettle.ts avalanche solver — lift one cell, walk it downhill, set it down where its own repose lets it rest. Conservation exact by construction (removal + deposit are one statement); termination is a PROOF (sum-of-squared-heights strictly falls), not a tuned cap. Live: a 1.5 m bore slumps 1,575 cells in 17 slices, worst settle slice 1.0 ms; the water identity holds to the digit through a slump under a pool. The first build (the shallow-water pipe pattern) was correct, conserving, and USELESS — 124 s of churn; recorded as the finding. Fable look gate pending; World3D + combat hooks are the follow-up."
     },
     {
       "id": "W1",
@@ -153,9 +266,9 @@
       "name": "Combat slice 2: carve + beds + light",
       "bar": "spells crater the arena; streams hold; craters readable",
       "harness": "?step=battlemap&render=3d",
-      "status": "building",
+      "status": "wowed",
       "round": 1,
-      "verdict": "One effect class carves end to end (brush → remesh → sampler republish → honest water reaction → tokens re-plant); VoxelVolume gains cellsY so a 0.42 m basin holds two cells; the G1 shadow-floor recipe reaches the combat lighting preset; a uTintMix triptych (0 / 0.65 / 1.0) lands for Remy's palette call. SCOPE ADDED (Remy): wire BIOME_GROUND per column into the World3D bubble (the hard-coded forest-litter stack was the gap), and prove top-surface differentiation with a 5-stack contact sheet (litter, sand, rock, peat, snow) at 2 m + 10 m + one cut face each — near-identical pairs get named, not silently tuned."
+      "verdict": "DONE: groundImpact.ts classifies explosion-class effects; one carve path shared by combat and the dev hook; a Fireball moved the surface 0.481 → -1.751 with held+escaped delta 0.000000 m³ through a stream-bank carve. cellsY landed (0.15 m vertical cells; water held 11% → 83-92%; every old caller bit-identical cubic). Crater lighting: a below-grade counter-key directional — walls [4,8,2] → [25,32,24] grazing. Worst carve slice 32.5 ms live (slabs resized 64 → 32 wide to kill a 245 ms unsplittable hitch). Triangle audit: 87% is vegetation; the ground is 5.5%."
     }
   ],
   "log": [
@@ -370,6 +483,114 @@
     {
       "time": "2026-08-10",
       "text": "IMPL-7: Remy's cliff had three stacked causes, all named by number — the fringe eased down to a shelf datum, the datum quad ENDED (its far edge was the line: the biggest row-to-row luma step sat on scanline 171 from all eight azimuths), and two drifted fog-color duplicates met at the sky dome equator. Fix: apronField.ts is ONE height function sampled by board fringe AND a new TerrainApron to the horizon — no blend, no seam; the terrain shader moved to one shared material (the first apron baked its own palette and drew a tonal rectangle — sharing removed it); fog/sky/camera resolved together (far 125 → 975). After: the biggest row step lands on eight different scanlines; the overview reads ground, not fog. Cost: 53,760 tris, +1 draw call, 0.51%. Follow-up named: world-derived boards carry provenance.anchorWorldMeters — wire REAL surrounding-world sampling there (farShells already builds those rings). The loudest remaining rectangle is the arena albedo vs the grass shader = D1."
+    },
+    {
+      "time": "2026-08-10",
+      "text": "G2: the never-built piece is real. FINDING: the campaign's shallow-water pattern is the wrong shape for granular flow — diffusion needs O(L-squared) sweeps (124 s live, never converged); the avalanche rewrite (steepest-descent walk per cell) needs 17 slices, conserves by construction, and terminates by proof. Rock immune at hardness > 0.3; debris scatters on the final drain so clods sit on the SETTLED surface; the slump ledger prints moved volume. G2 also claimed board task dd6140c0 and applied IMPL-9's survival wiring with the rig proof (blob 1.52 M chars, 13.5 ms, identity delta -0.00). Gaps named: the 13.9 ms window scan, the hillside re-settle tail, sand-vs-soil repose is 1 degree apart in the registry (a data call), and only ?step=volume is wired — bubble + arena want the same four hooks."
+    },
+    {
+      "time": "2026-08-10",
+      "text": "IMPL-5: combat carving live end to end — explosion-class effects carve through ONE shared path, de-duped on animation id; tokens re-plant via the republished sampler; a 1,199-cell carve into a stream bank changed held+escaped by 0.000000. cellsY: the arena runs 0.15 m vertical cells and the stream finally holds a channel (water held 11% → 83-92%); the sweep left the two peer-locked files cubic-correct and named. Lighting: a below-grade DIRECTIONAL (hemisphere brightens tops, not walls). The palette premise was WRONG: uTintMix ships at 1 since slice 1 — the A/B needs a mixed board; D1 reframed. Triangle audit: 8.2M unique drawn 3.1x; 87% vegetation, grass alone 2.95M; the volume ground is 5.5% and NOT the perf lever. Worst carve slice 32.5 ms after resizing slabs 64 → 32 (a 64-wide slab makes a 245 ms unsplittable hitch)."
+    },
+    {
+      "time": "2026-08-10",
+      "text": "IMPL-10: ?step=water is the ONLY water address — Thin layer | Droplets | Legacy grid on one terrain with one derived pour rate (1.31 m³/s from the legacy kernel), a ledger under every pane, side-by-side with ONE shared orbit (poses identical to the last digit). ?step=fluid is an alias; the GPU Fluid tab is gone; PreviewFluid3D deleted. Plain English ENFORCED BY A TEST (a regex rejects jargon in every label). Two real bugs fixed: a setState-in-updater depth explosion, and a 60 Hz ledger re-render that had the page at 4 fps. Park-by-default verified per pane. Open calls: a 3-line camera hook in the legacy scene (peer-locked), whether the legacy grid lives at all (part of D0), thin-layer default forest-vs-wetland."
+    },
+    {
+      "time": "2026-08-10",
+      "text": "IMPL-6: the biome wire crossed a real vocabulary gap — BIOME_GROUND speaks climate (FMG ids), the world speaks surface palette ids (mountain/dirt/paved/floor have NO climate); groundBiomeStack.ts totals over the palette vocabulary and throws on the rest. Multi-biome bubbles are real (one cell straddles three): fill per column, material per census winner, aTint carries the difference — the shared material needed ZERO change. Contact sheet: 7 distinct stacks, luminance 8 (peat) to 102 (snow), banded mountain rock where IMPL-1 had litter. Near-identical pairs NAMED from data (D9); snow unreachable (D10). Two live-dig blockers found: the bubble is a 30 cm lid over an uncut heightfield, and cuts draw walls-without-floor (normals-down hypothesis) — a focused Opus fix runs now. Also fixed in passing: a cached-program bug that anchored world-locked noise to the player's first position. Fleet: Opus bug fix + Haiku clean-tree verification."
+    },
+    {
+      "time": "2026-08-10",
+      "text": "Haiku verification on the quiet tree: terrain 253, steps 120, World3D 161, BattleMap 3D all green — 702 passed. The 4 failures are the SAME 2D-board set flagged since IMPL-4, now confirmed persistent (not peer churn) — spun off as a task chip outside this campaign. The 5 tsc errors sit in other campaigns' in-flight files. Every surface this campaign touched is green."
+    },
+    {
+      "time": "2026-08-10",
+      "text": "Floor bug fixed — two defects, not one. (1) The floor was always drawn and always COVERED: the streamed heightfield plus two UNNAMED far-shell ground meshes that setTerrainVisible could not reach (41.4% of changed pixels showed the surface behind the bubble; 0.0% once named and hidden). (2) The mesher winding was globally inverted and survived NINE critic rounds because every material is DoubleSide — but the AO fan cast along the normal probed INTO rock, baking open flat ground to 0.054 instead of 1.0: the volume drew at half brightness, which was half of the arena-darkness complaint. Fix: emitQuad orders swapped (renamed solidHere — neither order was a flip of a correct one), 4 new surface-FACES-OUT tests that fail on the old winding, shells named, terrain 257 green. Remaining live-dig blocker: the uncut heightfield lid (a slice + a Remy call). The fleet is idle; the board (D0-D10) holds the campaign."
+    },
+    {
+      "time": "2026-08-10",
+      "text": "Remy circled the sandbox water running the landscape: that IS the thin layer wearing its earned costume (arc jet, fall curtains, steep film, slump interplay) on dramatic ground. His observation — it reacts to the landscape far more naturally than the Water page pane — is presentation, not physics: the pane shows a bare sheet on mild terrain. Builder launched: relief terrain (cliff + basin) for the SHARED comparison ground and full-costume rendering for the thin-layer pane; droplets/legacy panes follow or get honestly labeled. D0 narrows to a look at the rebuilt page."
+    },
+    {
+      "time": "2026-08-10",
+      "text": "Remy: move the concept, then deprecate and retire the 3D Biomes step — same consolidation rule as the fluid page. Its terrain predates the substance ground; its one unique asset (per-biome sky + sun presets) gets extracted to a shared module. The concept lands as biome tabs on ?step=volume: one click loads a REAL world window of that biome with true per-biome stacks under the preset light. The old step becomes an alias; the orphan component deletes. Opus builder launched."
+    },
+    {
+      "time": "2026-08-10",
+      "text": "Remy: independent width-breadth and height controls on the volume sandbox — bigger land tiles. This implements D3-A (slab): cellsY exists since IMPL-5, the worker fill changed the size calculus, and the builder MEASURES 360/480 m before enabling the buttons (the 240 m tab-freeze is still the law; the guard recomputes true cell counts per combo). Auto height reads the window relief + carve headroom. The seal-triangle dividend gets reported against D3 69% baseline. The builder queues politely on the hot PreviewVolumeGround lock behind the droplet and biomes builders."
+    },
+    {
+      "time": "2026-08-11",
+      "text": "Remy: same consolidation for the Environment step — collect all LAND concepts in one design preview. The sandbox already converges there (biome tabs, sizes, water toggle, tools in flight). QUEUED behind the hot file: ?step=volume renames to ?step=land (aliases kept), Mold Earth becomes the first spell-shaped tool beside the dig tools, the time slider joins the extracted sky presets, the Environment step retires to an alias. Bonfire/Grease = the fire-on-substance seed, parked to the plan map (scorch as a substance state — its own campaign)."
+    },
+    {
+      "time": "2026-08-11",
+      "text": "Remy: same for 3D Test. Inspected — it is two concepts in one tab: the seeded Scene3D biome view (superseded by the Land biome tabs on real ground — dies) and the ez-tree preset EDITOR (the unique asset — moves to the Land page as a collapsible Trees panel). Added to the queued Land consolidation; the step retires to an alias with the others. The Land page absorbs: world tabs, biome tabs, sizes, water toggle, dig tools + Mold Earth, settling, time-of-day, the Trees editor."
+    },
+    {
+      "time": "2026-08-11",
+      "text": "The Water-page rebuild landed: waterConditions.ts owns a DESIGNED relief (tilted shelf, gully, a 5.8 m cliff inside one cell, a closed basin); the sandbox water rendering moved VERBATIM into steps/waterLook.ts (~1,100 lines; PreviewVolumeGround lost ~1,050 — good news for the queued Land work); the thin-layer pane wears the full costume with a new honest falling term. Two live-caught faults: an out-sloped shelf stranded 22.6 m³ in a hollow (the ledger stayed exact — the water was merely in the wrong place), and a 1.1 m scarp drew stacked curtain panels until CLIFF_RUN_M=0.5. The balls trap root cause: ONE button printing its state read as its action — now a segmented control + a warm-up hold. And frame 04 argues D0 by itself: the legacy grid heaps water in a lump at the spring on the same terrain the thin layer runs. steps 156, terrain 285, sandbox re-verified after the extraction."
+    },
+    {
+      "time": "2026-08-11",
+      "text": "Glossary → Agora-live: GET :4319/glossary parses GLOSSARY.md fresh (mtime+size cache — the key IS the file identity, so staleness is unreachable; the 60 s window pattern was rejected for that reason). 37 routes probed, exactly one status moved (the new route 404 → 200); the journal-preserving restart kept 5 agents, 10 locks, 23 tasks. The static terms.json and the regeneration step are deleted — GLOSSARY.md is the single source, served live. Down state is one honest sentence. 102/102 daemon tests. Minor note for later: the page hardcodes localhost:4319 — fine for dev; a deployed build would need a daemon-location decision."
+    },
+    {
+      "time": "2026-08-11",
+      "text": "The biomes move landed: six tabs, each a REAL atlas window with measured stack purity (censusColumnStacks, 99.9-100%). Two presets got NO tab deliberately, with a test asserting it: Volcanic Wastes (the world has no volcanic ground — a tab would be a painted label) and Snow Tundra lands on a glacier (D10 exactly). Lighting extracted to biomeSkyPresets.ts with the fog rescale MEASURED (camera-distance scaling reproduces the old haze; terrain scaling tried and rejected). Old step deleted + aliased; zero stragglers. The four-way lock queue on the sandbox file was coordinated cleanly (reservation #1, 25 minutes, region rebase note to the next holder). New finding: the retired page's sky was flat blown white the whole time (tone-mapping bypass). D11 opened for the preset-vs-sandbox light call."
+    },
+    {
+      "time": "2026-08-11",
+      "text": "Remy: a button showing each individual ground type in the current biome. Briefed as the LAND TYPES panel: one card per stack layer from the same census data the status line prints (never a duplicate table), registry numbers translated plainly (soaks fast/slow, slumps at N degrees, rock does not settle), and the part that matters — live-rendered swatches of each substance's top AND cut face using the real shared material under the page's current lighting mode. No color chips. Built module-first; takes the sandbox lock third in queue."
+    },
+    {
+      "time": "2026-08-11",
+      "text": "The droplet toggle landed, decided by measurement: the CPU MPM grid is nearly FREE (0.07 ms empty at 52-cubed — the recorded 0.3 ms floor does not exist; only particle count costs, 4.4 µs/particle-substep), so a bigger CPU domain beat the depth-broken WebGPU overlay outright — 700 droplets of 0.634 m³ in a 60 m window at 59.9 fps, identity delta 0.000 at six moments, the resting pool STAYS droplets (retirement flips to window-edge). Second discovery: the vendor cadence applied 86-432 m/s² gravity depending on cell size — a 12 m box hid it; dropletTimestep now calibrates to 9.81 with a free-fall integration test. HONEST GAP: proof frames uncaptured — the builder released the lock on my nudge and the NEXT builder's in-flight rewrite broke the page (SIZES is not defined, dies on first re-render). The lock holder is ordered to fix the live page before landing anything else."
+    },
+    {
+      "time": "2026-08-11",
+      "text": "Land-size controls landed: wide 24-480 m, tall auto/16-120 m, cell rows; every button states its lattice; expensive builds wear measured amber seconds. The slab found and fixed a real settling bug (granularSettle bounded Y by the cube edge — a 16-tall slab slumped ZERO cells and reported done; proven by reverting each fix). Terrain now cached per tab (was regenerating per click). Honest bad news: the sandbox has NO worker — 360 m blocks 10.2 s, 480 m 13.5 s synchronous, and a slab's cells are nearly all surface so cell-count stopped being an honest cost bound. 480 m draws at 12 fps (36% invisible floor). The SIZES alarm was transient HMR, verified healthy on hard reload + click sweep. QUEUED: wire the IMPL-1 worker into the sandbox fill; cut the floor."
+    },
+    {
+      "time": "2026-08-11",
+      "text": "The Land types panel landed: one card per stack band, swatches from the REAL substanceGroundMaterial (a 5 m block, weathered top + 2.6 m cut face; the shader's stone-blob gate pinned per band position so a buried band shows its true depth texture), bitmaps cached per substance+lighting, cross-checked against the biomes rig within a few RGB points. Four things it could not show honestly are STATED ON THE PANEL (no fog, no baked AO, a buried band's top face is not a place, thin bands draw deeper than they lie). Census honesty: Cell 785 at 24 m is 55.8% stream bed and the panel says so in amber. The shared material gained exported constants with BYTE-IDENTICAL emitted shader. 630 tests. Queue: droplet proof frames (running) → the Land consolidation (worker wiring + floor cut + Environment/3D-Test absorption + rename)."
+    },
+    {
+      "time": "2026-08-11",
+      "text": "The droplet frames capture failed honestly — the rig predates the week (clicks vanished control rows; __volCam races the rebuilt page between ready() and get()). Folded into the Land consolidation, now RUNNING with the empty lock queue: the rename + aliases, the Environment absorption (Mold Earth as the first spell tool, the time slider into the sky presets), the 3D Test absorption (the ez-tree editor as a Trees panel), the IMPL-1 worker wired into the page fill (kill the 10.2/13.5 s blocks), the invisible floor cut (32-36% of the slab mesh), and the rig modernization + the missing droplet frames. The fourth and biggest consolidation."
+    },
+    {
+      "time": "2026-08-11",
+      "text": "The Land consolidation LANDED — the fourth and last consolidation. ?step=land with volume/biomes3d/environment/3d all aliased (a direct table, not a chain — a chain resolves one hop and lands nowhere). Mold Earth casts through the ordinary brush → remesh → slump → syncBed path with ledger delta 0.000; the TIME slider moves the real sun in both light modes (noon anchored on BIOME_SUN so no biome judgment shifts); the ez-tree editor is the Trees panel and plants on real ground. Worker fill: 360 m first ground at 1,051 ms vs 10,175 ms frozen; floor cut: 480 m -35.1% triangles. The live outage under Remy was THREE faults, all fixed as lessons: StrictMode permanently disposed the worker client (dispose-in-cleanup on an irreversible resource), the survival blob saved an EMPTY world and poisoned every reload, and rAF never fires in a hidden tab so progressive paths stalled silently. A watchdog now guarantees the page always gets ground and prints where its fill ran. Droplet proof frames captured at identity 0.000 across nine moments. 627+161 tests. Seven open calls, top: the remaining >100 ms block is React reconciling one mesh per chunk, not the mesher."
+    },
+    {
+      "time": "2026-08-11",
+      "text": "Idle-fleet wake: launched the two items no ruling blocks — (1) the chunk-perf fix: React reconciles one mesh per chunk on repaint (the consolidation's top finding); imperative mounting under ONE stable element, bar = no block >100 ms across load/carve/resize, geometry-leak counted; (2) the settling hooks G2 named: combat spell craters slump with token re-plant on 0.15 m cells (never verified at that resolution), and World3D bubble slumps bounded by the lid so nothing sheds into the void. Both Opus, disjoint territories."
+    },
+    {
+      "time": "2026-08-11",
+      "text": "Chunk-perf landed: chunks left React — a Map + one stable group ref, geometry pointers swapped in the pump (chunks now appear per 40 ms slice, not per 250 ms). Carve worst block 1,951 → 73 ms; the old path leaked geometries (482 → 679 in three carves) — closed, verified over 1,110 rebuilds. HONEST MISSES: the load-phase bar was not met and NEITHER miss is chunk mounting — (1) React 19's dev performance track deep-diffs the water rig's per-column typed arrays out of props (a single 2.4 s measure; the fix is props-to-refs, good for prod too), (2) three.js links the 500-line substance shader lazily (1.3 s on first use; precompile during the worker wait). Also: the builder re-measured its own 'before' after restoring the old path copy-aside — the lucky 701 ms sample was luck, stated plainly. Follow-up agent launched on both blocks."
+    },
+    {
+      "time": "2026-08-11",
+      "text": "Load-perf landed. The prop mechanism was RE-DERIVED from React source until the arithmetic matched the 2,364 ms measurement exactly (the dev track enumerates typed arrays index by index, three levels deep; world.volume.data survived only by the depth cutoff). The fix: a LandScene handle — one object, never replaced, fields re-pointed, an epoch counter making WaterSurface memo-legal — which also stopped the page re-rendering the whole Canvas 60x/s (onStats every frame): the production win. Shader warm-up: NOT one shader — twelve programs; a parked degenerate triangle + one throwaway per water factory warms them (link 1,051 → 281 ms, honestly 'mostly off the critical path'). 360 m: 4,929 → 118 ms. The 240 m miss is attributed to the digit: V8 dev-bundle compile (prod-nonexistent) + ~600 ms of main-thread hydrology — the final slice, now running (hydroworker). Settling hooks still build."
+    },
+    {
+      "time": "2026-08-11",
+      "text": "Settle-hooks landed. Two solver bugs found by RUNNING, not reading: (1) repose never read cellHM — on the arena's 0.15 m cells a 17° bank read as a 45° cliff and the ledger over-reported moved volume 3.13x; (2) after shedding a cap over a void the tracked column top stayed ON the void — one cell too high, told to every neighbor, exactly the activation threshold; ?step=volume had it too. Arena: publish-once-at-rest (each publish re-plants every token and grass blade — 15 publishes would be 15 rebuilds of an 8.2 M-triangle scene) + slab de-dup; token drops 1.69 m at the impact, unchanged at 3 tiles; water identical to six decimals. Bubble: a new budgeted pump; the lid bound excludes ~2,950 downslope columns and refused 0 hops. NEW FINDINGS: re-meshed bubble slabs draw darker (pre-existing tint gap, now half-the-view loud — routed to the hydroworker slice, which owns exactly that boundary); an Agora identity lapse released a peer's locks (lesson in NOTES); proof frames under the Vite watcher reload the page under test (buffer + flush)."
+    },
+    {
+      "time": "2026-08-11",
+      "text": "Hydroworker landed — the last engineering item. GroundWorld never returns from the worker: a DIGEST crosses (the three fields the page actually reads, heights as one transferred Float32Array; a pure main-side constructor pinned by test against real ground). 240 m worst block 2,513 → ~300 ms with every survivor attributed (V8 dev compile + two shader links); wall to first ground 9-12 → 6.5-7.1 s. heightM left the Canvas key — the warm set now beats the 6x-faster fill. The tint fix shipped AND its diagnosis was DISPROVEN by a new parity instrument: the dark slabs are the trench's own cut wall, correct all along. The loop stops here; the frontier is the decision stack."
+    },
+    {
+      "time": "2026-08-11",
+      "text": "The Water droplets crash: NO exception existed — three/webgpu + three/tsl were reachable only through lazy imports, so Vite's cold-start scan missed them; the first arming click made the dev server discover them, rebundle, and broadcast full-reload onto a mid-write server — bare root div, unchanged URL, wiped console. One shot per dep-cache generation (the vulnerable-deps upgrade rebuilt the cache — hence 'intermittent'). THE SAME EVENT closes g1-round9's mid-carve page loss. Fixes: optimizeDeps.include (a vite.config edit — the standing rule was overridden for a root fix that protects every WebGPU surface; server restarted once, 14/14 verified after) + PaneErrorBoundary per pane (R3F re-throws scene errors into the host tree — any pane error blanked the whole preview until now) + chunks load on mode pick. Deferred as D12: the split-view solver-budget look call."
+    },
+    {
+      "time": "2026-08-11",
+      "text": "The last red test: PreviewCombatScenarios never reached the glossary — its hand-rolled useTurnManager mock carried 9 of the real 30 members and predated setSpellZones by six weeks (unbisectable: the whole steps tree is gitignored). Fixed on the TEST side per the no-fallback directive (a defensive component would be a fallback); the assertion untouched; the live modal verified; future drift is now a COMPILE error via satisfies-keyof. Steps suite 352/352. The ADR gained the Land-era section. The engineering queue is empty; the loop rests on the decision board."
     }
   ]
 }

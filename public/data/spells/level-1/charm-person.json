@@ -163,6 +163,7 @@
                                                                 {
                                                                     "type":  "advantage",
                                                                     "reason":  "The target has advantage on the saving throw if you or your companions are fighting it.",
+                                                                    "condition":  "caster_or_allies_fighting_target",
                                                                     "value":  0,
                                                                     "appliesTo":  {
                                                                                       "creatureTypes":  [

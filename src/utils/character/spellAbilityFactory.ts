@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 02/07/2026, 11:21:04
+ * Last Sync: 10/08/2026, 13:59:23
  * Dependents: utils/character/index.ts, utils/combat/combatUtils.ts
  * Imports: 4 files
  *
@@ -273,7 +273,7 @@ const extractGrantedActions = (spell: Spell): AbilityGrantedAction[] => {
         return [];
     }
 
-    return spell.effects.flatMap(effect => {
+    const explicitActions = spell.effects.flatMap(effect => {
         if (!effect || typeof effect !== 'object') {
             return [];
         }
@@ -281,6 +281,51 @@ const extractGrantedActions = (spell: Spell): AbilityGrantedAction[] => {
         const grantedActions = (effect as { grantedActions?: AbilityGrantedAction[] }).grantedActions;
         return Array.isArray(grantedActions) ? grantedActions : [];
     });
+
+    // Grasping Vine preserves its repeated attack inside the composite trigger
+    // because the same damage row fires on cast and on later Bonus Actions.
+    // Translate that one source label into the established granted-action
+    // surface so players can invoke the runtime owner after the initial cast.
+    const compositeTriggerActions = spell.effects.flatMap((effect, index): AbilityGrantedAction[] => {
+        const trigger = effect?.trigger as {
+            type?: string;
+            repeatAction?: {
+                type?: string;
+                range?: number;
+                rangeUnit?: string;
+            };
+        } | undefined;
+
+        if (
+            trigger?.type !== 'immediate_or_later_bonus_action' ||
+            trigger.repeatAction?.type !== 'bonus_action'
+        ) {
+            return [];
+        }
+
+        const damage = effect.type === 'DAMAGE' ? effect.damage : undefined;
+        return [{
+            type: 'bonus_action',
+            action: 'Repeat Vine Attack',
+            frequency: 'each_turn',
+            actor: 'caster',
+            targeting: 'single_enemy',
+            actionKind: 'bonus_action',
+            effectIndices: spell.effects.map((_, effectIndex) => effectIndex),
+            prerequisites: ['target_within_spell_range'],
+            rangeLimit: trigger.repeatAction.range,
+            attackType: 'melee_spell_attack',
+            damage: damage
+                ? {
+                    dice: damage.dice,
+                    type: damage.type
+                }
+                : undefined,
+            notes: `Repeat the spell's vine attack from its active origin; source trigger effect ${index}.`
+        }];
+    });
+
+    return [...explicitActions, ...compositeTriggerActions];
 };
 
 const resolveSpellRangeFeet = (spell: Spell, caster: PlayerCharacter): number => {

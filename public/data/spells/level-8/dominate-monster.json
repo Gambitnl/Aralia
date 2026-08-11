@@ -297,7 +297,8 @@
               },
               "selfRelation": "not_applicable"
             },
-            "reason": "The target has Advantage on the save if the caster or caster allies are fighting it."
+            "reason": "The target has Advantage on the save if the caster or caster allies are fighting it.",
+            "condition": "caster_or_allies_fighting_target"
           }
         ],
         "saveType": "Wisdom",

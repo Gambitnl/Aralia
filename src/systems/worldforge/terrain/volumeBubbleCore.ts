@@ -481,6 +481,122 @@ export function tintSlab(
 }
 
 /**
+ * THE PER-COLUMN TINT, BAKED — so both threads read one table.
+ *
+ * `settle-hooks.md` gap 1: a re-meshed bubble slab drew visibly darker and
+ * rougher than its worker-built neighbours, and a slump made it cover half the
+ * view. The cause was ownership, not shading. The worker builds its `tintAt`
+ * from a column-stack sampler that reads the whole `GroundWorld`, and the
+ * `GroundWorld` lives in the worker — so the main thread's re-mesh passed
+ * `undefined` and `tintSlab` filled the slab with 1. A cut is metres wide, but
+ * a SLAB IS SIXTEEN, so every untouched vertex in that slab lost its tint too.
+ * (The old comment at the call site said a cut is inside one column's ground
+ * "by construction", which is true of the cut and false of the slab.)
+ *
+ * The fix is a field, not a re-derivation: bake the tint once per column at
+ * fill time, transfer it with the voxels, and have the WORKER read the same
+ * table when it meshes. Two threads reading one array cannot disagree — the
+ * re-meshed slab is byte-equivalent to the one it replaced, by construction
+ * rather than by care.
+ *
+ * A PALETTE, because the tint is a function of the column's stack KEY and a
+ * bubble sees a handful of stacks. 256² columns cost 64 KB of index instead of
+ * 768 KB of triples, and the palette is exact — it is the same tuple object the
+ * worker's own cache would have handed back.
+ *
+ * THE ONE THING THAT CHANGED FOR THE WORKER. It used to evaluate the sampler at
+ * each VERTEX's exact x/z; it now reads the column the vertex stands in. The
+ * tint is piecewise constant per artifact cell (1.524 m) and a column is a
+ * quarter metre, so a stack boundary can move by at most half a column — 12 cm,
+ * on a signal that only rides the top surface. That is the price of the two
+ * paths being provably identical, and it is worth it.
+ */
+export interface BubbleTintField {
+  cellsPerEdge: number;
+  originM: readonly [number, number, number];
+  cellM: number;
+  /** Palette index per column, `z * cellsPerEdge + x`. */
+  index: Uint8Array;
+  /** The distinct tints, three floats each. At most 256 of them. */
+  palette: Float32Array;
+}
+
+/**
+ * Bake the field from a sampler. Runs where the sampler lives — the worker.
+ *
+ * A stack the palette cannot hold (more than 256 distinct tints in one bubble,
+ * which has never happened and would mean the census was meaningless) falls
+ * back to entry 0, the bubble's own reference. Silently is the right way round
+ * here: a tint is a decoration on the top surface, and refusing to mesh the
+ * ground over it would be the worse failure.
+ */
+export function bakeTintField(
+  tintAt: (xM: number, zM: number) => readonly [number, number, number],
+  originM: readonly [number, number, number],
+  cellM: number,
+  cellsPerEdge: number,
+): BubbleTintField {
+  const index = new Uint8Array(cellsPerEdge * cellsPerEdge);
+  const slots = new Map<string, number>();
+  const flat: number[] = [1, 1, 1];
+  slots.set('1,1,1', 0);
+  for (let z = 0; z < cellsPerEdge; z++) {
+    const wz = originM[2] + (z + 0.5) * cellM;
+    for (let x = 0; x < cellsPerEdge; x++) {
+      const wx = originM[0] + (x + 0.5) * cellM;
+      const c = tintAt(wx, wz);
+      const key = `${c[0]},${c[1]},${c[2]}`;
+      let slot = slots.get(key);
+      if (slot === undefined) {
+        if (slots.size >= 256) {
+          index[z * cellsPerEdge + x] = 0;
+          continue;
+        }
+        slot = slots.size;
+        slots.set(key, slot);
+        flat.push(c[0], c[1], c[2]);
+      }
+      index[z * cellsPerEdge + x] = slot;
+    }
+  }
+  return {
+    cellsPerEdge,
+    originM: [originM[0], originM[1], originM[2]],
+    cellM,
+    index,
+    palette: new Float32Array(flat),
+  };
+}
+
+/**
+ * The sampler both threads mesh with. Pure, and it allocates nothing per call:
+ * the palette becomes a small array of tuples once, and every lookup hands one
+ * of them back.
+ */
+export function tintFromField(
+  f: BubbleTintField,
+): (xM: number, zM: number) => readonly [number, number, number] {
+  const n = f.cellsPerEdge;
+  const tuples: Array<readonly [number, number, number]> = [];
+  for (let i = 0; i * 3 < f.palette.length; i++) {
+    tuples.push([f.palette[i * 3], f.palette[i * 3 + 1], f.palette[i * 3 + 2]]);
+  }
+  const ox = f.originM[0];
+  const oz = f.originM[2];
+  const cell = f.cellM;
+  return (xM: number, zM: number) => {
+    const x = Math.min(n - 1, Math.max(0, Math.floor((xM - ox) / cell)));
+    const z = Math.min(n - 1, Math.max(0, Math.floor((zM - oz) / cell)));
+    return tuples[f.index[z * n + x]] ?? tuples[0];
+  };
+}
+
+/** The field's buffers, for `postMessage`'s transfer list. */
+export function transfersOfTintField(f: BubbleTintField): ArrayBuffer[] {
+  return [f.index.buffer, f.palette.buffer] as ArrayBuffer[];
+}
+
+/**
  * The tint one column shows against a reference stack.
  *
  * A RATIO, not a colour, because the shader multiplies: every octave of macro
@@ -523,3 +639,181 @@ export function transfersOfFill(f: BubbleFillResult): ArrayBuffer[] {
 
 /** How many voxels a bubble of this size and cell holds along one edge. */
 export { bubbleCellsPerEdge };
+
+/* ------------------------------------------------ THE LAND PAGE'S OWN FILL */
+
+/**
+ * THE SANDBOX'S FILL, LIFTED OUT OF ITS RENDER.
+ *
+ * `?step=land` built its whole world inside one synchronous React render — the
+ * fill, the datum walk, the pre-carves, the compaction and the first mesh — and
+ * measured on the real cell-785 ground that is 10.2 s of frozen tab at 360 m
+ * and 13.5 s at 480 m (`landsize.md`). The mesh is the bulk of it and the land
+ * page drains that through its own remesh pump now; THIS is the rest, moved
+ * off the main thread through `landVolumeWorker`.
+ *
+ * It is deliberately NOT `fillBubble` above. That one serves the live world's
+ * bubble and differs in four ways that are all load-bearing there and all wrong
+ * here: it is a CUBE (no `heightM`), it blends its rim into the surrounding
+ * heightfield (the sandbox has no surrounding heightfield and a rim ramp would
+ * be an invented slope), it reads `streamedTerrainSurfaceY` rather than the
+ * sandbox's `groundSurfaceY`, and it knows nothing about the sandbox's two
+ * pre-carves. Sharing one function would have meant four flags and one of them
+ * silently changing the terrain nine critic rounds were judged on.
+ *
+ * What IS shared is everything underneath: `fillBubbleFromGround`,
+ * `VoxelVolume`, `meshCellRange`, the snapshot/transfer contract, and the rule
+ * that ONE THREAD OWNS THE VOXELS — the worker fills, hands the snapshot over,
+ * and never hears about an edit again.
+ */
+export type LandPreCarve = 'none' | 'shafts' | 'crater';
+
+export interface LandFillSpec {
+  centerXM: number;
+  centerZM: number;
+  extentM: number;
+  /** Vertical extent, metres. The slab; not derived from `extentM`. */
+  heightM: number;
+  cellM: number;
+  preCarve: LandPreCarve;
+}
+
+export interface LandFillResult {
+  snapshot: VolumeSnapshot;
+  originM: [number, number, number];
+  cellsPerEdge: number;
+  cellsY: number;
+  /** Pre-carve drawn-ground height per column, `z * cellsPerEdge + x`. */
+  originalTopY: Float32Array;
+  fillMs: number;
+  solidCells: number;
+}
+
+/**
+ * Fill one land slab, capture its datum, apply its pre-carve, compact.
+ *
+ * The ORDER is the whole correctness of this function and every step of it was
+ * learned from a bug:
+ *
+ *   fill → datum → carve → compact
+ *
+ * The datum is captured BEFORE the carve, because a crater floor is the top of
+ * its own carved column and measuring depth against that gave every carved bowl
+ * depth zero — surface litter, no strata, the round-one knockout. It is read
+ * from the FILLED VOXELS rather than from the analytic source, because the mesh
+ * is quantised to the cell grid and an analytic datum disagrees by up to a cell
+ * — enough to sweep across the 12 cm litter horizon and band open ground.
+ *
+ * The compaction comes LAST, because a cell-by-cell dig allocates every brick
+ * it passes through and leaves it allocated even when the whole brick ends up
+ * air; an allocated brick reads as "interesting" to the mesher's band scan, and
+ * that is the mechanism behind the round-7 critic's 154 ms slice beside the
+ * pre-bored shafts.
+ */
+export function fillLandSlab(
+  src: GroundHeightSource,
+  stackSource: ColumnStackSource,
+  spec: LandFillSpec,
+): LandFillResult {
+  const { centerXM, centerZM, extentM, heightM, cellM, preCarve } = spec;
+  /* The VERTICAL cell stays the horizontal one. The height row buys ROOM, not
+   * resolution: the substance shader's noise is world-space and isotropic, so a
+   * lattice fine sideways and coarse vertically draws grain at two scales on
+   * one wall — the combat arena's known wart. */
+  const fill = fillBubbleFromGround(src, centerXM, centerZM, extentM, cellM, stackSource, {
+    heightM,
+    cellHM: cellM,
+  });
+  const n = fill.cellsPerEdge;
+  const nY = fill.cellsY;
+  const originM = fill.originM as [number, number, number];
+
+  const originalTopY = new Float32Array(n * n);
+  for (let z = 0; z < n; z++) {
+    for (let x = 0; x < n; x++) {
+      const wx = originM[0] + (x + 0.5) * cellM;
+      const wz = originM[2] + (z + 0.5) * cellM;
+      let y = Math.min(
+        nY - 1,
+        Math.max(0, Math.floor((src.surfaceYAt(wx, wz) - originM[1]) / cellM) + 3),
+      );
+      while (y < nY - 1 && fill.volume.get(x, y + 1, z) !== Material.Air) y++;
+      while (y >= 0 && fill.volume.get(x, y, z) === Material.Air) y--;
+      originalTopY[z * n + x] = originM[1] + (y + 1) * cellM;
+    }
+  }
+
+  /** The cell the ground surface sits in under the window's centre. */
+  const surfaceCell = Math.min(
+    nY - 1,
+    Math.floor((src.surfaceYAt(centerXM, centerZM) - originM[1]) / cellM),
+  );
+
+  if (preCarve === 'shafts') {
+    /* Two pre-bored wells, carved AFTER the fill like any spell would. A square
+     * one and a round one, mouths about 16 m across, floors a few cells above
+     * the base — over a hundred metres down at the 240 m preset. A shaft that
+     * deep walks the whole material stack in one look. */
+    const mid = Math.floor(n / 2);
+    const floorCell = 4; // a bottomless well drains the water demo
+    const mouth = Math.max(3, Math.round(Math.min(8, extentM / 15) / cellM));
+    const off = Math.round(n * 0.18);
+    const dig = (x: number, z: number): void => {
+      if (x < 0 || z < 0 || x >= n || z >= n) return;
+      for (let y = surfaceCell; y >= floorCell; y--) fill.volume.set(x, y, z, Material.Air);
+    };
+    for (let dz = -mouth; dz <= mouth; dz++) {
+      for (let dx = -mouth; dx <= mouth; dx++) {
+        dig(mid - off + dx, mid + dz); // the square well
+        if (dx * dx + dz * dz <= mouth * mouth) dig(mid + off + dx, mid + dz); // the round well
+      }
+    }
+  }
+
+  if (preCarve === 'crater') {
+    const mid = Math.floor(n / 2);
+    const rCells = Math.max(3, Math.round(extentM / 11 / cellM));
+    /* The crater's depth is a fraction of the WIDTH, and width and height are
+     * independent — so at 480 m the bowl wants to be 37 m deep and a 32 m slab
+     * has 16 m under its surface. Unclamped it punches through the bottom seal
+     * and the sealed volume becomes a hole into nothing, which ADR 0002 records
+     * as the fault that made a crater read as a lit dome hanging in mid-air.
+     * Four rows of floor stand, the same margin the shafts keep. */
+    const dCells = Math.min(
+      Math.max(3, Math.round(extentM / 13 / cellM)),
+      Math.max(3, surfaceCell - 4),
+    );
+    for (let y = surfaceCell; y > surfaceCell - dCells; y--) {
+      const t = (surfaceCell - y) / dCells;
+      const r = rCells * (1 - t * 0.45);
+      for (let z = 0; z < n; z++) {
+        for (let x = 0; x < n; x++) {
+          const dx = x - mid;
+          const dz = z - mid;
+          if (dx * dx + dz * dz <= r * r) fill.volume.set(x, y, z, Material.Air);
+        }
+      }
+    }
+  }
+
+  fill.volume.compact();
+
+  return {
+    snapshot: fill.volume.snapshot(),
+    originM,
+    cellsPerEdge: n,
+    cellsY: nY,
+    originalTopY,
+    fillMs: fill.fillMs,
+    solidCells: fill.solidCells,
+  };
+}
+
+/** The buffers of a land fill, for `postMessage`'s transfer list. */
+export function transfersOfLandFill(f: LandFillResult): ArrayBuffer[] {
+  return [
+    f.snapshot.brickUniform.buffer,
+    f.snapshot.brickCells.buffer,
+    f.originalTopY.buffer,
+  ] as ArrayBuffer[];
+}

@@ -49,16 +49,25 @@ function interpKnots(knots: ReadonlyArray<readonly [number, number]>, u: number)
 
 /**
  * Hull radius at spine fraction u (0 front → 1 rear), meters.
- * mass present → three-lobe knots: front taper 0.82, chest at 0.22, waist at
- * 0.55, hips at 0.8, rear taper 0.88 (all × bodyRadM).
+ *
+ * mass present → three-lobe knots: chest at 0.18, waist at 0.50, hips at 0.78
+ * (all × bodyRadM). round 4 (creature-anatomy): the old fixed end knots
+ * (0.82 front / 0.88 rear) FORBADE any real taper — every mass body still
+ * ended in near-full-radius capped discs and the critic read "pipes glued
+ * end to end". Now the ends taper: the front rounds into the neck base at
+ * 0.60 × chest, and `spine.taper` is reinterpreted as the REAR-TIP fraction
+ * of the hips lobe (taper 0.3 on hips 0.6 → a near-pointed 0.18 tail tip;
+ * taper 1 keeps a blunt rump). Legacy plans without `mass` keep the
+ * historical taper+bulge tube byte-identical.
  */
 export function spineRadiusAt(spec: SpineProfileSpec, u: number): number {
   const { bodyRadM, spine } = spec;
   if (spine.mass) {
     const [chest, waist, hips] = spine.mass;
+    const tip = hips * Math.min(1, Math.max(0.05, spine.taper));
     return Math.max(
       0.01,
-      bodyRadM * interpKnots([[0, 0.82], [0.22, chest], [0.55, waist], [0.8, hips], [1, 0.88]], u),
+      bodyRadM * interpKnots([[0, chest * 0.6], [0.18, chest], [0.5, waist], [0.78, hips], [1, tip]], u),
     );
   }
   const base = Math.max(0.01, bodyRadM * (spine.taper + (1 - spine.taper) * u));

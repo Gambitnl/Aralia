@@ -111,21 +111,37 @@ describe('plan gait driver', () => {
     expect(Math.abs(fl.z - fr.z)).toBeGreaterThan(0.05);
   });
 
-  it('serpentine spine stays at ground height across phases', () => {
+  // round 2 (creature-anatomy): a serpentine creature REARS — the front third
+  // rises into a vertical S carrying the head high while the rear body stays
+  // grounded and undulates (replaces the round-1 "whole spine at ground
+  // height" pin, which enforced the fallen-leek posture the critic named).
+  it('serpentine spine rears: front high, rear grounded, taller at idle', () => {
     const compiled = compilePlan(PLAN_FIXTURES.threeHeadedSerpent);
+    const spec = compiled.planSpec!;
+    const groundCeil = spec.bodyRadM * 2.4;
     const driver = createGaitDriver('plan', compiled.frame, compiled.planSpec);
     for (const phase of [0, 0.25, 0.5, 0.75]) {
       driver.setPhase(phase);
       driver.update(phase * 3, 0, WALK);
       const c = collect(driver);
-      for (let i = 0; i < compiled.planSpec!.spine.segments; i++) {
+      const front = c.segs.get('spine.0')!;
+      expect(front, 'spine.0 missing').toBeTruthy();
+      expect(front.ay, 'front of spine rears well above the body tube').toBeGreaterThan(groundCeil);
+      for (let i = Math.ceil(spec.spine.segments * 0.5); i < spec.spine.segments; i++) {
         const s = c.segs.get(`spine.${i}`)!;
         expect(s, `spine.${i} missing`).toBeTruthy();
-        const maxR = compiled.planSpec!.bodyRadM * 2.4;
-        expect(s.ay, `spine.${i} grounded`).toBeLessThan(maxR);
-        expect(s.ay).toBeGreaterThan(0);
+        expect(s.by, `spine.${i} rear stays grounded`).toBeLessThan(groundCeil);
+        expect(s.by).toBeGreaterThan(0);
       }
     }
+    // speed-aware rise: the idle coil carries the head TALLER than the lunge
+    const idle = createGaitDriver('plan', compiled.frame, compiled.planSpec);
+    idle.update(0, 0, IDLE);
+    const idleFront = collect(idle).segs.get('spine.0')!;
+    driver.setPhase(0);
+    driver.update(0, 0, WALK);
+    const walkFront = collect(driver).segs.get('spine.0')!;
+    expect(idleFront.ay).toBeGreaterThan(walkFront.ay);
   });
 
   it('floating eye hovers — nothing dips near the ground', () => {

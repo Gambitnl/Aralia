@@ -9,8 +9,8 @@
 // `Authorization: Bearer <token>` resolved via store.getAgentByToken(token) (401 otherwise).
 // Authenticated activity refreshes meaningful presence via store.touch(agent.id).
 // Heartbeats use a separate bounded lease path and cannot extend liveness forever.
-// GET read endpoints (/agents,/locks,/tasks,/messages,/health,/events,/) are open so the
-// dashboard works token-free; /messages may take an optional token to resolve `to=me`.
+// GET read endpoints (/agents,/locks,/tasks,/messages,/health,/events,/glossary,/) are open so
+// the dashboard works token-free; /messages may take an optional token to resolve `to=me`.
 //
 // SSE resume: the store does not expose arbitrary event history, so on connect we send a
 // single `event: hello` carrying lastSeq + a full snapshot of {agents,locks,tasks} for the
@@ -29,6 +29,7 @@ import { attachActivityMirror } from './activityMirror.mjs';
 import { installFatalErrorHandlers } from './fatalErrorLog.mjs';
 import { renderDocPage } from './mdRender.mjs';
 import { indexGaps } from './gapIndex.mjs';
+import { parseGlossaryFile, GLOSSARY_TAGS } from './glossaryParse.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -831,6 +832,47 @@ export function createAgoraServer({ dir = DEFAULT_DIR, storeFactory, activityFil
     }
     res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
     res.end(renderDocPage(`gaps${project ? `: ${project}` : ''}`, md, { docNames: [], rawHref: null }));
+  });
+
+  // ============================== Glossary ==============================
+  // The dev glossary page (public/glossary/index.html, served from the Vite dev
+  // server on :3000) reads its terms from HERE — there is no generated
+  // terms.json any more, and no static fallback. GLOSSARY.md on disk is the one
+  // source; when the daemon is down the page says so instead of showing stale
+  // words.
+  //
+  // Cache: keyed on the file's own mtime + size, so an edit to GLOSSARY.md
+  // invalidates it by definition — the daemon can never answer with a stale
+  // parse, and a page reload does not re-parse 15 KB of markdown for nothing.
+  const GLOSSARY_FILE = path.join(__dirname, 'GLOSSARY.md');
+  let glossaryCache = null; // { mtimeMs, size, terms }
+  function getGlossaryTerms() {
+    const stat = fs.statSync(GLOSSARY_FILE);
+    if (glossaryCache && glossaryCache.mtimeMs === stat.mtimeMs && glossaryCache.size === stat.size) {
+      return glossaryCache.terms;
+    }
+    const terms = parseGlossaryFile(GLOSSARY_FILE);
+    glossaryCache = { mtimeMs: stat.mtimeMs, size: stat.size, terms };
+    return terms;
+  }
+
+  router.get('/glossary', async (_req, res) => {
+    let terms;
+    try {
+      terms = getGlossaryTerms();
+    } catch (e) {
+      return sendJson(res, 500, { error: 'glossary unreadable: ' + e.message });
+    }
+    // The page is served cross-origin (Vite :3000 -> daemon :4319), so this one
+    // read-only route carries an explicit CORS header. No other route is touched.
+    const payload = JSON.stringify({ terms, count: terms.length, tags: GLOSSARY_TAGS, source: 'tools/agora/GLOSSARY.md' });
+    res.writeHead(200, {
+      'Content-Type': 'application/json; charset=utf-8',
+      'Content-Length': Buffer.byteLength(payload),
+      'Access-Control-Allow-Origin': '*',
+      'Cache-Control': 'no-store',
+    });
+    res.end(payload);
   });
 
   // ============================== Admin ==============================

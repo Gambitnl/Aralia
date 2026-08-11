@@ -246,7 +246,8 @@ describe('BattleMap object interaction', () => {
     const onObjectMove = vi.fn();
     renderObjectMap('cover-sandbox-torch', onObjectMove);
 
-    fireEvent.click(screen.getByRole('button', { name: 'Tile floor at 2, 0' }));
+    // The tile name ends with an elevation phrase owned by BattleMapTile.test.tsx.
+    fireEvent.click(screen.getByRole('button', { name: /^Tile floor at 2, 0,/ }));
 
     expect(onObjectMove).toHaveBeenCalledWith('cover-sandbox-torch', { x: 2, y: 0 } satisfies Position);
   });

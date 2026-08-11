@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Entity quality campaign</title>
+<style>
+  :root { color-scheme: dark; }
+  body { margin: 0; padding: 20px; background: #10141c; color: #dfe6f0; font: 14px/1.5 system-ui, sans-serif; }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  .sub { color: #8fa0b8; margin-bottom: 20px; }
+  .piece { margin-bottom: 34px; border: 1px solid #26304200; border-top: 1px solid #263042; padding-top: 14px; }
+  .piece h2 { font-size: 16px; margin: 0 0 2px; display: flex; align-items: center; gap: 10px; }
+  .badge { font-size: 11px; padding: 2px 8px; border-radius: 10px; background: #3a2f16; color: #e8c26a; }
+  .badge.wowed { background: #16391f; color: #7fe39a; }
+  .badge.ref { background: #3a1c1c; color: #f09a9a; }
+  .gap { color: #f0b56a; font-size: 13px; margin: 2px 0 8px; }
+  .sheets { display: flex; flex-wrap: wrap; gap: 10px; }
+  .sheets a { display: block; }
+  .sheets img { max-width: 420px; max-height: 240px; border: 1px solid #263042; border-radius: 4px; background: #000; }
+  .cap { font-size: 11px; color: #8fa0b8; margin-top: 2px; }
+  .rounds { font-size: 12px; color: #66788f; margin-top: 6px; }
+</style>
+</head>
+<body>
+<h1>Entity quality campaign</h1>
+<div class="sub">Builders fix the named gap. Fresh critics judge blind against Valheim / WoW / Mixamo. A piece closes only on a wowed verdict. Auto-refreshes every 10 s.</div>
+<div id="root">loading…</div>
+<script>
+const PIECES = ['humanoid-anatomy', 'humanoid-motion', 'creature-anatomy', 'surface-materials', 'coherence'];
+async function jget(url) { try { const r = await fetch(url + '?t=' + Date.now()); return r.ok ? await r.json() : null; } catch { return null; } }
+async function refresh() {
+  const status = await jget('status.json') || { rounds: [] };
+  const root = document.getElementById('root');
+  root.innerHTML = '';
+  for (const piece of PIECES) {
+    const verdict = await jget('verdicts/' + piece + '.json');
+    const rounds = status.rounds.filter(r => r.piece === piece || r.piece === 'all');
+    const latest = rounds[rounds.length - 1];
+    const div = document.createElement('div');
+    div.className = 'piece';
+    const badge = verdict
+      ? (verdict.wowed ? '<span class="badge wowed">WOWED — shippable</span>'
+         : '<span class="badge ref">reference wins — round ' + verdict.round + '</span>')
+      : '<span class="badge">no verdict yet</span>';
+    let html = '<h2>' + piece + ' ' + badge + '</h2>';
+    if (verdict && verdict.biggestGap) html += '<div class="gap">biggest gap: ' + verdict.biggestGap + '</div>';
+    if (latest && latest.captured && latest.captured.length) {
+      html += '<div class="sheets">';
+      for (const cap of latest.captured.filter(c => c.startsWith(piece + '/'))) {
+        const id = cap.split('/')[1];
+        for (const suffix of ['', '-strip']) {
+          const src = 'sheets/' + piece + '/round-' + latest.round + '-' + id + suffix + '.png';
+          html += '<a href="' + src + '" target="_blank"><img src="' + src + '?t=' + Date.now() +
+                  '" onerror="this.parentElement.style.display=\'none\'" /><div class="cap">' + id + suffix + ' · r' + latest.round + '</div></a>';
+        }
+      }
+      html += '</div>';
+    }
+    html += '<div class="rounds">' + rounds.length + ' capture rounds' + (latest && latest.note ? ' · latest: ' + latest.note : '') + '</div>';
+    div.innerHTML = html;
+    root.appendChild(div);
+  }
+}
+refresh();
+setInterval(refresh, 10000);
+</script>
+</body>
+</html>

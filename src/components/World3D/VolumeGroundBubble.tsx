@@ -27,7 +27,7 @@
  * delivers a few hundred slabs, and a re-render each would cost more than the
  * meshing did.
  */
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import type { GroundWorld } from '@/systems/worldforge/bridge/groundChunkLoader';
@@ -37,11 +37,20 @@ import {
   depthDatumFor,
   slabsForEdit,
   slabKey,
+  tintFromField,
   type BubbleSlab,
+  type BubbleTintField,
   type SlabCoord,
 } from '@/systems/worldforge/terrain/volumeBubbleCore';
 import { colorAtDepth, substance } from '@/systems/worldforge/terrain/materials';
 import { applyBrush } from '@/systems/worldforge/terrain/voxelBrush';
+import {
+  beginSettle,
+  settleStep,
+  movedVolumeM3,
+  type SettleField,
+  type SettleRegion,
+} from '@/systems/worldforge/terrain/granularSettle';
 import { AO_REACH_CELLS } from '@/systems/worldforge/terrain/surfaceNets';
 import {
   createVolumeBubbleClient,
@@ -49,6 +58,35 @@ import {
   type BubblePreCut,
 } from './createVolumeBubbleClient';
 import { makeSubstanceGroundMaterial, wrapShift } from './terrain/substanceGroundMaterial';
+
+/**
+ * THE TINT A RE-MESH DRAWS WITH.
+ *
+ * `settle-hooks.md` gap 1: a carve, and then far more visibly a slump, left a
+ * darker and rougher patch that spread as more slabs were re-meshed. It was not
+ * the slump and it was not the shader — it was ownership. The per-column top
+ * tint is sampled from the whole `GroundWorld`, the `GroundWorld` lives in the
+ * worker, so every main-thread `meshSlab` here passed `undefined` and repainted
+ * its ENTIRE sixteen-metre footprint at the bubble's reference tint. A cut is
+ * two metres wide; a slab is not.
+ *
+ * The worker bakes the tint per column now and transfers the table with the
+ * voxels, and it meshes from that same table — so a slab re-meshed here is
+ * byte-equivalent to the one the worker delivered. This rebuilds the sampler
+ * once per field rather than once per slab; a slump re-meshes dozens.
+ */
+const tintSamplers = new WeakMap<
+  BubbleTintField,
+  (xM: number, zM: number) => readonly [number, number, number]
+>();
+function tintOf(v: BubbleVolume): (xM: number, zM: number) => readonly [number, number, number] {
+  let s = tintSamplers.get(v.tintField);
+  if (!s) {
+    s = tintFromField(v.tintField);
+    tintSamplers.set(v.tintField, s);
+  }
+  return s;
+}
 
 /**
  * Bubble size and cell, straight from ADR 0002: 64 m across at 25 cm, which is
@@ -69,6 +107,35 @@ const REBUILD_STEP_M = BUBBLE_EXTENT_M / 4;
 
 /** How often committed slabs are shown, ms. See the file header. */
 const COMMIT_INTERVAL_MS = 120;
+
+/**
+ * Milliseconds of slab re-mesh one frame will do while the ground is slumping.
+ *
+ * A bubble slab is 64 cells cubed — about 21 ms to re-mesh, measured on the
+ * shipped build (1,681 ms over 78 slabs). One slab is therefore already past
+ * this budget, which is deliberate: the drain always does at least one slab so
+ * it cannot stall, and the budget stops it doing a SECOND. Worst frame is one
+ * settle slice plus one slab.
+ */
+const SLUMP_FRAME_BUDGET_MS = 8;
+
+/**
+ * How far below the floor of the cut a slump may set a cell down, in cells.
+ *
+ * THE BUBBLE IS A LID. It draws about 30 cm over an uncut heightfield, and its
+ * own volume is a 64 m cube with the terrain running through the middle — so on
+ * steep ground a column near the edge of that cube can be EMPTY, because the
+ * land there is below the box. The walk is steepest-descent and does not know
+ * that: unbounded, it will happily roll a clod thirty metres down into that hole
+ * and set it on the floor of the cube, under the heightfield, where it is matter
+ * nobody can ever see again.
+ *
+ * So the bound is the floor of the hole the carve made, less one cell for the
+ * ground immediately beside it. Debris fills the trench it came out of; it does
+ * not leave the world over the rim. One cell rather than zero because the solid
+ * ground at the lip of a cut sits a cell under the cut's own lowest touched row.
+ */
+const SLUMP_FLOOR_MARGIN_CELLS = 1;
 
 export interface VolumeGroundBubbleProps {
   ground: GroundWorld | null;
@@ -203,6 +270,138 @@ const VolumeGroundBubble: React.FC<VolumeGroundBubbleProps> = ({
    */
   const materialsRef = useRef(new Map<string, THREE.MeshStandardMaterial>());
 
+  /* THE SLUMP, in flight, and the slabs it has dirtied.
+   *
+   * `pending` is a region a carve armed; `field` is the live avalanche, and it
+   * is never restarted, because its queue holds the columns that are mid-slide.
+   * `dirty` is keyed so a slab that the slump re-dirties on fifteen consecutive
+   * slices is re-meshed once per drain rather than fifteen times — a bubble
+   * slab is 64 cells cubed and that difference is the whole affordability of
+   * this.
+   */
+  const settleRef = useRef<{
+    field: SettleField | null;
+    pending: SettleRegion | null;
+    floorCell: number;
+    steps: number;
+    msTotal: number;
+    maxSlice: number;
+    dirty: Map<string, SlabCoord>;
+    raf: number;
+  } | null>(null);
+  /** The last slump's ledger line. Printed on completion; readable by a rig. */
+  const slumpRef = useRef('');
+
+  /**
+   * ONE TIME SLICE OF THE SLUMP, then a budgeted drain of what it dirtied.
+   *
+   * The bubble had no pump before this — a carve edited the voxels and re-meshed
+   * every slab it touched in one synchronous call, which is fine for a rig verb
+   * fired once and ruinous for fifteen consecutive slices. So this is the
+   * bubble's chunk pump, in the shape the sandbox and the arena already use:
+   * the solver runs FIRST so the cells it moves join the dirty set the drain is
+   * about to walk, and the drain does at least one slab and stops before it
+   * starts a second it cannot afford.
+   *
+   * Bounded twice: `settleStep` owns its own 4 ms ceiling, and the re-mesh owns
+   * `SLUMP_FRAME_BUDGET_MS`. Worst frame is one slice plus one slab.
+   */
+  const slumpTick = useCallback(() => {
+    const st = settleRef.current;
+    const v = volumeRef.current;
+    if (!st || !v) return;
+    st.raf = 0;
+    const t0 = performance.now();
+
+    if (!st.field && st.pending) {
+      st.field = beginSettle(v.volume, st.pending, v.cellM, { floorCell: st.floorCell });
+      st.pending = null;
+      // Nothing loose in reach — a cut into rock keeps its walls, for free.
+      if (!st.field) {
+        settleRef.current = null;
+        return;
+      }
+    }
+    if (st.field) {
+      const r = settleStep(st.field);
+      st.steps++;
+      st.msTotal += r.ms;
+      if (r.ms > st.maxSlice) st.maxSlice = r.ms;
+      if (r.changed) {
+        for (const s of slabsForEdit(v.cellsPerEdge, r.min, r.max, AO_REACH_CELLS + 1)) {
+          st.dirty.set(slabKey(s), s);
+        }
+      }
+      if (r.done) {
+        slumpRef.current =
+          `slump: ${st.field.moved.toLocaleString()} cells moved ` +
+          `(${movedVolumeM3(st.field).toFixed(2)} m³) · ${st.steps} slices in ` +
+          `${Math.round(st.msTotal)} ms (worst ${st.maxSlice.toFixed(1)} ms) · ` +
+          `floor cell ${st.field.floorCell}, ${st.field.blockedColumns} columns below it, ` +
+          `${st.field.boundStops} hops refused`;
+        // eslint-disable-next-line no-console
+        console.info(`[bubble] ${slumpRef.current}`);
+        st.field = null;
+      }
+    }
+
+    if (st.dirty.size > 0) {
+      const datum = depthDatumFor(v.originalTopY, v.originM, v.cellM, v.cellsPerEdge);
+      const built: Array<{ key: string; slab: SlabCoord; mesh: BubbleSlab | null }> = [];
+      for (const [k, s] of st.dirty) {
+        if (built.length > 0 && performance.now() - t0 >= SLUMP_FRAME_BUDGET_MS) break;
+        built.push({
+          key: k,
+          slab: s,
+          mesh: meshSlab(
+            v.volume,
+            v.cellM,
+            v.originM,
+            (d) => colorAtDepth(d, v.stack),
+            datum,
+            s,
+            /* The worker's own table. A slump re-meshes far more slabs than a
+             * carve, which is why this seam was invisible until it was not. */
+            tintOf(v),
+          ),
+        });
+      }
+      for (const b of built) st.dirty.delete(b.key);
+      setBubble((prev) => {
+        if (!prev) return prev;
+        const replaced = new Set(built.map((b) => b.key));
+        const next = prev.slabs.filter((s) => !replaced.has(slabKey(s)));
+        for (const b of built) {
+          if (!b.mesh) continue;
+          next.push({
+            cx: b.slab.cx,
+            cy: b.slab.cy,
+            cz: b.slab.cz,
+            geom: geometryFromSlab(b.mesh, prev.shiftM),
+          });
+        }
+        return { shiftM: prev.shiftM, slabs: next, material: prev.material };
+      });
+    }
+
+    if (!st.field && st.dirty.size === 0) {
+      settleRef.current = null;
+      return;
+    }
+    st.raf = requestAnimationFrame(slumpTick);
+  }, []);
+
+  /* A rebuild orphans a slump: the field's column heights index a volume that
+   * no longer exists, and its ledger belongs to that volume. */
+  useEffect(
+    () => () => {
+      const st = settleRef.current;
+      if (st?.raf) cancelAnimationFrame(st.raf);
+      settleRef.current = null;
+    },
+    [ground],
+  );
+
   // One worker per GroundWorld. It is init'd with the world, so a new world is
   // a new worker.
   useEffect(() => {
@@ -325,6 +524,13 @@ const VolumeGroundBubble: React.FC<VolumeGroundBubbleProps> = ({
 
     return () => {
       if (timer !== null) window.clearTimeout(timer);
+      /* A REBUILD ORPHANS A SLUMP. The field's column heights index the volume
+       * it was built on, and `slumpTick` re-meshes against `volumeRef.current`
+       * — so a slump left running across a rebuild would edit the old voxels
+       * and draw the new ones. Its ledger belongs to the old bubble too. */
+      const st = settleRef.current;
+      if (st?.raf) cancelAnimationFrame(st.raf);
+      settleRef.current = null;
     };
     // `onVolume` and `onStats` are stable for the component's life.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -366,6 +572,55 @@ const VolumeGroundBubble: React.FC<VolumeGroundBubbleProps> = ({
           ? [bubble.shiftM[0] - sceneOrigin.x, bubble.shiftM[1], bubble.shiftM[2] - sceneOrigin.z]
           : null,
       slabs: () => bubble?.slabs.length ?? 0,
+      /**
+       * RE-MESH EVERY DRAWN SLAB, CHANGING NOTHING — the parity instrument.
+       *
+       * `settle-hooks.md` gap 1 read as "re-meshed slabs draw darker and
+       * rougher than worker-built ones", and every explanation for that is
+       * either a difference between the two MESH PATHS or an honest picture of
+       * ground an edit actually moved. Those two cannot be told apart by
+       * looking at a carve, because a carve does both at once.
+       *
+       * This does only the first half. It re-meshes the whole bubble on this
+       * thread against the same voxels the worker meshed, with no brush, no
+       * slump, and no changed cell — so a frame taken after it is a picture of
+       * the main-thread path alone. Identical to the frame before it means the
+       * two paths agree; different means they do not, and the difference is
+       * visible with nothing else moving.
+       */
+      /*
+       * `tinted: false` is the OTHER half of the A/B, and it is what this
+       * thread used to do on every carve and every slump slice: mesh with no
+       * per-column tint, so the whole footprint redrew at the bubble's own
+       * reference. Run the two back to back and the seam is on screen with
+       * nothing else changed.
+       */
+      remeshAll: (tinted = true) => {
+        const v = volumeRef.current;
+        const live = bubble;
+        if (!v || !live) return null;
+        const t0 = performance.now();
+        const datum = depthDatumFor(v.originalTopY, v.originM, v.cellM, v.cellsPerEdge);
+        const next: DrawnSlab[] = [];
+        let drawn = 0;
+        for (const s of live.slabs) {
+          const fresh = meshSlab(
+            v.volume,
+            v.cellM,
+            v.originM,
+            (d) => colorAtDepth(d, v.stack),
+            datum,
+            { cx: s.cx, cy: s.cy, cz: s.cz },
+            tinted ? tintOf(v) : undefined,
+          );
+          if (!fresh) continue;
+          drawn++;
+          next.push({ cx: s.cx, cy: s.cy, cz: s.cz, geom: geometryFromSlab(fresh, live.shiftM) });
+        }
+        for (const s of live.slabs) s.geom.dispose();
+        setBubble({ shiftM: live.shiftM, slabs: next, material: live.material });
+        return { was: live.slabs.length, drawn, tinted, ms: +(performance.now() - t0).toFixed(1) };
+      },
       /**
        * The top of the voxel column at a world point, world metres, with the
        * substance found there — the instrument that says whether a carve
@@ -481,10 +736,12 @@ const VolumeGroundBubble: React.FC<VolumeGroundBubbleProps> = ({
             (d) => colorAtDepth(d, v.stack),
             datum,
             s,
-            /* A cut is inside ONE column's ground by construction — it is metres
-             * wide and the tint is a top-surface signal, so the fresh vertices
-             * keep the bubble's own reference of 1. */
-            undefined,
+            /* THIS ARGUMENT USED TO BE `undefined`, and the comment that
+             * defended it was true about the CUT and false about the SLAB: a
+             * cut is inside one column's ground, and the slab re-meshed around
+             * it is sixteen metres of other columns that were tinted and are
+             * now being redrawn. See `tintOf`. */
+            tintOf(v),
           );
           perSlab[slabKey(s)] = fresh?.triangles ?? 0;
           if (!fresh) continue;
@@ -492,6 +749,48 @@ const VolumeGroundBubble: React.FC<VolumeGroundBubbleProps> = ({
           next.push({ cx: s.cx, cy: s.cy, cz: s.cz, geom: geometryFromSlab(fresh, live.shiftM) });
         }
         setBubble({ shiftM: live.shiftM, slabs: next, material: live.material });
+
+        /* ARM THE SLUMP. A region, not a field: `beginSettle` walks a padded
+         * window and it should walk it once the cut is DRAWN — which it is, one
+         * line above, because this verb re-meshes synchronously.
+         *
+         * The bound is the floor of the hole this cut made. See
+         * `SLUMP_FLOOR_MARGIN_CELLS`: without it the walk rolls debris over the
+         * edge of the bubble's own cube and sets it down under the heightfield. */
+        const floorCell = Math.max(0, r.min[1] - SLUMP_FLOOR_MARGIN_CELLS);
+        const st = settleRef.current;
+        const region: SettleRegion = { min: r.min, max: r.max };
+        if (!st) {
+          slumpRef.current = '';
+          settleRef.current = {
+            field: null,
+            pending: region,
+            floorCell,
+            steps: 0,
+            msTotal: 0,
+            maxSlice: 0,
+            dirty: new Map(),
+            raf: requestAnimationFrame(slumpTick),
+          };
+        } else {
+          st.floorCell = Math.min(st.floorCell, floorCell);
+          st.pending = st.pending
+            ? {
+                min: [
+                  Math.min(st.pending.min[0], r.min[0]),
+                  Math.min(st.pending.min[1], r.min[1]),
+                  Math.min(st.pending.min[2], r.min[2]),
+                ],
+                max: [
+                  Math.max(st.pending.max[0], r.max[0]),
+                  Math.max(st.pending.max[1], r.max[1]),
+                  Math.max(st.pending.max[2], r.max[2]),
+                ],
+              }
+            : region;
+          if (!st.raf) st.raf = requestAnimationFrame(slumpTick);
+        }
+
         return {
           changed: r.changed,
           remeshed: touched.length,
@@ -501,6 +800,59 @@ const VolumeGroundBubble: React.FC<VolumeGroundBubbleProps> = ({
           perSlab,
           ms: +(performance.now() - t0).toFixed(1),
         };
+      },
+      /**
+       * THE SLUMP LEDGER, as the page's own words and as numbers.
+       *
+       * `running` is what a capture rig waits on before it photographs settled
+       * ground, and `boundStops` is the honest half: how many times the floor
+       * bound refused a downhill hop that would have taken matter under the
+       * lid. Zero means the bound never bit on this carve, which is the normal
+       * answer for a cut in the middle of the bubble and is worth printing
+       * rather than assuming.
+       */
+      slumpLedger: () => {
+        const st = settleRef.current;
+        return {
+          line: slumpRef.current,
+          running: st !== null,
+          moved: st?.field?.moved ?? 0,
+          movedM3: st?.field ? +movedVolumeM3(st.field).toFixed(3) : 0,
+          waiting: st?.field ? st.field.qTail - st.field.qHead : 0,
+          slices: st?.steps ?? 0,
+          worstSliceMs: +(st?.maxSlice ?? 0).toFixed(2),
+          dirtySlabs: st?.dirty.size ?? 0,
+          floorCell: st?.floorCell ?? -1,
+          blockedColumns: st?.field?.blockedColumns ?? 0,
+          boundStops: st?.field?.boundStops ?? 0,
+        };
+      },
+      /**
+       * Run the slump to rest NOW, for a headless rig.
+       *
+       * A software rasterizer renders at about one frame a second, so a slump
+       * paced to fifteen frames takes fifteen seconds and no capture can catch
+       * it either moving or finished. This runs the SAME `settleStep` and the
+       * SAME `meshSlab` the pump runs; the only thing it skips is the waiting.
+       */
+      slumpFlush: (maxSlices = 4096) => {
+        const st = settleRef.current;
+        if (!st) return null;
+        if (st.raf) {
+          cancelAnimationFrame(st.raf);
+          st.raf = 0;
+        }
+        const t = performance.now();
+        for (let i = 0; i < maxSlices && settleRef.current; i++) {
+          slumpTick();
+          // The tick re-arms itself for the next frame; a flush is not frames.
+          const s = settleRef.current;
+          if (s?.raf) {
+            cancelAnimationFrame(s.raf);
+            s.raf = 0;
+          }
+        }
+        return { ms: +(performance.now() - t).toFixed(1), line: slumpRef.current };
       },
       renderInfo: () => ({
         calls: gl.info.render.calls,
@@ -536,17 +888,46 @@ const VolumeGroundBubble: React.FC<VolumeGroundBubbleProps> = ({
        * nothing here does yet. Until something does, the only way to PICTURE a
        * cut face in the live world is to stop the skin drawing for one frame.
        * Toggles `visible` only, and puts it straight back.
+       *
+       * THE FAR SHELLS COUNT AS SKIN. They were left out when this verb was
+       * written, and the region ring is a full ground surface at terrain height
+       * that reaches under the player. So hiding the streamed chunks revealed
+       * the shell rather than the cut, at almost the same tone — and a trench
+       * photographed that way still read as a flat pale patch. Measured on the
+       * bug-fix run: 41% of the pixels a trench changed were the surface behind
+       * the bubble, with the heightfield already hidden.
+       */
+      /*
+       * It RETURNS WHAT IT DID, because a React re-render puts `visible` back
+       * to whatever the JSX says and this verb has no way of knowing one is
+       * pending. A capture rig that calls it and then shoots a second later
+       * gets the skin back without being told: four passes of the settle-hooks
+       * rig produced frames that disagreed about whether the heightfield was
+       * drawn, and reading the camera out of every frame — identical in all of
+       * them — was the only way to prove the difference was not the camera.
+       * `visibleAfter` is the number that lets a rig retry until it sticks.
        */
       setTerrainVisible: (on: boolean) => {
+        let toggled = 0;
+        let visibleAfter = 0;
         scene.traverse((o) => {
-          if (o.name === 'world3d:terrain' || o.name === 'world3d:terrain-skirt') o.visible = on;
+          if (
+            o.name === 'world3d:terrain' ||
+            o.name === 'world3d:terrain-skirt' ||
+            o.name === 'world3d:far-shell'
+          ) {
+            o.visible = on;
+            toggled++;
+            if (o.visible) visibleAfter++;
+          }
         });
+        return { toggled, visibleAfter };
       },
     };
     return () => {
       delete w.__volBubble;
     };
-  }, [bubble, camera, gl, scene, sceneOrigin]);
+  }, [bubble, camera, gl, scene, sceneOrigin, slumpTick]);
 
   if (!bubble || bubble.slabs.length === 0) return null;
 

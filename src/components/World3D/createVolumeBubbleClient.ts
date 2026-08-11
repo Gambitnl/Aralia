@@ -17,7 +17,10 @@
 import type { GroundWorld } from '@/systems/worldforge/bridge/groundChunkLoader';
 import { VoxelVolume } from '@/systems/worldforge/terrain/voxelVolume';
 import type { GroundBand } from '@/systems/worldforge/terrain/materials';
-import type { BubbleSlab } from '@/systems/worldforge/terrain/volumeBubbleCore';
+import type {
+  BubbleSlab,
+  BubbleTintField,
+} from '@/systems/worldforge/terrain/volumeBubbleCore';
 
 type WorkerFactory = () => Worker;
 
@@ -48,6 +51,17 @@ export interface BubbleVolume {
   stackCounts: Record<string, number>;
   /** Share of columns whose ground is NOT `stackKey`, 0 to 1. */
   minorityShare: number;
+  /**
+   * The per-column top tint the worker meshed with — so a MAIN-THREAD re-mesh
+   * after a carve or a slump draws the same surface it replaced.
+   *
+   * It has to cross because the sampler behind it reads the whole
+   * `GroundWorld`, and that lives in the worker. Without it every re-meshed
+   * slab repainted its full sixteen metres at the bubble's reference tint,
+   * which is `settle-hooks.md` gap 1: a visibly darker, rougher patch that
+   * spread as a slump touched more slabs.
+   */
+  tintField: BubbleTintField;
 }
 
 /**
@@ -123,6 +137,7 @@ export function createVolumeBubbleClient(
           stack: m.stack,
           stackCounts: m.stackCounts,
           minorityShare: m.minorityShare,
+          tintField: m.tintField,
         });
       } else if (m.type === 'slab') {
         req.onSlab(m.slab as BubbleSlab);

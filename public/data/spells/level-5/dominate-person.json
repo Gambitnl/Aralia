@@ -116,7 +116,9 @@
                                                         }
                                     },
                         "condition":  {
-                                          "type":  "always",
+                                          "type":  "save",
+                                          "saveType":  "Wisdom",
+                                          "saveEffect":  "negates_condition",
                                           "targetFilter":  {
                                                                "creatureTypes":  [
                                                                                      "Humanoid"
@@ -162,7 +164,8 @@
                                                                 {
                                                                     "type":  "advantage",
                                                                     "appliesTo":  "initial_wisdom_save",
-                                                                    "condition":  "The target has Advantage on the save if the caster or the caster\u0027s allies are fighting it."
+                                                                    "condition":  "caster_or_allies_fighting_target",
+                                                                    "reason":  "The target has Advantage on the save if the caster or the caster\u0027s allies are fighting it."
                                                                 }
                                                             ],
                                           "saveOutcomeOverrides":  [

@@ -435,7 +435,19 @@ export function createPlanPoseSink(skeleton: BuiltPlanSkeleton, decorativeDelega
 
   /** True when a seg/ball id is a known decorative emission (no bone). */
   const isDecorative = (id: string): boolean => {
-    if (headCount && /^head\d+\.(snout|cilia\d+|neckS[01])$/.test(id)) return true;
+    // round 18 (creature-anatomy): auto S-necks are five bezier-sampled
+    // segments (neckS0..neckS4) — still decorative, still anchor-path owned.
+    if (headCount && /^head\d+\.(snout|cilia\d+|neckS\d+)$/.test(id)) return true;
+    // round 9 (creature-anatomy): the driver-owned dorsal crest (blade cones
+    // + web strip riding the live spine) is decorative — no bones.
+    if (/^crest\.(web)?\d+$/.test(id)) return true;
+    // round 13 (creature-anatomy): gel interior masses (mound nucleus +
+    // suspended debris chunks) are decorative — the anchor path renders them
+    // opaque inside the one-surface gel; no bones.
+    if (id.startsWith('interior.')) return true;
+    // round 16 (creature-anatomy): mound flank lobes (gel slumping sideways
+    // at ground level) — decorative gel-skin balls, no bones.
+    if (/^spine\.lobe[LR]\d+$/.test(id)) return true;
     for (const cid of chainIds) {
       const pref = cid + '.';
       if (id.startsWith(pref)) {

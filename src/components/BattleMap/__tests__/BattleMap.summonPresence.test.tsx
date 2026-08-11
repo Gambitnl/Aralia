@@ -215,12 +215,13 @@ describe('BattleMap summon presence proof', () => {
       })
     }));
     expect(screen.getByTestId(`character-${summoned!.id}`)).toBeInTheDocument();
+    // The CharacterToken mock wrapper forwards a single props argument, so the
+    // assertion must not expect React's legacy second argument.
     expect(mockCharacterToken).toHaveBeenCalledWith(
       expect.objectContaining({
         character: expect.objectContaining({ id: summoned!.id }),
         position: summoned!.position
-      }),
-      undefined
+      })
     );
   });
 });

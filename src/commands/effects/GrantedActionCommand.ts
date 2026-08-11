@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 04/08/2026, 01:48:27
+ * Last Sync: 10/08/2026, 13:58:09
  * Dependents: commands/factory/AbilityCommandFactory.ts
- * Imports: 11 files
+ * Imports: 12 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -26,6 +26,7 @@ import { calculateProficiencyBonus } from '../../utils/character/savingThrowUtil
 import { DamageCommand } from './DamageCommand'
 import { BreakConcentrationCommand } from './ConcentrationCommands'
 import { resolveFastFriendsServiceRequest } from '../../systems/spells/socialServiceResolution'
+import { GraspingVineCommand } from './GraspingVineCommand'
 
 /**
  * This command records a spell-granted follow-up action being used.
@@ -92,6 +93,17 @@ export class GrantedActionCommand extends BaseEffectCommand {
     // the same live status and concentration records.
     if (this.options.socialServiceRequest === 'fast_friends') {
       return resolveFastFriendsServiceRequest(state, this.context)
+    }
+
+    // Grasping Vine's generated Bonus Action is not just another damage roll:
+    // it reuses the active vine's origin and the original damage, grapple, and
+    // pull rows. Delegate before the generic attack payload can flatten it.
+    if (this.context.spellId === 'grasping-vine') {
+      return new GraspingVineCommand(
+        this.context,
+        [],
+        'repeat_bonus_action'
+      ).execute(state)
     }
 
     // Some granted actions, such as Wall of Light's beam, include enough

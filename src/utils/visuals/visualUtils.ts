@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 18/05/2026, 15:10:43
- * Dependents: components/CharacterSheet/Overview/InventoryList.tsx, utils/visualUtils.ts, utils/visuals/index.ts
- * Imports: 2 files
+ * Last Sync: 10/08/2026, 13:55:53
+ * Dependents: components/CharacterSheet/Overview/InventoryList.tsx, components/Trade/MerchantModal.tsx, utils/visuals/index.ts
+ * Imports: 3 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -22,6 +22,7 @@
 
 import { NPC, Race, Item } from '../../types';
 import { NPCVisualSpec, VisualAsset, ItemVisualSpec } from '../../types/visuals';
+import { assetUrl } from '../../config/env';
 
 const GENERAL_ARMOR_ICON_PATH = 'assets/icons/general/armor/';
 const GENERAL_WEAPON_ICON_PATH = 'assets/icons/general/weapons/';
@@ -120,6 +121,21 @@ function normalizeItemIconPath(iconPath: string): string {
   }
 
   return iconPath;
+}
+
+/**
+ * Converts a resolved item image into the URL that the browser should request.
+ *
+ * Item catalogs intentionally keep portable paths such as
+ * `assets/icons/general/armor/leather_cap.svg`. Pages mounted below a nested
+ * route cannot use those paths directly because the browser would resolve them
+ * relative to the current document. Keep external/data URLs untouched, while
+ * routing local assets through Vite's configured application base.
+ */
+export function resolveItemAssetSrc(src?: string): string | undefined {
+  if (!src) return undefined;
+  if (/^(?:[a-z][a-z\d+.-]*:|\/\/)/i.test(src)) return src;
+  return assetUrl(src);
 }
 
 /**

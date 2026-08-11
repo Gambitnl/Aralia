@@ -347,6 +347,29 @@ export default defineConfig(async ({ mode, command }) => {
         '@react-three/fiber',
         '@react-three/drei',
         '@react-three/postprocessing',
+        /* THE WEBGPU PAIR, PRE-BUNDLED ON PURPOSE.
+         *
+         * Every WebGPU surface we own — the droplets and legacy-grid water on
+         * `?step=water`, the volume sandbox, the WebGPU battle map — reaches
+         * `three/webgpu` and `three/tsl` through a `lazy(() => import(...))`
+         * and NOTHING reaches them any earlier. Vite's cold-start dep scan
+         * therefore finished without them, and the first click that armed one
+         * of those scenes made the dev server DISCOVER two new dependencies,
+         * re-bundle, and broadcast `{"type":"full-reload","path":"*"}`.
+         *
+         * What that looks like from a chair: you click Droplets, the page goes
+         * blank, the console is empty, and it stays blank — because the reload
+         * lands while esbuild is still writing the new bundle, so the module
+         * requests stall and React never mounts. No error is thrown anywhere,
+         * so no error boundary can catch it and nothing is logged to find.
+         * `?step=water` died this way under Remy on 2026-08-11, and the
+         * "mid-carve page loss" the volume page's `vite:beforeFullReload`
+         * tripwire was built to chase (ADR 0002, round 9) is the same event.
+         *
+         * Naming them here makes them part of the FIRST optimize pass, so
+         * there is nothing left to discover and no reason to reload. */
+        'three/webgpu',
+        'three/tsl',
       ],
       // three's TSL BloomNode example imports `PostProcessingUtils`, which the
       // installed three build does not export, so esbuild can't pre-bundle it and

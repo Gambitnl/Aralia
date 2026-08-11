@@ -161,8 +161,31 @@ function guardianOfNatureSourceStatus(jsonEntries: SpellFileEntry[], referenceEn
   const hasBenefitPlaceholder = rulesText.includes('you gain the following benefits:');
   const hasConcreteBenefitSignals = /walking speed|climb speed|darkvision|advantage|temporary hit points|difficult terrain/i.test(rulesText);
 
+  // Guardian can be marked source-complete only when the local vendor snapshot names
+  // the published XGE page and records every mechanical benefit for both forms. Requiring
+  // the same signals in JSON prevents the report from passing when source text and the
+  // structured spell record drift apart again.
+  const hasTrustedVendorProvenance = referenceText.includes('Vendor: 5e.tools')
+    && /Source:\s*Xanathar's Guide to Everything,\s*p\.\s*157/i.test(referenceText);
+  const guardianBenefitSignals = [
+    /10(?:-foot walking speed| feet of walking speed)/i,
+    /120-foot darkvision/i,
+    /Strength-based attack rolls/i,
+    /1d6 Force damage/i,
+    /10 temporary hit points/i,
+    /Constitution saves/i,
+    /Dexterity-?\s+or\s+Wisdom-based attack rolls/i,
+    /(?:15 feet.*difficult terrain|difficult terrain.*15 feet)/i,
+  ];
+  const referenceHasAllBenefits = guardianBenefitSignals.every((signal) => signal.test(referenceText));
+  const jsonHasAllBenefits = guardianBenefitSignals.every((signal) => signal.test(jsonText));
+
   if (!guardianJson || !guardianReference) {
     return 'blocked: Guardian of Nature is missing either JSON or reference markdown.';
+  }
+
+  if (hasFormNames && hasTrustedVendorProvenance && referenceHasAllBenefits && jsonHasAllBenefits) {
+    return 'verified: XGE p. 157 vendor snapshot and structured spell data preserve both form benefit lists.';
   }
 
   if (hasFormNames && hasBenefitPlaceholder && hasConcreteBenefitSignals) {
@@ -198,7 +221,11 @@ function renderSnapshot(): string {
   const jsonTotal = jsonEntries.length;
   const referenceTotal = referenceEntries.length;
   const datasetGatePasses = jsonTotal === referenceTotal && missingReferenceTotal === 0 && missingJsonTotal === 0;
-  const canonicalGatePasses = legacyReferences.length === 0 && !guardianStatus.startsWith('blocked:');
+
+  // A human-review result is still unresolved, so Guardian contributes to a passing
+  // canonical gate only after the strict provenance-and-benefit check above succeeds.
+  const guardianSourceVerified = guardianStatus.startsWith('verified:');
+  const canonicalGatePasses = legacyReferences.length === 0 && guardianSourceVerified;
 
   const lines: string[] = [
     '# Spell Completeness Coverage Snapshot',
@@ -276,7 +303,7 @@ function renderSnapshot(): string {
     `| G1 stale local report | resolved locally: stale 2025 counts are replaced by this generated ${jsonTotal} JSON / ${referenceTotal} reference snapshot | fresh external PHB recapture remains represented by the canonical source gate, not by the retired local report |`,
     `| G3 legacy snapshots | resolved as documented deferrals: ${legacyReferences.length} legacy markers remain with owner, reason, next proof boundary, and evidence rows above | future source owner may recapture these snapshots, but the current code-backed audit no longer leaves them implicit |`,
     '| G4 missing completion gates | dataset, canonical source, and runtime gates are now defined here | keep applying these gates before marking spell migration complete |',
-    `| G5 Guardian of Nature | ${guardianStatus} | do not encode form mechanics until trustworthy benefit text exists locally |`,
+    `| G5 Guardian of Nature | ${guardianStatus} | ${guardianSourceVerified ? 'source gap closed; keep form-specific runtime execution in its owning spell-runtime lanes' : 'do not encode form mechanics until trustworthy benefit text exists locally'} |`,
     '',
   );
 

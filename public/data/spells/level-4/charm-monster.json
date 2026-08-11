@@ -164,7 +164,8 @@
                                           "saveModifiers":  [
                                                                 {
                                                                     "type":  "advantage",
-                                                                    "reason":  "The target has Advantage on the Wisdom saving throw if the caster or the caster\u0027s allies are fighting it."
+                                                                    "reason":  "The target has Advantage on the Wisdom saving throw if the caster or the caster\u0027s allies are fighting it.",
+                                                                    "condition":  "caster_or_allies_fighting_target"
                                                                 }
                                                             ],
                                           "saveOutcomeOverrides":  [

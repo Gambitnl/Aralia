@@ -62,7 +62,8 @@ const VISCOSITY = 0.1;
 /** Sim-time per substep. */
 export const MPM_DT = 0.2;
 /** Gravity in grid units per sim-time squared. */
-const GRAVITY = 0.3;
+export const MPM_GRAVITY = 0.3;
+const GRAVITY = MPM_GRAVITY;
 /** Soft predictive wall stiffness. */
 const WALL_K = 0.3;
 
@@ -86,7 +87,7 @@ const WALL_K = 0.3;
  * splash — and it cannot be fooled by a register that oscillates in place. At
  * 0.02 a particle qualifying has moved less than a fiftieth of a cell.
  */
-const SETTLE_MOVE = 0.02;
+export const SETTLE_MOVE = 0.02;
 /**
  * Height above the floor, grid units, within which resting counts.
  *
@@ -95,9 +96,9 @@ const SETTLE_MOVE = 0.02;
  * out of mid-air into the sheet below — volume arriving in the pool that the
  * picture never showed landing.
  */
-const SETTLE_HEIGHT = 3;
+export const SETTLE_HEIGHT = 3;
 /** Consecutive substeps at rest before a particle is handed back. */
-const SETTLE_STEPS = 20;
+export const SETTLE_STEPS = 20;
 
 export interface MpmDomain {
   /** Grid nodes per edge. */
@@ -142,6 +143,21 @@ export interface MpmDomain {
   readonly spanG: Float32Array;
   /** Pairs per column in `spanG`. */
   readonly slots: number;
+
+  /**
+   * Displacement per substep under which a particle counts as at rest.
+   *
+   * A CONSTANT here would be a bug at any timestep but one. The rest test
+   * measures how far a particle moved in one substep, so it scales with the
+   * substep: halve `dt` and every particle in the domain moves half as far,
+   * and a fixed threshold silently reclassifies a moving splash as a settled
+   * pool. `dropletWater.ts` runs a much smaller `dt` than the vendor cadence
+   * precisely so a coarse domain falls at real gravity, and it sets this to
+   * match. Defaults to `SETTLE_MOVE`, so every existing caller is unchanged.
+   */
+  settleMoveG: number;
+  /** Height above the floor within which resting counts, grid units. */
+  settleHeightG: number;
 }
 
 export interface MpmDomainSpec {
@@ -162,6 +178,10 @@ export interface MpmDomainSpec {
   spanG?: Float32Array;
   /** Pairs per column in `spanG`. Defaults to `SPAN_SLOTS`. */
   slots?: number;
+  /** Rest displacement per substep, grid units. Defaults to `SETTLE_MOVE`. */
+  settleMoveG?: number;
+  /** Rest height above the floor, grid units. Defaults to `SETTLE_HEIGHT`. */
+  settleHeightG?: number;
 }
 
 export function createDomain(spec: MpmDomainSpec): MpmDomain {
@@ -203,6 +223,8 @@ export function createDomain(spec: MpmDomainSpec): MpmDomain {
     gMom: new Float32Array(n ** 3 * 3),
     spanG,
     slots,
+    settleMoveG: spec.settleMoveG ?? SETTLE_MOVE,
+    settleHeightG: spec.settleHeightG ?? SETTLE_HEIGHT,
   };
 }
 
@@ -659,8 +681,8 @@ export function stepDomain(d: MpmDomain, dt: number = MPM_DT): void {
     const my = yn - py;
     const mz = zn - pz;
     const resting =
-      mx * mx + my * my + mz * mz < SETTLE_MOVE * SETTLE_MOVE &&
-      yn - ground < SETTLE_HEIGHT;
+      mx * mx + my * my + mz * mz < d.settleMoveG * d.settleMoveG &&
+      yn - ground < d.settleHeightG;
     d.still[p] = resting ? Math.min(255, d.still[p] + 1) : 0;
   }
 }

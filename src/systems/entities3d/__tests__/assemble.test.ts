@@ -153,17 +153,24 @@ describe('entities3d assembler (body v2)', () => {
     const wings = handle.group
       .getObjectByName('parts')!
       .children.find((c) => c.name === 'part:wingsMembrane')!;
-    const wingL = wings.getObjectByName('wingL')!;
-    const wingR = wings.getObjectByName('wingR')!;
-    let min = Infinity;
-    let max = -Infinity;
-    for (let t = 0; t < 1.2; t += 1 / 60) {
+    // round 7 (creature-anatomy): the membrane wing is a three-joint armature
+    // — the flap beat now lands on the wingArm shoulder joint's quaternion,
+    // not the wingL/wingR group rotation. Same regression pinned (frozen
+    // wings), sampled at the joint that actually moves.
+    const armL = wings.getObjectByName('wingL')!.getObjectByName('wingArm')!;
+    const armR = wings.getObjectByName('wingR')!.getObjectByName('wingArm')!;
+    handle.update(0, 1 / 60, WALK);
+    const restL = armL.quaternion.clone();
+    const restR = armR.quaternion.clone();
+    let maxL = 0;
+    let maxR = 0;
+    for (let t = 1 / 60; t < 1.2; t += 1 / 60) {
       handle.update(t, 1 / 60, WALK);
-      min = Math.min(min, wingL.rotation.z);
-      max = Math.max(max, wingL.rotation.z);
-      expect(wingR.rotation.z, 'right wing must mirror the left').toBeCloseTo(-wingL.rotation.z, 10);
+      maxL = Math.max(maxL, armL.quaternion.angleTo(restL));
+      maxR = Math.max(maxR, armR.quaternion.angleTo(restR));
     }
-    expect(max - min, 'dragon wings never move while walking').toBeGreaterThan(0.5);
+    expect(maxL, 'dragon wings never move while walking').toBeGreaterThan(0.5);
+    expect(maxR, 'right wing must beat like the left').toBeCloseTo(maxL, 5);
     handle.dispose();
   });
 

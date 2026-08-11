@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 09/08/2026, 22:43:58
- * Dependents: commands/effects/AttackRollModifierCommand.ts, commands/effects/GrantedActionCommand.ts, commands/effects/ReactiveEffectCommand.ts, commands/factory/AbilityCommandFactory.ts, commands/factory/SpellCommandFactory.ts
- * Imports: 16 files
+ * Last Sync: 10/08/2026, 13:58:24
+ * Dependents: commands/effects/AttackRollModifierCommand.ts, commands/effects/GrantedActionCommand.ts, commands/effects/GraspingVineCommand.ts, commands/effects/ReactiveEffectCommand.ts, commands/factory/AbilityCommandFactory.ts, commands/factory/SpellCommandFactory.ts
+ * Imports: 18 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -45,6 +45,8 @@ import { getStateTagForDamageType } from '../../types/elemental';
 import { applyStateToTags } from '../../systems/physics/ElementalInteractionSystem';
 import { breakTauntsForEvent } from '../../systems/combat/tauntConstraint';
 import { getRecurringMechanics } from '../../hooks/spellEffectUtils';
+import { resolveOnDamageSpellEffect } from '../../systems/spells/effects/onDamageSpellEffects';
+import { resolveSourceSaveAdvantageModifiers } from '../../systems/spells/mechanics/sourceSaveModifierResolution';
 
 /** Unique key for tracking Slasher speed reduction once-per-turn usage */
 const SLASHER_SLOW_USAGE_KEY = 'slasher_slow';
@@ -227,12 +229,27 @@ export class DamageCommand extends BaseEffectCommand<DamageEffect> {
           ? [...activeSaveModifiers, coverSaveModifier]
           : activeSaveModifiers;
 
+        // Creature type, size, condition, and explicit fighting predicates can
+        // change the d20 mode without being inferred from description prose.
+        const structuredSaveModifiers = resolveSourceSaveAdvantageModifiers(
+          this.effect.condition.saveModifiers,
+          caster,
+          target
+        );
+
         // Roll the save: 1d20 + ability mod + proficiency (if proficient) + modifiers
         const saveResult = resolveSaveOutcomeOverride(
           this.effect.condition.saveOutcomeOverrides,
           target,
           dc
-        ) ?? rollSavingThrow(target, this.effect.condition.saveType, dc, saveModifiers);
+        ) ?? rollSavingThrow(
+          target,
+          this.effect.condition.saveType,
+          dc,
+          saveModifiers,
+          undefined,
+          structuredSaveModifiers
+        );
 
         // Adjust damage based on save outcome:
         // - Failed save: full damage
@@ -269,13 +286,60 @@ export class DamageCommand extends BaseEffectCommand<DamageEffect> {
         });
       }
 
+      // Resolve delayed on-damage spell riders before the final resistance pass.
+      // A preliminary pass proves that the triggering damage is not stopped by
+      // immunity. The rider then joins the same damage packet so vulnerability,
+      // temporary hit points, concentration, and defeat handling apply once.
+      const targetBeforeResistance = currentState.characters.find(character => character.id === target.id) ?? target;
+      const preliminaryDamage = ResistanceCalculator.applyResistances(
+        damageRoll,
+        this.effect.damage.type,
+        targetBeforeResistance,
+        caster,
+        this.context.isMagical,
+        {
+          spellZones: state.spellZones,
+          characters: state.characters
+        }
+      );
+      const onDamageResolution = resolveOnDamageSpellEffect(
+        targetBeforeResistance,
+        this.effect.damage.type,
+        currentState.turnState.currentTurn,
+        preliminaryDamage
+      );
+
+      if (onDamageResolution.damageDice) {
+        const extraDamage = rollDamageUtil(onDamageResolution.damageDice, false, 1);
+        damageRoll += extraDamage;
+        currentState = {
+          ...currentState,
+          characters: currentState.characters.map(character =>
+            character.id === target.id ? onDamageResolution.character : character
+          )
+        };
+        currentState = this.addLogEntry(currentState, {
+          type: 'damage',
+          message: `${onDamageResolution.sourceName ?? 'A spell effect'} adds ${extraDamage} ${this.effect.damage.type} damage.`,
+          characterId: target.id,
+          targetIds: [target.id],
+          data: {
+            spellId: onDamageResolution.sourceSpellId,
+            damageDice: onDamageResolution.damageDice,
+            damageDealt: extraDamage,
+            trigger: 'on_damage'
+          }
+        });
+      }
+
       // --- Step 4: Apply Resistances and Vulnerabilities ---
       // Reduces damage by half if resistant, doubles if vulnerable, or 0 if immune.
       // Also checks for bypasses (e.g., magical weapons bypassing non-magical resistance).
+      const targetForFinalDamage = currentState.characters.find(character => character.id === target.id) ?? targetBeforeResistance;
       let finalDamage = ResistanceCalculator.applyResistances(
         damageRoll,
         this.effect.damage.type,
-        target,
+        targetForFinalDamage,
         caster,
         this.context.isMagical,
         {

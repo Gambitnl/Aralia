@@ -174,11 +174,13 @@ describe('BattleMap visibility handoff', () => {
         mapData
       })
     }));
-    const dimTile = screen.getByRole('button', { name: 'Tile floor at 0, 0' });
-    const hiddenTile = screen.getByRole('button', { name: 'Tile floor at 1, 0' });
+    // Tile names and titles carry an elevation phrase whose wording is owned by
+    // BattleMapTile.test.tsx; match around it and pin only the light level here.
+    const dimTile = screen.getByRole('button', { name: /^Tile floor at 0, 0,/ });
+    const hiddenTile = screen.getByRole('button', { name: /^Tile floor at 1, 0,/ });
 
-    expect(dimTile).toHaveAttribute('title', expect.stringContaining('(0, 0) - floor - Elev: 0 - dim'));
-    expect(hiddenTile).toHaveAttribute('title', expect.stringContaining('(1, 0) - floor - Elev: 0 - hidden'));
+    expect(dimTile).toHaveAttribute('title', expect.stringMatching(/^\(0, 0\) - floor - .* - dim - /));
+    expect(hiddenTile).toHaveAttribute('title', expect.stringMatching(/^\(1, 0\) - floor - .* - hidden - /));
   });
 
   it('lets the player hide the line-of-sight overlay from the map legend', () => {

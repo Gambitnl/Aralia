@@ -1,8 +1,9 @@
 
 import { describe, it, expect } from 'vitest';
-import { resolveNPCVisual, resolveItemVisual } from '../visualUtils';
+import { resolveNPCVisual, resolveItemAssetSrc, resolveItemVisual } from '../visualUtils';
 import { NPC, Item } from '../../../types';
 import { NPCVisualSpec } from '../../../types/visuals';
+import { ENV } from '../../../config/env';
 
 /**
  * This file checks the visual resolver that turns game records into image paths
@@ -199,5 +200,21 @@ describe('resolveItemVisual', () => {
     const result = resolveItemVisual(item);
     expect(result.src).toBeUndefined();
     expect(result.fallbackContent).toBe('📦');
+  });
+});
+
+describe('resolveItemAssetSrc', () => {
+  it('anchors portable item paths to the configured app base', () => {
+    expect(resolveItemAssetSrc('assets/icons/general/armor/leather_cap.svg'))
+      .toBe(`${ENV.BASE_URL}assets/icons/general/armor/leather_cap.svg`);
+  });
+
+  it('also anchors root-looking local paths while preserving external sources', () => {
+    expect(resolveItemAssetSrc('/assets/icons/items/potion_of_healing.svg'))
+      .toBe(`${ENV.BASE_URL}assets/icons/items/potion_of_healing.svg`);
+    expect(resolveItemAssetSrc('data:image/svg+xml;base64,PHN2Zy8+'))
+      .toBe('data:image/svg+xml;base64,PHN2Zy8+');
+    expect(resolveItemAssetSrc('https://cdn.example.test/item.svg'))
+      .toBe('https://cdn.example.test/item.svg');
   });
 });

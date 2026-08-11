@@ -30,6 +30,7 @@ import { Quaternion, Vector3, Euler } from 'three';
 import type { Anchor, Frame, Gait, PlanSpec, SegmentSink } from '../types';
 import { ANCHORS, FT_TO_M, headRadiusM, heightM } from '../types';
 import { smooth, solveKnee } from './ik';
+import { bipedSkullRadiusM } from './skeletonBuilder';
 import { TreadmillLeg } from './legs';
 import { spineRadiusAt } from '../textPlan/spineProfile';
 
@@ -104,6 +105,20 @@ const V_KNEE = new Vector3();
 const V_BEND = new Vector3();
 const V_HAND = new Vector3();
 const V_SH = new Vector3();
+// round 2 (humanoid-anatomy): mitt-hand scratch vectors.
+// round 6 (humanoid-anatomy, 6b rescue): the palm frame is the CANONICAL
+// quaternion setFromUnitVectors(UP, palmDir) — the exact transport the
+// skeleton pose sink applies to the hand bone — so the thumb (constant local
+// coordinates in that frame) stays rigid to the bone in every walk phase. A
+// hand-built Gram-Schmidt basis twisted off the canonical transport by ~1 cm
+// mid-swing. The frame is well conditioned: the palm cocks ~18° forward
+// (z += 0.32), keeping palmDir clear of the degenerate straight-down
+// antipode. Mirror: skeletonBuilder.bipedRestPose arm loop.
+const V_PALM_DIR = new Vector3();
+const Q_PALM = new Quaternion();
+const UP_Y = new Vector3(0, 1, 0);
+const V_THUMB_A = new Vector3();
+const V_THUMB_B = new Vector3();
 
 abstract class BaseDriver implements GaitDriver {
   readonly pose = makePose();
@@ -172,9 +187,10 @@ abstract class BaseDriver implements GaitDriver {
     return Math.min(1, Math.max(0, 1 - this.speedFactor * 3.5));
   }
 
-  /** Standard head-cluster anchors around a head center. */
-  protected setHeadAnchors(hx: number, hy: number, hz: number): void {
-    const r = this.hr;
+  /** Standard head-cluster anchors around a head center. `r` defaults to the
+   * frame head radius; drivers that draw a rescaled skull (BipedDriver round 6)
+   * pass their drawn radius so head gear stays glued to the ball. */
+  protected setHeadAnchors(hx: number, hy: number, hz: number, r: number = this.hr): void {
     this.setAnchor('head', hx, hy, hz);
     this.setAnchor('crown', hx, hy + r * 0.95, hz - r * 0.1);
     this.setAnchor('jaw', hx, hy - r * 0.55, hz + r * 0.45);
@@ -194,10 +210,36 @@ class BipedDriver extends BaseDriver {
   private headY = 0;
   private bob = 0;
   private sway = 0;
+  /** round 6 (humanoid-anatomy): drawn skull radius — slim frames carry a
+   * smaller skull than headRadiusM so the dome stops dwarfing the shoulders.
+   * Mirror: skeletonBuilder.bipedSkullRadiusM (one shared formula). */
+  private readonly skullR: number;
+  /** round 6 (humanoid-anatomy): IK wrist targets, stashed in advance() —
+   * buildBody() re-aims the public hand anchors at the FIST center (grip
+   * point), so the anchors can no longer double as the next IK input. */
+  private readonly wrist: [Vector3, Vector3] = [new Vector3(), new Vector3()];
 
   constructor(frame: Frame) {
     super(frame);
-    const stance = (frame.stanceWidthFt * FT_TO_M) / 2;
+    this.skullR = bipedSkullRadiusM(frame);
+    // round 1 (humanoid-anatomy): rest stance widened to hip-width-plus so the
+    // legs drop straight from the hip sockets instead of converging inward.
+    // round 2 (humanoid-anatomy): bulk-independent stance floor (hM * 0.089).
+    // round 4 (humanoid-anatomy): the floor is now SHOULDER-derived — the
+    // round-3 verdict measured hips/feet at ~45% of the visual shoulder span
+    // (deltoid outer edge to deltoid outer edge) against ~75% in the
+    // references. The feet plant at 68% of that span, which puts the thigh
+    // roots (0.85x) right at the pelvis mass edge — legs drop under hips,
+    // not under the spine. Mirror: skeletonBuilder.bipedRestPose stanceHalf.
+    // round 5 (humanoid-anatomy): feet plant DIRECTLY under the thigh roots
+    // (0.85x of the shoulder-derived stance) — round 4 planted the feet at the
+    // full stance with hips at 0.85x, so every shin slanted outward and the
+    // figure read splayed. Hip, knee, and ankle now share one vertical line in
+    // the front view. Mirror: skeletonBuilder.bipedRestPose foot/hip x.
+    const armLenM = frame.armLengthFt * FT_TO_M;
+    const armR = Math.max(this.baseR * 0.3, armLenM * 0.085);
+    const shoulderVisualHalf = (frame.shoulderWidthFt * FT_TO_M) / 2 + armR * 1.6;
+    const stance = Math.max(((frame.stanceWidthFt * FT_TO_M) / 2) * 1.12, shoulderVisualHalf * 0.68) * 0.85;
     this.legs = [
       new TreadmillLeg(-stance, 0.01, 0, { liftH: this.hM * 0.06 }),
       new TreadmillLeg(stance, 0.01, 0.5, { liftH: this.hM * 0.06 }),
@@ -206,18 +248,70 @@ class BipedDriver extends BaseDriver {
 
   protected advance(): void {
     const stride = this.strideHalf();
-    for (const leg of this.legs) leg.update(this.gaitPhase, stride);
+    // round 4 (humanoid-anatomy): the planted idle base is wide (feet under
+    // hips at ~68% of the visual shoulder span); a walk cannot ride that wide
+    // track without waddling, so the feet pull toward the centerline as speed
+    // rises. TreadmillLeg.update rewrites pos every call, so scaling x here is
+    // stateless — and at speed 0 the factor is exactly 1, preserving rest-pose
+    // parity with skeletonBuilder.bipedRestPose.
+    const track = 1 - 0.32 * this.speedFactor;
+    for (const leg of this.legs) {
+      leg.update(this.gaitPhase, stride);
+      leg.pos.x *= track;
+    }
     // grounded wing beat (celestial, fiend, fairy, aarakocra carry wing parts)
     this.flap = this.groundedWingBeat();
     this.wingFold = this.groundedWingFold();
     this.bob = Math.sin(this.gaitPhase * Math.PI * 4) * this.hM * 0.014 * (0.4 + this.speedFactor);
-    this.sway = Math.sin(this.gaitPhase * Math.PI * 2) * this.hM * 0.011;
-    this.pelvisY = this.legLenM * 1.0 + this.bob;
+    // round 5 (humanoid-anatomy): sway is a WALK motion — at idle it slid the
+    // torso sideways over planted legs, so any captured frame showed one knee
+    // apparently caving under the body while the other bowed out. Gating it by
+    // speedFactor keeps the planted idle dead symmetric (and rest-pose parity
+    // exact at any gaitPhase).
+    this.sway = Math.sin(this.gaitPhase * Math.PI * 2) * this.hM * 0.011 * this.speedFactor;
+    // round 5 (humanoid-anatomy): stand UP at idle. The round-4 pelvis sat at
+    // legLen flat, which put the hip only ~90% of leg reach above the foot —
+    // a permanent half-squat. At rest the pelvis now rides at 0.96 of full
+    // leg reach (reach = 1.04 legLen: two 0.52 links), leaving only a slight
+    // forward knee break; the walk blends back down to the old crouch as
+    // speed rises so deep strides stay reachable. Mirror:
+    // skeletonBuilder.bipedRestPose pelvisY.
+    const idlePelvisY = this.legLenM * 1.04 * 0.96 + this.baseR * 0.3;
+    const walkPelvisY = this.legLenM * 1.0;
+    this.pelvisY = idlePelvisY + (walkPelvisY - idlePelvisY) * this.speedFactor + this.bob;
     this.chestY = this.pelvisY + (this.hM - this.legLenM) * 0.45;
-    // keep the head clear of the chest blob so stocky frames still read as
-    // head-on-shoulders instead of one pear-shaped mass
-    this.headY = this.hM - this.hr * 0.7 + this.bob;
-    const shoulderX = (this.frame.shoulderWidthFt * FT_TO_M) / 2 + this.baseR * 0.35;
+    // round 3 (humanoid-anatomy): real neck — the head rises when a bulky or
+    // big-headed frame leaves no daylight between the chest top and the skull
+    // base. The minimum visible neck height scales with the head too
+    // (hM * 0.04 + hr * 0.25): a bigger skull needs a taller gap to read, and
+    // gear collars (vest) eat the lowest part. chestY already carries the
+    // bob, so both branches bob together. Mirror: bipedRestPose headY.
+    // round 6 (humanoid-anatomy): the head ladder runs on the drawn skull
+    // radius (skullR ≤ hr) — a smaller skull also rides a touch higher, so
+    // slim frames gain visible neck instead of a dome on the shoulders.
+    // Mirror: bipedRestPose headY.
+    // round 10 (humanoid-anatomy): SEAT the head. The round-9 verdict read
+    // "lollipop heads on sticks" — both old branches stacked a full skull
+    // radius (plus hM terms) of bare neck over the collar, and the hM floor
+    // overshot canon height, so every chin floated a head-length above the
+    // shoulder line. The mount is now COLLAR-DRIVEN: the loft chin
+    // (headY − 0.59 skullR) rides `neckLift` skull radii above the chest
+    // top, and the lift SHRINKS with bulk — human ≈ 0.46 skullR (≈0.3 skull
+    // heights of visible neck), orc/dwarf ≈ 0.2 (the jaw settles into the
+    // traps, the WoW-grunt read). Hard cap 0.55 keeps every frame under the
+    // 0.4-skull-height ceiling. chestY carries the bob, so the head bobs
+    // with the body. Mirror: bipedRestPose headY.
+    // round 13 (humanoid-anatomy): lift floor 0.14 → 0.2 and slope 0.6 → 0.45
+    // — the round-12 orc read "no neck ... pinhead sunk straight into it"; the
+    // seated head keeps its bulk shrink but every frame keeps a visible neck.
+    // Mirror: bipedRestPose headY.
+    const neckLift = Math.min(0.55, Math.max(0.2, 0.46 - 0.45 * Math.max(0, this.frame.bulk - 1)));
+    this.headY = this.chestY + this.baseR * 0.35 + this.skullR * (0.59 + neckLift);
+    // round 13 (humanoid-anatomy): bulky frames push the whole arm chain
+    // outward (shoulderOut) — the round-12 orc's left arm fused into the
+    // widened torso in the top panel. Mirror: bipedRestPose shoulder terms.
+    const shoulderOut = this.baseR * 0.22 * Math.max(0, this.frame.bulk - 1);
+    const shoulderX = (this.frame.shoulderWidthFt * FT_TO_M) / 2 + this.baseR * 0.35 + shoulderOut;
     // arms: counter-swing to the legs; hang forward-and-easy when idle
     for (const sgn of [-1, 1] as const) {
       const phaseOff = sgn < 0 ? 0.5 : 0;
@@ -228,49 +322,182 @@ class BipedDriver extends BaseDriver {
         this.pelvisY + this.hM * 0.015,
         Math.sin(swing) * this.frame.armLengthFt * FT_TO_M * 0.42 + this.hM * 0.045,
       );
+      // round 6 (humanoid-anatomy): the anchor pos above is the WRIST (IK
+      // target); buildBody() moves the public anchor to the fist center so
+      // held gear roots inside the hand — stash the wrist for the IK solve.
+      this.wrist[sgn < 0 ? 0 : 1].copy(hand.pos);
       // tilt held gear slightly forward and away from the body so it reads
       hand.quat.setFromEuler(EULER.set(swing * 0.5 + 0.22, 0, sgn * -0.3));
     }
     this.setAnchor('hips', this.sway, this.pelvisY, 0);
-    this.setAnchor('hipL', -Math.abs(this.legs[0].pos.x) * 0.8, this.pelvisY - this.baseR * 0.3, 0);
-    this.setAnchor('hipR', Math.abs(this.legs[1].pos.x) * 0.8, this.pelvisY - this.baseR * 0.3, 0);
+    // round 1 (humanoid-anatomy): hip anchors ride the widened thigh roots
+    // round 5 (humanoid-anatomy): thigh roots sit directly over the feet
+    // (factor 1.0; the 0.85 narrowing moved into the stance itself)
+    this.setAnchor('hipL', -Math.abs(this.legs[0].pos.x), this.pelvisY - this.baseR * 0.3, 0);
+    this.setAnchor('hipR', Math.abs(this.legs[1].pos.x), this.pelvisY - this.baseR * 0.3, 0);
     this.setAnchor('chest', this.sway * 0.6, this.chestY, this.baseR * 0.15);
     this.setAnchor('back', this.sway * 0.6, this.chestY + this.baseR * 0.15, -this.baseR * 0.85);
     this.setAnchor('tailRoot', this.sway, this.pelvisY - this.baseR * 0.2, -this.baseR * 0.8);
-    this.setHeadAnchors(0, this.headY, this.hr * 0.25);
+    this.setHeadAnchors(0, this.headY, this.skullR * 0.25, this.skullR);
   }
 
   buildBody(sink: SegmentSink): void {
     const r = this.baseR;
-    const midY = this.pelvisY + (this.chestY - this.pelvisY) * 0.5;
-    // torso: pelvis -> waist -> chest, then a neck up to the head
-    sink.seg('torso.pelvis', this.sway, this.pelvisY - r * 0.35, 0, this.sway * 0.6, midY, 0.01, r * 0.92, r * 0.8);
-    sink.seg('torso.chest', this.sway * 0.6, midY, 0.01, 0, this.chestY + r * 0.35, 0.02, r * 0.8, r * 0.95);
-    const headZ = this.hr * 0.25;
-    sink.seg('neck', 0, this.chestY + r * 0.3, 0.02, 0, this.headY - this.hr * 0.55, headZ * 0.7, r * 0.34, r * 0.3);
-    sink.ball('head', 0, this.headY, headZ, this.hr);
-    const shoulderX = (this.frame.shoulderWidthFt * FT_TO_M) / 2;
+    // round 13 (humanoid-anatomy): THE PELVIS BREAK. The round-12 verdict:
+    // "the torso is one unbroken tube that ends in a straight skirt-hem at
+    // mid-thigh". The torso now lofts THREE masses that meet at the belt
+    // line: a glute/hip mass (widest 1.14 r at its base), a pinched waist
+    // (0.68 r) at beltY — LOWER than the old midY so the break sits at the
+    // belt, not the ribs — and a ribcage that swells back to 1.02 r at the
+    // chest top. The hip:waist:chest width profile IS the silhouette break.
+    // The pelvis root also rises (−0.5 r → −0.2 r): the smooth loft rounds a
+    // glute tuck below it instead of ending in the flat skirt-hem disc.
+    // Mirror: skeletonBuilder.bipedRestPose torso segments.
+    const beltY = this.pelvisY + (this.chestY - this.pelvisY) * 0.32;
+    sink.seg('torso.pelvis', this.sway, this.pelvisY - r * 0.2, 0, this.sway * 0.6, beltY, 0.007, r * 1.14, r * 0.68);
+    sink.seg('torso.chest', this.sway * 0.6, beltY, 0.007, 0, this.chestY + r * 0.35, 0.02, r * 0.68, r * 1.02);
+    const headZ = this.skullR * 0.25;
+    // round 3 (humanoid-anatomy): the neck roots EXACTLY at the chest top (no
+    // loft step) and buries its tip deep inside the skull (headY - skullR * 0.35).
+    // round 4 (humanoid-anatomy): the tip radius now climbs with bulk
+    // (r * 0.55, floor 0.42 skullR, cap 0.72 skullR) so thick frames carry a
+    // thick neck, and frames whose neck reaches the traps threshold also get a
+    // trapezius wedge: one cone from the chest top to the skull equator that
+    // swallows the hard outline step where the neck used to meet the head —
+    // the orc's "head in a socket" read.
+    // round 6 (humanoid-anatomy): every head term runs on the drawn skull
+    // radius, and the traps threshold drops 0.62 → 0.55 so mid-bulk frames
+    // (the human fighter) earn the trap ramp the orc already has. Mirror:
+    // bipedRestPose neck + torso.traps.
+    // round 7 (humanoid-anatomy): the sculpted head (buildHumanoidHead) has a
+    // real jawline (jaw half-width 0.46 skullR), so the neck tip caps at
+    // 0.58 skullR (0.72 buried the jaw in neck) and the traps wedge stops at
+    // the NECK BASE (headY − 0.55 skullR, r1 0.62 skullR) instead of the
+    // skull equator — the orc's round-6 "no neck at all" was the 0.82-radius
+    // wedge swallowing the whole gap. A visible neck cylinder now runs
+    // wedge-top → skull underside. Mirror: bipedRestPose.
+    // round 9 (humanoid-anatomy): drawn neck tip caps at 0.42 skullR (0.58
+    // matched the loft's cheek half-width, so no notch ever showed under the
+    // jaw) and the tip bury is −0.45 skullR so the taper finishes BELOW the
+    // jaw where it can read. The traps threshold keeps the UNCAPPED
+    // thickness so bulky frames keep their trap ramp.
+    // round 10 (humanoid-anatomy): traps RISE to meet the seated head. The
+    // wedge now roots INSIDE the upper chest (chestTop − 0.55 r) so the
+    // slope has vertical run under the dropped skull, and its top tracks
+    // bulk: bury 0.95 → 0.47 skullR below head center as bulk climbs, so on
+    // bulked frames the peak clears the chin line (−0.59 skullR) and the jaw
+    // sits INTO the trapezius. The peak also widens with bulk (0.54 → 0.82
+    // skullR) to bracket the lower half of the skull sides — the WoW-grunt
+    // collar. Mirror: bipedRestPose.
+    const neckThickR = Math.max(this.skullR * 0.42, r * 0.55);
+    const neckTipR = Math.min(neckThickR, this.skullR * 0.42);
+    if (neckThickR >= this.skullR * 0.55) {
+      const trapsBury = Math.max(0.47, 0.95 - 1.2 * Math.max(0, this.frame.bulk - 1));
+      const trapsR1 = Math.min(0.82, 0.54 + 0.55 * Math.max(0, this.frame.bulk - 1));
+      sink.seg('torso.traps', 0, this.chestY + r * 0.35 - r * 0.55, 0.02, 0, this.headY - this.skullR * trapsBury, headZ * 0.6, r * 0.88, this.skullR * trapsR1);
+    }
+    sink.seg('neck', 0, this.chestY + r * 0.35, 0.02, 0, this.headY - this.skullR * 0.45, headZ * 0.85, r * 0.52, neckTipR);
+    sink.ball('head', 0, this.headY, headZ, this.skullR);
+    // round 13 (humanoid-anatomy): same bulk-driven outward push as advance()
+    // — arm roots clear the widened bulky torso. Mirror: bipedRestPose.
+    const shoulderX = (this.frame.shoulderWidthFt * FT_TO_M) / 2 + r * 0.22 * Math.max(0, this.frame.bulk - 1);
     const armLen = this.frame.armLengthFt * FT_TO_M;
     const armR = Math.max(r * 0.3, armLen * 0.085);
+    // round 2 (humanoid-anatomy): deltoid ball buries the arm root into the
+    // chest.
+    // round 6 (humanoid-anatomy): near 3:1 shoulder-to-wrist taper (1.48 armR
+    // root down to a 0.52 armR wrist) so slim frames stop reading as uniform
+    // tubes, and a real HAND in place of the round-2 nub: the wrist steps
+    // down into a palm block clearly wider than it (1.02 armR root), the palm
+    // cocks ~18° forward so its knuckle end reads in the 3/4 and front
+    // panels, and an opposed thumb wedge angles off the palm's lateral-front
+    // corner. The palm's basis (fingers ey / lateral ex / front ez) is
+    // explicit and well-conditioned — no more degenerate UP→down quaternion.
+    // Mirror: skeletonBuilder.bipedRestPose arm loop — constants must stay
+    // identical. (The stance formulas keep the round-4 armR * 1.6 term — the
+    // stance is a tuned constant now, decoupled from the deltoid's 1.7.)
+    const shoulderR = armR * 1.48;
+    const elbowR = armR * 0.8;
+    const wristR = armR * 0.52;
+    const palmLen = armR * 1.9;
     for (const sgn of [-1, 1] as const) {
       const side = sgn < 0 ? 'L' : 'R';
-      const hand = this.pose.anchors[sgn < 0 ? 'handL' : 'handR'].pos;
+      const hand = this.wrist[sgn < 0 ? 0 : 1];
       V_SH.set(sgn * shoulderX, this.chestY + r * 0.45, 0.02);
       V_BEND.set(sgn, 0, -0.4).normalize();
       solveKnee(V_SH, V_HAND.copy(hand), armLen * 0.52, armLen * 0.52, V_BEND, V_KNEE);
-      sink.seg('arm' + side + '.upper', V_SH.x, V_SH.y, V_SH.z, V_KNEE.x, V_KNEE.y, V_KNEE.z, armR, armR * 0.85);
-      sink.seg('arm' + side + '.fore', V_KNEE.x, V_KNEE.y, V_KNEE.z, hand.x, hand.y, hand.z, armR * 0.85, armR * 0.7);
-      sink.ball('hand' + side, hand.x, hand.y, hand.z, armR * 1.15);
+      // deltoid before the upper segment: the segment's later write drives
+      // the upperArm bone; the ball only adds shoulder mass at the joint
+      sink.ball('deltoid' + side, V_SH.x, V_SH.y, V_SH.z, armR * 1.7);
+      sink.seg('arm' + side + '.upper', V_SH.x, V_SH.y, V_SH.z, V_KNEE.x, V_KNEE.y, V_KNEE.z, shoulderR, elbowR);
+      sink.seg('arm' + side + '.fore', V_KNEE.x, V_KNEE.y, V_KNEE.z, hand.x, hand.y, hand.z, elbowR, wristR);
+      // fingers axis: forearm direction cocked forward (+z 0.32 ≈ 18°)
+      V_PALM_DIR.copy(hand).sub(V_KNEE).normalize();
+      V_PALM_DIR.z += 0.32;
+      V_PALM_DIR.normalize();
+      // canonical palm frame — identical to the pose sink's hand-bone rule
+      Q_PALM.setFromUnitVectors(UP_Y, V_PALM_DIR);
+      // opposed thumb: rooted at the palm's lateral-front corner, tip angled
+      // across the front where a held haft rides (local axes: +Y fingers,
+      // sgn·X outward lateral, −Z knuckle front)
+      V_THUMB_A.set(sgn * armR * 0.8, armR * 0.3, -armR * 0.2).applyQuaternion(Q_PALM).add(hand);
+      V_THUMB_B.set(sgn * armR * 1.05, armR * 1.15, -armR * 0.8).applyQuaternion(Q_PALM).add(hand);
+      // thumb first, palm last: the pose sink's last write per bone wins, so
+      // the palm segment defines the hand bone's transform
+      sink.seg('hand' + side + '.thumb', V_THUMB_A.x, V_THUMB_A.y, V_THUMB_A.z, V_THUMB_B.x, V_THUMB_B.y, V_THUMB_B.z, armR * 0.45, armR * 0.3);
+      sink.seg(
+        'hand' + side + '.palm',
+        hand.x, hand.y, hand.z,
+        hand.x + V_PALM_DIR.x * palmLen, hand.y + V_PALM_DIR.y * palmLen, hand.z + V_PALM_DIR.z * palmLen,
+        armR * 1.02, armR * 0.94,
+      );
+      // round 6 (humanoid-anatomy): grip anchor — held gear parents to the
+      // hand anchor, so aim it at the FIST CENTER (mid-palm, nudged toward
+      // the knuckle face). A weapon's grip-at-origin haft then emerges above
+      // and below the fist instead of sprouting from the bare wrist.
+      this.pose.anchors[sgn < 0 ? 'handL' : 'handR'].pos
+        .set(0, palmLen * 0.5, -armR * 0.12)
+        .applyQuaternion(Q_PALM)
+        .add(hand);
     }
+    // round 1 (humanoid-anatomy): near 2:1 thigh-to-calf taper (thigh root
+    // 1.32 legR down to a 0.5 legR ankle), thighs rooted deeper and wider
+    // into the pelvis mass, and the knee bend pushed outward so knees track
+    // over the feet instead of pinching knock-kneed inward. Mirror:
+    // skeletonBuilder.bipedRestPose leg loop.
     const legR = Math.max(r * 0.36, this.legLenM * 0.105);
+    // round 13 (humanoid-anatomy): thigh roots carry a TORSO-derived floor
+    // (0.58 r) — the round-12 orc balanced "a fridge on two sticks" because
+    // legR runs on leg length while the torso runs on bulk. Bulky frames now
+    // root thighs thick enough for the hips they hang from (the knee keeps
+    // half the root so the taper stays believable); slim frames are
+    // unchanged (legR * 1.32 still wins). Mirror: bipedRestPose leg radii.
+    const thighR = Math.max(legR * 1.32, r * 0.58);
+    const kneeR = Math.max(legR * 0.72, thighR * 0.5);
+    const ankleR = legR * 0.5;
+    // round 5 (humanoid-anatomy): heel-to-toe wedge feet — a tapered segment
+    // from a heel BEHIND the ankle to a toe box in front, sole flat on the
+    // ground (each end's center rides at its own radius), replacing the
+    // heel-less nub balls. Both knee bend vectors are exact x-mirrors with a
+    // small outward lean (0.1; round 1's 0.28 fought a knock-kneed crouch
+    // that no longer exists — near-straight legs need the knee tracking
+    // straight over the toes). Mirror: skeletonBuilder.bipedRestPose leg loop.
+    const heelR = legR * 0.62;
+    const toeR = legR * 0.5;
     for (const [i, leg] of this.legs.entries()) {
       const side = i === 0 ? 'L' : 'R';
-      V_HIP.set(leg.pos.x * 0.8, this.pelvisY - r * 0.2, 0);
-      V_BEND.set(0, 0, 1);
+      const sgn = i === 0 ? -1 : 1;
+      V_HIP.set(leg.pos.x, this.pelvisY - r * 0.3, 0);
+      V_BEND.set(sgn * 0.1, 0, 1).normalize();
       solveKnee(V_HIP, V_HAND.copy(leg.pos), this.legLenM * 0.52, this.legLenM * 0.52, V_BEND, V_KNEE);
-      sink.seg('leg' + side + '.thigh', V_HIP.x, V_HIP.y, V_HIP.z, V_KNEE.x, V_KNEE.y, V_KNEE.z, legR, legR * 0.85);
-      sink.seg('leg' + side + '.shin', V_KNEE.x, V_KNEE.y, V_KNEE.z, leg.pos.x, leg.pos.y, leg.pos.z, legR * 0.85, legR * 0.6);
-      sink.ball('foot' + side, leg.pos.x, leg.pos.y + legR * 0.35, leg.pos.z + legR * 0.55, legR * 0.85);
+      sink.seg('leg' + side + '.thigh', V_HIP.x, V_HIP.y, V_HIP.z, V_KNEE.x, V_KNEE.y, V_KNEE.z, thighR, kneeR);
+      sink.seg('leg' + side + '.shin', V_KNEE.x, V_KNEE.y, V_KNEE.z, leg.pos.x, leg.pos.y, leg.pos.z, kneeR, ankleR);
+      sink.seg(
+        'foot' + side,
+        leg.pos.x, leg.pos.y + heelR, leg.pos.z - legR * 0.7,
+        leg.pos.x, leg.pos.y + toeR, leg.pos.z + legR * 1.75,
+        heelR, toeR,
+      );
     }
   }
 }
@@ -500,17 +727,34 @@ class PlanDriver extends BaseDriver {
   private legReachM = 0;
   /** Legless bulky horizontal body — breathes and mounds (oozes). */
   private readonly moundBody: boolean;
+  /** round 16 (creature-anatomy): mound flatten — the mound's spine sweeps at
+   * 0.8 × the profile radius (less dome height) while lateral gel LOBES
+   * (decorative flank balls, spine.lobeL/R ids) rebuild the width at ground
+   * level, so the whole body — buried volume included, in BOTH the segment
+   * and skinned render paths — is clearly wider than tall (~0.65 height to
+   * width). A circular sweep alone can never be: the round-15 silhouette
+   * panel (no ground plane) showed the full circle as a taller-than-wide
+   * egg. Constants; radii stay frame-constant per id. */
+  private static readonly MOUND_FLATTEN = 0.8;
+  /** Flank-lobe placement, fractions of the local (flattened) spine radius. */
+  private static readonly MOUND_LOBE_OFFSET = 1.0;
+  private static readonly MOUND_LOBE_R = 0.68;
   /** Spine runs vertically this frame (upright, or a compact floater). */
   private verticalBody = false;
   /** True when the plan animates wings — chain wings OR polished wing mesh
    * parts (the Emberwing lesson: big bodies hang wingsMembrane as garnish,
    * which the driver cannot see; the assembler passes the hint). */
   private readonly winged: boolean;
+  /** round 9 (creature-anatomy): the blueprint carries a finRidge garnish —
+   * the driver emits the dorsal crest itself, riding the live spine stations
+   * (the anchor-bezier chain part detached laterally from the slither coil). */
+  private readonly crested: boolean;
 
-  constructor(frame: Frame, spec: PlanSpec, wingedHint = false) {
+  constructor(frame: Frame, spec: PlanSpec, wingedHint = false, crestedHint = false) {
     super(frame);
     this.spec = spec;
     this.winged = wingedHint || spec.chains.some((c) => c.kind === 'wing');
+    this.crested = crestedHint;
     const legs = spec.chains.filter((c) => c.kind === 'leg');
     this.legReachM = legs.length
       ? Math.max(...legs.map((c) => c.links.reduce((n, l) => n + l.lenM, 0)))
@@ -540,7 +784,21 @@ class PlanDriver extends BaseDriver {
       case 'upright':
         return Math.max(this.legReachM * 0.92, s.bodyRadM * 1.2);
       case 'horizontal':
-        return this.legReachM > 0 ? this.legReachM * 0.88 : s.bodyRadM * 1.05;
+        // round 4 (creature-anatomy): a mound SETTLES — its tube center sinks
+        // below its radius so the fattest circumference meets the ground and
+        // the visible base is the widest line (a slumped ooze, not a balloon
+        // resting on a tangent point).
+        // round 16 (creature-anatomy): sink 0.78 → 0.5, paired with the
+        // MOUND_FLATTEN radii and the flank lobes — at 0.78 the round-15
+        // silhouette read "a taller-than-wide egg — an inflated balloon, not
+        // settled liquid". The deeper sink buries more of the tube so the
+        // dome above ground is low and the ground line stays the widest.
+        // (box-bodied mounds — the gelatinous cube — keep the shallow 0.78
+        // settle: their flat bottom already meets the ground, and the deep
+        // sink would bury a quarter of the cube)
+        return this.legReachM > 0
+          ? this.legReachM * 0.88
+          : s.bodyRadM * (this.moundBody ? (s.spine.shape === 'box' ? 0.78 : 0.5) : 1.05);
       case 'serpentine':
         return s.bodyRadM * 1.02;
       case 'floating':
@@ -576,17 +834,47 @@ class PlanDriver extends BaseDriver {
           s.stance === 'floating' ? y0 - half : this.legTreads.size > 0 ? y0 : y0 * 0.35;
         this.spinePts[i].set(0, topY - u * (topY - bottomY), arch);
       } else {
-        // slither is the star: amplitude keys off body LENGTH, and idles softly
-        const wave =
-          s.stance === 'serpentine'
-            ? Math.sin(this.gaitPhase * Math.PI * 2 + u * 4.5) *
-              Math.max(s.bodyRadM * 0.6, s.bodyLenM * 0.05) *
-              (0.55 + 0.45 * this.speedFactor)
-            : 0;
+        const serp = s.stance === 'serpentine';
+        // round 2 (creature-anatomy): a serpentine creature REARS. The front
+        // third of the spine rises into a vertical S-curve carrying the head
+        // high while the rear body grounds and undulates — the round-1
+        // verdict's "fallen leek" was this exact missing stance. Speed-aware:
+        // coiled-tall at idle, a lower forward lunge in motion.
+        const REAR_U = 0.38; // spine fraction that leaves the ground
+        const v = serp && u < REAR_U ? (REAR_U - u) / REAR_U : 0; // 1 at head
+        const riseM = serp ? s.bodyLenM * 0.26 * (1 - 0.45 * this.speedFactor) : 0;
+        const lift = riseM * Math.pow(v, 1.35);
+        // slither is the star: amplitude keys off body LENGTH, idles softly,
+        // and fades out along the raised neck (a rearing front holds steady).
+        // round 7 (creature-anatomy): amplitude 0.05L → 0.13L and spatial
+        // frequency 4.5 → 7.0 — the round-6 top view read as a dead-sapling
+        // stick because the grounded trunk carried under half a wavelength at
+        // ±0.2 m on an 8 m body. The plan view must show a real S-COIL whose
+        // lateral throw rivals the trunk's own width.
+        const wave = serp
+          ? Math.sin(this.gaitPhase * Math.PI * 2 + u * 7.0) *
+            Math.max(s.bodyRadM * 1.1, s.bodyLenM * 0.13) *
+            (0.55 + 0.45 * this.speedFactor) *
+            (1 - v * 0.85)
+          : 0;
         // legless bulky horizontals breathe like a mound (ooze idle squash)
         const breath = this.moundBody ? Math.sin(this.t * 2.2) * s.bodyRadM * 0.1 : 0;
         const moundZ = this.moundBody ? 0.55 : 1;
-        this.spinePts[i].set(wave, y0 + arch + breath * Math.sin(u * Math.PI), this.attachZ(u) * moundZ);
+        // round 4 (creature-anatomy): a serpent's belly RESTS ON THE GROUND
+        // along its whole length — each station's center rides at its own
+        // profile radius, so the body taper carries the spine line down to a
+        // grounded pointed tail tip instead of a constant-height hose whose
+        // thin tail floats at mid-body height.
+        const yStation = serp ? Math.max(spineRadiusAt(s, u) * 1.02, 0.02) : y0;
+        let z = this.attachZ(u) * moundZ;
+        if (v > 0) {
+          // the raised arc spends length on height: pull its horizontal reach
+          // inward, bow backward mid-rise then carry forward at the top — S
+          const zBase = this.attachZ(REAR_U);
+          z = zBase + (this.attachZ(u) - zBase) * (1 - v * 0.55) +
+            riseM * (v * 0.3 - Math.sin(v * Math.PI) * 0.08);
+        }
+        this.spinePts[i].set(wave, yStation + arch + breath * Math.sin(u * Math.PI) + lift, z);
       }
     }
 
@@ -652,10 +940,42 @@ class PlanDriver extends BaseDriver {
       const spineU = Math.min(1, Math.max(0, chain.attach));
       const idx = Math.min(s.spine.segments, Math.round(spineU * s.spine.segments));
       const sp = this.spinePts[idx];
+      // Root-mass round 1: legs and wings bias their root joint INSIDE the
+      // hull (0.45 vs the old 0.85 surface tangent) so the compiled root
+      // swell erupts through the body wall — the junction reads as a muscled
+      // haunch/shoulder, not a pipe glued to the flank.
+      // round 14 (creature-anatomy): mound pseudopods root INSIDE too — a gel
+      // arm must erupt through its own membrane, not hang off a tangent.
+      const inset =
+        chain.kind === 'leg' || chain.kind === 'wing' || (this.moundBody && chain.kind === 'tentacle')
+          ? 0.45
+          : 0.85;
+      // round 2 (creature-anatomy): serpentine chains root at the LIVE spine
+      // point — the reared front pulls its z inward, so the flat rootZ would
+      // strand necks floating ahead of the raised body.
+      // round 14 (creature-anatomy): MOUND chains too. The mound compresses
+      // its spine z by 0.55 (moundZ), but roots still used the flat rootZ —
+      // the ooze's rear smear (attach 0.85) rooted at z −0.53 when the dome
+      // ends at −0.42: a pseudopod born OUTSIDE the membrane, the round-13
+      // "two misaligned objects" verdict. Every mound chain now roots at the
+      // live compressed spine point.
+      // round 19 (creature-anatomy): serpentine neck roots BURY inside the
+      // riser — heightFrac 0.8+ lifted crown-neck roots half a radius ABOVE
+      // the trunk's cap, so each neck tube's own domed root cap floated as
+      // the round-18 "hard shelf/ring seam ... socketed on, not grown from
+      // the body". Rooting at (and slightly below) the crown center starts
+      // every neck INSIDE the trunk dome, so it emerges through the hide.
+      const buriedNeck = s.stance === 'serpentine' && chain.kind === 'neck';
       root = new Vector3(
-        sp.x + chain.side * s.bodyRadM * 0.85,
-        sp.y + (this.verticalBody ? 0 : (chain.heightFrac - 0.5) * s.bodyRadM * 1.6),
-        this.verticalBody ? sp.z + s.bodyRadM * 0.2 : rootZ,
+        sp.x + chain.side * s.bodyRadM * inset,
+        sp.y +
+          (this.verticalBody || buriedNeck ? 0 : (chain.heightFrac - 0.5) * s.bodyRadM * 1.6) -
+          (buriedNeck ? s.bodyRadM * 0.3 : 0),
+        this.verticalBody
+          ? sp.z + s.bodyRadM * 0.2
+          : s.stance === 'serpentine' || this.moundBody
+            ? sp.z
+            : rootZ,
       );
     }
     const total = chain.links.reduce((nn, l) => nn + l.lenM, 0);
@@ -694,7 +1014,12 @@ class PlanDriver extends BaseDriver {
       dir.set(sway, 1, 0.16);
     } else if (chain.kind === 'tail') dir.set(chain.side * 0.15, 0.12, -1);
     else if (chain.kind === 'tentacle') {
-      dir.set(chain.side === 0 ? 0.4 : chain.side, -0.12, 0.35);
+      // round 8 (creature-anatomy): pseudopod droop — tentacles LEAVE the
+      // body falling (-0.55, was -0.12). A tentacle held level reads as a
+      // stiff spider leg (the ooze's persistent "translucent tick"); dropping
+      // the seed direction plus the per-link sag below lays resting tentacles
+      // onto the ground clamp, where they drag as melting stubs.
+      dir.set(chain.side === 0 ? 0.4 : chain.side, -0.55, 0.35);
       // siblings fan around the body — six tentacles are a crown, not a comb
       const sibs = this.spec.chains.filter((c) => c.kind === 'tentacle' && c.side === chain.side);
       if (sibs.length > 1) {
@@ -702,7 +1027,13 @@ class PlanDriver extends BaseDriver {
         dir.applyAxisAngle(V_UP, (which / (sibs.length - 1) - 0.5) * 1.9 * (chain.side || 1));
       }
     }
-    else if (chain.kind === 'neck') dir.set(chain.side * 0.2, 0.95, upright ? 0.3 : 0.95); // 2026-07-28: ~45deg per therapsid reference (was 57deg)
+    else if (chain.kind === 'neck') {
+      // 2026-07-28: ~45deg per therapsid reference (was 57deg). round 2
+      // (creature-anatomy): serpentine necks ride an already-reared spine —
+      // they strike FORWARD (jaws leading) rather than periscoping higher.
+      if (this.spec.stance === 'serpentine') dir.set(chain.side * 0.2, 0.6, 1.0);
+      else dir.set(chain.side * 0.2, 0.95, upright ? 0.3 : 0.95);
+    }
     else if (chain.kind === 'wing') dir.set(chain.side === 0 ? 0.9 : chain.side, 0.35, -0.15);
     else {
       // arm: down-forward hang for walkers; a gentle drape for floaters —
@@ -722,15 +1053,43 @@ class PlanDriver extends BaseDriver {
 
     // Necks fan out so multi-head creatures separate their heads. Floaters
     // (beholders) crown FULL CIRCLE; walkers fan forward.
+    let neckWhich = -1;
+    let neckCount = 1;
     if (chain.kind === 'neck') {
       const necks = this.spec.chains.filter((c) => c.kind === 'neck');
       const which = necks.findIndex((c) => c.id === chain.id);
+      neckWhich = which;
+      neckCount = necks.length;
       if (necks.length > 1) {
         if (this.spec.stance === 'floating') {
           dir.applyAxisAngle(V_UP, (which / necks.length) * Math.PI * 2);
+        } else if (this.spec.stance === 'serpentine') {
+          // round 12 (creature-anatomy): HYDRA CROWN. Rounds 8-11 spread the
+          // WHOLE neck direction per index, so flanker skulls left the trunk
+          // sideways at shoulder height and the round-11 verdict read them as
+          // "miniature clone heads ... at each shoulder". Every neck now
+          // leaves the shared front root on the SAME steep rising line — one
+          // muscular base climbing out of the reared S — and all separation
+          // happens per-link toward the tip (the crown fan in the link loop
+          // below): skulls fan apart only at the TOP, nothing at shoulder
+          // height. Deterministic: no time term.
+          dir.set(0, 0.85, 0.62).normalize();
         } else {
           const spread = which / (necks.length - 1) - 0.5;
           dir.x += spread * 1.6;
+          // round 11 (creature-anatomy): ALL heads carry HIGH in the reared
+          // fan; no head ever sinks toward belly height. Deterministic:
+          // keyed off the neck's index, not time.
+          dir.y -= Math.abs(spread) * 0.18;
+          dir.z += Math.abs(spread) * 0.3;
+          // Decisive per-index yaws: the FIRST neck swings wide and yaws hard
+          // outward (the distracted sentry), the LAST yaws the other way (the
+          // wary watcher) — both still striking HIGH.
+          if (which === 0) {
+            dir.applyAxisAngle(V_UP, -0.6);
+          } else if (which === necks.length - 1) {
+            dir.applyAxisAngle(V_UP, 0.5);
+          }
           dir.normalize();
         }
       }
@@ -746,13 +1105,42 @@ class PlanDriver extends BaseDriver {
         step.applyAxisAngle(V_UP, wag * (j + 1) * 0.35);
         step.y -= j * 0.16; // droop toward the tip
       } else if (chain.kind === 'tentacle') {
+        // round 8 (creature-anatomy): the wave rides the GROUND — lateral
+        // ripple stays (perp), but the vertical component shrank (0.22 →
+        // 0.08) and every link now sags hard (-0.28 - j*0.2, was -j*0.08).
+        // With the ground clamp below, no tentacle holds a straight line in
+        // the air at idle: they droop, touch down, and drag.
         const wave = Math.sin(this.t * 3.1 + j * 1.15 + chain.attach * 6);
-        step.addScaledVector(perp, wave * 0.35).addScaledVector(V_UP, wave * 0.22 - j * 0.08);
+        step.addScaledVector(perp, wave * 0.35).addScaledVector(V_UP, wave * 0.08 - 0.28 - j * 0.2);
       } else if (chain.kind === 'wing') {
         step.y += this.flap * (0.55 + j * 0.5);
       } else if (chain.kind === 'neck') {
         // arc up and outward; only ease off near the tip so heads ride high
         step.y += Math.sin(this.t * 0.8 + chain.attach * 3) * 0.06 - j * 0.03;
+        // round 12 (creature-anatomy): CROWN FAN for serpentine multi-necks —
+        // the outward yaw GROWS with the link index, so the fat first links
+        // hug the shared rising line (one branching trunk) and the skulls fan
+        // apart only at the top. The tip yaw also turns each flanker head
+        // outward (head forward = tip minus prev, the round-10 lesson), and
+        // flankers ease slightly BELOW the hero at the tip — beside and
+        // below, never dropping toward the body. Deterministic: keyed off the
+        // neck's index, not time.
+        if (neckCount > 1 && this.spec.stance === 'serpentine') {
+          const spread = neckWhich / (neckCount - 1) - 0.5;
+          const tipFrac = (j + 1) / chain.links.length;
+          // round 13 (creature-anatomy): ASYMMETRIC fan — equal ± yaws and
+          // equal droops read "broccoli-symmetric" (round-12 verdict). Each
+          // neck takes its own yaw gain and droop by index, so the crown's
+          // silhouette staggers instead of mirroring. Deterministic.
+          const yawGain = 1.9 + 0.4 * Math.sin(neckWhich * 2.7 + 0.8);
+          step.applyAxisAngle(V_UP, spread * yawGain * tipFrac);
+          step.y -= Math.abs(spread) * (0.44 + 0.12 * Math.sin(neckWhich * 1.9)) * tipFrac;
+        } else if (neckCount > 1 && this.spec.stance !== 'floating' && j === chain.links.length - 1) {
+          // round 10-11 (creature-anatomy): non-serpentine walkers keep the
+          // decisive last-link YAW kinks — heads turn, never drop.
+          if (neckWhich === 0) step.applyAxisAngle(V_UP, -0.75);
+          else if (neckWhich === neckCount - 1) step.applyAxisAngle(V_UP, 0.6);
+        }
       } else if (chain.kind === 'arm') {
         const swing = Math.sin(this.gaitPhase * Math.PI * 2 + (chain.side < 0 ? 0.5 : 0) * Math.PI * 2) *
           0.5 * this.speedFactor;
@@ -858,10 +1246,27 @@ class PlanDriver extends BaseDriver {
     }
     // Smooth mode (Dragon Forge technique): sinks that implement tube() get
     // continuous swept bodies; others (crowd bake, collectors, wireframe)
-    // keep the rigid per-segment fallback. Translucent bodies also stay on
-    // segments — the layered pale look reads as mist, while a translucent
-    // tube + ink shell reads as carved stone.
-    const smooth = !boxBody && (s.opacity === undefined || s.opacity >= 1) && typeof sink.tube === 'function';
+    // keep the rigid per-segment fallback. Translucent FLOATING bodies stay
+    // on segments — the layered pale look reads as mist (the ghost).
+    // round 6 (creature-anatomy): translucent GROUNDED bodies keep the smooth
+    // tube — a gel ooze must hold its slumped mound; flipping it to stacked
+    // segment balls just because opacity < 1 turned translucency into a
+    // geometry change.
+    const misty = s.opacity !== undefined && s.opacity < 1 && s.stance === 'floating';
+    const smooth = !boxBody && !misty && typeof sink.tube === 'function';
+    // round 4 (creature-anatomy): the torso TAPERS INTO the tail. When a tail
+    // chain roots at the spine rear, the spine's final radius snaps to the
+    // tail's root-link radius so the two tubes meet as one continuous surface
+    // — the round-3 verdict's "flat disc from which the tail sprouts" was the
+    // full-width spine end cap facing the camera behind a thinner tail root.
+    const rearTail = s.chains.find((c) => c.kind === 'tail' && !c.parentId && c.attach > 0.85);
+    const seamR = rearTail ? Math.max(0.008, rearTail.links[0].rM) : null;
+    // round 16 (creature-anatomy): the mound sweeps FLATTER than its profile
+    // (MOUND_FLATTEN) — the lost width comes back as ground-level flank lobes
+    // below, so the settled gel is wider than tall in every render path
+    const moundFlatten = this.moundBody && !boxBody ? PlanDriver.MOUND_FLATTEN : 1;
+    const spineR = (u: number): number =>
+      (seamR !== null && u === 1 ? seamR : spineRadiusAt(s, u)) * moundFlatten;
     // spine radius: THE shared profile (spineProfile.spineRadiusAt) — taper+bulge
     // for legacy plans, three-lobe chest/waist/hips when spine.mass is set
     if (smooth) {
@@ -870,9 +1275,19 @@ class PlanDriver extends BaseDriver {
       for (let i = 0; i <= n; i++) {
         const p = this.spinePts[i];
         flat.push(p.x, p.y, p.z);
-        radii.push(spineRadiusAt(s, i / n));
+        radii.push(spineR(i / n));
       }
-      sink.tube!('spine', flat, radii);
+      // round 18 (creature-anatomy): serpentine trunks carry scale-ring VALUE
+      // bands — the round-17 verdict read the trunk as "a smooth vinyl tube
+      // ... zero ornament". Darkened rings ride the countershade tint (value,
+      // never displacement — the toon ramp erases relief at sheet distance),
+      // fading at the belly so the scute strip stays clean. Count follows the
+      // segment count (deterministic, frame-constant per id).
+      const bands =
+        s.stance === 'serpentine' && !this.moundBody
+          ? { count: Math.min(18, Math.max(8, Math.round(n * 1.25))), strength: 0.45 }
+          : undefined;
+      sink.tube!('spine', flat, radii, bands);
     } else {
       for (let i = 0; i < n; i++) {
         const a = this.spinePts[i];
@@ -881,14 +1296,265 @@ class PlanDriver extends BaseDriver {
         const uB = (i + 1) / n;
         // rigid fallback now honors the same profile (bulge included) — the
         // crowd bake silhouette finally matches the smooth tube
-        const rA = spineRadiusAt(s, uA);
-        const rB = spineRadiusAt(s, uB);
+        const rA = spineR(uA);
+        const rB = spineR(uB);
         if (boxBody) {
           const side = Math.max(rA, rB) * 2.15;
           sink.box!(`spine.${i}`, a.x, a.y, a.z, b.x, b.y, b.z, side, side);
         } else {
           sink.seg(`spine.${i}`, a.x, a.y, a.z, b.x, b.y, b.z, rA, rB);
         }
+      }
+    }
+    // round 8 (creature-anatomy): POOLING GEL SKIRT — gravity owns a mound's
+    // silhouette. The round-7 ooze verdict: "widest mid-air ... no
+    // ground-contact skirt". A ground-station collar per spine joint (axis
+    // up, rooted at the floor) lathes a concave flare from a rim at
+    // ~1.35 × the local body radius on the ground line up into the dome
+    // wall (inner lip 0.78 r at 0.27 r height sits INSIDE the settled tube,
+    // whose half-width at that height is ~0.86 r) — so the widest line of
+    // the whole body is its ground contact. Radii are frame-constant per id
+    // (collar geometry caches by id); only x/z follow the breathing spine.
+    if (this.moundBody && sink.collar) {
+      for (let i = 0; i <= n; i++) {
+        const p = this.spinePts[i];
+        const rHere = spineR(i / n);
+        // round 13 (creature-anatomy): IRREGULAR SKIRT LINE — the round-12
+        // silhouette read as "a nearly perfect featureless circle". Each
+        // station's rim reach wobbles by a deterministic pseudo-hash of its
+        // index (frame-constant per id — the geometry contract holds), so the
+        // ground-contact line reads as a settled splat, not a compass circle.
+        // round 14 (creature-anatomy): the skirt REGISTERS to the dome. The
+        // round-13 apron reached 1.22–1.64 × rHere with an x-offset per
+        // station while the dome's ground half-width is only ~0.85 × rHere —
+        // the pale membrane rim traced the dome, the fat green skirt traced
+        // its own splat, and the critic read two misaligned objects. The rim
+        // now derives from the SAME live circle the tube draws: inner lip
+        // inside the dome wall, outer rim just past the dome's widest line —
+        // widest-at-ground holds, but the skirt hugs the body it belongs to.
+        // Stations whose circle never reaches the ground grow no skirt.
+        // round 16 (creature-anatomy): keep in sync with bodyY's mound sink
+        // (0.5) — rHere already carries MOUND_FLATTEN via spineR
+        const yCenter = s.bodyRadM * 0.5; // the settled tube's center height
+        const ghw = Math.sqrt(Math.max(0, rHere * rHere - yCenter * yCenter));
+        if (ghw < s.bodyRadM * 0.05) continue;
+        const wob = 0.5 + 0.5 * Math.sin(i * 7.13 + 1.7);
+        const inner = Math.max(0.008, ghw * 0.7);
+        // outer rim: past the dome's GROUND width (widest-at-ground) but never
+        // past its widest mid-height line — from the top the skirt must hide
+        // under the dome edge, or the rim highlight traces an inner contour
+        const outer = Math.min(ghw + rHere * 0.16 * (0.5 + wob), rHere * 1.04);
+        sink.collar(
+          `spine.skirt${i}`,
+          p.x, 0.01, p.z,
+          0, 1, 0,
+          inner,
+          Math.max(0.02, outer - inner),
+        );
+      }
+      // round 16 (creature-anatomy): FLANK LOBES — gel slumping OUT of the
+      // dome at ground level. The flattened dome (MOUND_FLATTEN) sheds
+      // height; these decorative balls rebuild the width beside it, so the
+      // full body — buried volume included, in the ground-free silhouette
+      // panel too — reads clearly wider than tall. Ids are decorative
+      // (spine.lobeL/R…): the segment renderer draws them in the gel skin,
+      // the skinned path routes them to its decorative delegate, and no
+      // bones are created. Radii frame-constant per id; x/z ride the
+      // breathing spine like the skirt.
+      for (let i = 0; i <= n; i++) {
+        const p = this.spinePts[i];
+        const rHere = spineR(i / n);
+        const rl = rHere * PlanDriver.MOUND_LOBE_R;
+        if (rl < s.bodyRadM * 0.12) continue; // no micro-beads at the taper
+        const wob = Math.sin(i * 5.21 + 0.9) * 0.12;
+        for (const [tag, sgn] of [['L', -1], ['R', 1]] as const) {
+          sink.ball(
+            `spine.lobe${tag}${i}`,
+            p.x + sgn * rHere * (PlanDriver.MOUND_LOBE_OFFSET + wob),
+            rl * 0.45,
+            p.z + rHere * wob * sgn,
+            rl,
+          );
+        }
+      }
+      // round 20 (creature-anatomy): DRIP LOBES pooling at the ground line —
+      // the round-19 ooze verdict: "it lacks drip lobes pooling at the
+      // ground line". Small mostly-buried droplet balls sit just PAST the
+      // skirt rim at deterministic azimuths (frame-constant per id), each
+      // one reading as gel that ran off the mound and puddled. They render
+      // in the gel skin with the one-surface depth twin, so they merge into
+      // the translucent mass instead of reading as pebbles.
+      for (let i = 0; i <= n; i += 2) {
+        const p = this.spinePts[i];
+        const rHere = spineR(i / n);
+        const yC = s.bodyRadM * 0.5;
+        const ghw2 = Math.sqrt(Math.max(0, rHere * rHere - yC * yC));
+        if (ghw2 < s.bodyRadM * 0.15) continue;
+        const az = Math.sin(i * 3.77 + 0.6) * Math.PI; // deterministic spread
+        const rd = rHere * (0.14 + 0.08 * (0.5 + 0.5 * Math.sin(i * 9.31)));
+        const reach = ghw2 + rHere * 0.22 + rd * 0.6;
+        sink.ball(
+          `spine.drip${i}`,
+          p.x + Math.cos(az) * reach,
+          rd * 0.42, // mostly sunk: a pooled drip, not a marble
+          p.z + Math.sin(az) * reach * 0.8,
+          rd,
+        );
+      }
+    }
+    // round 13 (creature-anatomy): GEL INTERIOR — the round-12 verdict: "an
+    // empty glass dome — no internal core, no suspended debris". The mound
+    // now carries an opaque NUCLEUS (a darker irregular mass, offset from
+    // center) and three debris chunks suspended at varied depths. The
+    // renderer resolves `interior.*` ids to opaque materials (segmentBody);
+    // positions ride the breathing spine plus a slow deterministic drift so
+    // the chunks read as suspended in the gel, not pinned to it. Radii are
+    // frame-constant per id.
+    if (this.moundBody) {
+      const core = this.spinePts[Math.floor(this.spinePts.length / 2)];
+      const R = s.bodyRadM;
+      const sway = Math.sin(this.t * 0.9);
+      sink.ball('interior.core0', core.x - R * 0.16, core.y - R * 0.06 + sway * R * 0.03, core.z + R * 0.14, R * 0.42);
+      sink.ball('interior.core1', core.x + R * 0.14, core.y - R * 0.18, core.z - R * 0.2, R * 0.3);
+      sink.ball('interior.chunk0', core.x + R * 0.38, core.y + R * 0.2 + sway * R * 0.05, core.z + R * 0.4, R * 0.15);
+      sink.ball('interior.chunk1', core.x - R * 0.44, core.y - R * 0.12, core.z - R * 0.42, R * 0.18);
+      sink.ball('interior.chunk2', core.x + R * 0.08, core.y + R * 0.4 - sway * R * 0.04, core.z - R * 0.3, R * 0.11);
+    }
+    // round 9 (creature-anatomy): driver-owned dorsal crest. The finRidge
+    // chain part rode a 3-anchor bezier and detached laterally from the
+    // slithering trunk — the round-8 top view showed floating teardrops half
+    // a body-width off the spine. The crest samples the LIVE spine polyline
+    // every frame.
+    // round 10 (creature-anatomy): the cones + web strip read as a PICKET
+    // FENCE (round-9 verdict). The crest is now ONE continuous serrated fin
+    // loft (sink.fin): a single ribbon rooted inside the trunk whose upper
+    // edge rises into blunt raked serrations. Sinks without fin() (crowd
+    // bake, collectors, wireframe) keep the per-blade segment path.
+    if (this.crested && s.stance !== 'floating' && !this.verticalBody && sink.fin) {
+      // round 19 (creature-anatomy): the crest CLIMBS THE RISER. U0 was 0.26
+      // — behind the reared front third — so the trunk column the sheets
+      // actually show carried no ornament and the round-18 verdict read "a
+      // smooth vinyl tube". The run now starts just behind the neck crown,
+      // and the fin offsets along the spine's live DORSAL NORMAL (perp to the
+      // tangent in the sagittal plane) instead of world +Y: on the vertical
+      // riser +Y points along the column and buried the whole fin inside it.
+      const STATIONS = 44;
+      const TEETH = 12;
+      const U0 = 0.06;
+      const U1 = 0.975;
+      const base: number[] = [];
+      const top: number[] = [];
+      const widths: number[] = [];
+      for (let k = 0; k < STATIONS; k++) {
+        const uu = (k / (STATIONS - 1));
+        const u = U0 + (U1 - U0) * uu;
+        const f = u * n;
+        const i0 = Math.min(n - 1, Math.floor(f));
+        const w = f - i0;
+        const a = this.spinePts[i0];
+        const b = this.spinePts[i0 + 1];
+        const px = a.x + (b.x - a.x) * w;
+        const py = a.y + (b.y - a.y) * w;
+        const pz = a.z + (b.z - a.z) * w;
+        // polyline tangent (front→rear) rakes the serration tips backward
+        let tx = b.x - a.x;
+        let ty = b.y - a.y;
+        let tz = b.z - a.z;
+        const tl = Math.hypot(tx, ty, tz) || 1;
+        tx /= tl;
+        ty /= tl;
+        tz /= tl;
+        // dorsal normal = X̂ × tangent (sagittal): +Y on the grounded run,
+        // tilting rearward-horizontal up the riser so the crest always crowns
+        // the trunk's top line
+        let dy = -tz;
+        let dz = ty;
+        const dl = Math.hypot(dy, dz);
+        if (dl < 1e-4) {
+          dy = 1;
+          dz = 0;
+        } else {
+          dy /= dl;
+          dz /= dl;
+        }
+        const rHere = spineR(u);
+        // envelope holds presence at the crown end (the riser is the panel
+        // star), peaks mid-run, and closes at the tail; serration is a blunt
+        // |sin| tooth wave riding it — heights are functions of u only, so
+        // the loft's widths stay frame-constant per station
+        const env = Math.sin((0.16 + 0.84 * uu) * Math.PI);
+        const serr = 0.55 + 0.45 * Math.pow(Math.abs(Math.sin(uu * Math.PI * TEETH)), 0.6);
+        const h = rHere * (0.5 + 1.05 * env) * serr;
+        base.push(px, py + dy * rHere * 0.35, pz + dz * rHere * 0.35); // rooted INSIDE the trunk
+        top.push(
+          px + tx * h * 0.4,
+          py + dy * (rHere * 0.35 + h) + ty * h * 0.4,
+          pz + dz * (rHere * 0.35 + h) + tz * h * 0.4,
+        );
+        widths.push(Math.max(0.012, rHere * 0.26));
+      }
+      sink.fin('crest', base, top, widths);
+    } else if (this.crested && s.stance !== 'floating' && !this.verticalBody) {
+      // round 19 (creature-anatomy): fallback blades climb the riser too
+      // (same U0 + dorsal-normal reasoning as the fin loft above)
+      const blades = 14;
+      const U0 = 0.08;
+      const U1 = 0.97;
+      let prevX = 0;
+      let prevY = 0;
+      let prevZ = 0;
+      let prevR = 0;
+      for (let k = 0; k < blades; k++) {
+        const u = U0 + ((U1 - U0) * k) / (blades - 1);
+        const f = u * n;
+        const i0 = Math.min(n - 1, Math.floor(f));
+        const w = f - i0;
+        const a = this.spinePts[i0];
+        const b = this.spinePts[i0 + 1];
+        const px = a.x + (b.x - a.x) * w;
+        const py = a.y + (b.y - a.y) * w;
+        const pz = a.z + (b.z - a.z) * w;
+        // polyline tangent (front→rear) for the swept-back blade rake
+        let tx = b.x - a.x;
+        let ty = b.y - a.y;
+        let tz = b.z - a.z;
+        const tl = Math.hypot(tx, ty, tz) || 1;
+        tx /= tl;
+        ty /= tl;
+        tz /= tl;
+        let dy = -tz;
+        let dz = ty;
+        const dl = Math.hypot(dy, dz);
+        if (dl < 1e-4) {
+          dy = 1;
+          dz = 0;
+        } else {
+          dy /= dl;
+          dz /= dl;
+        }
+        const rHere = spineR(u);
+        const h = rHere * (1.05 + Math.sin(u * Math.PI) * 0.5);
+        sink.seg(
+          `crest.${k}`,
+          px, py + dy * rHere * 0.45, pz + dz * rHere * 0.45,
+          px + tx * h * 0.5, py + dy * (rHere * 0.45 + h) + ty * h * 0.5, pz + dz * (rHere * 0.45 + h) + tz * h * 0.5,
+          Math.max(0.012, rHere * 0.38),
+          Math.max(0.005, rHere * 0.05),
+        );
+        const webY = py + dy * rHere * 0.78;
+        if (k > 0) {
+          sink.seg(
+            `crest.web${k - 1}`,
+            prevX, prevY, prevZ,
+            px, webY, pz,
+            Math.max(0.01, prevR * 0.34),
+            Math.max(0.01, rHere * 0.34),
+          );
+        }
+        prevX = px;
+        prevY = webY;
+        prevZ = pz;
+        prevR = rHere;
       }
     }
     // chains
@@ -903,41 +1569,103 @@ class PlanDriver extends BaseDriver {
         for (let j = 0; j < pts.length; j++) {
           flat.push(pts[j].x, pts[j].y, pts[j].z);
           const link = chain.links[Math.min(j, chain.links.length - 1)];
-          const tipTaper = j === pts.length - 1 ? 0.55 : 1;
+          // round 4 (creature-anatomy): tails end in a POINT (0.12 of the
+          // last link), not a 0.55-wide capped stub — the tube's domed end
+          // cap turns a near-zero final radius into a sharp tip. Necks keep
+          // 0.55: a sculpted head covers that end.
+          // round 6 (creature-anatomy, round-5 leftover): tentacles soften to
+          // 0.45 — the 0.12 needle point made the ooze's pseudopods read as
+          // rigid tusks/thorns; a pseudopod MELTS to a rounded droplet end.
+          const tipEnd = chain.kind === 'tail' ? 0.12 : chain.kind === 'tentacle' ? 0.45 : 0.55;
+          const tipTaper = j === pts.length - 1 ? tipEnd : 1;
           radii.push(Math.max(0.008, link.rM * tipTaper));
         }
-        sink.tube!(chain.id, flat, radii);
+        // round 18 (creature-anatomy): serpentine NECK chains carry the same
+        // scale-ring value banding as the trunk — one banded skin from trunk
+        // through neck hides the trunk/neck junction ring instead of cutting
+        // a new material seam there.
+        const chainBands =
+          s.stance === 'serpentine' && !this.moundBody && chain.kind === 'neck'
+            ? { count: Math.min(12, Math.max(5, chain.links.length * 2)), strength: 0.45 }
+            : undefined;
+        sink.tube!(chain.id, flat, radii, chainBands);
       } else {
         for (let j = 0; j < chain.links.length; j++) {
           const a = pts[j];
           const b = pts[j + 1];
-          const r0 = Math.max(0.008, chain.links[j].rM);
-          const r1 = Math.max(0.008, chain.links[Math.min(j + 1, chain.links.length - 1)].rM * 0.85);
+          // round 2 (creature-anatomy): inter-link taper FLOWS — each link
+          // ends at the NEXT link's authored radius (the old 0.85 factor
+          // re-stepped radii back UP at every joint, erasing the compiled
+          // thigh→ankle swell), and the tip link finishes at 0.6 of its own
+          // radius so ankles and chain tips render visibly slim.
+          const isTip = j === chain.links.length - 1;
+          // round 4 (creature-anatomy): rigid tails/tentacles match the smooth
+          // tube's pointed 0.12 tip so the crowd-bake silhouette agrees.
+          const tipF = chain.kind === 'tail' || chain.kind === 'tentacle' ? 0.12 : 0.6;
+          let r0 = Math.max(0.008, chain.links[j].rM);
+          let r1 = Math.max(0.008, isTip ? chain.links[j].rM * tipF : chain.links[j + 1].rM);
+          // round 11 (creature-anatomy): CALF MASS — the round-10 dragon
+          // verdict read "tube-thin below the knee, sticks under a heavy
+          // body". The haunch's root swell carries INTO the shin so the knee
+          // flows instead of stepping; the ankle keeps the slim authored 0.6
+          // tip.
+          // round 20 (creature-anatomy): calf 0.62 → 0.45, CAPPED at 1.8× the
+          // authored shin — the 0.62 rule times the swollen root made the
+          // knee as fat as the mid-thigh (0.289 vs 0.31 visible on the
+          // round-19 dragon), and its 0.98-radius joint sphere erased the
+          // taper: "thigh ~= ankle width". The knee is now ankle-CLASS, so
+          // the limb reads haunch → knee → foot at ~3:1 in silhouette.
+          if (chain.kind === 'leg') {
+            const kneeR = (jj: number): number =>
+              Math.max(chain.links[jj + 1].rM, Math.min(chain.links[jj].rM * 0.45, chain.links[jj + 1].rM * 1.8));
+            if (j > 0) r0 = Math.max(r0, kneeR(j - 1));
+            if (!isTip) r1 = Math.max(r1, kneeR(j));
+          }
           sink.seg(`${chain.id}.${j}`, a.x, a.y, a.z, b.x, b.y, b.z, r0, r1);
         }
       }
       // junction blend collar: a smoothing skirt where the chain root meets
       // the body (slice 1 of the softness dial — reach comes compiled as
       // blendM meters; 0 = hard clip, nothing emitted)
+      // (round 19 tried a forced collar at serpentine neck roots for the
+      // "socketed on" seam — the lathed flares wrapped the riser as floating
+      // donut rings. The seam fix is ROOT BURIAL in chainPoints instead.)
       if (chain.blendM > 0.02 && sink.collar) {
         const rootPt = pts[0];
-        const nextPt = pts[1] ?? rootPt;
-        let ax = nextPt.x - rootPt.x;
-        let ay = nextPt.y - rootPt.y;
-        let az = nextPt.z - rootPt.z;
-        const alen = Math.hypot(ax, ay, az);
-        if (alen < 1e-6) {
-          ax = 0; ay = -1; az = 0;
+        if (this.moundBody && chain.kind === 'tentacle') {
+          // round 16 (creature-anatomy): mound pseudopod collars lie FLAT.
+          // The boosted root collars lathed around the near-horizontal stub
+          // axes as VERTICAL rings towering over the dome (collar top 0.67 m
+          // vs dome 0.44 m on the ooze fixture) — in the ground-free
+          // silhouette panel those rings, not the dome, drew the round-15
+          // taller-than-wide egg. A ground-plane collar (axis up, reach
+          // capped) melts the stub into the pooling skirt instead.
+          sink.collar(
+            `${chain.id}.collar`,
+            rootPt.x, 0.01, rootPt.z,
+            0, 1, 0,
+            Math.max(0.008, chain.links[0].rM),
+            Math.min(chain.blendM, s.bodyRadM * 0.5),
+          );
         } else {
-          ax /= alen; ay /= alen; az /= alen;
+          const nextPt = pts[1] ?? rootPt;
+          let ax = nextPt.x - rootPt.x;
+          let ay = nextPt.y - rootPt.y;
+          let az = nextPt.z - rootPt.z;
+          const alen = Math.hypot(ax, ay, az);
+          if (alen < 1e-6) {
+            ax = 0; ay = -1; az = 0;
+          } else {
+            ax /= alen; ay /= alen; az /= alen;
+          }
+          sink.collar(
+            `${chain.id}.collar`,
+            rootPt.x, rootPt.y, rootPt.z,
+            ax, ay, az,
+            Math.max(0.008, chain.links[0].rM),
+            chain.blendM,
+          );
         }
-        sink.collar(
-          `${chain.id}.collar`,
-          rootPt.x, rootPt.y, rootPt.z,
-          ax, ay, az,
-          Math.max(0.008, chain.links[0].rM),
-          chain.blendM,
-        );
       }
       // energy rings hover at interior joints, facing along the chain
       if (chain.jointRings && sink.ring) {
@@ -988,25 +1716,97 @@ class PlanDriver extends BaseDriver {
       if (chain.kind === 'leg') {
         const tip = pts[pts.length - 1];
         const r = Math.max(0.012, chain.links[chain.links.length - 1].rM * 1.1);
-        sink.ball(`${chain.id}.foot`, tip.x, tip.y + r * 0.3, tip.z + r * 0.4, r);
-        // toe segments: claws at silhouette level, from parts we already have
+        // round 14 (creature-anatomy): REAL FEET on plan legs — the round-13
+        // dragon verdict: "the forefeet are stubby three-nub blobs where the
+        // drake hangs long knuckled talons". The nub ball is now the ANKLE
+        // boss (kept as `${chain.id}.foot` — the skeleton's terminal bone
+        // rides it), a heel-to-toe wedge plants the sole (the biped foot
+        // pattern adapted to the quad stance), and three splayed toe wedges
+        // run forward, each ending in a claw that tapers to a hooked point.
+        // All radii are frame-constant per id.
+        sink.ball(`${chain.id}.foot`, tip.x, tip.y + r * 0.5, tip.z - r * 0.1, r * 0.85);
         if (chain.links.length >= 2) {
-          for (const [ti, splay] of [-0.5, 0.5].entries()) {
+          // sole wedge: heel behind the ankle to a toe box in front, each
+          // end's center riding at its own radius so the sole sits flat
+          sink.seg(
+            `${chain.id}.toePad`,
+            tip.x, r * 0.62, tip.z - r * 0.85,
+            tip.x, r * 0.5, tip.z + r * 1.0,
+            r * 0.62, r * 0.5,
+          );
+          for (const [ti, splay] of [-0.55, 0, 0.55].entries()) {
+            const bx = tip.x + splay * r * 0.55;
+            const by = r * 0.34;
+            const bz = tip.z + r * 0.85;
+            const ex = tip.x + splay * r * 1.35;
+            const ey = r * 0.26;
+            const ez = tip.z + r * 1.9;
+            sink.seg(`${chain.id}.toe${ti}`, bx, by, bz, ex, ey, ez, r * 0.4, r * 0.28);
+            // claw: hooks forward and down off the toe knuckle to a point
             sink.seg(
-              `${chain.id}.toe${ti}`,
-              tip.x, tip.y + r * 0.25, tip.z + r * 0.3,
-              tip.x + splay * r * 1.3, tip.y + r * 0.1, tip.z + r * 2.1,
-              r * 0.42, r * 0.2,
+              `${chain.id}.toe${ti}c`,
+              ex, ey, ez,
+              tip.x + splay * r * 1.6, r * 0.05, tip.z + r * 2.55,
+              r * 0.24, 0.012,
             );
           }
         }
       }
     }
-    // auto S-necks for neckless horizontal heads
+    // auto S-necks for neckless horizontal heads.
+    // round 8 (creature-anatomy): chest-to-skull TAPER — the round-7 dragon
+    // verdict read "a constant-width hose neck". The base now roots wide
+    // (0.85 bodyR class, chest-mass gauge) and the taper runs continuously
+    // down to a 0.36 bodyR tip that slips into the sculpted occiput.
+    // round 9 (creature-anatomy): the round-8 taper DID NOT RENDER — the wide
+    // base segment buried itself in the chest, so the visible upper segment
+    // ran 0.52 → 0.36 bodyR, a near-hose. The base now roots INSIDE the chest
+    // mass (lerped back along the spine) at full chest gauge, and the taper
+    // steepens through the VISIBLE run: 1.05 → 0.58 → 0.3 bodyR — the side
+    // panel must show the neck growing out of the chest.
     for (const [hi, neck] of this.autoNecks) {
       const r = this.sockets[hi] ? this.sockets[hi].r : s.bodyRadM;
-      sink.seg(`head${hi}.neckS0`, neck.base.x, neck.base.y, neck.base.z, neck.mid.x, neck.mid.y, neck.mid.z, Math.min(s.bodyRadM * 0.55, r * 0.9), Math.min(s.bodyRadM * 0.46, r * 0.78));
-      sink.seg(`head${hi}.neckS1`, neck.mid.x, neck.mid.y, neck.mid.z, neck.top.x, neck.top.y, neck.top.z, Math.min(s.bodyRadM * 0.46, r * 0.78), Math.min(s.bodyRadM * 0.38, r * 0.66));
+      const inner = this.spinePts[Math.min(1, n)];
+      const bx = neck.base.x + (inner.x - neck.base.x) * 0.3;
+      const by = neck.base.y + (inner.y - neck.base.y) * 0.3;
+      const bz = neck.base.z + (inner.z - neck.base.z) * 0.3;
+      // round 11 (creature-anatomy): MUSCLED skull junction — the round-10
+      // verdict read the neck "goose-thin right behind the skull". The upper
+      // station now runs 0.66 → 0.44 bodyR so the last visible stretch of
+      // neck is a muscular column the skull sits ON, not a straw it balances
+      // on; the sculpted occiput still swallows the 0.44 tip.
+      // round 18 (creature-anatomy): the neck is now FIVE short segments
+      // sampled along a quadratic bezier through base → mid → top — the old
+      // two rigid cones met at neck.mid with a ~35° bend, and the joint
+      // sphere bulging at that crease was the round-17 "hard visible segment
+      // seam ring at mid-neck". Five stations cut the per-joint bend below
+      // ~10°, so the same seg+joint-sphere path renders one continuous
+      // tapering curve. Radii ride the round-9/11 profile (chest gauge →
+      // mid → muscled skull junction), piecewise-linear and MATCHED at every
+      // joint — no radius step anywhere.
+      const rBase = Math.min(s.bodyRadM * 1.05, r * 1.35);
+      const rMid = Math.min(s.bodyRadM * 0.66, r * 1.0);
+      const rTip = Math.min(s.bodyRadM * 0.44, r * 0.75);
+      const NECK_SEGS = 5;
+      const neckPt = (t: number): [number, number, number] => {
+        const a = (1 - t) * (1 - t);
+        const b = 2 * (1 - t) * t;
+        const c = t * t;
+        return [
+          a * bx + b * neck.mid.x + c * neck.top.x,
+          a * by + b * neck.mid.y + c * neck.top.y,
+          a * bz + b * neck.mid.z + c * neck.top.z,
+        ];
+      };
+      const neckR = (t: number): number =>
+        t < 0.5 ? rBase + (rMid - rBase) * (t / 0.5) : rMid + (rTip - rMid) * ((t - 0.5) / 0.5);
+      for (let k = 0; k < NECK_SEGS; k++) {
+        const t0 = k / NECK_SEGS;
+        const t1 = (k + 1) / NECK_SEGS;
+        const p0 = neckPt(t0);
+        const p1 = neckPt(t1);
+        sink.seg(`head${hi}.neckS${k}`, p0[0], p0[1], p0[2], p1[0], p1[1], p1[2], neckR(t0), neckR(t1));
+      }
     }
     // heads (+ optional snouts, cilia lash rings)
     this.sockets.forEach((socket, i) => {
@@ -1082,8 +1882,10 @@ export function createGaitDriver(
   planSpec?: PlanSpec,
   /** Body-level facts the driver cannot derive from a Frame. `winged`: the
    * blueprint carries wing mesh parts (garnish) — plan drivers need this to
-   * beat wings that are not chain appendages. */
-  opts?: { winged?: boolean },
+   * beat wings that are not chain appendages. `crested`: the blueprint
+   * carries a finRidge garnish — the plan driver emits the dorsal crest
+   * along its live spine (round 9). */
+  opts?: { winged?: boolean; crested?: boolean },
 ): GaitDriver {
   switch (gait) {
     case 'biped':
@@ -1100,7 +1902,7 @@ export function createGaitDriver(
       return new AirborneDriver(frame, false);
     case 'plan': {
       if (!planSpec) throw new Error('entities3d: plan gait needs a planSpec (compile a CreaturePlan first)');
-      return new PlanDriver(frame, planSpec, opts?.winged);
+      return new PlanDriver(frame, planSpec, opts?.winged, opts?.crested);
     }
     default: {
       const never: never = gait;

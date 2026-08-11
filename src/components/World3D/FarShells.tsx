@@ -58,6 +58,14 @@ const ShellMesh: React.FC<{ grid: FarShellGrid; origin: SceneOrigin }> = ({
   React.useEffect(() => () => geometry.dispose(), [geometry]);
   return (
     <mesh
+      /* NAMED, because an unnamed ground surface is one nothing else can
+       * address. `__volBubble.setTerrainVisible` hides the streamed skin so a
+       * cut in the volume can be photographed, and it left these standing: the
+       * region ring is a full ground surface at terrain height under the
+       * player, so a trench dug through the bubble kept reading as a flat pale
+       * patch even with the heightfield gone. That measurement was written up
+       * as "the cut has no floor". */
+      name="world3d:far-shell"
       geometry={geometry}
       receiveShadow={false}
       castShadow={false}

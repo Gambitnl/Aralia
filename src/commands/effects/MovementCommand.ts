@@ -3,8 +3,8 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 04/08/2026, 01:49:01
- * Dependents: commands/effects/ReactiveEffectCommand.ts, commands/factory/AbilityCommandFactory.ts, commands/factory/SpellCommandFactory.ts, hooks/combat/engine/useCombatEngine.ts
+ * Last Sync: 10/08/2026, 13:58:44
+ * Dependents: commands/effects/GraspingVineCommand.ts, commands/effects/ReactiveEffectCommand.ts, commands/factory/AbilityCommandFactory.ts, commands/factory/SpellCommandFactory.ts, hooks/combat/engine/useCombatEngine.ts
  * Imports: 11 files
  *
  * MULTI-AGENT SAFETY:
@@ -182,7 +182,13 @@ export class MovementCommand extends BaseEffectCommand {
      * @param effect - The movement effect containing distance.
      */
     private applyPull(state: CombatState, target: CombatCharacter, effect: MovementEffect): CombatState {
-        const caster = this.getCaster(state)
+        const liveCaster = this.getCaster(state)
+        // Grasping Vine pulls toward the vine, not the caster. The command
+        // context supplies that spell-object origin while every ordinary pull
+        // continues to use the live caster position.
+        const caster = this.context.effectOriginPosition
+            ? { ...liveCaster, position: this.context.effectOriginPosition }
+            : liveCaster
         const distance = effect.distance || 0
         const tiles = Math.floor(distance / 5)
 

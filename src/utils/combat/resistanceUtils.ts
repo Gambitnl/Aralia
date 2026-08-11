@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 09/06/2026, 04:06:46
+ * Last Sync: 10/08/2026, 13:56:57
  * Dependents: commands/effects/DamageCommand.ts, utils/combat/combatUtils.ts, utils/combat/index.ts
- * Imports: 3 files
+ * Imports: 4 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -17,6 +17,7 @@
 import type { DamageType } from '@/types/spells';
 import type { CombatCharacter } from '@/types';
 import { isPositionInArea, type ActiveSpellZone } from '@/systems/spells/effects/triggerHandler';
+import { suppressesResistanceToDamageType } from '@/systems/spells/effects/onDamageSpellEffects';
 
 type ResistanceSpellZone = Pick<
   ActiveSpellZone,
@@ -168,6 +169,12 @@ export class ResistanceCalculator {
     zoneContext?: ResistanceZoneContext
   ): boolean {
     const lowerType = damageType.toLowerCase();
+
+    // Elemental Bane-style effects remove resistance without touching immunity
+    // or vulnerability. Check the durable status before any resistance source
+    // so innate, temporary, nonmagical, and zone resistance all obey the spell.
+    if (suppressesResistanceToDamageType(character, damageType)) return false;
+
     if (character.resistances?.some(dt => dt.toLowerCase() === lowerType)) return true;
     if (isMagical === false && character.nonMagicalResistances?.some(dt => dt.toLowerCase() === lowerType)) return true;
     

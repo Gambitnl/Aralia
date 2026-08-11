@@ -350,7 +350,8 @@
                                           "saveModifiers":  [
                                                                 {
                                                                     "type":  "advantage",
-                                                                    "reason":  "The target has advantage on the Wisdom save if you are fighting it."
+                                                                    "reason":  "The target has advantage on the Wisdom save if you are fighting it.",
+                                                                    "condition":  "caster_fighting_target"
                                                                 }
                                                             ],
                                           "saveOutcomeOverrides":  [
@@ -489,7 +490,8 @@
                                           "saveModifiers":  [
                                                                 {
                                                                     "type":  "advantage",
-                                                                    "reason":  "The target has advantage on the Wisdom save if you are fighting it."
+                                                                    "reason":  "The target has advantage on the Wisdom save if you are fighting it.",
+                                                                    "condition":  "caster_fighting_target"
                                                                 }
                                                             ],
                                           "saveOutcomeOverrides":  [

@@ -1,5 +1,13 @@
 Original prompt: Set a goal to make the start of the game playable. Think of core Concepts that should work first and the set the goal to run the game and try
 
+## Tactical Sandbox 3D reliability lane
+
+- Diagnosed the 16x12 Cover dungeon disappearance as a shared-unit contract gap: `resolveHorizon` ended fog at 6.8 world units while the camera starts about 15 units from its target and legally zooms to 20.
+- Centralized the camera zoom ceiling in the horizon setup and added a 1.5x camera-to-fog safety ratio. Authored open-biome distances remain unchanged; dungeon/cave fog still begins at its close authored distance and retains its dark color and lighting.
+- Made the LIGHT visibility label explicitly fixed-size screen-space UI. The light rings, radii, point light, movement, and visibility mechanics are unchanged.
+- Focused pure tests cover 16x12 and 80x60 enclosed-map budgets, open-biome preservation, and the no-distance-scaling marker contract (16/16 focused tests green; 17/17 with the BattleMap3D integration test).
+- Rendered proof passed for Cover at close, maximum overview, panned, and explicit right-drag orbit poses; Darkvision at initial and maximum-overview+panned poses; and the expanded Line of Sight scenario at initial and maximum-overview+panned poses. The isolated orbit run recorded zero console errors; the shared browser session recorded one unrelated `Invalid class or race: fighter, dwarf` sandbox-generation error.
+
 ## 2026-08-04 skeleton pivot slice 4 (creature skeletons) — Tasks 1–2 landed, Task 3 pending eyeball gate
 
 - **What:** plan-driven creatures (gait `'plan'`) now get a real `THREE.Bone` hierarchy and a rigid-weight skinned body, opt-in via the existing `bodyTech: 'skinned'` switch. New pure module `src/systems/entities3d/three/planSkeleton.ts` (`buildPlanSkeleton` + `createPlanPoseSink`) mirrors slice-1's skeletonBuilder shape for compiled `PlanSpec`s: rest pose captured by stepping a real `PlanDriver` at dt=0 (the parity trick — the bind pose can never drift from the driver), one bone per spine segment (`spine.N`) + per chain link (`<chainId>.N`) + terminal balls (`head<i>`/`<chainId>.foot`/`<chainId>.palm`), parented root→spine→chains (tauric `parentId` chains root on their parent chain's tip via a topological sort) → terminals. Decorative emissions (snouts, cilia, toes, fingers, auto S-necks, rings, collars) stay on the anchor path — the sink ignores them or forwards them to a decorative delegate so nothing renders today is dropped in skinned mode.
@@ -508,3 +516,16 @@ Original prompt: Set a goal to make the start of the game playable. Think of cor
 - Locale map, Agent sim, and Town history now launch from the existing top-right Controls menu. Their old always-visible lower-corner launchers are gone, leaving the 3D scene and performance panel unobstructed until a tool is requested.
 - Agent sim and Town history use the shared WindowFrame shell, including named-dialog semantics, drag, resize, reset, maximize/restore, close controls, and independent persisted geometry. Their simulation and chronicle content remain unchanged inside scrollable window bodies.
 - Focused Controls and inspector coverage passes 10 tests. Touched ESLint has zero errors; existing raw-button and World3D shell warnings remain. Rendered checks in the live 3D town confirmed all three Controls entries and both WindowFrame presentations.
+
+## 2026-08-10 — Design Preview Character Sheet navigation
+
+- Renamed the primary `Character` workbench group to `Character Creator`. Renamed the gameplay `Equipment` destination to `Character Sheet` because it now exposes the complete sheet rather than only its equipment overview.
+- The Live Character Sheet preview now switches between the production Overview, Skills, Details, Crafting, and Journal views. Crafting receives an isolated reducer-backed game context, so opening its nested production panels does not touch a running or saved game.
+- Focused Vitest passes 4/4 across the existing equipment behavior and the new five-tab contract. Full TypeScript checking passes. The ignored Design Preview paths report no scoped ESLint errors, with existing warnings only.
+- Rendered proof exercised all five tabs, opened the production Gathering panel, verified the final Journal spread, and found no new page errors. Disposable proof is under `.agent/scratch/character-sheet-tabs/`.
+
+## 2026-08-10 — Character Sheet equipment icon parity
+
+- Fixed portable item SVG paths resolving beneath the current nested document route in equipped mannequin slots. Backpack rows and equipped slots now share one base-aware item asset resolver, and a replacement item gets a fresh image-load attempt if the prior slot image failed.
+- Focused visual resolver and mannequin coverage passes 19/19. Scoped ESLint has zero errors and retains 13 established warnings. Repository TypeScript checking still stops on five unrelated diagnostics in spell, 3D entity, and action-economy test files; none identify the touched Character Sheet or visual resolver files.
+- Rendered proof equipped Leather Cap and compared both DOM image sources: backpack and Head slot each request `/Aralia/assets/icons/general/armor/leather_cap.svg`. The official web-game client capture was visually inspected under ignored `.agent/scratch/character-sheet-icons/proof/`.

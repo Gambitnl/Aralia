@@ -232,8 +232,12 @@ export interface SegmentSink {
   box?(id: string, ax: number, ay: number, az: number, bx: number, by: number, bz: number, w: number, h: number): void;
   /** Continuous swept tube through control points (flat xyz triples) with a
    * radius profile (knots spread evenly along the curve) — smooth spines and
-   * chains. Optional: sinks without it receive per-segment seg() fallbacks. */
-  tube?(id: string, points: number[], radii: number[]): void;
+   * chains. Optional: sinks without it receive per-segment seg() fallbacks.
+   * `bands` (round 18, creature-anatomy) asks the renderer for scale-ring
+   * VALUE banding along the tube — `count` evenly spaced darkened rings at up
+   * to `strength` (0..1) darkening, frame-constant per id. Renderers without
+   * vertex tinting (crowd bake, collectors, skinned pose sink) ignore it. */
+  tube?(id: string, points: number[], radii: number[], bands?: { count: number; strength: number }): void;
   /** Junction smoothing skirt at a chain root (junction blend, slice 1):
    * a flared ring bridging the limb wall into the hull wall. root = the
    * chain's root joint, (axX,axY,axZ) = unit vector down the root link,
@@ -243,6 +247,14 @@ export interface SegmentSink {
   collar?(id: string, rootX: number, rootY: number, rootZ: number,
           axX: number, axY: number, axZ: number,
           limbR: number, reach: number): void;
+  /** Continuous dorsal fin (creature-anatomy round 10): ONE thin lofted
+   * ribbon between a base polyline (rooted inside the body) and a top
+   * polyline (the serrated crest edge) — flat xyz triples, equal counts.
+   * widths = base thickness in meters per station, FRAME-CONSTANT per id
+   * like all sink radii; base/top follow the live spine every frame.
+   * Optional like tube(): sinks without it (crowd bake, collectors,
+   * wireframe) receive the driver's per-blade segment fallback. */
+  fin?(id: string, base: number[], top: number[], widths: number[]): void;
 }
 
 /** Minimal position — THREE.Vector3 satisfies this, keeping the data layer three-free. */

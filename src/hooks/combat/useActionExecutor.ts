@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 04/08/2026, 01:55:59
+ * Last Sync: 10/08/2026, 14:07:29
  * Dependents: hooks/combat/useTurnManager.ts
  * Imports: 12 files
  *
@@ -76,7 +76,7 @@ export interface UseActionExecutorProps {
   queueAnimation: (anim: Animation) => void;
 
   // Engine Mechanics
-  handleDamage: (c: CombatCharacter, amt: number, src: string, type?: string) => CombatCharacter;
+  handleDamage: (c: CombatCharacter, amt: number, src: string, type?: string, currentTurnNumber?: number) => CombatCharacter;
   processRepeatSaves: (c: CombatCharacter, timing: 'turn_end' | 'turn_start' | 'on_damage' | 'on_action', effectId?: string) => CombatCharacter;
   processTileEffects: (c: CombatCharacter, pos: { x: number, y: number }) => CombatCharacter;
 
@@ -713,7 +713,7 @@ export const useActionExecutor = ({
           characterId: attackingCharacter.id,
           data: { damage, trigger: 'on_target_attack' }
         });
-        const updatedReactiveDamageRecipient = handleDamage(attackingCharacter, damage, 'reactive effect', effect.damage.type);
+        const updatedReactiveDamageRecipient = handleDamage(attackingCharacter, damage, 'reactive effect', effect.damage.type, turnState.currentTurn);
         onCharacterUpdate(updatedReactiveDamageRecipient);
         addDamageNumber(damage, attackingCharacter.position, 'damage');
       }
@@ -733,7 +733,7 @@ export const useActionExecutor = ({
         data: { targetPositions: targetPositions?.length ? targetPositions : action.targetPosition ? [action.targetPosition] : [] },
       });
     }
-  }, [characters, reactiveTriggers, handleDamage, onCharacterUpdate, onLogEntry, addDamageNumber, queueAnimation]);
+  }, [characters, reactiveTriggers, handleDamage, onCharacterUpdate, onLogEntry, addDamageNumber, queueAnimation, turnState.currentTurn]);
 
   // ============================================================================
   // Opportunity Attack Resolution
@@ -899,7 +899,8 @@ export const useActionExecutor = ({
           if (isCrit) damage += rollDice(damageFormula);
           updatedCharacter = handleDamage(
             updatedCharacter, damage, `${attacker.name} (Opportunity Attack)`,
-            weaponAbility.effects.find(e => e.type === 'damage')?.damageType
+            weaponAbility.effects.find(e => e.type === 'damage')?.damageType,
+            turnState.currentTurn
           );
         }
         resolveOnTargetAttackReactiveEffects({
@@ -963,7 +964,7 @@ export const useActionExecutor = ({
     }
 
     return updatedCharacter;
-  }, [characters, mapData, handleDamage, onLogEntry, onCharacterUpdate, addDamageNumber, requestReaction, executeReactionSpell, resolveOnTargetAttackReactiveEffects]);
+  }, [characters, mapData, handleDamage, onLogEntry, onCharacterUpdate, addDamageNumber, requestReaction, executeReactionSpell, resolveOnTargetAttackReactiveEffects, turnState.currentTurn]);
 
   // ============================================================================
   // Movement Execution
@@ -1007,7 +1008,7 @@ export const useActionExecutor = ({
         for (const effect of result.effects) {
           if (effect.type === 'damage' && effect.dice) {
             const damage = rollDice(effect.dice);
-            updatedCharacter = handleDamage(updatedCharacter, damage, 'moving', effect.damageType);
+            updatedCharacter = handleDamage(updatedCharacter, damage, 'moving', effect.damageType, turnState.currentTurn);
           }
         }
       }
@@ -1054,7 +1055,7 @@ export const useActionExecutor = ({
                 });
                 if (saveResult.success) { damage = Math.floor(damage / 2); saveMessage = ' (save)'; }
               }
-              updatedCharacter = handleDamage(updatedCharacter, damage, `zone effect${saveMessage}`, effect.damageType);
+              updatedCharacter = handleDamage(updatedCharacter, damage, `zone effect${saveMessage}`, effect.damageType, turnState.currentTurn);
             }
             break;
 
@@ -1459,7 +1460,7 @@ export const useActionExecutor = ({
           const target = characters.find(c => c.id === trigger.targetId);
           if (target) {
             const damage = rollDice(effect.damage.dice);
-            onCharacterUpdate(handleDamage(target, damage, 'sustained spell', effect.damage.type));
+            onCharacterUpdate(handleDamage(target, damage, 'sustained spell', effect.damage.type, turnState.currentTurn));
           }
         }
       }

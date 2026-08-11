@@ -36,6 +36,9 @@ import {
   depthDatumFor,
   censusColumnStacks,
   tintRatio,
+  bakeTintField,
+  tintFromField,
+  transfersOfTintField,
   transfersOfSlab,
 } from '@/systems/worldforge/terrain/volumeBubbleCore';
 
@@ -109,11 +112,12 @@ self.onmessage = (ev: MessageEvent) => {
   );
   const slabs = planSlabs(fill.cellsPerEdge);
 
+
   /* The tint is a RATIO against the bubble's own stack, so a single-biome bubble
    * hands every vertex exactly 1 and the top is untouched. Cached per stack key:
    * a slab has tens of thousands of vertices and at most a handful of grounds. */
   const tintCache = new Map<string, readonly [number, number, number]>();
-  const tintAt = (x: number, z: number): readonly [number, number, number] => {
+  const sampleTint = (x: number, z: number): readonly [number, number, number] => {
     const cs = stackAt(x, z);
     const hit = tintCache.get(cs.key);
     if (hit) return hit;
@@ -121,6 +125,18 @@ self.onmessage = (ev: MessageEvent) => {
     tintCache.set(cs.key, made);
     return made;
   };
+
+  /* THE TINT IS BAKED, AND THE WORKER MESHES FROM THE BAKE.
+   *
+   * It could go on sampling `sampleTint` directly and be marginally more exact.
+   * It must not: the main thread re-meshes slabs after every carve and every
+   * slump slice, it cannot reach the `GroundWorld` this sampler reads, and a
+   * re-meshed slab that redraws its whole sixteen metres at the reference tint
+   * is the visible seam `settle-hooks.md` gap 1 recorded. So the field is the
+   * SOURCE for both threads, and the two paths are identical by construction
+   * rather than by care. See `bakeTintField`. */
+  const tintField = bakeTintField(sampleTint, fill.originM, fill.cellM, fill.cellsPerEdge);
+  const tintAt = tintFromField(tintField);
 
   /* The volume is snapshotted into the fill message and rebuilt HERE too.
    * `snapshot` copies, so the worker's own volume is still intact and the
@@ -155,6 +171,14 @@ self.onmessage = (ev: MessageEvent) => {
    * original would read zeros for every vertex and every strata would come
    * back surface litter. Copy first; a 256² field is 256 KB. */
   const datumTopY = fill.originalTopY.slice();
+  /* The tint field is transferred too, and `tintAt` above reads its index on
+   * every vertex of every slab below — so the copy goes out and the original
+   * stays here. Same rule, same reason, one line apart. */
+  const outTint = {
+    ...tintField,
+    index: tintField.index.slice(),
+    palette: tintField.palette.slice(),
+  };
 
   post(
     {
@@ -178,8 +202,17 @@ self.onmessage = (ev: MessageEvent) => {
       stack: bubbleStack,
       stackCounts: census.counts,
       minorityShare: census.minorityShare,
+      /* The per-column top tint, so a MAIN-THREAD re-mesh draws what the worker
+       * drew. Without it a carve or a slump repaints its whole slab footprint
+       * at the reference tint. See `bakeTintField`. */
+      tintField: outTint,
     },
-    [snapshot.brickUniform.buffer, snapshot.brickCells.buffer, fill.originalTopY.buffer],
+    [
+      snapshot.brickUniform.buffer,
+      snapshot.brickCells.buffer,
+      fill.originalTopY.buffer,
+      ...transfersOfTintField(outTint),
+    ],
   );
 
   const datum = depthDatumFor(datumTopY, fill.originM, fill.cellM, fill.cellsPerEdge);

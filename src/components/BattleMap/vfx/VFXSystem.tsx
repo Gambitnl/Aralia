@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 02/07/2026, 05:50:27
+ * Last Sync: 10/08/2026, 15:26:22
  * Dependents: components/BattleMap/vfx/index.ts
  * Imports: 2 files
  *
@@ -54,6 +54,18 @@ import {
 // ---------------------------------------------------------------------------
 
 const TILE_SIZE = 1.0;
+
+/**
+ * Tactical visibility labels are screen-space UI, not miniature world props.
+ *
+ * Drei's Html scales with camera distance only when `distanceFactor` is set.
+ * Explicitly keeping transform off documents and locks the intended behavior:
+ * the LIGHT marker stays the same readable pixel size at close and overview
+ * zoom while its rings and point light remain ordinary world-space mechanics.
+ */
+export const LIGHT_SOURCE_MARKER_HTML_PROPS = {
+  transform: false,
+} as const;
 
 // Spell zone colors by element type
 const ZONE_COLORS: Record<string, { color: number; emissive: number; lightColor: number }> = {
@@ -759,7 +771,12 @@ const LightSourceVisual: React.FC<{ source: LightSource; position: Position }> =
         />
       </mesh>
       <pointLight color={color} intensity={0.7} distance={Math.max(2, totalTiles * 1.25)} position={[0, 0.8, 0]} />
-      <Html position={[0, 0.72, 0]} center distanceFactor={10} style={{ pointerEvents: 'none' }}>
+      <Html
+        {...LIGHT_SOURCE_MARKER_HTML_PROPS}
+        position={[0, 0.72, 0]}
+        center
+        style={{ pointerEvents: 'none' }}
+      >
         <div style={{
           padding: '2px 6px',
           borderRadius: 999,

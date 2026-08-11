@@ -5,6 +5,7 @@
 import { describe, it, expect } from 'vitest';
 import { validateCreaturePlan } from '../textPlan/planSchema';
 import { compilePlan } from '../textPlan/compilePlan';
+import { spineRadiusAt } from '../textPlan/spineProfile';
 import { PLAN_FIXTURES } from '../textPlan/fixtures';
 import { generateEntityBlueprint } from '../generateEntityBlueprint';
 import { registerAllParts } from '../parts';
@@ -59,7 +60,9 @@ describe('compilePlan', () => {
   it('ooze: horizontal stance with tentacle chains', () => {
     const out = compilePlan(PLAN_FIXTURES.tentacledOoze);
     expect(out.planSpec!.stance).toBe('horizontal');
-    expect(out.planSpec!.chains.filter((c) => c.kind === 'tentacle').length).toBeGreaterThanOrEqual(4);
+    // round 10 (creature-anatomy): the fixture slimmed to 3 stubs (one pair +
+    // the rear smear) — five stubs read as turtle flippers on the gel mound.
+    expect(out.planSpec!.chains.filter((c) => c.kind === 'tentacle').length).toBeGreaterThanOrEqual(3);
   });
 
   it('floating eye: floating stance, no chains, one single big eye', () => {
@@ -138,11 +141,16 @@ describe('junction blend resolution (blendM)', () => {
     const out = compilePlan(PLAN_FIXTURES.dragon);
     const s = out.planSpec!;
     const leg = s.chains.find((c) => c.kind === 'leg')!;
-    const hullR = Math.max(
-      0.01,
-      s.bodyRadM * (s.spine.taper + (1 - s.spine.taper) * leg.attach),
-    ) * (1 + (s.spine.bulge ?? 0) * Math.sin(Math.min(1, Math.max(0, (leg.attach - 0.08) / 0.84)) * Math.PI) * 0.55);
-    const expected = 0.35 * Math.min(leg.links[0].rM, hullR) * 2;
+    // round 4 (creature-anatomy): the dragon fixture now carries spine.mass,
+    // so the expected hull radius comes from THE shared profile instead of
+    // re-deriving the legacy taper+bulge formula by hand (which mass bypasses).
+    const hullR = spineRadiusAt(
+      { bodyRadM: s.bodyRadM, spine: { taper: s.spine.taper, bulge: s.spine.bulge, mass: s.spine.mass } },
+      leg.attach,
+    );
+    // creature-anatomy round 1: leg roots carry a 1.25 collar boost so the
+    // junction skirt reads as muscle (ROOT_COLLAR_BOOST in compilePlan)
+    const expected = 0.35 * Math.min(leg.links[0].rM, hullR) * 2 * 1.25;
     expect(leg.blendM).toBeCloseTo(expected, 6);
   });
 

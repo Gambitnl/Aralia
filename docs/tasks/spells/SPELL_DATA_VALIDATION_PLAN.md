@@ -1,6 +1,6 @@
 # Spell Data Validation Plan
 
-Last Updated: 2026-08-09
+Last Updated: 2026-08-10
 
 This file captures the current plan for validating spell JSON structure and spell reference parity.
 
@@ -88,9 +88,19 @@ This file captures the current plan for validating spell JSON structure and spel
   `turn_end` recurring payloads now use the existing scheduled-effect contract
   and combat engine. Focused runtime proof now covers generic composite area
   routing for Sleet Storm, Evard's Black Tentacles, and Spirit Guardians,
-  while preserving their initial-cast and controlled-entity branches. The
-  remaining composite runtime lanes are `on_damage`, prose-conditioned save
-  modifiers, and the bonus-action family.
+  while preserving their initial-cast and controlled-entity branches.
+  Elemental Bane's live `on_damage` recurring row is now owned by
+  `ElementalBaneCommand` and `resolveOnDamageSpellEffect`: a failed save stores
+  the chosen resistance suppression and rider, and matching nonzero damage
+  triggers the extra damage only once per turn. Grasping Vine's live
+  `immediate_or_later_bonus_action` row is now owned by `GraspingVineCommand`:
+  the initial cast stores the vine origin and authored follow-up effects, while
+  the generated Bonus Action reuses that owner for later attacks. Focused
+  live-data proof for both paths is in
+  `CompositeEventFamiliesLiveData.test.ts`. Prose-conditioned Advantage and
+  Disadvantage now resolve through `sourceSaveModifierResolution.ts` at the
+  damage, status, and attack-roll-modifier save boundaries. The resolver uses
+  only structured target filters or explicit named fighting predicates.
 - The attack-augment family now preserves both normalized weapon bridges and
   source-backed summon/control/spell-attack packets, requiring a nonempty
   discriminator while allowing richer fields such as `attackKinds`,
@@ -112,9 +122,23 @@ This file captures the current plan for validating spell JSON structure and spel
   Direct recurring singleton normalization, area `turn_start`/`turn_end`/
   `on_move_in_area` execution, and target-bound `turn_start`/`turn_end`
   scheduling now have
-  focused trigger-handler, hook, and combat-engine proof; composite labels
-  such as `on_damage` and prose-conditioned save modifiers remain
-  unimplemented. Conjure
+  focused trigger-handler, hook, and combat-engine proof. The remaining live
+  composite source labels now have explicit runtime owners: Elemental Bane's
+  damage-trigger rider resolves through the shared on-damage helper, and
+  Grasping Vine's later Bonus Action resolves through its composite command.
+  All live Advantage and Disadvantage rows now carry either an executable
+  target filter or named predicate; unknown prose remains inert. Focused
+  live-data and runtime-boundary proof is in
+  `SourceSaveModifiersLiveData.test.ts`. Dominate Person's utility-shaped
+  control row now carries its authored Wisdom save and the factory routes it
+  through `StatusConditionCommand`, so the predicate executes before Charmed
+  state is applied. Sacred Flame's `cover_bypass` and
+  Scrying's flat choice rows are already covered by focused runtime owners.
+  Seeming's `target_choice` row remains real and needs per-target consent plus
+  durable disguise ownership. Bones of the Earth's `voluntary_failure` row
+  needs a main-thread decision because the current damage row combines lift
+  choice with blocked-pillar collision damage; do not infer either rule from
+  prose. Conjure
   Animals' singleton `on_entity_proximity` damage now routes through the same
   tracker for entry and end-of-turn occupancy, with source save context and
   first-per-turn proof; selected point placement and the authored 10-foot

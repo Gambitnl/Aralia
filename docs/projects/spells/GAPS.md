@@ -6,7 +6,7 @@ slug: spells
 status: active
 status_note: ""
 registry_mode: canonical
-last_updated: "2026-07-23"
+last_updated: "2026-08-10"
 gap_count: 53
 open_gap_count: 1
 resolved_gap_count: 52
@@ -183,12 +183,12 @@ Use this file for parent-visible imported gaps, cross-lane spell-domain gaps, an
 
 - 2026-07-06: `structured-spell-execution-G13` is resolved for G14's runtime-completion ledger. Shared status-condition replacement lives in `src/utils/combat/statusConditionUtils.ts`, and focused proof passed with `node node_modules\vitest\vitest.mjs run --dir src src\commands\effects\__tests__\StatusConditionCommand.test.ts src\hooks\combat\engine\__tests__\useCombatEngine.scheduledEffects.test.ts src\hooks\combat\__tests__\useActionExecutor.test.ts` (3 files / 44 tests), covering command, scheduled, zone/action, and tile/environment status refresh-by-name behavior. G14 remains active because canonical source, validator-data-integrity, and other child runtime rows still remain open.
 
-## Current Reconciliation (2026-08-09)
+## Current Reconciliation (2026-08-10)
 
 - This parent ledger was restored from `2033cc4c^` because the 2026-07-16 snapshot deleted `docs/projects/spells` while current registry and task documents continued to reference it. The historical parent rows are retained rather than silently recreated from memory.
 - The parent table contains 53 rows: `G14` is the sole active parent gap and `G60` remains resolved with focused Word of Radiance selection proof. The frontmatter counts now reflect that table.
 - The long `G14` table row retains historical routing context and is not current proof for Guardian of Nature or validator counts. Commit `bcd69899` restored the Guardian of Nature Primal Beast and Great Tree benefit text and corrected the validator's zero-valued casting-time check; the current corpus replay is the source of truth for validation status.
-- `G14` remains open. Current pairing evidence still needs canonical-source and runtime-completion work, but the validator replay is now current: `473` total spell JSON files, `473` valid, and `0` invalid. The surviving task plan's `459 / 459` claim is stale.
+- `G14` remains open for runtime-completion work only. Its Guardian of Nature source gap is closed: the XGE p. 157 vendor text is preserved in the reference snapshot, commit `bcd69899` restored both form benefit sets to the spell JSON, and the current JSON/reference pair still matches that evidence. The 25 legacy markers remain explicit source-owner deferrals rather than missing implementations. The validator replay is current at `473` total spell JSON files, `473` valid, and `0` invalid; the surviving task plan's `459 / 459` claim is stale.
 - The conditional-ending child slice is now proven: normalized source-backed trigger/scope tokens pass the schema, seven cloud/weather/wall records have explicit `area` scope, focused schema proof passes, and the full replay emits no `conditionalEndings` errors. The remaining validator families stay open under G14.
 - The created-object child slice is now proven: source-backed object labels and placement/shape units pass validation, the legacy Mighty Fortress `kind` packet remains lossless, focused proof passes, and the full replay emits no `createdObjects` errors. Runtime adapters for those preserved labels remain separate child work.
 - The ability-check child slice is now proven at the validator and shared-roll boundary: executable and partial source-backed riders validate, fixed-skill advantage and Guidance dice have focused proof, and the full replay emits no `abilityCheckModifier` errors. Specialized metadata such as Infernal Calling's contest packet remains deferred to its owning runtime lane.
@@ -220,8 +220,11 @@ Use this file for parent-visible imported gaps, cross-lane spell-domain gaps, an
   Sleet Storm, Evard's Black Tentacles, and Spirit Guardians composite area
   rows now register persistent zones and route entry/start/end events through
   the trigger handler; initial-cast and controlled-entity branches remain
-  deliberately specialized. `on_damage`, prose-conditioned saves, and the
-  bonus-action composite remain separate runtime lanes.
+  deliberately specialized. Elemental Bane now owns the sole live recurring
+  `on_damage` damage-rider row, and Grasping Vine now owns the sole live
+  `immediate_or_later_bonus_action` row. The shared source-save resolver now
+  owns structured Advantage and Disadvantage predicates for damage, status,
+  and attack-roll-modifier commands, closing the prose-conditioned save lane.
 - The attack-augment child slice is now proven for normalized weapon bridges and
   source-backed summon/control/spell-attack packets: eight live records and
   three existing runtime bridge tests pass, empty augments are rejected, and
@@ -233,14 +236,26 @@ Use this file for parent-visible imported gaps, cross-lane spell-domain gaps, an
   Earth, and the full replay emits no recurring/save errors. A focused runtime
   proof now covers singleton normalization, area `turn_start`/`turn_end`
   triggers, and target-bound recurring records through the existing area
-  tracker, scheduler, and combat engine; source composite events and
-  prose-conditioned save modifiers still need their event owners and executable
-  bridges. Dominate Beast, Dominate Person, and Dominate
-  Monster now also bridge source `target_takes_damage` repeat-save records into
+  tracker, scheduler, and combat engine. The remaining live source composite
+  events now have explicit event owners and executable bridges. Prose-backed
+  Advantage and Disadvantage rows now execute only from structured target
+  filters or named fighting predicates; unknown prose remains inert. Dominate
+  Person's utility-shaped control row now carries its authored Wisdom
+  save and routes through `StatusConditionCommand` instead of the generic
+  utility logger. Sacred
+  Flame's `cover_bypass` and Scrying's flat choice modifiers already have
+  executable owners. Seeming's `target_choice` row still needs per-target
+  consent and durable disguise ownership. Bones of the Earth's
+  `voluntary_failure` row needs a main-thread decision because its current
+  damage effect combines the lift choice with blocked-pillar collision damage;
+  neither row may be inferred from prose. Dominate
+  Beast, Dominate Person, and Dominate Monster now also bridge source
+  `target_takes_damage` repeat-save records into
   the existing `on_damage` status-engine path, with live-data and combat-engine
-  proof; choice-conditioned modifiers remain open. Conjure Animals' singleton
-  `on_entity_proximity` damage record now has an area-trigger adapter for
-  creature entry and end-of-turn occupancy, including source save context and
+  proof. Scrying's dedicated factory bridge closes its flat
+  choice-conditioned modifier family with focused live-data proof. Conjure
+  Animals' singleton `on_entity_proximity` damage record now has an area-trigger
+  adapter for creature entry and end-of-turn occupancy, including source save context and
   first-per-turn gating; the point-targeted summon is anchored at the selected
   point and its authored 10-foot emanation is used for the persistent zone.
   The movement owner now recenters the threat zone when the pack relocates,
@@ -251,8 +266,9 @@ Use this file for parent-visible imported gaps, cross-lane spell-domain gaps, an
   and hook proof. Fast Friends now has a source-backed Request Service granted
   action, executable `on_social_service_request` repeat-save resolution,
   fighting-target Advantage, friendly acceptance, and certain-death/repeat-save
-  concentration cleanup, proven by `FastFriendsLiveData.test.ts`; broader
-  choice-conditioned modifiers remain open runtime work. Summon
+  concentration cleanup, proven by `FastFriendsLiveData.test.ts`; Scrying's
+  authored creature-mode save choices and voluntary-failure path close
+  Scrying's choice-conditioned modifier runtime work. Summon
   Greater Demon's end-turn Charisma save now enters the shared repeat-save
   engine, including true-name disadvantage, with live-data and combat-engine
   proof. Its optional blood circle now also persists a protected tile and the
@@ -271,7 +287,9 @@ Use this file for parent-visible imported gaps, cross-lane spell-domain gaps, an
   errors.
 - Validator-data-integrity replay proof is current at `473 / 473 / 0`, and the
   static schema aggregate passes semantic parity against all five schema parts;
-  G14 remains active for canonical-source and runtime-completion proof.
+  G14 remains active for the Seeming and Bones of the Earth save-choice rows
+  above and for parent reconciliation of the concurrent source, validator, and
+  runtime-completion lane proofs.
 - The former nested completeness owner path is absent from the current checkout. Until a live child packet is restored or retargeted, current child evidence is routed through `docs/tasks/spells` and `docs/tasks/spell-system-overhaul`; the deleted path is historical context only.
 - Do not close `G14` from the restored ledger alone. Close or reroute it only after the canonical-source, validator-integrity, and runtime child lanes have current proof.
 
@@ -294,6 +312,9 @@ Use this file for parent-visible imported gaps, cross-lane spell-domain gaps, an
 - 2026-06-20: Bounded `gpt-5.3-codex-spark` candidate ranking flagged Wish, Astral Projection, Divine Word, and Destructive Wave as larger high-complexity row-clarity candidates. These are candidate slices, not registered gaps yet; inspect current rows and add a formal gap only if a future pass confirms stale, misleading, or under-specified runtime/UI text.
 - 2026-07-23: Current validation replay is 473 total / 473 valid / 0 invalid, superseding the stale 149-invalid historical note in the G14 row. Fast Friends now has focused runtime proof for its authored Request Service action, social repeat-save timing, fighting-target Advantage, and concentration-ending outcomes; G14 remains open for canonical-source recovery/deferral and the other unproven runtime families.
 - 2026-07-23: Canonical-source verification classified the 25 `Legacy Page: true` markers as explicit source-deferred records rather than missing runtime implementations. Guardian of Nature remains a real source gap: both local JSON/reference stop before the Primal Beast and Great Tree benefit bullets, so no mechanics should be invented until trustworthy canonical text is recaptured.
+- 2026-08-10: Guardian of Nature source recovery is complete, superseding the Guardian-specific conclusion above. The user-authorized 5e.tools snapshot identifies Xanathar's Guide to Everything p. 157 and records the Primal Beast and Great Tree benefit lists; commit `bcd69899` restored those mechanics to `public/data/spells/level-4/guardian-of-nature.json`, and the paired reference retains the text-backed provenance. No Guardian spell-data rewrite was needed in this pass. G14 stays active only for its remaining runtime-completion families.
 - 2026-07-23: Control Water verification classified the suspected mode/runtime gap as duplicate/covered: current mode-choice tests and closed mechanics-discovery rows cover its authored options; the older manual-review override is stale and does not justify new implementation.
 - 2026-07-23: Scrying's creature and location modes are now proven through `SpellCommandFactory.scryingLiveData.test.ts`: authored save choices and voluntary failure resolve, location casts create stationary sensors, failed creature saves create 10-foot following sensors whose renderer marker follows the target, and successful saves persist a 24-hour target lockout that rejects retargeting before a new save. The child attack/save, duplicate knowledge, sensor, visibility, and state-change rows are closed; broader composite/runtime families and source deferrals remain under G14.
-- 2026-07-23: Recurring turn timing now has an executable bridge: target-bound `turn_start`/`turn_end` records register through `ScheduledSpellEffect`, while area-owned `turn_start` records run through `AreaEffectTracker` and `useTurnManager`; focused trigger-handler, hook, and combat-engine proof passes. Composite labels such as `on_damage`, choice-conditioned modifiers, and prose-only behavior remain open.
+- 2026-07-23: Recurring turn timing now has an executable bridge: target-bound `turn_start`/`turn_end` records register through `ScheduledSpellEffect`, while area-owned `turn_start` records run through `AreaEffectTracker` and `useTurnManager`; focused trigger-handler, hook, and combat-engine proof passes. The Scrying choice-conditioned modifier lane is closed by the focused factory proof above.
+- 2026-08-10: Task B closes the remaining live composite event-source labels with executable proof. Elemental Bane's recurring `on_damage` row is owned by `ElementalBaneCommand`, `resolveOnDamageSpellEffect`, `DamageCommand`, and `useCombatEngine`: a failed Constitution save stores the chosen resistance suppression and `2d6` matching-damage rider, then both damage entry points enforce first-per-turn timing. Grasping Vine's `immediate_or_later_bonus_action` row is owned by `GraspingVineCommand` and its `GrantedActionCommand` bridge: the initial cast stores the selected vine origin and authored effects, and later generated Bonus Actions reuse that origin for attack, damage, grapple replacement, and pull. `CompositeEventFamiliesLiveData.test.ts` passes all three live-data and execution-path tests; `npm run validate:spells` reports `473 / 473 / 0`.
+- 2026-08-10: Task D closes the prose-conditioned Advantage/Disadvantage runtime lane. `sourceSaveModifierResolution.ts` projects only explicit fighting predicates and structured creature-type, size, and active-condition filters into the shared saving-throw contract; `StatusConditionCommand`, `DamageCommand`, and `AttackRollModifierCommand` call that resolver at their save boundaries. Charm Person, Charm Monster, Dominate Beast, Dominate Person, Modify Memory, and Dominate Monster now carry named fighting predicates instead of prose-only conditions, while Fast Friends keeps its existing named predicate. Dominate Person's utility-shaped control row now carries its authored Wisdom save and `SpellCommandFactory` routes it through `StatusConditionCommand`, preserving the save before the Charmed state. `SourceSaveModifiersLiveData.test.ts` passes 6 tests for all eight fighting rows, opposing-side Advantage, same-side non-application, factory-built Dominate Person Advantage, Construct-only Shatter Disadvantage, and unknown-prose rejection; the adjacent status/damage suites pass for a combined 49 tests, and `npm run validate:spells` reports `473 / 473 / 0`. The corpus audit classifies Sacred Flame `cover_bypass` and Scrying flat choices as already covered, Seeming `target_choice` as still real and needing per-target consent plus disguise ownership, and Bones of the Earth `voluntary_failure` as needing a main-thread data/runtime decision. Task D does not change the parent G14 status; reconcile that row only after those two rows and all concurrent lane receipts are reviewed.

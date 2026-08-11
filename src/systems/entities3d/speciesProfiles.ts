@@ -12,6 +12,19 @@ export interface SpeciesProfile {
   heightRangeFt: [number, number];
   bulkRange: [number, number];
   headScale: number;
+  /** round 9 (humanoid-anatomy): parametric multipliers applied on top of
+   * deriveFrame's shared math — race BUILD character beyond height and bulk.
+   * The dwarf reads as a short human without them: same shoulder-to-height
+   * ratio, same limb fraction. Every downstream consumer (gait driver, rest
+   * pose, gear sizing) reads the Frame, so the multipliers propagate whole. */
+  frameMods?: {
+    /** shoulderWidthFt multiplier (>1 = wider shoulders for the height). */
+    shoulder?: number;
+    /** limbLengthFt multiplier (<1 = shorter legs, longer-torso read). */
+    limb?: number;
+    /** armLengthFt multiplier. */
+    arm?: number;
+  };
   features: PartInstance[];
   skinTones: string[];
   eyeTones: string[];
@@ -60,9 +73,20 @@ export const SPECIES_PROFILES: Record<string, SpeciesProfile> = Object.fromEntri
       id: 'dwarf',
       gait: 'biped',
       heightRangeFt: [4.0, 4.8],
-      bulkRange: [1.25, 1.5],
-      headScale: 1.1,
-      features: [{ partId: 'beardMesh', anchor: 'jaw' }],
+      // round 9 (humanoid-anatomy): dwarf BUILD, not just a short human —
+      // deeper chest (bulk floor up), wider shoulder-to-height ratio, bigger
+      // head ratio, shorter legs (the barrel-torso read comes from the legs:
+      // pelvis drops with limb length while the head stays near full height,
+      // so the torso stretches to fill the difference).
+      bulkRange: [1.35, 1.55],
+      headScale: 1.18,
+      frameMods: { shoulder: 1.22, limb: 0.8, arm: 0.94 },
+      // round 11 (humanoid-anatomy): faceSculpt params flow to the humanoid
+      // face loft — the dwarf gets the prominent honker of the reference kits.
+      features: [
+        { partId: 'beardMesh', anchor: 'jaw' },
+        { partId: 'faceSculpt', anchor: 'head', params: { noseDepth: 1.35, noseWidth: 1.1 } },
+      ],
       skinTones: ['#c68642', '#e0ac69', '#b97a56', '#8d5524'],
       eyeTones: ['#3b2f2a', '#33506e', '#555c66'],
     }),
@@ -101,10 +125,21 @@ export const SPECIES_PROFILES: Record<string, SpeciesProfile> = Object.fromEntri
       gait: 'biped',
       heightRangeFt: [5.9, 6.9],
       bulkRange: [1.25, 1.5],
-      headScale: 1.05,
+      // round 10 (humanoid-anatomy): 1.05 → 1.14 — the round-9 orc head read
+      // "barely bigger than his own fist" between the bulked shoulders; the
+      // seated head mount needs the skull mass to hold its own in the traps.
+      // round 13 (humanoid-anatomy): 1.14 → 1.24 — round 12 still called a
+      // "pinhead sunk straight into it"; the skull must bracket the traps.
+      headScale: 1.24,
       features: [
         { partId: 'tuskJaw', anchor: 'jaw' },
         { partId: 'brow', anchor: 'head' },
+        // round 11 (humanoid-anatomy): broad flat nose + wide maw for the
+        // tusked mouth — WoW grunt mid-face, not a human nose on green skin.
+        // round 13 (humanoid-anatomy): lidOpen 1.6 raises the upper lid —
+        // the droopy half-lidded "sleepy" read becomes a glare under the brow
+        // (1.35 barely moved the aperture beneath the brow part's shadow).
+        { partId: 'faceSculpt', anchor: 'head', params: { noseDepth: 0.6, noseWidth: 1.6, mouthWidth: 1.25, lidOpen: 1.6 } },
       ],
       skinTones: ['#6a8a4a', '#7f9a5a', '#5a7a44', '#8a9a6a'],
       eyeTones: ['#8a3333', '#8a7a33', '#3b2f2a'],

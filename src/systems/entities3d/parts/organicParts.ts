@@ -6,7 +6,7 @@
  * tusked jaws, brows, bellies, crests, and the plain beard. Ids are preserved
  * from the field era so every profile and kit keeps working unchanged.
  */
-import { BoxGeometry, ConeGeometry, Group, Mesh, SphereGeometry } from 'three';
+import { ConeGeometry, Group, Mesh, SphereGeometry } from 'three';
 import type { Frame, PartDef, PartMeshCtx } from '../types';
 import { headRadiusM } from '../types';
 
@@ -63,15 +63,36 @@ const tuskJaw: PartDef = {
   anchor: 'jaw',
   kind: 'mesh',
   buildMesh(ctx) {
+    // round 8 (humanoid-anatomy): tusks ROOT in the one-surface skull. The
+    // round-7 build wrapped the chin in a detached outlined box with loose
+    // triangle tusks beside it — the critic's "cardboard mask kit". The box
+    // is gone (the loft owns the jawline now) and each tusk is a cone whose
+    // BASE CIRCLE sits inside the loft surface at the mouth corners (skull
+    // local ≈ (±0.24, −0.36, 0.30), well behind the ≈0.42 surface there),
+    // rising up and flaring outward past the upper lip like a boar's.
+    // Jaw-anchor space: origin at head + (0, −0.55, +0.45) skull radii.
     const r = hr(ctx.frame);
     const group = new Group();
-    const jaw = new Mesh(new BoxGeometry(r * 0.95, r * 0.42, r * 0.6), ctx.material(ctx.palette.skinHex));
-    jaw.position.set(0, -r * 0.28, r * 0.42);
-    group.add(jaw);
     for (const sgn of [-1, 1]) {
-      const tusk = new Mesh(new ConeGeometry(r * 0.11, r * 0.4, 6), ctx.material(BONE_HEX));
-      tusk.position.set(sgn * r * 0.34, -r * 0.02, r * 0.6);
-      tusk.rotation.z = sgn * -0.18;
+      // round 11 (humanoid-anatomy): tusks CLEAR the new lip front. The
+      // round-11 face loft filled the lips out (mouth zF 0.47 between 0.55
+      // lip fronts) and the old tusk position sank behind them to a white
+      // speck; the cones move forward and up so they rise visibly past the
+      // dark mouth cut, boar-style.
+      // probe-verified (scratch tusk probe): base rides ~0.27r below the
+      // mouth cut, so a 0.38r cone puts the apex ~0.17r past the cut and
+      // still well under the eye line — visible rise, no walrus.
+      const len = r * 0.38;
+      const tusk = new Mesh(new ConeGeometry(r * 0.1, len, 6), ctx.material(BONE_HEX));
+      // cone center = base + len/2 along the tilted up-axis (small angles:
+      // the offset stays ≈ vertical, keeping the base buried)
+      tusk.position.set(sgn * r * 0.24, r * 0.1 + len * 0.5, 0);
+      tusk.rotation.z = sgn * -0.28; // flare outward
+      tusk.rotation.x = -0.12; // and a touch forward
+      // bone-white cones read clean without ink; the inverse hull on a
+      // pointed cone renders as a detached scribble at the tip (round 7,
+      // creature-anatomy lesson)
+      tusk.userData.noOutline = true;
       group.add(tusk);
     }
     return { object: group };
@@ -83,12 +104,19 @@ const brow: PartDef = {
   anchor: 'head',
   kind: 'mesh',
   buildMesh(ctx) {
+    // round 8 (humanoid-anatomy): the heavy brow HUGS the loft's brow shelf.
+    // The round-7 boxes floated in front of the forehead with their own ink
+    // shells — two hovering slabs. Each ridge is now a flattened wedge whose
+    // center sits at the shelf surface (skull local ≈ (±0.28, 0.28, 0.50),
+    // surface ≈ 0.53 there), so its inner half is buried and only a rounded
+    // supraorbital roll protrudes over the sockets.
     const r = hr(ctx.frame);
     const group = new Group();
     for (const sgn of [-1, 1]) {
-      const ridge = new Mesh(new BoxGeometry(r * 0.5, r * 0.16, r * 0.22), ctx.material(ctx.palette.skinHex));
-      ridge.position.set(sgn * r * 0.42, r * 0.35, r * 0.62);
-      ridge.rotation.z = sgn * -0.15;
+      const ridge = new Mesh(new SphereGeometry(r * 0.24, 8, 5), ctx.material(ctx.palette.skinHex));
+      ridge.scale.set(1.05, 0.42, 0.75);
+      ridge.position.set(sgn * r * 0.28, r * 0.28, r * 0.5);
+      ridge.rotation.set(0.2, 0, sgn * -0.14);
       group.add(ridge);
     }
     return { object: group };

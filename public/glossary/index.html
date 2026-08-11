@@ -1,0 +1,614 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Glossary — Planning Stack Terms</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 24px;
+    background: #0e1116;
+    color: #dfe6ef;
+    font: 15px/1.5 "Segoe UI", system-ui, sans-serif;
+  }
+
+  h1 {
+    font-size: 20px;
+    margin: 0 0 4px;
+    color: #dfe6ef;
+  }
+
+  .headline {
+    color: #9fb4cc;
+    margin-bottom: 24px;
+    font-size: 14px;
+  }
+
+  .controls {
+    max-width: 1200px;
+    margin-bottom: 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .search-box {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+
+  input[type="text"] {
+    flex: 1;
+    max-width: 400px;
+    padding: 8px 12px;
+    background: #1a2332;
+    border: 1px solid #3a4556;
+    border-radius: 6px;
+    color: #dfe6ef;
+    font-size: 14px;
+  }
+
+  input[type="text"]:focus {
+    outline: none;
+    border-color: #6ab0f3;
+    box-shadow: 0 0 0 2px rgba(106, 176, 243, 0.1);
+  }
+
+  .input-label {
+    color: #7d8da1;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .filter-and-sort {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    align-items: flex-start;
+  }
+
+  .filter-section {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .tag-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .tag-chip {
+    padding: 4px 10px;
+    border-radius: 16px;
+    border: 1px solid #3a4556;
+    background: #1a2332;
+    color: #9fb4cc;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .tag-chip:hover {
+    border-color: #6ab0f3;
+    background: #263850;
+  }
+
+  .tag-chip.active {
+    background: #2c5aa0;
+    border-color: #6ab0f3;
+    color: #b3d9ff;
+  }
+
+  .sort-controls {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+
+  .sort-select {
+    padding: 6px 10px;
+    background: #1a2332;
+    border: 1px solid #3a4556;
+    border-radius: 4px;
+    color: #dfe6ef;
+    font-size: 13px;
+    cursor: pointer;
+  }
+
+  .sort-select:focus {
+    outline: none;
+    border-color: #6ab0f3;
+  }
+
+  .count-line {
+    color: #7d8da1;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .terms-container {
+    max-width: 1200px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+
+  .term-card {
+    background: #1a2332;
+    border: 1px solid #3a4556;
+    border-radius: 8px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .term-card:hover {
+    border-color: #6ab0f3;
+    background: #1f2a3d;
+  }
+
+  .term-name {
+    font-weight: 600;
+    font-size: 15px;
+    color: #b3d9ff;
+    margin: 0;
+  }
+
+  .term-definition {
+    color: #9fb4cc;
+    font-size: 14px;
+    line-height: 1.5;
+    margin: 0;
+  }
+
+  .term-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 4px;
+  }
+
+  .term-date {
+    color: #5c6b7d;
+    font-size: 12px;
+  }
+
+  .term-paths {
+    color: #5c6b7d;
+    font-size: 12px;
+    font-family: "Courier New", monospace;
+  }
+
+  .term-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  .term-tag {
+    display: inline-block;
+    padding: 2px 6px;
+    background: #2c3a47;
+    color: #7d8da1;
+    border-radius: 4px;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .error-box {
+    max-width: 1200px;
+    background: #3a2c17;
+    border: 1px solid #7a5b1e;
+    border-radius: 8px;
+    padding: 16px;
+    color: #e9b44f;
+    margin-bottom: 28px;
+  }
+
+  .error-box h2 {
+    margin: 0 0 8px;
+    font-size: 14px;
+  }
+
+  .error-box p {
+    margin: 0 0 8px;
+    font-size: 14px;
+  }
+
+  .error-box code {
+    background: #1a1109;
+    padding: 2px 4px;
+    border-radius: 3px;
+    font-family: "Courier New", monospace;
+  }
+
+  .empty-state {
+    max-width: 1200px;
+    text-align: center;
+    padding: 40px 20px;
+    color: #7d8da1;
+  }
+
+  .empty-state p {
+    margin: 0;
+    font-size: 14px;
+  }
+
+  .term-link {
+    border-bottom: 1px dotted #6ab0f3;
+    color: inherit;
+    cursor: pointer;
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+
+  .term-link:hover {
+    color: #6ab0f3;
+  }
+
+  @keyframes term-flash {
+    0% {
+      outline: 2px solid #6ab0f3;
+      outline-offset: 2px;
+    }
+    50% {
+      outline: 2px solid #6ab0f3;
+      outline-offset: 2px;
+    }
+    100% {
+      outline: 2px solid transparent;
+      outline-offset: 2px;
+    }
+  }
+
+  .term-card.flash-highlight {
+    animation: term-flash 1.5s ease-in-out forwards;
+  }
+</style>
+</head>
+<body>
+<h1>Glossary</h1>
+<div class="headline">Planning stack jargon — planning map, Agora board, and specs terms.</div>
+
+<div class="controls">
+  <div class="search-box">
+    <label class="input-label">Search</label>
+    <input type="text" id="searchInput" placeholder="Search terms and definitions...">
+  </div>
+
+  <div class="filter-and-sort">
+    <div class="filter-section">
+      <div class="input-label">Filter by tag</div>
+      <div class="tag-filters" id="tagFilters"></div>
+    </div>
+
+    <div class="sort-controls">
+      <label class="input-label" for="sortSelect">Sort</label>
+      <select id="sortSelect" class="sort-select">
+        <option value="a-z">A–Z</option>
+        <option value="z-a">Z–A</option>
+        <option value="newest">Newest first</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="count-line" id="countLine">Loading…</div>
+</div>
+
+<div id="errorBox" class="error-box" style="display: none;"></div>
+<div class="terms-container" id="termsContainer"></div>
+<div class="empty-state" id="emptyState" style="display: none;"><p>No terms match your filters.</p></div>
+
+<script>
+// One path: the Agora daemon parses tools/agora/GLOSSARY.md live and serves it
+// here. There is no generated terms.json and no cached copy — if the daemon is
+// down the page says so rather than showing words that may be out of date.
+const GLOSSARY_URL = 'http://localhost:4319/glossary';
+
+let allTerms = [];
+let filteredTerms = [];
+let activeTagFilters = new Set();
+
+// Tag vocabulary comes from the daemon (glossaryParse.mjs owns it); this is only
+// the order used before a response arrives.
+let TAGS = [];
+
+async function loadTerms() {
+  try {
+    const response = await fetch(GLOSSARY_URL);
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+    const payload = await response.json();
+    allTerms = payload.terms;
+    TAGS = payload.tags;
+    renderTagFilters();
+    applyFilters();
+  } catch (error) {
+    showError();
+  }
+}
+
+function showError() {
+  const box = document.getElementById('errorBox');
+  box.innerHTML = `
+    <p>The glossary needs the Agora daemon on port 4319 — start it with <code>npm run agora</code> and reload this page.</p>
+  `;
+  box.style.display = 'block';
+  document.getElementById('countLine').textContent = 'Agora daemon not reachable.';
+}
+
+function renderTagFilters() {
+  const container = document.getElementById('tagFilters');
+  const tagsWithCounts = {};
+
+  TAGS.forEach(tag => {
+    tagsWithCounts[tag] = allTerms.filter(t => t.tags.includes(tag)).length;
+  });
+
+  TAGS.forEach(tag => {
+    const chip = document.createElement('button');
+    chip.className = 'tag-chip';
+    chip.textContent = `${tag} (${tagsWithCounts[tag]})`;
+    chip.dataset.tag = tag;
+    chip.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (activeTagFilters.has(tag)) {
+        activeTagFilters.delete(tag);
+      } else {
+        activeTagFilters.add(tag);
+      }
+      updateTagChips();
+      applyFilters();
+    });
+    container.appendChild(chip);
+  });
+
+  updateTagChips();
+}
+
+function updateTagChips() {
+  document.querySelectorAll('.tag-chip').forEach(chip => {
+    if (activeTagFilters.has(chip.dataset.tag)) {
+      chip.classList.add('active');
+    } else {
+      chip.classList.remove('active');
+    }
+  });
+}
+
+function applyFilters() {
+  const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+  const sortBy = document.getElementById('sortSelect').value;
+
+  filteredTerms = allTerms.filter(term => {
+    // Apply tag filter
+    if (activeTagFilters.size > 0) {
+      const hasTag = term.tags.some(tag => activeTagFilters.has(tag));
+      if (!hasTag) return false;
+    }
+
+    // Apply search filter
+    if (searchTerm) {
+      const searchable = (term.term + ' ' + term.definition).toLowerCase();
+      if (!searchable.includes(searchTerm)) return false;
+    }
+
+    return true;
+  });
+
+  // Apply sort
+  if (sortBy === 'a-z') {
+    filteredTerms.sort((a, b) => a.term.localeCompare(b.term));
+  } else if (sortBy === 'z-a') {
+    filteredTerms.sort((a, b) => b.term.localeCompare(a.term));
+  } else if (sortBy === 'newest') {
+    filteredTerms.sort((a, b) => {
+      if (!a.dateAdded && !b.dateAdded) return a.term.localeCompare(b.term);
+      if (!a.dateAdded) return 1;
+      if (!b.dateAdded) return -1;
+      return b.dateAdded.localeCompare(a.dateAdded);
+    });
+  }
+
+  renderTerms();
+  updateCount();
+}
+
+function linkifyDefinition(definition, termName, allTermsArray) {
+  // Escape HTML first
+  const escaped = escapeHtml(definition);
+
+  // Get candidate terms (all except the term itself)
+  const candidateTerms = allTermsArray.filter(
+    t => t.term.toLowerCase() !== termName.toLowerCase()
+  );
+
+  // Helper to escape regex special characters
+  const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+  // Find all matches
+  const allMatches = [];
+  for (const candidate of candidateTerms) {
+    // Create regex: word boundary + term + optional s/es + word boundary
+    const pattern = new RegExp(
+      `\\b${escapeRegex(candidate.term)}(?:s|es)?\\b`,
+      'gi'
+    );
+    let match;
+    while ((match = pattern.exec(escaped)) !== null) {
+      allMatches.push({
+        start: match.index,
+        end: match.index + match[0].length,
+        term: candidate.term,
+        text: match[0],
+        termLength: candidate.term.length
+      });
+    }
+  }
+
+  // Greedily select non-overlapping matches, preferring longer terms
+  const sorted = allMatches.sort((a, b) => b.termLength - a.termLength);
+  const filtered = [];
+  for (const m of sorted) {
+    // Check if this match overlaps with any already-selected match
+    const overlaps = filtered.some(f => !(m.end <= f.start || m.start >= f.end));
+    if (!overlaps) {
+      filtered.push(m);
+    }
+  }
+
+  // Sort back by position for output
+  filtered.sort((a, b) => a.start - b.start);
+
+  // Build result with links
+  let result = '';
+  let lastEnd = 0;
+  for (const m of filtered) {
+    result += escaped.substring(lastEnd, m.start);
+    // Create link with properly encoded term
+    const encodedTerm = m.term
+      .replace(/&/g, '&amp;')
+      .replace(/"/g, '&quot;');
+    result += `<a class="term-link" data-term="${encodedTerm}">${m.text}</a>`;
+    lastEnd = m.end;
+  }
+  result += escaped.substring(lastEnd);
+
+  return result;
+}
+
+function renderTerms() {
+  const container = document.getElementById('termsContainer');
+  const emptyState = document.getElementById('emptyState');
+
+  if (filteredTerms.length === 0) {
+    container.innerHTML = '';
+    emptyState.style.display = 'block';
+    return;
+  }
+
+  emptyState.style.display = 'none';
+  container.innerHTML = '';
+
+  filteredTerms.forEach(term => {
+    const card = document.createElement('div');
+    card.className = 'term-card';
+
+    const title = document.createElement('h3');
+    title.className = 'term-name';
+    title.textContent = term.term;
+
+    const definition = document.createElement('p');
+    definition.className = 'term-definition';
+    definition.innerHTML = linkifyDefinition(term.definition, term.term, allTerms);
+
+    const meta = document.createElement('div');
+    meta.className = 'term-meta';
+
+    if (term.dateAdded) {
+      const date = document.createElement('div');
+      date.className = 'term-date';
+      date.textContent = `Added: ${term.dateAdded}`;
+      meta.appendChild(date);
+    }
+
+    if (term.paths.length > 0) {
+      const paths = document.createElement('div');
+      paths.className = 'term-paths';
+      paths.innerHTML = term.paths.map(p => escapeHtml(p)).join('<br>');
+      meta.appendChild(paths);
+    }
+
+    const tags = document.createElement('div');
+    tags.className = 'term-tags';
+    term.tags.forEach(tag => {
+      const tagEl = document.createElement('span');
+      tagEl.className = 'term-tag';
+      tagEl.textContent = tag;
+      tags.appendChild(tagEl);
+    });
+    meta.appendChild(tags);
+
+    card.appendChild(title);
+    card.appendChild(definition);
+    card.appendChild(meta);
+    container.appendChild(card);
+  });
+}
+
+function updateCount() {
+  const countLine = document.getElementById('countLine');
+  const total = allTerms.length;
+  const shown = filteredTerms.length;
+  if (shown === total) {
+    countLine.textContent = `${shown} of ${total} terms shown`;
+  } else {
+    countLine.textContent = `${shown} of ${total} terms shown`;
+  }
+}
+
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+function handleTermLinkClick(e) {
+  e.preventDefault();
+  const targetTermName = e.target.dataset.term;
+
+  // Clear filters and search if the target might be hidden
+  if (activeTagFilters.size > 0 || document.getElementById('searchInput').value) {
+    activeTagFilters.clear();
+    document.getElementById('searchInput').value = '';
+    document.getElementById('sortSelect').value = 'a-z';
+    applyFilters();
+  }
+
+  // Find the target card by matching the term name
+  const targetCard = Array.from(document.querySelectorAll('.term-card')).find(
+    card => card.querySelector('.term-name').textContent === targetTermName
+  );
+
+  if (targetCard) {
+    // Scroll into view with smooth behavior
+    targetCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+    // Remove any existing flash-highlight class
+    document.querySelectorAll('.term-card.flash-highlight').forEach(card => {
+      card.classList.remove('flash-highlight');
+    });
+
+    // Add flash-highlight animation
+    targetCard.classList.add('flash-highlight');
+  }
+}
+
+// Event listeners
+document.getElementById('searchInput').addEventListener('input', applyFilters);
+document.getElementById('sortSelect').addEventListener('change', applyFilters);
+
+// Event delegation for term links
+document.addEventListener('click', e => {
+  if (e.target.classList.contains('term-link')) {
+    handleTermLinkClick(e);
+  }
+});
+
+// Initialize
+loadTerms();
+</script>
+</body>
+</html>

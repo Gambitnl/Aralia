@@ -91,10 +91,15 @@ describe('gait drivers (segment emission)', () => {
   it('biped: full humanoid part list with CONNECTED limb chains', () => {
     const sink = collect('biped');
     const ids = sink.segments.map((s) => s.id);
-    for (const required of ['torso.pelvis', 'torso.chest', 'neck', 'armL.upper', 'armL.fore', 'armR.upper', 'armR.fore', 'legL.thigh', 'legL.shin', 'legR.thigh', 'legR.shin']) {
+    // round 2 (humanoid-anatomy): hands are palm+thumb segments (mitt), the
+    // old handL/handR balloon balls are gone, and deltoid balls cap the arm
+    // roots
+    // round 5 (humanoid-anatomy): feet are heel-to-toe wedge SEGMENTS now
+    // (footL/footR moved from the ball list to the segment list)
+    for (const required of ['torso.pelvis', 'torso.chest', 'neck', 'armL.upper', 'armL.fore', 'handL.thumb', 'handL.palm', 'armR.upper', 'armR.fore', 'handR.thumb', 'handR.palm', 'legL.thigh', 'legL.shin', 'footL', 'legR.thigh', 'legR.shin', 'footR']) {
       expect(ids, `missing segment ${required}`).toContain(required);
     }
-    for (const b of ['head', 'handL', 'handR', 'footL', 'footR']) {
+    for (const b of ['head', 'deltoidL', 'deltoidR']) {
       expect(sink.balls.map((x) => x.id), `missing ball ${b}`).toContain(b);
     }
     const by = new Map(sink.segments.map((s) => [s.id, s]));

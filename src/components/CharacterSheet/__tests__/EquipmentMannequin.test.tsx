@@ -5,6 +5,7 @@ import { vi, describe, it, expect } from 'vitest';
 import EquipmentMannequin from '../Overview/EquipmentMannequin';
 import { PlayerCharacter, Item } from '../../../types';
 import { createMockPlayerCharacter } from '../../../utils/core';
+import { ENV } from '../../../config/env';
 
 // Mock dependencies
 vi.mock('../../../utils/character/characterUtils', async (importOriginal) => {
@@ -82,6 +83,29 @@ describe('EquipmentMannequin', () => {
     const img = screen.getByAltText('Data Sword');
     expect(img).toBeInTheDocument();
     expect(img).toHaveAttribute('src', dataUri);
+  });
+
+  it('renders catalog armor from the same base-aware SVG URL used by inventory rows', () => {
+    const characterWithLeatherCap: PlayerCharacter = {
+      ...mockCharacter,
+      equippedItems: {
+        Head: {
+          id: 'leather_cap',
+          name: 'Leather Cap',
+          type: 'armor',
+          icon: 'legacy-cap-symbol',
+          slot: 'Head',
+          armorCategory: 'Light',
+        } as Item,
+      },
+    };
+
+    render(<EquipmentMannequin character={characterWithLeatherCap} />);
+
+    expect(screen.getByAltText('Leather Cap')).toHaveAttribute(
+      'src',
+      `${ENV.BASE_URL}assets/icons/general/armor/leather_cap.svg`,
+    );
   });
 
   it('handles slot clicks', () => {

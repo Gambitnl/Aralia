@@ -3,8 +3,8 @@
  * ARCHITECTURAL ADVISORY:
  * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 19/06/2026, 00:46:26
- * Dependents: commands/base/BaseEffectCommand.ts, commands/base/CommandExecutor.ts, commands/effects/ConcentrationCommands.ts, commands/effects/DefensiveCommand.ts, commands/effects/EnhanceAbilityCommand.ts, commands/effects/FamiliarPocketCommands.ts, commands/effects/FamiliarSharedSensesCommand.ts, commands/effects/MovementCommand.ts, commands/effects/NarrativeCommand.ts, commands/effects/ReactiveEffectCommand.ts, commands/effects/RegisterRiderCommand.ts, commands/effects/SummoningCommand.ts, commands/effects/TerrainCommand.ts, commands/effects/UtilityCommand.ts, commands/factory/AbilityCommandFactory.ts, commands/factory/SpellCommandFactory.ts, commands/index.ts, utils/core/factories.ts
+ * Last Sync: 10/08/2026, 14:00:28
+ * Dependents: commands/base/BaseEffectCommand.ts, commands/base/CommandExecutor.ts, commands/effects/CommandedSummonCommand.ts, commands/effects/ConcentrationCommands.ts, commands/effects/DefensiveCommand.ts, commands/effects/ElementalBaneCommand.ts, commands/effects/EnhanceAbilityCommand.ts, commands/effects/FamiliarPocketCommands.ts, commands/effects/FamiliarSharedSensesCommand.ts, commands/effects/GrantedActionCommand.ts, commands/effects/GraspingVineCommand.ts, commands/effects/MovementCommand.ts, commands/effects/NarrativeCommand.ts, commands/effects/ReactiveEffectCommand.ts, commands/effects/RegisterRiderCommand.ts, commands/effects/SummonDismissCommand.ts, commands/effects/SummonReturnHomeCommand.ts, commands/effects/SummoningCommand.ts, commands/effects/TerrainCommand.ts, commands/effects/UtilityCommand.ts, commands/factory/AbilityCommandFactory.ts, commands/factory/SpellCommandFactory.ts, commands/index.ts, systems/spells/socialServiceResolution.ts, utils/core/factories.ts
  * Imports: 4 files
  *
  * MULTI-AGENT SAFETY:
@@ -29,7 +29,7 @@
  * @file src/commands/base/SpellCommand.ts
  */
 
-import { CombatState, CombatCharacter, SelectedSpellTarget } from '@/types/combat'
+import { CombatState, CombatCharacter, Position, SelectedSpellTarget } from '@/types/combat'
 import { GameState } from '@/types'
 import { EffectDuration, SpellAttackType, MagicSchool, ConditionalEnding, SpellEffect } from '@/types/spells'
 import { Plane } from '@/types/planes'
@@ -158,6 +158,8 @@ export interface CommandContext {
    * commands can inspect this envelope without pretending objects are creatures.
    */
   selectedSpellTargets?: SelectedSpellTarget[]
+  /** Origin used by spell-created objects whose effects do not emanate from the caster. */
+  effectOriginPosition?: Position
   /**
    * Optional player choice captured by the spell UI before command execution.
    * Mode-choice and Command-style spells use this to preserve the selected menu

@@ -161,6 +161,42 @@ const AO_W_TOTAL = 5 * (AO_W[0] + AO_W[1] + AO_W[2]);
 export const AO_REACH_CELLS = Math.ceil(AO_DIST[AO_DIST.length - 1]);
 
 /**
+ * WHY A VOLUME MAY BE ASKED TO DROP ITS FLOOR.
+ *
+ * The lattice runs one step past the volume on all six sides so the border
+ * cells are boundaries and the shell closes — without it a crater carved inside
+ * read as a lit dome hanging in mid-air. That pad is what draws the six seal
+ * planes, and once the volume became a wide SLAB rather than a cube the four
+ * side walls stopped being most of the seal and the FLOOR became all of it:
+ * 117,154 of 369,720 triangles at 240 m × 64 m (32 %), and 464,718 of 1,279,128
+ * at 480 m (36 %). None of it can ever be seen from above the ground.
+ *
+ * `suppressFloor` removes exactly two things and nothing else:
+ *
+ *   1. The horizontal quads at lattice y = 0. That row is the only place a
+ *      horizontal face can straddle voxel row -1 (always Air) and voxel row 0,
+ *      so every quad it emits is bottom seal and no interior face is at risk.
+ *   2. The VERTEX in a lattice cell at y = 0 whose four upper corners are all
+ *      solid — mask 204, since the lower four are outside the volume and
+ *      therefore Air. That is the flat-floor case, and it is provably orphaned
+ *      once (1) is gone: the only other quads that can reference a y = 0 vertex
+ *      are the two vertical branches at y = 1, and each of those fires exactly
+ *      when two of that vertex's own upper corners DISAGREE. So the side walls
+ *      keep every vertex they need and stay watertight to the bottom row.
+ *
+ * The rule is a pure function of `y === 0`, so two neighbouring chunks make the
+ * same decision about their shared apron and the seams do not move.
+ *
+ * It is the CALLER's job to guarantee the floor cannot be looked at. On
+ * `?step=land` that guarantee is the orbit control's polar clamp; a surface
+ * that lets a camera go under its own ground must leave this off.
+ */
+export const SUPPRESS_FLOOR_NOTE = 'see meshCellRange(suppressFloor)';
+
+/** Corner mask of a lattice cell at y = 0 whose upper four voxels are all solid. */
+const FLAT_FLOOR_MASK = 0b11001100;
+
+/**
  * The same reach counted in VERTICAL cells.
  *
  * The fan is a fixed length in world meters, so a volume whose vertical cell is
@@ -190,6 +226,11 @@ export function meshCellRange(
   surfaceYAt?: (xM: number, zM: number) => number,
   range?: CellRange,
   cellHM: number = cellM,
+  /**
+   * Drop the volume's own BOTTOM SEAL — the flat plane of quads that closes the
+   * slab underneath. See `SUPPRESS_FLOOR_NOTE`.
+   */
+  suppressFloor = false,
 ): ChunkMeshData {
   const n = vol.cells;
   /* The VERTICAL lattice, which no longer has to match the horizontal one.
@@ -388,6 +429,11 @@ export function meshCellRange(
           (pl1[p00 + pw + 1] << 7);
         // All in or all out: no surface passes through this cell.
         if (mask === 0 || mask === 255) continue;
+        /* The bottom seal's own vertex, when the caller has said the floor can
+         * never be seen. Only the flat case is dropped; a y = 0 cell that any
+         * wall quad will reference disagrees across its upper corners and is
+         * kept. See SUPPRESS_FLOOR_NOTE. */
+        if (suppressFloor && y === 0 && mask === FLAT_FLOOR_MASK) continue;
 
         // Average the midpoints of every edge that crosses the boundary. That
         // average is what smooths the staircase a blocky extraction would give.
@@ -464,13 +510,39 @@ export function meshCellRange(
    * Quads in the one-cell apron go into `idxN`: they are never drawn (the
    * neighbor chunk owns them) but their faces feed the normals of the border
    * vertices, which is what makes the seam shade continuously. */
+  /*
+   * THE FRONT FACE POINTS AT THE AIR. Both orders below were present from the
+   * first version and both were the wrong way round, so every face this mesher
+   * ever emitted was wound inside-out: a flat solid top came back with its
+   * winding normal pointing DOWN into the rock, and the face-averaged normals
+   * built from that winding pointed down with it.
+   *
+   * Measured before the swap, on a 16-cell slab (see the bug report): 1,966 of
+   * 2,048 triangles had solid in front of them and air behind. Zero of the 225
+   * vertices on the open flat top had `normal.y > 0.5` — the same count IMPL-6
+   * measured in the live bubble (0 of 65,845).
+   *
+   * It survived this long because every material that draws this mesh is
+   * `DoubleSide`, which hides an inverted winding from the culler, and because
+   * three.js flips the shading normal on a back face, which hides it from the
+   * light. What it did NOT hide is everything downstream that reads the normal
+   * as a DIRECTION: the AO fan below is cast along it and so probed straight
+   * into the ground (open flat ground baked to AO 0.054 instead of ~1, which is
+   * the whole volume drawn at roughly half brightness), and the substance
+   * shader's per-cell snap `-normal * 0.5` landed in the air cell in front of
+   * the face instead of the solid cell behind it.
+   *
+   * `solidHere` is the corner sample this quad's edge starts from. It is 1 when
+   * the material lies on the low side of the edge, so the air is on the high
+   * side and the front face must wind toward it.
+   */
   const emitQuad = (
-    a: number, b: number, c: number, d: number, flip: boolean, owned: boolean,
+    a: number, b: number, c: number, d: number, solidHere: boolean, owned: boolean,
   ) => {
     if (a < 0 || b < 0 || c < 0 || d < 0) return;
     const out = owned ? idx : idxN;
-    if (flip) out.push(a, c, b, b, c, d);
-    else out.push(a, b, c, b, d, c);
+    if (solidHere) out.push(a, b, c, b, d, c);
+    else out.push(a, c, b, b, c, d);
   };
 
   for (let z = qLo[2]; z <= qHi[2]; z++) {
@@ -495,7 +567,12 @@ export function meshCellRange(
             owned,
           );
         }
-        if (x > vLo[0] && z > vLo[2] && solid(x, y + 1, z) !== here) {
+        /* The horizontal face at y = 0 IS the bottom seal — voxel row -1 is
+         * outside the volume and always Air, so nothing else can be emitted
+         * here. Skipped entirely rather than pushed into the apron: with the
+         * floor gone, a bottom wall vertex's normal must be the wall's. */
+        const floorRow = suppressFloor && y === 0;
+        if (!floorRow && x > vLo[0] && z > vLo[2] && solid(x, y + 1, z) !== here) {
           emitQuad(
             vertexAt[cellIndex(x, y, z)],
             vertexAt[cellIndex(x, y, z - 1)],
@@ -636,11 +713,14 @@ export function voxelsToSurface(
   colorAtDepth: (depthM: number) => readonly [number, number, number],
   surfaceYAt?: (xM: number, zM: number) => number,
   cellHM: number = cellM,
+  suppressFloor = false,
 ): SurfaceMeshData {
   const n = vol.cells;
   const cn = n + 1;
   const pos0 = -1;
-  const chunk = meshCellRange(vol, cellM, originM, colorAtDepth, surfaceYAt, undefined, cellHM);
+  const chunk = meshCellRange(
+    vol, cellM, originM, colorAtDepth, surfaceYAt, undefined, cellHM, suppressFloor,
+  );
 
   /* Fold the dual columns down to one height per voxel column.
    *

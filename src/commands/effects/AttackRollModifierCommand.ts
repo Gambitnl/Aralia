@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 10/07/2026, 14:00:03
+ * Last Sync: 10/08/2026, 13:45:53
  * Dependents: commands/effects/ReactiveEffectCommand.ts, commands/factory/AbilityCommandFactory.ts, commands/factory/SpellCommandFactory.ts
- * Imports: 8 files
+ * Imports: 9 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -37,6 +37,7 @@ import { DamageEffect, StatusConditionEffect, isAttackRollModifierEffect } from 
 import { calculateSpellDC, rollSavingThrow } from '../../utils/character';
 import { SavePenaltySystem } from '../../systems/combat/SavePenaltySystem';
 import { generateId } from '../../utils/core';
+import { resolveSourceSaveAdvantageModifiers } from '../../systems/spells/mechanics/sourceSaveModifierResolution';
 
 // ============================================================================
 // Attack Roll Riders
@@ -68,7 +69,21 @@ export class AttackRollModifierCommand extends BaseEffectCommand {
         const dc = calculateSpellDC(caster);
         const savePenaltySystem = new SavePenaltySystem();
         const saveModifiers = savePenaltySystem.getActivePenalties(target);
-        const saveResult = rollSavingThrow(target, this.effect.condition.saveType, dc, saveModifiers);
+        // Keep future save-based attack riders on the same structured modifier
+        // contract as damage and status effects.
+        const structuredSaveModifiers = resolveSourceSaveAdvantageModifiers(
+          this.effect.condition.saveModifiers,
+          caster,
+          target
+        );
+        const saveResult = rollSavingThrow(
+          target,
+          this.effect.condition.saveType,
+          dc,
+          saveModifiers,
+          undefined,
+          structuredSaveModifiers
+        );
 
         // Consume one-time save penalties as soon as the save is resolved.
         currentState = savePenaltySystem.consumeNextSavePenalties(currentState, target.id);
