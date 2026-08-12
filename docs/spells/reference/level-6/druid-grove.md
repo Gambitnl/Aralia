@@ -49,6 +49,22 @@
 - **Concentration**: false
 
 - **Effect Type**: UTILITY
+- **Utility Option 1 Name**: Warded Area Size
+- **Utility Option 1 Effect**: The caster chooses an outdoor or underground warded area from a 30-foot cube up to a 90-foot cube, excluding buildings and structures.
+- **Utility Option 2 Name**: Immune Friends
+- **Utility Option 2 Effect**: The caster names creatures that are immune to the grove effects.
+- **Utility Option 3 Name**: Password Immunity
+- **Utility Option 3 Effect**: The caster can set a spoken password that makes a speaker immune to the grove effects.
+- **Utility Option 4 Name**: Solid Fog Squares
+- **Utility Option 4 Effect**: The caster chooses any number of 5-foot ground squares to fill with thick fog.
+- **Utility Option 5 Name**: Grasping Undergrowth Squares
+- **Utility Option 5 Effect**: The caster chooses any number of non-fog 5-foot ground squares to fill with grasping weeds and vines.
+- **Utility Option 6 Name**: Grove Guardian Trees
+- **Utility Option 6 Effect**: The caster chooses up to four existing trees in the warded area to animate as grove guardians.
+- **Utility Option 7 Name**: Additional Spell Effect
+- **Utility Option 7 Effect**: The caster chooses the additional magical effect placed in the warded area.
+- **Utility Option 8 Name**: Dispel One Effect
+- **Utility Option 8 Effect**: A successful Dispel Magic on the area removes only one selected grove effect, and the grove remains until all effects are gone.
 - **Save Cover Ignored**: not_applicable
 - **Save Auto Outcome**: not_applicable
 - **Save Auto Outcome Condition**: not_applicable

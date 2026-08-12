@@ -255,6 +255,10 @@ export function assembleEntity(blueprint: EntityBlueprint, options: AssembleOpti
     // less forward roll) — the round-12 orc's "droopy half-lidded ... sleepy"
     // read. Assembler furniture only; buildHumanoidHead ignores it.
     lidOpen: Number(faceSculptParams?.lidOpen ?? 1),
+    // round 14 (humanoid-anatomy): per-race eyeball scale (<1 shrinks the
+    // whole eye assembly) — the dwarf/orc "huge glossy anime eyes" clash
+    // with the gritty kit; smaller whites read grim, not cute.
+    eyeScale: Number(faceSculptParams?.eyeScale ?? 1),
   };
   for (const instance of blueprint.parts) {
     if (instance.partId === 'faceSculpt') continue;
@@ -389,12 +393,18 @@ export function assembleEntity(blueprint: EntityBlueprint, options: AssembleOpti
       for (let k = 0; k < headSpec.eyes.count; k++) {
         const eye = new Mesh(new SphereGeometry(Math.max(0.008, r), 12, 10), eyeMaterial);
         eye.name = `eyeP${h}_${k}`;
-        const pupil = new Mesh(new SphereGeometry(Math.max(0.005, r * 0.58), 10, 8), pupilMaterial);
-        pupil.position.z = r * 0.72;
+        // round 23 (creature-anatomy): SOLID LENS BULGE — Remy orbited the
+        // Construct Large live and the pupils vanished off-front ("outside of
+        // the frame not visible?"). Every detail part must be a solid 3D form
+        // that survives a 360° orbit: the pupil is now a larger sphere seated
+        // shallower in the eyeball with no z-flatten, so a dark cap stays
+        // proud of the white from every angle.
+        const pupil = new Mesh(new SphereGeometry(Math.max(0.005, r * 0.64), 10, 8), pupilMaterial);
+        pupil.position.z = r * 0.62;
         // pupil character: slit (reptile) is tall-thin, goat is wide-flat
         const pupilShape = headSpec.eyes.pupil ?? 'round';
-        if (pupilShape === 'slit') pupil.scale.set(0.38, 1.55, 0.8);
-        else if (pupilShape === 'goat') pupil.scale.set(1.55, 0.42, 0.8);
+        if (pupilShape === 'slit') pupil.scale.set(0.38, 1.45, 1);
+        else if (pupilShape === 'goat') pupil.scale.set(1.45, 0.42, 1);
         eye.add(pupil);
         bodyRoot.add(eye);
         eyes.push(eye);
@@ -469,13 +479,26 @@ export function assembleEntity(blueprint: EntityBlueprint, options: AssembleOpti
       // round 13 (humanoid-anatomy): lidOpen > 1 (orc) shrinks the cap and
       // eases the forward roll — the rim rides above the iris top instead of
       // drooping across it (the "sleepy" read).
+      // round 14 (humanoid-anatomy): the 1.6 raise DID reach the geometry but
+      // was eaten downstream — the roll eased only 0.24 rad and the LASH BAND
+      // kept its full π·0.18 thickness riding across the iris top, so the
+      // dark "droopy lid" line never moved. The raise now nearly levels the
+      // rim (0.55 slope), shrinks the cap harder (0.12), and thins/raises the
+      // lash band itself (see below).
       const lidRaise = Math.max(0, face.lidOpen - 1);
-      const lidRot = -0.5 + 0.4 * lidRaise;
+      // round-14 probe numbers: the pupil's top sits at ~51° polar; the old
+      // raised band still spanned 50–70° after the forward roll — a dark bar
+      // straight across the iris = the sleepy read. The raised rim now
+      // finishes ABOVE the pupil top and the whole lid tilts inner-corner-
+      // down (angry glare), not outer-corner-down (sleepy droop).
+      const lidRot = -0.5 + 0.7 * lidRaise;
+      const angryTilt = 0.28 * lidRaise;
       const lid = new Mesh(
-        new SphereGeometry(HUMANOID_EYE.r * 1.14, 12, 5, 0, Math.PI * 2, 0, Math.PI * (0.42 - 0.05 * lidRaise)),
+        new SphereGeometry(HUMANOID_EYE.r * 1.14, 12, 5, 0, Math.PI * 2, 0, Math.PI * (0.42 - 0.15 * lidRaise)),
         headSkinMaterial,
       );
       lid.rotation.x = lidRot; // roll the cap rim down over the iris top
+      lid.rotation.z = sgn * -angryTilt; // inner corner dips — mean, not sleepy
       lid.name = `${name}Lid`;
       eye.add(lid);
       // round 12 (humanoid-anatomy): SOCKET FILLER — a skin-toned sphere
@@ -508,13 +531,39 @@ export function assembleEntity(blueprint: EntityBlueprint, options: AssembleOpti
       // keeps the identical iris crop in every face-on read.
       // round 13 (humanoid-anatomy): the lash band tracks the raised lid rim
       // (thetaStart shifts up with lidOpen, same roll as the lid).
+      // round 14 (humanoid-anatomy): the band also THINS with the raise
+      // (π·0.18 → π·0.11 at lidOpen 1.6) and starts higher (0.10 slope) —
+      // the fat dark band across the iris top WAS the sleepy read; a thin
+      // high rim line under the brow reads open and mean.
       const lash = new Mesh(
-        new SphereGeometry(HUMANOID_EYE.r * 1.16, 12, 3, Math.PI / 2 - 1.4, 2.8, Math.PI * (0.34 - 0.05 * lidRaise), Math.PI * 0.18),
+        new SphereGeometry(HUMANOID_EYE.r * 1.16, 12, 3, Math.PI / 2 - 1.4, 2.8, Math.PI * (0.34 - 0.14 * lidRaise), Math.PI * (0.18 - 0.11 * lidRaise)),
         lashMaterial,
       );
       lash.rotation.x = lidRot; // same roll as the lid — the band sits at its rim
+      lash.rotation.z = sgn * -angryTilt; // rides the lid's angry tilt
       lash.name = `${name}Lash`;
       eye.add(lash);
+      // round 20 (humanoid-anatomy): THE LOWER LID — round 19 on the dwarf:
+      // "pale streaks under both eyes that read as tears". The eye has carried
+      // an upper lid since round 8 but never a lower one, so the pale sclera
+      // sphere spilled BELOW the dark lash line as a bright wedge hanging off
+      // each eye — the tear. (Round 11's alar creases and round 12's lash-ring
+      // side limb were different sources of the same artifact; this is the
+      // ball itself.) A skin-toned bottom cap, mirror of the upper lid and
+      // slightly wider, crops the sclera at the lower rim on every skin tone
+      // and every azimuth. Parented to the eye, so it rides the blink squash.
+      const lowerLid = new Mesh(
+        new SphereGeometry(HUMANOID_EYE.r * 1.15, 12, 5, 0, Math.PI * 2, Math.PI * 0.62, Math.PI * 0.38),
+        headSkinMaterial,
+      );
+      lowerLid.rotation.x = 0.34; // roll the rim up over the sclera's bottom-front
+      lowerLid.rotation.z = sgn * -angryTilt; // matches the upper lid's tilt
+      lowerLid.name = `${name}LowerLid`;
+      eye.add(lowerLid);
+      // round 14 (humanoid-anatomy): per-race eye shrink — scaling the eye
+      // group scales pupil, lid, lash, and socket filler with it; the loft
+      // socket recess is unchanged, so the smaller ball sits deeper-set.
+      if (face.eyeScale !== 1) eye.scale.setScalar(face.eyeScale);
       humanoidHead.add(eye);
       eyes.push(eye);
     }

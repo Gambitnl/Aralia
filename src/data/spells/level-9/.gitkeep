@@ -1,0 +1,8 @@
+# Level 9 Spells
+
+This directory is prepared for level 9 spell migration.
+
+Currently, level 9 spells are in the parent directory (`public/data/spells/`) as flat files.
+During migration, they will be moved here and converted to the new JSON format.
+
+See: `docs/tasks/spell-system-overhaul/` for migration progress.

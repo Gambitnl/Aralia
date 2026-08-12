@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { SpellIntegrityValidator } from '../../SpellIntegrityValidator';
 import { SpellValidator } from '../../spellValidator';
 import { Spell } from '../../../../../types/spells';
-import tinyServant from '../../../../../../public/data/spells/level-3/tiny-servant.json';
+import tinyServant from '@/data/spells/level-3/tiny-servant.json';
 import { filterReviewedMonolithicClearance, getSpells } from './spellFixtures';
 
 // Split from SpellIntegrityValidator.test.ts — suite overview lives in ./spellFixtures.ts.

@@ -1,0 +1,339 @@
+{
+  "id": "dragons-breath",
+  "name": "Dragon's Breath",
+  "aliases": [],
+  "level": 2,
+  "school": "Transmutation",
+  "legacy": false,
+  "classes": [
+    "Artificer",
+    "Sorcerer",
+    "Wizard"
+  ],
+  "subClasses": [],
+  "ritual": false,
+  "rarity": "common",
+  "attackType": "",
+  "castingTime": {
+    "value": 1,
+    "unit": "bonus_action",
+    "combatCost": {
+      "type": "bonus_action",
+      "condition": ""
+    },
+    "explorationCost": {
+      "value": 0,
+      "unit": "minute"
+    }
+  },
+  "range": {
+    "type": "touch",
+    "distance": 0
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": true,
+    "materialDescription": "a hot pepper",
+    "isConsumed": false,
+    "materialCost": 0
+  },
+  "duration": {
+    "type": "timed",
+    "value": 1,
+    "unit": "minute",
+    "concentration": true
+  },
+  "targeting": {
+    "type": "single",
+    "range": 0,
+    "validTargets": [
+      "allies"
+    ],
+    "lineOfSight": true,
+    "maxTargets": 1,
+    "filter": {
+      "creatureTypes": [],
+      "excludeCreatureTypes": [],
+      "sizes": [],
+      "alignments": [],
+      "hasCondition": [],
+      "isNativeToPlane": false,
+      "willing": "required",
+      "objectEligibility": {
+        "wornOrCarried": "not_applicable",
+        "magicalStatus": "not_applicable",
+        "fixedToSurface": "not_applicable",
+        "maxSize": "not_applicable",
+        "maxWeightPounds": "not_applicable",
+        "maxWeightScaling": "not_applicable"
+      },
+      "communicationPrerequisites": {
+        "canHearCaster": "not_applicable",
+        "canUnderstandCaster": "not_applicable",
+        "canSeeCaster": "not_applicable"
+      },
+      "abilityThreshold": {
+        "ability": "not_applicable",
+        "operator": "not_applicable",
+        "value": "not_applicable"
+      },
+      "selfRelation": "not_applicable"
+    },
+    "rangeUnit": "feet",
+    "areaOfEffect": {
+      "shape": "Cone",
+      "size": 15,
+      "sizeUnit": "feet"
+    }
+  },
+  "effects": [
+    {
+      "type": "UTILITY",
+      "trigger": {
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
+      "condition": {
+        "type": "always",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false,
+          "willing": "not_applicable",
+          "objectEligibility": {
+            "wornOrCarried": "not_applicable",
+            "magicalStatus": "not_applicable",
+            "fixedToSurface": "not_applicable",
+            "maxSize": "not_applicable",
+            "maxWeightPounds": "not_applicable",
+            "maxWeightScaling": "not_applicable"
+          },
+          "communicationPrerequisites": {
+            "canHearCaster": "not_applicable",
+            "canUnderstandCaster": "not_applicable",
+            "canSeeCaster": "not_applicable"
+          },
+          "abilityThreshold": {
+            "ability": "not_applicable",
+            "operator": "not_applicable",
+            "value": "not_applicable"
+          },
+          "selfRelation": "not_applicable"
+        },
+        "requiresStatus": [],
+        "saveModifiers": [],
+        "saveOutcomeOverrides": []
+      },
+      "utilityType": "other",
+      "description": "Target gains a breath action (15-foot cone, Dex save half) dealing 3d6 chosen damage (acid, cold, fire, lightning, or poison) for the duration.",
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "",
+        "customFormula": ""
+      },
+      "grantedActions": [
+        {
+          "type": "action",
+          "action": "exhale_breath_cone",
+          "frequency": "each_turn",
+          "actor": "target",
+          "actionKind": "magic_action",
+          "areaShape": "Cone",
+          "areaSize": 15,
+          "areaSizeUnit": "feet",
+          "effectIndices": [
+            1
+          ],
+          "notes": "Until Dragon's Breath ends, the target can take a Magic action to exhale the 15-foot cone represented by effect index 1."
+        }
+      ],
+      "attackAugments": [],
+      "controlOptions": [],
+      "taunt": {
+        "disadvantageAgainstOthers": false,
+        "leashRangeFeet": 0,
+        "breakConditions": []
+      },
+      "savePenalty": {
+        "dice": "",
+        "flat": 0,
+        "applies": "next_save",
+        "duration": {
+          "type": "rounds",
+          "value": 0
+        }
+      },
+      "light": {
+        "brightRadius": 0,
+        "dimRadius": 0,
+        "attachedTo": "caster",
+        "color": "",
+        "colorChoice": "not_applicable",
+        "opaqueCoverBlocks": "not_applicable",
+        "emitsHeat": "not_applicable",
+        "ignitesObjects": "not_applicable",
+        "consumesFuel": "not_applicable",
+        "canBeCoveredOrHidden": "not_applicable",
+        "canBeSmotheredOrQuenched": "not_applicable"
+      },
+      "conditionalEndings": []
+    },
+    {
+      "type": "DAMAGE",
+      "trigger": {
+        "type": "on_granted_action",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
+      "condition": {
+        "type": "save",
+        "saveType": "Dexterity",
+        "saveEffect": "half",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false,
+          "willing": "not_applicable",
+          "objectEligibility": {
+            "wornOrCarried": "not_applicable",
+            "magicalStatus": "not_applicable",
+            "fixedToSurface": "not_applicable",
+            "maxSize": "not_applicable",
+            "maxWeightPounds": "not_applicable",
+            "maxWeightScaling": "not_applicable"
+          },
+          "communicationPrerequisites": {
+            "canHearCaster": "not_applicable",
+            "canUnderstandCaster": "not_applicable",
+            "canSeeCaster": "not_applicable"
+          },
+          "abilityThreshold": {
+            "ability": "not_applicable",
+            "operator": "not_applicable",
+            "value": "not_applicable"
+          },
+          "selfRelation": "not_applicable"
+        },
+        "requiresStatus": [],
+        "saveModifiers": [],
+        "saveOutcomeOverrides": []
+      },
+      "damage": {
+        "dice": "3d6",
+        "type": "Acid/Cold/Fire/Lightning/Poison",
+        "damageTypeSource": "chosen_damage_type"
+      },
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "+1d6",
+        "customFormula": ""
+      },
+      "description": "When the target uses the granted Magic action, creatures in the 15-foot Cone make a Dexterity save, taking 3d6 of the chosen Acid, Cold, Fire, Lightning, or Poison damage on a failed save or half as much on a success; higher slots add +1d6 damage per slot level above 2.",
+      "conditionalEndings": []
+    }
+  ],
+  "arbitrationType": "mechanical",
+  "aiContext": {
+    "prompt": "",
+    "playerInputRequired": false
+  },
+  "description": "You touch one willing creature, and choose Acid, Cold, Fire, Lightning, or Poison. Until the spell ends, the target can take a Magic action to exhale a 15-foot Cone . Each creature in that area makes a Dexterity saving throw, taking 3d6 damage of the chosen type on a failed save or half as much damage on a successful one.",
+  "higherLevels": "Using a Higher-Level Spell Slot. The damage increases by 1d6 for each spell slot level above 2.",
+  "tags": [
+    "damage",
+    "elemental",
+    "control",
+    "concentration"
+  ],
+  "modeChoice": {
+    "type": "choose_one",
+    "timing": "on_cast",
+    "optionCount": 5,
+    "optionsSource": "modeChoice.options",
+    "canDismissActive": false,
+    "options": [
+      {
+        "label": "Acid",
+        "summary": "The granted breath weapon deals Acid damage in a 15-foot Cone.",
+        "effectIndices": [
+          1
+        ],
+        "effectTypes": [
+          "DAMAGE"
+        ],
+        "duration": "1 minute with concentration"
+      },
+      {
+        "label": "Cold",
+        "summary": "The granted breath weapon deals Cold damage in a 15-foot Cone.",
+        "effectIndices": [
+          1
+        ],
+        "effectTypes": [
+          "DAMAGE"
+        ],
+        "duration": "1 minute with concentration"
+      },
+      {
+        "label": "Fire",
+        "summary": "The granted breath weapon deals Fire damage in a 15-foot Cone.",
+        "effectIndices": [
+          1
+        ],
+        "effectTypes": [
+          "DAMAGE"
+        ],
+        "duration": "1 minute with concentration"
+      },
+      {
+        "label": "Lightning",
+        "summary": "The granted breath weapon deals Lightning damage in a 15-foot Cone.",
+        "effectIndices": [
+          1
+        ],
+        "effectTypes": [
+          "DAMAGE"
+        ],
+        "duration": "1 minute with concentration"
+      },
+      {
+        "label": "Poison",
+        "summary": "The granted breath weapon deals Poison damage in a 15-foot Cone.",
+        "effectIndices": [
+          1
+        ],
+        "effectTypes": [
+          "DAMAGE"
+        ],
+        "duration": "1 minute with concentration"
+      }
+    ],
+    "notes": "The damage packet already uses damage.damageTypeSource = chosen_damage_type; this menu supplies the five legal caster choices for the granted breath action."
+  }
+}

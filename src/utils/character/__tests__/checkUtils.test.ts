@@ -1,3 +1,11 @@
+/**
+ * This file proves ability checks honor their real modifiers and roll controls.
+ *
+ * Spell riders, skill proficiency, advantage, and deterministic simulations all
+ * enter through rollAbilityCheck. These focused checks keep the shared resolver
+ * from widening a targeted modifier or bypassing the normal dice engine.
+ */
+
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { rollAbilityCheck } from '../checkUtils';
 import { CombatCharacter } from '../../../types/combat';
@@ -149,5 +157,20 @@ describe('rollAbilityCheck', () => {
     const investigationCheck = rollAbilityCheck(markedTarget, 'Intelligence', 'Investigation');
     expect(investigationCheck.roll).toBe(9);
     expect(rollDice).toHaveBeenCalledTimes(1);
+  });
+
+  it('forwards an injected random stream through the shared d20 roller', () => {
+    const deterministicRng = vi.fn(() => 0.85);
+    vi.mocked(rollDice).mockReturnValue(18);
+
+    const result = rollAbilityCheck(
+      createCombatant(),
+      'Dexterity',
+      'Acrobatics',
+      { rng: deterministicRng },
+    );
+
+    expect(result.roll).toBe(18);
+    expect(rollDice).toHaveBeenCalledWith('1d20', { rng: deterministicRng });
   });
 });

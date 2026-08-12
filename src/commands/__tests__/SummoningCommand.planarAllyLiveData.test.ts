@@ -6,7 +6,7 @@ import type { CommandContext } from '../base/SpellCommand';
 import type { CombatCharacter, CombatState } from '../../types/combat';
 import type { SummoningEffect, UtilityEffect } from '../../types/spells';
 import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '@/utils/core';
-import planarAlly from '../../../public/data/spells/level-6/planar-ally.json';
+import planarAlly from '@/data/spells/level-6/planar-ally.json';
 
 /**
  * This test proves the live Planar Ally packet keeps its negotiated-service

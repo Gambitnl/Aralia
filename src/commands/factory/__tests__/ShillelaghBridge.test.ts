@@ -1,7 +1,7 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { UtilityCommand } from '../../effects/UtilityCommand';
 import { WeaponAttackCommand } from '../AbilityCommandFactory';
-import shillelagh from '../../../../public/data/spells/level-0/shillelagh.json';
+import shillelagh from '@/data/spells/level-0/shillelagh.json';
 import { rollDamage } from '@/utils/combat';
 import type { Ability, CombatCharacter, CombatState } from '@/types/combat';
 import type { Item } from '@/types/items';

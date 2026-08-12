@@ -6,7 +6,7 @@ import {
 import type { CombatCharacter } from '@/types/combat'
 import type { EffectDuration, Spell, UtilityEffect } from '@/types/spells'
 import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '@/utils/core'
-import tinyServant from '../../../public/data/spells/level-3/tiny-servant.json'
+import tinyServant from '@/data/spells/level-3/tiny-servant.json'
 
 /**
  * Tiny Servant already carries structured object-reversion and command payload

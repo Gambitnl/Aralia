@@ -911,10 +911,10 @@ function formatJsonUtilityOptions(spell: unknown): string {
 
   return parsed.data.effects
     .flatMap((effect) => effect.type === 'UTILITY' ? (effect.controlOptions ?? []) : [])
-    .map((option) => [
-      option.name,
+    .map((option: any) => [
+      option.name ?? option.label ?? option.mode,
       option.effect ? `effect=${option.effect}` : '',
-      option.details ? `details=${option.details}` : '',
+      option.details ? `details=${option.details}` : (option.summary ? `details=${option.summary}` : ''),
     ].filter(Boolean).join('|'))
     .sort()
     .join('; ');

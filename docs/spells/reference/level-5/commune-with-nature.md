@@ -45,6 +45,21 @@
 - **Duration Type**: instantaneous
 - **Concentration**: false
 - **Effect Type**: UTILITY
+- **Utility Option 1 Name**: Terrain and bodies of water
+- **Utility Option 1 Effect**: learn_terrain_and_water
+- **Utility Option 1 Details**: Learn information about terrain features and bodies of water in the spell's natural area.
+- **Utility Option 2 Name**: Prevalent plants, minerals, animals, or peoples
+- **Utility Option 2 Effect**: learn_prevalent_nature
+- **Utility Option 2 Details**: Learn information about prevalent plants, minerals, Beasts, or peoples in the spell's natural area.
+- **Utility Option 3 Name**: Powerful otherworldly creature
+- **Utility Option 3 Effect**: learn_powerful_creature
+- **Utility Option 3 Details**: Learn about one DM-chosen powerful Celestial, Elemental, Fey, Fiend, or Undead in the spell's area.
+- **Utility Option 4 Name**: Planar influence or portal
+- **Utility Option 4 Effect**: learn_planar_influence
+- **Utility Option 4 Details**: Learn whether planar influence, a portal, or similar other-planar feature affects the spell's area.
+- **Utility Option 5 Name**: Settlements or constructed features
+- **Utility Option 5 Effect**: learn_settlements
+- **Utility Option 5 Details**: Learn about settlements or constructed features where they are relevant to the natural area and do not make the spell fail.
 - **Save Cover Ignored**: not_applicable
 - **Save Auto Outcome**: not_applicable
 - **Save Auto Outcome Condition**: not_applicable

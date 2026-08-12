@@ -7,7 +7,7 @@ import {
 import type { CombatCharacter } from '@/types/combat'
 import type { Spell, StatusConditionEffect, UtilityEffect } from '@/types/spells'
 import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '@/utils/core'
-import awaken from '../../../public/data/spells/level-5/awaken.json'
+import awaken from '@/data/spells/level-5/awaken.json'
 
 /**
  * This file proves Awaken's long-lived transformation is runtime state, not

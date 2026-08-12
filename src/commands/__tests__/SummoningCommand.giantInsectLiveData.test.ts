@@ -4,7 +4,7 @@ import type { CommandContext } from '../base/SpellCommand'
 import type { CombatCharacter, CombatState } from '../../types/combat'
 import type { UtilityEffect } from '../../types/spells'
 import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '@/utils/core'
-import giantInsect from '../../../public/data/spells/level-4/giant-insect.json'
+import giantInsect from '@/data/spells/level-4/giant-insect.json'
 
 /**
  * Giant Insect is authored as a utility packet with nested summon metadata,

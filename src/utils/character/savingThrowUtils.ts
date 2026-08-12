@@ -3,8 +3,8 @@
  * ARCHITECTURAL ADVISORY:
  * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 09/08/2026, 22:43:58
- * Dependents: commands/effects/GrantedActionCommand.ts, commands/factory/SpellCommandFactory.ts, commands/factory/boomingBladeAttackBridge.ts, commands/factory/greenFlameBladeAttackBridge.ts, commands/factory/trueStrikeAttackBridge.ts, components/CharacterCreator/SkillSelection.tsx, systems/perception/eventDetection.ts, systems/spells/socialServiceResolution.ts, systems/travel/forcedMarch.ts, utils/character/concentrationUtils.ts, utils/character/index.ts, utils/character/skillModifierUtils.ts
+ * Last Sync: 11/08/2026, 20:59:05
+ * Dependents: commands/effects/GrantedActionCommand.ts, commands/factory/SpellCommandFactory.ts, commands/factory/boomingBladeAttackBridge.ts, commands/factory/greenFlameBladeAttackBridge.ts, commands/factory/trueStrikeAttackBridge.ts, components/CharacterCreator/SkillSelection.tsx, components/DesignPreview/steps/scenarioControls/stealthHiddenScenarioControls.ts, systems/perception/eventDetection.ts, systems/spells/mechanics/sourceSaveModifierResolution.ts, systems/spells/socialServiceResolution.ts, systems/travel/forcedMarch.ts, utils/character/concentrationUtils.ts, utils/character/index.ts, utils/character/skillModifierUtils.ts, utils/combat/shoveUtils.ts
  * Imports: 4 files
  *
  * MULTI-AGENT SAFETY:
@@ -74,6 +74,19 @@ export interface SaveEffectContext {
     damageType?: string;
     /** Free-form descriptive tags for the effect, e.g. ['poison', 'magic', 'disease']. */
     tags?: string[];
+}
+
+// ============================================================================
+// Deterministic Roll Input
+// ============================================================================
+// Ordinary combat omits this option and keeps the normal random stream. Rules
+// laboratories and deterministic simulations can supply the stream while still
+// exercising every modifier, proficiency, and advantage rule in this file.
+// ============================================================================
+
+export interface SavingThrowRollOptions {
+    /** Supplies the random stream without replacing the shared dice engine. */
+    rng?: () => number;
 }
 
 /**
@@ -193,6 +206,7 @@ export function calculateSpellDC(caster: CombatCharacter): number {
  *   Backward-compatible: when omitted, contextual narrowing is skipped.
  * @param structuredModifiers Optional structured advantage/disadvantage modifiers. These match
  *   precisely on ability and effect context, and are preferred over the legacy free-text strings.
+ * @param options Optional deterministic roll input for simulations and focused proof.
  */
 export function rollSavingThrow(
     target: CombatCharacter,
@@ -200,7 +214,8 @@ export function rollSavingThrow(
     dc: number,
     modifiers?: SavingThrowModifier[],
     effectContext?: SaveEffectContext,
-    structuredModifiers?: SaveAdvantageModifier[]
+    structuredModifiers?: SaveAdvantageModifier[],
+    options: SavingThrowRollOptions = {}
 ): SavingThrowResult {
     // Step 0: Check for Advantage/Disadvantage (Racial Modifiers, etc.)
     let hasAdvantage = false;
@@ -262,13 +277,17 @@ export function rollSavingThrow(
         else hasDisadvantage = true;
     });
 
-    // Step 1: Roll the d20
-    let roll = rollDice('1d20');
+    // Step 1: Roll the d20. Supplying an RNG changes only the random source;
+    // the shared parser and every save modifier below remain authoritative.
+    const rollWithConfiguredRandom = (dice: string): number => options.rng
+        ? rollDice(dice, { rng: options.rng })
+        : rollDice(dice);
+    let roll = rollWithConfiguredRandom('1d20');
     if (hasAdvantage && !hasDisadvantage) {
-        const roll2 = rollDice('1d20');
+        const roll2 = rollWithConfiguredRandom('1d20');
         roll = Math.max(roll, roll2);
     } else if (hasDisadvantage && !hasAdvantage) {
-        const roll2 = rollDice('1d20');
+        const roll2 = rollWithConfiguredRandom('1d20');
         roll = Math.min(roll, roll2);
     }
 
@@ -331,7 +350,7 @@ export function rollSavingThrow(
             // Signed flat bonuses use an unescaped character class so lint stays clean without changing behavior.
             const flatMatch = bonus.match(/([+-]\d+)/);
             if (diceMatch) {
-                const val = rollDice(diceMatch[1] || '1d4'); // Default to 1d4 if just "d4"
+                const val = rollWithConfiguredRandom(diceMatch[1] || '1d4'); // Default to 1d4 if just "d4"
                 mod += val;
                 modifiersApplied.push({ source: 'Racial Bonus', value: val });
             } else if (flatMatch) {
@@ -346,7 +365,7 @@ export function rollSavingThrow(
         for (const modifier of modifiers) {
             // Dice modifiers (e.g., "1d4" or "-1d4") are rolled and added
             if (modifier.dice) {
-                const diceRoll = rollDice(modifier.dice);
+                const diceRoll = rollWithConfiguredRandom(modifier.dice);
                 mod += diceRoll;
                 modifiersApplied.push({ source: modifier.source, value: diceRoll });
             }

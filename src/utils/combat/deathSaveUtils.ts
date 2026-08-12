@@ -3,8 +3,8 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 29/06/2026, 12:05:39
- * Dependents: commands/effects/DamageCommand.ts, commands/effects/HealingCommand.ts, hooks/combat/engine/useCombatEngine.ts, utils/combat/actionEconomyUtils.ts
+ * Last Sync: 11/08/2026, 21:37:23
+ * Dependents: commands/effects/DamageCommand.ts, commands/effects/DefensiveCommand.ts, commands/effects/HealingCommand.ts, components/DesignPreview/steps/scenarioControls/criticalHitsScenarioControls.ts, components/DesignPreview/steps/scenarioControls/deathSavesScenarioControls.ts, components/DesignPreview/steps/scenarioControls/healingTempHpScenarioControls.ts, hooks/combat/engine/useCombatEngine.ts, utils/combat/actionEconomyUtils.ts, utils/combat/grappleUtils.ts
  * Imports: 1 files
  *
  * MULTI-AGENT SAFETY:
@@ -124,6 +124,57 @@ export function removeUnconsciousCondition(character: CombatCharacter): CombatCh
     statusEffects,
     conditions
   };
+}
+
+// ============================================================================
+// Temporary Hit Point Replacement
+// ============================================================================
+// Temporary hit points are a separate buffer rather than healing. Every spell,
+// feature, and sandbox proof uses this one replacement rule so a smaller offer
+// can never stack with or silently overwrite a larger pool.
+// ============================================================================
+
+/**
+ * Offers a character a new temporary-hit-point pool.
+ *
+ * The higher pool wins. When a new pool replaces the old one, its optional
+ * source replaces the old source as well; a source-less grant clears stale
+ * spell ownership so reactive effects cannot claim another feature's buffer.
+ *
+ * @param character The character receiving the temporary-hit-point offer.
+ * @param amount The size of the newly offered pool.
+ * @param source The spell or feature that owns the new pool, when relevant.
+ * @returns A copied character carrying the canonical non-stacking result.
+ */
+export function applyTemporaryHitPoints(
+  character: CombatCharacter,
+  amount: number,
+  source?: CombatCharacter['temporaryHitPointSource'],
+): CombatCharacter {
+  const currentTemporaryHitPoints = character.tempHP ?? 0;
+  const offeredTemporaryHitPoints = Math.max(0, amount);
+
+  // Equal or smaller offers leave both the pool and its ownership untouched.
+  // This preserves effects such as Armor of Agathys when another feature offers
+  // a weaker buffer that the character optimally declines.
+  if (offeredTemporaryHitPoints <= currentTemporaryHitPoints) {
+    return { ...character };
+  }
+
+  // Replacing the pool also replaces its provenance. A generic grant has no
+  // spell owner, so omit the old source rather than carrying stale retaliation.
+  const updatedCharacter: CombatCharacter = {
+    ...character,
+    tempHP: offeredTemporaryHitPoints,
+  };
+
+  if (source) {
+    updatedCharacter.temporaryHitPointSource = { ...source };
+  } else {
+    delete updatedCharacter.temporaryHitPointSource;
+  }
+
+  return updatedCharacter;
 }
 
 /**

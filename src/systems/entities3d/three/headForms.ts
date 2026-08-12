@@ -608,9 +608,21 @@ export function buildHeadForm(
     group.add(extra);
   }
 
+  // round 23 (creature-anatomy): the dragon's face-panel teeth read as
+  // "broken white quads" — 4-sided cones show one flat white quad each, and
+  // with the jaw settled near-closed (gapeScale from snout.droop) the full
+  // tooth rows clipped through the shut mouth as scattered shards. The
+  // effective gape is computed BEFORE the rows: a near-closed mouth keeps
+  // only the two canines (the first pair — a clean Valheim fang read over
+  // the lip) and drops the lower row entirely (a shut jaw hides it anyway).
+  // All teeth render at 6 radial segments so no single facet dominates.
+  const gapeScale = Math.min(1.8, Math.max(0, opts?.gapeScale ?? 1));
+  const effGape = (spec.gape ?? 0.2) * gapeScale;
+  const mouthClosed = effGape < 0.3;
   let toothIdx = 0;
   for (const [x, y, z, r, len] of spec.teethUpper ?? []) {
-    const tusk = new Mesh(new ConeGeometry(r, len, 4), toothMaterial);
+    if (mouthClosed && toothIdx >= 2) break;
+    const tusk = new Mesh(new ConeGeometry(r, len, 6), toothMaterial);
     tusk.position.set(x, y, z);
     tusk.rotation.x = Math.PI; // hangs down over the mouth
     tusk.name = `tooth${toothIdx++}`;
@@ -626,8 +638,7 @@ export function buildHeadForm(
     jawGroup.name = 'jawGroup';
     const [px, py, pz] = spec.jawPivot ?? [0, -0.34, 0];
     jawGroup.position.set(px, py, pz);
-    const gapeScale = Math.min(1.8, Math.max(0, opts?.gapeScale ?? 1));
-    const gape = (spec.gape ?? 0.2) * gapeScale;
+    const gape = effGape;
     jawGroup.rotation.x = gape;
 
     const jaw = loftSkull('jaw', spec.jawSections, skinMaterial);
@@ -645,11 +656,13 @@ export function buildHeadForm(
       jawGroup.add(gullet);
     }
 
-    for (const [x, y, z, r, len] of spec.teethLower ?? []) {
-      const tusk = new Mesh(new ConeGeometry(r, len, 4), toothMaterial);
-      tusk.position.set(x, y, z);
-      tusk.name = `tooth${toothIdx++}`;
-      jawGroup.add(tusk);
+    if (!mouthClosed) {
+      for (const [x, y, z, r, len] of spec.teethLower ?? []) {
+        const tusk = new Mesh(new ConeGeometry(r, len, 6), toothMaterial);
+        tusk.position.set(x, y, z);
+        tusk.name = `tooth${toothIdx++}`;
+        jawGroup.add(tusk);
+      }
     }
     group.add(jawGroup);
   }

@@ -5770,7 +5770,7 @@
         {
           "title": "Creature skeletons — heads on bones + A/B eyeball gate (Task 3)",
           "status": "active",
-          "status_note": "OPEN 2026-08-04 (Task 3 of the creature-skeletons plan): head-ball/formed-head parenting to head<i> bones, creature-mode A/B preview surface (segments vs skinned-rigid, deep-linkable for headless capture), mounted A/B captures + Remy eyeball gate. Needs a live browser for rendered captures + human approval. Open design gap: formed heads emit no ball, so their head<i> bones are never written by the pure pose sink — the assembler must write those bones from driver.headSockets() each frame (outside the sink)."
+          "status_note": "NEARLY DONE 2026-08-12 (Agora task b95dc77f-e121-4698-9838-5862b9a91ca7): head-ball/formed-head parenting to head<i> bones implemented (planSkeleton.writeHeadSockets + skinnedBody.poseHeadSockets + assembleEntity feeds driver.headSockets() per frame outside the sink — the flagged open gap is closed); canonical AnimationMixer/clip contract implemented (skinnedClipPlayer.assertClipContract, rotation-only .quaternion tracks bound to real bones); creature/describe/library A/B preview surface wired in PreviewEntityForge.tsx (gitignored local-only surface) — segments vs skinned-rigid for plan-gait creatures, ?fixture=<key>&sidebyside=1 deep-link mounts both bodies (dragon 24/beholder 35/centaur 28/ghost 16/serpent 18/cube 4 bones, 2 skinned meshes, zero page errors; species-gait Ooze disables honestly). Captures ready at .agent/scratch/anytop-task3/ab-*.png. REMAINING: Remy eyeball gate on the A/B captures (human verdict required)."
         },
         {
           "title": "Crowd bake from bone transforms + segment renderer deletion",
@@ -5960,7 +5960,7 @@
       "tier": "strategic",
       "sub": "The L1 region drilldown is blank: it carries ONE field with real detail (heightfield 250x250 @100ft) and everything else is a stub. Root cause found 2026-07-29: a region window is 25,000 ft = ~2.5 FMG pixels while one FMG cell is ~8x9 px (~79,000 x 89,000 ft), so a window covers ~1/9 the area of a single cell. Every region field except the heightfield is EXTRACTED from atlas data, which has no structure below cell resolution - so there is nothing to extract. The tier cannot inherit its detail, it has to generate it. Measured over 6 burg windows: rivers 2-3 pts over 6.6k-25.5k ft, roads 6-7 pts over ~26k ft, crossings 0 EVERYWHERE (no region bridges or fords exist), markers 0, zones 1 total, biomeSites absent or exactly 1 (no gradient to blend). Rule adopted: the atlas decides which river runs here and how big it is; the region tier decides where it bends. Build order: rivers -> crossings -> roads -> biome sites -> markers/zones.",
       "link": "docs/superpowers/specs/2026-07-29-region-tier-audit.md",
-      "updated": "2026-07-29",
+      "updated": "2026-08-11",
       "features": [
         {
           "title": "Audit: measure every region field across 6 burg windows",
@@ -5985,6 +5985,10 @@
         {
           "title": "Markers + zones: generate sub-cell POIs (inheriting is impossible at this zoom)",
           "status": "parked"
+        },
+        {
+          "title": "Region-weighted composite height field",
+          "status": "done"
         }
       ]
     },
@@ -6261,6 +6265,44 @@
         {
           "title": "Coherence passes between waves",
           "status": "parked"
+        }
+      ]
+    },
+    {
+      "id": "terrain-aware-placement",
+      "title": "Terrain-aware placement",
+      "sub": "objects and ground agree - no floaters, no sunken props - method from WorldClaw",
+      "campaign": "rendering",
+      "status": "done",
+      "updated": "2026-08-12",
+      "deps": [],
+      "features": [
+        {
+          "title": "Slope and elevation gates on scatter",
+          "status": "done"
+        },
+        {
+          "title": "Render-inspect-correct placement loop",
+          "status": "done"
+        }
+      ]
+    },
+    {
+      "id": "dev-server-hygiene",
+      "title": "Dev Server & HMR Cleanliness",
+      "sub": "Fix React Fast Refresh invalidations and static public asset import warnings",
+      "campaign": "tooling",
+      "status": "done",
+      "updated": "2026-08-11",
+      "deps": [],
+      "features": [
+        {
+          "title": "Decouple non-component exports from TSX files for Fast Refresh",
+          "status": "done"
+        },
+        {
+          "title": "Replace relative public asset imports with src or fetch paths",
+          "status": "done"
         }
       ]
     }

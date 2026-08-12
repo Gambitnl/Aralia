@@ -1,13 +1,40 @@
+/**
+ * This file renders the shared combatant information panel.
+ *
+ * Turn order, roster cards, Tactical Sandbox, BattleMapDemo, and production
+ * combat use this one panel to show current HP, Armor Class, ability scores,
+ * movement, defenses, conditions, ongoing effects, and available abilities.
+ * Keeping those facts on the live CombatCharacter prevents a separate bestiary
+ * copy from drifting away from the creature that is actually in the fight.
+ *
+ * Called by: InitiativeTracker and CombatView roster inspection.
+ * Depends on: WindowFrame plus the live combat-character contract.
+ */
+
 import React from 'react';
 import { CombatCharacter, ActionCostType, ActiveEffect } from '../../types/combat';
 import { WindowFrame } from '../ui/WindowFrame';
 import { WINDOW_KEYS } from '../../styles/uiIds';
 import { CharacterStats } from '../../types/core';
 
+// ============================================================================
+// Inspector Contract
+// ============================================================================
+// Every caller supplies the live combatant and owns only the close request. The
+// panel reads all displayed facts directly from that combatant snapshot.
+// ============================================================================
+
 interface Props {
   character: CombatCharacter;
   onClose: () => void;
 }
+
+// ============================================================================
+// Player-Readable Formatting
+// ============================================================================
+// Shared labels and small cards translate combat data into the same compact
+// language for monsters and allies without changing the underlying mechanics.
+// ============================================================================
 
 const abilityMod = (score: number): string => {
   const mod = Math.floor((score - 10) / 2);
@@ -53,6 +80,13 @@ const Card: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   <div className="p-3 bg-gray-700/50 rounded-md border border-gray-600/60">{children}</div>
 );
 
+// ============================================================================
+// Shared Information Panel
+// ============================================================================
+// Enemy panels use the requested Monster Info identity. Allies keep the same
+// facts under Combatant Info so roster inspection remains broadly useful.
+// ============================================================================
+
 export const CombatCharacterInspector: React.FC<Props> = ({ character, onClose }) => {
   const ac = character.armorClass ?? character.baseAC;
   const hpPct = Math.min(100, (character.currentHP / character.maxHP) * 100);
@@ -70,7 +104,7 @@ export const CombatCharacterInspector: React.FC<Props> = ({ character, onClose }
 
   return (
     <WindowFrame
-      title={character.name}
+      title={`${character.team === 'enemy' ? 'Monster Info' : 'Combatant Info'} · ${character.name}`}
       onClose={onClose}
       storageKey={WINDOW_KEYS.COMBAT_INSPECTOR}
       initialMaximized={false}

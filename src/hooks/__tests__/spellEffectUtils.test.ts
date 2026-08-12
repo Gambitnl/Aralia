@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest'
 import { hasPersistentAreaTrigger, isDeferredAreaZoneTrigger } from '../spellEffectUtils'
 import type { SpellEffect } from '@/types/spells'
-import sleetStorm from '../../../public/data/spells/level-3/sleet-storm.json'
-import spiritGuardians from '../../../public/data/spells/level-3/spirit-guardians.json'
-import evardsBlackTentacles from '../../../public/data/spells/level-4/evards-black-tentacles.json'
-import conjureWoodlandBeings from '../../../public/data/spells/level-4/conjure-woodland-beings.json'
-import conjureElemental from '../../../public/data/spells/level-5/conjure-elemental.json'
+import sleetStorm from '@/data/spells/level-3/sleet-storm.json'
+import spiritGuardians from '@/data/spells/level-3/spirit-guardians.json'
+import evardsBlackTentacles from '@/data/spells/level-4/evards-black-tentacles.json'
+import conjureWoodlandBeings from '@/data/spells/level-4/conjure-woodland-beings.json'
+import conjureElemental from '@/data/spells/level-5/conjure-elemental.json'
 
 /**
  * This file protects the boundary that decides whether a spell effect needs a

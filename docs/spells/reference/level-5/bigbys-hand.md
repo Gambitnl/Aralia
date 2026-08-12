@@ -36,6 +36,14 @@ No Subclass Entries
 - **Duration Unit**: minute
 - **Concentration**: true
 - **Effect Type**: UTILITY
+- **Utility Option 1 Name**: Clenched Fist
+- **Utility Option 1 Details**: The hand strikes one creature or object within 5 feet, making a melee spell attack and dealing Force damage on a hit.
+- **Utility Option 2 Name**: Forceful Hand
+- **Utility Option 2 Details**: The hand pushes a creature within 5 feet in a direction chosen by the caster, using the hand's Strength contested by the target's Athletics.
+- **Utility Option 3 Name**: Grasping Hand
+- **Utility Option 3 Details**: The hand grapples a Huge or smaller creature within 5 feet and can later crush the grappled target for Bludgeoning damage.
+- **Utility Option 4 Name**: Interposing Hand
+- **Utility Option 4 Details**: The hand interposes between the caster and a chosen creature, granting half cover and blocking or slowing that creature based on Strength.
 - **Save Cover Ignored**: not_applicable
 - **Save Auto Outcome**: not_applicable
 - **Save Auto Outcome Condition**: not_applicable

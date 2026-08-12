@@ -84,7 +84,10 @@ const TYPE_SPECS: Record<CreatureType, CreatureTypeSpec> = {
       { partId: 'earsPointed', anchor: 'head' },
       { partId: 'tailThin', anchor: 'tailRoot' },
     ],
-    skinTones: ['#8a6a4a', '#7a5a3a', '#9a7a52', '#5a5c66'],
+    // round 23 (creature-anatomy): the slate roll lifted #5a5c66 → #767a86 —
+    // near-black under the toon ramp carries no internal detail (the wing
+    // membrane lesson); the Beast Large archetype read "gray featureless"
+    skinTones: ['#8a6a4a', '#7a5a3a', '#9a7a52', '#767a86'],
     accentHex: '#6e4a32',
     eyeHex: '#c9a227',
     cueOverrides: [
@@ -114,7 +117,10 @@ const TYPE_SPECS: Record<CreatureType, CreatureTypeSpec> = {
     heightMul: 1.05,
     bulk: 1.05,
     headScale: 1,
-    parts: [{ partId: 'wingsFeathered', anchor: 'back' }],
+    // round 23 (creature-anatomy): scale 1.9 — at 1.0 the fan read as "tiny
+    // vestigial feather stubs buried in its back" on the Large archetype;
+    // a celestial's wings are its identity statement and must span the torso.
+    parts: [{ partId: 'wingsFeathered', anchor: 'back', params: { scale: 1.9 } }],
     skinTones: ['#ffe8c4', '#f5d9a8', '#e8d4c4'],
     accentHex: '#d9a828',
     eyeHex: '#e8e0cf',
@@ -152,10 +158,15 @@ const TYPE_SPECS: Record<CreatureType, CreatureTypeSpec> = {
     heightMul: 0.9,
     bulk: 1.15,
     headScale: 1.1,
-    parts: [{ partId: 'crest', anchor: 'crown' }],
-    skinTones: ['#b05c3a', '#6a9a9a', '#8a7a5a', '#b4c4d9'],
-    accentHex: '#e0b830',
-    eyeHex: '#e8e0cf',
+    // round 24 (creature-anatomy): the crest garnish is gone — the rock body
+    // (surface 'rock' in creaturePlans) carries its own moss/crystal accents,
+    // and a fin on the sunken head read as clutter.
+    parts: [],
+    // Earth-rock tones (one convincing earth elemental this round beats six
+    // weak subtypes — Remy). Accent = the crack-glow amber, rendered UNLIT.
+    skinTones: ['#8a7f68', '#7d7266', '#94846c', '#6f695c'],
+    accentHex: '#e8a13c',
+    eyeHex: '#ffd977',
   },
   [CreatureType.Fey]: {
     gait: 'biped',

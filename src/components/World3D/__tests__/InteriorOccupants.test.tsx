@@ -34,7 +34,7 @@ import {
   residentRenderOwnerAtClock,
   selectInteriorBodyKeys,
 } from "../InteriorOccupants";
-import { streetOwnedAgentNodes } from "../GroundAgents";
+import { streetOwnedAgentNodes } from "../streetOwnedAgents";
 import {
   InteriorHourProvider,
   useInteriorClockRef,

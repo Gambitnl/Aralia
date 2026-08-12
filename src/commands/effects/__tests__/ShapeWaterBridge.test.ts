@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { UtilityCommand } from '../UtilityCommand';
-import shapeWater from '../../../../public/data/spells/level-0/shape-water.json';
+import shapeWater from '@/data/spells/level-0/shape-water.json';
 import type { CombatCharacter, CombatState, SelectedSpellTarget } from '@/types/combat';
 
 const caster: CombatCharacter = {

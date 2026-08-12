@@ -311,6 +311,12 @@ describe('junction blend collars (slice 1)', () => {
     const spec = compiled.planSpec!;
     for (const chain of spec.chains) {
       const collar = collars.get(`${chain.id}.collar`);
+      // round 20 (creature-anatomy): hull-proud leg roots compile blendM 0 —
+      // the haunch ball IS the junction, so no collar is emitted for them.
+      if (chain.blendM <= 0.02) {
+        expect(collar, `${chain.id} collar (blendM ${chain.blendM})`).toBeUndefined();
+        continue;
+      }
       expect(collar, `${chain.id} collar`).toBeTruthy();
       expect(collar!.reach).toBeCloseTo(chain.blendM, 6);
       expect(collar!.limbR).toBeCloseTo(chain.links[0].rM, 6);

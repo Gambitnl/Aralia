@@ -1,0 +1,228 @@
+{
+  "id": "fabricate",
+  "name": "Fabricate",
+  "aliases": [],
+  "level": 4,
+  "school": "Transmutation",
+  "legacy": false,
+  "classes": [
+    "Artificer",
+    "Wizard"
+  ],
+  "subClasses": [],
+  "ritual": false,
+  "rarity": "common",
+  "attackType": "",
+  "castingTime": {
+    "value": 10,
+    "unit": "minute",
+    "explorationCost": {
+      "value": 10,
+      "unit": "minute"
+    },
+    "combatCost": {
+      "type": "action",
+      "condition": ""
+    }
+  },
+  "range": {
+    "type": "ranged",
+    "distance": 120,
+    "distanceUnit": "feet"
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": false,
+    "materialDescription": "",
+    "materialCost": 0,
+    "isConsumed": false
+  },
+  "duration": {
+    "type": "instantaneous",
+    "concentration": false,
+    "value": 0,
+    "unit": "round"
+  },
+  "targeting": {
+    "type": "single",
+    "range": 120,
+    "rangeUnit": "feet",
+    "validTargets": [
+      "objects"
+    ],
+    "lineOfSight": true,
+    "maxTargets": 1,
+    "filter": {
+      "creatureTypes": [],
+      "excludeCreatureTypes": [],
+      "sizes": [],
+      "alignments": [],
+      "hasCondition": [],
+      "isNativeToPlane": false,
+      "willing": "not_applicable",
+      "objectEligibility": {
+        "wornOrCarried": "not_applicable",
+        "magicalStatus": "not_applicable",
+        "fixedToSurface": "not_applicable",
+        "maxSize": "not_applicable",
+        "maxWeightPounds": "not_applicable",
+        "maxWeightScaling": "not_applicable"
+      },
+      "communicationPrerequisites": {
+        "canHearCaster": "not_applicable",
+        "canUnderstandCaster": "not_applicable",
+        "canSeeCaster": "not_applicable"
+      },
+      "abilityThreshold": {
+        "ability": "not_applicable",
+        "operator": "not_applicable",
+        "value": "not_applicable"
+      },
+      "selfRelation": "not_applicable"
+    }
+  },
+  "effects": [
+    {
+      "type": "UTILITY",
+      "trigger": {
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
+      "condition": {
+        "type": "always",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false,
+          "willing": "not_applicable",
+          "objectEligibility": {
+            "wornOrCarried": "not_applicable",
+            "magicalStatus": "not_applicable",
+            "fixedToSurface": "not_applicable",
+            "maxSize": "not_applicable",
+            "maxWeightPounds": "not_applicable",
+            "maxWeightScaling": "not_applicable"
+          },
+          "communicationPrerequisites": {
+            "canHearCaster": "not_applicable",
+            "canUnderstandCaster": "not_applicable",
+            "canSeeCaster": "not_applicable"
+          },
+          "abilityThreshold": {
+            "ability": "not_applicable",
+            "operator": "not_applicable",
+            "value": "not_applicable"
+          },
+          "selfRelation": "not_applicable"
+        },
+        "requiresStatus": [],
+        "saveModifiers": [],
+        "saveOutcomeOverrides": []
+      },
+      "utilityType": "creation",
+      "description": "Converts visible raw materials into products of the same material, limited by material quantity, object size, raw-material quality, no creatures or magic items, and artisan-tool proficiency for skilled goods.",
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "",
+        "customFormula": ""
+      },
+      "grantedActions": [],
+      "attackAugments": [],
+      "createdObjects": [
+        {
+          "objectType": "other",
+          "name": "Fabricated Product",
+          "count": 1,
+          "countUnit": "structure",
+          "appearsIn": "spell_area",
+          "shapeOptions": [
+            "wooden bridge",
+            "rope",
+            "clothing",
+            "Large or smaller non-mineral object",
+            "Medium or smaller mineral object",
+            "tool-proficiency-gated skilled good"
+          ],
+          "materialOptions": [
+            "wood",
+            "hemp",
+            "flax",
+            "wool",
+            "metal",
+            "stone",
+            "mineral",
+            "same material as visible raw source"
+          ],
+          "requiresVisibleRawMaterials": true,
+          "consumesSourceMaterials": true,
+          "outputSameMaterialAsSource": true,
+          "maxFabricatedObjectCubeFeet": 10,
+          "maxConnectedFiveFootCubes": 8,
+          "maxMineralObjectCubeFeet": 5,
+          "qualityLimitedByMaterials": true,
+          "cannotCreateCreatures": true,
+          "cannotCreateMagicItems": true,
+          "skilledGoodsRequireToolProficiency": true,
+          "expiresWithSpell": false,
+          "shelfLife": "instantaneous permanent fabrication",
+          "notes": "The spell converts visible raw materials into a finished product of the same material. Non-mineral outputs can be Large or smaller, contained in a 10-foot Cube or eight connected 5-foot Cubes. Metal, stone, and mineral outputs can be no larger than Medium, contained in a 5-foot Cube. Output quality depends on source quality, creatures and magic items cannot be created, and skilled goods such as weapons or armor require matching Artisan's Tools proficiency."
+        }
+      ],
+      "controlOptions": [],
+      "taunt": {
+        "disadvantageAgainstOthers": false,
+        "leashRangeFeet": 0,
+        "breakConditions": []
+      },
+      "savePenalty": {
+        "dice": "",
+        "flat": 0,
+        "applies": "next_save",
+        "duration": {
+          "type": "rounds",
+          "value": 0
+        }
+      },
+      "light": {
+        "brightRadius": 0,
+        "dimRadius": 0,
+        "attachedTo": "caster",
+        "color": "",
+        "colorChoice": "not_applicable",
+        "opaqueCoverBlocks": "not_applicable",
+        "emitsHeat": "not_applicable",
+        "ignitesObjects": "not_applicable",
+        "consumesFuel": "not_applicable",
+        "canBeCoveredOrHidden": "not_applicable",
+        "canBeSmotheredOrQuenched": "not_applicable"
+      },
+      "conditionalEndings": []
+    }
+  ],
+  "arbitrationType": "mechanical",
+  "aiContext": {
+    "prompt": "Choose visible raw materials within 120 feet and describe the product to fabricate. Confirm the output uses the same material, fits the size limits, is not a creature or magic item, and only creates skilled goods when the caster has the matching Artisan's Tools proficiency.",
+    "playerInputRequired": true
+  },
+  "description": "You convert raw materials into products of the same material. For example, you can fabricate a wooden bridge from a clump of trees, a rope from a patch of hemp, or clothes from flax or wool. Choose raw materials that you can see within range. You can fabricate a Large or smaller object (contained within a 10-foot Cube or eight connected 5-foot Cubes) given a sufficient quantity of material. If you're working with metal, stone, or another mineral substance, however, the fabricated object can be no larger than Medium (contained within a 5-foot Cube). The quality of any fabricated objects is based on the quality of the raw materials. Creatures and magic items can't be created by this spell. You also can't use it to create items that require a high degree of skill-such as weapons and armor-unless you have proficiency with the type of Artisan's Tools used to craft such objects.",
+  "higherLevels": "",
+  "tags": [
+    "transmutation",
+    "creation",
+    "crafting"
+  ]
+}

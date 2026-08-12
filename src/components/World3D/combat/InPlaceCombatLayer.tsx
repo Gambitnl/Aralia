@@ -25,7 +25,7 @@ import * as THREE from 'three';
 import type { SceneOrigin } from '@/systems/world3d/sceneOrigin';
 import { worldToScene } from '@/systems/world3d/sceneOrigin';
 import type { GroundWorld } from '@/systems/worldforge/bridge/groundChunkLoader';
-import { groundSurfaceYM } from '../PlayerAvatar';
+import { groundSurfaceYM } from '../terrain/groundSurfaceYM';
 import {
   GROUND_METERS_PER_CELL_FIP,
 } from '@/systems/combat/fightInPlace/inSceneMovement';

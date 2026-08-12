@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { createMockCombatCharacter, SpellCommandFactory, RegisterRiderCommand } from './AbilityCommandFactory.testHelpers';
 import type { CombatState, GameState, Spell } from './AbilityCommandFactory.testHelpers';
-import shiningSmite from '../../../../public/data/spells/level-2/shining-smite.json';
-import blindingSmite from '../../../../public/data/spells/level-3/blinding-smite.json';
+import shiningSmite from '@/data/spells/level-2/shining-smite.json';
+import blindingSmite from '@/data/spells/level-3/blinding-smite.json';
 
 // ============================================================================
 // After-Hit Smite Data Contracts

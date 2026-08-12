@@ -3,8 +3,8 @@
  * ARCHITECTURAL ADVISORY:
  * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 10/08/2026, 01:16:48
- * Dependents: App.tsx, components/BattleMap/characters/characterActor/CharacterActor.tsx, state/reducers/characterReducer.ts, systems/spells/mechanics/DiceRoller.ts, utils/character/checkUtils.ts, utils/character/savingThrowUtils.ts, utils/combat/actionEconomyUtils.ts, utils/combat/combatAI.ts, utils/combat/index.ts, utils/combat/mechanicsUtils.ts, utils/sandbox/quickCharacterGenerator.ts, utils/spells/outOfCombatCasting.ts
+ * Last Sync: 11/08/2026, 22:45:27
+ * Dependents: App.tsx, components/BattleMap/characters/characterActor/CharacterActor.tsx, components/DesignPreview/steps/scenarioControls/criticalHitsScenarioControls.ts, components/DesignPreview/steps/scenarioControls/reachCreatureSizeScenarioControls.ts, components/DesignPreview/steps/scenarioControls/savingThrowsHalfDamageScenarioControls.ts, state/reducers/characterReducer.ts, systems/spells/mechanics/DiceRoller.ts, utils/character/checkUtils.ts, utils/character/savingThrowUtils.ts, utils/combat/actionEconomyUtils.ts, utils/combat/combatAI.ts, utils/combat/grappleUtils.ts, utils/combat/index.ts, utils/combat/mechanicsUtils.ts, utils/combat/multiattackUtils.ts, utils/combat/shoveUtils.ts, utils/sandbox/quickCharacterGenerator.ts, utils/spells/outOfCombatCasting.ts
  * Imports: 10 files
  *
  * MULTI-AGENT SAFETY:
@@ -568,6 +568,81 @@ export function getCharacterDistance(char1: CombatCharacter, char2: CombatCharac
     }
   }
   return minDist;
+}
+
+// ============================================================================
+// Creature Footprint Placement
+// ============================================================================
+// Movement previews, forced movement, and scenario controls all need the same
+// answer when a Large or larger creature tries to occupy a destination. This
+// helper checks every square in the canonical footprint against map bounds,
+// blocking terrain, and the complete footprints of other living combatants.
+// ============================================================================
+
+export interface CharacterPlacementValidation {
+  allowed: boolean;
+  occupiedTiles: Position[];
+  reason: string;
+  blockerId?: string;
+}
+
+export function validateCharacterPlacement(
+  character: CombatCharacter,
+  position: Position,
+  mapData: BattleMapData,
+  characters: CombatCharacter[] = [],
+): CharacterPlacementValidation {
+  // Reuse the normal top-left anchor contract to project the candidate's full
+  // footprint without changing the live combatant before legality is known.
+  const candidate = { ...character, position: { ...position } };
+  const occupiedTiles = getOccupiedTiles(candidate);
+
+  // A larger creature is out of bounds when even one of its occupied squares
+  // falls beyond the authored map, not only when its anchor leaves the board.
+  const missingTile = occupiedTiles.find(tile => !mapData.tiles.has(`${tile.x}-${tile.y}`));
+  if (missingTile) {
+    return {
+      allowed: false,
+      occupiedTiles,
+      reason: `${character.name}'s ${character.stats.size ?? 'Medium'} footprint leaves the battle map at ${missingTile.x},${missingTile.y}.`,
+    };
+  }
+
+  // Walls and other movement blockers reject the complete placement. The
+  // precise square is returned in the reason so logs can explain the boundary.
+  const blockedTile = occupiedTiles.find(tile => (
+    mapData.tiles.get(`${tile.x}-${tile.y}`)?.blocksMovement === true
+  ));
+  if (blockedTile) {
+    return {
+      allowed: false,
+      occupiedTiles,
+      reason: `${character.name}'s ${character.stats.size ?? 'Medium'} footprint is blocked at ${blockedTile.x},${blockedTile.y}.`,
+    };
+  }
+
+  // Compare full footprints rather than only top-left anchors. Downed actors
+  // follow the existing movement-executor convention and do not block a space.
+  const occupiedKeys = new Set(occupiedTiles.map(tile => `${tile.x}-${tile.y}`));
+  const blocker = characters.find(other => (
+    other.id !== character.id
+    && other.currentHP > 0
+    && getOccupiedTiles(other).some(tile => occupiedKeys.has(`${tile.x}-${tile.y}`))
+  ));
+  if (blocker) {
+    return {
+      allowed: false,
+      occupiedTiles,
+      reason: `${character.name}'s footprint overlaps ${blocker.name}.`,
+      blockerId: blocker.id,
+    };
+  }
+
+  return {
+    allowed: true,
+    occupiedTiles,
+    reason: `${character.name}'s complete footprint fits at ${position.x},${position.y}.`,
+  };
 }
 
 /**

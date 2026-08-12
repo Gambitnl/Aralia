@@ -4,15 +4,15 @@ import { useCharacterAssembly } from '../useCharacterAssembly';
 import { initialCharacterCreatorState, type CharacterCreationState } from '../../state/characterCreatorState';
 import { CLASSES_DATA, RACES_DATA } from '../../../../constants';
 import type { AbilityScores, PlayerCharacter, Race, Class as CharClass, Spell } from '../../../../types';
-import fireBolt from '../../../../../public/data/spells/level-0/fire-bolt.json';
-import mageHand from '../../../../../public/data/spells/level-0/mage-hand.json';
-import minorIllusion from '../../../../../public/data/spells/level-0/minor-illusion.json';
-import detectMagic from '../../../../../public/data/spells/level-1/detect-magic.json';
-import findFamiliar from '../../../../../public/data/spells/level-1/find-familiar.json';
-import mageArmor from '../../../../../public/data/spells/level-1/mage-armor.json';
-import magicMissile from '../../../../../public/data/spells/level-1/magic-missile.json';
-import shield from '../../../../../public/data/spells/level-1/shield.json';
-import sleep from '../../../../../public/data/spells/level-1/sleep.json';
+import fireBolt from '@/data/spells/level-0/fire-bolt.json';
+import mageHand from '@/data/spells/level-0/mage-hand.json';
+import minorIllusion from '@/data/spells/level-0/minor-illusion.json';
+import detectMagic from '@/data/spells/level-1/detect-magic.json';
+import findFamiliar from '@/data/spells/level-1/find-familiar.json';
+import mageArmor from '@/data/spells/level-1/mage-armor.json';
+import magicMissile from '@/data/spells/level-1/magic-missile.json';
+import shield from '@/data/spells/level-1/shield.json';
+import sleep from '@/data/spells/level-1/sleep.json';
 
 /**
  * This file checks that Character Creator preview assembly preserves the choices

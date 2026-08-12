@@ -1,0 +1,283 @@
+{
+  "id": "summon-dragon",
+  "name": "Summon Dragon",
+  "aliases": [],
+  "level": 5,
+  "school": "Conjuration",
+  "legacy": false,
+  "classes": [
+    "Wizard"
+  ],
+  "subClasses": [],
+  "ritual": false,
+  "rarity": "common",
+  "attackType": "",
+  "castingTime": {
+    "value": 1,
+    "unit": "action",
+    "combatCost": {
+      "type": "action",
+      "condition": ""
+    },
+    "explorationCost": {
+      "value": 0,
+      "unit": "minute"
+    }
+  },
+  "range": {
+    "type": "ranged",
+    "distance": 60,
+    "distanceUnit": "feet"
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": true,
+    "materialDescription": "an object with the image of a dragon engraved on it worth 500+ GP",
+    "materialCost": 500,
+    "isConsumed": false
+  },
+  "duration": {
+    "type": "timed",
+    "concentration": true,
+    "value": 1,
+    "unit": "hour"
+  },
+  "targeting": {
+    "type": "point",
+    "range": 60,
+    "rangeUnit": "feet",
+    "validTargets": [
+      "point"
+    ],
+    "lineOfSight": true,
+    "maxTargets": 1,
+    "filter": {
+      "creatureTypes": [],
+      "excludeCreatureTypes": [],
+      "sizes": [],
+      "alignments": [],
+      "hasCondition": [],
+      "isNativeToPlane": false,
+      "willing": "not_applicable",
+      "objectEligibility": {
+        "wornOrCarried": "not_applicable",
+        "magicalStatus": "not_applicable",
+        "fixedToSurface": "not_applicable",
+        "maxSize": "not_applicable",
+        "maxWeightPounds": "not_applicable",
+        "maxWeightScaling": "not_applicable"
+      },
+      "communicationPrerequisites": {
+        "canHearCaster": "not_applicable",
+        "canUnderstandCaster": "not_applicable",
+        "canSeeCaster": "not_applicable"
+      },
+      "abilityThreshold": {
+        "ability": "not_applicable",
+        "operator": "not_applicable",
+        "value": "not_applicable"
+      },
+      "selfRelation": "not_applicable",
+      "placementEligibility": {
+        "unoccupied": "required",
+        "surface": "not_applicable",
+        "destination": "visible_space_within_range",
+        "notes": "Summon Dragon manifests the Draconic Spirit in an unoccupied space the caster can see within range."
+      }
+    }
+  },
+  "effects": [
+    {
+      "type": "SUMMONING",
+      "trigger": {
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
+      "condition": {
+        "type": "always",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false,
+          "willing": "not_applicable",
+          "objectEligibility": {
+            "wornOrCarried": "not_applicable",
+            "magicalStatus": "not_applicable",
+            "fixedToSurface": "not_applicable",
+            "maxSize": "not_applicable",
+            "maxWeightPounds": "not_applicable",
+            "maxWeightScaling": "not_applicable"
+          },
+          "communicationPrerequisites": {
+            "canHearCaster": "not_applicable",
+            "canUnderstandCaster": "not_applicable",
+            "canSeeCaster": "not_applicable"
+          },
+          "abilityThreshold": {
+            "ability": "not_applicable",
+            "operator": "not_applicable",
+            "value": "not_applicable"
+          },
+          "selfRelation": "not_applicable"
+        },
+        "requiresStatus": [],
+        "saveModifiers": [],
+        "saveOutcomeOverrides": []
+      },
+      "description": "Summon one Draconic Spirit in a visible unoccupied space within 60 feet for up to 1 hour with concentration, choosing a Chromatic, Metallic, or Gem family that sets its Breath Weapon damage type. The spirit is an ally, shares your Initiative count but acts immediately after you, obeys verbal commands with no action required, Dodges and avoids danger when uncommanded, disappears at 0 Hit Points or when the spell ends, and uses the slot level for AC, Hit Points, Multiattack Rend, and Breath Weapon.",
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "",
+        "customFormula": "Use the slot level as the spell's level in the Draconic Spirit stat block: AC is 14 + spell level, HP is 50 + 10 for each spell level above 5, Rend damage is 1d6 + 4 + spell level, and Breath Weapon damage is 6d6 + extra dice for each spell level above 5."
+      },
+      "conditionalEndings": [
+        {
+          "trigger": "created_entity_drops_to_0_hp",
+          "scope": "effect",
+          "description": "The draconic spirit disappears when it drops to 0 Hit Points."
+        }
+      ],
+      "summon": {
+        "entityType": "creature",
+        "persistent": false,
+        "count": 1,
+        "commandCost": "none",
+        "commandsPerTurn": 1,
+        "initiative": "shared",
+        "objectDescription": "Draconic Spirit ally that shares the caster's initiative, acts immediately after the caster, obeys verbal commands with no caster action, and uses Multiattack Rend and a recharging Breath Weapon.",
+        "statBlock": {
+          "name": "Draconic Spirit",
+          "type": "Dragon",
+          "size": "Large",
+          "hp": 50,
+          "ac": 19,
+          "speed": 30,
+          "flySpeed": 60,
+          "swimSpeed": 30,
+          "abilities": {
+            "str": 19,
+            "dex": 14,
+            "con": 17,
+            "int": 10,
+            "wis": 14,
+            "cha": 14
+          },
+          "senses": [
+            "Blindsight 30 ft.",
+            "Darkvision 60 ft.",
+            "Passive Perception 12"
+          ],
+          "cr": "None"
+        },
+        "formOptions": [
+          "Chromatic",
+          "Metallic",
+          "Gem"
+        ],
+        "specialActions": [
+          {
+            "name": "Multiattack",
+            "description": "The dragon makes two Rend attacks. Melee spell attack, reach 10 ft. Hit: 1d6 + 4 + the spell's level Piercing damage each.",
+            "cost": "action",
+            "damage": {
+              "dice": "1d6 + 4 + spell_level",
+              "type": "piercing"
+            }
+          },
+          {
+            "name": "Breath Weapon (Recharge 5-6)",
+            "description": "The dragon exhales a 30-foot Cone. Each creature in the area makes a Dexterity save, taking 6d6 damage of the chosen family's type on a failed save or half as much on a success.",
+            "cost": "action",
+            "damage": {
+              "dice": "6d6",
+              "type": "varies"
+            }
+          }
+        ]
+      },
+      "socialEffect": {
+        "relationship": "ally",
+        "alliedTo": [
+          "caster",
+          "caster_allies"
+        ],
+        "understandsCasterLanguages": true,
+        "sharesCasterInitiative": true,
+        "obeysCasterCommands": true,
+        "notes": "The summoned Draconic Spirit is an ally to the caster and allies, understands the caster languages, shares initiative, and follows commands."
+      }
+    }
+  ],
+  "arbitrationType": "mechanical",
+  "aiContext": {
+    "prompt": "Choose the Draconic Spirit family (Chromatic, Metallic, or Gem) which sets the Breath Weapon damage type, and the arrival space; use the caster's spell attack modifier for Rend and the spell save DC for the Breath Weapon.",
+    "playerInputRequired": true
+  },
+  "modeChoice": {
+    "type": "choose_one",
+    "timing": "on_cast",
+    "optionCount": 3,
+    "optionsSource": "summon.formOptions",
+    "canDismissActive": false,
+    "options": [
+      {
+        "label": "Chromatic",
+        "summary": "Summon a Chromatic Draconic Spirit; choose Acid, Cold, Fire, Lightning, or Poison for its Breath Weapon.",
+        "effectIndices": [
+          0
+        ],
+        "effectTypes": [
+          "SUMMONING"
+        ],
+        "duration": "1 hour with concentration",
+        "notes": "The summoned creature uses the Draconic Spirit stat block and slot-level scaling."
+      },
+      {
+        "label": "Metallic",
+        "summary": "Summon a Metallic Draconic Spirit; choose Acid, Cold, Fire, or Lightning for its Breath Weapon.",
+        "effectIndices": [
+          0
+        ],
+        "effectTypes": [
+          "SUMMONING"
+        ],
+        "duration": "1 hour with concentration",
+        "notes": "The summoned creature uses the Draconic Spirit stat block and slot-level scaling."
+      },
+      {
+        "label": "Gem",
+        "summary": "Summon a Gem Draconic Spirit; choose Force, Necrotic, Psychic, Radiant, or Thunder for its Breath Weapon.",
+        "effectIndices": [
+          0
+        ],
+        "effectTypes": [
+          "SUMMONING"
+        ],
+        "duration": "1 hour with concentration",
+        "notes": "The summoned creature uses the Draconic Spirit stat block and slot-level scaling."
+      }
+    ],
+    "notes": "The family choice sets which damage type the Breath Weapon deals."
+  },
+  "description": "You call forth a draconic spirit. It manifests in an unoccupied space that you can see within range and uses the Draconic Spirit stat block. When you cast the spell, choose a family of dragon: Chromatic, Metallic, or Gem. The creature resembles a dragon of the chosen family, which determines the damage type of its Breath Weapon. The creature disappears when it drops to 0 Hit Points or when the spell ends. The creature is an ally to you and your allies. In combat, the creature shares your Initiative count, but it takes its turn immediately after yours. It obeys your verbal commands (no action required by you). If you don't issue any, it takes the Dodge action and uses its movement to avoid danger.",
+  "higherLevels": "Using a Higher-Level Spell Slot. Use the spell slot's level for the spell's level in the stat block. The Draconic Spirit's Hit Points, Rend damage, and Breath Weapon damage increase as the spell's level increases.",
+  "tags": [
+    "summoning",
+    "controlled-entity",
+    "concentration"
+  ]
+}

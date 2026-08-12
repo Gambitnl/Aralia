@@ -153,35 +153,49 @@ export function createSegmentBody(options: SegmentBodyOptions): SegmentBody {
   // "no specular rim or gloss highlight ... an empty glass dome". A gel now
   // carries a toon-friendly fresnel fake: the inverse-hull outline shader
   // reused as a LIGHT shell (inflated back faces, pale tint, translucent).
-  // The one-surface depth prepass culls every interior rim fragment, so only
-  // the band hugging the silhouette survives — a bright gel edge.
-  // round 20 (creature-anatomy): rim brightened + widened — the round-19
-  // ooze verdict read "no specular/value break on the dome ... a matte ball
-  // cluster". The silhouette band now lands hard white-ish and wide enough
-  // to read as a wet gloss edge at panel distance.
-  const gelRimMaterial = (() => {
-    if (wire || !gel || !options.oneSurface) return null;
-    const material = outlineMaterial(options.colorHex, options.outlineThickness * 3.0, 0.7);
-    const uniforms = material.uniforms as { uC: { value: Color } };
-    uniforms.uC.value = new Color(options.colorHex).lerp(new Color('#ffffff'), 0.75);
-    return material;
-  })();
-  const addGelDepthTwin = (group: Group, geometry: BufferGeometry, rimEligible = true): number => {
+  // round 20 (creature-anatomy): rim brightened + widened.
+  // round 22 (creature-anatomy): the RIM SHELL IS DELETED — the round-21
+  // verdict read the widened band as "a white sticker-edge halo at the rim".
+  // A uniform-width inverse-hull outline can only ever draw a sticker edge;
+  // the wet read now comes from a gloss HIGHLIGHT on the dome instead (the
+  // `interior.gloss` ball below) while the silhouette keeps a clean gel edge.
+  const addGelDepthTwin = (group: Group, geometry: BufferGeometry): number => {
     if (!gelDepthMaterial) return 0;
     const twin = new Mesh(geometry, gelDepthMaterial);
     twin.name = 'gelDepth';
     twin.renderOrder = 1;
     group.add(twin);
-    let tris = geometry.index ? geometry.index.count / 3 : geometry.attributes.position.count / 3;
-    if (gelRimMaterial && rimEligible) {
-      const rim = new Mesh(geometry, gelRimMaterial);
-      rim.name = 'gelRim';
-      rim.frustumCulled = false; // live tube positions; stale bounds must not cull the rim
-      group.add(rim);
-      tris *= 2;
-    }
-    return tris;
+    return geometry.index ? geometry.index.count / 3 : geometry.attributes.position.count / 3;
   };
+  // round 23 (creature-anatomy): OPAQUE INNER CORE under the translucent skin.
+  // The round-22 "matte opaque lobe pile" + "sky-blue transparent cap" were
+  // one artifact: the membrane is uniformly translucent, so over the green
+  // ground it flattens to matte teal and over the sky it goes pale blue — the
+  // "alpha seam" is the horizon read THROUGH the gel. A shrunk opaque copy of
+  // each gel mesh (the interior-nucleus trick, body-sized) blocks the
+  // background through the mass while a thin band of true translucency
+  // survives at the silhouette edge: membrane over interior, the shipped-slime
+  // look, with no horizon bleed.
+  let gelCoreMaterial: MeshToonMaterial | null = null;
+  const addGelCore = (group: Group, geometry: BufferGeometry): number => {
+    if (!gelDepthMaterial) return 0;
+    gelCoreMaterial ??= (() => {
+      const m = toonMaterial(`#${new Color(options.colorHex).multiplyScalar(0.72).getHexString()}`);
+      (m as unknown as { flatShading: boolean }).flatShading = false;
+      return m;
+    })();
+    const core = new Mesh(geometry, gelCoreMaterial);
+    core.name = 'gelCore';
+    core.scale.setScalar(0.85);
+    group.add(core);
+    return geometry.index ? geometry.index.count / 3 : geometry.attributes.position.count / 3;
+  };
+  // round 22 (creature-anatomy): WET SPECULAR HIGHLIGHT — an unlit near-white
+  // lens (sink id `interior.gloss`, emitted by the mound driver) pressed
+  // against the dome's upper light-facing quadrant. It renders opaque UNDER
+  // the one-surface front like the nucleus eyes, so the translucent teal
+  // shades over it and it reads as a gloss hotspot ON the wet surface.
+  let gelGlossMaterial: MeshBasicMaterial | null = null;
   // round 13 (creature-anatomy): GEL INTERIOR — opaque nucleus + debris balls
   // (sink ids `interior.*`, emitted by the plan driver for mound gels). They
   // draw in the opaque pass at renderOrder 0, BEFORE the depth twin records
@@ -207,6 +221,57 @@ export function createSegmentBody(options: SegmentBodyOptions): SegmentBody {
   // unlit = reads as glow against the toon world; built lazily (rings are rare)
   let accentMaterial: MeshBasicMaterial | null = null;
   let accentLineMaterial: LineBasicMaterial | null = null;
+
+  // round 24 (creature-anatomy): ROCKY BODY VALUE BREAKS — the plan driver
+  // emits boulder-plate bodies (surface 'rock') with id-prefixed pieces:
+  //   plate.* — body-tone boulders (ink outlined, per-id irregular squash)
+  //   dark.*  — recessed joints/seams, a darkened toon tone, no ink
+  //   glow.*  — crack glow, crystals, sunken eyes: UNLIT accent (reads as a
+  //             light source against the toon world), no ink
+  //   moss.*  — moss patches on crown/shoulders, fixed green toon, no ink
+  let darkMaterial: MeshToonMaterial | null = null;
+  let mossMaterial: MeshToonMaterial | null = null;
+  let plateMaterial: MeshToonMaterial | null = null;
+  const styleFor = (id: string): { fill: Material; ink: Material | null } => {
+    if (id.startsWith('glow.') || id.includes('.glow.')) {
+      accentMaterial ??= new MeshBasicMaterial({ color: accentHex });
+      return { fill: accentMaterial, ink: null };
+    }
+    if (id.startsWith('dark.')) {
+      darkMaterial ??= toonMaterial(`#${new Color(options.colorHex).multiplyScalar(0.34).getHexString()}`);
+      return { fill: darkMaterial, ink: null };
+    }
+    if (id.startsWith('plate.')) {
+      // round 24 (creature-anatomy): the FIRST round-24 capture rendered the
+      // rock elemental as one uniform mid-brown lump — the plates carried the
+      // same tone as the body they sit on, so the "3-6 overlapping plates"
+      // read died in a single toon band (the campaign's value-not-relief
+      // lesson). Plates are now a full band LIGHTER than the body: light
+      // protruding rock over a mid body with near-black recessed seams is the
+      // three-value structure every earth reference uses.
+      plateMaterial ??= toonMaterial(
+        `#${new Color(options.colorHex).lerp(new Color('#ffffff'), 0.34).getHexString()}`,
+      );
+      return { fill: plateMaterial, ink: inkMaterial };
+    }
+    if (id.startsWith('moss.')) {
+      mossMaterial ??= toonMaterial('#6f8f3f');
+      return { fill: mossMaterial, ink: null };
+    }
+    return { fill: fillMaterial!, ink: inkMaterial };
+  };
+  /** Deterministic per-id squash for plate boulders — irregular rock chunks,
+   * never marbles. Constant per id, so the geometry contract holds. */
+  const plateSquash = (id: string, group: Group): void => {
+    if (!id.startsWith('plate.')) return;
+    let h = 0;
+    for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) | 0;
+    group.scale.set(
+      1 + 0.26 * Math.sin(h * 0.61),
+      0.76 + 0.2 * Math.sin(h * 1.7 + 1),
+      1 + 0.26 * Math.sin(h * 2.3 + 2),
+    );
+  };
 
   const nodes = new Map<string, Node>();
   const tubes = new Map<string, { tube: SweptTube; node: Node; pts: Vector3[] }>();
@@ -263,7 +328,10 @@ export function createSegmentBody(options: SegmentBodyOptions): SegmentBody {
     return vol;
   }
 
-  /** Wrap a base geometry as this body's render node(s). */
+  /** Wrap a base geometry as this body's render node(s).
+   * round 20 (creature-anatomy): mound drip lobes skip the gel rim shell —
+   * they sit mostly buried at the skirt rim where a rim band would double
+   * their cost for a sliver of highlight (30k budget headroom). */
   function makeNode(id: string, geometry: CylinderGeometry | SphereGeometry | BoxGeometry, geoKey?: string): Node {
     const group = new Group();
     group.name = `seg:${id}`;
@@ -274,18 +342,23 @@ export function createSegmentBody(options: SegmentBodyOptions): SegmentBody {
       triangles = geometry.index ? geometry.index.count / 3 : geometry.attributes.position.count / 3;
       geometry.dispose(); // only the edges survive
     } else {
-      const mesh = new Mesh(geometry, fillMaterial!);
+      const style = styleFor(id);
+      const mesh = new Mesh(geometry, style.fill);
       group.add(mesh);
       const base = geometry.index ? geometry.index.count / 3 : geometry.attributes.position.count / 3;
-      if (inkMaterial) {
-        const shell = new Mesh(geometry, inkMaterial);
+      if (style.ink) {
+        const shell = new Mesh(geometry, style.ink);
         shell.name = 'segOutline';
         group.add(shell);
         triangles = base * 2;
       } else {
-        triangles = base; // gels: no ink shell
+        triangles = base; // gels + dark/glow/moss pieces: no ink shell
       }
       triangles += addGelDepthTwin(group, geometry);
+      // no core on seg/ball pieces: the 30k budget (the ooze ran 36.7k with
+      // per-ball cores) and the rim lobes SHOULD stay see-through — true
+      // translucency at the silhouette edge is the gel read; only the dome
+      // tube needs its background blocked.
     }
     triangleTotal += triangles;
     const node: Node = { group, seen: true, triangles, geoKey: wire ? undefined : geoKey };
@@ -346,14 +419,17 @@ export function createSegmentBody(options: SegmentBodyOptions): SegmentBody {
         // never the translucent fill, never a depth twin (they must stay
         // UNDER the one-surface front, tinted through it like the eyes).
         if (gel && !wire && id.startsWith('interior.')) {
-          const chunk = id.startsWith('interior.chunk');
-          if (chunk) interiorChunkMaterial ??= toonMaterial('#cfc3a3');
+          const gloss = id.startsWith('interior.gloss');
+          const chunk = !gloss && id.startsWith('interior.chunk');
+          if (gloss) gelGlossMaterial ??= new MeshBasicMaterial({ color: new Color(options.colorHex).lerp(new Color('#ffffff'), 0.88) });
+          else if (chunk) interiorChunkMaterial ??= toonMaterial('#cfc3a3');
           else interiorCoreMaterial ??= toonMaterial(`#${new Color(options.colorHex).multiplyScalar(0.38).getHexString()}`);
           const geometry = new SphereGeometry(r, 10, 7);
-          const mesh = new Mesh(geometry, chunk ? interiorChunkMaterial! : interiorCoreMaterial!);
+          const mesh = new Mesh(geometry, gloss ? gelGlossMaterial! : chunk ? interiorChunkMaterial! : interiorCoreMaterial!);
           // fixed non-uniform squash: the nucleus reads as an irregular mass,
           // not a second perfect sphere (constant per id — geometry contract)
-          if (!chunk) mesh.scale.set(1.18, 0.78, 1.05);
+          if (gloss) mesh.scale.set(1.15, 0.5, 0.9); // soft lens hugging the dome curve
+          else if (!chunk) mesh.scale.set(1.18, 0.78, 1.05);
           else mesh.scale.set(1.0, 0.82, 1.12);
           const group = new Group();
           group.name = `seg:${id}`;
@@ -366,6 +442,7 @@ export function createSegmentBody(options: SegmentBodyOptions): SegmentBody {
         } else {
           const sph = bodyGeometry(`s:${q(r)}`, () => new SphereGeometry(r, 12, 9));
           node = makeNode(id, sph.geometry, sph.key);
+          if (!wire) plateSquash(id, node.group); // rocky boulders: per-id squash
         }
       }
       node.seen = true;
@@ -399,7 +476,10 @@ export function createSegmentBody(options: SegmentBodyOptions): SegmentBody {
               // round 9 (creature-anatomy): gels sweep at radial 14 (vs the
               // low-poly 8) — an octagonal translucent mound reads as a
               // faceted shell, not a smooth gel dome.
-              const radial = gel ? 14 : 8;
+              // round 23: 14 → 12 — still far off the faceted octagon, and
+              // with the mound now drawing three copies (mesh + depth twin +
+              // gel core) each ring costs triple; the budget needs the slack
+              const radial = gel ? 12 : 8;
               let material = fillMaterial!;
               let countershade: { body: Color; belly: Color } | undefined;
               // round 14 (creature-anatomy): gels take NO countershade — the
@@ -435,8 +515,11 @@ export function createSegmentBody(options: SegmentBodyOptions): SegmentBody {
               if (built.outline) group.add(built.outline);
               // rim on the SPINE dome only — a curled pseudopod's inflated
               // backfaces read as a detached white ear, not a gel edge
-              const twinTris = addGelDepthTwin(group, built.mesh.geometry as BufferGeometry, id === 'spine');
-              const node: Node = { group, seen: true, triangles: built.triangles() * (built.outline ? 2 : 1) + twinTris };
+              const twinTris = addGelDepthTwin(group, built.mesh.geometry as BufferGeometry);
+              // shared geometry: the inner core follows the tube's per-frame
+              // position updates for free (scaled toward the body origin)
+              const coreTris = addGelCore(group, built.mesh.geometry as BufferGeometry);
+              const node: Node = { group, seen: true, triangles: built.triangles() * (built.outline ? 2 : 1) + twinTris + coreTris };
               triangleTotal += node.triangles;
               nodes.set(id, node);
               root.add(group);
@@ -476,7 +559,7 @@ export function createSegmentBody(options: SegmentBodyOptions): SegmentBody {
               group.add(new Mesh(geometry, fillMaterial!));
               // no rim on collars: the open lathe skirt's inflated backfaces
               // read as detached pale sheets, not a silhouette edge
-              const twinTris = addGelDepthTwin(group, geometry, false);
+              const twinTris = addGelDepthTwin(group, geometry);
               const triangles = (geometry.index ? geometry.index.count / 3 : geometry.attributes.position.count / 3) + twinTris;
               triangleTotal += triangles;
               const node: Node = { group, seen: true, triangles };
@@ -606,7 +689,7 @@ export function createSegmentBody(options: SegmentBodyOptions): SegmentBody {
         }
       });
     }
-    for (const material of [fillMaterial, inkMaterial, lineMaterial, accentMaterial, accentLineMaterial, tubeMaterial, gelDepthMaterial, gelRimMaterial, interiorCoreMaterial, interiorChunkMaterial, finMaterial]) {
+    for (const material of [fillMaterial, inkMaterial, lineMaterial, accentMaterial, accentLineMaterial, tubeMaterial, gelDepthMaterial, gelGlossMaterial, interiorCoreMaterial, interiorChunkMaterial, finMaterial, darkMaterial, mossMaterial]) {
       (material as Material | null)?.dispose();
     }
     root.clear();

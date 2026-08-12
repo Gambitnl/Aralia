@@ -7,7 +7,7 @@ import { createMockCombatCharacter } from '../../utils/core';
 import type { CommandContext } from '../base/SpellCommand';
 import type { CombatCharacter, CombatLogEntry, CombatState } from '../../types/combat';
 import type { SummoningEffect, UtilityEffect } from '../../types/spells';
-import animateDead from '../../../public/data/spells/level-3/animate-dead.json';
+import animateDead from '@/data/spells/level-3/animate-dead.json';
 
 /**
  * This file proves the live Animate Dead spell packet creates a commandable undead actor.

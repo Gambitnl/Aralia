@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { applyDamageAndCheckDowned } from '../deathSaveUtils';
+import {
+  applyDamageAndCheckDowned,
+  applyTemporaryHitPoints,
+} from '../deathSaveUtils';
 import type { CombatCharacter } from '../../../types/combat';
 
 /**
@@ -82,5 +85,45 @@ describe('applyDamageAndCheckDowned', () => {
 
     expect(updated.tempHP).toBe(0);
     expect(updated.temporaryHitPointSource).toBeUndefined();
+  });
+
+  // The grant helper is the shared authority used by healing and defensive
+  // spell commands. These checks pin replacement, non-stacking, and provenance
+  // before the scenario layer relies on those facts for visible proof.
+  describe('applyTemporaryHitPoints', () => {
+    it('keeps a larger existing pool and its source when offered fewer points', () => {
+      const original = makeCharacter(8);
+      const updated = applyTemporaryHitPoints(original, 5, {
+        spellId: 'heroism',
+        spellName: 'Heroism',
+        casterId: 'support-caster',
+      });
+
+      expect(updated).not.toBe(original);
+      expect(updated.tempHP).toBe(8);
+      expect(updated.temporaryHitPointSource).toEqual(original.temporaryHitPointSource);
+    });
+
+    it('replaces a smaller pool and its source when offered more points', () => {
+      const updated = applyTemporaryHitPoints(makeCharacter(8), 12, {
+        spellId: 'heroism',
+        spellName: 'Heroism',
+        casterId: 'support-caster',
+      });
+
+      expect(updated.tempHP).toBe(12);
+      expect(updated.temporaryHitPointSource).toEqual({
+        spellId: 'heroism',
+        spellName: 'Heroism',
+        casterId: 'support-caster',
+      });
+    });
+
+    it('clears stale spell ownership when a larger source-less pool replaces it', () => {
+      const updated = applyTemporaryHitPoints(makeCharacter(5), 10);
+
+      expect(updated.tempHP).toBe(10);
+      expect(updated.temporaryHitPointSource).toBeUndefined();
+    });
   });
 });

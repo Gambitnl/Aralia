@@ -64,7 +64,7 @@
 - **Damage Type**: Psychic
 - **Conditions Applied**: Prone
 
-- **Description**: You surround yourself with a 10-foot Emanation of regal force. Creatures other than you that enter the area or start their turn there make a Wisdom save, taking Psychic damage and being pushed away; if they fail by enough, they are also knocked Prone.
+- **Description**: You surround yourself with the magical presence of the legendary Yolande, a queen of the fey. Until the spell ends, you have a 10-foot Emanation that extends from you. Whenever the Emanation enters the space of a creature other than you for the first time on a turn or a creature other than you enters the Emanation or starts its turn there, that creature must succeed on a Wisdom saving throw or take 4d6 Psychic damage and, if it is Large or smaller, be pushed up to 10 feet away from you and knocked Prone. On a successful save, the creature takes half as much damage only.
 - **Higher Levels**: not_applicable
 
 ## Canonical D&D Beyond Snapshot
@@ -76,7 +76,7 @@ Name: Yolande's Regal Presence
 Level: 5th
 Casting Time: 1 Action
 Range/Area: Self (10 ft. Emanation)
-Components: V
+Components: V, S
 Duration: Concentration 1 Minute
 School: Enchantment
 Attack/Save: WIS Save

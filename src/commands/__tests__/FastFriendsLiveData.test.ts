@@ -4,7 +4,7 @@ import { StatusConditionCommand } from '../effects/StatusConditionCommand';
 import type { CommandContext } from '../base/SpellCommand';
 import type { CombatCharacter, CombatState, Position } from '@/types/combat';
 import type { StatusConditionEffect } from '@/types/spells';
-import fastFriends from '../../../public/data/spells/level-3/fast-friends.json';
+import fastFriends from '@/data/spells/level-3/fast-friends.json';
 
 /**
  * This file proves the live Fast Friends request lifecycle from source data to

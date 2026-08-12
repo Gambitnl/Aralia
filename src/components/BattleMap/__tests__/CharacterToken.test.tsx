@@ -106,6 +106,44 @@ describe('CharacterToken defense badges', () => {
   });
 });
 
+describe('CharacterToken temporary HP cue', () => {
+  it('shows the separate temporary-hit-point value without changing the normal HP token', () => {
+    render(
+      <CharacterToken
+        character={buildCharacter({ currentHP: 12, maxHP: 24, tempHP: 8 })}
+        position={{ x: 2, y: 1 }}
+        isSelected={false}
+        isTargetable={false}
+        targetingMode={false}
+        isTurn={false}
+        onCharacterClick={() => undefined}
+      />
+    );
+
+    expect(screen.getByTestId('temporary-hit-points-badge')).toHaveTextContent('+8');
+    expect(screen.getByTestId('temporary-hit-points-badge')).toHaveAttribute(
+      'aria-label',
+      '8 temporary hit points',
+    );
+  });
+
+  it('omits the temporary HP cue when no buffer exists', () => {
+    render(
+      <CharacterToken
+        character={buildCharacter({ tempHP: 0 })}
+        position={{ x: 2, y: 1 }}
+        isSelected={false}
+        isTargetable={false}
+        targetingMode={false}
+        isTurn={false}
+        onCharacterClick={() => undefined}
+      />
+    );
+
+    expect(screen.queryByTestId('temporary-hit-points-badge')).not.toBeInTheDocument();
+  });
+});
+
 describe('CharacterToken status and concentration markers', () => {
   it('renders named status and concentration markers for spell effects', () => {
     render(

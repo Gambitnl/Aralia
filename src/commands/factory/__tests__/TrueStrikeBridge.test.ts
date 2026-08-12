@@ -5,7 +5,7 @@ import { NarrativeCommand } from '../../effects/NarrativeCommand'
 import { createMockCombatCharacter, createMockCombatState, createMockGameState, createMockItem } from '@/utils/core'
 import { ItemType } from '@/types/items'
 import type { SelectedSpellTarget } from '@/types/combat'
-import trueStrike from '../../../../public/data/spells/level-0/true-strike.json'
+import trueStrike from '@/data/spells/level-0/true-strike.json'
 
 /**
  * This file proves the smallest durable True Strike bridge.

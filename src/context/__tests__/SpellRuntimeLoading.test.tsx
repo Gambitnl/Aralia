@@ -12,9 +12,9 @@ import { render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import SpellContext, { SpellProvider } from '../SpellContext';
 import { spellService } from '../../services/SpellService';
-import spellBundle from '../../../public/data/spells_bundle.json';
-import spellManifest from '../../../public/data/spells_manifest.json';
-import lightSpell from '../../../public/data/spells/level-0/light.json';
+import spellBundle from '@/data/spells_bundle.json';
+import spellManifest from '@/data/spells_manifest.json';
+import lightSpell from '@/data/spells/level-0/light.json';
 
 // ============================================================================
 // Runtime Asset Mocks

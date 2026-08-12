@@ -1,0 +1,305 @@
+{
+  "id": "protection-from-energy",
+  "name": "Protection from Energy",
+  "aliases": [],
+  "level": 3,
+  "school": "Abjuration",
+  "legacy": false,
+  "classes": [
+    "Artificer",
+    "Cleric",
+    "Druid",
+    "Ranger",
+    "Sorcerer",
+    "Wizard"
+  ],
+  "subClasses": [
+    "Paladin - Oath of Glory",
+    "Paladin - Oath of the Ancients",
+    "Paladin - Oath of Vengeance"
+  ],
+  "ritual": false,
+  "rarity": "common",
+  "attackType": "",
+  "castingTime": {
+    "value": 1,
+    "unit": "action",
+    "combatCost": {
+      "type": "action",
+      "condition": ""
+    },
+    "explorationCost": {
+      "value": 0,
+      "unit": "minute"
+    }
+  },
+  "range": {
+    "type": "touch",
+    "distance": 0
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": false,
+    "materialDescription": "",
+    "materialCost": 0,
+    "isConsumed": false
+  },
+  "duration": {
+    "type": "timed",
+    "value": 1,
+    "unit": "hour",
+    "concentration": true
+  },
+  "targeting": {
+    "type": "single",
+    "range": 0,
+    "validTargets": [
+      "allies"
+    ],
+    "lineOfSight": true,
+    "maxTargets": 1,
+    "filter": {
+      "creatureTypes": [],
+      "excludeCreatureTypes": [],
+      "sizes": [],
+      "alignments": [],
+      "hasCondition": [],
+      "isNativeToPlane": false,
+      "willing": "required",
+      "objectEligibility": {
+        "wornOrCarried": "not_applicable",
+        "magicalStatus": "not_applicable",
+        "fixedToSurface": "not_applicable",
+        "maxSize": "not_applicable",
+        "maxWeightPounds": "not_applicable",
+        "maxWeightScaling": "not_applicable"
+      },
+      "communicationPrerequisites": {
+        "canHearCaster": "not_applicable",
+        "canUnderstandCaster": "not_applicable",
+        "canSeeCaster": "not_applicable"
+      },
+      "abilityThreshold": {
+        "ability": "not_applicable",
+        "operator": "not_applicable",
+        "value": "not_applicable"
+      },
+      "selfRelation": "not_applicable"
+    }
+  },
+  "effects": [
+    {
+      "type": "UTILITY",
+      "trigger": {
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
+      "condition": {
+        "type": "always",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false,
+          "willing": "not_applicable",
+          "objectEligibility": {
+            "wornOrCarried": "not_applicable",
+            "magicalStatus": "not_applicable",
+            "fixedToSurface": "not_applicable",
+            "maxSize": "not_applicable",
+            "maxWeightPounds": "not_applicable",
+            "maxWeightScaling": "not_applicable"
+          },
+          "communicationPrerequisites": {
+            "canHearCaster": "not_applicable",
+            "canUnderstandCaster": "not_applicable",
+            "canSeeCaster": "not_applicable"
+          },
+          "abilityThreshold": {
+            "ability": "not_applicable",
+            "operator": "not_applicable",
+            "value": "not_applicable"
+          },
+          "selfRelation": "not_applicable"
+        },
+        "requiresStatus": [],
+        "saveModifiers": [],
+        "saveOutcomeOverrides": []
+      },
+      "utilityType": "other",
+      "description": "Touch one willing creature for up to 1 hour with concentration and choose Acid, Cold, Fire, Lightning, or Thunder as the protected damage type; the companion defensive row carries the chosen Resistance.",
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "",
+        "customFormula": ""
+      },
+      "grantedActions": [],
+      "attackAugments": [],
+      "controlOptions": [],
+      "taunt": {
+        "disadvantageAgainstOthers": false,
+        "leashRangeFeet": 0,
+        "breakConditions": []
+      },
+      "savePenalty": {
+        "dice": "",
+        "flat": 0,
+        "applies": "next_save",
+        "duration": {
+          "type": "rounds",
+          "value": 0
+        }
+      },
+      "light": {
+        "brightRadius": 0,
+        "dimRadius": 0,
+        "attachedTo": "caster",
+        "color": "",
+        "colorChoice": "not_applicable",
+        "opaqueCoverBlocks": "not_applicable",
+        "emitsHeat": "not_applicable",
+        "ignitesObjects": "not_applicable",
+        "consumesFuel": "not_applicable",
+        "canBeCoveredOrHidden": "not_applicable",
+        "canBeSmotheredOrQuenched": "not_applicable"
+      },
+      "conditionalEndings": []
+    },
+    {
+      "type": "DEFENSIVE",
+      "trigger": {
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
+      "condition": {
+        "type": "always",
+        "requiresStatus": [],
+        "saveModifiers": [],
+        "saveOutcomeOverrides": []
+      },
+      "defenseType": "resistance",
+      "duration": {
+        "type": "minutes",
+        "value": 60
+      },
+      "description": "For up to 1 hour with concentration, the willing touched target has Resistance to the chosen Acid, Cold, Fire, Lightning, or Thunder damage type.",
+      "damageType": [
+        "Acid",
+        "Cold",
+        "Fire",
+        "Lightning",
+        "Thunder"
+      ],
+      "damageTypeSource": "chosen_damage_type",
+      "conditionalEndings": []
+    }
+  ],
+  "arbitrationType": "mechanical",
+  "aiContext": {
+    "prompt": "Choose the protected damage type: Acid, Cold, Fire, Lightning, or Thunder.",
+    "playerInputRequired": true
+  },
+  "modeChoice": {
+    "type": "choose_one",
+    "timing": "on_cast",
+    "optionCount": 5,
+    "optionsSource": "modeChoice.options",
+    "canDismissActive": false,
+    "options": [
+      {
+        "label": "Acid",
+        "summary": "The willing touched creature gains Resistance to Acid damage.",
+        "effectIndices": [
+          0,
+          1
+        ],
+        "effectTypes": [
+          "UTILITY",
+          "DEFENSIVE"
+        ],
+        "duration": "1 hour with concentration"
+      },
+      {
+        "label": "Cold",
+        "summary": "The willing touched creature gains Resistance to Cold damage.",
+        "effectIndices": [
+          0,
+          1
+        ],
+        "effectTypes": [
+          "UTILITY",
+          "DEFENSIVE"
+        ],
+        "duration": "1 hour with concentration"
+      },
+      {
+        "label": "Fire",
+        "summary": "The willing touched creature gains Resistance to Fire damage.",
+        "effectIndices": [
+          0,
+          1
+        ],
+        "effectTypes": [
+          "UTILITY",
+          "DEFENSIVE"
+        ],
+        "duration": "1 hour with concentration"
+      },
+      {
+        "label": "Lightning",
+        "summary": "The willing touched creature gains Resistance to Lightning damage.",
+        "effectIndices": [
+          0,
+          1
+        ],
+        "effectTypes": [
+          "UTILITY",
+          "DEFENSIVE"
+        ],
+        "duration": "1 hour with concentration"
+      },
+      {
+        "label": "Thunder",
+        "summary": "The willing touched creature gains Resistance to Thunder damage.",
+        "effectIndices": [
+          0,
+          1
+        ],
+        "effectTypes": [
+          "UTILITY",
+          "DEFENSIVE"
+        ],
+        "duration": "1 hour with concentration"
+      }
+    ],
+    "notes": "The existing defensive effect lists all eligible damage types; this mode choice records which one the caster selects for the active resistance."
+  },
+  "description": "For the duration, the willing creature you touch has Resistance to one damage type of your choice: Acid, Cold, Fire, Lightning, or Thunder.",
+  "higherLevels": "",
+  "tags": [
+    "concentration"
+  ]
+}

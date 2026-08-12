@@ -6,7 +6,7 @@ import { ItemType } from '@/types/items'
 import type { CombatCharacter, SelectedSpellTarget } from '@/types/combat'
 import type { Spell } from '@/types/spells'
 import * as combatUtils from '@/utils/combat'
-import greenFlameBlade from '../../../../public/data/spells/level-0/green-flame-blade.json'
+import greenFlameBlade from '@/data/spells/level-0/green-flame-blade.json'
 
 /**
  * This file proves the durable Green-Flame Blade bridge.

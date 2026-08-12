@@ -100,6 +100,13 @@ export interface CreaturePlan {
   spine: { segments: number; taper: number; arch: number; shape?: 'round' | 'box'; bulge?: number; mass?: [number, number, number] };
   appendages: PlanAppendage[];
   heads: PlanHead[];
+  /** round 24 (creature-anatomy): whole-body material style. 'rock' builds
+   * the body FROM the element (the elemental design language): overlapping
+   * boulder plates over torso and limbs, dark recessed joints between them,
+   * unlit crack-glow accents, moss on crown and shoulders, oversized
+   * claw-mass hands, and sunken glow eyes under a brow plate. Omit for the
+   * historical smooth-skin body. */
+  surface?: 'rock';
   /** opacity < 1 = translucent body (ghosts, oozes); eyes stay solid. */
   palette: { bodyHex: string; accentHex?: string; bellyHex?: string; eyeHex: string; opacity?: number };
   /** Creature-level junction softness default: how much parts melt together
@@ -132,7 +139,12 @@ export const PLAN_LIMITS = {
   // round 3 (creature-anatomy): ceiling 2 → 3. A Valheim-class serpent head
   // must reach ~1x body radius; at the old cap the sculpted maw rendered at
   // pea scale (socket r 0.177 m on a 0.3 m trunk) and read as a closed bill.
-  headSizeScale: [0.4, 3],
+  // round 22 (creature-anatomy): ceiling 3 → 4, raised DELIBERATELY — the
+  // round-21 verdict read "pinheads on a garden hose": the serpent's heads
+  // sat at the old cap while its trunk stayed thicker than the heads. The
+  // Valheim inversion (head WIDER than the neck and trunk that carry it)
+  // needs headroom above the trunk radius, not another trunk slim alone.
+  headSizeScale: [0.4, 4],
   eyeCount: [0, 8],
   eyeSizeScale: [0.4, 2],
   snoutLengthScale: [0.3, 2.5],
@@ -206,7 +218,12 @@ function checkHex(errs: Errs, v: unknown, path: string): void {
 export function validateCreaturePlan(input: unknown, knownPartIds: ReadonlySet<string>): string[] {
   const errs: Errs = [];
   if (!isObj(input)) return ['plan is not an object'];
-  checkKeys(errs, input, ['name', 'frame', 'spine', 'appendages', 'heads', 'palette', 'skin', 'garnish'], '');
+  checkKeys(errs, input, ['name', 'frame', 'spine', 'appendages', 'heads', 'palette', 'skin', 'garnish', 'surface'], '');
+
+  // surface (whole-body material style)
+  if (input.surface !== undefined && input.surface !== 'rock') {
+    errs.push(`surface must be 'rock' when present`);
+  }
 
   // skin (junction softness default)
   if (input.skin !== undefined) {

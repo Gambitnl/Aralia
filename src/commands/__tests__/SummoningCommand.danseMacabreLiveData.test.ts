@@ -5,7 +5,7 @@ import { createMockCombatCharacter } from '../../utils/core'
 import type { CommandContext } from '../base/SpellCommand'
 import type { CombatCharacter, CombatLogEntry, CombatState } from '../../types/combat'
 import type { UtilityEffect } from '../../types/spells'
-import danseMacabre from '../../../public/data/spells/level-5/danse-macabre.json'
+import danseMacabre from '@/data/spells/level-5/danse-macabre.json'
 
 /**
  * This file proves the live Danse Macabre spell packet creates commandable undead.

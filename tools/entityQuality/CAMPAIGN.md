@@ -12,14 +12,14 @@ Each piece has one owner file set, one judge axis, and one sheet set. Builders l
 |---|---|---|---|
 | `humanoid-anatomy` | rest-pose proportions, shoulder/pelvis volumes, limb ratios, hand/foot shapes, neck-head merge | `three/skeletonBuilder.ts` (restPose), `three/smoothBipedGeometry.ts` | idle sheet silhouette + close-ups vs WoW/Valheim humanoids |
 | `humanoid-motion` | clip selection, retarget quality, foot planting, arm swing, idle life, transitions | `anim/*`, `three/skinnedClipPlayer.ts`, clip drive path in `assembleEntity.ts` | walk/idle frame strips vs Mixamo reference motion |
-| `creature-anatomy` | plan-driven bodies: leg articulation, haunches, spine arcs, head carriage, wing pose | `three/gaits.ts` (PlanDriver), `textPlan/compilePlan.ts` defaults | dragon/serpent/ooze/wolf sheets vs Valheim creatures |
+| `creature-anatomy` | plan-driven bodies: leg articulation, haunches, spine arcs, head carriage, wing pose. INCLUDES random archetype rolls (Beast/Celestial Large, fixed seeds) — Remy flagged 2026-08-12 that generator defaults produce naked dolls and sausage lizards while the fixtures improve; the default plans must pass the same bar | `three/gaits.ts` (PlanDriver), `textPlan/compilePlan.ts` defaults + archetype plan generation | dragon/serpent/ooze + beast-large/celestial-large sheets vs Valheim creatures |
 | `surface-materials` | toon ramp, countershade, outline weight, palette, anti-plastic surface variation | `three/toon.ts`, tube/collar tinting in `three/segmentBody.ts` | all sheets, close-up panels vs both references |
 | `coherence` (between waves) | one look across all pieces; kill style drift | read-only pass + smallest unifying edits | the full sheet wall |
 
 ## Roles and models
 
-- **Builder** — model `fable`. Edits one piece. Reads this file + the latest `verdict.json` for its piece. Fixes THE named gap first. Ends at tests green + fresh sheets captured.
-- **Critic** — model `fable`, always a FRESH agent. Reads sheets + references ONLY. Never reads builder notes or diffs. Writes `verdict.json`.
+- **Builder** — model `opus` (switched from `fable` 2026-08-12 on a Fable rate limit; two builders died mid-edit). Edits one piece. Reads this file + the latest `verdict.json` for its piece. Fixes THE named gap first. Ends at tests green + fresh sheets captured.
+- **Critic** — model `opus` (was `fable`; same rate-limit switch), always a FRESH agent. Reads sheets + references ONLY. Never reads builder notes or diffs. Writes `verdict.json`.
 - **Reference collector** — model `haiku`. Mechanical downloads only.
 - **Coherence smoother** — model `opus`. Runs between waves across all sheets.
 
@@ -51,6 +51,10 @@ Each piece has one owner file set, one judge axis, and one sheet set. Builders l
 - The toon shader quantizes shading into few bands. Small geometric displacement produces zero value change and is INVISIBLE at sheet distance. Surface detail must read through VALUE (darker strips, vertex tints, ink lines) or through the SILHOUETTE (edge cuts). Two wing rounds were lost to displacement-only relief.
 - Verify at panel resolution, not zoomed. A feature that needs zoom does not exist for the critic.
 - When a fix "lands" for the builder but the critic sees nothing twice in a row, the render path eats it — diagnose the shader or the capture, not the geometry.
+- The inverse-hull ink outline (hM×0.011) is wider than creases between hand-scale forms: it inks small valleys shut and redraws them as one boulder. Round 16 added a per-vertex `aInk` scale in `toon.ts` (hands carry 0.45). Use it for any small-form detail the outline swallows.
+- A feature bend aimed at the camera produces zero silhouette change in that panel. Cock small forms a few degrees so the bend profiles to at least one camera.
+- A surface that renders SOLID BLACK with no shading is a winding/culling bug, not a value problem: culled front faces expose the BackSide ink hull. A whole-mesh signed-volume guard passes mixed orientations — test per-face (round 23's `flipTo` in wingParts.ts).
+- Every detail part must be a solid 3D form that reads from ALL camera angles (Remy 2026-08-12: pupils and a shoulder ring vanished off-front). Pupils = inset dark spheres or lens bulges, never flat front discs. Collars and rings = closed tori or lofted bands, never one-sided planes. Verify with a 360-degree orbit in the live debugger.
 
 ## Rig and pages
 

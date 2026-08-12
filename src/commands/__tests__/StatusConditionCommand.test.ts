@@ -5,7 +5,7 @@ import type { CombatCharacter, CombatState, Position } from '@/types/combat';
 import type { StatusConditionEffect } from '@/types/spells';
 import type { Class, GameState } from '@/types';
 import { createMockGameState, createMockPlayerCharacter } from '../../utils/core';
-import powerWordPain from '../../../public/data/spells/level-7/power-word-pain.json';
+import powerWordPain from '@/data/spells/level-7/power-word-pain.json';
 
 /**
  * This file proves that status-condition commands apply, log, and refresh

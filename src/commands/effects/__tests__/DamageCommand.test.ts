@@ -6,7 +6,7 @@ import { StateTag } from '../../../types/elemental'
 import { CommandContext } from '../../base/SpellCommand'
 import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '../../../utils/core'
 import * as combatUtils from '../../../utils/combat/combatUtils'
-import blight from '../../../../public/data/spells/level-4/blight.json'
+import blight from '@/data/spells/level-4/blight.json'
 
 vi.mock('../../../utils/combat/combatUtils', async (importOriginal) => {
     const actual = await importOriginal<typeof import('../../../utils/combat/combatUtils')>()

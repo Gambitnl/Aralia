@@ -88,8 +88,8 @@
 - **Scaling Rule 1 Applies To**: canonical higher-level prose
 - **Scaling Rule 1 Notes**: Use the slot level as the spell's level in the Aberrant Spirit stat block: AC is 11 + spell level, HP is 40 + 10 for each spell level above 4, and the form attack adds the spell's level to its damage.
 
-- **Description**: You summon an Aberrant Spirit in a visible unoccupied space within 90 feet. Choose Beholderkin, Slaad, or Star Spawn; the spirit is an ally that acts immediately after you, obeys verbal commands, vanishes at 0 Hit Points or when the spell ends, and scales its defenses and form attack with the slot level.
-- **Higher Levels**: Use the spell slot's level for the spell's level in the stat block. The Aberrant Spirit's Hit Points and attack damage increase as the spell's level increases.
+- **Description**: You call forth an aberrant spirit. It manifests in an unoccupied space that you can see within range and uses the Aberrant Spirit stat block. When you cast the spell, choose Beholderkin, Slaad, or Star Spawn. The creature disappears when it drops to 0 Hit Points or when the spell ends. The creature is an ally to you and your allies. In combat, the creature shares your Initiative count, but it takes its turn immediately after yours. It obeys your verbal commands (no action required by you). If you don't issue any, it takes the Dodge action and uses its movement to avoid danger.
+- **Higher Levels**: Using a Higher-Level Spell Slot. Use the spell slot's level for the spell's level in the stat block. The Aberrant Spirit's Hit Points and attack damage increase as the spell's level increases.
 ## Canonical D&D Beyond Snapshot
 
 This section stores the local source-summary snapshot so the structured Aralia field block remains the validator-facing markdown surface.
@@ -106,8 +106,8 @@ Attack/Save: None
 Damage/Effect: Summoning
 
 Rules Text:
-You summon an Aberrant Spirit in a visible unoccupied space within range. Choose Beholderkin, Slaad, or Star Spawn. The spirit is an ally, acts right after you, obeys verbal commands, vanishes at 0 HP or when the spell ends, and its form changes the rider on its attack.
-Using a Higher-Level Spell Slot. The spirit's AC, HP, and attack damage scale with the slot level.
+You call forth an aberrant spirit. It manifests in an unoccupied space that you can see within range and uses the Aberrant Spirit stat block. When you cast the spell, choose Beholderkin, Slaad, or Star Spawn. The creature disappears when it drops to 0 Hit Points or when the spell ends. The creature is an ally to you and your allies. In combat, the creature shares your Initiative count, but it takes its turn immediately after yours. It obeys your verbal commands (no action required by you). If you don't issue any, it takes the Dodge action and uses its movement to avoid danger.
+Using a Higher-Level Spell Slot. Use the spell slot's level for the spell's level in the stat block. The Aberrant Spirit's Hit Points and attack damage increase as the spell's level increases.
 
 Material Component:
 * - (a pickled tentacle and an eyeball in a platinum-inlaid vial worth 400+ GP)

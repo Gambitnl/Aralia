@@ -19,6 +19,15 @@
   .sheets img { max-width: 420px; max-height: 240px; border: 1px solid #263042; border-radius: 4px; background: #000; }
   .cap { font-size: 11px; color: #8fa0b8; margin-top: 2px; }
   .rounds { font-size: 12px; color: #66788f; margin-top: 6px; }
+  details.history { margin-top: 10px; }
+  details.history summary { cursor: pointer; font-size: 12px; color: #8fa0b8; user-select: none; }
+  .subjrow { margin: 8px 0 2px; }
+  .subjlabel { font-size: 12px; color: #aab8cc; margin-bottom: 3px; }
+  .timeline { display: flex; flex-wrap: wrap; gap: 6px; align-items: flex-start; }
+  .timeline a { display: block; text-align: center; }
+  .timeline img { width: 150px; border: 1px solid #263042; border-radius: 3px; background: #000; display: block; }
+  .timeline .rcap { font-size: 10px; color: #66788f; margin-top: 1px; }
+  .timeline a.latest img { border-color: #4a6da8; }
 </style>
 </head>
 <body>
@@ -28,6 +37,12 @@
 <script>
 const PIECES = ['humanoid-anatomy', 'humanoid-motion', 'creature-anatomy', 'surface-materials', 'coherence'];
 async function jget(url) { try { const r = await fetch(url + '?t=' + Date.now()); return r.ok ? await r.json() : null; } catch { return null; } }
+const openTimelines = new Set();
+document.addEventListener('toggle', (e) => {
+  const piece = e.target.dataset && e.target.dataset.piece;
+  if (!piece) return;
+  if (e.target.open) openTimelines.add(piece); else openTimelines.delete(piece);
+}, true);
 async function refresh() {
   const status = await jget('status.json') || { rounds: [] };
   const root = document.getElementById('root');
@@ -57,6 +72,31 @@ async function refresh() {
       html += '</div>';
     }
     html += '<div class="rounds">' + rounds.length + ' capture rounds' + (latest && latest.note ? ' · latest: ' + latest.note : '') + '</div>';
+    // Progress timeline: one row per subject, a thumbnail per captured round, oldest -> newest.
+    const bySubject = {};
+    for (const r of rounds) {
+      for (const cap of (r.captured || []).filter(c => c.startsWith(piece + '/'))) {
+        const id = cap.split('/')[1];
+        (bySubject[id] = bySubject[id] || []).push(r.round);
+      }
+    }
+    const subjects = Object.keys(bySubject);
+    if (subjects.length) {
+      html += '<details class="history" data-piece="' + piece + '"' + (openTimelines.has(piece) ? ' open' : '') + '><summary>progress timeline (' + rounds.length + ' rounds)</summary>';
+      for (const id of subjects) {
+        const seen = [...new Set(bySubject[id])];
+        html += '<div class="subjrow"><div class="subjlabel">' + id + '</div><div class="timeline">';
+        for (const rn of seen) {
+          const src = 'sheets/' + piece + '/round-' + rn + '-' + id + '.png';
+          const isLatest = rn === seen[seen.length - 1];
+          html += '<a href="' + src + '" target="_blank"' + (isLatest ? ' class="latest"' : '') + '>' +
+                  '<img loading="lazy" src="' + src + '" onerror="this.parentElement.style.display=\'none\'" />' +
+                  '<div class="rcap">r' + rn + '</div></a>';
+        }
+        html += '</div></div>';
+      }
+      html += '</details>';
+    }
     div.innerHTML = html;
     root.appendChild(div);
   }

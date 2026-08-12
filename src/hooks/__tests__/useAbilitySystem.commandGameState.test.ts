@@ -8,8 +8,8 @@ import type { ActiveSpellZone } from '../../systems/spells/effects';
 import * as savingThrowUtils from '../../utils/character';
 import { combatEvents } from '../../systems/events/CombatEvents';
 import * as combatUtils from '../../utils/combat';
-import shiningSmite from '../../../public/data/spells/level-2/shining-smite.json';
-import blindingSmite from '../../../public/data/spells/level-3/blinding-smite.json';
+import shiningSmite from '@/data/spells/level-2/shining-smite.json';
+import blindingSmite from '@/data/spells/level-3/blinding-smite.json';
 import { shieldSpell, attacker, defender, swordItem, basicAttack } from './useAbilitySystem.fixtures';
 
 /**

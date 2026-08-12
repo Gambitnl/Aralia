@@ -137,46 +137,51 @@ describe('generateEntityBlueprint kind planned', () => {
 });
 
 describe('junction blend resolution (blendM)', () => {
-  it('applies per-kind defaults: dragon legs get 0.35 against the smaller junction radius', () => {
+  it('applies per-kind defaults: dragon tail gets 0.4 against the smaller junction radius; proud leg roots kill leg collars', () => {
     const out = compilePlan(PLAN_FIXTURES.dragon);
     const s = out.planSpec!;
-    const leg = s.chains.find((c) => c.kind === 'leg')!;
+    // round 20 (creature-anatomy): the leg hull floor (1.0) makes every
+    // swollen leg root hull-proud, and a hull-proud haunch carries NO collar
+    // (the lathed skirt read as a "sombrero brim" disc at each hip). The
+    // per-kind default resolution is asserted on the TAIL instead.
+    for (const leg of s.chains.filter((c) => c.kind === 'leg')) {
+      expect(leg.blendM).toBe(0);
+    }
+    const tail = s.chains.find((c) => c.kind === 'tail')!;
     // round 4 (creature-anatomy): the dragon fixture now carries spine.mass,
     // so the expected hull radius comes from THE shared profile instead of
     // re-deriving the legacy taper+bulge formula by hand (which mass bypasses).
     const hullR = spineRadiusAt(
       { bodyRadM: s.bodyRadM, spine: { taper: s.spine.taper, bulge: s.spine.bulge, mass: s.spine.mass } },
-      leg.attach,
+      tail.attach,
     );
-    // creature-anatomy round 1: leg roots carry a 1.25 collar boost so the
-    // junction skirt reads as muscle (ROOT_COLLAR_BOOST in compilePlan)
-    const expected = 0.35 * Math.min(leg.links[0].rM, hullR) * 2 * 1.25;
-    expect(leg.blendM).toBeCloseTo(expected, 6);
+    const expected = 0.4 * Math.min(tail.links[0].rM, hullR) * 2;
+    expect(tail.blendM).toBeCloseTo(expected, 6);
   });
 
   it('creature-level skin.blend beats per-kind defaults', () => {
+    // round 20 (creature-anatomy): asserted on the TAIL — leg collars are
+    // structurally 0 now (hull-proud haunches), so legs cannot witness blend
+    // resolution any more.
     const plan = JSON.parse(JSON.stringify(PLAN_FIXTURES.dragon));
     plan.skin = { blend: 1 };
     const a = compilePlan(plan).planSpec!;
     const b = compilePlan(PLAN_FIXTURES.dragon).planSpec!;
-    const legA = a.chains.find((c) => c.kind === 'leg')!;
-    const legB = b.chains.find((c) => c.kind === 'leg')!;
-    expect(legA.blendM).toBeCloseTo((legB.blendM / 0.35) * 1, 6);
+    const tailA = a.chains.find((c) => c.kind === 'tail')!;
+    const tailB = b.chains.find((c) => c.kind === 'tail')!;
+    expect(tailA.blendM).toBeCloseTo((tailB.blendM / 0.4) * 1, 6);
     expect(a.skinBlend).toBe(1);
   });
 
   it('appendage blend override beats skin.blend, and 0 kills the collar', () => {
+    // round 20 (creature-anatomy): the override witness moves to the TAIL
+    // (appendages[2]) — leg collars are structurally 0 (hull-proud haunches).
     const plan = JSON.parse(JSON.stringify(PLAN_FIXTURES.dragon));
     plan.skin = { blend: 1 };
-    plan.appendages[0].blend = 0;
+    plan.appendages[2].blend = 0;
     const s = compilePlan(plan).planSpec!;
-    // appendages[0] is the FRONT leg pair only — its collars die, the rear
-    // pair still gets the creature-level skin.blend
-    const frontIds = new Set(['leg0L', 'leg0R']);
-    for (const c of s.chains) {
-      if (c.kind !== 'leg') continue;
-      expect(frontIds.has(c.id) ? c.blendM === 0 : c.blendM > 0).toBe(true);
-    }
+    const tail = s.chains.find((c) => c.kind === 'tail')!;
+    expect(tail.blendM).toBe(0);
   });
 
   it('is deterministic', () => {

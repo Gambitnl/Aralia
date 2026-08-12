@@ -34,8 +34,6 @@ import { type SceneCastMember } from './SceneCast';
 import type { GroundWorld } from '@/systems/worldforge/bridge/groundChunkLoader';
 import type { ChunkLoader } from '@/systems/world3d/types';
 import type { PlayerWorldPosition } from '@/types';
-import type { ForgeAssetService } from '@/systems/worldforge/assets/forgeAssetService';
-export declare const ForgeAssetContext: React.Context<ForgeAssetService>;
 interface World3DSceneProps {
     loader: ChunkLoader;
     /** World-space position to center streaming + the scene origin on at mount. */

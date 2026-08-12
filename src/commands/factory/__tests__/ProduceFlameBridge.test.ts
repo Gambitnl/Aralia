@@ -7,7 +7,7 @@ import { Ability, SelectedSpellTarget } from '@/types/combat'
 import type { Spell } from '@/types/spells'
 import type { PlayerCharacter } from '@/types/character'
 import * as combatUtils from '@/utils/combat'
-import produceFlame from '../../../../public/data/spells/level-0/produce-flame.json'
+import produceFlame from '@/data/spells/level-0/produce-flame.json'
 
 vi.mock('@/utils/combat', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/utils/combat')>()

@@ -183,6 +183,49 @@ test('happy path: register -> lock -> locks -> task -> say -> inbox', async () =
   assert.equal(unlock.code, 0);
 });
 
+// ---------------------------------------------------------------------------
+// Task-creation onboarding failures
+// ---------------------------------------------------------------------------
+// These cases use an isolated identity directory and the real in-process Agora
+// server. Neither failure may add a board task, and both must show the complete
+// safe onboarding command instead of a generic registration hint or raw 401.
+// ---------------------------------------------------------------------------
+test('task new directs missing and rejected identities to safe onboarding without creating a task', async () => {
+  const isolatedDir = fs.mkdtempSync(path.join(os.tmpdir(), 'agora-client-task-onboarding-'));
+  const isolatedEnv = { AGORA_DIR: isolatedDir, AGORA_AGENT_ID: 'task-onboarding-regression' };
+  try {
+    const tasksBefore = await fetch(`${baseUrl}/tasks`).then((response) => response.json());
+
+    // With no stored identity, the client stops before contacting the task endpoint.
+    const missingIdentity = await run(['task', 'new', 'Must not be created'], {
+      env: isolatedEnv,
+      baseUrl,
+    });
+    assert.notEqual(missingIdentity.code, 0);
+    assert.match(missingIdentity.lines.join('\n'), /onboard <handle>/);
+    assert.match(missingIdentity.lines.join('\n'), /--pet <slug>/);
+    assert.match(missingIdentity.lines.join('\n'), /--session <task\/thread-id>/);
+
+    // An explicit but invalid token reaches the server, receives 401, and gets
+    // the same actionable recovery command rather than exposing only the status.
+    const rejectedToken = await run([
+      'task', 'new', 'Also must not be created', '--token', 'invalid-task-token',
+    ], { env: isolatedEnv, baseUrl });
+    assert.notEqual(rejectedToken.code, 0);
+    assert.match(rejectedToken.lines.join('\n'), /task new failed \(401\)/);
+    assert.match(rejectedToken.lines.join('\n'), /onboard <handle>/);
+    assert.match(rejectedToken.lines.join('\n'), /--pet <slug>/);
+    assert.match(rejectedToken.lines.join('\n'), /--session <task\/thread-id>/);
+
+    // The board count is the acceptance boundary: neither rejected attempt may
+    // leak a task into shared coordination state.
+    const tasksAfter = await fetch(`${baseUrl}/tasks`).then((response) => response.json());
+    assert.equal(tasksAfter.tasks.length, tasksBefore.tasks.length);
+  } finally {
+    fs.rmSync(isolatedDir, { recursive: true, force: true });
+  }
+});
+
 test('pet discovery works before registration and the CLI refuses petless presence', async () => {
   const pets = await run(['pets'], { env: { AGORA_DIR: clientDir }, baseUrl });
   assert.equal(pets.code, 0);

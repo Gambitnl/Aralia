@@ -1,10 +1,10 @@
 {
-  "generatedAt": "2026-08-10T12:31:21.954Z",
-  "lastGoodRun": "2026-08-10T12:31:21.954Z",
+  "generatedAt": "2026-08-12T00:00:13.554Z",
+  "lastGoodRun": "2026-08-12T00:00:13.554Z",
   "stepErrors": [],
   "surfaces": {
-    "chronicleDaysSilent": 37,
-    "atlasDaysSilent": 1
+    "chronicleDaysSilent": 38,
+    "atlasDaysSilent": 0
   },
   "coverage": {
     "domainDocs": {
@@ -27,7 +27,7 @@
         {
           "name": "entities3d",
           "repoPath": "src/systems/entities3d",
-          "files": 29,
+          "files": 27,
           "ignored": false
         },
         {
@@ -187,12 +187,6 @@
           "ignored": false
         },
         {
-          "name": "CreaturePlayground",
-          "repoPath": "src/components/CreaturePlayground",
-          "files": 1,
-          "ignored": false
-        },
-        {
           "name": "Submap",
           "repoPath": "src/components/Submap",
           "files": 1,
@@ -219,19 +213,19 @@
   },
   "topics": {
     "world-props": {
-      "ageDays": 3
+      "ageDays": 4
     },
     "perf-campaign": {
-      "ageDays": 3
+      "ageDays": 4
     },
     "building-generator": {
       "ageDays": null
     },
     "dungeon-generator": {
-      "ageDays": 21
+      "ageDays": 22
     },
     "fip-slice1": {
-      "ageDays": 38
+      "ageDays": 39
     },
     "ambush-generation": {
       "ageDays": null
@@ -240,10 +234,10 @@
       "ageDays": null
     },
     "battlemap-retirement": {
-      "ageDays": 26
+      "ageDays": 27
     },
     "world-reactions": {
-      "ageDays": 27
+      "ageDays": 28
     },
     "ai-arbiter": {
       "ageDays": null
@@ -252,19 +246,19 @@
       "ageDays": null
     },
     "planmap": {
-      "ageDays": 27
+      "ageDays": 28
     },
     "webgpu-migration": {
       "ageDays": null
     },
     "wf-interiors": {
-      "ageDays": 24
+      "ageDays": 25
     },
     "neighbour-streaming": {
       "ageDays": null
     },
     "agent-sim-deepening": {
-      "ageDays": 24
+      "ageDays": 25
     },
     "maritime-remainder": {
       "ageDays": null
@@ -273,7 +267,7 @@
       "ageDays": null
     },
     "generational-time": {
-      "ageDays": 27
+      "ageDays": 28
     },
     "testkit-devtools-toolkit": {
       "ageDays": null
@@ -285,34 +279,34 @@
       "ageDays": null
     },
     "shipped-grid-retirement": {
-      "ageDays": 41
+      "ageDays": 42
     },
     "shipped-seam-slice": {
-      "ageDays": 40
+      "ageDays": 41
     },
     "shipped-cartography": {
-      "ageDays": 25
+      "ageDays": 26
     },
     "world-map-quality": {
-      "ageDays": 21
+      "ageDays": 22
     },
     "shipped-styled-town": {
-      "ageDays": 40
+      "ageDays": 41
     },
     "town-streets-3d": {
-      "ageDays": 30
+      "ageDays": 31
     },
     "shipped-living-world": {
-      "ageDays": 39
+      "ageDays": 40
     },
     "village-biome-flavor-coverage": {
       "ageDays": null
     },
     "shipped-combat-opening": {
-      "ageDays": 40
+      "ageDays": 41
     },
     "shipped-travel-provisioning": {
-      "ageDays": 40
+      "ageDays": 41
     },
     "provisioning-remainder": {
       "ageDays": null
@@ -333,22 +327,22 @@
       "ageDays": null
     },
     "early-game-playable": {
-      "ageDays": 38
+      "ageDays": 39
     },
     "interactive-3d-world": {
       "ageDays": null
     },
     "class-richness-l1-3": {
-      "ageDays": 38
+      "ageDays": 39
     },
     "shipped-spell-mechanics": {
-      "ageDays": 43
+      "ageDays": 44
     },
     "shipped-cell-provenance": {
-      "ageDays": 41
+      "ageDays": 42
     },
     "combat-map-reskin": {
-      "ageDays": 26
+      "ageDays": 27
     },
     "svg-combatant-art": {
       "ageDays": null
@@ -363,22 +357,22 @@
       "ageDays": null
     },
     "master-orchestrator": {
-      "ageDays": 36
-    },
-    "agent-identity": {
-      "ageDays": 36
-    },
-    "agent-retrace": {
-      "ageDays": 36
-    },
-    "agent-matrix-dashboard": {
       "ageDays": 37
     },
+    "agent-identity": {
+      "ageDays": 37
+    },
+    "agent-retrace": {
+      "ageDays": 37
+    },
+    "agent-matrix-dashboard": {
+      "ageDays": 38
+    },
     "agora-operator-dashboard": {
-      "ageDays": 21
+      "ageDays": 22
     },
     "agent-ping": {
-      "ageDays": 36
+      "ageDays": 37
     },
     "combat-roads-real-terrain": {
       "ageDays": null
@@ -405,7 +399,7 @@
       "ageDays": null
     },
     "combat-elevation": {
-      "ageDays": 26
+      "ageDays": 27
     },
     "combat-chronicles": {
       "ageDays": null
@@ -417,40 +411,40 @@
       "ageDays": null
     },
     "building-generator-v2": {
-      "ageDays": 23
+      "ageDays": 24
     },
     "glossary-structured-content": {
-      "ageDays": 27
+      "ageDays": 28
     },
     "agent-escalation": {
-      "ageDays": 36
+      "ageDays": 37
     },
     "groq-inference-toggle": {
       "ageDays": null
     },
     "agora-fleet-coordination": {
-      "ageDays": 36
+      "ageDays": 37
     },
     "economy-player-surface": {
-      "ageDays": 27
+      "ageDays": 28
     },
     "llm-provider-config": {
       "ageDays": null
     },
     "interior-lighting-live-clock": {
-      "ageDays": 34
+      "ageDays": 35
     },
     "interior-occupants-live-clock": {
-      "ageDays": 24
+      "ageDays": 25
     },
     "servants-as-npcs": {
       "ageDays": null
     },
     "ai-arbitrated-ritual-casting": {
-      "ageDays": 33
+      "ageDays": 34
     },
     "npc-memory-reconciliation": {
-      "ageDays": 26
+      "ageDays": 27
     },
     "planmap-roadmap-sync": {
       "ageDays": null
@@ -462,7 +456,7 @@
       "ageDays": null
     },
     "interiors-blindspot-pass": {
-      "ageDays": 21
+      "ageDays": 22
     },
     "co-orchestration-pipeline": {
       "ageDays": null
@@ -471,19 +465,19 @@
       "ageDays": null
     },
     "whole-game-systems-audit": {
-      "ageDays": 26
+      "ageDays": 27
     },
     "entity-generator-3d": {
-      "ageDays": 19
+      "ageDays": 20
     },
     "road-systems": {
-      "ageDays": 16
+      "ageDays": 17
     },
     "forests": {
-      "ageDays": 7
+      "ageDays": 8
     },
     "mountains": {
-      "ageDays": 28
+      "ageDays": 29
     },
     "session-group-map": {
       "ageDays": null
@@ -492,256 +486,265 @@
       "ageDays": null
     },
     "planning-surface-freshness": {
-      "ageDays": 6
+      "ageDays": 7
     },
     "compass-pane": {
-      "ageDays": 27
+      "ageDays": 28
     },
     "character-creator": {
-      "ageDays": 28
+      "ageDays": 29
     },
     "character-sheet": {
-      "ageDays": 28
+      "ageDays": 29
     },
     "action-pane": {
-      "ageDays": 27
+      "ageDays": 28
     },
     "code-modularization-audit": {
-      "ageDays": 27
+      "ageDays": 28
     },
     "command-effects-runtime": {
-      "ageDays": 53
-    },
-    "command-base-runtime": {
-      "ageDays": 27
-    },
-    "conversation-panel": {
-      "ageDays": 26
-    },
-    "command-factory-runtime": {
       "ageDays": 54
     },
+    "command-base-runtime": {
+      "ageDays": 28
+    },
+    "conversation-panel": {
+      "ageDays": 27
+    },
+    "command-factory-runtime": {
+      "ageDays": 55
+    },
     "crafting": {
-      "ageDays": 60
+      "ageDays": 61
     },
     "crafting-ui": {
-      "ageDays": 46
+      "ageDays": 47
     },
     "creatures": {
-      "ageDays": 27
+      "ageDays": 28
     },
     "crime": {
-      "ageDays": 47
+      "ageDays": 48
     },
     "crime-ui": {
-      "ageDays": 47
+      "ageDays": 48
     },
     "dice": {
-      "ageDays": 27
+      "ageDays": 28
     },
     "quest-log": {
-      "ageDays": 27
+      "ageDays": 28
     },
     "tiered-autosave": {
-      "ageDays": 16
+      "ageDays": 17
     },
     "dialogue": {
-      "ageDays": 27
+      "ageDays": 28
     },
     "companions": {
-      "ageDays": 26
+      "ageDays": 27
     },
     "demo-area": {
-      "ageDays": 26
+      "ageDays": 27
     },
     "design-preview": {
-      "ageDays": 27
+      "ageDays": 28
     },
     "documentation-cleanup": {
-      "ageDays": 2
+      "ageDays": 3
     },
     "encounter-generator": {
-      "ageDays": 27
+      "ageDays": 28
     },
     "environment": {
-      "ageDays": 27
+      "ageDays": 28
     },
     "design-preview-scenarios": {
-      "ageDays": 26
+      "ageDays": 27
     },
     "events": {
-      "ageDays": 27
+      "ageDays": 28
     },
     "gemini-service": {
-      "ageDays": 27
+      "ageDays": 28
     },
     "history": {
-      "ageDays": 27
+      "ageDays": 28
     },
     "intrigue": {
-      "ageDays": 27
+      "ageDays": 28
     },
     "layout": {
-      "ageDays": 27
+      "ageDays": 28
     },
     "item-categorization": {
-      "ageDays": 16
+      "ageDays": 17
     },
     "logbook": {
-      "ageDays": 27
+      "ageDays": 28
     },
     "logic": {
-      "ageDays": 27
+      "ageDays": 28
     },
     "naval": {
-      "ageDays": 27
+      "ageDays": 28
     },
     "naval-ui": {
-      "ageDays": 27
+      "ageDays": 28
     },
     "ollama-service": {
-      "ageDays": 27
+      "ageDays": 28
     },
     "organization": {
-      "ageDays": 27
+      "ageDays": 28
     },
     "party-ui": {
-      "ageDays": 27
+      "ageDays": 28
     },
     "phb2024-glossary-audit": {
-      "ageDays": 27
+      "ageDays": 28
     },
     "physics": {
-      "ageDays": 27
+      "ageDays": 28
     },
     "planar": {
-      "ageDays": 27
+      "ageDays": 28
     },
     "providers": {
-      "ageDays": 27
+      "ageDays": 28
     },
     "puzzles": {
-      "ageDays": 27
+      "ageDays": 28
     },
     "quests": {
-      "ageDays": 27
+      "ageDays": 28
     },
     "racial-mechanics": {
-      "ageDays": 27
+      "ageDays": 28
     },
     "realmsmith-service": {
-      "ageDays": 27
+      "ageDays": 28
     },
     "religion": {
-      "ageDays": 27
+      "ageDays": 28
     },
     "rituals": {
-      "ageDays": 27
+      "ageDays": 28
     },
     "roadmap-maintenance": {
-      "ageDays": 27
+      "ageDays": 28
     },
     "saveload": {
-      "ageDays": 27
+      "ageDays": 28
     },
     "script-tests": {
-      "ageDays": 27
+      "ageDays": 28
     },
     "scripts-archive": {
-      "ageDays": 27
+      "ageDays": 28
     },
     "scripts-audits": {
-      "ageDays": 27
+      "ageDays": 28
     },
     "scripts-git": {
-      "ageDays": 27
+      "ageDays": 28
     },
     "scripts-quality": {
-      "ageDays": 27
+      "ageDays": 28
     },
     "scripts-spell-runtime-template-audit": {
-      "ageDays": 27
+      "ageDays": 28
     },
     "scripts-tooling": {
-      "ageDays": 27
+      "ageDays": 28
     },
     "scripts-workflows": {
-      "ageDays": 27
+      "ageDays": 28
     },
     "spells": {
-      "ageDays": 27
+      "ageDays": 28
     },
     "submap": {
-      "ageDays": 27
+      "ageDays": 28
     },
     "submap-generation": {
-      "ageDays": 27
+      "ageDays": 28
     },
     "three-d-modal": {
-      "ageDays": 27
+      "ageDays": 28
     },
     "town-description-system": {
-      "ageDays": 27
+      "ageDays": 28
     },
     "trade-ui": {
-      "ageDays": 27
+      "ageDays": 28
     },
     "ui-primitives": {
-      "ageDays": 27
+      "ageDays": 28
     },
     "underdark": {
-      "ageDays": 27
+      "ageDays": 28
     },
     "visibility": {
-      "ageDays": 27
+      "ageDays": 28
     },
     "world-3d-ui": {
-      "ageDays": 27
+      "ageDays": 28
     },
     "world3d": {
-      "ageDays": 27
+      "ageDays": 28
     },
     "worldsim-service": {
-      "ageDays": 27
+      "ageDays": 28
     },
     "entity-skeleton-pivot": {
-      "ageDays": 7
+      "ageDays": 8
     },
     "combat-3d-visual-quality": {
-      "ageDays": 23
+      "ageDays": 24
     },
     "ground3d-water-surface": {
-      "ageDays": 14
+      "ageDays": 15
     },
     "lot-dressing-yards-commons": {
-      "ageDays": 21
+      "ageDays": 22
     },
     "magic-item-boons": {
-      "ageDays": 2
+      "ageDays": 3
     },
     "ask-aralia-lore-search": {
-      "ageDays": 19
+      "ageDays": 20
     },
     "junction-blend": {
-      "ageDays": 19
+      "ageDays": 20
     },
     "region-tier-detail": {
-      "ageDays": 13
+      "ageDays": 1
     },
     "region-rivers-end-to-end": {
-      "ageDays": 13
+      "ageDays": 14
     },
     "bg3-parity": {
-      "ageDays": 12
+      "ageDays": 13
     },
     "cc0-clip-animation": {
-      "ageDays": 7
+      "ageDays": 8
     },
     "azgaar-toggle-parity": {
-      "ageDays": 6
+      "ageDays": 7
     },
     "perf-toolkit-3d": {
+      "ageDays": 3
+    },
+    "entity-quality-perfection": {
       "ageDays": 2
+    },
+    "terrain-aware-placement": {
+      "ageDays": 0
+    },
+    "dev-server-hygiene": {
+      "ageDays": 1
     }
   }
 }

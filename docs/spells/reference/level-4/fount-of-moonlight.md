@@ -65,7 +65,7 @@
 - **Conditions Applied**: Blinded
 - **Utility Type**: light
 
-- **Description**: Moonlight surrounds you for the duration. You gain Resistance to Radiant damage, shed Bright Light in a 20-foot radius and Dim Light for another 20 feet, and can punish the first creature that hits you each turn with Radiant damage and a blinded rider on a failed Constitution save.
+- **Description**: Searing moonlight radiates from you in a 20-foot-radius Emanation for the duration. Until the spell ends, the Emanation moves with you and emits Bright Light and Dim Light for an additional 20 feet. You have Resistance to Radiant damage. The first time each turn a creature you can see hits you with an attack roll, you can take a Reaction to deal 2d10 Radiant damage to that creature, which must succeed on a Constitution saving throw or have the Blinded condition until the end of its next turn.
 - **Higher Levels**: not_applicable
 - **Scaling Rule 1 Type**: slot_level_bonus
 - **Scaling Rule 1 Applies To**: damage | Radiant damage | dice 2d10 | trigger on_target_takes_damage
@@ -87,7 +87,7 @@ Attack/Save: CON Save
 Damage/Effect: Radiant
 
 Rules Text:
-Moonlight surrounds you for the duration. You gain Resistance to Radiant damage, shed Bright Light in a 20-foot radius and Dim Light for another 20 feet, and can punish the first creature that hits you each turn with Radiant damage and a blinded rider on a failed Constitution save.
+Searing moonlight radiates from you in a 20-foot-radius Emanation for the duration. Until the spell ends, the Emanation moves with you and emits Bright Light and Dim Light for an additional 20 feet. You have Resistance to Radiant damage. The first time each turn a creature you can see hits you with an attack roll, you can take a Reaction to deal 2d10 Radiant damage to that creature, which must succeed on a Constitution saving throw or have the Blinded condition until the end of its next turn.
 
 Spell Tags:
 Damage

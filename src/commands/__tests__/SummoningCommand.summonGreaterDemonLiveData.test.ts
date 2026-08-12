@@ -5,7 +5,7 @@ import { createMockCombatCharacter } from '../../utils/core';
 import type { CommandContext } from '../base/SpellCommand';
 import type { CombatCharacter, CombatLogEntry, CombatState } from '../../types/combat';
 import type { UtilityEffect } from '../../types/spells';
-import summonGreaterDemon from '../../../public/data/spells/level-4/summon-greater-demon.json';
+import summonGreaterDemon from '@/data/spells/level-4/summon-greater-demon.json';
 
 /**
  * Summon Greater Demon is the command-economy stress case for controlled

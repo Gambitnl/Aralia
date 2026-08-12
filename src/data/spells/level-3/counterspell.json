@@ -1,0 +1,120 @@
+{
+  "id": "counterspell",
+  "name": "Counterspell",
+  "aliases": [],
+  "level": 3,
+  "school": "Abjuration",
+  "legacy": false,
+  "classes": [
+    "Sorcerer",
+    "Warlock",
+    "Wizard"
+  ],
+  "subClasses": [],
+  "ritual": false,
+  "rarity": "common",
+  "attackType": "",
+  "castingTime": {
+    "value": 1,
+    "unit": "reaction",
+    "combatCost": {
+      "type": "reaction",
+      "condition": "when you see a creature within 60 feet of you casting a spell"
+    },
+    "explorationCost": {
+      "value": 0,
+      "unit": "minute"
+    },
+    "reactionCondition": "which you take when you see a creature within 60 feet of you casting a spell"
+  },
+  "range": {
+    "type": "ranged",
+    "distance": 60,
+    "distanceUnit": "feet"
+  },
+  "components": {
+    "verbal": false,
+    "somatic": true,
+    "material": false,
+    "materialDescription": "",
+    "materialCost": 0,
+    "isConsumed": false
+  },
+  "duration": {
+    "type": "instantaneous",
+    "concentration": false,
+    "value": 0,
+    "unit": "round"
+  },
+  "targeting": {
+    "type": "single",
+    "range": 60,
+    "rangeUnit": "feet",
+    "validTargets": [
+      "creatures"
+    ],
+    "lineOfSight": true,
+    "maxTargets": 1,
+    "filter": {
+      "creatureTypes": [],
+      "excludeCreatureTypes": [],
+      "sizes": [],
+      "alignments": [],
+      "hasCondition": [],
+      "isNativeToPlane": false,
+      "willing": "not_applicable",
+      "objectEligibility": {
+        "wornOrCarried": "not_applicable",
+        "magicalStatus": "not_applicable",
+        "fixedToSurface": "not_applicable",
+        "maxSize": "not_applicable",
+        "maxWeightPounds": "not_applicable",
+        "maxWeightScaling": "not_applicable"
+      },
+      "communicationPrerequisites": {
+        "canHearCaster": "not_applicable",
+        "canUnderstandCaster": "not_applicable",
+        "canSeeCaster": "not_applicable"
+      },
+      "abilityThreshold": {
+        "ability": "not_applicable",
+        "operator": "not_applicable",
+        "value": "not_applicable"
+      },
+      "selfRelation": "not_applicable"
+    }
+  },
+  "effects": [],
+  "arbitrationType": "mechanical",
+  "aiContext": {
+    "prompt": "When a visible creature within 60 feet casts a spell, prompt the reaction and the target caster's Constitution save; on a failed save, dissipate the spell with no effect while wasting the casting action but not expending its slot.",
+    "playerInputRequired": true
+  },
+  "description": "You attempt to interrupt a creature in the process of casting a spell. The creature makes a Constitution saving throw. On a failed save, the spell dissipates with no effect, and the action, Bonus Action, or Reaction used to cast it is wasted. If that spell was cast with a spell slot, the slot isn't expended.",
+  "higherLevels": "",
+  "tags": [
+    "abjuration",
+    "reaction",
+    "control"
+  ],
+  "castingTrigger": {
+    "type": "when_visible_creature_casts_spell",
+    "timing": "during_event",
+    "requiredCost": "reaction",
+    "targetBinding": "triggering_spell_caster",
+    "maxRangeFeet": 60,
+    "notes": "Routes Counterspell through the shared pre-command spell-interruption gate so the original spell can be stopped before its effects execute."
+  },
+  "interruptionState": {
+    "event": "visible_creature_casts_spell",
+    "saveType": "Constitution",
+    "failureOutcome": "spell_has_no_effect",
+    "failedSaveOutcome": "interrupted_spell_has_no_effect_and_casting_action_is_wasted",
+    "slotPolicy": "interrupted_spell_slot_is_not_expended",
+    "preservesInterruptedSlot": true,
+    "actionPolicy": "interrupted_casting_action_bonus_action_or_reaction_is_wasted",
+    "visibilityRequired": true,
+    "rangeFeet": 60,
+    "runtimeBoundary": "Current shared hook suppresses original spell command execution on failed save; focused proof still needs exact action-waste and spell-slot preservation coverage."
+  }
+}

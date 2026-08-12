@@ -30,8 +30,8 @@ import {
 } from '@/utils/core'
 import * as combatUtils from '@/utils/combat'
 import * as savingThrowUtils from '@/utils/character/savingThrowUtils'
-import elementalBaneData from '../../../public/data/spells/level-4/elemental-bane.json'
-import graspingVineData from '../../../public/data/spells/level-4/grasping-vine.json'
+import elementalBaneData from '@/data/spells/level-4/elemental-bane.json'
+import graspingVineData from '@/data/spells/level-4/grasping-vine.json'
 
 const elementalBane = elementalBaneData as unknown as Spell
 const graspingVine = graspingVineData as unknown as Spell

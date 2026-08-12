@@ -10,7 +10,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { SpellCommandFactory } from '../SpellCommandFactory';
 import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '@/utils/core';
 import { SpellSchool, type Spell, type SpellEffect, type UtilityEffect, type StatusConditionEffect } from '@/types/spells';
-import guidance from '../../../../public/data/spells/level-0/guidance.json';
+import guidance from '@/data/spells/level-0/guidance.json';
 import { INGESTED_MONSTERS } from '@/data/monsters.generated';
 import * as savingThrowUtils from '@/utils/character';
 

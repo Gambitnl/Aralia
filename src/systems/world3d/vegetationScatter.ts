@@ -19,12 +19,33 @@
  * Deterministic instanced vegetation. For each vertex on a vegetated biome, emit
  * one instance with hash-jittered local offset, scale, and Y-rotation. Water and
  * tundra/desert vertices are skipped. Pure: randomness comes from a coordinate hash.
+ *
+ * TWO STAGES since the surface-gate wave. Stage 1 picks candidates from the
+ * biome mask at the target density (the original pass). Stage 2 reads the LOCAL
+ * surface under each candidate with a `SurfaceProbe`, then REJECTS it or FITS it
+ * to the ground. Without stage 2 a tree stood on a cliff face.
+ *
+ * The probe reads the RENDERED surface — `heightToMeters` including vertical
+ * exaggeration — because that is the ground the player sees a tree stand on.
+ * Every gate number below is therefore expressed in RENDERED feet through
+ * `renderedFeet()`, never in raw world units.
  */
 import type { ChunkData, VegetationScatter } from './types';
 import { WORLD3D_CONFIG, heightToMeters } from './config';
+import {
+  FEET_PER_METER,
+  fitToSurface,
+  makeGridSurfaceProbe,
+  makeSurfaceGateTally,
+  rejectReasonFor,
+  type SurfaceGate,
+  type SurfaceGateStats,
+} from '../worldforge/terrain/surfaceProbe';
 
 const S = WORLD3D_CONFIG.CHUNK_WORLD_SIZE;
-const VEGETATION_SCATTER_CACHE_VERSION = 1;
+// Bumped when the surface gate landed: cached payloads predate the gate and
+// would otherwise serve un-gated scatter forever.
+const VEGETATION_SCATTER_CACHE_VERSION = 2;
 const VEGETATION_SCATTER_CACHE_MAX_ENTRIES = 256;
 
 // `forest_floor` is the leaf-litter tint a forest window's `grass` ground now
@@ -41,6 +62,114 @@ const VEGETATED = new Set([
 ]);
 // Keep a bounded cache of stable scatter payloads.
 const VEGETATION_CACHE = new Map<string, VegetationScatter>();
+
+// ── Stage 2: the per-species surface gate ───────────────────────────────────
+
+/** A world height (0..100) as RENDERED feet, exaggeration included. */
+function renderedFeet(worldHeight: number): number {
+  return heightToMeters(worldHeight) * FEET_PER_METER;
+}
+
+/** Degrees to radians — gate angles read better as degrees in this table. */
+function deg(d: number): number {
+  return (d * Math.PI) / 180;
+}
+
+/**
+ * Per-biome tree tolerance. A tree grows toward the sky, so `maxTiltRad` stays
+ * small: it follows the ground only enough to look rooted. Slope limits differ
+ * by species — a swamp tree needs near-flat wet ground, a conifer takes a hill.
+ */
+const TREE_GATES: Readonly<Record<string, SurfaceGate>> = {
+  forest: {
+    minElevationFt: renderedFeet(21),
+    maxElevationFt: renderedFeet(78), // treeline
+    maxSlopeRad: deg(35),
+    maxTiltRad: deg(7),
+    baseRadiusFt: 3,
+    slopeScaleFloor: 0.7,
+  },
+  forest_floor: {
+    minElevationFt: renderedFeet(21),
+    maxElevationFt: renderedFeet(78),
+    maxSlopeRad: deg(35),
+    maxTiltRad: deg(7),
+    baseRadiusFt: 3,
+    slopeScaleFloor: 0.7,
+  },
+  jungle: {
+    minElevationFt: renderedFeet(21),
+    maxElevationFt: renderedFeet(62),
+    maxSlopeRad: deg(30),
+    maxTiltRad: deg(6),
+    baseRadiusFt: 3.5,
+    slopeScaleFloor: 0.75,
+  },
+  plains: {
+    minElevationFt: renderedFeet(21),
+    maxElevationFt: renderedFeet(70),
+    maxSlopeRad: deg(28),
+    maxTiltRad: deg(5),
+    baseRadiusFt: 2.5,
+    slopeScaleFloor: 0.75,
+  },
+  grassland: {
+    minElevationFt: renderedFeet(21),
+    maxElevationFt: renderedFeet(70),
+    maxSlopeRad: deg(28),
+    maxTiltRad: deg(5),
+    baseRadiusFt: 2.5,
+    slopeScaleFloor: 0.75,
+  },
+  // Wet ground pools; a marsh tree cannot stand on a bank.
+  wetland: {
+    minElevationFt: renderedFeet(19),
+    maxElevationFt: renderedFeet(45),
+    maxSlopeRad: deg(12),
+    maxTiltRad: deg(4),
+    baseRadiusFt: 2.5,
+    slopeScaleFloor: 0.8,
+  },
+  swamp: {
+    minElevationFt: renderedFeet(19),
+    maxElevationFt: renderedFeet(45),
+    maxSlopeRad: deg(12),
+    maxTiltRad: deg(4),
+    baseRadiusFt: 2.5,
+    slopeScaleFloor: 0.8,
+  },
+};
+
+/**
+ * The probe for one chunk: the chunk's own height grid, converted to RENDERED
+ * feet once, then read as a bilinear field. Built ONCE per scatter build and
+ * baked into the instance buffers. Never sampled per frame.
+ */
+function makeChunkSurfaceProbe(data: ChunkData) {
+  const res = data.resolution;
+  const elevationsFt = new Float32Array(res * res);
+  for (let i = 0; i < elevationsFt.length; i++) {
+    elevationsFt[i] = renderedFeet(data.heights[i] ?? 0);
+  }
+  // Chunk-local X grows with the column index and Z with the row index, exactly
+  // as the candidate loop maps (i, j) to (x, z) below.
+  const spacingFt = (S / Math.max(1, res - 1)) * FEET_PER_METER;
+  return makeGridSurfaceProbe({
+    elevationsFt,
+    cols: res,
+    rows: res,
+    cellSizeXFt: spacingFt,
+    cellSizeZFt: spacingFt,
+  });
+}
+
+/** Last gate tally per chunk key — instrumentation, read by tests and devtools. */
+const LAST_GATE_STATS = new Map<string, SurfaceGateStats>();
+
+/** Rejection stats for the most recent build of a chunk. Undefined = never built. */
+export function vegetationGateStatsFor(cacheKey: string): SurfaceGateStats | undefined {
+  return LAST_GATE_STATS.get(cacheKey);
+}
 
 const F32_BYTES = new ArrayBuffer(4);
 const F32_VIEW = new DataView(F32_BYTES);
@@ -90,6 +219,11 @@ function buildVegetationScatterUncached(data: ChunkData, cacheKey: string): Vege
   const positions: number[] = [];
   const scales: number[] = [];
   const rotations: number[] = [];
+  const tilts: number[] = [];
+  const tiltAxes: number[] = [];
+  const tally = makeSurfaceGateTally();
+  // A 1x1 chunk has no gradient to read, so stage 2 cannot run on it.
+  const probe = res >= 2 ? makeChunkSurfaceProbe(data) : null;
 
   let capped = false;
   for (let j = 0; j < res && !capped; j++) {
@@ -113,18 +247,49 @@ function buildVegetationScatterUncached(data: ChunkData, cacheKey: string): Vege
       const jz = (hash01(i, j, data.cy) - 0.5) * (S / res);
       const x = tx * S + jx;
       const z = tz * S + jz;
-      const y = heightToMeters(data.heights[idx] ?? 0);
+
+      // ── Stage 2: read the surface, then reject or fit ──────────────────
+      const speciesGate = TREE_GATES[biome];
+      if (!probe || !speciesGate) {
+        // No gradient (1x1 chunk) or no authored gate for this biome: the
+        // candidate cannot be judged, so it is not counted as gated either.
+        positions.push(x, heightToMeters(data.heights[idx] ?? 0), z);
+        scales.push(0.7 + hash01(i, j, 7) * 0.8);
+        rotations.push(hash01(i, j, 11) * Math.PI * 2);
+        tilts.push(0);
+        tiltAxes.push(1, 0);
+        continue;
+      }
+
+      const sample = probe.sampleAt(x * FEET_PER_METER, z * FEET_PER_METER);
+      const reason = rejectReasonFor(sample, speciesGate, hash01(i, j, 23));
+      tally.note(reason);
+      if (reason !== null) continue;
+
+      const fit = fitToSurface(sample, speciesGate);
+      // The probe's bilinear elevation is the surface at the JITTERED point,
+      // which the old code missed — it reused the lattice vertex height, so a
+      // jittered instance already floated before any slope work.
+      const y = fit.elevationFt / FEET_PER_METER - fit.sinkFt / FEET_PER_METER;
 
       positions.push(x, y, z);
-      scales.push(0.7 + hash01(i, j, 7) * 0.8);
+      scales.push((0.7 + hash01(i, j, 7) * 0.8) * fit.scaleMultiplier);
       rotations.push(hash01(i, j, 11) * Math.PI * 2);
+      tilts.push(fit.tiltRad);
+      tiltAxes.push(fit.tiltAxis[0], fit.tiltAxis[1]);
     }
   }
+
+  const stats = tally.stats();
+  LAST_GATE_STATS.set(cacheKey, stats);
 
   return {
     positions: new Float32Array(positions),
     scales: new Float32Array(scales),
     rotations: new Float32Array(rotations),
+    tilts: new Float32Array(tilts),
+    tiltAxes: new Float32Array(tiltAxes),
+    gateStats: stats,
     cacheKey,
   };
 }

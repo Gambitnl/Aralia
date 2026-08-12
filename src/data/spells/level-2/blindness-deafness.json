@@ -1,0 +1,294 @@
+{
+  "id": "blindness-deafness",
+  "name": "Blindness/Deafness",
+  "aliases": [],
+  "level": 2,
+  "school": "Transmutation",
+  "legacy": false,
+  "classes": [
+    "Bard",
+    "Cleric",
+    "Sorcerer",
+    "Wizard"
+  ],
+  "subClasses": [],
+  "ritual": false,
+  "rarity": "common",
+  "attackType": "",
+  "castingTime": {
+    "value": 1,
+    "unit": "action",
+    "combatCost": {
+      "type": "action",
+      "condition": ""
+    },
+    "explorationCost": {
+      "value": 0,
+      "unit": "minute"
+    }
+  },
+  "range": {
+    "type": "ranged",
+    "distance": 120,
+    "distanceUnit": "feet"
+  },
+  "components": {
+    "verbal": true,
+    "somatic": false,
+    "material": false,
+    "materialDescription": "",
+    "materialCost": 0,
+    "isConsumed": false
+  },
+  "duration": {
+    "type": "timed",
+    "value": 1,
+    "unit": "minute",
+    "concentration": false
+  },
+  "targeting": {
+    "type": "multi",
+    "range": 120,
+    "rangeUnit": "feet",
+    "validTargets": [
+      "creatures"
+    ],
+    "lineOfSight": true,
+    "maxTargets": {
+      "base": 1,
+      "scaling": {
+        "type": "slot_level",
+        "thresholds": {
+          "2": 1,
+          "3": 2,
+          "4": 3,
+          "5": 4,
+          "6": 5,
+          "7": 6,
+          "8": 7,
+          "9": 8
+        }
+      }
+    },
+    "filter": {
+      "creatureTypes": [],
+      "excludeCreatureTypes": [],
+      "sizes": [],
+      "alignments": [],
+      "hasCondition": [],
+      "isNativeToPlane": false,
+      "willing": "not_applicable",
+      "objectEligibility": {
+        "wornOrCarried": "not_applicable",
+        "magicalStatus": "not_applicable",
+        "fixedToSurface": "not_applicable",
+        "maxSize": "not_applicable",
+        "maxWeightPounds": "not_applicable",
+        "maxWeightScaling": "not_applicable"
+      },
+      "communicationPrerequisites": {
+        "canHearCaster": "not_applicable",
+        "canUnderstandCaster": "not_applicable",
+        "canSeeCaster": "not_applicable"
+      },
+      "abilityThreshold": {
+        "ability": "not_applicable",
+        "operator": "not_applicable",
+        "value": "not_applicable"
+      },
+      "selfRelation": "not_applicable"
+    }
+  },
+  "effects": [
+    {
+      "type": "STATUS_CONDITION",
+      "trigger": {
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
+      "condition": {
+        "type": "save",
+        "saveType": "Constitution",
+        "saveEffect": "negates_condition",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false,
+          "willing": "not_applicable",
+          "objectEligibility": {
+            "wornOrCarried": "not_applicable",
+            "magicalStatus": "not_applicable",
+            "fixedToSurface": "not_applicable",
+            "maxSize": "not_applicable",
+            "maxWeightPounds": "not_applicable",
+            "maxWeightScaling": "not_applicable"
+          },
+          "communicationPrerequisites": {
+            "canHearCaster": "not_applicable",
+            "canUnderstandCaster": "not_applicable",
+            "canSeeCaster": "not_applicable"
+          },
+          "abilityThreshold": {
+            "ability": "not_applicable",
+            "operator": "not_applicable",
+            "value": "not_applicable"
+          },
+          "selfRelation": "not_applicable"
+        },
+        "requiresStatus": [],
+        "saveModifiers": [],
+        "saveOutcomeOverrides": []
+      },
+      "statusCondition": {
+        "name": "Blinded",
+        "duration": {
+          "type": "minutes",
+          "value": 1
+        },
+        "repeatSave": {
+          "timing": "turn_end",
+          "saveType": "Constitution",
+          "successEnds": true,
+          "useOriginalDC": true
+        },
+        "level": 0
+      },
+      "description": "On a failed Constitution save, the target gains the Blinded condition for up to 1 minute and repeats the save at the end of each turn, ending the condition on a success.",
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "+1 target",
+        "customFormula": ""
+      },
+      "conditionalEndings": []
+    },
+    {
+      "type": "STATUS_CONDITION",
+      "trigger": {
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
+      "condition": {
+        "type": "save",
+        "saveType": "Constitution",
+        "saveEffect": "negates_condition",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false,
+          "willing": "not_applicable",
+          "objectEligibility": {
+            "wornOrCarried": "not_applicable",
+            "magicalStatus": "not_applicable",
+            "fixedToSurface": "not_applicable",
+            "maxSize": "not_applicable",
+            "maxWeightPounds": "not_applicable",
+            "maxWeightScaling": "not_applicable"
+          },
+          "communicationPrerequisites": {
+            "canHearCaster": "not_applicable",
+            "canUnderstandCaster": "not_applicable",
+            "canSeeCaster": "not_applicable"
+          },
+          "abilityThreshold": {
+            "ability": "not_applicable",
+            "operator": "not_applicable",
+            "value": "not_applicable"
+          },
+          "selfRelation": "not_applicable"
+        },
+        "requiresStatus": [],
+        "saveModifiers": [],
+        "saveOutcomeOverrides": []
+      },
+      "statusCondition": {
+        "name": "Deafened",
+        "duration": {
+          "type": "minutes",
+          "value": 1
+        },
+        "repeatSave": {
+          "timing": "turn_end",
+          "saveType": "Constitution",
+          "successEnds": true,
+          "useOriginalDC": true
+        },
+        "level": 0
+      },
+      "description": "On a failed Constitution save, the target gains the Deafened condition for up to 1 minute and repeats the save at the end of each turn, ending the condition on a success.",
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "+1 target",
+        "customFormula": ""
+      },
+      "conditionalEndings": []
+    }
+  ],
+  "arbitrationType": "mechanical",
+  "aiContext": {
+    "prompt": "Choose Blindness or Deafness for each target before resolving the Constitution save. On a failed save, apply the chosen condition for up to 1 minute and repeat the Constitution save at the end of each affected target's turns, ending the spell on that target on success.",
+    "playerInputRequired": true
+  },
+  "description": "One creature that you can see within range must succeed on a Constitution saving throw, or it has the Blinded or Deafened condition (your choice) for the duration. At the end of each of its turns, the target repeats the save, ending the spell on itself on a success.",
+  "higherLevels": "Using a Higher-Level Spell Slot. You can target one additional creature for each spell slot level above 2.",
+  "tags": [
+    "debuff",
+    "control",
+    "necromancy"
+  ],
+  "modeChoice": {
+    "type": "choose_one",
+    "timing": "on_cast",
+    "optionCount": 2,
+    "optionsSource": "effects",
+    "options": [
+      {
+        "label": "Blindness",
+        "summary": "The target is Blinded for the duration.",
+        "effectIndices": [
+          0
+        ],
+        "effectTypes": [
+          "STATUS_CONDITION"
+        ],
+        "duration": "1 minute"
+      },
+      {
+        "label": "Deafness",
+        "summary": "The target is Deafened for the duration.",
+        "effectIndices": [
+          1
+        ],
+        "effectTypes": [
+          "STATUS_CONDITION"
+        ],
+        "duration": "1 minute"
+      }
+    ]
+  }
+}

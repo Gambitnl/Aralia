@@ -94,7 +94,7 @@ export interface SkinnedBody {
    * Look up a bone by its driver emission id (e.g. 'head0'). Task 3 uses this
    * to parent formed-head meshes to their head bone in skinned mode.
    */
-  readonly boneNamed(id: string): Bone | undefined;
+  boneNamed(id: string): Bone | undefined;
   /** Resolve this frame's emissions into bone transforms — call after buildBody. */
   finishFrame(): void;
   /** Fill + shell triangles (2 draw calls total). */
@@ -214,7 +214,7 @@ export function createSkinnedBiped(frame: Frame, options: SkinnedBodyOptions): S
   const built = buildBipedSkeleton(frame);
   const geometry =
     options.weights === 'smooth'
-      ? buildSmoothBipedGeometry(built.restPose, built.index)
+      ? buildSmoothBipedGeometry(built.restPose, built.index, frame)
       : buildBipedBindGeometry(frame, built);
 
   // Skeleton inverses must be captured while the bones hold their bind pose
@@ -233,7 +233,11 @@ export function createSkinnedBiped(frame: Frame, options: SkinnedBodyOptions): S
     fillMaterial.opacity = options.opacity;
     fillMaterial.depthWrite = false; // translucent bodies must not self-occlude harshly
   }
-  const inkMaterial = outlineMaterial(options.colorHex, options.outlineThickness);
+  // round 16 (humanoid-anatomy): the smooth loft carries a per-vertex ink
+  // weight (`aInk`) — hands attenuate the hull so the ink stops swallowing
+  // the thumb/knuckle creases. Gate on the attribute: without it the shader's
+  // aInk reads 0 and the whole outline vanishes.
+  const inkMaterial = outlineMaterial(options.colorHex, options.outlineThickness, 1, geometry.hasAttribute('aInk'));
 
   const root = new Group();
   root.name = 'skinnedBody';

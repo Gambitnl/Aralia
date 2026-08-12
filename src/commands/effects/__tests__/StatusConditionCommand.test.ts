@@ -13,9 +13,9 @@ import * as savingThrowUtils from '@/utils/character';
 import { generateId } from '@/utils/combat';
 import { BreakConcentrationCommand } from '../ConcentrationCommands';
 import { DamageCommand } from '../DamageCommand';
-import friends from '../../../../public/data/spells/level-0/friends.json';
-import sleep from '../../../../public/data/spells/level-1/sleep.json';
-import enemiesAbound from '../../../../public/data/spells/level-3/enemies-abound.json';
+import friends from '@/data/spells/level-0/friends.json';
+import sleep from '@/data/spells/level-1/sleep.json';
+import enemiesAbound from '@/data/spells/level-3/enemies-abound.json';
 import type { ActiveSpellZone } from '@/systems/spells/effects';
 
 // We mock saving throws so we don't have to deal with RNG in tests

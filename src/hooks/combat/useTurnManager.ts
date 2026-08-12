@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 04/08/2026, 01:57:38
+ * Last Sync: 12/08/2026, 00:26:02
  * Dependents: components/BattleMap/BattleMap.tsx, components/BattleMap/BattleMap3D.tsx, components/BattleMap/BattleMapDemo.tsx, components/Combat/CombatView.tsx, components/DesignPreview/steps/PreviewCombatScenarios.tsx, hooks/useBattleMap.ts
- * Imports: 13 files
+ * Imports: 14 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -42,6 +42,7 @@ import { ROUND_DURATION_SECONDS } from '../../utils/core/spellTimeUtils';
 import { evaluateCombatTurn } from '../../utils/combat/combatAI';
 import { getAbilityModifierValue } from '../../utils/character';
 import { breakTauntsForEvent } from '../../systems/combat/tauntConstraint';
+import { advanceStatusConditionDurationsAtTurnStart } from '../../utils/combat/repeatSaveUtils';
 
 interface UseTurnManagerProps {
   difficulty?: keyof typeof AI_THINKING_DELAY_MS;
@@ -565,67 +566,12 @@ export const useTurnManager = ({
       updatedChar.temporaryHitPointSource?.spellId === effect.spellId
     );
 
-    // Turn-boundary conditions use the structured countdown at end of turn.
-    // Their legacy status mirror must not lose a round at turn start.
-    const turnBoundaryConditionNames = new Set(
-      (updatedChar.conditions || [])
-        .filter(isTurnBoundaryCondition)
-        .map(condition => String(condition.name))
-    );
+    // The shared duration primitive advances both runtime mirrors together.
+    // Tactical Sandbox calls the same function for its expiry proof, so this
+    // production turn-start path remains the single timing contract.
+    const durationAdvance = advanceStatusConditionDurationsAtTurnStart(updatedChar);
 
-    // Tick down legacy status effects first, but keep track of what expires.
-    // Spell conditions are mirrored in both `statusEffects` and `conditions`;
-    // if one mirror expires without the other, the map label and the gameplay
-    // rules can disagree about whether the spell is still active.
-    const expiredStatusNames = new Set<string>();
-    const tickedStatusEffects = updatedChar.statusEffects
-      .map(effect => turnBoundaryConditionNames.has(String(effect.name))
-        ? effect
-        : { ...effect, duration: effect.duration - 1 })
-      .filter(effect => {
-        const keepEffect = turnBoundaryConditionNames.has(String(effect.name)) || effect.duration > 0;
-        if (!keepEffect) {
-          expiredStatusNames.add(String(effect.name));
-        }
-        return keepEffect;
-      });
-
-    // Tick down round-based structured conditions and collect their expired
-    // names so the legacy status mirror is removed at the same boundary.
-    const expiredConditionNames = new Set<string>();
-    const tickedConditions = (updatedChar.conditions || [])
-      .map(cond => {
-        if (cond.duration && cond.duration.type === 'rounds' && typeof cond.duration.value === 'number') {
-          return {
-            ...cond,
-            duration: {
-              ...cond.duration,
-              value: cond.duration.value - 1
-            }
-          };
-        }
-        return cond;
-      })
-      .filter(cond => {
-        const keepCondition = !cond.duration || cond.duration.type !== 'rounds' || (typeof cond.duration.value === 'number' && cond.duration.value > 0);
-        if (!keepCondition) {
-          expiredConditionNames.add(String(cond.name));
-        }
-        return keepCondition;
-      });
-
-    const mirroredExpiredConditionNames = new Set([
-      ...expiredStatusNames,
-      ...expiredConditionNames
-    ]);
-    const synchronizedStatusEffects = mirroredExpiredConditionNames.size > 0
-      ? tickedStatusEffects.filter(effect => !mirroredExpiredConditionNames.has(String(effect.name)))
-      : tickedStatusEffects;
-    const synchronizedConditions = mirroredExpiredConditionNames.size > 0
-      ? tickedConditions.filter(condition => !mirroredExpiredConditionNames.has(String(condition.name)))
-      : tickedConditions;
-
-    mirroredExpiredConditionNames.forEach(conditionName => {
+    durationAdvance.expiredNames.forEach(conditionName => {
       onLogEntry({
         id: generateId(),
         timestamp: Date.now(),
@@ -678,9 +624,10 @@ export const useTurnManager = ({
           commandsUsedThisTurn: 0
         }
         : updatedChar.summonMetadata,
-      statusEffects: synchronizedStatusEffects,
+      statusEffects: durationAdvance.character.statusEffects,
       activeEffects: tickedActiveEffects,
-      conditions: synchronizedConditions,
+      conditions: durationAdvance.character.conditions,
+      actionEconomy: durationAdvance.character.actionEconomy,
       armorClass: finalAC,
       resistances: expiredResistanceTypes.size > 0
         ? (updatedChar.resistances || []).filter(damageType => !expiredResistanceTypes.has(damageType))

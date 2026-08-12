@@ -7,7 +7,7 @@ import { createMockCombatCharacter } from '../../utils/core';
 import type { CommandContext } from '../base/SpellCommand';
 import type { Ability, CombatCharacter, CombatLogEntry, CombatState, SelectedSpellTarget } from '../../types/combat';
 import type { SummoningEffect, UtilityEffect } from '../../types/spells';
-import conjureFey from '../../../public/data/spells/level-6/conjure-fey.json';
+import conjureFey from '@/data/spells/level-6/conjure-fey.json';
 
 /**
  * This file proves the live Conjure Fey spell packet reaches the summon actor

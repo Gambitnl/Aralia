@@ -75,6 +75,8 @@ export function generateEntityBlueprint(recipe: EntityRecipe): EntityBlueprint {
       frame.limbLengthFt *= profile.frameMods.limb ?? 1;
       frame.armLengthFt *= profile.frameMods.arm ?? 1;
     }
+    // round 18 (humanoid-anatomy): per-species idle posture (orc hunch)
+    if (profile.hunch) frame.hunch = profile.hunch;
     return {
       gait: profile.gait,
       frame,

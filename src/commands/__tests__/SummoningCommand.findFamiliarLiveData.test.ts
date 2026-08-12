@@ -4,7 +4,7 @@ import type { CommandContext } from '../base/SpellCommand';
 import { AbilityCommandFactory } from '../factory/AbilityCommandFactory';
 import type { CombatCharacter, CombatState } from '../../types/combat';
 import type { SummoningEffect } from '../../types/spells';
-import findFamiliar from '../../../public/data/spells/level-1/find-familiar.json';
+import findFamiliar from '@/data/spells/level-1/find-familiar.json';
 
 /**
  * This file proves live Find Familiar spell data reaches executable summon actions.

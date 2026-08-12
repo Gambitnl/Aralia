@@ -47,12 +47,5 @@ interface GroundAgentsProps {
     sceneOrigin: SceneOrigin;
     /** Visual size multiplier for figures (preview exaggeration). Default 1. */
     figureScale?: number;
-}
-/**
- * Remove only roster instances whose joined interior packet owns the resident
- * at this clock. Unmatched/legacy residents remain street-owned, and the stable
- * member-key equality prevents a coincident numeric id from hiding a stranger.
- */
-export declare function streetOwnedAgentNodes(nodes: GroundAgentSceneNode[], rosters: TownRoster[], handoffs: ReadonlyMap<string, ResidentHandoffRecord>, clock: number): GroundAgentSceneNode[];
 declare const GroundAgents: React.FC<GroundAgentsProps>;
 export default GroundAgents;

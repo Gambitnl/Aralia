@@ -6,8 +6,8 @@ import { UtilityCommand } from '../effects/UtilityCommand'
 import type { CombatCharacter } from '@/types/combat'
 import type { DamageEffect, EffectDuration, Spell, TerrainEffect, UtilityEffect } from '@/types/spells'
 import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '@/utils/core'
-import conjureMinorElementals from '../../../public/data/spells/level-4/conjure-minor-elementals.json'
-import conjureWoodlandBeings from '../../../public/data/spells/level-4/conjure-woodland-beings.json'
+import conjureMinorElementals from '@/data/spells/level-4/conjure-minor-elementals.json'
+import conjureWoodlandBeings from '@/data/spells/level-4/conjure-woodland-beings.json'
 
 /**
  * Conjure Minor Elementals and Conjure Woodland Beings create caster-following

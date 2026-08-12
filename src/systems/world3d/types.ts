@@ -432,6 +432,16 @@ export interface VegetationScatter {
   /** Optional per-instance RGB (3 floats per instance) for color variety. */
   colors?: Float32Array;
   /**
+   * Lean toward the ground normal, radians, one per instance (surface-gate
+   * wave). Baked at scatter time from a `SurfaceProbe`; the renderer applies it
+   * as a tilt about `tiltAxes`. Absent = every instance stands upright.
+   */
+  tilts?: Float32Array;
+  /** Horizontal tilt axis (x, z) per instance — 2 floats each, unit length. */
+  tiltAxes?: Float32Array;
+  /** Surface-gate rejection tally for this build. Instrumentation only. */
+  gateStats?: import('../worldforge/terrain/surfaceProbe').SurfaceGateStats;
+  /**
    * Stable payload fingerprint for the chunk that produced these buffers.
    * The renderer uses this to skip rewriting instance matrices when a worker
    * hands back a fresh wrapper for the same vegetation scatter payload.

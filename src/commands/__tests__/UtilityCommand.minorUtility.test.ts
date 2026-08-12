@@ -2,9 +2,9 @@ import { describe, it, expect } from 'vitest'
 import { mockCaster, mockTarget, mockContext, mockState, createMockCombatState, UtilityCommand } from './UtilityCommand.testHelpers'
 import type { CombatState } from '@/types/combat'
 import type { Spell, UtilityEffect, SelectedSpellTarget } from './UtilityCommand.testHelpers'
-import prestidigitationJson from '../../../public/data/spells/level-0/prestidigitation.json'
-import druidcraftJson from '../../../public/data/spells/level-0/druidcraft.json'
-import elementalismJson from '../../../public/data/spells/level-0/elementalism.json'
+import prestidigitationJson from '@/data/spells/level-0/prestidigitation.json'
+import druidcraftJson from '@/data/spells/level-0/druidcraft.json'
+import elementalismJson from '@/data/spells/level-0/elementalism.json'
 
 describe('UtilityCommand', () => {
     const prestidigitationEffect = (prestidigitationJson as Spell).effects[0] as UtilityEffect

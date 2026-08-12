@@ -12,7 +12,7 @@
 import { renderHook, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { useSpellGateChecks } from '../useSpellGateChecks';
-import currentMagicMissileJson from '../../../public/data/spells/level-1/magic-missile.json';
+import currentMagicMissileJson from '@/data/spells/level-1/magic-missile.json';
 
 // The hook owns result merging, while spellGateBootstrap owns optional local
 // artifact loading. Mock that boundary directly so clean CI and local machines

@@ -1,0 +1,379 @@
+{
+  "id": "resurrection",
+  "name": "Resurrection",
+  "aliases": [],
+  "level": 7,
+  "school": "Necromancy",
+  "legacy": false,
+  "classes": [
+    "Bard",
+    "Cleric"
+  ],
+  "subClasses": [],
+  "ritual": false,
+  "rarity": "common",
+  "attackType": "",
+  "castingTime": {
+    "value": 1,
+    "unit": "hour",
+    "explorationCost": {
+      "value": 1,
+      "unit": "hour"
+    },
+    "combatCost": {
+      "type": "action",
+      "condition": ""
+    }
+  },
+  "range": {
+    "type": "touch",
+    "distance": 0
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": true,
+    "materialDescription": "a diamond worth 1,000+ GP, which the spell consumes",
+    "materialCost": 1000,
+    "isConsumed": true
+  },
+  "duration": {
+    "type": "instantaneous",
+    "concentration": false,
+    "value": 0,
+    "unit": "round"
+  },
+  "targeting": {
+    "type": "single",
+    "range": 0,
+    "validTargets": [
+      "creatures"
+    ],
+    "lineOfSight": true,
+    "maxTargets": 1,
+    "filter": {
+      "creatureTypes": [],
+      "excludeCreatureTypes": [],
+      "sizes": [],
+      "alignments": [],
+      "hasCondition": [],
+      "isNativeToPlane": false,
+      "willing": "not_applicable",
+      "objectEligibility": {
+        "wornOrCarried": "not_applicable",
+        "magicalStatus": "not_applicable",
+        "fixedToSurface": "not_applicable",
+        "maxSize": "not_applicable",
+        "maxWeightPounds": "not_applicable",
+        "maxWeightScaling": "not_applicable"
+      },
+      "communicationPrerequisites": {
+        "canHearCaster": "not_applicable",
+        "canUnderstandCaster": "not_applicable",
+        "canSeeCaster": "not_applicable"
+      },
+      "abilityThreshold": {
+        "ability": "not_applicable",
+        "operator": "not_applicable",
+        "value": "not_applicable"
+      },
+      "selfRelation": "not_applicable"
+    }
+  },
+  "effects": [
+    {
+      "type": "HEALING",
+      "trigger": {
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
+      "condition": {
+        "type": "always",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false,
+          "willing": "not_applicable",
+          "objectEligibility": {
+            "wornOrCarried": "not_applicable",
+            "magicalStatus": "not_applicable",
+            "fixedToSurface": "not_applicable",
+            "maxSize": "not_applicable",
+            "maxWeightPounds": "not_applicable",
+            "maxWeightScaling": "not_applicable"
+          },
+          "communicationPrerequisites": {
+            "canHearCaster": "not_applicable",
+            "canUnderstandCaster": "not_applicable",
+            "canSeeCaster": "not_applicable"
+          },
+          "abilityThreshold": {
+            "ability": "not_applicable",
+            "operator": "not_applicable",
+            "value": "not_applicable"
+          },
+          "selfRelation": "not_applicable"
+        },
+        "requiresStatus": [],
+        "saveModifiers": [],
+        "saveOutcomeOverrides": []
+      },
+      "healing": {
+        "dice": "all hit points",
+        "isTemporaryHp": false
+      },
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "",
+        "customFormula": ""
+      },
+      "description": "The dead creature returns to life with all its Hit Points.",
+      "conditionalEndings": []
+    },
+    {
+      "type": "STATUS_CONDITION",
+      "trigger": {
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
+      "condition": {
+        "type": "always",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false,
+          "willing": "not_applicable",
+          "objectEligibility": {
+            "wornOrCarried": "not_applicable",
+            "magicalStatus": "not_applicable",
+            "fixedToSurface": "not_applicable",
+            "maxSize": "not_applicable",
+            "maxWeightPounds": "not_applicable",
+            "maxWeightScaling": "not_applicable"
+          },
+          "communicationPrerequisites": {
+            "canHearCaster": "not_applicable",
+            "canUnderstandCaster": "not_applicable",
+            "canSeeCaster": "not_applicable"
+          },
+          "abilityThreshold": {
+            "ability": "not_applicable",
+            "operator": "not_applicable",
+            "value": "not_applicable"
+          },
+          "selfRelation": "not_applicable"
+        },
+        "requiresStatus": [],
+        "saveModifiers": [],
+        "saveOutcomeOverrides": []
+      },
+      "statusCondition": {
+        "name": "Resurrection Ordeal",
+        "duration": {
+          "type": "special",
+          "value": 0
+        },
+        "breakTriggers": [
+          "duration_expires"
+        ],
+        "aftermath": "The target takes a -4 penalty to D20 Tests; each Long Rest reduces the penalty by 1 until it reaches 0."
+      },
+      "d20TestModifier": {
+        "initialPenalty": -4,
+        "appliesTo": [
+          "attack_rolls",
+          "ability_checks",
+          "saving_throws"
+        ],
+        "recovery": {
+          "trigger": "finish_long_rest",
+          "change": 1,
+          "endsAt": 0
+        }
+      },
+      "description": "Coming back from the dead gives the target a -4 penalty to D20 Tests that improves by 1 after each Long Rest.",
+      "conditionalEndings": []
+    },
+    {
+      "type": "UTILITY",
+      "trigger": {
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
+      "condition": {
+        "type": "always",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false,
+          "willing": "not_applicable",
+          "objectEligibility": {
+            "wornOrCarried": "not_applicable",
+            "magicalStatus": "not_applicable",
+            "fixedToSurface": "not_applicable",
+            "maxSize": "not_applicable",
+            "maxWeightPounds": "not_applicable",
+            "maxWeightScaling": "not_applicable"
+          },
+          "communicationPrerequisites": {
+            "canHearCaster": "not_applicable",
+            "canUnderstandCaster": "not_applicable",
+            "canSeeCaster": "not_applicable"
+          },
+          "abilityThreshold": {
+            "ability": "not_applicable",
+            "operator": "not_applicable",
+            "value": "not_applicable"
+          },
+          "selfRelation": "not_applicable"
+        },
+        "requiresStatus": [],
+        "saveModifiers": [],
+        "saveOutcomeOverrides": []
+      },
+      "utilityType": "other",
+      "description": "Touch a creature dead no more than a century, that did not die of old age, and that was not Undead when it died. The spell neutralizes death-time poisons, closes mortal wounds, restores missing body parts, and taxes the caster until a Long Rest if the creature has been dead for 365 days or longer.",
+      "casterTax": {
+        "appliesWhen": "revived_creature_dead_365_days_or_longer",
+        "endsWhen": "caster_finishes_long_rest",
+        "spellcastingRestriction": "cannot_cast_spells",
+        "d20TestModifier": {
+          "type": "disadvantage",
+          "appliesTo": [
+            "attack_rolls",
+            "ability_checks",
+            "saving_throws"
+          ]
+        }
+      },
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "",
+        "customFormula": ""
+      },
+      "grantedActions": [],
+      "attackAugments": [],
+      "controlOptions": [
+        {
+          "name": "Dead No More Than Century",
+          "effect": "The dead creature must have been dead for no more than a century."
+        },
+        {
+          "name": "Not Old Age",
+          "effect": "The creature must not have died of old age."
+        },
+        {
+          "name": "Not Undead At Death",
+          "effect": "The creature must not have been Undead when it died."
+        },
+        {
+          "name": "Return With All Hit Points",
+          "effect": "The creature returns to life with all its Hit Points."
+        },
+        {
+          "name": "Neutralize Death Poisons",
+          "effect": "Poisons affecting the creature at the time of death are neutralized."
+        },
+        {
+          "name": "Close Wounds And Restore Parts",
+          "effect": "Mortal wounds close and missing body parts are restored."
+        },
+        {
+          "name": "Target D20 Test Penalty",
+          "effect": "The revived target takes a -4 penalty to D20 Tests."
+        },
+        {
+          "name": "Penalty Reduces On Long Rest",
+          "effect": "Each time the target finishes a Long Rest, the penalty is reduced by 1 until it becomes 0."
+        },
+        {
+          "name": "Long-Dead Caster Tax",
+          "effect": "Reviving a creature dead for 365 days or longer taxes the caster until the caster finishes a Long Rest."
+        },
+        {
+          "name": "Caster Spellcasting Lockout",
+          "effect": "If the long-dead caster tax applies, the caster cannot cast spells again until finishing a Long Rest."
+        },
+        {
+          "name": "Caster D20 Disadvantage",
+          "effect": "If the long-dead caster tax applies, the caster has Disadvantage on D20 Tests until finishing a Long Rest."
+        }
+      ],
+      "taunt": {
+        "disadvantageAgainstOthers": false,
+        "leashRangeFeet": 0,
+        "breakConditions": []
+      },
+      "savePenalty": {
+        "dice": "",
+        "flat": 0,
+        "applies": "next_save",
+        "duration": {
+          "type": "rounds",
+          "value": 0
+        }
+      },
+      "light": {
+        "brightRadius": 0,
+        "dimRadius": 0,
+        "attachedTo": "caster",
+        "color": "",
+        "colorChoice": "not_applicable",
+        "opaqueCoverBlocks": "not_applicable",
+        "emitsHeat": "not_applicable",
+        "ignitesObjects": "not_applicable",
+        "consumesFuel": "not_applicable",
+        "canBeCoveredOrHidden": "not_applicable",
+        "canBeSmotheredOrQuenched": "not_applicable"
+      },
+      "conditionalEndings": []
+    }
+  ],
+  "arbitrationType": "mechanical",
+  "aiContext": {
+    "prompt": "Confirm the creature has been dead no more than a century, did not die of old age, was not Undead at death, and can be touched. On revival, restore all Hit Points, apply the target's -4 D20 Test ordeal with Long Rest recovery, and if the creature was dead 365 days or longer apply the caster spellcasting lockout and D20 Test Disadvantage until the caster finishes a Long Rest.",
+    "playerInputRequired": true
+  },
+  "description": "With a touch, you revive a dead creature that has been dead for no more than a century, didn't die of old age, and wasn't Undead when it died. The creature returns to life with all its Hit Points. This spell also neutralizes any poisons that affected the creature at the time of death. This spell closes all mortal wounds and restores any missing body parts. Coming back from the dead is an ordeal. The target takes a -4 penalty to D20 Tests. Every time the target finishes a Long Rest, the penalty is reduced by 1 until it becomes 0. Casting this spell to revive a creature that has been dead for 365 days or longer taxes you. Until you finish a Long Rest, you can't cast spells again, and you have Disadvantage on D20 Tests.",
+  "higherLevels": "",
+  "tags": []
+}

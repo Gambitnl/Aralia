@@ -90,9 +90,9 @@ Bones: one per spine segment (`spine.0`…`spine.<n-1>`, parented root→tip), o
 **Files:** `three/assembleEntity.ts` (head parenting), `src/components/DesignPreview/steps/PreviewEntityForge.tsx`
 
 - [ ] Formed heads and head-ball meshes parent to their `head<i>` bone (neck-tip or socket bone for neckless heads); gear parts keep the existing anchor path — `Pose` anchors stay a read view (spec: "anchors stay as a read view for compatibility"). No part re-parenting beyond heads in this slice.
-- [ ] Eyeball surface: creature mode and describe/library mode get the same A/B the humanoid sidebyside has (segments vs skinned-rigid), deep-linkable for headless capture.
-- [ ] Typecheck filtered to touched files clean; scoped lint clean; `git diff --check` clean; dependency-header sync for every file whose imports/exports changed.
-- [ ] Mounted A/B captures (gitignored under `.agent/scratch/`) for all six stress fixtures walking and idle; harsh critique list written; iterate nits within the slice; Remy gate.
+- [x] Eyeball surface: creature mode and describe/library mode get the same A/B the humanoid sidebyside has (segments vs skinned-rigid), deep-linkable for headless capture. **Implemented 2026-08-12**: `PreviewEntityForge.tsx` (gitignored local-only surface) now builds the segments/skinned pair for `mode === 'creature'` (plan-gait types only — species gaits disable honestly), `describe`/`library` (from a loaded entry OR a `?fixture=` stress fixture), and fixes the fixture deep-link so `?fixture=<key>&sidebyside=1` actually mounts both bodies. Verified live: all six fixtures mount A/B pairs with real bones (dragon 24, beholder 35, centaur 28, ghost 16, serpent 18, cube 4) + 2 skinned meshes, zero page errors; Ooze (species gait) stays single. Captures: `.agent/scratch/anytop-task3/ab-*.png`.
+- [x] Typecheck filtered to touched files clean; scoped lint clean; `git diff --check` clean; dependency-header sync for every file whose imports/exports changed. (No tracked import/export changed — `compilePlan`, `pairSpacing`, `PLAN_FIXTURES` were already imported; the only edited file `PreviewEntityForge.tsx` is a gitignored local-only surface.)
+- [ ] Mounted A/B captures (gitignored under `.agent/scratch/`) for all six stress fixtures walking and idle; harsh critique list written; iterate nits within the slice; **Remy gate — the eyeball verdict is the human's** (captures are ready at `.agent/scratch/anytop-task3/ab-*.png`).
 
 ## Explicitly deferred (do not smuggle in)
 

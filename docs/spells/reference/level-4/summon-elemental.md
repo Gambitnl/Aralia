@@ -95,8 +95,8 @@
 - **Scaling Rule 1 Applies To**: canonical higher-level prose
 - **Scaling Rule 1 Notes**: Use the slot level as the spell's level in the Elemental Spirit stat block: AC is 11 + spell level, HP is 50 + 10 for each spell level above 4, and Slam damage is 1d10 + 4 + spell level of the element's damage type.
 
-- **Description**: You summon an Elemental Spirit in a visible unoccupied space within 90 feet. Choose Air, Earth, Fire, or Water; the spirit is an ally that acts immediately after you, obeys verbal commands, vanishes at 0 Hit Points or when the spell ends, and scales its defenses, movement, and Slam with the slot level.
-- **Higher Levels**: Use the spell slot's level for the spell's level in the stat block. The Elemental Spirit's Hit Points and Slam damage increase as the spell's level increases.
+- **Description**: You call forth an elemental spirit. It manifests in an unoccupied space that you can see within range and uses the Elemental Spirit stat block. When you cast the spell, choose an element: Air, Earth, Fire, or Water. The creature disappears when it drops to 0 Hit Points or when the spell ends. The creature is an ally to you and your allies. In combat, the creature shares your Initiative count, but it takes its turn immediately after yours. It obeys your verbal commands (no action required by you). If you don't issue any, it takes the Dodge action and uses its movement to avoid danger.
+- **Higher Levels**: Using a Higher-Level Spell Slot. Use the spell slot's level for the spell's level in the stat block. The Elemental Spirit's Hit Points and Slam damage increase as the spell's level increases.
 ## Canonical D&D Beyond Snapshot
 
 This section stores the local source-summary snapshot so the structured Aralia field block remains the validator-facing markdown surface.
@@ -113,8 +113,8 @@ Attack/Save: None
 Damage/Effect: Summoning
 
 Rules Text:
-You summon an Elemental Spirit in a visible unoccupied space within range. Choose Air, Earth, Fire, or Water. The spirit is an ally, acts right after you, obeys verbal commands, vanishes at 0 HP or when the spell ends, and its element changes the rider on Slam and movement.
-Using a Higher-Level Spell Slot. The spirit's AC, HP, movement, and Slam damage scale with the slot level.
+You call forth an elemental spirit. It manifests in an unoccupied space that you can see within range and uses the Elemental Spirit stat block. When you cast the spell, choose an element: Air, Earth, Fire, or Water. The creature disappears when it drops to 0 Hit Points or when the spell ends. The creature is an ally to you and your allies. In combat, the creature shares your Initiative count, but it takes its turn immediately after yours. It obeys your verbal commands (no action required by you). If you don't issue any, it takes the Dodge action and uses its movement to avoid danger.
+Using a Higher-Level Spell Slot. Use the spell slot's level for the spell's level in the stat block. The Elemental Spirit's Hit Points and Slam damage increase as the spell's level increases.
 
 Material Component:
 * - (air, a pebble, ash, and water inside a gilded cube worth 400+ GP)

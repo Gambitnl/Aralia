@@ -31,6 +31,15 @@ const SUBJECTS = {
     { id: 'dragon', query: 'fixture=dragon' },
     { id: 'serpent', query: 'fixture=threeHeadedSerpent' },
     { id: 'ooze', query: 'fixture=tentacledOoze' },
+    // Remy 2026-08-12: random archetype rolls are part of the judged set —
+    // the generator's default plans must pass the same bar as the fixtures.
+    { id: 'beast-large', query: 'mode=creature&type=Beast&size=Large&seed=1' },
+    { id: 'celestial-large', query: 'mode=creature&type=Celestial&size=Large&seed=1' },
+    // Remy 2026-08-12: the spread wing only shows in walk — judge it too.
+    { id: 'dragon-walk', query: 'fixture=dragon', action: 'walk' },
+    // Remy 2026-08-12: 14 elemental references set the archetype bar —
+    // see .agent/critique-refs/elementals/DESIGN-LANGUAGE.md.
+    { id: 'elemental-large', query: 'mode=creature&type=Elemental&size=Large&seed=1' },
   ],
   'surface-materials': [
     { id: 'human-fighter', query: 'race=human&class=fighter' },
@@ -84,10 +93,13 @@ async function captureSubject(pieceId, subj) {
   // round 5 (creature-anatomy): same rule for creatures — a walking dragon
   // spreads its wings (wingFold 0), so anatomy sheets never showed the rest
   // fold and the side profile grew two wing peaks. Anatomy = planted idle.
+  // round 23+ (Remy): a subject may pin another action (e.g. walk for the
+  // spread-wing state); the anatomy default stays the planted idle.
   if (pieceId === 'humanoid-anatomy' || pieceId === 'creature-anatomy') {
-    const idleBtn = await page.$('text=idle');
-    if (!idleBtn) throw new Error(`idle action button not found for ${subj.id}`);
-    await idleBtn.click();
+    const action = subj.action || 'idle';
+    const btn = await page.$(`text=${action}`);
+    if (!btn) throw new Error(`${action} action button not found for ${subj.id}`);
+    await btn.click();
   }
   await sleep(subj.query.includes('clip=1') ? 4000 : 2500); // clip load + pose settle
   const dir = path.join(OUT_ROOT, 'sheets', pieceId);

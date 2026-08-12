@@ -144,13 +144,17 @@ export const PLAN_REPLACED_PARTS: ReadonlySet<string> = new Set([
   'belly',
 ]);
 
-/** Belly tone for countershading: the body hue lifted toward warm cream. */
+/** Belly tone for countershading: the body hue lifted toward warm cream.
+ * round 24 (creature-anatomy): mix 0.48 → 0.64 — the round-23 Beast Large
+ * read "uniform gray, zero surface value variation"; at 0.48 the lift died
+ * inside one toon band on mid-value hides. The ventral must land a full band
+ * lighter (Valheim boar countershade). */
 export function bellyToneFor(hex: string): string {
   const n = parseInt(hex.slice(1), 16);
   const r = (n >> 16) & 0xff;
   const g = (n >> 8) & 0xff;
   const b = n & 0xff;
-  const mix = (c: number, t: number) => Math.round(c + (t - c) * 0.48);
+  const mix = (c: number, t: number) => Math.round(c + (t - c) * 0.64);
   const to2 = (v: number) => v.toString(16).padStart(2, '0');
   return `#${to2(mix(r, 0xe8))}${to2(mix(g, 0xdd))}${to2(mix(b, 0xc8))}`;
 }
@@ -222,6 +226,8 @@ interface UprightOptions {
   armR: number;
   hands: boolean;
   head: PlanHead;
+  /** Three-lobe chest/waist/hip profile (replaces bulge when set). */
+  mass?: [number, number, number];
   extra?: PlanAppendage[];
 }
 
@@ -229,7 +235,7 @@ function uprightPlan(name: string, h: number, b: number, o: UprightOptions): Pla
   return {
     name,
     frame: { heightFt: h, bulk: b, stance: 'upright' },
-    spine: { segments: 4, taper: o.taper, arch: 0.05, bulge: o.bulge },
+    spine: { segments: 4, taper: o.taper, arch: 0.05, bulge: o.bulge, ...(o.mass ? { mass: o.mass } : {}) },
     appendages: [...bipedLimbs(h, o.legR, o.armR, o.hands), ...(o.extra ?? [])],
     heads: [o.head],
   };
@@ -241,9 +247,29 @@ function beastPlan(name: string, h: number, b: number, head?: PlanHead): PlanTem
   return {
     name,
     frame: { heightFt: h, lengthFt: h * 2.3, bulk: Math.max(b, 0.35), stance: 'horizontal' },
-    spine: { segments: 5, taper: 0.72, arch: 0.06, bulge: 0.42 },
+    // round 23 (creature-anatomy): the Beast Large archetype read as "a gray
+    // featureless sausage-lizard" (Remy, live debugger) — a uniform bulge
+    // tube on stick legs. The fixture-round lessons now reach the default:
+    // a real three-lobe mass profile (deep chest, tucked waist, driving
+    // hips) and legs thick enough to carry haunches through compilePlan's
+    // root swell.
+    spine: { segments: 5, taper: 0.72, arch: 0.06, bulge: 0.42, mass: [1.32, 0.88, 1.18] },
     appendages: [
-      ...quadLegs(reach, 0.34, 0.42),
+      ...quadLegs(reach, 0.48, 0.62),
+      // round 24 (creature-anatomy): SHORT THICK REAL NECK — the round-23
+      // verdict read the auto S-neck carriage as a "camel-long sausage neck";
+      // that carriage is dragon-tuned (rise 2.15 bodyR). A beast gets an
+      // explicit two-link neck: short, thick, flowing shoulder → skull.
+      {
+        kind: 'neck',
+        attach: 0.05,
+        perSide: false,
+        count: 1,
+        chain: [
+          { lenFt: h * 0.22, r: 0.78 },
+          { lenFt: h * 0.18, r: 0.62 },
+        ],
+      },
       tailChain([
         [h * 0.32, 0.3],
         [h * 0.28, 0.18],
@@ -251,10 +277,19 @@ function beastPlan(name: string, h: number, b: number, head?: PlanHead): PlanTem
       ]),
     ],
     heads: [
-      head ?? {
+      // every beast head (including the Monstrosity/Undead overrides) rides
+      // the new neck chain — an unbound neck would render as a headless stump
+      head ? { neckIndex: 2, ...head } : {
+        neckIndex: 2,
         form: 'beast',
-        sizeScale: 1.05,
-        eyes: { count: 2, sizeScale: 0.9 },
+        // round 23 (creature-anatomy): 1.05 → 1.3 — the Large archetype's
+        // skull vanished at sheet distance (the dragon/serpent lesson: the
+        // head must out-gauge the neck that carries it)
+        sizeScale: 1.3,
+        // round 24 (creature-anatomy): 0.9 → 0.55 — "cartoon yellow eyes";
+        // the dragon's round-6 lesson: small eyes sit IN the skull, big ones
+        // sit ON it as googly discs.
+        eyes: { count: 2, sizeScale: 0.55 },
         snout: { lengthScale: 1.05, droop: 0.12 },
       },
     ],
@@ -427,13 +462,19 @@ function basePlanForCreature(
       });
 
     case CreatureType.Celestial:
+      // round 24 (creature-anatomy): the round-23 verdict read "a beige
+      // mannequin ... two dot eyes on an egg". A sculpted blunt head (brow
+      // shelf, jaw — the face-zone treatment) replaces the ball+dots, and a
+      // chest-dominant mass profile breaks the tube torso: guardian
+      // shoulders over a drawn waist, not one smooth loft.
       return uprightPlan('Celestial', h, b, {
         bulge: 0.3,
         taper: 0.75,
+        mass: [1.3, 0.82, 1.0],
         legR: 0.26,
         armR: 0.22,
         hands: true,
-        head: { sizeScale: 1.0, eyes: { count: 2, sizeScale: 1.0 } },
+        head: { form: 'blunt', sizeScale: 1.0, eyes: { count: 2, sizeScale: 0.7 } },
       });
 
     case CreatureType.Construct:
@@ -529,25 +570,67 @@ function basePlanForCreature(
       });
 
     case CreatureType.Elemental:
+      // round 24 (creature-anatomy): THE named gap — the old floating
+      // "jewelry display" (smooth gem-loft torso, pencil arms, featureless
+      // sphere head) violated every line of the elemental design language
+      // (.agent/critique-refs/elementals/DESIGN-LANGUAGE.md). The body is now
+      // BUILT FROM THE ELEMENT: surface 'rock' makes the driver stack 3-6
+      // overlapping boulder plates over the torso and every limb with dark
+      // recessed joints, moss and crystal accents, and sunken glow eyes
+      // under a brow plate. Anatomy follows the 14 references: a planted
+      // top-heavy hulk — huge shoulders, massive long arms ending in
+      // claw-mass hands (the biggest limb forms on the body), thick short
+      // legs, and a small head low between the shoulders. Element subtypes
+      // (fire/water/air) come later — one convincing earth elemental first.
       return {
         name: 'Elemental',
-        frame: { heightFt: h, bulk: Math.max(b, 0.5), stance: 'floating' },
-        spine: { segments: 3, taper: 0.55, arch: 0, bulge: 0.3 },
+        frame: { heightFt: h, bulk: Math.max(b, 0.8), stance: 'upright' },
+        surface: 'rock',
+        // top-heavy: chest lobe (top of the upright spine) dominates, waist
+        // tucks, pelvis re-widens for the planted stance
+        spine: { segments: 5, taper: 0.9, arch: 0, mass: [1.5, 1.0, 1.2] },
+        skin: { blend: 0.1 }, // rock joins hard — plates, not melted flesh
         appendages: [
           {
+            // thick short planted legs — the earth golem's stumpy base
+            kind: 'leg',
+            attach: 0.95,
+            perSide: true,
+            count: 1,
+            // round 24 second pass: the first capture buried the legs — the
+            // torso sat on the ground and only toe stubs showed. Longer and
+            // fatter, so the planted stance reads as legs carrying a mass.
+            chain: [
+              { lenFt: h * 0.3, r: 0.66 },
+              { lenFt: h * 0.26, r: 0.54 },
+            ],
+          },
+          {
+            // massive arms: the biggest limbs on the body, knuckles near the
+            // ground. The last link's fat radius IS the claw-mass gauge — the
+            // driver's rocky hand scales palm and claws off it.
             kind: 'arm',
-            attach: 0.35,
-            heightFrac: 0.6,
+            attach: 0.08,
+            heightFrac: 0.85,
             perSide: true,
             count: 1,
             tips: 'hand',
             chain: [
-              { lenFt: h * 0.3, r: 0.3 },
-              { lenFt: h * 0.26, r: 0.2 },
+              { lenFt: h * 0.3, r: 0.5 },
+              { lenFt: h * 0.26, r: 0.44 },
+              { lenFt: h * 0.16, r: 0.52 },
             ],
           },
         ],
-        heads: [{ sizeScale: 1.1, eyes: { count: 2, sizeScale: 0.9 } }],
+        // small head sunk low between the shoulders (the driver drops the
+        // rocky upright socket); eyes count 0 — the driver draws sunken GLOW
+        // eyes itself (unlit accent orbs under the brow plate), so the
+        // assembler's white cartoon eyeballs must not double them.
+        // round 24 second pass: 0.62 → 1.0. The head is still small next to
+        // the shoulder boulders, but the face zone (brow + hollow + jaw +
+        // glow eyes) is built off this radius, and at 0.62 the whole zone
+        // vanished at panel distance.
+        heads: [{ sizeScale: 1.0, eyes: { count: 0, sizeScale: 1 } }],
       };
 
     case CreatureType.Aberration:

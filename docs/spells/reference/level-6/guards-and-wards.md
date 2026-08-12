@@ -45,6 +45,18 @@
 - **Concentration**: false
 
 - **Effect Type**: UTILITY
+- **Utility Option 1 Name**: Ward Shape
+- **Utility Option 1 Effect**: The caster chooses one 50-foot square, one hundred contiguous 5-foot squares, or twenty-five contiguous 10-foot squares, up to 20 feet tall.
+- **Utility Option 2 Name**: Unaffected Individuals
+- **Utility Option 2 Effect**: The caster chooses individuals unaffected by any or all of the ward's effects.
+- **Utility Option 3 Name**: Password Immunity
+- **Utility Option 3 Effect**: The caster can define a password that grants immunity when spoken within 5 feet of the warded area.
+- **Utility Option 4 Name**: Door Illusions
+- **Utility Option 4 Effect**: The caster chooses up to ten warded doors to appear as plain wall sections.
+- **Utility Option 5 Name**: Other Spell Effect
+- **Utility Option 5 Effect**: The caster chooses the additional magical effect placed within the warded area.
+- **Utility Option 6 Name**: Dispel One Effect
+- **Utility Option 6 Effect**: Each ward effect can be dispelled separately; Guards and Wards ends only when all four effects are gone.
 - **Save Cover Ignored**: not_applicable
 - **Save Auto Outcome**: not_applicable
 - **Save Auto Outcome Condition**: not_applicable

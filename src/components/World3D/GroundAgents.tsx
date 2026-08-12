@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 18/07/2026, 20:25:28
+ * Last Sync: 12/08/2026, 01:47:13
  * Dependents: components/World3D/World3DScene.tsx, components/Worldforge/AgentSim3DPreview.tsx
- * Imports: 11 files
+ * Imports: 12 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -58,6 +58,7 @@ import {
   residentRenderOwnerAtClock,
   type ResidentHandoffRecord,
 } from './InteriorOccupants';
+import { streetOwnedAgentNodes } from './streetOwnedAgents';
 
 registerAllParts();
 
@@ -77,39 +78,6 @@ interface GroundAgentsProps {
   sceneOrigin: SceneOrigin;
   /** Visual size multiplier for figures (preview exaggeration). Default 1. */
   figureScale?: number;
-}
-
-/**
- * Remove only roster instances whose joined interior packet owns the resident
- * at this clock. Unmatched/legacy residents remain street-owned, and the stable
- * member-key equality prevents a coincident numeric id from hiding a stranger.
- */
-export function streetOwnedAgentNodes(
-  nodes: GroundAgentSceneNode[],
-  rosters: TownRoster[],
-  handoffs: ReadonlyMap<string, ResidentHandoffRecord>,
-  clock: number,
-): GroundAgentSceneNode[] {
-  const rosterIdentityByRenderKey = new Map<string, string>();
-  for (const roster of rosters) {
-    for (const occupant of roster.occupants) {
-      if (occupant.householdMemberId === undefined) continue;
-      rosterIdentityByRenderKey.set(
-        residentRenderKey(roster.burgId, occupant.id),
-        residentIdentityKey(roster.burgId, occupant.householdMemberId),
-      );
-    }
-  }
-
-  return nodes.filter((node) => {
-    const renderKey = residentRenderKey(node.burgId, node.occupantId);
-    const handoff = handoffs.get(renderKey);
-    const rosterIdentity = rosterIdentityByRenderKey.get(renderKey);
-    if (!handoff || !rosterIdentity || handoff.stableKey !== rosterIdentity) {
-      return true;
-    }
-    return residentRenderOwnerAtClock(handoff.occupant, clock) === 'street';
-  });
 }
 
 const GroundAgents: React.FC<GroundAgentsProps> = ({ ground, loaded, clock, sceneOrigin, figureScale = 1 }) => {

@@ -5,7 +5,7 @@ import { createMockCombatCharacter, createMockCombatState, createMockCommandCont
 import type { CommandContext } from '../base/SpellCommand';
 import type { DamageEffect } from '../../types/spells';
 import type { SummoningEffect } from '../../types/spells';
-import simulacrum from '../../../public/data/spells/level-7/simulacrum.json';
+import simulacrum from '@/data/spells/level-7/simulacrum.json';
 
 // This regression keeps the direct damage command honest: one hit should lower
 // HP and leave a readable combat log entry behind. It intentionally stays tiny

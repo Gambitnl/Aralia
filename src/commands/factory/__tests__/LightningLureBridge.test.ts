@@ -2,7 +2,7 @@ import { describe, expect, it, vi, beforeEach } from 'vitest'
 import type { BattleMapData } from '@/types/combat'
 import { SpellCommandFactory } from '../SpellCommandFactory'
 import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '@/utils/core'
-import lightningLure from '../../../../public/data/spells/level-0/lightning-lure.json'
+import lightningLure from '@/data/spells/level-0/lightning-lure.json'
 import { type Spell, type DamageEffect, type MovementEffect } from '@/types/spells'
 import * as savingThrowUtils from '@/utils/character/savingThrowUtils'
 

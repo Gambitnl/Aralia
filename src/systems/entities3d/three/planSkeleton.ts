@@ -448,6 +448,9 @@ export function createPlanPoseSink(skeleton: BuiltPlanSkeleton, decorativeDelega
     // round 16 (creature-anatomy): mound flank lobes (gel slumping sideways
     // at ground level) — decorative gel-skin balls, no bones.
     if (/^spine\.lobe[LR]\d+$/.test(id)) return true;
+    // round 20 (creature-anatomy): mound drip lobes pooling past the skirt
+    // rim — decorative gel-skin balls, no bones.
+    if (/^spine\.drip\d+$/.test(id)) return true;
     for (const cid of chainIds) {
       const pref = cid + '.';
       if (id.startsWith(pref)) {

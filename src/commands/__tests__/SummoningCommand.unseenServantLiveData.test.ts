@@ -4,7 +4,7 @@ import { AbilityCommandFactory } from '../factory/AbilityCommandFactory';
 import type { CommandContext } from '../base/SpellCommand';
 import type { CombatCharacter, CombatState } from '../../types/combat';
 import type { SummoningEffect } from '../../types/spells';
-import unseenServant from '../../../public/data/spells/level-1/unseen-servant.json';
+import unseenServant from '@/data/spells/level-1/unseen-servant.json';
 
 /**
  * This file proves the live Unseen Servant spell packet creates a commandable helper.

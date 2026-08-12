@@ -4,7 +4,7 @@ import { createMockCombatCharacter } from '../../utils/core';
 import type { CommandContext } from '../base/SpellCommand';
 import type { CombatCharacter, CombatLogEntry, CombatState } from '../../types/combat';
 import type { UtilityEffect } from '../../types/spells';
-import summonLesserDemons from '../../../public/data/spells/level-3/summon-lesser-demons.json';
+import summonLesserDemons from '@/data/spells/level-3/summon-lesser-demons.json';
 
 /**
  * Summon Lesser Demons is authored as a utility packet because the GM chooses

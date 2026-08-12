@@ -14,11 +14,11 @@ import GlossaryContext from '../../../../context/GlossaryContext';
 import { CLASSES_DATA } from '../../../../constants';
 import { createMockPlayerCharacter } from '../../../../utils/core/factories';
 import type { GlossaryEntry, PlayerCharacter, Spell } from '../../../../types';
-import guidance from '../../../../../public/data/spells/level-0/guidance.json';
-import bless from '../../../../../public/data/spells/level-1/bless.json';
-import guidingBolt from '../../../../../public/data/spells/level-1/guiding-bolt.json';
-import spiritualWeapon from '../../../../../public/data/spells/level-2/spiritual-weapon.json';
-import revivify from '../../../../../public/data/spells/level-3/revivify.json';
+import guidance from '@/data/spells/level-0/guidance.json';
+import bless from '@/data/spells/level-1/bless.json';
+import guidingBolt from '@/data/spells/level-1/guiding-bolt.json';
+import spiritualWeapon from '@/data/spells/level-2/spiritual-weapon.json';
+import revivify from '@/data/spells/level-3/revivify.json';
 
 // The detail pane and slot display are not what this test is proving. We keep
 // the real spellbook component mounted and replace only the deep children that

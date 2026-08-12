@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { SpellValidator } from '../spellValidator';
 import type { Spell } from '../../../../types/spells';
-import colorSpray from '../../../../../public/data/spells/level-1/color-spray.json';
+import colorSpray from '@/data/spells/level-1/color-spray.json';
 
 /**
  * This file protects the validation bridge for target allocation.

@@ -106,11 +106,15 @@ export const SEGMENT_BONE: Readonly<Record<string, BipedBoneName>> = {
   // round 2 (humanoid-anatomy): mitt hands — palm + thumb segments replace
   // the hand balls; both ride the hand bone (the palm, emitted last, drives
   // its transform)
+  // round 15 (humanoid-anatomy): a curled FINGERS mass joins them — emitted
+  // before the palm so the palm still drives the bone transform
   'handL.thumb': 'handL',
+  'handL.fingers': 'handL',
   'handL.palm': 'handL',
   'armR.upper': 'upperArmR',
   'armR.fore': 'foreArmR',
   'handR.thumb': 'handR',
+  'handR.fingers': 'handR',
   'handR.palm': 'handR',
   'legL.thigh': 'thighL',
   'legL.shin': 'shinL',
@@ -160,6 +164,14 @@ export interface BipedRestPose {
 
 const UP = new Vector3(0, 1, 0);
 
+/** round 17 (humanoid-anatomy): biped arm link fraction of armLengthFt per
+ * link (upper = fore). 0.52 gave ape reach (0.44 h shoulder→wrist) that the
+ * idle IK could only absorb as a ~77° folded elbow — the "boulder fist welded
+ * near the elbow" the round-16 verdict named. 0.4 puts shoulder→wrist at
+ * ~0.33 h, the reference human ratio. Shared with the driver (gaits.ts
+ * BipedDriver) — parity lockstep. */
+export const ARM_LINK_K = 0.4;
+
 /** round 6 (humanoid-anatomy): the drawn biped skull radius — ONE formula
  * shared by the driver (gaits.ts BipedDriver), the rest pose below, head-worn
  * gear (parts/gearArmor.ts), and the sculpted head mount (assembleEntity), so
@@ -200,7 +212,14 @@ export function bipedRestPose(frame: Frame): BipedRestPose {
   // constructor.
   const armRForStance = Math.max(r * 0.3, armLen * 0.085);
   const shoulderVisualHalf = (frame.shoulderWidthFt * FT_TO_M) / 2 + armRForStance * 1.6;
-  const stanceHalf = Math.max(((frame.stanceWidthFt * FT_TO_M) / 2) * 1.12, shoulderVisualHalf * 0.68) * 0.85;
+  // round 20 (humanoid-anatomy): PLANT the bulky stance — the round-19 dwarf
+  // "bows outward in a straddle so wide he reads as riding an invisible
+  // barrel". The 0.68 shoulder ratio came from slim references; a broad,
+  // SHORT frame multiplies it against a span that is huge relative to its leg
+  // length and the feet land outside the pelvis. The floor tightens with bulk
+  // (human 0.68, orc ≈0.60, dwarf ≈0.57). Mirror: BipedDriver constructor.
+  const stanceFloorK = 0.68 - 0.34 * Math.min(0.5, Math.max(0, frame.bulk - 1));
+  const stanceHalf = Math.max(((frame.stanceWidthFt * FT_TO_M) / 2) * 1.12, shoulderVisualHalf * stanceFloorK) * 0.85;
 
   // rest heights (bob = 0)
   // round 5 (humanoid-anatomy): upright idle — the pelvis rides at 0.96 of
@@ -226,12 +245,23 @@ export function bipedRestPose(frame: Frame): BipedRestPose {
   // headY; bob = 0 here).
   // round 13 (humanoid-anatomy): lift floor 0.2, slope 0.45 — every frame
   // keeps a visible neck (the orc's was swallowed). Mirror: BipedDriver.
-  const neckLift = Math.min(0.55, Math.max(0.2, 0.46 - 0.45 * Math.max(0, frame.bulk - 1)));
-  const headY = chestTopY + skullR * (0.59 + neckLift);
+  // round 14 (humanoid-anatomy): floor 0.26, slope 0.38 — the orc head still
+  // sat directly on the chest; a touch more lift gives the widened traps
+  // wedge vertical run to read as a slope. Mirror: BipedDriver.
+  const neckLift = Math.min(0.55, Math.max(0.26, 0.46 - 0.38 * Math.max(0, frame.bulk - 1)));
+  // round 18 (humanoid-anatomy): FORWARD HUNCH — per-species idle posture
+  // (speciesProfiles.hunch → Frame.hunch; the orc's trapezius-dominant lean —
+  // round 17: ours "stands bolt upright"). Chest top, shoulders, wrists, and
+  // head all shift forward by hunchZ-scaled terms and the head settles down
+  // into the traps. hunch is 0 on frames without the param, so every term is
+  // a no-op there. Mirror: BipedDriver.advance/buildBody.
+  const hunch = frame.hunch ?? 0;
+  const hunchZ = hM * 0.09 * hunch;
+  const headY = chestTopY + skullR * (0.59 + neckLift) - skullR * 0.35 * hunch;
   // round 13 (humanoid-anatomy): the torso break sits at the BELT line (0.32
   // of pelvis→chest), not midY — mirror of BipedDriver.buildBody beltY.
   const beltY = pelvisY + (chestY - pelvisY) * 0.32;
-  const headZ = skullR * 0.25;
+  const headZ = skullR * 0.25 + hunchZ * 1.4;
 
   // round 13 (humanoid-anatomy): bulk-driven outward arm push — mirror of
   // BipedDriver advance()/buildBody shoulderOut.
@@ -239,8 +269,19 @@ export function bipedRestPose(frame: Frame): BipedRestPose {
   // rest hands (arm swing = 0): x uses the ANCHOR shoulder width (+0.35r),
   // exactly as the driver's advance() does for hand anchors
   const shoulderXAnchor = (frame.shoulderWidthFt * FT_TO_M) / 2 + r * 0.35 + shoulderOut;
-  const handY = pelvisY + hM * 0.015;
-  const handZ = hM * 0.045;
+  // round 17 (humanoid-anatomy): HANG the arm — the wrist drops to wherever
+  // the idle chord equals 0.95 of full reach (2 × 0.4 armLen links), a ~145°
+  // near-straight elbow instead of the old ~77° fold that parked the fist at
+  // belt height. Mirror: BipedDriver.advance handY.
+  const armLink = armLen * ARM_LINK_K;
+  const dxRest = r * 0.4;
+  const dzRest = hM * 0.045 - 0.02;
+  const idleChord = 0.95 * 2 * armLink;
+  const handY = chestY + r * 0.45
+    - Math.sqrt(Math.max(idleChord * idleChord - dxRest * dxRest - dzRest * dzRest, armLink * armLink * 0.25));
+  // round 18 (humanoid-anatomy): the wrist rides forward with the hunched
+  // shoulders (same hunchZ both sides keeps dzRest — the hang solve — exact).
+  const handZ = hM * 0.045 + hunchZ;
 
   // buildBody uses the BARE half shoulder width for the shoulder joint
   const shoulderXBody = (frame.shoulderWidthFt * FT_TO_M) / 2 + shoulderOut;
@@ -248,10 +289,32 @@ export function bipedRestPose(frame: Frame): BipedRestPose {
   // round 6 (humanoid-anatomy): near 3:1 shoulder-to-wrist taper + palm-block
   // hand — mirror of the BipedDriver.buildBody arm loop (the stance formulas
   // above keep the round-4 armR * 1.6 term; the deltoid ball itself is 1.7)
-  const shoulderR = armR * 1.48;
-  const elbowR = armR * 0.8;
-  const wristR = armR * 0.52;
-  const palmLen = armR * 1.9;
+  // round 17 (humanoid-anatomy): four silhouette stations — deltoid ball →
+  // elbow NARROWING (0.68) → loft forearm flare → wrist narrowest (0.55),
+  // fist attaching at the wrist. Mirror: BipedDriver.buildBody.
+  // round 20 (humanoid-anatomy): TAPER CONTRAST scales with bulk — round 19's
+  // orc "near-constant-width arms look inflated". The round-17 numbers were
+  // tuned on the human, so bulky frames scaled every station by the same armR
+  // and kept one width down the arm. Shoulder grows, elbow/wrist shrink with
+  // bulk; the human wrist narrows too (0.55 → 0.49, the "tube arms with no
+  // forearm-to-wrist taper" read). Mirror: BipedDriver.buildBody arm loop.
+  const armBulkT = Math.min(0.6, Math.max(0, frame.bulk - 1));
+  const shoulderR = armR * (1.48 + 0.5 * armBulkT);
+  const elbowR = armR * (0.68 - 0.12 * armBulkT);
+  const wristR = armR * (0.49 - 0.06 * armBulkT);
+  // round 15 (humanoid-anatomy): FIST SCALE — the round-14 verdict's "plain
+  // spheres" were hands at 0.38–0.44 of skull width; the references block
+  // fists at ~0.6–0.7. The fist half-width now carries a skull-derived floor
+  // (0.6 skullR ⇒ fist width = 0.6 skull width), and the hand splits into a
+  // palm block plus a curled finger mass. Mirror: BipedDriver.buildBody.
+  // round 19 (humanoid-anatomy): fist floor 0.6 → 0.45 skullR — Remy's live
+  // eyeball: the dwarf's free hand was "a giant flat slab, near head-size".
+  // With palm+finger run ~2.3 handR, 0.6 skullR put total fist length at
+  // ~0.87 of the head height; 0.45 lands it at ~0.65, the reference blocky
+  // fist that no longer out-masses the skull. Mirror: BipedDriver.buildBody.
+  const handR = Math.max(armR * 1.05, skullR * 0.45);
+  const palmLen = handR * 1.35;
+  const fingerLen = handR * 0.95;
   // round 1 (humanoid-anatomy): near 2:1 thigh-to-calf taper — mirror of the
   // BipedDriver.buildBody leg radii
   const legR = Math.max(r * 0.36, legLen * 0.105);
@@ -259,19 +322,44 @@ export function bipedRestPose(frame: Frame): BipedRestPose {
   // bulky frames' legs match their torso; knee keeps half the root. Mirror:
   // BipedDriver.buildBody leg radii.
   const thighR = Math.max(legR * 1.32, r * 0.58);
-  const kneeR = Math.max(legR * 0.72, thighR * 0.5);
-  const ankleR = legR * 0.5;
+  // round 14 (humanoid-anatomy): knee 0.72 legR → 0.62 (and the thigh-root
+  // fraction 0.5 → 0.44) — the round-13 thighs read as "constant-width
+  // tubes"; the reference thighs narrow visibly toward the knee. Mirror:
+  // BipedDriver.buildBody leg radii.
+  // round 18 (humanoid-anatomy): THE KNEE NECK. Round 17: "legs are
+  // featureless cones ... no knee station and no calf bulge". Same method as
+  // the round-17 arm stations — the joint pinches in the driver radii (knee
+  // 0.62 → 0.52 legR, root fraction 0.44 → 0.4) and the ankle narrows
+  // (0.5 → 0.36 legR) so the loft's calf swell (smoothBipedGeometry .shin
+  // stations) has somewhere to rise from and fall to. Front outline now runs
+  // quad mass → pinched knee → calf swell → ankle → boot. Mirror:
+  // BipedDriver.buildBody leg radii.
+  const kneeR = Math.max(legR * 0.52, thighR * 0.4);
+  // round 19 (humanoid-anatomy): ankle 0.36 → 0.44 legR — Remy's live
+  // eyeball: "pinched ankles" snapping into the boot lump; the calf bell
+  // (smoothBipedGeometry .shin stations) now lands on a real ankle. Mirror:
+  // BipedDriver.buildBody.
+  const ankleR = legR * 0.44;
 
   const segments: RestSegment[] = [];
   const balls: RestBall[] = [];
 
   // torso + head — emission order matches BipedDriver.buildBody
   // round 13 (humanoid-anatomy): THE PELVIS BREAK — three torso masses that
-  // meet at the belt: glute/hip mass (1.14 r at its base, root raised to
-  // −0.2 r for the loft's glute tuck), pinched waist (0.68 r at beltY), and
-  // a ribcage swelling back to 1.02 r. Mirror of BipedDriver.buildBody.
-  segments.push({ id: 'torso.pelvis', bone: 'pelvis', a: [0, pelvisY - r * 0.2, 0], b: [0, beltY, 0.007], r0: r * 1.14, r1: r * 0.68 });
-  segments.push({ id: 'torso.chest', bone: 'chest', a: [0, beltY, 0.007], b: [0, chestTopY, 0.02], r0: r * 0.68, r1: r * 1.02 });
+  // meet at the belt. round 14: the round-13 masses were INVERTED — hips
+  // 1.14 r over ribcage 1.02 r gave every figure the "pear/diaper" read. The
+  // reference relationship is chest-dominant: ribcage 1.12 r is the widest
+  // torso mass, hips 0.9 r (~80% of it), waist pinch 0.68 r at the belt.
+  // Mirror of BipedDriver.buildBody.
+  // round 16 (humanoid-anatomy): the waist pinch DEEPENS with bulk (0.68 →
+  // ~0.60 at dwarf/orc bulk, floor 0.56). At bulk 1.35+ the fixed 0.68 ratio
+  // rides a huge r, and the belt blend zones smeared what was left — the
+  // dwarf's round-15 "unpinched cylinder" belt. Mirror: BipedDriver.buildBody.
+  const waistK = Math.max(0.56, 0.68 - 0.18 * Math.max(0, frame.bulk - 1));
+  segments.push({ id: 'torso.pelvis', bone: 'pelvis', a: [0, pelvisY - r * 0.2, 0], b: [0, beltY, 0.007], r0: r * 0.9, r1: r * waistK });
+  // round 18 (humanoid-anatomy): the chest TOP carries the hunch forward —
+  // the whole spine above the belt leans as one line. Mirror: BipedDriver.
+  segments.push({ id: 'torso.chest', bone: 'chest', a: [0, beltY, 0.007], b: [0, chestTopY, 0.02 + hunchZ], r0: r * waistK, r1: r * 1.12 });
   // round 3 (humanoid-anatomy): the neck roots EXACTLY at the chest top (no
   // loft step) and buries its tip deep inside the skull (headY - hr * 0.35).
   // round 4 (humanoid-anatomy): tip radius climbs with bulk (r * 0.55, floor
@@ -300,9 +388,14 @@ export function bipedRestPose(frame: Frame): BipedRestPose {
   if (neckThickR >= skullR * 0.55) {
     const trapsBury = Math.max(0.47, 0.95 - 1.2 * Math.max(0, frame.bulk - 1));
     const trapsR1 = Math.min(0.82, 0.54 + 0.55 * Math.max(0, frame.bulk - 1));
-    segments.push({ id: 'torso.traps', bone: 'neck', a: [0, chestTopY - r * 0.55, 0.02], b: [0, headY - skullR * trapsBury, headZ * 0.6], r0: r * 0.88, r1: skullR * trapsR1 });
+    // round 14 (humanoid-anatomy): traps root 0.88 r → 1.04 r. The round-9
+    // wedge never READ because its root sat INSIDE the chest silhouette
+    // (chest top is 1.12 r wide here) — the slope only exists where it owns
+    // the outline. Rooting the wedge just proud of the ribcage puts the
+    // trapezius line on the silhouette between deltoid and skull.
+    segments.push({ id: 'torso.traps', bone: 'neck', a: [0, chestTopY - r * 0.55, 0.02 + hunchZ], b: [0, headY - skullR * trapsBury, headZ * 0.6], r0: r * 1.04, r1: skullR * trapsR1 });
   }
-  segments.push({ id: 'neck', bone: 'neck', a: [0, chestTopY, 0.02], b: [0, headY - skullR * 0.45, headZ * 0.85], r0: r * 0.52, r1: neckTipR });
+  segments.push({ id: 'neck', bone: 'neck', a: [0, chestTopY, 0.02 + hunchZ], b: [0, headY - skullR * 0.45, headZ * 0.85], r0: r * 0.52, r1: neckTipR });
   balls.push({ id: 'head', bone: 'head', center: [0, headY, headZ], r: skullR });
 
   const shoulder = new Vector3();
@@ -328,11 +421,23 @@ export function bipedRestPose(frame: Frame): BipedRestPose {
   for (const sgn of [-1, 1] as const) {
     const side = sgn < 0 ? 'L' : 'R';
     const hand: [number, number, number] = [sgn * (shoulderXAnchor + r * 0.05), handY, handZ];
-    shoulder.set(sgn * shoulderXBody, chestY + r * 0.45, 0.02);
-    bend.set(sgn, 0, -0.4).normalize();
-    solveKnee(shoulder, target.set(hand[0], hand[1], hand[2]), armLen * 0.52, armLen * 0.52, bend, joint);
+    // round 18 (humanoid-anatomy): shoulders ROLL FORWARD with the hunch —
+    // the deltoid balls ride the same hunchZ the chest top does. Mirror:
+    // BipedDriver.buildBody.
+    shoulder.set(sgn * shoulderXBody, chestY + r * 0.45, 0.02 + hunchZ);
+    // round 14 (humanoid-anatomy): elbow bend re-aimed mostly BACKWARD
+    // (sgn·0.45, 0, −1) — the old sideways bend (sgn, 0, −0.4) pushed the
+    // elbow out laterally, arcing the whole arm into the critic's "banana
+    // bow"; a rear-tucked elbow hangs the arm straight in the front view.
+    // Mirror: BipedDriver.buildBody.
+    bend.set(sgn * 0.45, 0, -1).normalize();
+    // round 17 (humanoid-anatomy): links 0.4 armLen (ARM_LINK_K)
+    solveKnee(shoulder, target.set(hand[0], hand[1], hand[2]), armLen * ARM_LINK_K, armLen * ARM_LINK_K, bend, joint);
     // deltoid ball before the upper segment — same order as the driver
-    balls.push({ id: `deltoid${side}`, bone: `upperArm${side}` as BipedBoneName, center: [shoulder.x, shoulder.y, shoulder.z], r: armR * 1.7 });
+    // round 20 (humanoid-anatomy): the deltoid grows with the same bulk term
+    // as shoulderR — the boulder shoulder the WoW grunt leads with. Mirror:
+    // BipedDriver.buildBody deltoid ball.
+    balls.push({ id: `deltoid${side}`, bone: `upperArm${side}` as BipedBoneName, center: [shoulder.x, shoulder.y, shoulder.z], r: armR * (1.7 + 0.5 * armBulkT) });
     segments.push({
       id: `arm${side}.upper`,
       bone: `upperArm${side}` as BipedBoneName,
@@ -349,31 +454,74 @@ export function bipedRestPose(frame: Frame): BipedRestPose {
       r0: elbowR,
       r1: wristR,
     });
-    // hand: thumb first, palm last (the palm drives the hand bone — bindWorld
-    // picks the LAST segment per bone to match the pose sink's write order)
+    // hand: thumb first, fingers second, palm LAST (the palm drives the hand
+    // bone — bindWorld picks the LAST segment per bone to match the pose
+    // sink's write order)
     palmDir.set(hand[0] - joint.x, hand[1] - joint.y, hand[2] - joint.z).normalize();
     palmDir.z += 0.32;
+    // round 16 (humanoid-anatomy): lateral cock (~8°) — the round-15 knuckle
+    // bend pointed dead at the front camera (−Z), so the 50° break produced
+    // ZERO silhouette change in the front panel. Tilting the fist outward
+    // brings part of the bend into profile in every panel. Mirror:
+    // BipedDriver.buildBody.
+    // round 18 (humanoid-anatomy): cock deepened 0.14 → 0.22 — the round-17
+    // verdict still saw "boulder mittens"; the camera-aimed-bend rule says
+    // the thumb crossing must profile to the front camera, so the whole fist
+    // rotates further outward. Mirror: BipedDriver.buildBody.
+    palmDir.x += sgn * 0.22;
     palmDir.normalize();
     palmQuat.setFromUnitVectors(UP, palmDir);
-    thumbPt.set(sgn * armR * 0.8, armR * 0.3, -armR * 0.2).applyQuaternion(palmQuat);
+    // round 15 (humanoid-anatomy): the thumb WRAPS ACROSS the knuckle front —
+    // root at the lateral palm edge, tip crossing past the fist midline on
+    // the −Z knuckle face (local axes: +Y fingers, sgn·X lateral, −Z front).
+    // round 16: the thumb is a SILHOUETTE lobe — root pushed to the lateral
+    // face (sgn 1.0) and fattened (0.52 handR) so its root breaks the fist
+    // outline by ~0.5 handR; the round-15 lobe survived the ink hull by only
+    // ~2 px at panel distance. Mirror: BipedDriver.buildBody.
+    // round 18 (humanoid-anatomy): the thumb STILL did not read at panel
+    // distance (rounds 16 AND 17) — the lobe grows again (0.52 → 0.62 handR
+    // root, 0.36 → 0.44 tip), roots further out on the lateral-FRONT corner
+    // (z −0.3 → −0.45 handR), and its tip crosses further past the knuckle
+    // face (z −0.95 handR) so the crossing diagonal profiles to the front
+    // camera on the cocked fist. Mirror: BipedDriver.buildBody.
+    thumbPt.set(sgn * handR * 1.05, palmLen * 0.3, -handR * 0.45).applyQuaternion(palmQuat);
     const thumbA: [number, number, number] = [hand[0] + thumbPt.x, hand[1] + thumbPt.y, hand[2] + thumbPt.z];
-    thumbPt.set(sgn * armR * 1.05, armR * 1.15, -armR * 0.8).applyQuaternion(palmQuat);
+    thumbPt.set(sgn * handR * 0.3, palmLen * 1.05, -handR * 0.95).applyQuaternion(palmQuat);
     const thumbB: [number, number, number] = [hand[0] + thumbPt.x, hand[1] + thumbPt.y, hand[2] + thumbPt.z];
     segments.push({
       id: `hand${side}.thumb`,
       bone: `hand${side}` as BipedBoneName,
       a: thumbA,
       b: thumbB,
-      r0: armR * 0.45,
-      r1: armR * 0.3,
+      r0: handR * 0.62,
+      r1: handR * 0.44,
+    });
+    // round 15 (humanoid-anatomy): curled finger mass — continues the palm
+    // bent ~50° toward the knuckle front; the bend is the knuckle plane
+    // break the round-14 verdict demanded.
+    const palmTip: [number, number, number] = [
+      hand[0] + palmDir.x * palmLen, hand[1] + palmDir.y * palmLen, hand[2] + palmDir.z * palmLen,
+    ];
+    thumbPt.set(0, fingerLen * 0.64, -fingerLen * 0.77).applyQuaternion(palmQuat);
+    // round 16 (humanoid-anatomy): knuckle SILHOUETTE step — the finger-mass
+    // root swells past the palm tip (1.12 vs 1.0 handR) so the outline
+    // creases at the knuckle line in every view; the tight knuckle blend
+    // zone keeps the step hard. Mirror: BipedDriver.buildBody.
+    segments.push({
+      id: `hand${side}.fingers`,
+      bone: `hand${side}` as BipedBoneName,
+      a: palmTip,
+      b: [palmTip[0] + thumbPt.x, palmTip[1] + thumbPt.y, palmTip[2] + thumbPt.z],
+      r0: handR * 1.12,
+      r1: handR * 0.68,
     });
     segments.push({
       id: `hand${side}.palm`,
       bone: `hand${side}` as BipedBoneName,
       a: hand,
-      b: [hand[0] + palmDir.x * palmLen, hand[1] + palmDir.y * palmLen, hand[2] + palmDir.z * palmLen],
-      r0: armR * 1.02,
-      r1: armR * 0.94,
+      b: palmTip,
+      r0: handR * 0.88,
+      r1: handR,
     });
   }
 
@@ -388,7 +536,11 @@ export function bipedRestPose(frame: Frame): BipedRestPose {
     const side = sgn < 0 ? 'L' : 'R';
     const foot: [number, number, number] = [sgn * stanceHalf, 0, 0.01];
     hip.set(sgn * stanceHalf, pelvisY - r * 0.3, 0);
-    bend.set(sgn * 0.1, 0, 1).normalize();
+    // round 14 (humanoid-anatomy): knee bend outward lean 0.1 → 0.02 — the
+    // orc's knees bowed outward and the dwarf's shins bowed with them; the
+    // knee now tracks almost straight forward over the foot. Mirror:
+    // BipedDriver.buildBody leg loop.
+    bend.set(sgn * 0.02, 0, 1).normalize();
     solveKnee(hip, target.set(foot[0], foot[1], foot[2]), legLen * 0.52, legLen * 0.52, bend, joint);
     segments.push({
       id: `leg${side}.thigh`,

@@ -3,7 +3,7 @@ import { UtilityCommand, moveMageHandHelper } from '../effects/UtilityCommand'
 import type { CombatCharacter, CombatState } from '@/types/combat'
 import type { EffectDuration, Spell, UtilityEffect } from '@/types/spells'
 import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '@/utils/core'
-import mageHand from '../../../public/data/spells/level-0/mage-hand.json'
+import mageHand from '@/data/spells/level-0/mage-hand.json'
 
 /**
  * Mage Hand is a controlled helper, not a creature summon or damaging force.

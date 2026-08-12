@@ -85,6 +85,39 @@ describe('savingThrowUtils', () => {
   });
 
   describe('rollSavingThrow', () => {
+    // Deterministic callers must still enter through the shared dice parser.
+    // This protects scenario proof from replacing save math with a fixed total.
+    it('forwards an injected random stream through the shared dice engine', () => {
+      const char = createMockCombatCharacter({
+        stats: {
+          strength: 10, dexterity: 10, constitution: 10,
+          intelligence: 10, wisdom: 10, charisma: 10,
+          baseInitiative: 0, speed: 30, cr: '1'
+        }
+      });
+      const rng = vi.fn(() => 0.89);
+      const rollDiceMock = vi.mocked(combatUtils.rollDice);
+      rollDiceMock.mockImplementation((dice, options) => {
+        if (dice === '1d20' && options?.rng) {
+          return Math.floor(options.rng() * 20) + 1;
+        }
+        return 0;
+      });
+
+      const result = rollSavingThrow(
+        char,
+        'Strength',
+        13,
+        undefined,
+        undefined,
+        undefined,
+        { rng },
+      );
+
+      expect(result).toMatchObject({ roll: 18, total: 18, success: true, dc: 13 });
+      expect(rollDiceMock).toHaveBeenCalledWith('1d20', { rng });
+    });
+
     it('calculates total correctly with positive modifier', () => {
       const char = createMockCombatCharacter({
         stats: {

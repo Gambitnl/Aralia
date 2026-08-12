@@ -54,18 +54,13 @@ registerAllParts();
  * body. The avatar itself no longer uses this — race frames come from the
  * entity generator's species profiles.
  */
+import { groundSurfaceYM } from './terrain/groundSurfaceYM';
+
 export function raceScale(raceName: string | undefined): number {
   const n = (raceName ?? '').toLowerCase();
   if (/gnome|halfling|goblin|kobold|fairy/.test(n)) return 0.55;
   if (/dwarf|duergar/.test(n)) return 0.8;
   return 1;
-}
-
-/** Sample the ground-world surface height (meters) at tile-local meters. */
-export function groundSurfaceYM(ground: GroundWorld, xM: number, zM: number): number {
-  const gx = Math.max(0, Math.min(ground.cols - 1, Math.round(xM / GROUND_METERS_PER_CELL)));
-  const gy = Math.max(0, Math.min(ground.rows - 1, Math.round(zM / GROUND_METERS_PER_CELL)));
-  return heightToMeters(ground.heights[gy * ground.cols + gx] ?? 0);
 }
 
 interface PlayerAvatarProps {

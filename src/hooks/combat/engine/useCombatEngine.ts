@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 10/08/2026, 13:59:47
+ * Last Sync: 12/08/2026, 00:26:25
  * Dependents: hooks/combat/useTurnManager.ts
- * Imports: 13 files
+ * Imports: 14 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -48,6 +48,7 @@ import { findPath } from '../../../utils/spatial/pathfinding';
 import { applyDamageAndCheckDowned, applyHealingAndRestore } from '../../../utils/combat/deathSaveUtils';
 import { applyRuntimeStatusCondition } from '../../../utils/combat/statusConditionUtils';
 import { resolveOnDamageSpellEffect } from '../../../systems/spells/effects/onDamageSpellEffects';
+import { removeRepeatSaveLinkedEffects } from '../../../utils/combat/repeatSaveUtils';
 
 // Repeat-save metadata now lives on StatusEffect, but not every repeat-save
 // shape is a saving throw. Some spell data asks for ability checks such as
@@ -525,7 +526,14 @@ export const useCombatEngine = ({
         });
 
         if (savedEffectIds.length > 0) {
-            updatedCharacter.statusEffects = updatedCharacter.statusEffects.filter(e => !savedEffectIds.includes(e.id));
+            // A successful repeat save ends the whole source-linked condition,
+            // not only the legacy status label. The shared cleanup also removes
+            // matching structured/active records, restores movement penalties,
+            // and leaves unrelated spells on the target untouched.
+            updatedCharacter = removeRepeatSaveLinkedEffects(
+                updatedCharacter,
+                savedEffectIds
+            ).character;
 
             const demonControlReleased = savedEffectIds.some(effectId =>
                 effectId.startsWith('summon-greater-demon-control-') &&

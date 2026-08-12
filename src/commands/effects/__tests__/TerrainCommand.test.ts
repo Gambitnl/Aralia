@@ -2,9 +2,9 @@ import { describe, it, expect } from 'vitest'
 import { TerrainCommand } from '../TerrainCommand'
 import { Spell, TerrainEffect } from '@/types/spells'
 import { CombatState, SelectedSpellTarget } from '@/types/combat'
-import greaseJson from '../../../../public/data/spells/level-1/grease.json'
-import entangleJson from '../../../../public/data/spells/level-1/entangle.json'
-import spikeGrowthJson from '../../../../public/data/spells/level-2/spike-growth.json'
+import greaseJson from '@/data/spells/level-1/grease.json'
+import entangleJson from '@/data/spells/level-1/entangle.json'
+import spikeGrowthJson from '@/data/spells/level-2/spike-growth.json'
 
 const makeCharacter = (id: string, position: { x: number, y: number }): any => ({
   id,

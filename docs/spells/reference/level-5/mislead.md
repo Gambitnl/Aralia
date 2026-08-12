@@ -44,6 +44,15 @@ No Subclass Entries
 - **Concentration**: true
 
 - **Effect Type**: UTILITY
+- **Utility Option 1 Name**: Move and perform
+- **Utility Option 1 Effect**: move_illusory_double
+- **Utility Option 1 Details**: Use an action to move the illusory double up to twice the caster's Speed and choose its gestures, speech, and behavior.
+- **Utility Option 2 Name**: Use double senses
+- **Utility Option 2 Effect**: switch_to_double_senses
+- **Utility Option 2 Details**: Use a Bonus Action to see and hear through the illusory double, becoming Blinded and Deafened to the caster's own surroundings.
+- **Utility Option 3 Name**: Return to own senses
+- **Utility Option 3 Effect**: switch_to_own_senses
+- **Utility Option 3 Details**: Use a Bonus Action to stop using the double's senses and return to the caster's own sight and hearing.
 - **Utility Type**: other
 - **Save Stat**: not_applicable
 - **Save Outcome**: not_applicable

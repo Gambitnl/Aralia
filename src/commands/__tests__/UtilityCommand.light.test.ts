@@ -3,8 +3,8 @@ import { mockCaster, mockTarget, mockContext, mockState, createMockCombatState, 
 import type { CommandContext } from '../base/SpellCommand'
 import type { CombatState } from '@/types/combat'
 import type { Spell, UtilityEffect, SelectedSpellTarget } from './UtilityCommand.testHelpers'
-import produceFlameJson from '../../../public/data/spells/level-0/produce-flame.json'
-import dancingLightsJson from '../../../public/data/spells/level-0/dancing-lights.json'
+import produceFlameJson from '@/data/spells/level-0/produce-flame.json'
+import dancingLightsJson from '@/data/spells/level-0/dancing-lights.json'
 
 describe('UtilityCommand', () => {
     describe('Produce Flame light bridge', () => {

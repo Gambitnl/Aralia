@@ -8,7 +8,7 @@ import type { CombatState, SelectedSpellTarget } from '@/types/combat'
 import type { MovementTriggerDebuff } from '@/systems/spells/effects/triggerHandler'
 import type { Spell } from '@/types/spells'
 import * as combatUtils from '@/utils/combat'
-import boomingBlade from '../../../../public/data/spells/level-0/booming-blade.json'
+import boomingBlade from '@/data/spells/level-0/booming-blade.json'
 
 /**
  * This file proves Booming Blade's blade-cantrip bridge.

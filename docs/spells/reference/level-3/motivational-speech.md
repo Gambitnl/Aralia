@@ -60,7 +60,7 @@
 - **Light Can Be Covered Or Hidden**: not_applicable
 - **Light Can Be Smothered Or Quenched**: not_applicable
 - **Description**: You address allies, staff, or innocent bystanders to exhort and inspire them to greatness, whether they have anything to get excited about or not. Choose up to five creatures within range that can hear you. For the duration, each affected creature gains 5 temporary hit points and has advantage on Wisdom saving throws. If an affected creature is hit by an attack, it has advantage on the next attack roll it makes. Once an affected creature loses the temporary hit points granted by this spell, the spell ends for that creature.
-- **Higher Levels**: When you cast this spell using a spell slot of 4th level or higher, the temporary hit points increase by 5 for each slot level above 3rd. I once heard a motivational speech by Jim and it was the worst ninety seconds of my life. What does Omin see in him, anyway?
+- **Higher Levels**: When you cast this spell using a spell slot of 4th level or higher, the Temporary Hit Points increase by 5 for each slot level above 3rd.
 - **Scaling Rule 1 Type**: special_text
 - **Scaling Rule 1 Applies To**: canonical higher-level prose
 - **Scaling Rule 1 Notes**: When you cast this spell using a spell slot of 4th level or higher, the temporary hit points increase by 5 for each slot level above 3rd. I once heard a motivational speech by Jim and it was the worst ninety seconds of my life. What does Omin see in him, anyway?
@@ -82,8 +82,7 @@ Damage/Effect: Buff
 
 Rules Text:
 You address allies, staff, or innocent bystanders to exhort and inspire them to greatness, whether they have anything to get excited about or not. Choose up to five creatures within range that can hear you. For the duration, each affected creature gains 5 temporary hit points and has advantage on Wisdom saving throws. If an affected creature is hit by an attack, it has advantage on the next attack roll it makes. Once an affected creature loses the temporary hit points granted by this spell, the spell ends for that creature.
-At Higher Levels. When you cast this spell using a spell slot of 4th level or higher, the temporary hit points increase by 5 for each slot level above 3rd.
-I once heard a motivational speech by Jim and it was the worst ninety seconds of my life. What does Omin see in him, anyway?
+Using a Higher-Level Spell Slot. When you cast this spell using a spell slot of 4th level or higher, the Temporary Hit Points increase by 5 for each slot level above 3rd.
 
 Spell Tags:
 Buff

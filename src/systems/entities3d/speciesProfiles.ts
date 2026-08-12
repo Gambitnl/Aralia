@@ -25,6 +25,11 @@ export interface SpeciesProfile {
     /** armLengthFt multiplier. */
     arm?: number;
   };
+  /** round 18 (humanoid-anatomy): forward-hunched idle posture (0..1) — the
+   * WoW-grunt trapezius-dominant lean. Flows to Frame.hunch; the biped
+   * driver leans chest top, shoulders, and head forward and settles the
+   * head into the traps. */
+  hunch?: number;
   features: PartInstance[];
   skinTones: string[];
   eyeTones: string[];
@@ -85,9 +90,19 @@ export const SPECIES_PROFILES: Record<string, SpeciesProfile> = Object.fromEntri
       // face loft — the dwarf gets the prominent honker of the reference kits.
       features: [
         { partId: 'beardMesh', anchor: 'jaw' },
-        { partId: 'faceSculpt', anchor: 'head', params: { noseDepth: 1.35, noseWidth: 1.1 } },
+        // round 14 (humanoid-anatomy): eyeScale 0.7 + a heavy brow — the
+        // "huge glossy anime eyes" clashed with the gritty dwarf kit; the
+        // shrunken deeper-set eyes hood under the same scowling brow ridge
+        // the orc carries.
+        { partId: 'brow', anchor: 'head' },
+        { partId: 'faceSculpt', anchor: 'head', params: { noseDepth: 1.35, noseWidth: 1.1, eyeScale: 0.7 } },
       ],
-      skinTones: ['#c68642', '#e0ac69', '#b97a56', '#8d5524'],
+      // round 19 (humanoid-anatomy): '#8d5524' (near-black under the toon
+      // ramp's shadow band) left the dwarf face a "flat mask" — the head
+      // loft's brow/cheek planes exist but dark-on-dark shading is invisible
+      // (render lesson). Mid-value ruddy amber replaces it so the face
+      // carries the same value planing the human reads with.
+      skinTones: ['#c68642', '#e0ac69', '#b97a56', '#cf9a5e'],
       eyeTones: ['#3b2f2a', '#33506e', '#555c66'],
     }),
     profile({
@@ -131,6 +146,10 @@ export const SPECIES_PROFILES: Record<string, SpeciesProfile> = Object.fromEntri
       // round 13 (humanoid-anatomy): 1.14 → 1.24 — round 12 still called a
       // "pinhead sunk straight into it"; the skull must bracket the traps.
       headScale: 1.24,
+      // round 18 (humanoid-anatomy): the grunt's power comes from a forward
+      // hunch — round 17: ours "stands bolt upright" while the reference
+      // hunches with shoulders rolled forward.
+      hunch: 0.6,
       features: [
         { partId: 'tuskJaw', anchor: 'jaw' },
         { partId: 'brow', anchor: 'head' },
@@ -139,7 +158,10 @@ export const SPECIES_PROFILES: Record<string, SpeciesProfile> = Object.fromEntri
         // round 13 (humanoid-anatomy): lidOpen 1.6 raises the upper lid —
         // the droopy half-lidded "sleepy" read becomes a glare under the brow
         // (1.35 barely moved the aperture beneath the brow part's shadow).
-        { partId: 'faceSculpt', anchor: 'head', params: { noseDepth: 0.6, noseWidth: 1.6, mouthWidth: 1.25, lidOpen: 1.6 } },
+        // round 14 (humanoid-anatomy): eyeScale 0.88 — the orc's glossy eye
+        // whites read anime against the tusked kit; slightly smaller + the
+        // strengthened lidOpen response (assembleEntity) opens the glare.
+        { partId: 'faceSculpt', anchor: 'head', params: { noseDepth: 0.6, noseWidth: 1.6, mouthWidth: 1.25, lidOpen: 1.6, eyeScale: 0.88 } },
       ],
       skinTones: ['#6a8a4a', '#7f9a5a', '#5a7a44', '#8a9a6a'],
       eyeTones: ['#8a3333', '#8a7a33', '#3b2f2a'],

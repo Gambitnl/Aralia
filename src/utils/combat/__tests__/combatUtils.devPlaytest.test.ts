@@ -40,7 +40,7 @@ describe('Dev Player combat capability', () => {
     // live Battle Map. Filtering preserves honest behavior if a class list ever
     // references a spell asset that has not shipped yet.
     const allSpells = JSON.parse(
-      readFileSync('public/data/spells_bundle.json', 'utf8'),
+      readFileSync('src/data/spells_bundle.json', 'utf8'),
     ) as Record<string, Spell>;
     const player = buildDevPlayer({
       raceId: 'human',

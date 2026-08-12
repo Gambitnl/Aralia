@@ -1,0 +1,253 @@
+{
+  "id": "chromatic-orb",
+  "name": "Chromatic Orb",
+  "aliases": [],
+  "level": 1,
+  "school": "Evocation",
+  "legacy": false,
+  "classes": [
+    "Sorcerer",
+    "Wizard"
+  ],
+  "subClasses": [],
+  "ritual": false,
+  "rarity": "common",
+  "attackType": "",
+  "castingTime": {
+    "value": 1,
+    "unit": "action",
+    "combatCost": {
+      "type": "action",
+      "condition": ""
+    },
+    "explorationCost": {
+      "value": 0,
+      "unit": "minute"
+    }
+  },
+  "range": {
+    "type": "ranged",
+    "distance": 90,
+    "distanceUnit": "feet"
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": true,
+    "materialDescription": "a diamond worth 50+ GP",
+    "materialCost": 50,
+    "isConsumed": false
+  },
+  "duration": {
+    "type": "instantaneous",
+    "concentration": false,
+    "value": 0,
+    "unit": "round"
+  },
+  "targeting": {
+    "type": "single",
+    "range": 90,
+    "rangeUnit": "feet",
+    "validTargets": [
+      "creatures"
+    ],
+    "lineOfSight": true,
+    "maxTargets": 1,
+    "filter": {
+      "creatureTypes": [],
+      "excludeCreatureTypes": [],
+      "sizes": [],
+      "alignments": [],
+      "hasCondition": [],
+      "isNativeToPlane": false,
+      "willing": "not_applicable",
+      "objectEligibility": {
+        "wornOrCarried": "not_applicable",
+        "magicalStatus": "not_applicable",
+        "fixedToSurface": "not_applicable",
+        "maxSize": "not_applicable",
+        "maxWeightPounds": "not_applicable",
+        "maxWeightScaling": "not_applicable"
+      },
+      "communicationPrerequisites": {
+        "canHearCaster": "not_applicable",
+        "canUnderstandCaster": "not_applicable",
+        "canSeeCaster": "not_applicable"
+      },
+      "abilityThreshold": {
+        "ability": "not_applicable",
+        "operator": "not_applicable",
+        "value": "not_applicable"
+      },
+      "selfRelation": "not_applicable"
+    }
+  },
+  "effects": [
+    {
+      "type": "DAMAGE",
+      "trigger": {
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
+      "condition": {
+        "type": "hit",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false,
+          "willing": "not_applicable",
+          "objectEligibility": {
+            "wornOrCarried": "not_applicable",
+            "magicalStatus": "not_applicable",
+            "fixedToSurface": "not_applicable",
+            "maxSize": "not_applicable",
+            "maxWeightPounds": "not_applicable",
+            "maxWeightScaling": "not_applicable"
+          },
+          "communicationPrerequisites": {
+            "canHearCaster": "not_applicable",
+            "canUnderstandCaster": "not_applicable",
+            "canSeeCaster": "not_applicable"
+          },
+          "abilityThreshold": {
+            "ability": "not_applicable",
+            "operator": "not_applicable",
+            "value": "not_applicable"
+          },
+          "selfRelation": "not_applicable"
+        },
+        "requiresStatus": [],
+        "saveModifiers": [],
+        "saveOutcomeOverrides": []
+      },
+      "damage": {
+        "dice": "3d8",
+        "type": "Acid/Cold/Fire/Lightning/Poison/Thunder",
+        "damageTypeSource": "chosen_damage_type"
+      },
+      "secondaryTargeting": {
+        "trigger": "duplicate_damage_die",
+        "origin": "previous_target",
+        "range": 30,
+        "rangeUnit": "feet",
+        "validTargets": "creature",
+        "selection": "caster_choice",
+        "mustBeDifferent": true,
+        "requiresLineOfSight": false,
+        "requiresAttackRoll": true,
+        "requiresDamageRoll": true,
+        "repeatRule": "slot_level_max_leaps",
+        "maxLeaps": "slot_level",
+        "uniquePerCasting": true,
+        "notes": "If two or more damage dice match, the orb can leap to a different target within 30 feet of the current target. Each chain step makes a new attack and damage roll; higher-slot casts can leap up to the slot level, and each creature can be targeted only once per casting."
+      },
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "+1d8",
+        "customFormula": ""
+      },
+      "description": "Choose Acid, Cold, Fire, Lightning, Poison, or Thunder, then make a ranged spell attack against one target within 90 feet. On a hit, the target takes 3d8 damage of the chosen type; if two or more damage dice match, the orb can leap to a different target within 30 feet and repeat the attack and damage roll, with higher slots increasing both damage and maximum leaps.",
+      "conditionalEndings": [],
+      "tags": [
+        "chosen-damage-type",
+        "ranged-hit",
+        "slot-scaling"
+      ]
+    }
+  ],
+  "arbitrationType": "mechanical",
+  "aiContext": {
+    "prompt": "Ask the caster to choose Acid, Cold, Fire, Lightning, Poison, or Thunder, make the ranged spell attack, and if duplicate damage dice trigger a leap, choose each new eligible target within 30 feet and roll a new attack and damage roll.",
+    "playerInputRequired": true
+  },
+  "description": "You hurl an orb of energy at a target within range. Choose Acid, Cold, Fire, Lightning, Poison, or Thunder for the type of orb you create, and then make a ranged spell attack against the target. On a hit, the target takes 3d8 damage of the chosen type. If you roll the same number on two or more of the d8s, the orb leaps to a different target of your choice within 30 feet of the target. Make an attack roll against the new target, and make a new damage roll. The orb can't leap again unless you cast the spell with a level 2+ spell slot.",
+  "higherLevels": "Using a Higher-Level Spell Slot. The damage increases by 1d8 for each spell slot level above 1. The orb can leap a maximum number of times equal to the level of the slot expended, and a creature can be targeted only once by each casting of this spell.",
+  "tags": [
+    "damage",
+    "evocation",
+    "elemental"
+  ],
+  "modeChoice": {
+    "type": "choose_one",
+    "timing": "on_cast",
+    "optionCount": 6,
+    "optionsSource": "modeChoice.options",
+    "canDismissActive": "not_applicable",
+    "options": [
+      {
+        "label": "Acid",
+        "summary": "The orb deals Acid damage on a hit.",
+        "effectIndices": [
+          0
+        ],
+        "effectTypes": [
+          "DAMAGE"
+        ]
+      },
+      {
+        "label": "Cold",
+        "summary": "The orb deals Cold damage on a hit.",
+        "effectIndices": [
+          0
+        ],
+        "effectTypes": [
+          "DAMAGE"
+        ]
+      },
+      {
+        "label": "Fire",
+        "summary": "The orb deals Fire damage on a hit.",
+        "effectIndices": [
+          0
+        ],
+        "effectTypes": [
+          "DAMAGE"
+        ]
+      },
+      {
+        "label": "Lightning",
+        "summary": "The orb deals Lightning damage on a hit.",
+        "effectIndices": [
+          0
+        ],
+        "effectTypes": [
+          "DAMAGE"
+        ]
+      },
+      {
+        "label": "Poison",
+        "summary": "The orb deals Poison damage on a hit.",
+        "effectIndices": [
+          0
+        ],
+        "effectTypes": [
+          "DAMAGE"
+        ]
+      },
+      {
+        "label": "Thunder",
+        "summary": "The orb deals Thunder damage on a hit.",
+        "effectIndices": [
+          0
+        ],
+        "effectTypes": [
+          "DAMAGE"
+        ]
+      }
+    ],
+    "notes": "The damage packet already uses damage.damageTypeSource = chosen_damage_type; this menu supplies the six legal caster choices."
+  }
+}

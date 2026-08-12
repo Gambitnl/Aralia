@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 11/08/2026, 21:39:31
+ * Dependents: components/BattleMap/characters/CharacterActor.tsx
+ * Imports: 11 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file characters/characterActor/CharacterActor.tsx
  * The CharacterActor component: composes the procedural models, selection /
@@ -328,7 +344,43 @@ const CharacterActor: React.FC<CharacterActorProps> = ({
         </mesh>
       </group>
 
-      {/* Nameplate — shown on hover, selection, or active turn (BG3 style) */}
+      {/* Temporary HP is not part of the green health percentage. This cyan
+          value stays visible beside the HP pip in 3D so a camera orbit cannot
+          hide whether damage still has a separate buffer to consume first. */}
+      {(character.tempHP ?? 0) > 0 && (
+        <Html
+          position={[0.34, pipY, 0]}
+          center
+          distanceFactor={10}
+          style={{ pointerEvents: 'none' }}
+        >
+          <span
+            data-testid="temporary-hit-points-badge-3d"
+            aria-label={`${character.tempHP} temporary hit points`}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              minWidth: '22px',
+              padding: '2px 4px',
+              borderRadius: '999px',
+              border: '1px solid #a5f3fc',
+              background: 'rgba(8, 51, 68, 0.95)',
+              color: '#cffafe',
+              fontSize: '8px',
+              fontWeight: 900,
+              lineHeight: 1,
+              boxShadow: '0 0 10px rgba(34, 211, 238, 0.42)',
+            }}
+          >
+            +{character.tempHP}
+          </span>
+        </Html>
+      )}
+
+      {/* The detailed nameplate appears on hover, selection, or active turn.
+          It repeats the temporary buffer beside current and maximum HP so the
+          focused actor exposes all three health values in one place. */}
       {(isSelected || isTurn || hovered) && (
         <Html
           position={[0, pipY + 0.3, 0]}
@@ -372,6 +424,7 @@ const CharacterActor: React.FC<CharacterActorProps> = ({
             </div>
             <div style={{ fontSize: '8px', color: '#9ca3af', marginTop: '1px' }}>
               {character.currentHP}/{character.maxHP}
+              {(character.tempHP ?? 0) > 0 ? ` + ${character.tempHP} temp` : ''}
             </div>
             {distanceToActive !== null && (
               <div style={{ fontSize: '9px', color: '#facc15', marginTop: '2px', fontWeight: 'bold' }}>

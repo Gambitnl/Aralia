@@ -119,4 +119,157 @@ describe('useTurnManager repeat-save lifecycle', () => {
     // turn-end saves silently fall back to the generic placeholder DC.
     expect(vi.mocked(savingThrowUtils.rollSavingThrow).mock.calls[0][2]).toBe(17);
   });
+
+  it('keeps a turn-end condition and penalties after a failed repeat save', async () => {
+    vi.mocked(savingThrowUtils.rollSavingThrow).mockReturnValue({
+      roll: 5,
+      total: 5,
+      dc: 15,
+      success: false,
+      modifiersApplied: []
+    });
+
+    // Hold Person supplies a real turn-end repeat save. The unrelated Blessed
+    // status proves a failure does not rewrite neighboring target state.
+    const target = makeCharacter({
+      actionEconomy: {
+        ...makeCharacter().actionEconomy,
+        movement: { used: 0, total: 0 }
+      },
+      statusEffects: [{
+        id: 'hold-person-status',
+        name: 'Paralyzed',
+        type: 'debuff',
+        duration: 2,
+        source: 'Hold Person',
+        sourceSpellId: 'hold-person',
+        sourceCasterId: 'caster',
+        repeatSave: {
+          timing: 'turn_end',
+          saveType: 'Wisdom',
+          successEnds: true,
+          useOriginalDC: true,
+          dc: 15
+        }
+      }, {
+        id: 'bless-status',
+        name: 'Blessed',
+        type: 'buff',
+        duration: 10,
+        sourceSpellId: 'bless'
+      }],
+      conditions: [{
+        name: 'Paralyzed',
+        duration: { type: 'rounds', value: 2 },
+        appliedTurn: 0,
+        source: 'hold-person',
+        sourceCasterId: 'caster'
+      }]
+    });
+    const onCharacterUpdate = vi.fn();
+    const { result } = renderHook(() => useTurnManager({
+      characters: [target],
+      mapData: null,
+      onCharacterUpdate,
+      onLogEntry: vi.fn()
+    }));
+
+    act(() => {
+      result.current.initializeCombat([target]);
+    });
+    await act(async () => {
+      await result.current.endTurn();
+    });
+
+    const retainedTarget = onCharacterUpdate.mock.calls
+      .map(call => call[0] as CombatCharacter)
+      .reverse()
+      .find(character => character.statusEffects.some(status => status.id === 'hold-person-status'));
+
+    expect(retainedTarget?.conditions?.map(condition => condition.name)).toContain('Paralyzed');
+    expect(retainedTarget?.statusEffects.map(status => status.name)).toContain('Blessed');
+  });
+
+  it('cleans source-linked condition state after a successful turn-end repeat save', async () => {
+    vi.mocked(savingThrowUtils.rollSavingThrow).mockReturnValue({
+      roll: 15,
+      total: 15,
+      dc: 15,
+      success: true,
+      modifiersApplied: []
+    });
+
+    // Success removes the Hold Person status and structured condition together.
+    // Mage Armor and Blessed carry different source ids and must survive.
+    const target = makeCharacter({
+      actionEconomy: {
+        ...makeCharacter().actionEconomy,
+        movement: { used: 0, total: 0 }
+      },
+      statusEffects: [{
+        id: 'hold-person-status',
+        name: 'Paralyzed',
+        type: 'debuff',
+        duration: 2,
+        source: 'Hold Person',
+        sourceSpellId: 'hold-person',
+        sourceCasterId: 'caster',
+        repeatSave: {
+          timing: 'turn_end',
+          saveType: 'Wisdom',
+          successEnds: true,
+          useOriginalDC: true,
+          dc: 15
+        }
+      }, {
+        id: 'bless-status',
+        name: 'Blessed',
+        type: 'buff',
+        duration: 10,
+        sourceSpellId: 'bless'
+      }],
+      conditions: [{
+        name: 'Paralyzed',
+        duration: { type: 'rounds', value: 2 },
+        appliedTurn: 0,
+        source: 'hold-person',
+        sourceCasterId: 'caster'
+      }],
+      activeEffects: [{
+        id: 'mage-armor-active',
+        spellId: 'mage-armor',
+        casterId: 'target',
+        sourceName: 'Mage Armor',
+        type: 'buff',
+        duration: { type: 'hours', value: 8 },
+        startTime: 0
+      }]
+    });
+    const onCharacterUpdate = vi.fn();
+    const { result } = renderHook(() => useTurnManager({
+      characters: [target],
+      mapData: null,
+      onCharacterUpdate,
+      onLogEntry: vi.fn()
+    }));
+
+    act(() => {
+      result.current.initializeCombat([target]);
+    });
+    await act(async () => {
+      await result.current.endTurn();
+    });
+
+    const freedTarget = onCharacterUpdate.mock.calls
+      .map(call => call[0] as CombatCharacter)
+      .reverse()
+      .find(character => (
+        character.statusEffects.length === 1
+        && character.statusEffects[0].id === 'bless-status'
+      ));
+
+    expect(freedTarget?.conditions).toEqual([]);
+    expect(freedTarget?.activeEffects?.map(effect => effect.spellId)).toEqual(['mage-armor']);
+    expect(freedTarget?.actionEconomy.movement.total).toBe(30);
+  });
 });

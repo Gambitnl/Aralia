@@ -889,6 +889,310 @@
         "humanoid-anatomy/orc-barbarian",
         "humanoid-anatomy/dwarf-fighter"
       ]
+    },
+    {
+      "at": "2026-08-11T20:16:32.297Z",
+      "piece": "creature-anatomy",
+      "round": 20,
+      "note": "3:1 limb-root taper, serpent rebalance, wing finger ridges, ooze drips+spec",
+      "captured": [
+        "creature-anatomy/dragon",
+        "creature-anatomy/serpent",
+        "creature-anatomy/ooze"
+      ]
+    },
+    {
+      "at": "2026-08-11T20:26:24.694Z",
+      "piece": "humanoid-anatomy",
+      "round": 14,
+      "note": "mass flip: shoulders>hips 80%, glute tuck, thigh taper; orc traps+eyes, dwarf shins",
+      "captured": [
+        "humanoid-anatomy/human-fighter",
+        "humanoid-anatomy/orc-barbarian",
+        "humanoid-anatomy/dwarf-fighter"
+      ]
+    },
+    {
+      "at": "2026-08-11T20:49:21.173Z",
+      "piece": "creature-anatomy",
+      "round": 21,
+      "note": "wing mass bounded search + edge ridges; dragon head-chest split; serpent crown dominance; ooze eye fix",
+      "captured": [
+        "creature-anatomy/dragon",
+        "creature-anatomy/serpent",
+        "creature-anatomy/ooze"
+      ]
+    },
+    {
+      "at": "2026-08-11T20:51:33.215Z",
+      "piece": "humanoid-anatomy",
+      "round": 15,
+      "note": "fists: diagnose sphere hands, blocked fists + thumb + knuckle break; pec/clavicle break; orc loincloth",
+      "captured": [
+        "humanoid-anatomy/human-fighter",
+        "humanoid-anatomy/orc-barbarian",
+        "humanoid-anatomy/dwarf-fighter"
+      ]
+    },
+    {
+      "at": "2026-08-11T20:53:25.540Z",
+      "piece": "humanoid-anatomy",
+      "round": 15,
+      "note": "fists: diagnose sphere hands, blocked fists + thumb + knuckle break; pec/clavicle break; orc loincloth",
+      "captured": [
+        "humanoid-anatomy/human-fighter",
+        "humanoid-anatomy/orc-barbarian",
+        "humanoid-anatomy/dwarf-fighter"
+      ]
+    },
+    {
+      "at": "2026-08-11T21:17:35.525Z",
+      "piece": "humanoid-anatomy",
+      "round": 16,
+      "note": "RENDER-PATH FINDING (do not re-litigate): the round-15 hand geometry WAS in the rendered mesh (entitydebug renders skinnedWeights smooth; lobes visible at zoom). Three render-path effects erased it at panel distance: (1) the ink hull (hM*0.011) is wider than the creases between hand-scale forms - it inked the thumb/knuckle valleys shut and redrew the fist contour as one boulder; (2) the 0.88/0.84 greyscale finger tints sat inside ONE toon band - invisible (the round-13 trouser lesson again); (3) the 50-degree knuckle bend pointed dead at the front camera (-Z), zero front-panel silhouette change. Fixes: per-vertex aInk attribute (hands 0.45) attenuates the hull; hue-shifted finger/thumb tints; ~8-degree lateral fist cock; thumb as fat lateral lobe (sgn 1.0, r 0.52 handR); knuckle root swell 1.12 handR; plus beveled-rim pauldrons, coarse-faceted deltoids, single high clavicle-to-pec break with sternum carve (ab-band ladder removed), bulk-deepened waist pinch (0.68 to ~0.60, BELT zone 0.26).",
+      "captured": [
+        "humanoid-anatomy/human-fighter",
+        "humanoid-anatomy/orc-barbarian",
+        "humanoid-anatomy/dwarf-fighter"
+      ]
+    },
+    {
+      "at": "2026-08-11T21:22:39.557Z",
+      "piece": "creature-anatomy",
+      "round": 22,
+      "note": "authored wing silhouette: arm+wrist+struts+sag; serpent head>neck inversion; ooze spec+flecks",
+      "captured": [
+        "creature-anatomy/dragon",
+        "creature-anatomy/serpent",
+        "creature-anatomy/ooze"
+      ]
+    },
+    {
+      "at": "2026-08-11T21:26:37.046Z",
+      "piece": "creature-anatomy",
+      "round": 22,
+      "note": "authored wing silhouette: arm+wrist+struts+sag, raked+tented after eyeball; serpent head>neck inversion; ooze gloss+flecks, halo killed",
+      "captured": [
+        "creature-anatomy/dragon",
+        "creature-anatomy/serpent",
+        "creature-anatomy/ooze"
+      ]
+    },
+    {
+      "at": "2026-08-11T21:29:15.771Z",
+      "piece": "creature-anatomy",
+      "round": 22,
+      "note": "authored wing silhouette raked+tented; serpent head>neck inversion; ooze gloss+flecks, halo killed",
+      "captured": [
+        "creature-anatomy/serpent",
+        "creature-anatomy/ooze"
+      ]
+    },
+    {
+      "at": "2026-08-11T21:29:42.249Z",
+      "piece": "creature-anatomy",
+      "round": 22,
+      "note": "authored wing silhouette raked+tented; serpent head>neck inversion; ooze gloss+flecks, halo killed",
+      "captured": [
+        "creature-anatomy/dragon",
+        "creature-anatomy/serpent",
+        "creature-anatomy/ooze"
+      ]
+    },
+    {
+      "at": "2026-08-11T21:41:50.756Z",
+      "piece": "humanoid-anatomy",
+      "round": 17,
+      "note": "arm stations: deltoid/elbow/forearm-flare/wrist 2:1; fist at wrist; torso seams+tunic; dwarf gear anchors",
+      "captured": [
+        "humanoid-anatomy/human-fighter",
+        "humanoid-anatomy/orc-barbarian",
+        "humanoid-anatomy/dwarf-fighter"
+      ]
+    },
+    {
+      "at": "2026-08-11T21:58:22.303Z",
+      "piece": "humanoid-anatomy",
+      "round": 18,
+      "note": "leg stations: quad/knee-neck/calf-swell; orc hunch + thumb profile; dwarf wrist",
+      "captured": [
+        "humanoid-anatomy/human-fighter",
+        "humanoid-anatomy/orc-barbarian",
+        "humanoid-anatomy/dwarf-fighter"
+      ]
+    },
+    {
+      "at": "2026-08-11T22:41:40.268Z",
+      "piece": "creature-anatomy",
+      "round": 23,
+      "note": "diagnostic mid-round capture",
+      "captured": [
+        "creature-anatomy/dragon",
+        "creature-anatomy/serpent",
+        "creature-anatomy/ooze",
+        "creature-anatomy/beast-large",
+        "creature-anatomy/celestial-large",
+        "creature-anatomy/dragon-walk"
+      ]
+    },
+    {
+      "at": "2026-08-11T22:48:11.703Z",
+      "piece": "creature-anatomy",
+      "round": 23,
+      "note": "spread membrane + beast/celestial archetype + pupil lens eyeball pass",
+      "captured": [
+        "creature-anatomy/dragon",
+        "creature-anatomy/serpent",
+        "creature-anatomy/ooze",
+        "creature-anatomy/beast-large",
+        "creature-anatomy/celestial-large",
+        "creature-anatomy/dragon-walk",
+        "creature-anatomy/elemental-large"
+      ]
+    },
+    {
+      "at": "2026-08-11T22:50:04.198Z",
+      "piece": "creature-anatomy",
+      "round": 23,
+      "note": "wing value diagnosis (inside-out caps -> per-face winding) + deep scallops; ooze translucency restored (opaque core under gel skin, blue cap was horizon bleed); dragon spine X-cross fix, closed jaw + 6-seg canines, thick neck column, skull 1.95; serpent crown out-gauges trunk; spread-wing continuous membrane; beast mass+haunches+tone; celestial wing scale; solid lens pupils",
+      "captured": [
+        "creature-anatomy/dragon",
+        "creature-anatomy/serpent",
+        "creature-anatomy/ooze",
+        "creature-anatomy/beast-large",
+        "creature-anatomy/celestial-large",
+        "creature-anatomy/dragon-walk",
+        "creature-anatomy/elemental-large"
+      ]
+    },
+    {
+      "at": "2026-08-11T22:53:20.943Z",
+      "piece": "humanoid-anatomy",
+      "round": 19,
+      "note": "torso value hierarchy (clavicle/underpec/ab tiers); thumb render diagnosis + tint/ink split; fist scale 0.45 skullR; inseam leg split + crotch V; ankle unpinch + calf bell; pauldron rim weld; deltoid merge; dwarf mid-value face",
+      "captured": [
+        "humanoid-anatomy/human-fighter",
+        "humanoid-anatomy/orc-barbarian",
+        "humanoid-anatomy/dwarf-fighter"
+      ]
+    },
+    {
+      "at": "2026-08-11T23:23:17.483Z",
+      "piece": "humanoid-anatomy",
+      "round": 20,
+      "note": "r20b baseline: dead-agent gripBand + tunic/sleeves in place",
+      "captured": []
+    },
+    {
+      "at": "2026-08-11T23:24:29.521Z",
+      "piece": "creature-anatomy",
+      "round": 24,
+      "note": "interim: elemental material identity WIP",
+      "captured": [
+        "creature-anatomy/celestial-large",
+        "creature-anatomy/dragon-walk",
+        "creature-anatomy/elemental-large"
+      ]
+    },
+    {
+      "at": "2026-08-11T23:25:14.577Z",
+      "piece": "humanoid-anatomy",
+      "round": 20,
+      "note": "r20b baseline",
+      "captured": [
+        "humanoid-anatomy/human-fighter",
+        "humanoid-anatomy/orc-barbarian",
+        "humanoid-anatomy/dwarf-fighter"
+      ]
+    },
+    {
+      "at": "2026-08-11T23:30:51.681Z",
+      "piece": "creature-anatomy",
+      "round": 24,
+      "note": "interim2",
+      "captured": [
+        "creature-anatomy/ooze",
+        "creature-anatomy/beast-large",
+        "creature-anatomy/celestial-large",
+        "creature-anatomy/dragon-walk",
+        "creature-anatomy/elemental-large"
+      ]
+    },
+    {
+      "at": "2026-08-11T23:37:43.281Z",
+      "piece": "humanoid-anatomy",
+      "round": 20,
+      "note": "r20b wip: grip scallop, tunic, stance, taper",
+      "captured": []
+    },
+    {
+      "at": "2026-08-11T23:39:24.685Z",
+      "piece": "humanoid-anatomy",
+      "round": 20,
+      "note": "r20b wip",
+      "captured": [
+        "humanoid-anatomy/orc-barbarian",
+        "humanoid-anatomy/dwarf-fighter"
+      ]
+    },
+    {
+      "at": "2026-08-11T23:41:21.542Z",
+      "piece": "humanoid-anatomy",
+      "round": 20,
+      "note": "r20b wip2",
+      "captured": []
+    },
+    {
+      "at": "2026-08-11T23:41:54.782Z",
+      "piece": "creature-anatomy",
+      "round": 24,
+      "note": "interim3",
+      "captured": [
+        "creature-anatomy/dragon",
+        "creature-anatomy/serpent"
+      ]
+    },
+    {
+      "at": "2026-08-11T23:43:33.368Z",
+      "piece": "humanoid-anatomy",
+      "round": 20,
+      "note": "r20b wip2",
+      "captured": []
+    },
+    {
+      "at": "2026-08-11T23:45:48.806Z",
+      "piece": "humanoid-anatomy",
+      "round": 20,
+      "note": "r20b wip2",
+      "captured": []
+    },
+    {
+      "at": "2026-08-11T23:46:56.522Z",
+      "piece": "creature-anatomy",
+      "round": 24,
+      "note": "interim4",
+      "captured": []
+    },
+    {
+      "at": "2026-08-11T23:47:51.062Z",
+      "piece": "humanoid-anatomy",
+      "round": 20,
+      "note": "r20b wip2",
+      "captured": []
+    },
+    {
+      "at": "2026-08-11T23:53:14.195Z",
+      "piece": "creature-anatomy",
+      "round": 24,
+      "note": "interim5",
+      "captured": []
+    },
+    {
+      "at": "2026-08-11T23:54:17.218Z",
+      "piece": "humanoid-anatomy",
+      "round": 20,
+      "note": "r20b wip3",
+      "captured": []
     }
   ]
 }

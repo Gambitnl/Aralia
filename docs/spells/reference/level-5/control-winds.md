@@ -42,6 +42,15 @@
 - **Concentration**: true
 
 - **Effect Type**: UTILITY
+- **Utility Option 1 Name**: Gusts
+- **Utility Option 1 Effect**: horizontal_wind
+- **Utility Option 1 Details**: Wind blows in a horizontal direction chosen by the caster. The caster chooses calm, moderate, or strong intensity; moderate or strong winds impose Disadvantage on ranged weapon attacks that enter, leave, or pass through the cube, and strong wind also costs extra movement against the wind.
+- **Utility Option 2 Name**: Downdraft
+- **Utility Option 2 Effect**: downward_wind
+- **Utility Option 2 Details**: Strong wind blows downward from the top of the cube. Ranged weapon attacks through or into the cube have Disadvantage, and flying creatures entering or starting there must save or fall Prone.
+- **Utility Option 3 Name**: Updraft
+- **Utility Option 3 Effect**: upward_wind
+- **Utility Option 3 Details**: Wind rises from the bottom of the cube. Creatures ending a fall in the cube take half fall damage, and vertical jumps inside the cube can rise 10 feet higher than normal.
 - **Save Cover Ignored**: not_applicable
 - **Save Auto Outcome**: not_applicable
 - **Save Auto Outcome Condition**: not_applicable

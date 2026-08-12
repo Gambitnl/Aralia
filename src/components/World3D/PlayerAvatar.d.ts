@@ -38,8 +38,6 @@ import type { PlayerCharacter } from '@/types/character';
  * entity generator's species profiles.
  */
 export declare function raceScale(raceName: string | undefined): number;
-/** Sample the ground-world surface height (meters) at tile-local meters. */
-export declare function groundSurfaceYM(ground: GroundWorld, xM: number, zM: number): number;
 interface PlayerAvatarProps {
     /** The ONE movement state — tile-local ground meters. Null = stand at spawn. */
     groundPos: {

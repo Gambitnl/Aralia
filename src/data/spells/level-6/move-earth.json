@@ -1,0 +1,310 @@
+{
+  "id": "move-earth",
+  "name": "Move Earth",
+  "aliases": [],
+  "level": 6,
+  "school": "Transmutation",
+  "legacy": false,
+  "classes": [
+    "Druid",
+    "Sorcerer",
+    "Wizard"
+  ],
+  "subClasses": [],
+  "ritual": false,
+  "rarity": "common",
+  "attackType": "",
+  "castingTime": {
+    "value": 1,
+    "unit": "action",
+    "combatCost": {
+      "type": "action",
+      "condition": ""
+    },
+    "explorationCost": {
+      "value": 0,
+      "unit": "minute"
+    }
+  },
+  "range": {
+    "type": "ranged",
+    "distance": 120,
+    "distanceUnit": "feet"
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": true,
+    "materialDescription": "a miniature shovel",
+    "isConsumed": false,
+    "materialCost": 0
+  },
+  "duration": {
+    "type": "timed",
+    "value": 2,
+    "unit": "hour",
+    "concentration": true
+  },
+  "targeting": {
+    "type": "area",
+    "range": 120,
+    "rangeUnit": "feet",
+    "validTargets": [
+      "creatures",
+      "objects",
+      "point"
+    ],
+    "lineOfSight": true,
+    "areaOfEffect": {
+      "shape": "Square",
+      "size": 40,
+      "sizeUnit": "feet",
+      "height": 0
+    },
+    "maxTargets": 1,
+    "filter": {
+      "creatureTypes": [],
+      "excludeCreatureTypes": [],
+      "sizes": [],
+      "alignments": [],
+      "hasCondition": [],
+      "isNativeToPlane": false,
+      "willing": "not_applicable",
+      "objectEligibility": {
+        "wornOrCarried": "not_applicable",
+        "magicalStatus": "not_applicable",
+        "fixedToSurface": "not_applicable",
+        "maxSize": "not_applicable",
+        "maxWeightPounds": "not_applicable",
+        "maxWeightScaling": "not_applicable"
+      },
+      "communicationPrerequisites": {
+        "canHearCaster": "not_applicable",
+        "canUnderstandCaster": "not_applicable",
+        "canSeeCaster": "not_applicable"
+      },
+      "abilityThreshold": {
+        "ability": "not_applicable",
+        "operator": "not_applicable",
+        "value": "not_applicable"
+      },
+      "selfRelation": "not_applicable"
+    }
+  },
+  "effects": [
+    {
+      "type": "TERRAIN",
+      "trigger": {
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
+      "condition": {
+        "type": "always",
+        "saveOutcomeOverrides": []
+      },
+      "terrainType": "difficult",
+      "areaOfEffect": {
+        "shape": "Square",
+        "size": 40,
+        "sizeType": "edge",
+        "sizeUnit": "feet",
+        "height": 20,
+        "heightUnit": "feet"
+      },
+      "duration": {
+        "type": "minutes",
+        "value": 120
+      },
+      "damage": {
+        "dice": "",
+        "type": ""
+      },
+      "wallProperties": {
+        "hp": 0,
+        "ac": 0
+      },
+      "manipulation": {
+        "type": "reshape",
+        "volume": {
+          "shape": "Square",
+          "size": 40,
+          "depth": 20
+        },
+        "materialOptions": [
+          "dirt",
+          "sand",
+          "clay"
+        ],
+        "excludedMaterials": [
+          "natural stone",
+          "stone construction"
+        ],
+        "formOptions": [
+          "elevation",
+          "trench",
+          "wall",
+          "pillar"
+        ],
+        "maxChangeFeet": 20,
+        "completionTimeMinutes": 10,
+        "canChooseNewAreaAfterCompletion": true,
+        "slowTransformationPreventsTrappingOrInjury": true,
+        "rocksAndStructuresShift": true,
+        "unstableStructuresMayCollapse": true,
+        "carriesPlantsWithoutAffectingGrowth": true,
+        "duration": {
+          "type": "minutes",
+          "value": 120
+        }
+      },
+      "description": "Reshape dirt, sand, or clay in a 40-foot-square area within 120 feet into elevation changes, trenches, walls, or pillars up to half the area's largest dimension; each change takes 10 minutes, usually cannot trap or injure creatures because it is slow, and cannot manipulate natural stone or stone construction.",
+      "conditionalEndings": []
+    },
+    {
+      "type": "UTILITY",
+      "trigger": {
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
+      "condition": {
+        "type": "always",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false,
+          "willing": "not_applicable",
+          "objectEligibility": {
+            "wornOrCarried": "not_applicable",
+            "magicalStatus": "not_applicable",
+            "fixedToSurface": "not_applicable",
+            "maxSize": "not_applicable",
+            "maxWeightPounds": "not_applicable",
+            "maxWeightScaling": "not_applicable"
+          },
+          "communicationPrerequisites": {
+            "canHearCaster": "not_applicable",
+            "canUnderstandCaster": "not_applicable",
+            "canSeeCaster": "not_applicable"
+          },
+          "abilityThreshold": {
+            "ability": "not_applicable",
+            "operator": "not_applicable",
+            "value": "not_applicable"
+          },
+          "selfRelation": "not_applicable"
+        },
+        "requiresStatus": [],
+        "saveModifiers": [],
+        "saveOutcomeOverrides": []
+      },
+      "utilityType": "control",
+      "description": "For up to 2 hours with concentration, each terrain transformation takes 10 minutes to complete and usually cannot trap or injure creatures because it happens slowly. At the end of every 10 minutes, the caster can choose a new area within range; natural stone and stone construction are not manipulated, rocks and structures shift to accommodate the terrain, unstable structures might collapse, and plants are carried with the moved earth.",
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "",
+        "customFormula": ""
+      },
+      "grantedActions": [],
+      "attackAugments": [],
+      "controlOptions": [
+        {
+          "name": "Reshape Dirt Sand Or Clay",
+          "effect": "The caster can reshape dirt, sand, or clay in the area in any manner chosen."
+        },
+        {
+          "name": "Raise Or Lower Elevation",
+          "effect": "The caster can raise or lower the area's elevation by up to half the area's largest dimension."
+        },
+        {
+          "name": "Create Or Fill Trench",
+          "effect": "The caster can create or fill in a trench up to half the area's largest dimension."
+        },
+        {
+          "name": "Erect Or Flatten Wall",
+          "effect": "The caster can erect or flatten a wall up to half the area's largest dimension."
+        },
+        {
+          "name": "Form Pillar",
+          "effect": "The caster can form a pillar up to half the area's largest dimension."
+        },
+        {
+          "name": "Choose New Area Every 10 Minutes",
+          "effect": "At the end of every 10 minutes spent concentrating, the caster can choose a new area of terrain within range."
+        },
+        {
+          "name": "Stone Not Manipulated",
+          "effect": "The spell cannot manipulate natural stone or stone construction."
+        },
+        {
+          "name": "Structure Instability",
+          "effect": "Rocks and structures shift to accommodate the new terrain, and unstable structures might collapse."
+        },
+        {
+          "name": "Plants Carried",
+          "effect": "The spell does not directly affect plant growth, but moved earth carries plants along with it."
+        }
+      ],
+      "taunt": {
+        "disadvantageAgainstOthers": false,
+        "leashRangeFeet": 0,
+        "breakConditions": []
+      },
+      "savePenalty": {
+        "dice": "",
+        "flat": 0,
+        "applies": "next_save",
+        "duration": {
+          "type": "rounds",
+          "value": 0
+        }
+      },
+      "light": {
+        "brightRadius": 0,
+        "dimRadius": 0,
+        "attachedTo": "caster",
+        "color": "",
+        "colorChoice": "not_applicable",
+        "opaqueCoverBlocks": "not_applicable",
+        "emitsHeat": "not_applicable",
+        "ignitesObjects": "not_applicable",
+        "consumesFuel": "not_applicable",
+        "canBeCoveredOrHidden": "not_applicable",
+        "canBeSmotheredOrQuenched": "not_applicable"
+      },
+      "conditionalEndings": []
+    }
+  ],
+  "arbitrationType": "mechanical",
+  "aiContext": {
+    "prompt": "",
+    "playerInputRequired": false
+  },
+  "description": "Choose an area of terrain no larger than 40 feet on a side within range. You can reshape dirt, sand, or clay in the area in any manner you choose for the duration. You can raise or lower the area's elevation, create or fill in a trench, erect or flatten a wall, or form a pillar. The extent of any such changes can't exceed half the area's largest dimension. For example, if you affect a 40-foot square, you can create a pillar up to 20 feet high, raise or lower the square's elevation by up to 20 feet, dig a trench up to 20 feet deep, and so on. It takes 10 minutes for these changes to complete. Because the terrain's transformation occurs slowly, creatures in the area can't usually be trapped or injured by the ground's movement. At the end of every 10 minutes you spend concentrating on the spell, you can choose a new area of terrain to affect within range. This spell can't manipulate natural stone or stone construction. Rocks and structures shift to accommodate the new terrain. If the way you shape the terrain would make a structure unstable, it might collapse. Similarly, this spell doesn't directly affect plant growth. The moved earth carries any plants along with it.",
+  "higherLevels": "",
+  "tags": [
+    "concentration"
+  ]
+}

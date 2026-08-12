@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 09/08/2026, 22:48:28
+ * Last Sync: 11/08/2026, 21:37:52
  * Dependents: commands/effects/ReactiveEffectCommand.ts, commands/factory/AbilityCommandFactory.ts, commands/factory/SpellCommandFactory.ts
- * Imports: 4 files
+ * Imports: 5 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -18,6 +18,7 @@ import { SpellCommand, CommandContext, CommandMetadata } from '../base/SpellComm
 import { CombatState, CombatCharacter, ActiveEffect } from '../../types/combat';
 import { DefensiveEffect } from '../../types/spells';
 import { getAbilityModifierValue } from '../../utils/character';
+import { applyTemporaryHitPoints } from '../../utils/combat/deathSaveUtils';
 import { v4 as uuidv4 } from 'uuid';
 
 /**
@@ -138,17 +139,24 @@ export class DefensiveCommand implements SpellCommand {
               state.turnState.currentTurn
             );
 
-            updatedCharacter.tempHP = newTemp;
+            // The shared helper owns non-stacking and provenance replacement.
+            // DefensiveCommand still owns the active spell effect and log row.
+            const withTemporaryHitPoints = applyTemporaryHitPoints(
+              updatedCharacter,
+              newTemp,
+              {
+                spellId: this.context.spellId,
+                spellName: this.context.spellName,
+                casterId: this.context.caster.id
+              }
+            );
+            updatedCharacter.tempHP = withTemporaryHitPoints.tempHP;
             updatedCharacter.activeEffects = [...(updatedCharacter.activeEffects || []), activeEffect];
             // Record the spell that owns this temporary HP pool. Reactive
             // spells such as Armor of Agathys must end when their own temp HP
             // is gone, and cannot safely treat another feature's temp HP as
             // keeping the retaliation alive.
-            updatedCharacter.temporaryHitPointSource = {
-              spellId: this.context.spellId,
-              spellName: this.context.spellName,
-              casterId: this.context.caster.id
-            };
+            updatedCharacter.temporaryHitPointSource = withTemporaryHitPoints.temporaryHitPointSource;
             logMessage = `${this.context.spellName} grants ${newTemp} temporary HP`;
           } else {
             logMessage = `${this.context.spellName} grants ${newTemp} temporary HP (overlapped)`;

@@ -4,7 +4,7 @@ import { createMockCombatCharacter } from '../../utils/core';
 import type { CommandContext } from '../base/SpellCommand';
 import type { CombatCharacter, CombatLogEntry, CombatState } from '../../types/combat';
 import type { SummoningEffect } from '../../types/spells';
-import phantomSteed from '../../../public/data/spells/level-3/phantom-steed.json';
+import phantomSteed from '@/data/spells/level-3/phantom-steed.json';
 
 /**
  * This file proves the live Phantom Steed packet creates a mount with its lifecycle data.

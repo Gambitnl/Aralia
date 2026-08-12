@@ -41,6 +41,36 @@
 - **Concentration**: false
 
 - **Effect Type**: UTILITY
+- **Utility Option 1 Name**: Courage
+- **Utility Option 1 Effect**: prevent_frightened
+- **Utility Option 1 Details**: Chosen creature types cannot gain the Frightened condition while in the area.
+- **Utility Option 2 Name**: Darkness
+- **Utility Option 2 Effect**: area_darkness
+- **Utility Option 2 Details**: Darkness fills the area, and normal light or lower-level magical light cannot illuminate it.
+- **Utility Option 3 Name**: Daylight
+- **Utility Option 3 Effect**: area_daylight
+- **Utility Option 3 Details**: Bright light fills the area, and lower-level magical Darkness cannot extinguish it.
+- **Utility Option 4 Name**: Peaceful Rest
+- **Utility Option 4 Effect**: block_undead_creation
+- **Utility Option 4 Details**: Dead bodies interred in the area cannot be turned into Undead.
+- **Utility Option 5 Name**: Extradimensional Interference
+- **Utility Option 5 Effect**: block_teleport_planar_travel
+- **Utility Option 5 Details**: Chosen creature types cannot enter or exit the area using teleportation or interplanar travel.
+- **Utility Option 6 Name**: Fear
+- **Utility Option 6 Effect**: apply_frightened
+- **Utility Option 6 Details**: Chosen creature types have the Frightened condition while in the area.
+- **Utility Option 7 Name**: Resistance
+- **Utility Option 7 Effect**: grant_damage_resistance
+- **Utility Option 7 Details**: Chosen creature types have Resistance to one chosen damage type while in the area.
+- **Utility Option 8 Name**: Silence
+- **Utility Option 8 Effect**: block_sound
+- **Utility Option 8 Details**: No sound can emanate from within the area, and no sound can reach into it.
+- **Utility Option 9 Name**: Tongues
+- **Utility Option 9 Effect**: universal_communication
+- **Utility Option 9 Details**: Chosen creature types can communicate with any other creature in the area even without a shared language.
+- **Utility Option 10 Name**: Vulnerability
+- **Utility Option 10 Effect**: grant_damage_vulnerability
+- **Utility Option 10 Details**: Chosen creature types have Vulnerability to one chosen damage type while in the area.
 - **Save Cover Ignored**: not_applicable
 - **Save Auto Outcome**: not_applicable
 - **Save Auto Outcome Condition**: not_applicable

@@ -3,15 +3,15 @@ import { SummoningCommand } from '../effects/SummoningCommand';
 import type { CommandContext } from '../base/SpellCommand';
 import type { CombatCharacter, CombatState } from '../../types/combat';
 import type { SummoningEffect } from '../../types/spells';
-import summonAberration from '../../../public/data/spells/level-4/summon-aberration.json';
-import summonBeast from '../../../public/data/spells/level-2/summon-beast.json';
-import summonCelestial from '../../../public/data/spells/level-5/summon-celestial.json';
-import summonConstruct from '../../../public/data/spells/level-4/summon-construct.json';
-import summonDragon from '../../../public/data/spells/level-5/summon-dragon.json';
-import summonElemental from '../../../public/data/spells/level-4/summon-elemental.json';
-import summonFey from '../../../public/data/spells/level-3/summon-fey.json';
-import summonFiend from '../../../public/data/spells/level-6/summon-fiend.json';
-import summonUndead from '../../../public/data/spells/level-3/summon-undead.json';
+import summonAberration from '@/data/spells/level-4/summon-aberration.json';
+import summonBeast from '@/data/spells/level-2/summon-beast.json';
+import summonCelestial from '@/data/spells/level-5/summon-celestial.json';
+import summonConstruct from '@/data/spells/level-4/summon-construct.json';
+import summonDragon from '@/data/spells/level-5/summon-dragon.json';
+import summonElemental from '@/data/spells/level-4/summon-elemental.json';
+import summonFey from '@/data/spells/level-3/summon-fey.json';
+import summonFiend from '@/data/spells/level-6/summon-fiend.json';
+import summonUndead from '@/data/spells/level-3/summon-undead.json';
 
 /**
  * This proof covers the modern summon spirit family that carries authored stat

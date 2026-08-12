@@ -20,14 +20,14 @@ import type { DamageEffect, Spell, StatusConditionEffect } from '@/types/spells'
 import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '@/utils/core';
 import { resolveSourceSaveAdvantageModifiers } from '@/systems/spells/mechanics/sourceSaveModifierResolution';
 import * as combatUtils from '@/utils/combat/combatUtils';
-import charmPerson from '../../../../public/data/spells/level-1/charm-person.json';
-import shatter from '../../../../public/data/spells/level-2/shatter.json';
-import fastFriends from '../../../../public/data/spells/level-3/fast-friends.json';
-import charmMonster from '../../../../public/data/spells/level-4/charm-monster.json';
-import dominateBeast from '../../../../public/data/spells/level-4/dominate-beast.json';
-import dominatePerson from '../../../../public/data/spells/level-5/dominate-person.json';
-import modifyMemory from '../../../../public/data/spells/level-5/modify-memory.json';
-import dominateMonster from '../../../../public/data/spells/level-8/dominate-monster.json';
+import charmPerson from '@/data/spells/level-1/charm-person.json';
+import shatter from '@/data/spells/level-2/shatter.json';
+import fastFriends from '@/data/spells/level-3/fast-friends.json';
+import charmMonster from '@/data/spells/level-4/charm-monster.json';
+import dominateBeast from '@/data/spells/level-4/dominate-beast.json';
+import dominatePerson from '@/data/spells/level-5/dominate-person.json';
+import modifyMemory from '@/data/spells/level-5/modify-memory.json';
+import dominateMonster from '@/data/spells/level-8/dominate-monster.json';
 
 // The shared save roller and damage command both use this module. Mocking its
 // dice functions lets each test prove whether one or two d20s were requested.

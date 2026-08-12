@@ -7,8 +7,8 @@ import type { ActiveEffect, CombatCharacter, CombatState, Position } from '@/typ
 import type { DamageEffect, DefensiveEffect } from '@/types/spells';
 import type { Class, GameState } from '@/types';
 import { createMockGameState, createMockPlayerCharacter } from '../../utils/core';
-import wardingBond from '../../../public/data/spells/level-2/warding-bond.json';
-import motivationalSpeech from '../../../public/data/spells/level-3/motivational-speech.json';
+import wardingBond from '@/data/spells/level-2/warding-bond.json';
+import motivationalSpeech from '@/data/spells/level-3/motivational-speech.json';
 
 const baseStats = {
   strength: 10,

@@ -6,8 +6,8 @@
 - **Sub-Classes**: No Subclass Entries
 
 - **Casting Time Value**: 1
-- **Casting Time Unit**: bonus_action
-- **Combat Cost**: bonus_action
+- **Casting Time Unit**: reaction
+- **Combat Cost**: reaction
 - **Reaction Trigger**: immediately after you hit a creature with a weapon or Unarmed Strike
 
 - **Range Type**: self
@@ -75,7 +75,7 @@ This section stores the raw canonical spell content in an HTML comment so the st
 <!--
 Name: Shining Smite
 Level: 2nd
-Casting Time: 1 Bonus Action *
+Casting Time: 1 Reaction *
 Range/Area: Self
 Components: V
 Duration: Concentration 1 Minute

@@ -4,7 +4,7 @@ import { UtilityCommand, recordBigbysHandDamage } from '../effects/UtilityComman
 import type { CombatCharacter } from '@/types/combat'
 import type { EffectDuration, Spell, UtilityEffect } from '@/types/spells'
 import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '@/utils/core'
-import bigbysHand from '../../../public/data/spells/level-5/bigbys-hand.json'
+import bigbysHand from '@/data/spells/level-5/bigbys-hand.json'
 
 /**
  * Bigby's Hand is a damageable controlled force object, not a creature summon.

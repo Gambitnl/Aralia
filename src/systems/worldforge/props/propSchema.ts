@@ -127,6 +127,21 @@ export interface PropInstance {
     /** Integer variant index (0..N) — generator picks a sub-form. */
     variant: number;
   };
+  /**
+   * SURFACE FIT (surface-gate wave). Present when the placement context carried
+   * a `SurfaceProbe`, so the engine could read the ground under this instance.
+   * Baked once at placement; the renderer never re-samples per frame.
+   */
+  surface?: {
+    /** Lean toward the ground normal, radians. A rock lies flat; a post stays up. */
+    tiltRad: number;
+    /** Horizontal tilt axis (x, z) in ground meters space, unit length. */
+    tiltAxis: [number, number];
+    /** Sink depth in METERS — subtract from the ground Y so the base meets the slope. */
+    sinkM: number;
+    /** Ground elevation under the instance, METERS, as the probe read it. */
+    groundYM: number;
+  };
 }
 
 /** Derived BattleMapTile boolean — a prop provides cover iff its rung > none. */

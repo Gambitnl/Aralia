@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { createMockCombatCharacter, SpellCommandFactory, RegisterRiderCommand } from './AbilityCommandFactory.testHelpers';
 import type { CombatState, GameState, Spell } from './AbilityCommandFactory.testHelpers';
-import lightningArrow from '../../../../public/data/spells/level-3/lightning-arrow.json';
+import lightningArrow from '@/data/spells/level-3/lightning-arrow.json';
 
 // ============================================================================
 // Next-Attack Rider Data Contracts

@@ -1,0 +1,525 @@
+{
+  "id": "wall-of-ice",
+  "name": "Wall of Ice",
+  "aliases": [],
+  "level": 6,
+  "school": "Evocation",
+  "legacy": false,
+  "classes": [
+    "Wizard"
+  ],
+  "subClasses": [],
+  "ritual": false,
+  "rarity": "common",
+  "attackType": "",
+  "castingTime": {
+    "value": 1,
+    "unit": "action",
+    "combatCost": {
+      "type": "action",
+      "condition": ""
+    },
+    "explorationCost": {
+      "value": 0,
+      "unit": "minute"
+    }
+  },
+  "range": {
+    "type": "ranged",
+    "distance": 120,
+    "distanceUnit": "feet"
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": true,
+    "materialDescription": "a piece of quartz",
+    "isConsumed": false,
+    "materialCost": 0
+  },
+  "duration": {
+    "type": "timed",
+    "value": 10,
+    "unit": "minute",
+    "concentration": true
+  },
+  "targeting": {
+    "type": "area",
+    "range": 120,
+    "validTargets": [
+      "creatures"
+    ],
+    "lineOfSight": true,
+    "areaOfEffect": {
+      "shape": "Wall",
+      "size": 100,
+      "height": 10,
+      "sizeType": "length",
+      "sizeUnit": "feet",
+      "heightUnit": "feet",
+      "thickness": 1,
+      "thicknessUnit": "feet"
+    },
+    "maxTargets": 1,
+    "filter": {
+      "creatureTypes": [],
+      "excludeCreatureTypes": [],
+      "sizes": [],
+      "alignments": [],
+      "hasCondition": [],
+      "isNativeToPlane": false,
+      "willing": "not_applicable",
+      "objectEligibility": {
+        "wornOrCarried": "not_applicable",
+        "magicalStatus": "not_applicable",
+        "fixedToSurface": "not_applicable",
+        "maxSize": "not_applicable",
+        "maxWeightPounds": "not_applicable",
+        "maxWeightScaling": "not_applicable"
+      },
+      "communicationPrerequisites": {
+        "canHearCaster": "not_applicable",
+        "canUnderstandCaster": "not_applicable",
+        "canSeeCaster": "not_applicable"
+      },
+      "abilityThreshold": {
+        "ability": "not_applicable",
+        "operator": "not_applicable",
+        "value": "not_applicable"
+      },
+      "selfRelation": "not_applicable"
+    },
+    "rangeUnit": "feet",
+    "spatialDetails": {
+      "forms": [
+        {
+          "label": "Hemisphere",
+          "shape": "Hemisphere",
+          "size": 10,
+          "sizeType": "radius",
+          "sizeUnit": "feet",
+          "thickness": 1,
+          "thicknessUnit": "feet",
+          "notes": "A hemispherical dome with a 10-foot radius."
+        },
+        {
+          "label": "Globe",
+          "shape": "Sphere",
+          "size": 10,
+          "sizeType": "radius",
+          "sizeUnit": "feet",
+          "thickness": 1,
+          "thicknessUnit": "feet",
+          "notes": "A spherical globe with a 10-foot radius."
+        },
+        {
+          "label": "Flat Surface",
+          "shape": "Wall",
+          "size": 100,
+          "sizeType": "length",
+          "sizeUnit": "feet",
+          "height": 10,
+          "heightUnit": "feet",
+          "thickness": 1,
+          "thicknessUnit": "feet",
+          "segmentCount": 10,
+          "segmentWidth": 10,
+          "segmentWidthUnit": "feet",
+          "segmentHeight": 10,
+          "segmentHeightUnit": "feet",
+          "notes": "Made of contiguous panels."
+        }
+      ]
+    }
+  },
+  "effects": [
+    {
+      "type": "DAMAGE",
+      "trigger": {
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
+      "condition": {
+        "type": "save",
+        "saveType": "Dexterity",
+        "saveEffect": "half",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false,
+          "willing": "not_applicable",
+          "objectEligibility": {
+            "wornOrCarried": "not_applicable",
+            "magicalStatus": "not_applicable",
+            "fixedToSurface": "not_applicable",
+            "maxSize": "not_applicable",
+            "maxWeightPounds": "not_applicable",
+            "maxWeightScaling": "not_applicable"
+          },
+          "communicationPrerequisites": {
+            "canHearCaster": "not_applicable",
+            "canUnderstandCaster": "not_applicable",
+            "canSeeCaster": "not_applicable"
+          },
+          "abilityThreshold": {
+            "ability": "not_applicable",
+            "operator": "not_applicable",
+            "value": "not_applicable"
+          },
+          "selfRelation": "not_applicable"
+        },
+        "requiresStatus": [],
+        "saveModifiers": [],
+        "saveOutcomeOverrides": []
+      },
+      "damage": {
+        "dice": "10d6",
+        "type": "Cold"
+      },
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "",
+        "customFormula": ""
+      },
+      "description": "If the 1-foot-thick ice wall, dome, globe, or contiguous panel shape cuts through a creature's space when it appears within 120 feet, the caster pushes that creature to one side and it makes a Dexterity save, taking 10d6 Cold damage on a failure or half as much on a success; each slot level above 6 adds +2d6 appearance damage.",
+      "conditionalEndings": []
+    },
+    {
+      "type": "MOVEMENT",
+      "trigger": {
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
+      "condition": {
+        "type": "always",
+        "saveOutcomeOverrides": []
+      },
+      "movementType": "push",
+      "distance": 0,
+      "duration": {
+        "type": "rounds",
+        "value": 0
+      },
+      "speedChange": {
+        "stat": "speed",
+        "value": 0,
+        "unit": "feet"
+      },
+      "forcedMovement": {
+        "usesReaction": false,
+        "direction": "caster_choice",
+        "maxDistance": "one side of wall"
+      },
+      "description": "A creature whose space is cut by the wall when it appears is pushed to one side of the wall chosen by the caster.",
+      "conditionalEndings": []
+    },
+    {
+      "type": "TERRAIN",
+      "trigger": {
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
+      "condition": {
+        "type": "always",
+        "saveOutcomeOverrides": []
+      },
+      "terrainType": "wall",
+      "areaOfEffect": {
+        "shape": "Square",
+        "size": 100,
+        "height": 10,
+        "sizeType": "length",
+        "sizeUnit": "feet",
+        "heightUnit": "feet",
+        "thickness": 1,
+        "thicknessUnit": "feet"
+      },
+      "duration": {
+        "type": "minutes",
+        "value": 10
+      },
+      "damage": {
+        "dice": "",
+        "type": ""
+      },
+      "wallProperties": {
+        "hp": 30,
+        "ac": 12
+      },
+      "description": "Creates a 1-foot-thick ice wall on a solid surface as a 10-foot-radius hemisphere or globe, or up to ten contiguous 10-foot panels; each 10-foot section has AC 12, 30 Hit Points, Cold, Poison, and Psychic immunity, Fire vulnerability, and leaves frigid air behind when destroyed.",
+      "conditionalEndings": []
+    },
+    {
+      "type": "DAMAGE",
+      "trigger": {
+        "type": "on_enter_area",
+        "frequency": "first_per_turn",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
+      "condition": {
+        "type": "save",
+        "saveType": "Constitution",
+        "saveEffect": "half",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false,
+          "willing": "not_applicable",
+          "objectEligibility": {
+            "wornOrCarried": "not_applicable",
+            "magicalStatus": "not_applicable",
+            "fixedToSurface": "not_applicable",
+            "maxSize": "not_applicable",
+            "maxWeightPounds": "not_applicable",
+            "maxWeightScaling": "not_applicable"
+          },
+          "communicationPrerequisites": {
+            "canHearCaster": "not_applicable",
+            "canUnderstandCaster": "not_applicable",
+            "canSeeCaster": "not_applicable"
+          },
+          "abilityThreshold": {
+            "ability": "not_applicable",
+            "operator": "not_applicable",
+            "value": "not_applicable"
+          },
+          "selfRelation": "not_applicable"
+        },
+        "requiresStatus": [],
+        "saveModifiers": [],
+        "saveOutcomeOverrides": []
+      },
+      "damage": {
+        "dice": "5d6",
+        "type": "Cold"
+      },
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "+1d6",
+        "customFormula": ""
+      },
+      "description": "A creature moving through frigid air left by a destroyed wall section for the first time on a turn makes a Constitution save, taking 5d6 Cold damage on a failure or half as much on a success; each slot level above 6 adds +1d6 frigid-air damage.",
+      "conditionalEndings": []
+    },
+    {
+      "type": "UTILITY",
+      "trigger": {
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
+      "condition": {
+        "type": "always",
+        "saveOutcomeOverrides": []
+      },
+      "utilityType": "creation",
+      "description": "The wall can be formed as a hemisphere, globe, or contiguous flat panels; destroyed sections leave frigid air behind.",
+      "createdObjects": [
+        {
+          "objectType": "structure",
+          "name": "Wall of Ice",
+          "count": 1,
+          "countUnit": "structure",
+          "appearsIn": "spell_area",
+          "materialOptions": [
+            "ice"
+          ],
+          "shapeOptions": [
+            "hemispherical_dome",
+            "globe",
+            "flat_contiguous_panels"
+          ],
+          "wallLengthFeet": 100,
+          "wallHeightFeet": 10,
+          "wallThickness": 1,
+          "wallThicknessUnit": "feet",
+          "panelCount": 10,
+          "panelWidthFeet": 10,
+          "panelHeightFeet": 10,
+          "panelContiguityRequired": true,
+          "diameterFeet": 20,
+          "orientationOptions": [
+            "vertical",
+            "caster_choice"
+          ],
+          "freeFloating": false,
+          "requiresAnchoring": true,
+          "anchoringOptions": [
+            "solid_surface"
+          ],
+          "blocksPhysicalPassage": true,
+          "blocksLineOfSight": true,
+          "immuneToDamage": false,
+          "objectArmorClass": 12,
+          "sectionHitPoints": 30,
+          "damageImmunities": [
+            "Cold",
+            "Poison",
+            "Psychic"
+          ],
+          "damageVulnerabilities": [
+            "Fire"
+          ],
+          "pushesCreaturesToChosenSide": true,
+          "leavesHazardOnSectionDestroyed": true,
+          "lingeringHazardName": "Frigid Air",
+          "lingeringHazardDamage": {
+            "dice": "5d6",
+            "type": "Cold"
+          },
+          "lingeringHazardSaveType": "Constitution",
+          "lingeringHazardSaveEffect": "half",
+          "lingeringHazardFrequency": "first_per_turn",
+          "expiresWithSpell": true,
+          "shelfLife": "10 minutes",
+          "notes": "A 1-foot-thick ice wall that can be a 10-foot-radius dome/globe or ten contiguous 10-foot panels. Each 10-foot section has AC 12 and 30 HP, is immune to Cold, Poison, and Psychic damage, is vulnerable to Fire damage, and leaves frigid air that damages creatures moving through it after destruction."
+        }
+      ],
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "",
+        "customFormula": ""
+      },
+      "grantedActions": [],
+      "attackAugments": [],
+      "controlOptions": [
+        {
+          "name": "Hemisphere Form",
+          "effect": "The wall can be formed as a hemispherical dome with a radius up to 10 feet."
+        },
+        {
+          "name": "Globe Form",
+          "effect": "The wall can be formed as a globe with a radius up to 10 feet."
+        },
+        {
+          "name": "Flat Panel Form",
+          "effect": "The wall can be shaped as a flat surface made of ten contiguous 10-foot-square panels."
+        },
+        {
+          "name": "Frigid Air After Breach",
+          "effect": "Reducing a 10-foot wall section to 0 Hit Points leaves a sheet of frigid air that damages creatures moving through it."
+        }
+      ],
+      "taunt": {
+        "disadvantageAgainstOthers": false,
+        "leashRangeFeet": 0,
+        "breakConditions": []
+      },
+      "savePenalty": {
+        "dice": "",
+        "flat": 0,
+        "applies": "next_save",
+        "duration": {
+          "type": "rounds",
+          "value": 0
+        }
+      },
+      "light": {
+        "brightRadius": 0,
+        "dimRadius": 0,
+        "attachedTo": "point",
+        "color": "",
+        "colorChoice": "not_applicable",
+        "opaqueCoverBlocks": "not_applicable",
+        "emitsHeat": "not_applicable",
+        "ignitesObjects": "not_applicable",
+        "consumesFuel": "not_applicable",
+        "canBeCoveredOrHidden": "not_applicable",
+        "canBeSmotheredOrQuenched": "not_applicable"
+      },
+      "conditionalEndings": []
+    }
+  ],
+  "arbitrationType": "mechanical",
+  "aiContext": {
+    "prompt": "Ask the caster to choose Wall of Ice form, placement on a solid surface, panel contiguity or dome/globe radius, and which side each cut-through creature is pushed to when the wall appears.",
+    "playerInputRequired": true
+  },
+  "modeChoice": {
+    "type": "choose_one",
+    "timing": "on_cast",
+    "optionCount": 3,
+    "optionsSource": "modeChoice.options",
+    "canDismissActive": false,
+    "options": [
+      {
+        "label": "Hemisphere",
+        "summary": "Create a 1-foot-thick hemispherical ice dome with a radius of up to 10 feet on a solid surface."
+      },
+      {
+        "label": "Globe",
+        "summary": "Create a 1-foot-thick ice globe with a radius of up to 10 feet on a solid surface."
+      },
+      {
+        "label": "Flat Contiguous Panels",
+        "summary": "Create up to ten contiguous 10-foot-square ice panels on a solid surface."
+      }
+    ],
+    "secondaryChoices": [
+      "solid-surface placement",
+      "panel arrangement",
+      "creature push side",
+      "destroyed-section frigid-air tracking"
+    ],
+    "notes": "The form is a casting-time branch, and cut-through creature push direction remains a caster choice when the wall appears."
+  },
+  "description": "You create a wall of ice on a solid surface within range. You can form it into a hemispherical dome or a globe with a radius of up to 10 feet, or you can shape a flat surface made up of ten 10-foot-square panels. Each panel must be contiguous with another panel. In any form, the wall is 1 foot thick and lasts for the duration. If the wall cuts through a creature's space when it appears, the creature is pushed to one side of the wall (you choose which side) and makes a Dexterity saving throw, taking 10d6 Cold damage on a failed save or half as much damage on a successful one. The wall is an object that can be damaged and thus breached. It has AC 12 and 30 Hit Points per 10-foot section, and it has Immunity to Cold, Poison, and Psychic damage and Vulnerability to Fire damage. Reducing a 10-foot section of wall to 0 Hit Points destroys it and leaves behind a sheet of frigid air in the space the wall occupied. A creature moving through the sheet of frigid air for the first time on a turn makes a Constitution saving throw, taking 5d6 Cold damage on a failed save or half as much damage on a successful one.",
+  "higherLevels": "Using a Higher-Level Spell Slot. The damage the wall deals when it appears increases by 2d6 and the damage from passing through the sheet of frigid air increases by 1d6 for each spell slot level above 6.",
+  "tags": [
+    "concentration"
+  ]
+}

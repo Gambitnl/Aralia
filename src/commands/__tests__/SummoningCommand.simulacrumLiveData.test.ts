@@ -5,7 +5,7 @@ import type { CommandContext } from '../base/SpellCommand'
 import type { CombatCharacter, CombatState } from '../../types/combat'
 import type { DamageEffect, SummoningEffect } from '../../types/spells'
 import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '@/utils/core'
-import simulacrum from '../../../public/data/spells/level-7/simulacrum.json'
+import simulacrum from '@/data/spells/level-7/simulacrum.json'
 
 /**
  * This file proves the live Simulacrum spell packet reaches the combat summon

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { inferMovementModeForAction } from '../useBattleMap';
 import { createMockCombatCharacter } from '../../utils/core';
 import type { CombatCharacter } from '../../types/combat';
-import summonBeast from '../../../public/data/spells/level-2/summon-beast.json';
+import summonBeast from '@/data/spells/level-2/summon-beast.json';
 
 /**
  * This file protects the movement-mode handoff created by the battle-map hook.

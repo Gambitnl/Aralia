@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 04/08/2026, 01:52:14
+ * Last Sync: 11/08/2026, 21:39:17
  * Dependents: components/BattleMap/BattleMap.tsx, components/BattleMap/index.ts
  * Imports: 7 files
  *
@@ -720,6 +720,20 @@ const CharacterToken: React.FC<CharacterTokenProps> = React.memo(
               strokeDasharray={`${hpPct * 100} 100`}
             />
           </svg>
+        )}
+
+        {/* Temporary HP is a separate cyan buffer rather than extra green HP.
+          Keep its exact value beside the token so absorption and replacement
+          remain readable without opening an inspector or inferring from an arc. */}
+        {(character.tempHP ?? 0) > 0 && (
+          <span
+            data-testid="temporary-hit-points-badge"
+            aria-label={`${character.tempHP} temporary hit points`}
+            className="pointer-events-none absolute right-[-8px] top-1/2 -translate-y-1/2 rounded-full border border-cyan-200 bg-cyan-950/95 px-1 py-0.5 text-[8px] font-black leading-none text-cyan-100 shadow-md"
+            style={{ zIndex: Z_INDEX.CONTENT_OVERLAY_MEDIUM }}
+          >
+            +{character.tempHP}
+          </span>
         )}
 
         {/* Defense badges stay tiny and pinned to the perimeter so they expose

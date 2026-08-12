@@ -143,8 +143,14 @@ export function createSweptTube(options: SweptTubeOptions): SweptTube {
         normals[i + 1] = DIR.y;
         normals[i + 2] = DIR.z;
         if (colors && shade && TINT) {
-          // underside factor: 1 pointing straight down, 0 from the equator up
-          const under = Math.min(1, Math.max(0, -DIR.y * 1.5 + 0.2));
+          // underside factor: 1 pointing straight down, 0 from the equator up.
+          // round 23 (creature-anatomy): scaled down on VERTICAL runs — on a
+          // rearing serpent riser the belly strip wraps into view from every
+          // camera and the whole column read as a "thin pale stalk" severed
+          // from its dark heads. Countershade is a lighting cue for
+          // horizontal runs; a vertical column keeps its dorsal tone.
+          const vertical = Math.abs(frames.tangents[s].y);
+          const under = Math.min(1, Math.max(0, -DIR.y * 1.5 + 0.2)) * (1 - 0.75 * vertical);
           TINT.copy(shade.body).lerp(shade.belly, under);
           if (bands) {
             // narrow dark ring at every t = (k + 0.5) / count, fading toward

@@ -52,26 +52,6 @@ interface SceneCastProps {
     onSelectNpc?: (npcId: string) => void;
 }
 /**
- * Whether a cast figure is click-to-talk interactive: only NPC figures, and only
- * when a select handler is wired. The player's own figure is NEVER clickable —
- * you don't open a conversation with yourself. Pure so the contract is testable
- * without an R3F render.
- */
-export declare function figureIsInteractive(member: SceneCastMember, hasHandler: boolean): boolean;
-/**
- * The one place an unspecified cast member becomes a body: an unarmed human
- * commoner, deterministic per member id. Members with real identities carry
- * their own recipe.
- */
-export declare function castMemberRecipe(member: SceneCastMember): EntityRecipe;
-/**
- * Lay the cast out as a small face-to-face cluster: the player at the near edge
- * (+Z, toward the camera) and the NPCs in a shallow arc opposite, facing back.
- */
-export declare function layoutCast(cast: SceneCastMember[]): Array<SceneCastMember & {
-    pos: [number, number, number];
-}>;
-/**
  * Render the staged cast. Returns null when there's no one to stage (the normal
  * case once the opening is over and the player wanders off).
  */

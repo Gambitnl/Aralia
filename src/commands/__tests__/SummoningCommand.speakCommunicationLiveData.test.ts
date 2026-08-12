@@ -3,8 +3,8 @@ import { UtilityCommand } from '../effects/UtilityCommand'
 import type { CombatCharacter } from '@/types/combat'
 import type { EffectDuration, Spell, UtilityEffect } from '@/types/spells'
 import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '@/utils/core'
-import speakWithDead from '../../../public/data/spells/level-3/speak-with-dead.json'
-import speakWithPlants from '../../../public/data/spells/level-3/speak-with-plants.json'
+import speakWithDead from '@/data/spells/level-3/speak-with-dead.json'
+import speakWithPlants from '@/data/spells/level-3/speak-with-plants.json'
 
 /**
  * Speak with Dead and Speak with Plants create bounded communication/control

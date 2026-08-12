@@ -73,11 +73,17 @@ export function entityMaterial(mode: EntityRenderMode): (colorHex: string) => Me
  * but on a skinned body the ink shell follows the bones instead of freezing in
  * bind pose. The inflation happens in bind space along the bind normal, then
  * the bone transform carries the inflated vertex — exact for rigid weights. */
-export function outlineMaterial(colorHex: string, thickness = 0.02, opacity = 1): ShaderMaterial {
+export function outlineMaterial(colorHex: string, thickness = 0.02, opacity = 1, perVertexScale = false): ShaderMaterial {
   // round 7 (creature-anatomy): translucent bodies (opacity < 1) carry a
   // matching translucent ink — an opaque black hull around a see-through gel
   // read as "a green rock wall with heavy black outlines".
   const translucent = opacity < 1;
+  // round 16 (humanoid-anatomy): optional per-vertex ink scale (`aInk` float
+  // attribute, 1 = full weight). The uniform hull thickness (hM * 0.011) is
+  // wider than the creases between hand-scale forms — it inked the thumb/palm
+  // and knuckle valleys shut and rounded the fist back into the critic's
+  // "featureless sphere". Only pass true when the geometry carries `aInk`
+  // (a missing attribute reads 0 ⇒ no outline at all).
   return new ShaderMaterial({
     side: BackSide,
     transparent: translucent,
@@ -89,10 +95,11 @@ export function outlineMaterial(colorHex: string, thickness = 0.02, opacity = 1)
     },
     vertexShader: `
       uniform float uT;
+      ${perVertexScale ? 'attribute float aInk;' : ''}
       #include <skinning_pars_vertex>
       void main() {
         #include <skinbase_vertex>
-        vec3 transformed = position + normalize(normal) * uT;
+        vec3 transformed = position + normalize(normal) * uT${perVertexScale ? ' * aInk' : ''};
         #include <skinning_vertex>
         gl_Position = projectionMatrix * modelViewMatrix * vec4(transformed, 1.0);
       }`,

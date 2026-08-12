@@ -1262,3 +1262,99 @@ export function allPlacementTags(): string[] {
   for (const d of PROP_CATALOG) for (const t of d.placementTags) tags.add(t);
   return [...tags].sort();
 }
+
+// ── Surface gates (surface-gate wave, WorldClaw stage 2) ────────────────────
+
+/**
+ * How each prop family tolerates the ground it lands on. Read by the placement
+ * engine's stage-2 gate: a candidate whose surface fails its gate is REJECTED,
+ * and a candidate that passes is tilted and sunk to fit.
+ *
+ * Families, not per-id rows, because tolerance follows FORM:
+ *  • lying stone — a boulder or outcrop takes almost any slope and lies flat on
+ *    it, tilting the full way to the normal. It sinks deep: half its own base
+ *    radius of drop, so it beds into the hillside instead of hovering.
+ *  • standing stone — a cairn or gravestone was PLACED by someone, so it stays
+ *    near-upright and needs ground a person could stand a stone on.
+ *  • vegetation — a bush leans a little; a log lies down.
+ *  • built — a stall, cart or fence needs level, low ground. Nobody builds a
+ *    market stall on a 25-degree bank.
+ *  • water-edge — reeds and gravel bars need nearly flat, low ground.
+ *
+ * Angles in degrees for legibility; `surfaceGateFor` converts to radians.
+ * Elevations are FEET above sea level in the ground window's own frame.
+ */
+interface PropSurfaceGateSpec {
+  maxSlopeDeg: number;
+  maxTiltDeg: number;
+  baseRadiusFt: number;
+  minElevationFt?: number;
+  maxElevationFt?: number;
+  slopeScaleFloor?: number;
+}
+
+const LYING_STONE: PropSurfaceGateSpec = {
+  maxSlopeDeg: 45, maxTiltDeg: 45, baseRadiusFt: 3, slopeScaleFloor: 0.85,
+};
+const STANDING_STONE: PropSurfaceGateSpec = {
+  maxSlopeDeg: 20, maxTiltDeg: 6, baseRadiusFt: 2, slopeScaleFloor: 0.9,
+};
+const LYING_WOOD: PropSurfaceGateSpec = {
+  maxSlopeDeg: 35, maxTiltDeg: 35, baseRadiusFt: 4, slopeScaleFloor: 0.85,
+};
+const SHRUB: PropSurfaceGateSpec = {
+  maxSlopeDeg: 32, maxTiltDeg: 12, baseRadiusFt: 2, slopeScaleFloor: 0.7,
+};
+const BUILT: PropSurfaceGateSpec = {
+  maxSlopeDeg: 10, maxTiltDeg: 3, baseRadiusFt: 1.5,
+};
+const WATER_EDGE: PropSurfaceGateSpec = {
+  maxSlopeDeg: 8, maxTiltDeg: 4, baseRadiusFt: 2,
+};
+
+const PROP_SURFACE_FAMILY: Readonly<Record<string, PropSurfaceGateSpec>> = {
+  // Lying stone.
+  boulder: LYING_STONE, 'rock-outcrop': LYING_STONE, 'mossy-rock-cluster': LYING_STONE,
+  'rubble-pile': LYING_STONE, 'gravel-bar': WATER_EDGE, 'toppled-column': LYING_STONE,
+  'broken-wall': LYING_STONE, 'sniper-ledge': LYING_STONE,
+  // Standing stone / placed masonry.
+  cairn: STANDING_STONE, 'standing-stone': STANDING_STONE, gravestone: STANDING_STONE,
+  tomb: STANDING_STONE, 'stone-cross': STANDING_STONE, milestone: STANDING_STONE,
+  'wayside-shrine': STANDING_STONE, statue: STANDING_STONE, 'stone-planter': STANDING_STONE,
+  'stone-bench': STANDING_STONE, 'boundary-wall': STANDING_STONE, 'dry-stone-wall': STANDING_STONE,
+  brazier: STANDING_STONE, fingerpost: STANDING_STONE, grindstone: STANDING_STONE,
+  well: BUILT, 'lantern-post': STANDING_STONE, 'mooring-post': STANDING_STONE,
+  'jetty-post': STANDING_STONE, 'dead-snag': STANDING_STONE, 'tree-stump': LYING_WOOD,
+  // Lying wood.
+  'fallen-log': LYING_WOOD, deadfall: LYING_WOOD, 'driftwood-pile': LYING_WOOD,
+  'log-bridge': LYING_WOOD, 'roof-beam-charred': LYING_WOOD, woodpile: LYING_WOOD,
+  // Vegetation.
+  bush: SHRUB, 'bramble-patch': SHRUB, 'fern-clump': SHRUB, 'gorse-shrub': SHRUB,
+  'hedge-run': SHRUB, topiary: BUILT, 'ivy-mass': SHRUB, 'mushroom-ring': WATER_EDGE,
+  'reed-bed': WATER_EDGE,
+};
+
+/**
+ * The gate for a prop id. Anything with no family row is BUILT: a manufactured
+ * object needs level ground, which is the conservative call — it keeps clutter
+ * off banks rather than letting an un-classified prop through un-gated.
+ */
+export function surfaceGateFor(defId: string): {
+  minElevationFt?: number;
+  maxElevationFt?: number;
+  maxSlopeRad: number;
+  maxTiltRad: number;
+  baseRadiusFt: number;
+  slopeScaleFloor?: number;
+} {
+  const spec = PROP_SURFACE_FAMILY[defId] ?? BUILT;
+  const rad = (d: number): number => (d * Math.PI) / 180;
+  return {
+    minElevationFt: spec.minElevationFt,
+    maxElevationFt: spec.maxElevationFt,
+    maxSlopeRad: rad(spec.maxSlopeDeg),
+    maxTiltRad: rad(spec.maxTiltDeg),
+    baseRadiusFt: spec.baseRadiusFt,
+    slopeScaleFloor: spec.slopeScaleFloor,
+  };
+}

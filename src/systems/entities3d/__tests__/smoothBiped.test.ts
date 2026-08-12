@@ -145,11 +145,13 @@ describe('smooth biped weights', () => {
     // palm; thumbs are their own short capped tubes
     // round 5 (humanoid-anatomy): heel-to-toe wedge feet are their own capped
     // tubes (the terminal foot spheres are gone)
+    // round 15 (humanoid-anatomy): arm chains loft through the palm into the
+    // curled finger mass (the knuckle plane break)
     expect(SMOOTH_CHAINS.map((c) => c.segIds.join('>'))).toEqual([
       'torso.pelvis>torso.chest>neck',
-      'armL.upper>armL.fore>handL.palm',
+      'armL.upper>armL.fore>handL.palm>handL.fingers',
       'handL.thumb',
-      'armR.upper>armR.fore>handR.palm',
+      'armR.upper>armR.fore>handR.palm>handR.fingers',
       'handR.thumb',
       'legL.thigh>legL.shin',
       'legR.thigh>legR.shin',

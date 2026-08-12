@@ -5,7 +5,7 @@ import { createMockCombatCharacter } from '../../utils/core';
 import type { CommandContext } from '../base/SpellCommand';
 import type { CombatCharacter, CombatLogEntry, CombatState } from '../../types/combat';
 import type { UtilityEffect } from '../../types/spells';
-import createUndead from '../../../public/data/spells/level-6/create-undead.json';
+import createUndead from '@/data/spells/level-6/create-undead.json';
 
 /**
  * Create Undead is the higher-level sibling of Animate Dead, but the live spell

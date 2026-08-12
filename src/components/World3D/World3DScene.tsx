@@ -86,8 +86,7 @@ import { useForgeTexture, getSemanticAssetKey } from '@/systems/worldforge/bridg
 import type { ForgeAssetService } from '@/systems/worldforge/assets/forgeAssetService';
 import { PerfProbe } from '@/devtools/perf';
 import { setPerfSceneDiagnostics } from '@/devtools/perf/perfRegistry';
-
-export const ForgeAssetContext = React.createContext<ForgeAssetService | undefined>(undefined);
+import { ForgeAssetContext } from './ForgeAssetContext';
 
 interface World3DSceneProps {
   loader: ChunkLoader;

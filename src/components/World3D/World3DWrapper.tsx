@@ -56,7 +56,7 @@ import { Button } from '../ui/Button';
 import WorldGenLoadingScreen, { type WorldGenLoadingStage } from './WorldGenLoadingScreen';
 import type { DisposableWorldGenClient } from './createWorldGenClient';
 import LocaleMovePane from './LocaleMovePane';
-import { groundSurfaceYM } from './PlayerAvatar';
+import { groundSurfaceYM } from './terrain/groundSurfaceYM';
 import {
   cameraMayWriteGroundPos,
   hasArrivedAtIntent,

@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 16/07/2026, 06:10:37
+ * Last Sync: 12/08/2026, 01:29:54
  * Dependents: components/BattleMap/BattleMapDemo.tsx, components/BattleMap/index.ts, components/Combat/CombatView.tsx, components/DesignPreview/steps/PreviewCombatScenarios.tsx
- * Imports: 6 files
+ * Imports: 7 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -33,6 +33,7 @@ import { Button } from '../ui/Button';
 import { WindowFrame } from '../ui/WindowFrame';
 import { WINDOW_KEYS } from '../../styles/uiIds';
 import { getCreatureTokenVisual } from '../../utils/visuals/combatIconVisuals';
+import { CombatCharacterInspector } from './CombatCharacterInspector';
 
 interface InitiativeTrackerProps {
   characters: CombatCharacter[];
@@ -80,11 +81,15 @@ export const InitiativeTracker: React.FC<InitiativeTrackerProps> = ({
   const [isExpanded, setIsExpanded] = useState(false);
   const [canScrollEarlier, setCanScrollEarlier] = useState(false);
   const [canScrollLater, setCanScrollLater] = useState(true);
+  const [inspectedCharacterId, setInspectedCharacterId] = useState<string | null>(null);
   const stripRef = useRef<HTMLDivElement>(null);
 
   const ordered = turnState.turnOrder
     .map(id => characters.find(c => c.id === id))
     .filter((c): c is CombatCharacter => !!c);
+  const inspectedCharacter = inspectedCharacterId
+    ? characters.find(character => character.id === inspectedCharacterId) ?? null
+    : null;
 
   const updateScrollBounds = useCallback(() => {
     const node = stripRef.current;
@@ -127,21 +132,33 @@ export const InitiativeTracker: React.FC<InitiativeTrackerProps> = ({
         const isPlayer  = char.team === 'player';
         const hpPct     = Math.max(0, Math.round((char.currentHP / char.maxHP) * 100));
         const initial   = char.name[0].toUpperCase();
+        const canInspectMonster = !isPlayer;
         const canSkip   = !!onSkipToCharacter && !isCurrent;
         const visual    = getCreatureTokenVisual(char);
         const shortLabel = initiativeShortLabel(char);
+        const interactionHint = canInspectMonster
+          ? canSkip
+            ? `${char.name} — ${char.currentHP}/${char.maxHP} HP · Click for monster info · Shift+click to skip to this turn`
+            : `${char.name} — ${char.currentHP}/${char.maxHP} HP · Click for monster info`
+          : canSkip
+            ? `${char.name} — ${char.currentHP}/${char.maxHP} HP · Click to skip to this turn`
+            : `${char.name} — ${char.currentHP}/${char.maxHP} HP`;
 
         return (
           <Tooltip
             key={char.id}
-            content={canSkip
-              ? `${char.name} — ${char.currentHP}/${char.maxHP} HP · Click to skip to this turn`
-              : `${char.name} — ${char.currentHP}/${char.maxHP} HP`}
+            content={interactionHint}
           >
             <button
+              type="button"
               data-character-id={char.id}
-              onClick={() => {
-                if (canSkip) {
+              onClick={event => {
+                // Enemy cards prioritize the requested shared information panel.
+                // Shift preserves the existing skip-to-turn command for combat
+                // operators who still need to jump to a later enemy turn.
+                if (canInspectMonster && !event.shiftKey) {
+                  setInspectedCharacterId(char.id);
+                } else if (canSkip) {
                   onSkipToCharacter(char.id);
                 } else if (isPlayer) {
                   onCharacterSelect?.(char.id);
@@ -153,10 +170,10 @@ export const InitiativeTracker: React.FC<InitiativeTrackerProps> = ({
                   : isPlayer
                     ? 'bg-gray-700/60 border-sky-800/40 hover:border-sky-500/60 hover:bg-sky-900/20'
                     : 'bg-gray-700/60 border-red-800/40 hover:border-red-500/60 hover:bg-red-900/20'}
-                ${canSkip ? 'cursor-pointer' : isCurrent ? 'cursor-default' : 'cursor-pointer'}
+                ${canInspectMonster || canSkip || onCharacterSelect ? 'cursor-pointer' : 'cursor-default'}
               `}
-              disabled={isCurrent && !onCharacterSelect}
-              aria-label={`${char.name}, turn ${index + 1}${canSkip ? ', click to skip here' : ''}`}
+              disabled={isCurrent && isPlayer && !onCharacterSelect}
+              aria-label={`${char.name}, turn ${index + 1}${canInspectMonster ? ', click for monster info' : ''}${canInspectMonster && canSkip ? ', shift plus click to skip here' : canSkip ? ', click to skip here' : ''}`}
             >
               {/* Position number */}
               <span className={`text-[9px] leading-none font-bold ${isCurrent ? 'text-amber-400' : 'text-gray-400'}`}>
@@ -277,6 +294,16 @@ export const InitiativeTracker: React.FC<InitiativeTrackerProps> = ({
             {strip}
           </div>
         </WindowFrame>
+      )}
+
+      {/* The same inspector is mounted by every InitiativeTracker consumer, so
+          Tactical Sandbox, BattleMapDemo, and production CombatView all expose
+          identical monster facts without each host maintaining modal state. */}
+      {inspectedCharacter && (
+        <CombatCharacterInspector
+          character={inspectedCharacter}
+          onClose={() => setInspectedCharacterId(null)}
+        />
       )}
     </>
   );

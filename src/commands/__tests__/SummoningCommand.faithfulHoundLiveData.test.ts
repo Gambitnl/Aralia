@@ -3,7 +3,7 @@ import { DamageCommand, moveFaithfulHoundGuardian } from '../effects/DamageComma
 import type { CombatCharacter } from '@/types/combat'
 import type { DamageEffect, EffectDuration, Spell } from '@/types/spells'
 import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '@/utils/core'
-import faithfulHound from '../../../public/data/spells/level-4/mordenkainens-faithful-hound.json'
+import faithfulHound from '@/data/spells/level-4/mordenkainens-faithful-hound.json'
 
 /**
  * Mordenkainen's Faithful Hound creates a phantom watchdog, not a summon actor.

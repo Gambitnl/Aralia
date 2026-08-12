@@ -116,7 +116,11 @@ const brow: PartDef = {
       const ridge = new Mesh(new SphereGeometry(r * 0.24, 8, 5), ctx.material(ctx.palette.skinHex));
       ridge.scale.set(1.05, 0.42, 0.75);
       ridge.position.set(sgn * r * 0.28, r * 0.28, r * 0.5);
-      ridge.rotation.set(0.2, 0, sgn * -0.14);
+      // round 14 (humanoid-anatomy): tilt FLIPPED (sgn·−0.14 → sgn·0.22).
+      // The old sign dropped each ridge's OUTER corner — a sad/sleepy droop
+      // that no lid fix underneath could beat. Inner-corner-down is the
+      // angry scowl every heavy-browed kit wants.
+      ridge.rotation.set(0.2, 0, sgn * 0.22);
       group.add(ridge);
     }
     return { object: group };

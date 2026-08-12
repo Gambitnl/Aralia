@@ -80,6 +80,8 @@ export function syncVegetationInstanceMatrices(
 
   const matrix = new THREE.Matrix4();
   const rotation = new THREE.Quaternion();
+  const tiltQuat = new THREE.Quaternion();
+  const tiltAxis = new THREE.Vector3();
   const axis = new THREE.Vector3(0, 1, 0);
   const position = new THREE.Vector3();
   const scale = new THREE.Vector3();
@@ -90,11 +92,20 @@ export function syncVegetationInstanceMatrices(
   for (let i = 0; i < count; i++) {
     const s = scatter.scales[i];
     rotation.setFromAxisAngle(axis, scatter.rotations[i]);
+    // Surface-gate wave: lean the instance toward the ground normal by the
+    // per-species tilt the scatter pass baked in. Applied OUTSIDE the yaw so
+    // the lean stays in world space and the trunk leans downhill, not sideways.
+    const tilt = scatter.tilts?.[i] ?? 0;
+    if (tilt !== 0 && scatter.tiltAxes) {
+      tiltAxis.set(scatter.tiltAxes[i * 2], 0, scatter.tiltAxes[i * 2 + 1]).normalize();
+      tiltQuat.setFromAxisAngle(tiltAxis, tilt);
+      rotation.premultiply(tiltQuat);
+    }
     // yLift grounds the center-origin geometry: base sits ON the surface
     // sample instead of the cone straddling it half-buried.
     position.set(
       scatter.positions[i * 3],
-      scatter.positions[i * 3 + 1] + s * yLift,
+      scatter.positions[i * 3 + 1] + s * yLift * Math.cos(tilt),
       scatter.positions[i * 3 + 2],
     );
     scale.set(s * sw, s * sh, s * sw);

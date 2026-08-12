@@ -83,7 +83,13 @@ export function compilePlan(
     // round 7 (creature-anatomy): 0.032 → 0.042 — the serpent trunk must
     // carry serpent MASS in plan view; at 0.032 the 26 ft fixture's grounded
     // body read as a line next to its own heads.
-    pf.stance === 'serpentine' ? bodyLenM * 0.042 * (0.6 + pf.bulk) : 0,
+    // round 22 (creature-anatomy): 0.042 → 0.033 — the round-21 verdict read
+    // "pinheads on a garden hose": at 0.042 the 26 ft fixture's trunk
+    // (r ≈ 0.40 m, chest swell 0.58 m) out-gauged its own capped heads. The
+    // ratio INVERTS at the join — heads grow past the trunk (fixtures +
+    // headSizeScale cap 4) while the trunk slims back toward, not past, the
+    // round-7 floor. Valheim: a head towing a body, never a hose with studs.
+    pf.stance === 'serpentine' ? bodyLenM * 0.033 * (0.6 + pf.bulk) : 0,
     pf.stance === 'horizontal' && legless ? heightM * 0.36 * (0.4 + 0.6 * pf.bulk) : 0,
   );
 
@@ -167,6 +173,11 @@ export function compilePlan(
             links[li].rM = Math.max(links[li].rM, target * fall + links[li].rM * (1 - fall));
           }
         }
+        // round 20 (creature-anatomy): a hull-proud haunch needs NO collar —
+        // the swollen root ball already merges into the body, and the lathed
+        // skirt around a near-hull-width thigh rendered as a floating
+        // "sombrero brim" disc at each hip in the round-20 side sheets.
+        const proudLegRoot = a.kind === 'leg' && swellRatio !== undefined && links[0].rM >= hullR * 0.9;
         chains.push({
           id,
           kind: a.kind,
@@ -174,7 +185,7 @@ export function compilePlan(
           attach,
           heightFrac,
           links,
-          blendM: blendFrac(a) * Math.min(links[0].rM, hullR) * 2 * (ROOT_COLLAR_BOOST[a.kind] ?? 1),
+          blendM: proudLegRoot ? 0 : blendFrac(a) * Math.min(links[0].rM, hullR) * 2 * (ROOT_COLLAR_BOOST[a.kind] ?? 1),
           phaseOffset: 0,
           tips: a.tips,
           jointRings: a.jointRings,
@@ -255,6 +266,7 @@ export function compilePlan(
       ...(plan.spine.mass ? { mass: plan.spine.mass } : {}),
     },
     opacity: plan.palette.opacity,
+    ...(plan.surface ? { surface: plan.surface } : {}),
     skinBlend: plan.skin?.blend,
     chains,
     heads,

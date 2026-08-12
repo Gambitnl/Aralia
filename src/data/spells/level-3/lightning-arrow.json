@@ -1,0 +1,243 @@
+{
+  "id": "lightning-arrow",
+  "name": "Lightning Arrow",
+  "aliases": [],
+  "level": 3,
+  "school": "Transmutation",
+  "legacy": false,
+  "classes": [
+    "Ranger"
+  ],
+  "subClasses": [],
+  "ritual": false,
+  "rarity": "common",
+  "attackType": "",
+  "castingTime": {
+    "value": 1,
+    "unit": "bonus_action",
+    "combatCost": {
+      "type": "bonus_action",
+      "condition": ""
+    },
+    "explorationCost": {
+      "value": 0,
+      "unit": "minute"
+    }
+  },
+  "range": {
+    "type": "self",
+    "distance": 0
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": false,
+    "materialDescription": "",
+    "materialCost": 0,
+    "isConsumed": false
+  },
+  "duration": {
+    "type": "timed",
+    "value": 1,
+    "unit": "minute",
+    "concentration": true
+  },
+  "targeting": {
+    "type": "single",
+    "validTargets": [
+      "self"
+    ],
+    "lineOfSight": false,
+    "range": 0,
+    "maxTargets": 1,
+    "filter": {
+      "creatureTypes": [],
+      "excludeCreatureTypes": [],
+      "sizes": [],
+      "alignments": [],
+      "hasCondition": [],
+      "isNativeToPlane": false,
+      "willing": "not_applicable",
+      "objectEligibility": {
+        "wornOrCarried": "not_applicable",
+        "magicalStatus": "not_applicable",
+        "fixedToSurface": "not_applicable",
+        "maxSize": "not_applicable",
+        "maxWeightPounds": "not_applicable",
+        "maxWeightScaling": "not_applicable"
+      },
+      "communicationPrerequisites": {
+        "canHearCaster": "not_applicable",
+        "canUnderstandCaster": "not_applicable",
+        "canSeeCaster": "not_applicable"
+      },
+      "abilityThreshold": {
+        "ability": "not_applicable",
+        "operator": "not_applicable",
+        "value": "not_applicable"
+      },
+      "selfRelation": "not_applicable"
+    }
+  },
+  "effects": [
+    {
+      "type": "DAMAGE",
+      "trigger": {
+        "type": "on_attack_hit",
+        "frequency": "every_time",
+        "consumption": "per_instance_hit_or_miss",
+        "attackFilter": {
+          "weaponType": "ranged",
+          "attackType": "weapon"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
+      "condition": {
+        "type": "always",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false,
+          "willing": "not_applicable",
+          "objectEligibility": {
+            "wornOrCarried": "not_applicable",
+            "magicalStatus": "not_applicable",
+            "fixedToSurface": "not_applicable",
+            "maxSize": "not_applicable",
+            "maxWeightPounds": "not_applicable",
+            "maxWeightScaling": "not_applicable"
+          },
+          "communicationPrerequisites": {
+            "canHearCaster": "not_applicable",
+            "canUnderstandCaster": "not_applicable",
+            "canSeeCaster": "not_applicable"
+          },
+          "abilityThreshold": {
+            "ability": "not_applicable",
+            "operator": "not_applicable",
+            "value": "not_applicable"
+          },
+          "selfRelation": "not_applicable"
+        },
+        "requiresStatus": [],
+        "saveModifiers": [],
+        "saveOutcomeOverrides": []
+      },
+      "damage": {
+        "dice": "4d8",
+        "type": "Lightning"
+      },
+      "missDamageMultiplier": 0.5,
+      "objectTransformation": {
+        "sourceObject": "weapon_or_ammunition_used_for_attack",
+        "temporaryForm": "lightning_bolt",
+        "trigger": "attack_hits_or_misses",
+        "returnsToNormalForm": true,
+        "description": "As the pending attack hits or misses, the weapon or ammunition becomes a lightning bolt, resolves this spell's Lightning damage, and then returns to its normal form."
+      },
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "+1d8",
+        "customFormula": "Primary target damage increases by 1d8 for each slot level above 3."
+      },
+      "description": "As the attack hits or misses, the weapon or ammunition becomes a lightning bolt; the primary target takes 4d8 Lightning damage on a hit or half as much on a miss, with +1d8 per slot level above 3, while this remains tied to the separate pending-attack trigger finding.",
+      "conditionalEndings": []
+    },
+    {
+      "type": "DAMAGE",
+      "trigger": {
+        "type": "on_attack_hit",
+        "frequency": "every_time",
+        "consumption": "per_instance_hit_or_miss",
+        "attackFilter": {
+          "weaponType": "ranged",
+          "attackType": "weapon"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
+      "condition": {
+        "type": "save",
+        "saveType": "Dexterity",
+        "saveEffect": "half",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false,
+          "willing": "not_applicable",
+          "objectEligibility": {
+            "wornOrCarried": "not_applicable",
+            "magicalStatus": "not_applicable",
+            "fixedToSurface": "not_applicable",
+            "maxSize": "not_applicable",
+            "maxWeightPounds": "not_applicable",
+            "maxWeightScaling": "not_applicable"
+          },
+          "communicationPrerequisites": {
+            "canHearCaster": "not_applicable",
+            "canUnderstandCaster": "not_applicable",
+            "canSeeCaster": "not_applicable"
+          },
+          "abilityThreshold": {
+            "ability": "not_applicable",
+            "operator": "not_applicable",
+            "value": "not_applicable"
+          },
+          "selfRelation": "not_applicable"
+        },
+        "requiresStatus": [],
+        "saveModifiers": [],
+        "saveOutcomeOverrides": []
+      },
+      "damage": {
+        "dice": "2d8",
+        "type": "Lightning"
+      },
+      "areaOfEffect": {
+        "shape": "Sphere",
+        "size": 10,
+        "height": 0
+      },
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "+1d8",
+        "customFormula": "Secondary 10-foot burst damage increases by 1d8 for each slot level above 3."
+      },
+      "description": "After the transformed weapon or ammunition resolves, each creature within 10 feet of the primary target makes a Dexterity save, taking 2d8 Lightning damage on a failure or half as much on a success; each slot level above 3 adds +1d8 secondary burst damage.",
+      "conditionalEndings": []
+    }
+  ],
+  "arbitrationType": "mechanical",
+  "aiContext": {
+    "prompt": "Resolve the pending ranged weapon or ammunition attack first: as the attack hits or misses, transform the weapon or ammunition into a lightning bolt, resolve scaled 4d8 Lightning damage on hit or half on miss, return the weapon or ammunition to normal form, then separately resolve the 10-foot Dexterity-save burst for nearby creatures.",
+    "playerInputRequired": false
+  },
+  "description": "As your attack hits or misses the target, the weapon or ammunition you're using transforms into a lightning bolt. Instead of taking any damage or other effects from the attack, the target takes 4d8 Lightning damage on a hit or half as much damage on a miss. Each creature within 10 feet of the target then makes a Dexterity saving throw, taking 2d8 Lightning damage on a failed save or half as much damage on a successful one. The weapon or ammunition then returns to its normal form.",
+  "higherLevels": "Using a Higher-Level Spell Slot. The damage for both effects of the spell increases by 1d8 for each spell slot level above 3.",
+  "tags": ["concentration"],
+  "pendingAttackTrigger": {
+    "type": "next_attack",
+    "attackFilter": {
+      "attackType": "weapon",
+      "weaponType": "ranged"
+    },
+    "resolvesOn": "hit_or_miss",
+    "primaryTargetBinding": "attack_target",
+    "consumption": "first_matching_attack",
+    "missResolution": "half_primary_damage",
+    "notes": "Primary hit damage, miss half-damage, first matching attack consumption, and the 10-foot burst now route through the shared attack-rider path. Focused proof still needs to exercise hit, miss, burst target selection, and consumption together."
+  }
+}

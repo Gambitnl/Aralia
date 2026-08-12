@@ -4,8 +4,8 @@ import type { CommandContext } from '../base/SpellCommand';
 import type { CombatCharacter, CombatState } from '../../types/combat';
 import type { StatusConditionEffect } from '../../types/spells';
 import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '../../utils/core';
-import geas from '../../../public/data/spells/level-5/geas.json';
-import planarBinding from '../../../public/data/spells/level-5/planar-binding.json';
+import geas from '@/data/spells/level-5/geas.json';
+import planarBinding from '@/data/spells/level-5/planar-binding.json';
 
 /**
  * Geas and Planar Binding control an existing target through a command or binding

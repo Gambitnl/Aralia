@@ -10,12 +10,12 @@
  * Three Fiber uses the session directly:
  *
  * ```ts
- * const perf = acquirePerfSession('creaturelab', 'Creature Lab');
+ * const perf = acquirePerfSession('mysurface', 'My Surface');
  * // each frame, before renderer.render(...):
  * perf.sampleRenderer(renderer);
  * perf.frame();
  * // on teardown:
- * releasePerfSession('creaturelab');
+ * releasePerfSession('mysurface');
  * ```
  *
  * To attribute a slow frame to one piece of work, record a span:

@@ -3,8 +3,8 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 29/06/2026, 02:45:39
- * Dependents: systems/crafting/batchCrafting.ts, systems/crafting/craftingEngine.ts, systems/puzzles/mechanism.ts, utils/character/index.ts
+ * Last Sync: 11/08/2026, 20:24:06
+ * Dependents: systems/crafting/batchCrafting.ts, systems/crafting/craftingEngine.ts, systems/puzzles/mechanism.ts, utils/character/index.ts, utils/combat/grappleUtils.ts
  * Imports: 5 files
  *
  * MULTI-AGENT SAFETY:
@@ -34,6 +34,15 @@ export interface CheckResult {
     total: number;
     /** List of modifiers that were applied (e.g., Guidance, Racial Intuition) */
     modifiersApplied?: { source: string; value: number }[];
+}
+
+/** Optional roll controls used by deterministic simulations and focused tests. */
+export interface AbilityCheckRollOptions {
+    advantage?: boolean;
+    disadvantage?: boolean;
+    externalModifier?: number;
+    /** Supplies the random stream without replacing the shared dice engine. */
+    rng?: () => number;
 }
 
 // ---------------------------------------------------------------------------
@@ -172,7 +181,7 @@ export function rollAbilityCheck(
     character: PlayerCharacter | CombatCharacter,
     ability: AbilityScoreName,
     skill?: string,
-    options?: { advantage?: boolean; disadvantage?: boolean; externalModifier?: number }
+    options?: AbilityCheckRollOptions
 ): CheckResult {
     let hasAdvantage = options?.advantage || false;
     let hasDisadvantage = options?.disadvantage || false;
@@ -198,12 +207,17 @@ export function rollAbilityCheck(
         }
     });
 
-    // Roll d20
-    let roll = rollDice('1d20');
+    // Route deterministic callers through the same dice parser as ordinary
+    // play. Production callers omit rng and keep the normal random stream.
+    const rollD20 = (): number => options?.rng
+        ? rollDice('1d20', { rng: options.rng })
+        : rollDice('1d20');
+
+    let roll = rollD20();
     if (hasAdvantage && !hasDisadvantage) {
-        roll = Math.max(roll, rollDice('1d20'));
+        roll = Math.max(roll, rollD20());
     } else if (hasDisadvantage && !hasAdvantage) {
-        roll = Math.min(roll, rollDice('1d20'));
+        roll = Math.min(roll, rollD20());
     }
 
     // Base ability modifier

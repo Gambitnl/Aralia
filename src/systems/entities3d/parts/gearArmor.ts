@@ -41,8 +41,10 @@ const shieldOff: PartDef = {
     const boss = new Mesh(new SphereGeometry(u * 0.22, 10, 8), ctx.material(STEEL));
     boss.position.z = u * 0.1;
     group.add(disc, rim, boss);
-    // sits clearly outside the thick metaball forearm
-    group.position.x = -u * 0.55;
+    // round 17 (humanoid-anatomy): pulled in −0.55 u → −0.4 u — with the
+    // straightened hanging arm the fist rides close to the hip, and the old
+    // offset floated the disc as a disconnected blob in the top panel.
+    group.position.x = -u * 0.4;
     group.rotation.y = -0.35; // angled a touch toward the viewer's front
     return { object: group };
   },
@@ -69,7 +71,11 @@ const helmet: PartDef = {
     const group = new Group();
     const dome = new Mesh(new SphereGeometry(r, 12, 8, 0, Math.PI * 2, 0, Math.PI * 0.46), ctx.material(STEEL));
     dome.position.y = r * 0.32;
-    dome.scale.set(0.88, 1, 1);
+    // round 17 (humanoid-anatomy): footprint widened 0.88 → 0.96 wide and
+    // 1.04 deep — the narrow dome read as a beanie floating on the skull in
+    // the top panel. The rim height (the round-9 open-face fix) is untouched,
+    // so the brow shelf and eyes stay visible.
+    dome.scale.set(0.96, 1, 1.04);
     const crestRidge = new Mesh(new BoxGeometry(r * 0.1, r * 0.22, r * 1.3), ctx.material(ctx.palette.accentHex));
     crestRidge.position.y = r * 0.93;
     group.add(dome, crestRidge);
@@ -143,19 +149,48 @@ const pauldrons: PartDef = {
   anchor: 'chest',
   kind: 'mesh',
   buildMesh(ctx) {
+    // round 16 (humanoid-anatomy): CUT pauldrons — the round-15 verdict named
+    // the sphere caps "perfect balloons". Each pauldron is now a beveled
+    // 9-sided frustum dome (flat top plate → bevel) over a flared rim skirt
+    // whose bottom edge steps out past the dome — a smith-cut plate with a
+    // visible rim edge, not an inflated ball.
+    // round 17 (humanoid-anatomy): SEATED on the deltoids. The round-16
+    // placement ran on skull-radius offsets from the chest anchor, so on the
+    // dwarf the plates floated beside the shoulders as "disconnected blobs"
+    // in the top panel. The pauldron now computes the driver's own deltoid
+    // center (shoulder joint at chestY + 0.45 baseR, x = halfWidth +
+    // shoulderOut — mirror of BipedDriver.buildBody) and caps that ball, and
+    // its radius carries a deltoid-derived floor so the plate always
+    // overhangs the shoulder mass it sits on.
     const w = (ctx.frame.shoulderWidthFt * FT_TO_M) / 2;
-    const r = hr(ctx.frame) * 0.72;
+    const hM = heightM(ctx.frame);
+    const baseR = hM * 0.105 * ctx.frame.bulk;
+    const armR = Math.max(baseR * 0.3, ctx.frame.armLengthFt * FT_TO_M * 0.085);
+    const deltR = armR * 1.7;
+    const shoulderOut = baseR * 0.22 * Math.max(0, ctx.frame.bulk - 1);
+    // chest anchor sits at (0, chestY, 0.15 baseR); deltoid center relative:
+    const cx = w + shoulderOut;
+    const cy = baseR * 0.45;
+    const cz = 0.02 - baseR * 0.15;
+    const r = Math.max(hr(ctx.frame) * 0.72, deltR * 1.05);
     const group = new Group();
+    // round 19 (humanoid-anatomy, Remy back view): the rim band broke into
+    // "detached shards" — it sat laterally offset from the dome and low
+    // enough that the deltoid ball surfaced through the thin ring, leaving
+    // steel slivers. The rim now welds DIRECTLY under the dome (same axis,
+    // same tilt), taller and wider, so dome bottom (0.88 r) overlaps rim top
+    // (0.95 r) and the whole pauldron reads as one plate + one band.
     for (const sgn of [-1, 1]) {
-      const cap = new Mesh(
-        new SphereGeometry(r, 10, 7, 0, Math.PI * 2, 0, Math.PI * 0.55),
-        ctx.material(STEEL),
-      );
-      cap.position.set(sgn * (w + r * 0.25), r * 0.4, 0);
-      cap.rotation.z = sgn * -0.35;
-      const stud = new Mesh(new SphereGeometry(r * 0.18, 6, 5), ctx.material(ctx.palette.accentHex));
-      stud.position.set(sgn * (w + r * 0.25), r * 0.85, 0);
-      group.add(cap, stud);
+      const x = sgn * cx;
+      const dome = new Mesh(new CylinderGeometry(r * 0.42, r * 0.88, r * 0.55, 9), ctx.material(STEEL));
+      dome.position.set(x, cy + deltR * 0.5, cz);
+      dome.rotation.z = sgn * -0.35;
+      const rim = new Mesh(new CylinderGeometry(r * 0.95, r * 1.08, r * 0.3, 9), ctx.material(STEEL));
+      rim.position.set(x, cy + deltR * 0.28, cz);
+      rim.rotation.z = sgn * -0.35;
+      const stud = new Mesh(new SphereGeometry(r * 0.16, 5, 4), ctx.material(ctx.palette.accentHex));
+      stud.position.set(x - sgn * r * 0.1, cy + deltR * 0.82, cz);
+      group.add(dome, rim, stud);
     }
     return { object: group };
   },

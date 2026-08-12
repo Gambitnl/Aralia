@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { DamageCommand } from '../effects/DamageCommand';
 import { createMockCombatCharacter, createMockCombatState, createMockCommandContext, createMockGameState } from '../../utils/core';
 import type { DamageEffect } from '../../types/spells';
-import negativeEnergyFlood from '../../../public/data/spells/level-5/negative-energy-flood.json';
+import negativeEnergyFlood from '@/data/spells/level-5/negative-energy-flood.json';
 
 /**
  * Negative Energy Flood stores its delayed zombie clause on the live damage

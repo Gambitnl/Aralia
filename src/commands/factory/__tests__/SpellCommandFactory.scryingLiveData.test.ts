@@ -1,5 +1,5 @@
 import { SpellCommandFactory } from '../SpellCommandFactory'
-import scrying from '../../../../public/data/spells/level-5/scrying.json'
+import scrying from '@/data/spells/level-5/scrying.json'
 import type { CombatCharacter, CombatState } from '@/types/combat'
 import type { Spell } from '@/types/spells'
 import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '@/utils/core'

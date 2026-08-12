@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { mockCaster, mockTarget, mockContext, createMockCombatState, UtilityCommand } from './UtilityCommand.testHelpers'
 import type { Spell, UtilityEffect, CombatState } from './UtilityCommand.testHelpers'
-import identifyJson from '../../../public/data/spells/level-1/identify.json'
+import identifyJson from '@/data/spells/level-1/identify.json'
 
 describe('UtilityCommand', () => {
     const identifyEffect = (identifyJson as Spell).effects[0] as UtilityEffect

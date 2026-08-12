@@ -13,6 +13,7 @@ import type { Frame, SegmentSink } from '../types';
 import { FT_TO_M, deriveFrame } from '../types';
 import { createGaitDriver } from '../three/gaits';
 import {
+  ARM_LINK_K,
   BIPED_BONE_NAMES,
   BIPED_BONE_PARENT,
   bipedRestPose,
@@ -33,6 +34,9 @@ function frameTable(): Frame[] {
   }
   frames.push(deriveFrame('biped', 2.2, 1.6, 1.5)); // squat big-headed extreme
   frames.push(deriveFrame('biped', 9.5, 0.6, 0.7)); // towering gaunt extreme
+  // round 18 (humanoid-anatomy): hunched orc posture — parity must hold with
+  // the forward-hunch terms active
+  frames.push({ ...deriveFrame('biped', 6.4, 1.375, 1.24), hunch: 0.6 });
   return frames;
 }
 
@@ -104,11 +108,13 @@ describe('buildBipedSkeleton — hierarchy and proportions', () => {
     }
   });
 
-  it('limb bone-to-bone distances equal the driver 0.52-limb link lengths', () => {
+  // round 17 (humanoid-anatomy): arm links are 0.4 armLen (ARM_LINK_K — the
+  // hanging-arm fix); legs keep the 0.52 links.
+  it('limb bone-to-bone distances equal the driver link lengths (arms 0.4, legs 0.52)', () => {
     for (const frame of frameTable()) {
       const built = buildBipedSkeleton(frame);
       const at = (name: string) => built.bindWorldPos[built.index.get(name as BipedBoneName)!];
-      const armLink = frame.armLengthFt * FT_TO_M * 0.52;
+      const armLink = frame.armLengthFt * FT_TO_M * ARM_LINK_K;
       const legLink = frame.limbLengthFt * FT_TO_M * 0.52;
       for (const side of ['L', 'R'] as const) {
         expect(at(`upperArm${side}`).distanceTo(at(`foreArm${side}`)), `upper arm ${side}`).toBeCloseTo(armLink, 6);
@@ -138,9 +144,11 @@ describe('buildBipedSkeleton — hierarchy and proportions', () => {
       const hM = frame.heightFt * FT_TO_M;
       const skullR = bipedSkullRadiusM(frame);
       const chestTopY = pelvisY + (hM - legLen) * 0.45 + r * 0.35;
-      // round 13 (humanoid-anatomy): lift floor 0.2, slope 0.45 — mirror
-      const neckLift = Math.min(0.55, Math.max(0.2, 0.46 - 0.45 * Math.max(0, frame.bulk - 1)));
-      expect(at('head').y).toBeCloseTo(chestTopY + skullR * (0.59 + neckLift), 6);
+      // round 14 (humanoid-anatomy): lift floor 0.26, slope 0.38 — mirror
+      const neckLift = Math.min(0.55, Math.max(0.26, 0.46 - 0.38 * Math.max(0, frame.bulk - 1)));
+      // round 18 (humanoid-anatomy): the forward hunch settles the head down
+      // into the traps (mirror of bipedRestPose headY)
+      expect(at('head').y).toBeCloseTo(chestTopY + skullR * (0.59 + neckLift) - skullR * 0.35 * (frame.hunch ?? 0), 6);
       expect(at('chest').y).toBeGreaterThan(at('pelvis').y);
       expect(at('neck').y).toBeGreaterThan(at('chest').y);
       expect(at('head').y).toBeGreaterThan(at('neck').y);
@@ -150,10 +158,14 @@ describe('buildBipedSkeleton — hierarchy and proportions', () => {
       // round 4 (humanoid-anatomy): shoulder-derived stance floor — feet at
       // 68% of the visual shoulder span (deltoid outer edge), planting the
       // legs under the hips instead of under the spine
+      // round 20 (humanoid-anatomy): the shoulder-derived floor TIGHTENS with
+      // bulk — the round-19 dwarf "bows outward in a straddle so wide he reads
+      // as riding an invisible barrel". Mirror: bipedRestPose stanceFloorK.
       const armR = Math.max(r * 0.3, frame.armLengthFt * FT_TO_M * 0.085);
+      const stanceFloorK = 0.68 - 0.34 * Math.min(0.5, Math.max(0, frame.bulk - 1));
       const stanceHalf = Math.max(
         ((frame.stanceWidthFt * FT_TO_M) / 2) * 1.12,
-        ((frame.shoulderWidthFt * FT_TO_M) / 2 + armR * 1.6) * 0.68,
+        ((frame.shoulderWidthFt * FT_TO_M) / 2 + armR * 1.6) * stanceFloorK,
       );
       expect(at('thighL').x).toBeCloseTo(-stanceHalf * 0.85, 6);
       expect(at('thighR').x).toBeCloseTo(stanceHalf * 0.85, 6);

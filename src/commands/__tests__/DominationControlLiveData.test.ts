@@ -4,9 +4,9 @@ import type { CommandContext } from '../base/SpellCommand';
 import type { CombatCharacter, CombatState } from '../../types/combat';
 import type { StatusConditionEffect } from '../../types/spells';
 import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '../../utils/core';
-import dominateBeast from '../../../public/data/spells/level-4/dominate-beast.json';
-import dominatePerson from '../../../public/data/spells/level-5/dominate-person.json';
-import dominateMonster from '../../../public/data/spells/level-8/dominate-monster.json';
+import dominateBeast from '@/data/spells/level-4/dominate-beast.json';
+import dominatePerson from '@/data/spells/level-5/dominate-person.json';
+import dominateMonster from '@/data/spells/level-8/dominate-monster.json';
 
 /**
  * Dominate Beast, Dominate Person, and Dominate Monster control an existing

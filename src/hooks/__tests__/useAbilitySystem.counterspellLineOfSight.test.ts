@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { hasSpellInterruptionLineOfSight, hasSpellInterruptionVisibility } from '../useAbilitySystem';
 import * as lineOfSightUtils from '../../utils/spatial';
 import type { BattleMapData, BattleMapTile, CombatCharacter } from '../../types/combat';
-import counterspell from '../../../public/data/spells/level-3/counterspell.json';
+import counterspell from '@/data/spells/level-3/counterspell.json';
 
 /**
  * This file proves the Counterspell visibility boundary that sits inside the

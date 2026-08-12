@@ -268,16 +268,31 @@ function shortId(id) {
 }
 
 // ---------------------------------------------------------------------------
-// Command implementations. Each returns { code } (and may push to out).
-// `requireToken` resolves the bearer token or prints a hint + returns code 1.
+// Command authentication guidance
 // ---------------------------------------------------------------------------
-function needToken(out, parsed, env, baseUrl) {
+// Most authenticated commands retain the legacy registration hint. Task creation
+// instead points newcomers at `onboard`, because that one command establishes the
+// pet and Codex task/thread provenance required for safe coordination.
+// ---------------------------------------------------------------------------
+function printTaskOnboardingHint(out, reason) {
+  out.log(`${reason} Run: onboard <handle> --pet <slug> --session <task/thread-id>`);
+}
+
+function needToken(out, parsed, env, baseUrl, { taskCreation = false } = {}) {
   const token = resolveToken(parsed, env, baseUrl);
   if (!token) {
-    out.log(`Not registered for ${baseUrl}. Run: register <handle> --pet <slug>  (or pass --token <token>)`);
+    if (taskCreation) {
+      printTaskOnboardingHint(out, `No Agora identity is stored for ${baseUrl}.`);
+    } else {
+      out.log(`Not registered for ${baseUrl}. Run: register <handle> --pet <slug>  (or pass --token <token>)`);
+    }
   }
   return token;
 }
+
+// ---------------------------------------------------------------------------
+// Command implementations. Each returns { code } and may add user-facing output.
+// ---------------------------------------------------------------------------
 
 const USAGE = `Agora client — drive the peer-agent coordination daemon.
 
@@ -988,7 +1003,9 @@ function printSuccessorFlag(out, task) {
 async function cmdTask(out, parsed, env, baseUrl) {
   const sub = parsed._[0];
   const rest = parsed._.slice(1);
-  const token = needToken(out, parsed, env, baseUrl);
+  // Creating a board task is identity-sensitive, so its missing-token path uses
+  // the complete onboarding command while every other task command stays unchanged.
+  const token = needToken(out, parsed, env, baseUrl, { taskCreation: sub === 'new' });
   if (!token) return { code: 1 };
 
   if (sub === 'new') {
@@ -1029,6 +1046,12 @@ async function cmdTask(out, parsed, env, baseUrl) {
       out.log(`Task created: ${r.json.task.id}  "${r.json.task.title}"  [${r.json.task.state}]`);
       out.log(`  creator: ${creator.handle || creator.id} (${creator.id})`);
       return { code: 0, task: r.json.task };
+    }
+    // A rejected explicit token must not leave the user at an opaque 401. The
+    // onboarding command restores every identity field that task creation needs.
+    if (r.status === 401) {
+      printTaskOnboardingHint(out, `task new failed (401): ${r.json ? r.json.error : r.text}.`);
+      return { code: 1 };
     }
     out.log(`task new failed (${r.status}): ${r.json ? r.json.error : r.text}`);
     return { code: 1 };

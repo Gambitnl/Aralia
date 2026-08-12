@@ -87,6 +87,9 @@ export interface Frame {
   armLengthFt: number;
   shoulderWidthFt: number;
   stanceWidthFt: number;
+  /** Idle posture: 0 (or absent) = upright … 1 = full forward hunch — the
+   * trapezius-dominant lean (orc). Biped driver + rest pose only. */
+  hunch?: number;
 }
 
 export interface Palette {
@@ -145,6 +148,9 @@ export interface PlanSpec {
   spine: { segments: number; taper: number; arch: number; shape?: 'round' | 'box'; bulge?: number; mass?: [number, number, number] };
   /** Body translucency (ghosts, oozes); eyes stay solid. */
   opacity?: number;
+  /** round 24 (creature-anatomy): whole-body material style ('rock' = the
+   * elemental boulder-plate build; see planSchema.CreaturePlan.surface). */
+  surface?: 'rock';
   /** Creature-level junction softness (0–1) as authored; slice 2 (fused skin)
    * reads it — slice 1 collars only need the per-chain blendM. */
   skinBlend?: number;

@@ -1,0 +1,226 @@
+{
+  "id": "tashas-bubbling-cauldron",
+  "name": "Tasha's Bubbling Cauldron",
+  "aliases": [
+    "Tasha's Bubbling Cauldron"
+  ],
+  "level": 6,
+  "school": "Conjuration",
+  "legacy": false,
+  "classes": [
+    "Warlock",
+    "Wizard"
+  ],
+  "subClasses": [],
+  "ritual": false,
+  "rarity": "common",
+  "attackType": "",
+  "castingTime": {
+    "value": 1,
+    "unit": "action",
+    "combatCost": {
+      "type": "action",
+      "condition": ""
+    },
+    "explorationCost": {
+      "value": 0,
+      "unit": "minute"
+    }
+  },
+  "range": {
+    "type": "self",
+    "distance": 0
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": true,
+    "materialDescription": "a gold-inlaid ladle worth 200+ GP",
+    "materialCost": 200,
+    "isConsumed": false
+  },
+  "duration": {
+    "type": "timed",
+    "concentration": false,
+    "value": 10,
+    "unit": "minute"
+  },
+  "targeting": {
+    "type": "point",
+    "range": 0,
+    "validTargets": [
+      "ground",
+      "point"
+    ],
+    "lineOfSight": true,
+    "maxTargets": 1,
+    "filter": {
+      "creatureTypes": [],
+      "excludeCreatureTypes": [],
+      "sizes": [],
+      "alignments": [],
+      "hasCondition": [],
+      "isNativeToPlane": false,
+      "willing": "not_applicable",
+      "objectEligibility": {
+        "wornOrCarried": "not_applicable",
+        "magicalStatus": "not_applicable",
+        "fixedToSurface": "not_applicable",
+        "maxSize": "not_applicable",
+        "maxWeightPounds": "not_applicable",
+        "maxWeightScaling": "not_applicable"
+      },
+      "communicationPrerequisites": {
+        "canHearCaster": "not_applicable",
+        "canUnderstandCaster": "not_applicable",
+        "canSeeCaster": "not_applicable"
+      },
+      "abilityThreshold": {
+        "ability": "not_applicable",
+        "operator": "not_applicable",
+        "value": "not_applicable"
+      },
+      "selfRelation": "not_applicable",
+      "placementEligibility": {
+        "unoccupied": "required",
+        "surface": "ground",
+        "destination": "caster_choice",
+        "notes": "Tasha's Bubbling Cauldron appears in an unoccupied space on the ground within 5 feet of the caster."
+      }
+    }
+  },
+  "effects": [
+    {
+      "type": "UTILITY",
+      "trigger": {
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
+      "condition": {
+        "type": "always",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false,
+          "willing": "not_applicable",
+          "objectEligibility": {
+            "wornOrCarried": "not_applicable",
+            "magicalStatus": "not_applicable",
+            "fixedToSurface": "not_applicable",
+            "maxSize": "not_applicable",
+            "maxWeightPounds": "not_applicable",
+            "maxWeightScaling": "not_applicable"
+          },
+          "communicationPrerequisites": {
+            "canHearCaster": "not_applicable",
+            "canUnderstandCaster": "not_applicable",
+            "canSeeCaster": "not_applicable"
+          },
+          "abilityThreshold": {
+            "ability": "not_applicable",
+            "operator": "not_applicable",
+            "value": "not_applicable"
+          },
+          "selfRelation": "not_applicable"
+        },
+        "requiresStatus": [],
+        "saveModifiers": [],
+        "saveOutcomeOverrides": []
+      },
+      "utilityType": "creation",
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "",
+        "customFormula": "The cauldron's potions improve with the slot level: Potion of Healing at level 6, Potion of Greater Healing at level 7, Potion of Superior Healing at level 8, and Potion of Supreme Healing at level 9."
+      },
+      "description": "Conjure a bubbling cauldron on the ground within 5 feet for 10 minutes. The cauldron contains a number of potions of healing equal to the caster's spellcasting ability modifier (minimum of one), and each can be retrieved with a Bonus Action by a creature within 5 feet of the cauldron.",
+      "createdObjects": [
+        {
+          "objectType": "other",
+          "name": "Potion of Healing",
+          "count": 1,
+          "countUnit": "item",
+          "appearsIn": "spell_area",
+          "perishable": true,
+          "expiresWithSpell": true,
+          "notes": "The cauldron holds a number of Potions of Healing equal to the caster's spellcasting ability modifier (minimum 1). Each potion can be retrieved with a Bonus Action and disappears if not consumed when the spell ends."
+        }
+      ],
+      "grantedActions": [
+        {
+          "type": "bonus_action",
+          "action": "Retrieve a Potion of Healing from the cauldron",
+          "frequency": "while_active",
+          "actor": "affected_creature",
+          "actionKind": "bonus_action",
+          "rangeLimit": 5,
+          "notes": "A creature within 5 feet of the cauldron can use a Bonus Action to draw out one of the potions the cauldron contains."
+        }
+      ],
+      "controlOptions": [
+        {
+          "name": "Healing potion supply",
+          "effect": "The cauldron contains Potions of Healing equal to the caster's spellcasting ability modifier (minimum 1)."
+        },
+        {
+          "name": "Higher-level brews",
+          "effect": "When cast with a higher-level slot, the cauldron can instead produce stronger healing potions: Greater at level 7, Superior at level 8, and Supreme at level 9."
+        }
+      ],
+      "taunt": {
+        "disadvantageAgainstOthers": false,
+        "leashRangeFeet": 0,
+        "breakConditions": []
+      },
+      "savePenalty": {
+        "dice": "",
+        "flat": 0,
+        "applies": "next_save",
+        "duration": {
+          "type": "rounds",
+          "value": 0
+        }
+      },
+      "light": {
+        "brightRadius": 0,
+        "dimRadius": 0,
+        "attachedTo": "point",
+        "color": "",
+        "colorChoice": "not_applicable",
+        "opaqueCoverBlocks": "not_applicable",
+        "emitsHeat": "not_applicable",
+        "ignitesObjects": "not_applicable",
+        "consumesFuel": "not_applicable",
+        "canBeCoveredOrHidden": "not_applicable",
+        "canBeSmotheredOrQuenched": "not_applicable"
+      },
+      "attackAugments": [],
+      "conditionalEndings": []
+    }
+  ],
+  "arbitrationType": "mechanical",
+  "aiContext": {
+    "prompt": "",
+    "playerInputRequired": false
+  },
+  "description": "You conjure a sturdy iron cauldron, which appears in an unoccupied space on the ground within 5 feet of you and remains for the duration. The cauldron's contents are tied to the level of the spell slot expended. The cauldron contains a number of Potions of Healing equal to your spellcasting ability modifier (minimum of one potion). A creature can take a Bonus Action to retrieve a potion from the cauldron if the creature is within 5 feet of it. When the spell ends, the cauldron and any undrunk potions in it disappear.",
+  "higherLevels": "Using a Higher-Level Spell Slot. The healing potions in the cauldron become more potent: they are Potions of Greater Healing with a level 7 slot, Potions of Superior Healing with a level 8 slot, and Potions of Supreme Healing with a level 9 slot.",
+  "tags": [
+    "conjuration",
+    "creation",
+    "healing"
+  ]
+}

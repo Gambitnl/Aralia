@@ -6,7 +6,7 @@ import { createMockCombatCharacter } from '../../../utils/core';
 import type { CombatCharacter, CombatLogEntry, CombatState } from '../../../types/combat';
 import type { CommandContext } from '../../../commands/base/SpellCommand';
 import type { SummoningEffect } from '../../../types/spells';
-import summonBeast from '../../../../public/data/spells/level-2/summon-beast.json';
+import summonBeast from '@/data/spells/level-2/summon-beast.json';
 
 /**
  * This test proves the live Summon Beast packet can create a summon that keeps

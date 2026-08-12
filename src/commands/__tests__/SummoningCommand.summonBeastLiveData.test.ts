@@ -3,7 +3,7 @@ import { SummoningCommand } from '../effects/SummoningCommand';
 import type { CommandContext } from '../base/SpellCommand';
 import type { CombatCharacter, CombatState } from '../../types/combat';
 import type { SummoningEffect } from '../../types/spells';
-import summonBeast from '../../../public/data/spells/level-2/summon-beast.json';
+import summonBeast from '@/data/spells/level-2/summon-beast.json';
 
 /**
  * This file proves the live Summon Beast spell data reaches summon metadata.

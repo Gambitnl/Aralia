@@ -18,9 +18,9 @@ import { AoECalculator } from '@/systems/spells/targeting/AoECalculator'
 import type { CombatCharacter, Position } from '@/types/combat'
 import type { SpellEffect } from '@/types/spells'
 import type { Class } from '@/types/character'
-import sleetStorm from '../../../../../public/data/spells/level-3/sleet-storm.json'
-import spiritGuardians from '../../../../../public/data/spells/level-3/spirit-guardians.json'
-import evardsBlackTentacles from '../../../../../public/data/spells/level-4/evards-black-tentacles.json'
+import sleetStorm from '@/data/spells/level-3/sleet-storm.json'
+import spiritGuardians from '@/data/spells/level-3/spirit-guardians.json'
+import evardsBlackTentacles from '@/data/spells/level-4/evards-black-tentacles.json'
 
 const baseStats = {
   strength: 10,

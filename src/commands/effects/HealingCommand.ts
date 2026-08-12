@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 04/08/2026, 01:48:45
+ * Last Sync: 11/08/2026, 21:37:38
  * Dependents: commands/effects/ReactiveEffectCommand.ts, commands/factory/AbilityCommandFactory.ts, commands/factory/SpellCommandFactory.ts
  * Imports: 5 files
  *
@@ -18,7 +18,10 @@ import { BaseEffectCommand } from '../base/BaseEffectCommand'
 import { CombatState } from '@/types/combat'
 import { isHealingEffect } from '../../types/spells'
 import { rollDamage as rollFormula } from '../../utils/combat'
-import { applyHealingAndRestore } from '../../utils/combat/deathSaveUtils'
+import {
+  applyHealingAndRestore,
+  applyTemporaryHitPoints,
+} from '../../utils/combat/deathSaveUtils'
 
 /**
  * Command to apply healing to targets.
@@ -55,8 +58,13 @@ export class HealingCommand extends BaseEffectCommand {
         const currentTemp = target.tempHP || 0
 
         if (healingRoll > currentTemp) {
+          // Temporary HP follows the shared replacement helper used by damage,
+          // defensive spells, and the Tactical Sandbox. A healing-shaped grant
+          // without a spell-owned retaliation source also clears stale ownership.
+          const updatedTarget = applyTemporaryHitPoints(target, healingRoll)
           currentState = this.updateCharacter(currentState, target.id, {
-            tempHP: healingRoll
+            tempHP: updatedTarget.tempHP,
+            temporaryHitPointSource: updatedTarget.temporaryHitPointSource
           })
 
           currentState = this.addLogEntry(currentState, {

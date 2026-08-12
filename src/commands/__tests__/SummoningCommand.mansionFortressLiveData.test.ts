@@ -12,8 +12,8 @@ import {
 import type { CombatCharacter, CombatState } from '@/types/combat'
 import type { Spell, SummoningEffect, UtilityEffect } from '@/types/spells'
 import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '@/utils/core'
-import mordenkainensMagnificentMansion from '../../../public/data/spells/level-7/mordenkainens-magnificent-mansion.json'
-import mightyFortress from '../../../public/data/spells/level-8/mighty-fortress.json'
+import mordenkainensMagnificentMansion from '@/data/spells/level-7/mordenkainens-magnificent-mansion.json'
+import mightyFortress from '@/data/spells/level-8/mighty-fortress.json'
 
 /**
  * This file proves the live Mansion and Fortress packets keep their servant

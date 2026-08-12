@@ -549,3 +549,119 @@ describe('placementEngine — BG3 density calibration bounds', () => {
     }
   });
 });
+
+// ── Stage 2: the surface gate (WorldClaw) ───────────────────────────────────
+
+import { placePropsInstrumented } from '../placementEngine';
+import { surfaceGateFor } from '../catalog';
+import { makeGridSurfaceProbe, FEET_PER_METER } from '../../terrain/surfaceProbe';
+
+const GRID = 64;
+
+/** A context whose ground is a uniform ramp of `slopeDeg`, rising with +x. */
+function slopedCtx(slopeDeg: number, biome: string, extent = 512): PropPlacementContext {
+  const elevationsFt = new Float32Array(GRID * GRID);
+  const stepM = extent / (GRID - 1);
+  const riseFtPerCol = stepM * Math.tan((slopeDeg * Math.PI) / 180) * FEET_PER_METER;
+  for (let r = 0; r < GRID; r++) {
+    for (let c = 0; c < GRID; c++) elevationsFt[r * GRID + c] = 60 * FEET_PER_METER + c * riseFtPerCol;
+  }
+  const cellFt = stepM * FEET_PER_METER;
+  return {
+    extentMetersX: extent,
+    extentMetersZ: extent,
+    cols: GRID,
+    rows: GRID,
+    biomeIds: new Array(GRID * GRID).fill(biome),
+    buildings: [],
+    roads: [],
+    decks: [],
+    plazas: [],
+    surface: makeGridSurfaceProbe({
+      elevationsFt, cols: GRID, rows: GRID, cellSizeXFt: cellFt, cellSizeZFt: cellFt,
+    }),
+  };
+}
+
+describe('placementEngine — surface gate', () => {
+  it('reports a tally for every pass', () => {
+    const { stats } = placePropsInstrumented(SEED, slopedCtx(0, 'grassland'));
+    expect(Object.keys(stats.byPass)).toContain('wilderness');
+    expect(stats.total.considered).toBe(stats.total.kept + stats.total.rejected);
+  });
+
+  it('reports considered=0 when the context carries NO probe, rather than pretending it passed', () => {
+    const ctx = slopedCtx(0, 'grassland');
+    delete (ctx as { surface?: unknown }).surface;
+    const { stats } = placePropsInstrumented(SEED, ctx);
+    expect(stats.total.considered).toBe(0);
+  });
+
+  it('keeps everything on flat ground', () => {
+    const { stats } = placePropsInstrumented(SEED, slopedCtx(0, 'grassland'));
+    expect(stats.total.considered).toBeGreaterThan(0);
+    expect(stats.total.rejected).toBe(0);
+  });
+
+  it('places NO prop on a cliff face', () => {
+    const { instances, stats } = placePropsInstrumented(SEED, slopedCtx(60, 'hills'));
+    expect(stats.byPass.wilderness.considered).toBeGreaterThan(0);
+    expect(stats.byPass.wilderness.rejectionRate).toBe(1);
+    expect(instances).toHaveLength(0);
+  });
+
+  it('rejects more as the ground steepens', () => {
+    const rate = (d: number) => placePropsInstrumented(SEED, slopedCtx(d, 'hills')).stats.total.rejectionRate;
+    const gentle = rate(5);
+    const steep = rate(30);
+    const cliff = rate(60);
+    expect(gentle).toBe(0);
+    expect(steep).toBeGreaterThan(gentle);
+    expect(cliff).toBeGreaterThan(steep);
+  });
+
+  it('keeps a boulder where it drops a cairn — tolerance follows form', () => {
+    const { instances } = placePropsInstrumented(SEED, slopedCtx(30, 'hills'));
+    const ids = new Set(instances.map((p) => p.defId));
+    expect(ids.has('cairn')).toBe(false);        // standing stone: 20 deg limit
+    expect(ids.has('standing-stone')).toBe(false);
+    expect(ids.has('boulder')).toBe(true);       // lying stone: 45 deg limit
+  });
+
+  it('lays a boulder flat on the slope and stands a cairn upright', () => {
+    expect(surfaceGateFor('boulder').maxTiltRad).toBeGreaterThan(surfaceGateFor('cairn').maxTiltRad);
+    const { instances } = placePropsInstrumented(SEED, slopedCtx(30, 'hills'));
+    const rock = instances.find((p) => p.defId === 'boulder');
+    expect(rock?.surface).toBeDefined();
+    expect((rock!.surface!.tiltRad * 180) / Math.PI).toBeCloseTo(30, 1);
+  });
+
+  it('sinks every instance so nothing hovers on a slope', () => {
+    const { instances } = placePropsInstrumented(SEED, slopedCtx(25, 'hills'));
+    expect(instances.length).toBeGreaterThan(0);
+    for (const p of instances) {
+      expect(p.surface!.sinkM).toBeGreaterThan(0);
+      expect(Math.hypot(p.surface!.tiltAxis[0], p.surface!.tiltAxis[1])).toBeCloseTo(1, 6);
+    }
+  });
+
+  it('never sinks anything on flat ground', () => {
+    const { instances } = placePropsInstrumented(SEED, slopedCtx(0, 'grassland'));
+    for (const p of instances) expect(p.surface!.sinkM).toBe(0);
+  });
+
+  it('treats an unclassified prop as BUILT — level ground only', () => {
+    expect(surfaceGateFor('an-id-that-does-not-exist')).toEqual(surfaceGateFor('crate'));
+  });
+
+  it('stays deterministic with the gate applied', () => {
+    const a = placePropsInstrumented(SEED, slopedCtx(20, 'hills')).instances;
+    const b = placePropsInstrumented(SEED, slopedCtx(20, 'hills')).instances;
+    expect(a).toEqual(b);
+  });
+
+  it('placeProps returns exactly the gated instances', () => {
+    const ctx = slopedCtx(20, 'hills');
+    expect(placeProps(SEED, ctx)).toEqual(placePropsInstrumented(SEED, ctx).instances);
+  });
+});

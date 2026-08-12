@@ -67,6 +67,15 @@ import type { SeedPath } from '../seedPath';
 import { childSeedPath, rngFromPath, streamPath } from '../seedPath';
 import type { SeededRandom } from '../../../utils/random/seededRandom';
 import { CELL_METERS, type PropInstance } from './propSchema';
+import { surfaceGateFor } from './catalog';
+import {
+  FEET_PER_METER,
+  fitToSurface,
+  makeSurfaceGateTally,
+  rejectReasonFor,
+  type SurfaceGateStats,
+  type SurfaceProbe,
+} from '../terrain/surfaceProbe';
 
 // ── Context (a slim, GroundWorld-shaped input) ──────────────────────────────
 
@@ -173,6 +182,17 @@ export interface PropPlacementContext {
   rivers?: CtxPolyline[];
   /** Hidden/discovery sites — a 'ruin' kind seeds the `ruin` context. */
   hiddenSites?: CtxHiddenSite[];
+  /**
+   * STAGE 2 (surface-gate wave): the ground under the window, as a point
+   * sampler. Coordinates are FEET in the SAME local frame as `xM`/`zM`
+   * (`xFt = xM * FEET_PER_METER`), so a probe built from the window heightfield
+   * drops straight in.
+   *
+   * Absent = the pass runs stage 1 only, exactly as before, and
+   * `placePropsInstrumented` reports `considered: 0` so the missing gate is
+   * visible rather than silently assumed to have passed.
+   */
+  surface?: SurfaceProbe;
 }
 
 // ── Renderable-def gate (no invisible referee-blockers) ─────────────────────
@@ -999,19 +1019,114 @@ function placeWilderness(basePath: SeedPath, ctx: PropPlacementContext): PropIns
  * `seedPath`. Pure — same inputs → deep-equal output, forever.
  */
 export function placeProps(seedPath: SeedPath, ctx: PropPlacementContext): PropInstance[] {
-  const all = [
-    ...placeMarket(seedPath, ctx),
-    ...placeCourtyards(seedPath, ctx),
-    ...placeDocks(seedPath, ctx),
-    ...placeBuildingSideProps(seedPath, ctx),
-    ...placeRoadside(seedPath, ctx),
-    ...placeGates(seedPath, ctx),
-    ...placeRuins(seedPath, ctx),
-    ...placeRiverbanks(seedPath, ctx),
-    ...placeDefiles(seedPath, ctx),
-    ...placeWilderness(seedPath, ctx),
+  return placePropsInstrumented(seedPath, ctx).instances;
+}
+
+// ── Stage 2: the surface gate (WorldClaw) ───────────────────────────────────
+
+/** Rejection tallies for one `placePropsInstrumented` run. */
+export interface PropPlacementStats {
+  /** Per-pass tally, keyed by the pass name in `placeProps`' pipeline. */
+  byPass: Record<string, SurfaceGateStats>;
+  /** All passes summed. */
+  total: SurfaceGateStats;
+}
+
+/**
+ * Read the ground under every candidate of one pass, then reject or fit it.
+ * A candidate that survives carries its `surface` fit, so the renderer tilts and
+ * sinks it without ever re-sampling the heightfield.
+ *
+ * Determinism: the aspect roll comes from the candidate's own position, not from
+ * an rng stream, so gating one pass cannot perturb another pass's props.
+ */
+function gatePass(
+  probe: SurfaceProbe | undefined,
+  candidates: PropInstance[],
+): { kept: PropInstance[]; stats: SurfaceGateStats } {
+  const tally = makeSurfaceGateTally();
+  if (!probe) return { kept: candidates, stats: tally.stats() };
+  const kept: PropInstance[] = [];
+  for (const inst of candidates) {
+    const gate = surfaceGateFor(inst.defId);
+    const sample = probe.sampleAt(inst.xM * FEET_PER_METER, inst.zM * FEET_PER_METER);
+    const reason = rejectReasonFor(sample, gate, positionRoll(inst.xM, inst.zM));
+    tally.note(reason);
+    if (reason !== null) continue;
+    const fit = fitToSurface(sample, gate);
+    kept.push({
+      ...inst,
+      variation: { ...inst.variation, scale: inst.variation.scale * fit.scaleMultiplier },
+      surface: {
+        tiltRad: fit.tiltRad,
+        tiltAxis: fit.tiltAxis,
+        sinkM: fit.sinkFt / FEET_PER_METER,
+        groundYM: fit.elevationFt / FEET_PER_METER,
+      },
+    });
+  }
+  return { kept, stats: tally.stats() };
+}
+
+/** A stable 0..1 draw from a position — the aspect preference's only randomness. */
+function positionRoll(xM: number, zM: number): number {
+  let h = Math.imul(Math.round(xM * 32) + 0x7ed55d16, 0x85ebca6b);
+  h = (h ^ (h >>> 13)) | 0;
+  h = Math.imul(h + Math.round(zM * 32) + 0x165667b1, 0xc2b2ae35);
+  h = (h ^ (h >>> 16)) >>> 0;
+  return h / 0xffffffff;
+}
+
+function sumStats(all: SurfaceGateStats[]): SurfaceGateStats {
+  const total: SurfaceGateStats = {
+    considered: 0,
+    kept: 0,
+    rejected: 0,
+    byReason: { 'too-low': 0, 'too-high': 0, 'too-steep': 0, 'wrong-aspect': 0 },
+    rejectionRate: 0,
+  };
+  for (const s of all) {
+    total.considered += s.considered;
+    total.kept += s.kept;
+    total.rejected += s.rejected;
+    for (const k of Object.keys(total.byReason) as Array<keyof typeof total.byReason>) {
+      total.byReason[k] += s.byReason[k];
+    }
+  }
+  total.rejectionRate = total.considered === 0 ? 0 : total.rejected / total.considered;
+  return total;
+}
+
+/**
+ * `placeProps` plus the stage-2 rejection tallies. Use this when you need to
+ * PROVE the gate is wired: a pass that rejects nothing on broken ground is a
+ * pass that never read the ground.
+ */
+export function placePropsInstrumented(
+  seedPath: SeedPath,
+  ctx: PropPlacementContext,
+): { instances: PropInstance[]; stats: PropPlacementStats } {
+  const passes: Array<[string, PropInstance[]]> = [
+    ['market', placeMarket(seedPath, ctx)],
+    ['courtyards', placeCourtyards(seedPath, ctx)],
+    ['docks', placeDocks(seedPath, ctx)],
+    ['building-sides', placeBuildingSideProps(seedPath, ctx)],
+    ['roadside', placeRoadside(seedPath, ctx)],
+    ['gates', placeGates(seedPath, ctx)],
+    ['ruins', placeRuins(seedPath, ctx)],
+    ['riverbanks', placeRiverbanks(seedPath, ctx)],
+    ['defiles', placeDefiles(seedPath, ctx)],
+    ['wilderness', placeWilderness(seedPath, ctx)],
   ];
-  // Final safety net: never surface a non-renderable def (invisible referee
-  // blocker). cluster()/emit() already guard, but this makes the invariant total.
-  return all.filter((p) => RENDERABLE_DEF_IDS.has(p.defId));
+
+  const byPass: Record<string, SurfaceGateStats> = {};
+  const instances: PropInstance[] = [];
+  for (const [name, candidates] of passes) {
+    const { kept, stats } = gatePass(ctx.surface, candidates);
+    byPass[name] = stats;
+    // Final safety net: never surface a non-renderable def (invisible referee
+    // blocker). cluster()/emit() already guard; this makes the invariant total.
+    for (const inst of kept) if (RENDERABLE_DEF_IDS.has(inst.defId)) instances.push(inst);
+  }
+  return { instances, stats: { byPass, total: sumStats(Object.values(byPass)) } };
 }

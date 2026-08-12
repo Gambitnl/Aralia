@@ -88,8 +88,8 @@
 - **Scaling Rule 1 Applies To**: canonical higher-level prose
 - **Scaling Rule 1 Notes**: Use the slot level as the spell's level in the Fiendish Spirit stat block: AC is 12 + spell level, HP is 50 + 15 for each spell level above 6, and the form attack adds the spell's level to its damage.
 
-- **Description**: You call forth a Fiendish Spirit in a visible unoccupied space within 90 feet. Choose Demon, Devil, or Yugoloth; the spirit is an ally that acts immediately after you, obeys verbal commands, vanishes at 0 Hit Points or when the spell ends, and scales its defenses and attack with the slot level.
-- **Higher Levels**: Use the spell slot's level for the spell's level in the stat block. The Fiendish Spirit's Hit Points and attack damage increase as the spell's level increases.
+- **Description**: You call forth a fiendish spirit. It manifests in an unoccupied space that you can see within range and uses the Fiendish Spirit stat block. When you cast the spell, choose Demon, Devil, or Yugoloth. The creature disappears when it drops to 0 Hit Points or when the spell ends. The creature is an ally to you and your allies. In combat, the creature shares your Initiative count, but it takes its turn immediately after yours. It obeys your verbal commands (no action required by you). If you don't issue any, it takes the Dodge action and uses its movement to avoid danger.
+- **Higher Levels**: Using a Higher-Level Spell Slot. Use the spell slot's level for the spell's level in the stat block. The Fiendish Spirit's Hit Points and attack damage increase as the spell's level increases.
 
 ## Canonical D&D Beyond Snapshot
 

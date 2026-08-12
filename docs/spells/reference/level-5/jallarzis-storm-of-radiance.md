@@ -73,7 +73,7 @@
 - **Damage Type**: Radiant
 - **Conditions Applied**: Blinded
 
-- **Description**: A 20-foot-radius, 40-foot-high storm of light and thunder fills the area. Creatures that enter the area for the first time on a turn or start their turn there make a Dexterity save, taking Radiant and Thunder damage on a failed save and becoming Blinded until the start of their next turn.
+- **Description**: You unleash a storm of light in a 20-foot-radius, 40-foot-high Cylinder centered on a point you can see within range. Until the spell ends, dazzling light and crackling thunder fill the Cylinder, which is Lightly Obscured. Whenever a creature enters the Cylinder for the first time on a turn or starts its turn there, it makes a Dexterity saving throw. On a failed save, the creature takes 3d8 Radiant damage and 3d8 Thunder damage and has the Blinded condition until the start of its next turn. On a successful save, it takes half as much damage only.
 - **Higher Levels**: not_applicable
 
 ## Canonical D&D Beyond Snapshot
@@ -84,7 +84,7 @@ This section stores the local source-summary snapshot so the structured Aralia f
 Name: Jallarzi's Storm of Radiance
 Level: 5th
 Casting Time: 1 Action
-Range/Area: 120 ft. (20 ft. radius, 40 ft. high)
+Range/Area: 120 ft. (20-ft. Cylinder)
 Components: V, S, M *
 Duration: Concentration 1 Minute
 School: Evocation
@@ -93,6 +93,9 @@ Damage/Effect: Radiant
 
 Rules Text:
 You unleash a storm of light in a 20-foot-radius, 40-foot-high Cylinder centered on a point you can see within range. Until the spell ends, dazzling light and crackling thunder fill the Cylinder, which is Lightly Obscured. Whenever a creature enters the Cylinder for the first time on a turn or starts its turn there, it makes a Dexterity saving throw. On a failed save, the creature takes 3d8 Radiant damage and 3d8 Thunder damage and has the Blinded condition until the start of its next turn. On a successful save, it takes half as much damage only.
+
+Material Component:
+* - (a pinch of dust and a few drops of water)
 
 Spell Tags:
 Damage

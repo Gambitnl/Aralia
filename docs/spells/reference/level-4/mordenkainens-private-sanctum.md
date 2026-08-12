@@ -53,6 +53,18 @@
 - **Duration Progression Dispellable**: true
 
 - **Effect Type**: UTILITY
+- **Utility Option 1 Name**: Block sound through the boundary
+- **Utility Option 1 Details**: Sound cannot pass through the warded cube's edge.
+- **Utility Option 2 Name**: Obscure sight through the boundary
+- **Utility Option 2 Details**: The warded boundary prevents normal vision through the edge of the cube.
+- **Utility Option 3 Name**: Block divination sensors inside
+- **Utility Option 3 Details**: Divination sensors cannot appear inside the protected area.
+- **Utility Option 4 Name**: Block divination targeting inside
+- **Utility Option 4 Details**: Creatures inside the area cannot be targeted by Divination spells.
+- **Utility Option 5 Name**: Block teleportation
+- **Utility Option 5 Details**: Teleportation cannot move creatures or objects into or out of the warded area.
+- **Utility Option 6 Name**: Block planar travel
+- **Utility Option 6 Details**: Planar travel cannot move creatures or objects into or out of the warded area.
 - **Save Cover Ignored**: not_applicable
 - **Save Auto Outcome**: not_applicable
 - **Save Auto Outcome Condition**: not_applicable

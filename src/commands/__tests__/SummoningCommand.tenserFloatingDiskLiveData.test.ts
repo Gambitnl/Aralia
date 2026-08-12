@@ -7,7 +7,7 @@ import type { CommandContext } from '../base/SpellCommand'
 import type { BattleMapData, BattleMapTile, CombatAction, CombatCharacter, TurnState } from '@/types/combat'
 import type { MovementEffect, SummoningEffect } from '@/types/spells'
 import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '@/utils/core'
-import tensersFloatingDisk from '../../../public/data/spells/level-1/tensers-floating-disk.json'
+import tensersFloatingDisk from '@/data/spells/level-1/tensers-floating-disk.json'
 
 /**
  * This test proves the live Tenser's Floating Disk packet keeps its authored

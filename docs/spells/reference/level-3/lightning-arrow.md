@@ -32,8 +32,10 @@
 - **Somatic**: true
 - **Material**: false
 
-- **Duration Type**: instantaneous
-- **Concentration**: false
+- **Duration Type**: timed
+- **Duration Value**: 1
+- **Duration Unit**: minute
+- **Concentration**: true
 
 - **Effect Type**: DAMAGE
 - **Attack Roll**: ranged
@@ -77,7 +79,7 @@ Level: 3rd
 Casting Time: 1 Bonus Action *
 Range/Area: Self
 Components: V, S
-Duration: Instantaneous
+Duration: Concentration 1 Minute
 School: Transmutation
 Attack/Save: DEX Save
 Damage/Effect: Lightning (...)

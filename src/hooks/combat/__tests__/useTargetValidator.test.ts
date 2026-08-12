@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { findTouchDeliveryActor, useTargetValidator } from '../useTargetValidator';
 import type { Ability, BattleMapData, BattleMapTile, CombatCharacter } from '../../../types/combat';
 import { createMockCombatCharacter } from '../../../utils/core/factories';
-import findFamiliar from '../../../../public/data/spells/level-1/find-familiar.json';
+import findFamiliar from '@/data/spells/level-1/find-familiar.json';
 
 /**
  * This test file covers the targeting rulebook used by the battle-map UI.

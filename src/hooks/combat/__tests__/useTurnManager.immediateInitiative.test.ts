@@ -6,7 +6,7 @@ import { createMockCombatCharacter } from '../../../utils/core';
 import type { CombatCharacter, CombatLogEntry, CombatState } from '../../../types/combat';
 import type { CommandContext } from '../../../commands/base/SpellCommand';
 import type { SummoningEffect } from '../../../types/spells';
-import fingerOfDeath from '../../../../public/data/spells/level-7/finger-of-death.json';
+import fingerOfDeath from '@/data/spells/level-7/finger-of-death.json';
 
 /**
  * This test proves a live Finger of Death summon with immediate initiative

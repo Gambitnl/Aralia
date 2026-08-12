@@ -7,7 +7,7 @@ import type { CommandContext } from '../../../commands/base/SpellCommand';
 import type { BattleMapData, CombatCharacter, CombatLogEntry, CombatState } from '../../../types/combat';
 import type { SummoningEffect } from '../../../types/spells';
 import { createMockCombatCharacter } from '../../../utils/core';
-import summonBeast from '../../../../public/data/spells/level-2/summon-beast.json';
+import summonBeast from '@/data/spells/level-2/summon-beast.json';
 
 /**
  * This proof stays at the BattleMap boundary because the map layer already
