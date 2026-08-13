@@ -136,6 +136,49 @@ interface Station {
   inseam: number;
   /** +1 when the chain's inner side is +X (left leg), −1 for the right. */
   inSgn: number;
+  /** 0..1 boot SOLE band — the ring's bottom vertex arc darkens to leather
+   * sole, so the boot carries a ground line that reads from front, 3/4 and
+   * profile (round 21, humanoid-anatomy). */
+  sole: number;
+  /** 0..1 DELTOID SEAM relief — attenuates the ink hull on this ring's LATERAL
+   * vertex columns only (round 22, humanoid-anatomy). Round 21 thinned the
+   * deltoid ball's own hull to 0.2 to kill the "action-figure joint" ring, and
+   * the round-21 verdict still read "every junction drawn shut with a full
+   * black outline ring ... deltoid-to-torso" on the orc. The other half of the
+   * seam is the CHEST's hull: at full thickness it inflates out through the
+   * deltoid wherever the two masses interpenetrate, redrawing the boundary the
+   * deltoid's own thin hull no longer draws. Front and back columns keep their
+   * ink (they own the side-view silhouette); only the shoulder overlap loses
+   * it, and only above 0.45 of the chest (round 23 lowered the start — see
+   * the lat flare below, which now owns the outline from 0.5 up). */
+  seam: number;
+  /** round 23 (humanoid-anatomy): LATERAL-ONLY radial swell — scales the ±X
+   * vertex columns by (1 + lat·c²) with front and back untouched. Negative
+   * values pinch. This is the one channel that can build a LAT FLARE and a
+   * TRAPEZIUS YOKE without touching the front/back profile the pec ladder and
+   * the side panel own.
+   *
+   * Why the shoulder girdle needed geometry and not another tint: the numbers
+   * say the deltoid ball's CENTER sits ABOVE the chest top on all three
+   * subjects (orc chest top y 1.574, deltoid center 1.602, deltoid crown
+   * 1.761) — at the height where the shoulder mass lives, the only torso
+   * present is a thin traps cone. The shoulder therefore IS a ball hung beside
+   * the neck, exactly as the round-22 verdict read it, and no amount of ink
+   * relief or value banding can make a ball that touches nothing read as body
+   * mass. The torso has to grow out to meet it. */
+  lat: number;
+  /** round 23 (humanoid-anatomy): lateral-only DROP along −tangent, in units
+   * of the ring radius. On the +Y torso chain this pulls the ±X columns DOWN
+   * while the front/back/center stay put, which is what turns a horizontal
+   * shoulder shelf into a trapezius RAMP: the surface leaves the neck high at
+   * the midline and slopes down and out to the acromion. Round 22's verdict —
+   * "the neck drops into a flat horizontal shoulder bar" — is a direct
+   * description of this term being zero. */
+  yoke: number;
+  /** Lateral-only tint (blended in by c²) — the armpit/lat groove. Expressed
+   * as a RATIO over whatever the ring already wears (the round-20 rule), so a
+   * tunic gets a cloth shadow and a bare chest gets a skin one. */
+  latTint: readonly [number, number, number] | null;
 }
 
 const smoothstep = (t: number): number => t * t * (3 - 2 * t);
@@ -194,6 +237,23 @@ const TORSO_TINT: readonly [number, number, number] = [0.66, 0.7, 0.52];
  * the muscle stations survive as cloth folds instead of bare skin. */
 const TUNIC_TINT: readonly [number, number, number] = [0.4, 0.47, 0.31];
 const TROUSER_TINT: readonly [number, number, number] = [0.52, 0.4, 0.34];
+/** round 21 (humanoid-anatomy): slim frames wear WOOL trousers, not leather.
+ * Round 20's verdict read the human "bare from hip to ground" — the leather
+ * brown multiplied over pale human skin lands one band from bare skin, the
+ * exact failure TUNIC_TINT was invented to fix on the chest. Same rule here:
+ * g ≈ r breaks the r>g>b skin family, so it can never read as a leg. */
+const TROUSER_CLOTH_TINT: readonly [number, number, number] = [0.35, 0.34, 0.27];
+/** round 21 (humanoid-anatomy): the HIP WRAP. Round 20: "thighs emerge from a
+ * rounded diaper-shaped pelvis ... no belt, wrap, kilt or strap overlaps the
+ * thigh tops the way both references do, so the hips read as underwear". The
+ * pelvis tuck rings (which already round the glute down into the crotch) now
+ * widen past the pelvis, carry leather, and reach BELOW the thigh roots, with
+ * a proud belt lip at the top that bulges past the pelvis radius — a real
+ * silhouette event, not a painted stripe. The crotch carve stays strong so the
+ * praised two-rooted-legs split survives the wrap. */
+const HIPWRAP_TINT: readonly [number, number, number] = [0.2, 0.16, 0.13];
+/** round 21: the boot cuff line — trousers tuck INTO the boot. */
+const BOOTHEM_TINT: readonly [number, number, number] = [0.24, 0.19, 0.17];
 /** round 20 (humanoid-anatomy): slim frames wear SLEEVES — the upper arms
  * carry the tunic cloth, the forearms stay skin, and a dark hem ring at the
  * elbow joint draws the cloth boundary (the belt/knuckle band trick). The
@@ -201,7 +261,20 @@ const TROUSER_TINT: readonly [number, number, number] = [0.52, 0.4, 0.34];
  * signal the Valheim reference carries. Bulky frames (orc, dwarf) keep bare
  * muscled arms — gated by the same softening the pec ladder uses. */
 const SLEEVE_HEM_TINT: readonly [number, number, number] = [0.3, 0.28, 0.22];
-const BOOT_TINT: readonly [number, number, number] = [0.36, 0.28, 0.24];
+// round 21b (humanoid-anatomy): the round-21a boot rendered LIGHTER than
+// the trouser above it. Cause: [0.36,0.28,0.24] is r>g>b — the skin family —
+// so under the toon ramp a lit boot top plate quantized up into the same band
+// as bare leg. Decisively dark and near-neutral now, the way both references
+// carry boots: the boot is the darkest thing on the figure below the belt.
+const BOOT_TINT: readonly [number, number, number] = [0.24, 0.21, 0.19];
+/** round 21 (humanoid-anatomy): the TOE BOX steps a value darker than the
+ * boot shaft so the toe reads as its own mass in the front and 3/4 panels,
+ * where a forward projection produces almost no silhouette of its own. */
+const TOECAP_TINT: readonly [number, number, number] = [0.16, 0.14, 0.13];
+/** round 21: the SOLE — the bottom vertex arc of every boot ring. A dark
+ * ground line under a light-topped boot is the single cheapest "this is a
+ * foot, not a leg stump" signal, and it survives every camera. */
+const SOLE_TINT: readonly [number, number, number] = [0.1, 0.09, 0.09];
 /** round 15 (humanoid-anatomy): the curled finger mass sits a step darker
  * than the palm so the fist splits into two values at panel distance.
  * round 16: the 0.88 greyscale step sat inside ONE toon band — invisible, the
@@ -216,7 +289,20 @@ const FINGER_TINT: readonly [number, number, number] = [0.82, 0.72, 0.62];
  * the finger mass and the 0.45 hand ink drew no line between them — the
  * fist re-fused into one boulder at panel distance. The thumb now carries a
  * decisive hue+value step of its own... */
-const THUMB_TINT: readonly [number, number, number] = [0.68, 0.55, 0.46];
+/** round 23 (humanoid-anatomy): near-neutral, not orange — see the matching
+ * note on gearWeapons.WRAP_THUMB. The two must stay in step: they are the same
+ * thumb, one lofted and one worn over a haft. */
+const THUMB_TINT: readonly [number, number, number] = [0.72, 0.67, 0.6];
+/** round 21 (humanoid-anatomy): the FREE FIST gets the grip hand's recipe.
+ * Round 20 praised every weapon-grip hand ("three finger ridges plus a thumb
+ * crossing the haft ... that read survives at panel distance") and failed
+ * every free fist ("a smooth mitten club with one faint diagonal crease and no
+ * thumb"). The grip hand wins with two channels the free fist never had:
+ * ridges that BULGE PAST a valley radius (a silhouette event that survives any
+ * ramp and any azimuth) and near-black VALLEY rings sunk into the gaps the
+ * silhouette already cut. Both are now lofted into the finger mass and the
+ * thumb — same numbers, same near-black valley step. */
+const FINGER_VALLEY_TINT: readonly [number, number, number] = [0.24, 0.2, 0.17];
 const tintOf = (segId: string): readonly [number, number, number] =>
   segId === 'torso.pelvis' || segId.startsWith('leg') ? TROUSER_TINT
   : segId === 'torso.chest' ? TORSO_TINT
@@ -246,6 +332,20 @@ const CLAVICLE_TINT: readonly [number, number, number] = [0.6, 0.52, 0.44];
  * geometric ab-band ladder (which wrapped the back and read as ring seams):
  * hue-shifted tint lines, front-weighted, zero silhouette change. */
 const AB_TINT: readonly [number, number, number] = [0.68, 0.58, 0.48];
+/** round 23 (humanoid-anatomy): the ARMPIT / LAT groove — a lateral-only
+ * shadow riding the pinch at chest t 0.78, where the latissimus tucks under
+ * the deltoid. Value alone never produced a shoulder read (rounds 19-22 all
+ * tried); it works here because the geometry now cuts a real valley for it to
+ * sit in, and because it is lateral-only it can never repaint the front of the
+ * chest the way the round-19 front-weighted bands did. */
+const LAT_GROOVE_TINT: readonly [number, number, number] = [0.44, 0.38, 0.31];
+/** round 23 (humanoid-anatomy): the knee crease — a near-black ring sunk into
+ * the pinch above the calf, so the leg carries a KNEE EVENT under a dark
+ * trouser where the taper alone quantized into one band (round 22: the orc's
+ * "legs are parallel tubes with no knee event"). Same recipe as the belt and
+ * the finger valleys: a geometric valley the outline already cuts, with the
+ * value step sunk into it. */
+const KNEE_CREASE_TINT: readonly [number, number, number] = [0.2, 0.17, 0.15];
 /** round 19 (humanoid-anatomy): inner-thigh inseam shade — darker than the
  * trousers so the crotch reads as two rooted legs, not one fairing. */
 const INSEAM_DARKEN: readonly [number, number, number] = [0.62, 0.6, 0.62];
@@ -253,7 +353,12 @@ const INSEAM_DARKEN: readonly [number, number, number] = [0.62, 0.6, 0.62];
 /** round 6 (humanoid-anatomy): hand pieces square their rings so the palm has
  * flat faces and hard-ish corners — the knuckle plane needs an edge to live
  * on, and a squared slab cannot be mistaken for a ball. */
-const sqOf = (segId: string): number => (segId.startsWith('hand') ? 1 : 0);
+/** round 21 (humanoid-anatomy): BOOTS square their rings too (0.6). A round
+ * tube lofted along +Z shows the front camera nothing but its end cap — the
+ * round-20 verdict's "legs ending in blunt stumps". A squared ring gives the
+ * boot a flat top plate, flat sides and a flat sole, so the widened form
+ * reads as a shoe from every azimuth instead of a sausage seen end-on. */
+const sqOf = (segId: string): number => (segId.startsWith('hand') ? 1 : segId.startsWith('foot') ? 0.6 : 0);
 
 /** round 16 (humanoid-anatomy): per-vertex ink-shell weight. The uniform
  * inverse-hull thickness (hM * 0.011) is wider than the valleys between
@@ -282,6 +387,100 @@ const inkOf = (segId: string): number =>
  * so the harder pull sharpens hands without touching any other chain. */
 const SQ_STRENGTH = 0.85;
 
+/** round 21 (humanoid-anatomy): THE BOOT. The round-20 verdict's biggest gap:
+ * "the shin cylinder runs straight to the ground and stops, with zero width
+ * gain past the ankle and no toe projection ... the profile panels reveal a
+ * plain rectangular slab". Three causes, all fixed here:
+ *
+ * 1. WIDTH. The old foot was one tapered ROUND tube (r0 = 0.62 legR) lofted
+ *    along +Z — i.e. pointed straight at the front camera, which therefore saw
+ *    only its end cap, a circle no wider than the 0.44-legR ankle. The loft
+ *    radius on a +Z chain is the X half-width, so the boot now runs ≈1.8× the
+ *    ankle across, and `flat` is solved PER STATION as (station height ÷
+ *    radius) so the sole stays flat on the ground while the width does what it
+ *    likes. Front view: shin, then a boot clearly wider than it.
+ * 2. TOE PROJECTION. A forward projection is invisible to a front camera by
+ *    definition (the camera-aimed-feature rule), so the driver splays each toe
+ *    outward and the ladder below carries an ARCH VALLEY (0.86) that the BALL
+ *    of the foot bulges back past (1.0) — the bulge-past-valley rule, so the
+ *    outline scallops in the top/profile panels — plus a toe-box value step.
+ * 3. THE FLOATING TAB. The old rectangular slab and the far foot read as two
+ *    detached pieces with a gap. One connected form now: the heel bevel rounds
+ *    back behind the ankle, the shaft rises to twice the heel height so the
+ *    shortened shin plunges INTO it, and the toe closes with a bevel ring.
+ *
+ * Ground plane is y = 0 in the rest pose (bipedRestPose plants both feet at
+ * y 0), which is what makes the per-station `flat` solve exact. */
+function footStations(seg: RestSegmentLike, bone: number): Station[] {
+  const a = new Vector3(...seg.a);
+  const b = new Vector3(...seg.b);
+  const tangent = b.clone().sub(a).normalize();
+  const W = seg.r0;
+  // [t along heel→toe, width as a fraction of W, toe-box tint blend]
+  const ladder: ReadonlyArray<readonly [number, number, number]> = [
+    [-0.1, 0.6, 0],
+    [0.04, 0.9, 0],
+    [0.22, 1.0, 0],
+    [0.45, 0.82, 0], // arch waist — the valley
+    // round 23 (humanoid-anatomy): THE TOE BOX. The round-22 verdict read all
+    // three boots as "toe-less potato blobs — no toe box, no ankle, no
+    // left/right difference". Diffing rounds 21 and 22 clears round 22 of
+    // flattening anything: every boot term round 22 touched is gated on
+    // bipedSlimT, so the dwarf's boot (the one round 21 praised as reading "as
+    // FEET") is bit-identical between the two sheets. The blob is therefore
+    // original, and the ball of the foot only ever matched the widest shaft
+    // ring — no scallop at all past the arch. It now bulges clearly PAST both
+    // the arch valley and the shaft (1.14), and the toe closes down from it in
+    // two steps, so the front and 3/4 panels show shaft → waist → wide toe box.
+    [0.68, 1.14, 0.6], // ball of the foot — bulges PAST the valley
+    [0.86, 1.0, 1],
+    [1, 0.74, 1],
+    [1.07, 0.34, 1],
+  ];
+  return ladder.map(([t, wk, cap]) => {
+    const pos = a.clone().lerp(b, t);
+    const radius = W * wk;
+    // solve the binormal (height) scale so the sole lands on y = 0
+    const flat = Math.min(1.15, Math.max(0.24, pos.y / radius));
+    const tint: readonly [number, number, number] = [
+      BOOT_TINT[0] + (TOECAP_TINT[0] - BOOT_TINT[0]) * cap,
+      BOOT_TINT[1] + (TOECAP_TINT[1] - BOOT_TINT[1]) * cap,
+      BOOT_TINT[2] + (TOECAP_TINT[2] - BOOT_TINT[2]) * cap,
+    ];
+    return {
+      pos,
+      tangent,
+      radius,
+      bone0: bone,
+      bone1: 0,
+      w0: 1,
+      w1: 0,
+      flat,
+      sq: sqOf(seg.id),
+      tint,
+      ink: inkOf(seg.id),
+      sternum: 0,
+      pec: 0,
+      frontTint: null,
+      weave: 0,
+      inseam: 0,
+      inSgn: 0,
+      sole: 1,
+      seam: 0,
+      lat: 0,
+      yoke: 0,
+      latTint: null,
+    };
+  });
+}
+
+interface RestSegmentLike {
+  id: string;
+  a: readonly [number, number, number];
+  b: readonly [number, number, number];
+  r0: number;
+}
+
 /** Build the ring stations for one chain: segment ends, mid-bone rings, and
  * smoothstep-weighted rings across each interior joint. */
 function chainStations(
@@ -291,12 +490,20 @@ function chainStations(
   /** round 18 (humanoid-anatomy): 0..1 pec-ladder strength — bulky frames
    * soften the sternum carve / pec ledge / under-pec line, see below. */
   soft = 1,
+  /** round 22 (humanoid-anatomy): 0..1 slim-frame strength (bipedSlimT) — 1 on
+   * the human, 0 on the orc and dwarf. Slim frames need their own floors, not
+   * a scaled-down share of the bulky terms; see the calf and boot stations. */
+  slim = 1,
 ): Station[] {
   const segs = def.segIds.map((id) => {
     const seg = restPose.segments.find((s) => s.id === id);
     if (!seg) throw new Error(`smooth biped: rest segment "${id}" missing`);
     return seg;
   });
+  // round 21 (humanoid-anatomy): the boot owns its whole station ladder
+  if (segs.length === 1 && segs[0].id.startsWith('foot')) {
+    return footStations(segs[0], boneIndex.get(segs[0].bone)!);
+  }
   // round 20 (humanoid-anatomy): sleeves on slim frames only (soft tracks
   // 1/bulk — human 1, orc ≈0.55, dwarf ≈0.45)
   const sleeved = soft >= 0.75;
@@ -304,7 +511,25 @@ function chainStations(
   // on slim frames only. Bulky frames (orc, dwarf) keep the bare khaki torso
   // and bare muscled arms the round-19 verdict praised.
   const tintFor = (segId: string): readonly [number, number, number] =>
-    sleeved && (segId.endsWith('.upper') || segId === 'torso.chest') ? TUNIC_TINT : tintOf(segId);
+    sleeved && (segId.endsWith('.upper') || segId === 'torso.chest') ? TUNIC_TINT
+    // round 21 (humanoid-anatomy): slim frames get cloth trousers too
+    // round 21b (humanoid-anatomy): the PELVIS wears the trousers too. Round
+    // 21a left it on leather TROUSER_TINT, which over pale human skin lands a
+    // band lighter than both the tunic above and the trousers below — a pale
+    // strip across the hips, i.e. the round-20 "underwear" read surviving the
+    // hip wrap that was supposed to kill it.
+    : sleeved && (segId.startsWith('leg') || segId === 'torso.pelvis') ? TROUSER_CLOTH_TINT
+    : tintOf(segId);
+  // round 22 (humanoid-anatomy): the THUMB's hull is bulk-aware. Round 19
+  // deliberately re-inked the thumb to 0.95 so its own hull rim would draw the
+  // thumb-vs-fist split, and that is still right on a slim hand — but the hull
+  // thickness is a fixed fraction of BODY HEIGHT while the thumb-to-fist
+  // crease is a fraction of the fist, so on the orc the 0.95 hull is ~28% of
+  // the thumb's own radius and does the opposite: it fills the crease and
+  // welds the thumb into the mass ("a featureless potato with no legible
+  // thumb"). The exact aInk crease rule from round 16, applied one scale up.
+  const inkFor = (segId: string): number =>
+    segId.endsWith('.thumb') ? 0.65 + 0.3 * slim : inkOf(segId);
   const stations: Station[] = [];
   const push = (
     seg: (typeof segs)[number],
@@ -318,9 +543,12 @@ function chainStations(
     sq = sqOf(seg.id),
     tint = tintFor(seg.id),
     sternum = 0,
-    ink = inkOf(seg.id),
+    ink = inkFor(seg.id),
     pec = 0,
     frontTint: readonly [number, number, number] | null = null,
+    /** round 23 (humanoid-anatomy): the girdle channels, kept in an options
+     * bag — the positional list was already at fourteen. */
+    girdle: { lat?: number; yoke?: number; latTint?: readonly [number, number, number] | null } = {},
   ) => {
     const a = new Vector3(...seg.a);
     const b = new Vector3(...seg.b);
@@ -333,7 +561,26 @@ function chainStations(
     const isThigh = seg.id.endsWith('.thigh');
     const inseam = isThigh ? Math.max(0, 1 - Math.max(0, t) / 0.5) : 0;
     const inSgn = isThigh ? (seg.id.startsWith('legL') ? 1 : -1) : 0;
-    stations.push({ pos, tangent, radius: radius ?? seg.r0 + (seg.r1 - seg.r0) * t, bone0, bone1, w0, w1, flat, sq, tint, ink, sternum, pec, frontTint, weave, inseam, inSgn });
+    // round 22 (humanoid-anatomy): the deltoid seam relief (see Station.seam)
+    // is derived from the piece and its height, so the chest→neck blend rings
+    // — which sit exactly in the shoulder overlap — pick it up for free.
+    // round 23 (humanoid-anatomy): the relief starts LOWER (0.6 → 0.45) and
+    // the NECK joins the list. The round-22 verdict still read an ink ring
+    // sealing the deltoid on the orc, and the orc is the frame where the fix
+    // could not land: its visible neck is 0.05 skullR (human 0.35, dwarf 0.26 —
+    // the hunch term eats it, see skeletonBuilder neckLift), so the whole
+    // shoulder overlap sits in the chest→neck blend and on the neck segment
+    // itself, neither of which carried any seam relief above t 0.6.
+    const seam =
+      seg.id === 'torso.traps' ? 0.9
+      : seg.id === 'neck' ? 0.75
+      : seg.id === 'torso.chest' ? Math.min(1, Math.max(0, (t - 0.45) / 0.4)) * 0.9
+      : 0;
+    stations.push({
+      pos, tangent, radius: radius ?? seg.r0 + (seg.r1 - seg.r0) * t, bone0, bone1, w0, w1,
+      flat, sq, tint, ink, sternum, pec, frontTint, weave, inseam, inSgn, sole: 0, seam,
+      lat: girdle.lat ?? 0, yoke: girdle.yoke ?? 0, latTint: girdle.latTint ?? null,
+    });
   };
 
   for (let k = 0; k < segs.length; k++) {
@@ -365,12 +612,45 @@ function chainStations(
       // The lower rings carry a STERNUM-style front-center carve: the dent +
       // dark column is the crotch V that splits the front into two rooted
       // thighs instead of one smooth fairing (Remy: "HIPS?!?!").
+      // round 21 (humanoid-anatomy): the tuck becomes a HIP WRAP — see
+      // HIPWRAP_TINT. Four rings: a rounded leather hem that ends BELOW the
+      // thigh roots (so gear overlaps the legs the way both references do), a
+      // widest ring proud of the pelvis, and a belt lip that steps out past
+      // the pelvis radius above it. The crotch carve rides the lower rings.
       if (seg.id === 'torso.pelvis') {
-        push(seg, -(seg.r0 * 0.36) / len, bone, 0, 1, 0, 0.75, seg.r0 * 0.6, 0, tintOf(seg.id), 0.7);
-        push(seg, -(seg.r0 * 0.24) / len, bone, 0, 1, 0, 0.85, seg.r0 * 0.8, 0, tintOf(seg.id), 0.6);
-        push(seg, -(seg.r0 * 0.12) / len, bone, 0, 1, 0, 0.95, seg.r0 * 0.96);
+        // NEXT ROUND (humanoid-anatomy): on the ORC these carve strengths stack
+        // on top of dark leather and render the crotch as a near-black
+        // triangle — close to the "dark void gap at the crotch" the round-18
+        // verdict named. Easing them to 0.5/0.38/0.22/0.1 is the fix, but this
+        // checkout's sheets were captured at the values below and the machine
+        // could not produce another capture to prove the eased version, so the
+        // code stays exactly what round-21's sheets show. Ease and re-capture.
+        push(seg, -(seg.r0 * 0.44) / len, bone, 0, 1, 0, 0.78, seg.r0 * 0.72, 0, HIPWRAP_TINT, 0.8);
+        push(seg, -(seg.r0 * 0.3) / len, bone, 0, 1, 0, 0.88, seg.r0 * 0.96, 0, HIPWRAP_TINT, 0.6);
+        push(seg, -(seg.r0 * 0.16) / len, bone, 0, 1, 0, 0.96, seg.r0 * 1.06, 0, HIPWRAP_TINT, 0.35);
+        push(seg, -(seg.r0 * 0.04) / len, bone, 0, 1, 0, 1, seg.r0 * 1.1, 0, BELT_TINT, 0.15);
       }
-      push(seg, 0, bone, 0, 1, 0); // chain root ring, rigid
+      if (seg.id.endsWith('.upper')) {
+        // round 21 (humanoid-anatomy): THE SHOULDER JUNCTION. Round 20: "a
+        // wide ink-line gap separates the upper arm and pauldron from the
+        // torso ... an action-figure joint read". The junction-blend collar
+        // that fixes this in the SEGMENT renderer (segmentBody.sink.collar)
+        // never runs on a skinned body — the sheets are skinned, so the collar
+        // work simply was not in this path. The cause here is the inverse-hull
+        // ink: at full thickness it draws a black boundary everywhere the arm
+        // root overlaps the chest, fencing the deltoid off as a separate
+        // object. The arm root now ramps its hull in from near zero (the same
+        // aInk channel the hands use), so the deltoid-into-pec overlap renders
+        // as one continuous mass and the ink only re-appears once the arm owns
+        // the silhouette on its own.
+        push(seg, 0, bone, 0, 1, 0, flatOf(seg.id), undefined, 0, tintFor(seg.id), 0, 0.1);
+      } else if (seg.id === 'torso.traps') {
+        // the yoke's root sits inside the ribcage; it starts nearly round so
+        // the ramp GROWS out of the chest instead of stepping off it
+        push(seg, 0, bone, 0, 1, 0, flatOf(seg.id), undefined, 0, tintFor(seg.id), 0, inkFor(seg.id), 0, null, { lat: 0.1, yoke: 0.15 });
+      } else {
+        push(seg, 0, bone, 0, 1, 0); // chain root ring, rigid
+      }
     }
     // mid-bone ring, rigid (between the zones)
     // round 15 (humanoid-anatomy): the chest replaced its single mid ring
@@ -433,13 +713,134 @@ function chainStations(
         ];
       };
       const rAt = (t: number): number => seg.r0 + (seg.r1 - seg.r0) * t;
-      push(seg, 0.18, bone, 0, 1, 0, flatOf(seg.id), rAt(0.18), 0, tintFor(seg.id), 0, inkOf(seg.id), 0, band(AB_TINT));
-      push(seg, 0.26, bone, 0, 1, 0, flatOf(seg.id), rAt(0.26), 0, tintFor(seg.id), 0, inkOf(seg.id), 0.05 * soft);
-      push(seg, 0.34, bone, 0, 1, 0, flatOf(seg.id), rAt(0.34), 0, tintFor(seg.id), 0, inkOf(seg.id), 0, band(AB_TINT));
-      push(seg, 0.5, bone, 0, 1, 0);
-      push(seg, 0.68, bone, 0, 1, 0, flatOf(seg.id), rAt(0.68), 0, tintFor(seg.id), 0.55 * soft, inkOf(seg.id), 0, band(UNDERPEC_TINT));
-      push(seg, 0.78, bone, 0, 1, 0, flatOf(seg.id), rAt(0.78), 0, tintFor(seg.id), 1 * soft, inkOf(seg.id), 0.14 * soft);
-      push(seg, 0.87, bone, 0, 1, 0, flatOf(seg.id), rAt(0.87), 0, tintFor(seg.id), 0.7 * soft, inkOf(seg.id), 0, band(CLAVICLE_TINT));
+      // round 23 (humanoid-anatomy): THE LAT FLARE. The round-22 verdict's
+      // named gap included "vertical ribcage sides and no lat flare beneath the
+      // arm". Literally true: every chest station took its own lerped radius,
+      // so the ribcage ran as one straight cone from waist to shoulder and the
+      // only lateral event on the whole torso was the deltoid ball. The armpit
+      // sits at t ≈ 0.68 on all three subjects (solved from the deltoid ball's
+      // lower pole), so the latissimus now swells LATERALLY (front and back
+      // profiles untouched — the pec ladder and the side panel keep their
+      // silhouette) peaking just below it, then PINCHES back at 0.78 into the
+      // armpit notch that the deltoid bulges past. That pinch is the
+      // bulge-past-valley rule applied to the shoulder: without a valley the
+      // deltoid had nothing to be proud of and read as a sphere sitting on a
+      // slab.
+      push(seg, 0.18, bone, 0, 1, 0, flatOf(seg.id), rAt(0.18), 0, tintFor(seg.id), 0, inkFor(seg.id), 0, band(AB_TINT));
+      push(seg, 0.26, bone, 0, 1, 0, flatOf(seg.id), rAt(0.26), 0, tintFor(seg.id), 0, inkFor(seg.id), 0.05 * soft);
+      push(seg, 0.34, bone, 0, 1, 0, flatOf(seg.id), rAt(0.34), 0, tintFor(seg.id), 0, inkFor(seg.id), 0, band(AB_TINT));
+      push(seg, 0.5, bone, 0, 1, 0, flatOf(seg.id), rAt(0.5), 0, tintFor(seg.id), 0, inkFor(seg.id), 0, null, { lat: 0.16 });
+      push(seg, 0.62, bone, 0, 1, 0, flatOf(seg.id), rAt(0.62), 0, tintFor(seg.id), 0, inkFor(seg.id), 0, null, { lat: 0.34 });
+      push(seg, 0.68, bone, 0, 1, 0, flatOf(seg.id), rAt(0.68), 0, tintFor(seg.id), 0.55 * soft, inkFor(seg.id), 0, band(UNDERPEC_TINT), { lat: 0.2 });
+      push(seg, 0.78, bone, 0, 1, 0, flatOf(seg.id), rAt(0.78), 0, tintFor(seg.id), 1 * soft, inkFor(seg.id), 0.14 * soft, null, { lat: -0.14, latTint: band(LAT_GROOVE_TINT) });
+      push(seg, 0.87, bone, 0, 1, 0, flatOf(seg.id), rAt(0.87), 0, tintFor(seg.id), 0.7 * soft, inkFor(seg.id), 0, band(CLAVICLE_TINT), { lat: 0.1, yoke: 0.14 });
+    } else if (seg.id === 'torso.traps') {
+      // round 23 (humanoid-anatomy): THE TRAPEZIUS YOKE — the structural half
+      // of the round-22 gap ("the neck drops into a flat horizontal shoulder
+      // bar ... the deltoid sits as a separate sphere").
+      //
+      // Diagnosis first, because four rounds of ink and tint work had already
+      // failed here. Solving the rest pose numerically: on the orc the chest
+      // top is y 1.574 and the deltoid ball's CENTER is y 1.602 with its crown
+      // at 1.761 — the entire upper half of the shoulder mass lives ABOVE the
+      // torso, where the only body present is this thin traps cone. Human and
+      // dwarf are the same shape of wrong. So the shoulder really was a ball
+      // hung beside the neck, and the relief work was trying to erase the
+      // boundary of a gap that was really there.
+      //
+      // The cone is now a YOKE: its ±X columns swell out toward the deltoid
+      // (lat) AND drop along −Y (yoke) while the front, back and midline
+      // columns stay where they are. The midline therefore stays at the neck
+      // base and the sides sweep down and out into the deltoid's own volume —
+      // a continuous trapezius ramp instead of a shelf with a ball beside it.
+      // The drop is tuned so the lateral edge lands at the deltoid's LOWER pole
+      // (the armpit line) on all three subjects, which is where the reference
+      // trapezius meets the acromion.
+      push(seg, 0.35, bone, 0, 1, 0, flatOf(seg.id), undefined, 0, tintFor(seg.id), 0, inkFor(seg.id), 0, null, { lat: 0.45, yoke: 0.3 });
+      push(seg, 0.68, bone, 0, 1, 0, flatOf(seg.id), undefined, 0, tintFor(seg.id), 0, inkFor(seg.id), 0, null, { lat: 0.62, yoke: 0.45 });
+    } else if (seg.id.endsWith('.fingers')) {
+      // round 21 (humanoid-anatomy): SCALLOPED KNUCKLE ROWS — see
+      // FINGER_VALLEY_TINT. Three bulges split by two sunk near-black valleys,
+      // so the free fist's outline steps the way the praised grip stack does.
+      const rAt = (t: number): number => seg.r0 + (seg.r1 - seg.r0) * t;
+      push(seg, 0.14, bone, 0, 1, 0, flatOf(seg.id), rAt(0.14) * 1.06);
+      push(seg, 0.31, bone, 0, 1, 0, flatOf(seg.id), rAt(0.31) * 0.8, sqOf(seg.id), FINGER_VALLEY_TINT);
+      push(seg, 0.47, bone, 0, 1, 0, flatOf(seg.id), rAt(0.47) * 1.1);
+      push(seg, 0.64, bone, 0, 1, 0, flatOf(seg.id), rAt(0.64) * 0.82, sqOf(seg.id), FINGER_VALLEY_TINT);
+      push(seg, 0.8, bone, 0, 1, 0, flatOf(seg.id), rAt(0.8) * 1.04);
+    } else if (seg.id.endsWith('.palm')) {
+      // round 22 (humanoid-anatomy): THE FREE FIST, UNIFIED WITH THE GRIP HAND.
+      // The critic has praised every weapon-grip hand for three rounds and
+      // failed every free fist for four ("a featureless potato with no legible
+      // thumb"), so this round stopped re-tuning the free fist and diffed the
+      // two code paths. They ARE different: the grip hand is gearWeapons.
+      // gripBand() — FOUR scalloped ellipsoids of bulge radius 1.3 fist-radii
+      // separated by THREE near-black valley rings at 1.06, stacked across the
+      // WHOLE fist length (4 × 0.62 fr ≈ 2.5 fr) — while the free fist put
+      // three small bulges on the finger mass alone, which is 0.95 handR: 41%
+      // of the fist. Same recipe, 2.4× less of it, so at panel distance the
+      // free fist had one wobble where the grip hand has four steps.
+      // The ladder now runs the full length: the palm carries the first two
+      // scallops on the same bulge:valley ratio (1.13 : 0.9 ≈ 1.26, the grip
+      // band's 1.3 : 1.06) with the same near-black valley tint, then the
+      // knuckle joint ring, then the finger mass carries the rest.
+      const rAt = (t: number): number => seg.r0 + (seg.r1 - seg.r0) * t;
+      // round 22: the WRIST ink ramp — the first station sheds most of its
+      // hull. The wrist is the narrowest point on the whole arm (0.45 armR)
+      // and the forearm flare and the fist both out-mass it by ~2×, so the
+      // uniform hull closed the throat and drew the round-21 verdict's black
+      // ring "at the wrist". Same fix as round 21's shoulder root, other end.
+      // round 23 (humanoid-anatomy): THE GRIP-HAND REGRESSION. Round 22's palm
+      // scallops fixed the free fist and broke the weapon hand, which the
+      // critic had praised for three rounds and now calls "a lumpy clump around
+      // the tang". The two forms are coaxial and nobody checked the clearance:
+      // gearWeapons.gripBand wraps the fist in four ellipsoids at 1.3 fist-radii
+      // separated by valley rings at 1.06, sized to "clear the underlying
+      // skinned fist cleanly" — and the round-22 palm bulge lands at
+      // rAt(0.58) × 1.13 = 1.073 fist-radii, i.e. THROUGH the wrap's valleys.
+      // Six competing bumps on one column. The bulge now peaks at 1.05 (just
+      // inside the wrap) and the valleys sink further instead, which keeps the
+      // 1.25 bulge:valley ratio the free fist won with while leaving the grip
+      // band the only thing carrying the outline on a weapon hand.
+      push(seg, 0.1, bone, 0, 1, 0, flatOf(seg.id), rAt(0.1), sqOf(seg.id), tintFor(seg.id), 0, 0.24);
+      push(seg, 0.34, bone, 0, 1, 0, flatOf(seg.id), rAt(0.34) * 0.84, sqOf(seg.id), FINGER_VALLEY_TINT);
+      push(seg, 0.58, bone, 0, 1, 0, flatOf(seg.id), rAt(0.58) * 1.05);
+      push(seg, 0.8, bone, 0, 1, 0, flatOf(seg.id), rAt(0.8) * 0.84, sqOf(seg.id), FINGER_VALLEY_TINT);
+    } else if (seg.id.endsWith('.thumb')) {
+      // round 21 (humanoid-anatomy): the thumb gets a KNUCKLE of its own — a
+      // bulge, a sunk dark valley, then the tip pad — so it reads as a digit
+      // with a joint rather than a smooth lobe fused to the fist.
+      const rAt = (t: number): number => seg.r0 + (seg.r1 - seg.r0) * t;
+      // round 22 (humanoid-anatomy): a near-black ring at the thumb's ROOT.
+      // Four rounds of thumb work have all been silhouette work — bigger lobe,
+      // fatter root, more ink — and the round-21 verdict still read "no legible
+      // thumb" on the orc. What the fingers finally won with was not size but
+      // the VALLEY: a sunk near-black ring in the gap the silhouette already
+      // cuts. The thumb meets the fist in exactly such a gap and never had one.
+      push(seg, 0.08, bone, 0, 1, 0, flatOf(seg.id), rAt(0.08) * 0.82, sqOf(seg.id), FINGER_VALLEY_TINT);
+      push(seg, 0.28, bone, 0, 1, 0, flatOf(seg.id), rAt(0.28) * 1.12);
+      push(seg, 0.53, bone, 0, 1, 0, flatOf(seg.id), rAt(0.53) * 0.78, sqOf(seg.id), FINGER_VALLEY_TINT);
+      push(seg, 0.78, bone, 0, 1, 0, flatOf(seg.id), rAt(0.78) * 1.14);
+    } else if (seg.id.endsWith('.upper')) {
+      // round 21 (humanoid-anatomy): the ink hull ramps back in across the
+      // first third of the upper arm — zero at the torso overlap, full by the
+      // time the arm hangs free — and the mid-arm carries a taper toward the
+      // elbow so the deltoid reads as a mass that NARROWS into the joint (the
+      // grunt's "deltoid-into-pec integration and a taper to the elbow").
+      const rAt = (t: number): number => seg.r0 + (seg.r1 - seg.r0) * t;
+      push(seg, 0.12, bone, 0, 1, 0, flatOf(seg.id), rAt(0.12), 0, tintFor(seg.id), 0, 0.34);
+      push(seg, 0.26, bone, 0, 1, 0, flatOf(seg.id), rAt(0.26), 0, tintFor(seg.id), 0, 0.72);
+      push(seg, 0.48, bone, 0, 1, 0);
+      // round 22 (humanoid-anatomy): THE ELBOW INK RAMP — the other end of the
+      // same arm. Round 21 ramped the hull in at the shoulder root and the
+      // round-21 verdict still read "every junction drawn shut with a full
+      // black outline ring — deltoid-to-torso, ELBOW, WRIST". The elbow is a
+      // deliberate pinch (0.62 armR) sitting between a 1.9-armR shoulder and a
+      // 1.6× forearm flare: a valley narrower than the hull that brackets it,
+      // which is the aInk crease rule verbatim. The hull now ramps back OUT
+      // toward the joint so the arm keeps one continuous outline through it.
+      push(seg, 0.72, bone, 0, 1, 0, flatOf(seg.id), rAt(0.72) * 0.94, 0, tintFor(seg.id), 0, 0.55);
+      push(seg, 0.88, bone, 0, 1, 0, flatOf(seg.id), rAt(0.88), 0, tintFor(seg.id), 0, 0.28);
     } else if (seg.id.endsWith('.fore')) {
       // round 17 (humanoid-anatomy): the forearm is not a cone — a
       // brachioradialis FLARE just past the elbow (×1.5 the local lerp,
@@ -452,9 +853,15 @@ function chainStations(
       // forearm-to-wrist taper" on the human and "near-constant-width arms" on
       // the orc. With the driver's narrower wrist (0.49 armR) the run is now
       // ≈1.0 → 0.62 → 0.52 armR: a visible collapse into the wrist, not a cone.
-      push(seg, 0.28, bone, 0, 1, 0, flatOf(seg.id), rAt(0.28) * 1.6);
+      // round 22 (humanoid-anatomy): the forearm's own half of the elbow and
+      // wrist ink ramps (see the .upper branch). The flare — the widest part of
+      // the forearm — is what inflates over both throats, so its hull comes in
+      // low at the elbow, reaches its round-17 weight through the belly of the
+      // muscle, and sheds again into the wrist.
+      push(seg, 0.1, bone, 0, 1, 0, flatOf(seg.id), rAt(0.1), 0, tintFor(seg.id), 0, 0.3);
+      push(seg, 0.28, bone, 0, 1, 0, flatOf(seg.id), rAt(0.28) * 1.6, 0, tintFor(seg.id), 0, 0.62);
       push(seg, 0.55, bone, 0, 1, 0, flatOf(seg.id), rAt(0.55) * 1.08);
-      push(seg, 0.85, bone, 0, 1, 0);
+      push(seg, 0.85, bone, 0, 1, 0, flatOf(seg.id), rAt(0.85), 0, tintFor(seg.id), 0, 0.34);
     } else if (seg.id.endsWith('.thigh')) {
       // round 18 (humanoid-anatomy): QUAD MASS — the round-17 verdict:
       // "legs are featureless cones ... no knee station and no calf bulge".
@@ -467,11 +874,27 @@ function chainStations(
       // round 19 (Remy, back view): the two-station quad read as "hard boxy
       // corners" — five stations sweep the same swell as a curve.
       const rAt = (t: number): number => seg.r0 + (seg.r1 - seg.r0) * t;
-      push(seg, 0.2, bone, 0, 1, 0, flatOf(seg.id), rAt(0.2) * 1.12);
-      push(seg, 0.34, bone, 0, 1, 0, flatOf(seg.id), rAt(0.34) * 1.17);
-      push(seg, 0.5, bone, 0, 1, 0, flatOf(seg.id), rAt(0.5) * 1.12);
-      push(seg, 0.64, bone, 0, 1, 0, flatOf(seg.id), rAt(0.64) * 1.05);
-      push(seg, 0.78, bone, 0, 1, 0);
+      // round 21 (humanoid-anatomy): "thigh and shin are near the same width".
+      // The quad swell grows and the run down to the (now harder-pinched,
+      // see the driver's kneeR) knee steepens, so the thigh:knee ratio the
+      // outline shows lands near 2:1 like the references.
+      push(seg, 0.2, bone, 0, 1, 0, flatOf(seg.id), rAt(0.2) * 1.16);
+      push(seg, 0.34, bone, 0, 1, 0, flatOf(seg.id), rAt(0.34) * 1.22);
+      push(seg, 0.5, bone, 0, 1, 0, flatOf(seg.id), rAt(0.5) * 1.14);
+      push(seg, 0.64, bone, 0, 1, 0, flatOf(seg.id), rAt(0.64) * 1.03);
+      // round 23 (humanoid-anatomy): THE PATELLA. Round 22 read the orc's legs
+      // as "parallel tubes with no knee event", and the radii say otherwise —
+      // thigh:knee is 2.86:1 on all three subjects. What the orc lacks is not
+      // taper but an EVENT: a dark leather trouser under a toon ramp shows one
+      // value from hip to boot, so a smooth taper reads as a tube. The knee now
+      // carries a front-only cap that swells past the local lerp and a dark
+      // crease line under it — a value break and a front-profile bump landing
+      // exactly on the pinch, which is where a knee is legible from the front.
+      // ring forms, not front-weighted ones: on a leg chain the binormal points
+      // BACKWARD (tangent is −Y), so the frontness² channel the chest uses
+      // would have painted the popliteal instead of the kneecap.
+      push(seg, 0.72, bone, 0, 1, 0, flatOf(seg.id), rAt(0.72) * 1.12);
+      push(seg, 0.8, bone, 0, 1, 0, flatOf(seg.id), rAt(0.8) * 0.92, 0, KNEE_CREASE_TINT);
     } else if (seg.id.endsWith('.shin')) {
       // round 18 (humanoid-anatomy): CALF SWELL — a gastrocnemius bulge just
       // below the knee (peak ×1.5 at 0.26, clearly wider than the pinched
@@ -482,12 +905,21 @@ function chainStations(
       // six stations round the gastrocnemius into a bell that lands on an
       // unpinched ankle (ankle radius raised in the driver/rest pose).
       const rAt = (t: number): number => seg.r0 + (seg.r1 - seg.r0) * t;
-      push(seg, 0.19, bone, 0, 1, 0, flatOf(seg.id), rAt(0.19) * 1.16);
-      push(seg, 0.28, bone, 0, 1, 0, flatOf(seg.id), rAt(0.28) * 1.42);
-      push(seg, 0.4, bone, 0, 1, 0, flatOf(seg.id), rAt(0.4) * 1.38);
-      push(seg, 0.55, bone, 0, 1, 0, flatOf(seg.id), rAt(0.55) * 1.24);
-      push(seg, 0.7, bone, 0, 1, 0, flatOf(seg.id), rAt(0.7) * 1.1);
-      push(seg, 0.85, bone, 0, 1, 0);
+      // round 22 (humanoid-anatomy): slim frames swell the gastrocnemius
+      // harder — the round-21 verdict asked for the human's "calf past the
+      // ankle, matching the dwarf", and the dwarf gets its calf mass from a
+      // bulk-driven legR the human does not have. Bulky frames unchanged.
+      const calf = 1 + 0.2 * slim;
+      push(seg, 0.19, bone, 0, 1, 0, flatOf(seg.id), rAt(0.19) * 1.14 * calf);
+      push(seg, 0.28, bone, 0, 1, 0, flatOf(seg.id), rAt(0.28) * 1.34 * calf);
+      push(seg, 0.4, bone, 0, 1, 0, flatOf(seg.id), rAt(0.4) * 1.3 * calf);
+      push(seg, 0.55, bone, 0, 1, 0, flatOf(seg.id), rAt(0.55) * 1.18 * calf);
+      push(seg, 0.7, bone, 0, 1, 0, flatOf(seg.id), rAt(0.7) * 1.06);
+      // round 21 (humanoid-anatomy): the BOOT CUFF — a dark ring where the
+      // trouser tucks into the boot shaft. Same belt/knuckle trick, and it
+      // gives the leg a third material break between hip wrap and sole.
+      push(seg, 0.84, bone, 0, 1, 0, flatOf(seg.id), rAt(0.84) * 1.02, 0, BOOTHEM_TINT);
+      push(seg, 0.92, bone, 0, 1, 0, flatOf(seg.id), rAt(0.92), 0, BOOTHEM_TINT);
     } else {
       push(seg, (zoneIn + (1 - zoneOut)) / 2, bone, 0, 1, 0);
     }
@@ -507,8 +939,8 @@ function chainStations(
       const sqB = sqOf(nextSeg.id);
       // round 16 (humanoid-anatomy): the ink weight blends across the zone —
       // the wrist eases from full-hull forearm into the light-inked hand
-      const inkA = inkOf(seg.id);
-      const inkB = inkOf(nextSeg.id);
+      const inkA = inkFor(seg.id);
+      const inkB = inkFor(nextSeg.id);
       // round 3 (humanoid-anatomy): blend RADIUS across the zone when the two
       // segments disagree at the joint. Before, each ring took its own
       // segment's lerped radius, so the chest top (1.0 r) meeting the neck
@@ -533,6 +965,14 @@ function chainStations(
       // tunic sleeve ends and the skin forearm begins (the belt trick at the
       // elbow). Only on sleeved (slim) frames.
       const isSleeveHem = sleeved && seg.id.endsWith('.upper') && nextSeg.id.endsWith('.fore');
+      // round 22 (humanoid-anatomy): the ELBOW and WRIST joint rings themselves
+      // shed most of their hull. The stations either side ramp down (see the
+      // .upper/.fore/.palm branches); this closes the gap over the joint ring,
+      // which is the narrowest point of the valley and therefore the ring the
+      // inverse hull actually seals shut. Every other joint (knee, belt,
+      // knuckle, neck) keeps its full ink.
+      const jointInkFloor =
+        nextSeg.id.endsWith('.fore') || nextSeg.id.endsWith('.palm') ? 0.22 : 1;
       const lerpTint = (t2: number): readonly [number, number, number] => [
         tintA[0] + (tintB[0] - tintA[0]) * t2,
         tintA[1] + (tintB[1] - tintA[1]) * t2,
@@ -542,7 +982,9 @@ function chainStations(
         const t = smoothstep(ring / (ZONE_RINGS - 1));
         const flat = flatA + (flatB - flatA) * t;
         const sq = sqA + (sqB - sqA) * t;
-        const ink = inkA + (inkB - inkA) * t;
+        // the dip is deepest on the joint ring (t = 0.5) and gone at the zone
+        // edges, where the neighbouring stations have already taken over
+        const ink = (inkA + (inkB - inkA) * t) * (1 - (1 - jointInkFloor) * (1 - Math.abs(2 * t - 1)));
         const radius = blendRadius ? rEntry + (rExit - rEntry) * t : undefined;
         const tint =
           isBelt && ring === half ? BELT_TINT
@@ -558,6 +1000,10 @@ function chainStations(
           push(nextSeg, tExit * u, bone, nextBone, 1 - t, t, flat, radius, sq, tint, 0, ink);
         }
       }
+    } else if (seg.id === 'torso.traps') {
+      // the yoke's top ring: midline still at the neck base, sides out and
+      // down into the deltoid — the sweep the WoW grunt leads with
+      push(seg, 1, bone, 0, 1, 0, flatOf(seg.id), undefined, 0, tintFor(seg.id), 0, inkFor(seg.id), 0, null, { lat: 0.55, yoke: 0.5 });
     } else {
       push(seg, 1, bone, 0, 1, 0); // chain tip ring, rigid
     }
@@ -626,9 +1072,13 @@ export function buildSmoothBipedGeometry(
   // round 18 (humanoid-anatomy): pec-ladder softening — 1 at human bulk,
   // easing toward 0.45 as bulk climbs past 1 (orc ≈ 0.5, dwarf ≈ 0.45).
   const soft = frame ? Math.max(0.45, 1 - 1.3 * Math.max(0, frame.bulk - 1)) : 1;
+  // round 22 (humanoid-anatomy): slim-frame strength — the same curve
+  // skeletonBuilder.bipedSlimT uses (kept inline: this module takes an
+  // optional frame and must not import the driver's helpers for one number).
+  const slim = frame ? Math.min(1, Math.max(0, (1.25 - frame.bulk) / 0.1)) : 1;
 
   for (const def of chains) {
-    const stations = chainStations(restPose, boneIndex, def, soft);
+    const stations = chainStations(restPose, boneIndex, def, soft, slim);
     const ringStart: number[] = [];
 
     // parallel-transport frame down the chain (bind paths are near-straight;
@@ -704,6 +1154,34 @@ export function buildSmoothBipedGeometry(
         // the local ink so the hull draws the leg-vs-pelvis split. Both
         // separation channels, same as the thumb.
         let ink = st.ink;
+        // round 22 (humanoid-anatomy): DELTOID SEAM relief — the upper chest
+        // and the trapezius wedge shed their hull on the LATERAL columns only
+        // (c = ±1 is the ±X side of a vertical torso chain), which is exactly
+        // where the deltoid mass interpenetrates them. Front and back columns
+        // keep full ink, so the torso's own silhouette is untouched in every
+        // panel; what disappears is the black ring the chest's hull drew
+        // through the deltoid.
+        if (st.seam > 0) ink *= 1 - st.seam * c * c;
+        // round 21 (humanoid-anatomy): BOOT SOLE — on a foot chain the
+        // binormal is world up, so s < 0 is the underside. The bottom arc
+        // steps to dark leather, drawing a ground line under the boot that
+        // reads at panel distance from the front, the 3/4 and the profile.
+        if (st.sole > 0) {
+          // round 21b: the band starts ABOVE the equator. A front camera sees
+          // the boot's top plate and front face, almost none of its underside,
+          // so a strictly-underside band was invisible in the panel that
+          // failed. Darkening the lower half reads as sole + welt from every
+          // camera, and it is what separates boot from leg at panel distance.
+          const under = Math.max(0, (-s + 0.12) / 0.9);
+          const w = st.sole * under;
+          if (w > 0) {
+            tint = [
+              tint[0] + (SOLE_TINT[0] - tint[0]) * w,
+              tint[1] + (SOLE_TINT[1] - tint[1]) * w,
+              tint[2] + (SOLE_TINT[2] - tint[2]) * w,
+            ];
+          }
+        }
         if (st.inseam > 0) {
           const inner = Math.max(0, st.inSgn * c);
           const w = st.inseam * inner * inner;
@@ -716,8 +1194,30 @@ export function buildSmoothBipedGeometry(
             ink += 0.35 * w;
           }
         }
+        // round 23 (humanoid-anatomy): THE SHOULDER GIRDLE, as geometry.
+        // `lat` swells (or pinches) the ±X columns only — c² is 1 on the flank
+        // and 0 dead front/back — so the lat flare and the trapezius yoke never
+        // touch the front profile the pec ladder owns nor the side profile the
+        // silhouette panel judges. `yoke` slides those same columns DOWN the
+        // chain tangent, which is what converts a horizontal shoulder shelf
+        // into a neck-to-acromion ramp.
+        let drop = 0;
+        if (st.lat !== 0 || st.yoke > 0) {
+          const lateral = c * c;
+          k *= 1 + st.lat * lateral;
+          drop = st.yoke * lateral * st.radius;
+          if (st.latTint) {
+            const w = lateral * lateral;
+            tint = [
+              tint[0] + (st.latTint[0] - tint[0]) * w,
+              tint[1] + (st.latTint[1] - tint[1]) * w,
+              tint[2] + (st.latTint[2] - tint[2]) * w,
+            ];
+          }
+        }
         offset.copy(normal).multiplyScalar(c * k * st.radius)
-          .addScaledVector(binormal, s * k * st.radius * st.flat);
+          .addScaledVector(binormal, s * k * st.radius * st.flat)
+          .addScaledVector(st.tangent, -drop);
         positions.push(st.pos.x + offset.x, st.pos.y + offset.y, st.pos.z + offset.z);
         skinIndex.push(st.bone0, st.bone1, 0, 0);
         skinWeight.push(st.w0, st.w1, 0, 0);
@@ -777,9 +1277,19 @@ export function buildSmoothBipedGeometry(
     // (0.94 deep; height untouched — the bounds parity test keeps the
     // shoulder top) — under flat shading the big facets read as a cut
     // deltoid form instead of the round-15 verdict's "perfect balloons".
+    const isDeltoidBall = ball.id.startsWith('deltoid');
+    // round 21 (humanoid-anatomy): the deltoid is no longer a BALL hung off
+    // the side of the torso. It stretches 1.34× along X and its center slides
+    // 0.34 r toward the midline, so its inner pole ends up 1.68 r INSIDE the
+    // ribcage — the two masses interpenetrate instead of touching — while the
+    // outer pole lands on exactly the old x (bounds parity, and the round-20
+    // boulder-shoulder silhouette is untouched).
+    const inSgnBall = ball.center[0] > 0 ? -1 : 1; // toward the body midline
+    const shiftX = isDeltoidBall ? inSgnBall * ball.r * 0.34 : 0;
+    const cx = ball.center[0] + shiftX;
     const sphere = new SphereGeometry(ball.r, 8, 5);
-    sphere.scale(1, 1, 0.94);
-    sphere.translate(ball.center[0], ball.center[1], ball.center[2]);
+    sphere.scale(isDeltoidBall ? 1.34 : 1, 1, 0.94);
+    sphere.translate(cx, ball.center[1], ball.center[2]);
     const pos = sphere.attributes.position;
     const base = positions.length / 3;
     const bone = boneIndex.get(ball.bone)!;
@@ -790,23 +1300,25 @@ export function buildSmoothBipedGeometry(
     // pec/trap masses. The inner-lower octant now darkens toward the pec
     // value (hue-shifted warm) and the ball's hull thins to 0.6 so the
     // outline stops fencing it off the torso.
-    const isDeltoid = ball.id.startsWith('deltoid');
-    const inSgnBall = ball.center[0] > 0 ? -1 : 1; // toward the body midline
+    const isDeltoid = isDeltoidBall;
     for (let v = 0; v < pos.count; v++) {
       const x = pos.getX(v);
       const y = pos.getY(v);
       const z = pos.getZ(v);
       let m = 0;
       if (isDeltoid) {
-        const dx = (x - ball.center[0]) / ball.r;
+        const dx = (x - cx) / (ball.r * 1.34);
         const dy = (y - ball.center[1]) / ball.r;
         m = Math.min(1, Math.max(0, 0.55 * inSgnBall * dx + 0.45 * -dy));
       }
       positions.push(x, y, z);
       skinIndex.push(bone, 0, 0, 0);
       skinWeight.push(1, 0, 0, 0);
-      colors.push(1 - 0.22 * m, 1 - 0.3 * m, 1 - 0.4 * m);
-      inks.push(isDeltoid ? 0.6 : 1);
+      colors.push(1 - 0.28 * m, 1 - 0.36 * m, 1 - 0.46 * m);
+      // round 21 (humanoid-anatomy): 0.6 → 0.2. The hull thickness is what
+      // drew the "wide ink-line gap" the round-20 verdict named; at 0.2 the
+      // deltoid's overlap with the trap and pec renders as continuous mass.
+      inks.push(isDeltoid ? 0.2 : 1);
     }
     const sIndex = sphere.index!;
     for (let e = 0; e < sIndex.count; e++) index.push(base + sIndex.getX(e));

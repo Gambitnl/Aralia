@@ -1,0 +1,9 @@
+{
+  "piece": "object-placement",
+  "round": 1,
+  "winner": "reference",
+  "wowed": false,
+  "biggestGap": "The ground pads are visible. In the top view each pad reads as a soft dark elliptical halo around its object, larger than the object and with a diffuse edge. On the flat untextured test ground they pass as contact shadow. On textured ground they will read as craters or as dirt rings, because a soft dark blob does not follow the ground material. Prove the pads on textured ground, or replace them with a contact shadow that respects the surface.",
+  "notes": "Two contact sheets, before and after, four panels each: eye-level, closeup-worst, three-quarter, top.\n\nRESULT: 14/19 fail -> 0/19, using 8 ground pads and 20 solver iterations. That is a real and complete fix of the counted defect. No object in the after sheet floats, and none sinks.\n\nWHAT THE SHEET ACTUALLY SHOWS: the test subjects are untextured beige boxes on flat green ground. The closeup-worst panel is the strongest evidence — the tall box meets the ground with a clean edge and no gap. The three-quarter panel is clean.\n\nWHAT THE SHEET DOES NOT SHOW: no sloped ground, no textured ground, no real props, no buildings. Every object is an axis-aligned box on near-flat terrain, which is the easy case. Contact on a slope is the case that fails in practice, and it is not in this sheet.\n\nThe top panel is where the pads become obvious. Several dark halos are clearly larger than the object casting them, and one halo has no object visibly on top of it.",
+  "at": "2026-08-12T18:00:00Z"
+}

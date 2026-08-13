@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   createSpellZone,
   createSpellZoneFromAoEParams,
+  convertSpellEffectToProcessed,
   isPositionInArea,
   processAreaEndTurnTriggers,
   processAreaStartTurnTriggers,
@@ -21,6 +22,7 @@ import type { Class } from '@/types/character'
 import sleetStorm from '@/data/spells/level-3/sleet-storm.json'
 import spiritGuardians from '@/data/spells/level-3/spirit-guardians.json'
 import evardsBlackTentacles from '@/data/spells/level-4/evards-black-tentacles.json'
+import searingSmite from '@/data/spells/level-1/searing-smite.json'
 
 const baseStats = {
   strength: 10,
@@ -81,6 +83,42 @@ const makeZone = (effects: SpellEffect[]): ActiveSpellZone => ({
   effects,
   triggeredThisTurn: new Set(),
   triggeredEver: new Set()
+})
+
+describe('scheduled recurring payload conversion', () => {
+  it('emits Searing Smite damage without reapplying its base Ignited condition', () => {
+    // Searing Smite stores recurring 1d6 Fire beside STATUS_CONDITION. Future
+    // turns need the damage packet, while the already-active condition remains
+    // the single duration/source record until its save cleanup is implemented.
+    const statusEffect = searingSmite.effects.find(effect => (
+      effect.type === 'STATUS_CONDITION'
+    )) as unknown as SpellEffect & {
+      recurringMechanics?: Array<{
+        timing: 'turn_start';
+        frequency: 'every_time';
+        damage: { dice: string; type: string };
+      }>;
+    };
+    const recurring = statusEffect.recurringMechanics?.[0];
+
+    expect(recurring).toBeDefined();
+    expect(convertSpellEffectToProcessed(statusEffect, {
+      spellId: searingSmite.id,
+      casterId: 'searing-caster',
+      saveDC: 15,
+    }, recurring)).toEqual([
+      expect.objectContaining({
+        type: 'damage',
+        dice: '1d6',
+        damageType: 'Fire',
+        sourceContext: {
+          spellId: searingSmite.id,
+          casterId: 'searing-caster',
+          saveDC: 15,
+        },
+      }),
+    ]);
+  });
 })
 
 describe('isPositionInArea', () => {

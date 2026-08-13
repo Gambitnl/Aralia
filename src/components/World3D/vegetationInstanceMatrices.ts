@@ -98,7 +98,11 @@ export function syncVegetationInstanceMatrices(
     const tilt = scatter.tilts?.[i] ?? 0;
     if (tilt !== 0 && scatter.tiltAxes) {
       tiltAxis.set(scatter.tiltAxes[i * 2], 0, scatter.tiltAxes[i * 2 + 1]).normalize();
-      tiltQuat.setFromAxisAngle(tiltAxis, tilt);
+      // NEGATIVE angle. `fitToSurface` returns the axis `[-nz, nx]/|n_xz|`, but
+      // the axis that turns up TOWARD the normal is `Y x n = (nz, 0, -nx)` — the
+      // negation. So a right-hand turn by +tiltRad lifts the DOWNHILL edge and
+      // leans the trunk OFF the slope. GroundProps.tsx carries the same note.
+      tiltQuat.setFromAxisAngle(tiltAxis, -tilt);
       rotation.premultiply(tiltQuat);
     }
     // yLift grounds the center-origin geometry: base sits ON the surface

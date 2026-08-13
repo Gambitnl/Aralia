@@ -1,0 +1,9 @@
+{
+  "piece": "region-terrain",
+  "round": 1,
+  "winner": "reference",
+  "wowed": false,
+  "biggestGap": "The ridged-multifractal signature is legible as a signature on the mountain flanks. Ridges close into loops of near-constant width at one scale, so the massif reads as brain coral rather than as a range. Real ranges carry ONE dominant crest with subordinate spurs branching off it at decreasing scale. Give the crest a hierarchy — a primary divide, secondary spurs, tertiary gullies — before any other terrain fix.",
+  "notes": "Three hillshaded 250x250 windows, old field left, new field right.\n\nMOUNTAIN — the new field BEATS the old one, and is still not good. The old field is a smooth blurred mass with almost no drainage structure; the new field has real ridge and valley organization and far more legible relief. But the ridges are repetitive and uniform in width, and they close into loops, which is the ridged-multifractal signature showing through. The deepest valleys have a gouged, plasticine quality — they read as material scooped out with a tool, not as water-cut channels.\n\nPLAIN — beaten, less convincingly. The new field adds visible channels where the old had almost nothing. The channels read as dark scratches on an otherwise smooth surface. There are no banks, no terraces, and no floodplain, so the channels sit ON the plain rather than being cut INTO it. A real plain carries the history of its own drainage in its flat parts.\n\nCOAST — good, and not regressed. This is the strongest of the three windows. The coastline keeps its shape and the near-shore relief gains detail without noise.\n\nCOST REGRESSION: 700-900 ms per 250x250 window, up about 4x from ~200 ms. Recorded here because cost is part of the verdict.\n\nNOT WIRED: this is a bench result only. `generateRegion.ts` is untouched and the game never calls this field. A bench win is not a game win.",
+  "at": "2026-08-12T18:00:00Z"
+}

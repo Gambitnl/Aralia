@@ -180,6 +180,13 @@ file. Public `GET /agents`, SSE payloads, `whoami`, dashboards, and task logs mu
   owner can renew it. Leave minute-scale headroom rather than renewing at the expiry boundary.
   A presence heartbeat does not renew locks. Any lock that is not renewed still expires.
 - **Conflict shape** (`409`): `{ "conflict": { "path": <offending token>, "heldBy": <agentId>, "lock": <full held lock> } }`.
+- **Atomic multi-target requests:** `POST /locks` is all-or-nothing. The store normalises every
+  requested path and glob, checks the whole request against active locks and FIFO reservations,
+  and emits one combined lock only when every target can be granted. Any `409` grants **none**
+  of the requested targets and creates no partial lock. Inspect `GET /locks` and
+  `GET /reservations`, retry the unconflicted paths, and reserve each conflicted path you still
+  need. A reservation preserves queue order but never grants edit rights; only a successful
+  real lock permits editing.
 - **Overlap rules** (see `globToRegExp`/`tokensOverlap` in `store.mjs`): repository-relative and
   equivalent absolute paths are canonicalised before comparison; exact path == path;
   a glob (`*`, `**`, `?`) matched against a path; two **equal** globs. `**` crosses `/`;
@@ -650,8 +657,9 @@ curl -s -X DELETE http://localhost:4319/locks/<lockId> -H "Authorization: Bearer
 > wraps the same endpoints; the intended commands for the common loop are:
 
 ```bash
+export AGORA_AGENT_ID="<your-task-or-thread-id>"     # scope identity before ANY client call
 node tools/agora/client.mjs pets                     # GET  /pets
-node tools/agora/client.mjs register <handle> --pet <slug> # POST /agents/register
+node tools/agora/client.mjs register <handle> --pet <slug> --session <your-task-or-thread-id> # POST /agents/register
 node tools/agora/client.mjs lock src/foo.ts          # POST /locks
 node tools/agora/client.mjs reserve src/foo.ts       # POST /reservations
 node tools/agora/client.mjs reservations             # GET  /reservations

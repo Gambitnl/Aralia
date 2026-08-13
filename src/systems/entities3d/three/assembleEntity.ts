@@ -55,7 +55,8 @@ import { getPart } from '../registry';
 import type { GaitDriver, LocomotionState, Pose } from './gaits';
 import { createGaitDriver } from './gaits';
 import { createSegmentBody, wireframeifyPart } from './segmentBody';
-import { createSkinnedBiped, createSkinnedPlan } from './skinnedBody';
+import { createSkinnedBiped, createSkinnedPlan, createSkinnedSpecies } from './skinnedBody';
+import { isSpeciesGait } from './speciesSkeleton';
 import { createSkinnedClipPlayer, type SkinnedClipPlayer } from './skinnedClipPlayer';
 import type { AnimationClip } from 'three';
 import { buildHeadForm, buildHumanoidHead, HUMANOID_EYE } from './headForms';
@@ -134,14 +135,15 @@ export function assembleEntity(blueprint: EntityBlueprint, options: AssembleOpti
   const wireframe = renderMode === 'wireframe';
   const bodyTech = options.bodyTech ?? 'segments';
   // Scope guards — fail honestly instead of falling back:
-  // creature/plan skeletons are slice 4 — biped and plan gaits are skinned;
-  // species gaits (quad/hexapod/hopper/flyer/float) skeletons are NOT this
-  // slice. Wireframe on a deforming body is DECIDED (Remy 2026-07-21):
-  // skinned bodies render solid shaded, period — wireframe stays a segment-body
-  // debug look and never comes to the skeleton path, so requesting it is a
-  // caller bug, not a parked feature.
-  if (bodyTech === 'skinned' && gait !== 'biped' && gait !== 'plan') {
-    throw new Error(`bodyTech 'skinned' supports only the biped and plan gaits in slice 4 (got '${gait}')`);
+  // slice 1 skinned the biped, slice 4 the plan creatures, slice 5 the five
+  // SPECIES gaits (quad/hexapod/hopper/flyer/float). Every gait in the Gait
+  // union now has a bone hierarchy; an unhandled one still throws rather than
+  // silently rendering as segments. Wireframe on a deforming body is DECIDED
+  // (Remy 2026-07-21): skinned bodies render solid shaded, period — wireframe
+  // stays a segment-body debug look and never comes to the skeleton path, so
+  // requesting it is a caller bug, not a parked feature.
+  if (bodyTech === 'skinned' && gait !== 'biped' && gait !== 'plan' && !isSpeciesGait(gait)) {
+    throw new Error(`bodyTech 'skinned' has no skeleton for the '${gait}' gait`);
   }
   if (bodyTech === 'skinned' && wireframe) {
     throw new Error("bodyTech 'skinned' renders solid shaded only (decided 2026-07-21) — wireframe is a segment-body debug look");
@@ -196,14 +198,24 @@ export function assembleEntity(blueprint: EntityBlueprint, options: AssembleOpti
             weights: options.skinnedWeights,
             decorativeDelegate: body.sink,
           })
-        : createSkinnedBiped(frame, {
-            colorHex: palette.skinHex,
-            outlineThickness,
-            // biped branch: this is the else of `blueprint.planSpec ?`, so
-            // planSpec is absent — humanoids carry no plan opacity.
-            opacity: undefined,
-            weights: options.skinnedWeights,
-          })
+        : isSpeciesGait(gait)
+          ? // Slice 5: the five species gaits get a bone hierarchy captured
+            // from their own driver's rest emissions. They emit nothing
+            // decorative, so no delegate is needed — every emission is a bone.
+            createSkinnedSpecies(gait, frame, {
+              colorHex: palette.skinHex,
+              outlineThickness,
+              opacity: undefined,
+              weights: options.skinnedWeights,
+            })
+          : createSkinnedBiped(frame, {
+              colorHex: palette.skinHex,
+              outlineThickness,
+              // biped branch: this is the else of `blueprint.planSpec ?`, so
+              // planSpec is absent — humanoids carry no plan opacity.
+              opacity: undefined,
+              weights: options.skinnedWeights,
+            })
       : null;
   if (skinnedBody) bodyRoot.add(skinnedBody.root);
 
@@ -251,6 +263,8 @@ export function assembleEntity(blueprint: EntityBlueprint, options: AssembleOpti
     noseDepth: Number(faceSculptParams?.noseDepth ?? 1),
     noseWidth: Number(faceSculptParams?.noseWidth ?? 1),
     mouthWidth: Number(faceSculptParams?.mouthWidth ?? 1),
+    // round 23 (humanoid-anatomy): jaw mass (see headForms.HumanoidFaceParams)
+    jawWidth: Number(faceSculptParams?.jawWidth ?? 1),
     // round 13 (humanoid-anatomy): >1 raises the upper lid (smaller cap,
     // less forward roll) — the round-12 orc's "droopy half-lidded ... sleepy"
     // read. Assembler furniture only; buildHumanoidHead ignores it.
@@ -553,10 +567,13 @@ export function assembleEntity(blueprint: EntityBlueprint, options: AssembleOpti
       // slightly wider, crops the sclera at the lower rim on every skin tone
       // and every azimuth. Parented to the eye, so it rides the blink squash.
       const lowerLid = new Mesh(
-        new SphereGeometry(HUMANOID_EYE.r * 1.15, 12, 5, 0, Math.PI * 2, Math.PI * 0.62, Math.PI * 0.38),
+        new SphereGeometry(HUMANOID_EYE.r * 1.15, 12, 5, 0, Math.PI * 2, Math.PI * 0.66, Math.PI * 0.34),
         headSkinMaterial,
       );
-      lowerLid.rotation.x = 0.34; // roll the rim up over the sclera's bottom-front
+      // NEGATIVE x rolls a BOTTOM cap forward (+z), the mirror of the upper
+      // lid's negative lidRot rolling a TOP cap forward — a positive angle
+      // tips this rim backwards and leaves the sclera showing.
+      lowerLid.rotation.x = -0.32; // roll the rim up over the sclera's bottom-front
       lowerLid.rotation.z = sgn * -angryTilt; // matches the upper lid's tilt
       lowerLid.name = `${name}LowerLid`;
       eye.add(lowerLid);
@@ -713,9 +730,15 @@ export function assembleEntity(blueprint: EntityBlueprint, options: AssembleOpti
           } else {
             // feathered wings keep the round-5 parked-bird drape: tips drop
             // past horizontal and trail along the rear flank.
+            // round 25 (creature-anatomy): the rear sweep halves (0.9 → 0.45)
+            // and the lateral squash eases (0.6 → 0.35). With the round-25
+            // layered feather groups the wing is a real sheet, and the old
+            // sweep tucked the whole thing directly behind the torso — the
+            // orbit check showed the front panel with no wing visible at all,
+            // on the archetype whose wings ARE its identity statement.
             wing.rotation.z = -sgn * (beat + fold * 1.62);
-            wing.rotation.y = sgn * fold * 0.9;
-            wing.scale.x = 1 - fold * 0.6;
+            wing.rotation.y = sgn * fold * 0.45;
+            wing.scale.x = 1 - fold * 0.35;
           }
         }
       }

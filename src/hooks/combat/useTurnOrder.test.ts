@@ -10,7 +10,7 @@ describe('useTurnOrder', () => {
         name: 'Hero',
         initiative: 10,
         currentHP: 10,
-        stats: { baseInitiative: 0 } as unknown,
+        stats: { dexterity: 14, baseInitiative: 0 } as unknown,
         actionEconomy: {} as unknown,
     } as CombatCharacter;
 
@@ -19,7 +19,7 @@ describe('useTurnOrder', () => {
         name: 'Goblin',
         initiative: 5,
         currentHP: 10,
-        stats: { baseInitiative: 0 } as unknown,
+        stats: { dexterity: 12, baseInitiative: 0 } as unknown,
         actionEconomy: {} as unknown,
     } as CombatCharacter;
 
@@ -38,6 +38,38 @@ describe('useTurnOrder', () => {
         expect(result.current.turnState.turnOrder).toEqual(['char1', 'char2']);
         expect(result.current.turnState.currentCharacterId).toBe('char1');
         expect(result.current.turnState.currentTurn).toBe(1);
+    });
+
+    it('should use canonical tie facts and keep shared followers consecutive', () => {
+        // Equal totals first compare Dexterity. The shared summon remains
+        // immediately after its caster even though its own Dexterity is higher.
+        const agileRival = {
+            ...mockCharacter2,
+            id: 'agile-rival',
+            initiative: 10,
+            stats: { ...mockCharacter2.stats, dexterity: 18 }
+        };
+        const sharedFollower = {
+            ...mockCharacter2,
+            id: 'shared-follower',
+            initiative: 10,
+            stats: { ...mockCharacter2.stats, dexterity: 20 },
+            isSummon: true,
+            summonMetadata: {
+                casterId: mockCharacter1.id,
+                spellId: 'shared-turn-proof',
+                initiativePolicy: 'shared' as const
+            }
+        };
+        const tiedCharacters = [mockCharacter1, sharedFollower, agileRival];
+        const { result } = renderHook(() => useTurnOrder({ characters: tiedCharacters }));
+
+        act(() => {
+            result.current.initializeTurnOrder(tiedCharacters);
+        });
+
+        expect(result.current.turnState.turnOrder)
+            .toEqual(['agile-rival', 'char1', 'shared-follower']);
     });
 
     it('should advance turns correctly', () => {

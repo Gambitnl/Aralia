@@ -420,6 +420,10 @@
   .task-refs { color: #7aa2f7; }
   .task-waiting { color: #e0af68; }
   .task-result { color: var(--text-dim); font-size: 11px; margin-top: 3px; font-style: italic; }
+  .task-result.triage-only { color: #e0af68; }
+  .task-result.unclassified { color: var(--text-faint); }
+  .task-result-detail { display: block; margin-left: 18px; font-style: normal; }
+  .task-result-label { font-weight: 700; font-style: normal; }
   .task-toolbar {
     display: flex;
     align-items: center;
@@ -1589,6 +1593,59 @@ import {
       + (text ? '' : ' inspector-empty') + '">' + esc(text || emptyLabel) + '</div></section>';
   }
 
+  // Result disposition explains whether a done event contains a real review or
+  // only a size-declined triage. Legacy tasks have no field, so the dashboard
+  // preserves their prose while honestly presenting the classification as unknown.
+  function taskIsTriageOnly(task) {
+    return task.resultDisposition === "triage_only";
+  }
+
+  function taskIsSubstantive(task) {
+    return task.resultDisposition === "substantive";
+  }
+
+  // Board rows keep the authored free-form summary, while substantive reviews
+  // expose finding and evidence independently. Triage deliberately has no
+  // completion glyph so operators cannot mistake it for reviewed work.
+  function taskResultMarkup(task) {
+    if (task.state !== "done") return "";
+    if (taskIsTriageOnly(task)) {
+      return '<div class="task-result triage-only"><span class="task-result-label">Triage only</span>: '
+        + esc(task.result) + '</div>';
+    }
+    // Bare legacy results are preserved, but an absent disposition cannot claim
+    // substantive review. This also keeps old size-declines from inheriting a
+    // checkmark merely because they were recorded before classification existed.
+    if (!taskIsSubstantive(task)) {
+      return task.result
+        ? '<div class="task-result unclassified"><span class="task-result-label">Unclassified result</span>: '
+          + esc(task.result) + '</div>'
+        : '';
+    }
+    const finding = task.finding
+      ? '<span class="task-result-detail"><span class="task-result-label">Finding:</span> ' + esc(task.finding) + '</span>'
+      : '';
+    const evidence = task.evidence
+      ? '<span class="task-result-detail"><span class="task-result-label">Evidence:</span> ' + esc(task.evidence) + '</span>'
+      : '';
+    return '<div class="task-result"><span class="task-completion-mark" aria-label="Substantive review completed">✔</span> '
+      + esc(task.result || 'Substantive review completed.') + finding + evidence + '</div>';
+  }
+
+  // The inspector uses separate titled sections because long technical findings
+  // and proof often need line breaks. A triage result receives its exact operator
+  // label and never borrows the substantive "Recorded outcome" heading.
+  function taskResultInspectorBlocks(task) {
+    if (!task.result && !taskIsSubstantive(task)) return [];
+    if (taskIsTriageOnly(task)) return [proseBlock("Triage only", task.result)];
+    if (!taskIsSubstantive(task)) return [proseBlock("Unclassified result", task.result)];
+    return [
+      task.result ? proseBlock("Recorded outcome", task.result) : "",
+      task.finding ? proseBlock("Finding", task.finding) : "",
+      task.evidence ? proseBlock("Evidence", task.evidence) : "",
+    ];
+  }
+
   function listBlock(title, rows, emptyLabel = "None") {
     const items = (rows || []).filter(Boolean);
     const body = items.length
@@ -1752,7 +1809,7 @@ import {
         ]),
         '<div class="inspector-people">' + personCard("Created by", createdBy) + personCard("Claimed by", claimedBy) + '</div>',
         proseBlock("What needs doing", task.body),
-        task.result ? proseBlock("Recorded outcome", task.result) : "",
+        ...taskResultInspectorBlocks(task),
         listBlock("References", references, "No references recorded."),
         listBlock("Dependencies", dependencyRows, "No dependencies."),
         listBlock("Activity", activityRows, "No activity recorded."),
@@ -2061,7 +2118,7 @@ import {
           ${waitingOn.length && t.state === "open" ? `<span class="task-waiting">⏳ waiting on ${waitingOn.length} dep(s)</span>` : ""}
           ${(t.refs || []).length ? `<span class="task-refs">⛓ ${t.refs.map(esc).join(", ")}</span>` : ""}
         </div>
-        ${t.state === "done" && t.result ? `<div class="task-result">✔ ${esc(t.result)}</div>` : ""}
+        ${taskResultMarkup(t)}
       </div>`;
     };
 

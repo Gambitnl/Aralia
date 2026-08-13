@@ -8,10 +8,13 @@
  * Depends on: Node's TypeScript loader and the capture command's public CLI.
  */
 import { spawn, spawnSync } from 'node:child_process';
-import { existsSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { createServer } from 'node:http';
 import path from 'node:path';
+import type { Page } from 'playwright';
 import { describe, expect, it } from 'vitest';
+import type { CaptureStep, VisScenario } from '../../../src/devtools/vistest/scenarios';
+import { captureScenarioRecipe, isReloadInterruption } from '../shoot';
 
 // ============================================================================
 // Real command runner
@@ -67,6 +70,92 @@ async function listen(server: ReturnType<typeof createServer>): Promise<number> 
   const address = server.address();
   if (!address || typeof address === 'string') throw new Error('Expected a TCP test address.');
   return address.port;
+}
+
+// ============================================================================
+// Reload-recovery fixture helpers
+// ============================================================================
+// These small page doubles model only the Playwright operations used by a
+// declarative recipe. They make the retry count and readiness recheck directly
+// observable while the filesystem assertions exercise the real atomic writer.
+// A separate ignored fixture receipt drives an actual Chromium page.
+// ============================================================================
+
+type FakePageOptions = {
+  frameLabel: string;
+  screenshotReloads?: number;
+  evalError?: Error;
+};
+
+type FakePageCounters = {
+  readinessChecks: number;
+  documentWaits: number;
+  evalCalls: number;
+  screenshotCalls: number;
+};
+
+/** Build one valid synthetic scenario without changing the product registry. */
+function makeScenario(id: string, capture: CaptureStep[]): VisScenario {
+  return {
+    id,
+    title: `Fixture ${id}`,
+    group: 'combat',
+    url: 'fixture.html',
+    notes: 'Exercises the capture runner rather than product presentation.',
+    capture,
+  };
+}
+
+/**
+ * Provide deterministic readiness, action, and screenshot behavior.
+ * Screenshot reload failures use Playwright's real error wording so the test
+ * protects the production classifier rather than a test-only signal.
+ */
+function makeFakePage(options: FakePageOptions): { page: Page; counters: FakePageCounters } {
+  const counters: FakePageCounters = {
+    readinessChecks: 0,
+    documentWaits: 0,
+    evalCalls: 0,
+    screenshotCalls: 0,
+  };
+
+  const page = {
+    evaluate: async (expression: unknown) => {
+      if (typeof expression === 'string' && expression.includes('__fixtureReady')) {
+        counters.readinessChecks += 1;
+        return true;
+      }
+
+      if (typeof expression === 'string') {
+        counters.evalCalls += 1;
+        if (options.evalError) throw options.evalError;
+        return 'fixture action complete';
+      }
+
+      // The screenshot path waits for fonts through a function expression.
+      // The fixture has no fonts, so it is immediately ready.
+      return true;
+    },
+    waitForLoadState: async () => {
+      counters.documentWaits += 1;
+    },
+    screenshot: async () => {
+      counters.screenshotCalls += 1;
+      if (counters.screenshotCalls <= (options.screenshotReloads ?? 0)) {
+        throw new Error('page.screenshot: Execution context was destroyed, most likely because of a navigation.');
+      }
+      return Buffer.from(options.frameLabel, 'utf8');
+    },
+  };
+
+  return { page: page as unknown as Page, counters };
+}
+
+/** Create a unique ignored proof directory and remove it after each assertion. */
+function makeRecoveryOutput(): string {
+  const scratchRoot = path.join(repoRoot, '.agent/scratch/wfg51-sol/test-output');
+  mkdirSync(scratchRoot, { recursive: true });
+  return mkdtempSync(path.join(scratchRoot, 'run-'));
 }
 
 // ============================================================================
@@ -163,4 +252,110 @@ describe('vistest capture command safety', () => {
       await new Promise<void>((resolve) => server.close(() => resolve()));
     }
   }, 10_000);
+});
+
+// ============================================================================
+// Bounded reload and durable-frame checks
+// ============================================================================
+// These tests pin the WF-G51 contract: reloads recheck readiness and retake the
+// interrupted frame, exhaustion is finite and loud, and real script failures
+// are never relabeled as recoverable navigation.
+// ============================================================================
+
+describe('vistest reload recovery', () => {
+  it('classifies navigation context loss without hiding real browser failures', () => {
+    expect(isReloadInterruption(new Error('Execution context was destroyed, most likely because of a navigation.'))).toBe(true);
+    expect(isReloadInterruption(new Error('Cannot find context with specified id 17'))).toBe(true);
+    expect(isReloadInterruption(new Error('fixture action exploded'))).toBe(false);
+    expect(isReloadInterruption(new Error('Frame was detached by the application'))).toBe(false);
+    expect(isReloadInterruption(new Error('Target page, context or browser has been closed'))).toBe(false);
+  });
+
+  it('retakes an interrupted middle frame and publishes every frame exactly once', async () => {
+    const outDir = makeRecoveryOutput();
+    const readiness: CaptureStep = { kind: 'waitHook', expr: 'window.__fixtureReady === true' };
+    const scenarios = [
+      makeScenario('frame-1', [readiness, { kind: 'screenshot' }]),
+      makeScenario('frame-2', [readiness, { kind: 'screenshot' }]),
+      makeScenario('frame-3', [readiness, { kind: 'screenshot' }]),
+    ];
+    const first = makeFakePage({ frameLabel: 'frame one' });
+    const interrupted = makeFakePage({ frameLabel: 'frame two retaken', screenshotReloads: 1 });
+    const third = makeFakePage({ frameLabel: 'frame three' });
+
+    try {
+      await captureScenarioRecipe(first.page, scenarios[0], outDir);
+      await captureScenarioRecipe(interrupted.page, scenarios[1], outDir);
+      await captureScenarioRecipe(third.page, scenarios[2], outDir);
+
+      expect(readdirSync(outDir).sort()).toEqual(['frame-1.png', 'frame-2.png', 'frame-3.png']);
+      expect(readFileSync(path.join(outDir, 'frame-2.png'), 'utf8')).toBe('frame two retaken');
+      expect(interrupted.counters.screenshotCalls).toBe(2);
+      expect(interrupted.counters.documentWaits).toBe(1);
+      expect(interrupted.counters.readinessChecks).toBe(2);
+    } finally {
+      rmSync(outDir, { recursive: true, force: true });
+    }
+  });
+
+  it('fails loudly after the bounded recovery budget without leaving a frame', async () => {
+    const outDir = makeRecoveryOutput();
+    const scenario = makeScenario('reload-loop', [
+      { kind: 'waitHook', expr: 'window.__fixtureReady === true' },
+      { kind: 'screenshot' },
+    ]);
+    const fixture = makeFakePage({ frameLabel: 'never published', screenshotReloads: 99 });
+
+    try {
+      await expect(
+        captureScenarioRecipe(fixture.page, scenario, outDir, { maxReloadRecoveries: 2 }),
+      ).rejects.toThrow('scenario "reload-loop" step 1 (screenshot): reload recovery exhausted after 2 attempt(s)');
+      expect(fixture.counters.screenshotCalls).toBe(3);
+      expect(fixture.counters.documentWaits).toBe(2);
+      expect(readdirSync(outDir)).toEqual([]);
+    } finally {
+      rmSync(outDir, { recursive: true, force: true });
+    }
+  });
+
+  it('preserves a real script error as an immediate failure', async () => {
+    const outDir = makeRecoveryOutput();
+    const scenario = makeScenario('real-error', [
+      { kind: 'waitHook', expr: 'window.__fixtureReady === true' },
+      { kind: 'eval', js: 'window.performFixtureAction()' },
+      { kind: 'screenshot' },
+    ]);
+    const fixture = makeFakePage({ frameLabel: 'must not exist', evalError: new Error('fixture action exploded') });
+
+    try {
+      await expect(captureScenarioRecipe(fixture.page, scenario, outDir)).rejects.toThrow(
+        'scenario "real-error" step 1 (eval): fixture action exploded',
+      );
+      expect(fixture.counters.evalCalls).toBe(1);
+      expect(fixture.counters.documentWaits).toBe(0);
+      expect(fixture.counters.screenshotCalls).toBe(0);
+      expect(readdirSync(outDir)).toEqual([]);
+    } finally {
+      rmSync(outDir, { recursive: true, force: true });
+    }
+  });
+
+  it('keeps a single-shot recipe as one direct PNG publication', async () => {
+    const outDir = makeRecoveryOutput();
+    const scenario = makeScenario('single-shot', [{ kind: 'screenshot' }]);
+    const fixture = makeFakePage({ frameLabel: 'single frame' });
+
+    try {
+      // Production captures routinely replace yesterday's PNG. Keep that
+      // single-shot overwrite contract while the replacement remains atomic.
+      writeFileSync(path.join(outDir, 'single-shot.png'), 'older frame');
+      await captureScenarioRecipe(fixture.page, scenario, outDir);
+      expect(readdirSync(outDir)).toEqual(['single-shot.png']);
+      expect(readFileSync(path.join(outDir, 'single-shot.png'), 'utf8')).toBe('single frame');
+      expect(fixture.counters.screenshotCalls).toBe(1);
+      expect(fixture.counters.documentWaits).toBe(0);
+    } finally {
+      rmSync(outDir, { recursive: true, force: true });
+    }
+  });
 });

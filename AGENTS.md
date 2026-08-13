@@ -282,6 +282,8 @@ Do not use comments to hand-wave broad changes as "cleanup" if meaningful behavi
 
 For UI and UX work, rendered output is the source of truth.
 
+Open Design Preview at `/Aralia/misc/design.html?step=<step>`, replacing `<step>` with the step to verify.
+
 Do not mark a visual issue as fixed from source code, DOM state, or computed styles alone.
 Use Playwright screenshots or direct rendered inspection before claiming a visual fix is verified.
 

@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 02/07/2026, 11:54:58
+ * Last Sync: 12/08/2026, 04:05:27
  * Dependents: hooks/combat/useTurnManager.ts
- * Imports: 1 files
+ * Imports: 2 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -23,6 +23,7 @@
  */
 import { useState, useCallback } from 'react';
 import { CombatCharacter, TurnState, CombatAction } from '../../types/combat';
+import { buildInitiativeOrder } from '../../utils/combat/initiativeUtils';
 
 interface UseTurnOrderProps {
   characters: CombatCharacter[];
@@ -80,10 +81,9 @@ export const useTurnOrder = ({ characters }: UseTurnOrderProps): TurnOrderResult
   });
 
   const initializeTurnOrder = useCallback((charactersWithInitiative: CombatCharacter[]) => {
-    // Sort by initiative (descending)
-    // Note: Ties should ideally be broken by Dex score, but simple ID/random for now is fine
-    const sortedOrder = [...charactersWithInitiative]
-      .sort((a, b) => b.initiative - a.initiative)
+    // Use the shared production sorter so equal totals, shared-initiative
+    // followers, replays, and the visible tracker all receive one exact order.
+    const sortedOrder = buildInitiativeOrder(charactersWithInitiative)
       .map(char => char.id);
 
     setTurnState({

@@ -197,6 +197,29 @@ function eyeSocketPair(skinMaterial: Material, lidMaterial: Material): Mesh[] {
 }
 
 /**
+ * round 25 (creature-anatomy): the blunt form's MOUTH. A closed humanoid-ish
+ * mouth has no gape to read, and the round-24 verdict named "no mouth" on the
+ * celestial explicitly. A dark lip seam crosses the muzzle at the jaw line
+ * and a shadow notch sits under the nose, both half-embedded so only a crisp
+ * ink line stands proud — value, not displacement (the campaign's binding
+ * render lesson: the toon ramp eats small relief).
+ */
+function bluntNoseDetail(lidMaterial: Material): Mesh[] {
+  const pieces: Mesh[] = [];
+  for (const sgn of [-1, 1] as const) {
+    // nostril pit tucked onto the bridge so only its dark face stands proud —
+    // the "no nose" half of the round-24 verdict line. The mouth itself is
+    // the hinged jaw's dark gullet cut, not a painted bar.
+    const nostril = new Mesh(new IcosahedronGeometry(0.055, 0), lidMaterial);
+    nostril.scale.set(1, 0.7, 1.25);
+    nostril.position.set(sgn * 0.09, -0.15, 1.06);
+    nostril.name = sgn < 0 ? 'nostrilL' : 'nostrilR';
+    pieces.push(nostril);
+  }
+  return pieces;
+}
+
+/**
  * round 14 (creature-anatomy): beast muzzle detail — a dark JAW SEAM line
  * along each side of the near-closed mouth and a nostril pit on each side of
  * the snout tip. The beast's resting gape (0.16) leaves no visible mouth in
@@ -422,16 +445,33 @@ export interface HumanoidFaceParams {
   /** Mouth-cut width multiplier — consumed by the assembler's dark mouth
    * bar (the loft's mouth groove spans the full face). */
   mouthWidth?: number;
+  /** round 23 (humanoid-anatomy): JAW MASS multiplier. The neutral stations
+   * taper the lower face to a 0.2-radius chin base — a pointed egg bottom.
+   * The round-22 verdict read the orc as "a bald olive egg with ... no jaw
+   * mass" against a grunt built on jaw. This widens the four stations below
+   * the nose (chin base through upper lip) and, at values above 1, squares the
+   * chin by pulling the widest of them toward the mouth line, so a heavy jaw
+   * reads as a mandible corner rather than a fatter egg. Defaults to 1, so
+   * every existing race is bit-identical. */
+  jawWidth?: number;
 }
 
 export function buildHumanoidHead(skinMaterial: Material, face?: HumanoidFaceParams): Group {
   const noseDepth = face?.noseDepth ?? 1;
   const noseWidth = face?.noseWidth ?? 1;
-  const sections = HUMANOID_FACE_SECTIONS.map((s) =>
-    s.nose
-      ? { ...s, nose: s.nose * noseDepth, noseSide: Math.min(0.95, (s.noseSide ?? 0.5) * noseWidth) }
-      : s,
-  );
+  const jawWidth = face?.jawWidth ?? 1;
+  const sections = HUMANOID_FACE_SECTIONS.map((s) => {
+    // jaw stations: everything from the chin base up to the upper lip
+    const jawed =
+      jawWidth === 1 || s.y > -0.16
+        ? s
+        // the lower the station, the more of the widening it takes, so the
+        // mandible corner lands at the jaw line and the chin squares under it
+        : { ...s, w: s.w * (1 + (jawWidth - 1) * (0.55 + 0.45 * Math.min(1, (-0.17 - s.y) / 0.35))) };
+    return jawed.nose
+      ? { ...jawed, nose: jawed.nose * noseDepth, noseSide: Math.min(0.95, (jawed.noseSide ?? 0.5) * noseWidth) }
+      : jawed;
+  });
   const group = new Group();
   group.add(loftFace('skull', sections, skinMaterial));
   return group;
@@ -541,15 +581,51 @@ const FORMS: Record<HeadForm, FormSpec> = {
       [0.06, 0.05, 1.12, 0.05, 0.16],
     ],
   },
-  // Neutral rounded skull with a short muzzle — humanoid-adjacent heads.
+  // Neutral rounded skull with a short muzzle — humanoid-adjacent heads
+  // (Celestial, Giant, Construct, Undead).
+  //
+  // round 25 (creature-anatomy): THE FACE ZONE. `blunt` was the only form in
+  // this table with no extras, no jaw and no teeth — a bare loft — so every
+  // archetype wearing it rendered as the round-24 verdict's "blank egg head
+  // with two flat white dot eyes, no mouth, no nose". It now carries the same
+  // three-part face-zone recipe the elemental won round 24 with: a BROW SHELF
+  // that overhangs (value break above), a RECESSED dark socket the eyeball
+  // seats inside, and a real hinged JAW so the mouth is a dark cut, not a
+  // missing feature. The loft gains a brow-shelf station that steps down onto
+  // the muzzle and a nose-bridge dip so the tip re-rises — the profile events
+  // the smooth egg had none of.
   blunt: {
+    // round-25 eyeball fix: the first pass added a jaw that NEVER RENDERED.
+    // The blunt loft's hBot ran 0.42–0.56, putting the upper skull's underside
+    // at y ≈ −0.46 the whole length of the face, while the hinged jaw's top
+    // sat at −0.27 — the entire lower jaw lived INSIDE the skull, so the
+    // capture still showed a smooth chin with no mouth. The loft's UNDERSIDE
+    // now stops at y ≈ −0.27 (a skull, not a solid egg) and the jaw hangs
+    // below it, which is also what gives the head a real chin in profile.
     sections: [
-      { z: -0.92, y: -0.05, w: 0.55, hTop: 0.5, hBot: 0.42 },
-      { z: -0.2, y: 0.1, w: 0.96, hTop: 0.6, hBot: 0.56, flatTop: 0.7 },
-      { z: 0.34, y: 0.02, w: 0.94, hTop: 0.42, hBot: 0.55, flatTop: 0.7 },
-      { z: 0.78, y: -0.16, w: 0.5, hTop: 0.18, hBot: 0.28 },
-      { z: 1.05, y: -0.2, w: 0.3, hTop: 0.12, hBot: 0.16 },
+      { z: -0.92, y: -0.05, w: 0.55, hTop: 0.5, hBot: 0.28 }, // occiput
+      { z: -0.2, y: 0.1, w: 0.96, hTop: 0.6, hBot: 0.34, flatTop: 0.7 }, // cranium
+      { z: 0.3, y: 0.04, w: 0.98, hTop: 0.46, hBot: 0.32, flatTop: 0.7 }, // cheek — widest
+      { z: 0.54, y: 0.02, w: 0.78, hTop: 0.44, hBot: 0.3, flatTop: 0.62 }, // BROW SHELF over the eye
+      { z: 0.68, y: -0.1, w: 0.44, hTop: 0.15, hBot: 0.16 }, // muzzle base — the step DOWN
+      { z: 0.92, y: -0.14, w: 0.32, hTop: 0.09, hBot: 0.12 }, // bridge dip
+      { z: 1.12, y: -0.13, w: 0.24, hTop: 0.14, hBot: 0.11 }, // nose tip re-rises
     ],
+    extras: (skin, lid) => [
+      ...browPair(skin, 0.4, 0.5, 0.3),
+      ...eyeSocketPair(skin, lid),
+      ...bluntNoseDetail(lid),
+    ],
+    jawSections: [
+      { z: 0.04, y: 0.0, w: 0.5, hTop: 0.09, hBot: 0.2 },
+      { z: 0.62, y: -0.02, w: 0.44, hTop: 0.09, hBot: 0.18 },
+      { z: 1.0, y: -0.02, w: 0.24, hTop: 0.07, hBot: 0.11 },
+    ],
+    jawPivot: [0, -0.3, -0.04],
+    // past the 0.3 gullet threshold, so the mouth is a DARK CUT under the
+    // muzzle — the only mouth read available to a toothless form at sheet
+    // distance. Still far short of the serpent's 0.62 striking gape.
+    gape: 0.36,
   },
   // Undead: high dome, pinched gaunt cheeks, narrow snout, deep open jaw.
   skull: {

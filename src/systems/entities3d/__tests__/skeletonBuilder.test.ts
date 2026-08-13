@@ -145,7 +145,15 @@ describe('buildBipedSkeleton — hierarchy and proportions', () => {
       const skullR = bipedSkullRadiusM(frame);
       const chestTopY = pelvisY + (hM - legLen) * 0.45 + r * 0.35;
       // round 14 (humanoid-anatomy): lift floor 0.26, slope 0.38 — mirror
-      const neckLift = Math.min(0.55, Math.max(0.26, 0.46 - 0.38 * Math.max(0, frame.bulk - 1)));
+      // round 21 (humanoid-anatomy): slim frames shorten the neck (0.46 → 0.36
+      // base lift, slope 0.38 → 0.28) — mirror of bipedRestPose/BipedDriver
+      // round 23 (humanoid-anatomy): the hunch's head-drop is added back into
+      // the lift, so a hunched frame still keeps a visible neck (the orc's was
+      // 0.05 skullR) — mirror of bipedRestPose/BipedDriver
+      const neckLift = Math.min(
+        0.62,
+        Math.max(0.26, 0.36 - 0.28 * Math.max(0, frame.bulk - 1)) + 0.35 * (frame.hunch ?? 0),
+      );
       // round 18 (humanoid-anatomy): the forward hunch settles the head down
       // into the traps (mirror of bipedRestPose headY)
       expect(at('head').y).toBeCloseTo(chestTopY + skullR * (0.59 + neckLift) - skullR * 0.35 * (frame.hunch ?? 0), 6);
@@ -162,7 +170,11 @@ describe('buildBipedSkeleton — hierarchy and proportions', () => {
       // bulk — the round-19 dwarf "bows outward in a straddle so wide he reads
       // as riding an invisible barrel". Mirror: bipedRestPose stanceFloorK.
       const armR = Math.max(r * 0.3, frame.armLengthFt * FT_TO_M * 0.085);
-      const stanceFloorK = 0.68 - 0.34 * Math.min(0.5, Math.max(0, frame.bulk - 1));
+      // round 22 (humanoid-anatomy): slim frames tighten the stance further
+      // (−0.1 at bulk ≤ 1.15) so a widened slim shoulder does not drag the
+      // hip/leg span out with it. Mirror: bipedRestPose / BipedDriver.
+      const stanceFloorK = 0.68 - 0.34 * Math.min(0.5, Math.max(0, frame.bulk - 1))
+        - 0.1 * Math.min(1, Math.max(0, (1.25 - frame.bulk) / 0.1));
       const stanceHalf = Math.max(
         ((frame.stanceWidthFt * FT_TO_M) / 2) * 1.12,
         ((frame.shoulderWidthFt * FT_TO_M) / 2 + armR * 1.6) * stanceFloorK,

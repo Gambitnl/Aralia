@@ -83,7 +83,9 @@ describe('seeded creature anatomy (the individuality pass)', () => {
     // and the historical table values are untouched (2026-07-27: + three-lobe
     // mass profile from the body-plan rework — chest/waist/hips, not sausage)
     expect(a!.appendages.map((x) => x.kind)).toEqual(['leg', 'leg', 'neck', 'tail']);
-    expect(a!.spine).toEqual({ segments: 5, taper: 0.7, arch: 0.08, bulge: 0.5, mass: [1.42, 0.76, 1.2] });
+    // round 25 (creature-anatomy): hips out-gauge the chest — the drake is
+    // rear-driven (creaturePlans dragonPlan)
+    expect(a!.spine).toEqual({ segments: 5, taper: 0.7, arch: 0.08, bulge: 0.5, mass: [1.4, 0.74, 1.46] });
   });
 
   it('monstrosity pupils roll across seeds', () => {

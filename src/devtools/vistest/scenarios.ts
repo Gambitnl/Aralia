@@ -236,6 +236,15 @@ const POSE_STREET_AERIAL = `(() => { const root = window.__wf3dScene.getObjectBy
 const CLICK_3D_VIEW = `(() => { const b = [...document.querySelectorAll('button')].find((x) => /3D View/i.test(x.textContent ?? '')); if (!b) return 'MISSING'; b.click(); return 'clicked'; })()`;
 
 /**
+ * Wait for the canonical Battle Map design-preview surface before touching it.
+ * The biome select proves the sandbox controls mounted, while the 3D button
+ * proves the concrete capture can still enter the renderer it exists to judge.
+ * Together they turn a future route move into a loud timeout instead of a
+ * screenshot of an unrelated Design Preview page.
+ */
+const BATTLE_MAP_READY = `document.querySelector('#biomeSelect') && [...document.querySelectorAll('button')].some((button) => /3D View/i.test(button.textContent ?? ''))`;
+
+/**
  * Reject blank or nearly uniform WebGL readbacks before accepting a 3D frame.
  * The camera hook forces a same-tick render, then a 64px probe measures opaque
  * coverage and luminance range instead of trusting file size alone.
@@ -400,6 +409,7 @@ export const SCENARIOS: VisScenario[] = [
     notes:
       "Party members as generated bodies with team rings, HP pips, turn beam; gear visible (shield, helmet).",
     capture: [
+      { kind: "waitHook", expr: BATTLE_MAP_READY, timeoutMs: 120000 },
       { kind: "sleep", ms: 12000 },
       { kind: "eval", js: CLICK_3D_VIEW },
       { kind: "sleep", ms: 14000 },
@@ -417,6 +427,7 @@ export const SCENARIOS: VisScenario[] = [
     notes:
       "Enemy monsters as generated bodies (orcs with tusks, caster with hat/robe) under red team rings.",
     capture: [
+      { kind: "waitHook", expr: BATTLE_MAP_READY, timeoutMs: 120000 },
       { kind: "sleep", ms: 12000 },
       { kind: "eval", js: CLICK_3D_VIEW },
       { kind: "sleep", ms: 14000 },
@@ -434,6 +445,7 @@ export const SCENARIOS: VisScenario[] = [
     notes:
       "Not a unit close-up — the real playing distance, with both teams and the ground between them in frame. Judge whether unit silhouettes stay readable against the ground, whether movement range, cover and threat are legible without hunting, and whether elevation reads instantly. combat3d-party and combat3d-enemies stay as the close inspection shots.",
     capture: [
+      { kind: "waitHook", expr: BATTLE_MAP_READY, timeoutMs: 120000 },
       { kind: "sleep", ms: 12000 },
       { kind: "eval", js: CLICK_3D_VIEW },
       { kind: "sleep", ms: 14000 },

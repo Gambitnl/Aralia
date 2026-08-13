@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 12/08/2026, 01:40:41
+ * Last Sync: 12/08/2026, 06:58:11
  * Dependents: components/DesignPreview/steps/PreviewCombatScenarios.tsx
  * Imports: 1 files
  *
@@ -33,12 +33,12 @@ export const SCENARIO_CATEGORY_SECTIONS: Array<{
   {
     label: 'Core Rules',
     description: 'Foundational combat mechanics that other scenario lanes build on.',
-    scenarioIds: ['cover', 'darkvision', 'terrain', 'concentration', 'reaction', 'resistance', 'critical_hits', 'healing_temp_hp', 'saving_throws_half_damage', 'multiattack_riders', 'spell_slots_upcasting', 'counterspell_nested_reactions', 'dispel_magic_cleanup', 'repeat_saves_condition_expiry', 'sustain_actions_ongoing_control']
+    scenarioIds: ['cover', 'darkvision', 'terrain', 'concentration', 'reaction', 'resistance', 'critical_hits', 'healing_temp_hp', 'saving_throws_half_damage', 'multiattack_riders', 'spell_slots_upcasting', 'counterspell_nested_reactions', 'dispel_magic_cleanup', 'repeat_saves_condition_expiry', 'sustain_actions_ongoing_control', 'initiative_ties_shared_turns', 'damage_over_time_scheduled_effects', 'reactive_damage_retaliation', 'taunt_forced_targeting', 'companion_reactions']
   },
   {
     label: 'Targeting & Space',
     description: 'Position, range, sight, templates, and forced movement checks.',
-    scenarioIds: ['line_of_sight', 'area_effect', 'forced_movement', 'shove_prone', 'reach_creature_size', 'elevation_range', 'spell_target_restrictions', 'teleportation_occupied_spaces']
+    scenarioIds: ['line_of_sight', 'area_effect', 'forced_movement', 'shove_prone', 'reach_creature_size', 'elevation_range', 'spell_target_restrictions', 'teleportation_occupied_spaces', 'falling_ground_impact', 'flying_aerial_movement']
   },
   {
     label: 'States & Objects',

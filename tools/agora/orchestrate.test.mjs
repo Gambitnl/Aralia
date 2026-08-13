@@ -1,8 +1,15 @@
 // Tests for the orchestrator's pure logic: plan validation (disjointness is the
-// safety invariant) and coordination-prompt generation.
+// safety invariant), coordination-prompt generation, and bounded CLI dispatch.
+// Fake workers prove queue and terminal-result behavior without spending quota
+// or starting any real external model process.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { validatePlan, buildPrompt } from './orchestrate.mjs';
+import {
+  validatePlan,
+  buildPrompt,
+  dispatchPacketWave,
+  resolveDispatchMax,
+} from './orchestrate.mjs';
 
 const plan = {
   wave: 'demo',
@@ -93,4 +100,179 @@ test('buildPrompt injects optional guidance when present', () => {
   withG.packets[0].guidance = 'Use the existing color tokens.';
   const p = buildPrompt(withG, withG.packets[0]);
   assert.match(p, /Guidance:\nUse the existing color tokens\./);
+});
+
+// ============================================================================
+// Bounded External Dispatch
+// ============================================================================
+// These small registries isolate the concurrency policy from installed CLIs.
+// The local lane has a declared ceiling; the second local lane exercises the
+// default-of-four contract; and the remote lane retains its prior free fan-out.
+// ============================================================================
+const dispatchRegistry = {
+  agents: {
+    local: { dispatch: { type: 'cli', command: 'fake', localEngine: true, maxConcurrent: 2 } },
+    localDefault: { dispatch: { type: 'cli', command: 'fake', localEngine: true } },
+    remote: { dispatch: { type: 'cli', command: 'fake' } },
+  },
+};
+
+// Give queued promise continuations one event-loop turn to start the next job.
+// This is deterministic because tests release fake workers explicitly.
+const nextTurn = () => new Promise((resolve) => setImmediate(resolve));
+
+test('dispatchPacketWave queues a larger-than-cap local wave and records every terminal output', async () => {
+  const packets = Array.from({ length: 7 }, (_, index) => ({ id: `PK-${index + 1}`, agent: 'local' }));
+  const releases = [];
+  const starts = [];
+  let active = 0;
+  let maxActive = 0;
+
+  // Each fake worker occupies its slot until the test releases it. This proves
+  // the third job cannot start while both cap-two slots remain busy.
+  const wave = dispatchPacketWave(packets, {
+    registry: dispatchRegistry,
+    runPacket: (packet) => new Promise((resolve) => {
+      starts.push(packet.id);
+      active += 1;
+      maxActive = Math.max(maxActive, active);
+      releases.push(() => {
+        active -= 1;
+        resolve({ exitCode: 0, output: `output:${packet.id}`, result: `result:${packet.id}` });
+      });
+    }),
+  });
+
+  await nextTurn();
+  assert.deepEqual(starts, ['PK-1', 'PK-2']);
+  assert.equal(releases.length, 2);
+
+  // Release one slot at a time. Every release admits exactly one queued packet,
+  // so the observed activity can never climb above the selected ceiling.
+  for (let index = 0; index < packets.length; index += 1) {
+    releases[index]();
+    await nextTurn();
+  }
+  const records = await wave;
+
+  assert.equal(maxActive, 2);
+  assert.deepEqual(starts, packets.map((packet) => packet.id));
+  assert.equal(records.length, packets.length);
+  assert.ok(records.every((record) => record.status === 'succeeded' && record.exitCode === 0));
+  assert.deepEqual(records.map((record) => record.output), packets.map((packet) => `output:${packet.id}`));
+  assert.deepEqual(records.map((record) => record.result), packets.map((packet) => `result:${packet.id}`));
+});
+
+test('dispatch cap precedence is CLI, registry, local default four, then unchanged non-local width', () => {
+  assert.equal(resolveDispatchMax('local', 9, { registry: dispatchRegistry }), 2);
+  assert.equal(resolveDispatchMax('local', 9, { registry: dispatchRegistry, cliMax: '3' }), 3);
+  assert.equal(resolveDispatchMax('localDefault', 9, { registry: dispatchRegistry }), 4);
+  assert.equal(resolveDispatchMax('remote', 9, { registry: dispatchRegistry }), 9);
+});
+
+test('explicit CLI cap is shared across mixed registry lanes and still records every packet', async () => {
+  const packets = Array.from({ length: 8 }, (_, index) => ({
+    id: `mixed-${index + 1}`,
+    agent: index % 2 === 0 ? 'local' : 'localDefault',
+  }));
+  const releases = [];
+  let active = 0;
+  let maxActive = 0;
+
+  // Both fake agent ids represent local lanes, but --max three is deliberately
+  // a shared wave budget. The fourth packet must wait even though its own lane
+  // would otherwise have an available registry-default slot.
+  const wave = dispatchPacketWave(packets, {
+    registry: dispatchRegistry,
+    cliMax: 3,
+    runPacket: (packet) => new Promise((resolve) => {
+      active += 1;
+      maxActive = Math.max(maxActive, active);
+      releases.push(() => {
+        active -= 1;
+        resolve({ exitCode: 0, output: `mixed-output:${packet.id}` });
+      });
+    }),
+  });
+
+  await nextTurn();
+  assert.equal(releases.length, 3);
+  for (let index = 0; index < packets.length; index += 1) {
+    releases[index]();
+    await nextTurn();
+  }
+  const records = await wave;
+
+  assert.equal(maxActive, 3);
+  assert.equal(records.length, packets.length);
+  assert.deepEqual(records.map((record) => record.packetId), packets.map((packet) => packet.id));
+  assert.ok(records.every((record) => record.status === 'succeeded' && record.output.startsWith('mixed-output:')));
+});
+
+test('invalid CLI and registry caps reject before any worker launches', async () => {
+  let launches = 0;
+  const packets = [{ id: 'PK-invalid', agent: 'local' }];
+  const runPacket = async () => {
+    launches += 1;
+    return { exitCode: 0, output: 'should-not-run' };
+  };
+
+  await assert.rejects(
+    dispatchPacketWave(packets, { registry: dispatchRegistry, cliMax: 0, runPacket }),
+    /--max must be a positive whole number/,
+  );
+
+  const badRegistry = structuredClone(dispatchRegistry);
+  badRegistry.agents.local.dispatch.maxConcurrent = 1.5;
+  await assert.rejects(
+    dispatchPacketWave(packets, { registry: badRegistry, runPacket }),
+    /agents\.json local\.dispatch\.maxConcurrent must be a positive whole number/,
+  );
+  assert.equal(launches, 0);
+});
+
+test('single-packet and non-local dispatch retain immediate launch behavior', async () => {
+  const remotePackets = Array.from({ length: 5 }, (_, index) => ({ id: `remote-${index + 1}`, agent: 'remote' }));
+  let active = 0;
+  let maxActive = 0;
+
+  // A tiny asynchronous completion window lets every uncapped remote packet
+  // enter before any leaves, demonstrating that WF-G42 did not impose four on it.
+  const records = await dispatchPacketWave(remotePackets, {
+    registry: dispatchRegistry,
+    runPacket: async (packet) => {
+      active += 1;
+      maxActive = Math.max(maxActive, active);
+      await nextTurn();
+      active -= 1;
+      return { exitCode: 0, output: `remote-output:${packet.id}` };
+    },
+  });
+
+  assert.equal(maxActive, remotePackets.length);
+  assert.equal(records.length, remotePackets.length);
+
+  const single = await dispatchPacketWave([{ id: 'single', agent: 'local' }], {
+    registry: dispatchRegistry,
+    runPacket: async () => ({ exitCode: 0, output: 'single-output' }),
+  });
+  assert.equal(single[0].status, 'succeeded');
+  assert.equal(single[0].output, 'single-output');
+});
+
+test('a non-zero fake worker exit is surfaced with packet id, status, output, and result', async () => {
+  const [record] = await dispatchPacketWave([{ id: 'PK-fail', agent: 'local' }], {
+    registry: dispatchRegistry,
+    runPacket: async () => ({ exitCode: 17, output: 'fake stderr log', result: 'fake worker rejected input' }),
+  });
+
+  assert.deepEqual(record, {
+    packetId: 'PK-fail',
+    agent: 'local',
+    status: 'failed',
+    exitCode: 17,
+    signal: null,
+    output: 'fake stderr log',
+    result: 'fake worker rejected input',
+  });
 });

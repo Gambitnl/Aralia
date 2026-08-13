@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 12/08/2026, 00:26:25
+ * Last Sync: 12/08/2026, 05:12:37
  * Dependents: hooks/combat/useTurnManager.ts
  * Imports: 14 files
  *
@@ -258,7 +258,24 @@ interface UseCombatEngineProps {
     onLogEntry: (entry: CombatLogEntry) => void;
     onMapUpdate?: (mapData: BattleMapData) => void;
     addDamageNumber: (value: number, position: Position, type: 'damage' | 'heal' | 'miss') => void;
+    /**
+     * Optional replay seam for target-bound scheduled payloads. Ordinary combat
+     * keeps rollDice randomness; deterministic scenario/replay callers can pin
+     * legal totals without replacing timing, damage, HP, or cleanup behavior.
+     */
+    scheduledEffectDiceRoller?: ScheduledEffectDiceRoller;
 }
+
+export interface ScheduledEffectDiceRollContext {
+    scheduledEffect: ScheduledSpellEffect;
+    timing: 'turn_start' | 'turn_end';
+    payload: 'damage' | 'heal';
+}
+
+export type ScheduledEffectDiceRoller = (
+    dice: string,
+    context: ScheduledEffectDiceRollContext,
+) => number;
 
 export const useCombatEngine = ({
     characters,
@@ -267,6 +284,7 @@ export const useCombatEngine = ({
     onLogEntry,
     onMapUpdate,
     addDamageNumber,
+    scheduledEffectDiceRoller,
 }: UseCombatEngineProps) => {
 
     // --- Engine State ---
@@ -769,7 +787,13 @@ export const useCombatEngine = ({
 
                 processedEffects.forEach(effect => {
                     if (effect.type === 'damage' && effect.dice) {
-                        const damage = rollDice(effect.dice);
+                        const damage = scheduledEffectDiceRoller
+                            ? scheduledEffectDiceRoller(effect.dice, {
+                                scheduledEffect,
+                                timing,
+                                payload: 'damage'
+                            })
+                            : rollDice(effect.dice);
                         const updatedTarget = applyDamageAndCheckDowned(updatedCharacter, damage);
                         updatedCharacter = {
                             ...updatedCharacter,
@@ -793,7 +817,13 @@ export const useCombatEngine = ({
                     }
 
                     if (effect.type === 'heal' && effect.dice) {
-                        const healing = rollDice(effect.dice);
+                        const healing = scheduledEffectDiceRoller
+                            ? scheduledEffectDiceRoller(effect.dice, {
+                                scheduledEffect,
+                                timing,
+                                payload: 'heal'
+                            })
+                            : rollDice(effect.dice);
                         const updatedTarget = applyHealingAndRestore(updatedCharacter, healing);
                         const actualHealing = updatedTarget.currentHP - updatedCharacter.currentHP;
                         updatedCharacter = {
@@ -915,7 +945,7 @@ export const useCombatEngine = ({
         }
 
         return updatedCharacter;
-    }, [addDamageNumber, characters, mapData, onLogEntry, scheduledSpellEffects, shouldKeepScheduledEffectAfterTrigger]);
+    }, [addDamageNumber, characters, mapData, onLogEntry, processRepeatSaves, scheduledEffectDiceRoller, scheduledSpellEffects, shouldKeepScheduledEffectAfterTrigger]);
 
     const processTileEffects = useCallback((
         character: CombatCharacter,
@@ -1107,7 +1137,14 @@ export const useCombatEngine = ({
     }, []);
 
     const addScheduledSpellEffect = useCallback((scheduledEffect: ScheduledSpellEffect) => {
-        setScheduledSpellEffects(prev => [...prev, scheduledEffect]);
+        // A stable schedule identity represents one future payload. Reset,
+        // hydration, or a repeated cast callback may publish that same record
+        // again; replace it in authored order instead of stacking a duplicate
+        // that would damage the target twice at one phase.
+        setScheduledSpellEffects(prev => [
+            ...prev.filter(effect => effect.id !== scheduledEffect.id),
+            scheduledEffect
+        ]);
     }, []);
 
     const removeScheduledSpellEffect = useCallback((scheduledEffectId: string) => {

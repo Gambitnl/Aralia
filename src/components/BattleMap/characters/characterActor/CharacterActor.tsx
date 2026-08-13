@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 11/08/2026, 21:39:31
+ * Last Sync: 12/08/2026, 03:22:42
  * Dependents: components/BattleMap/characters/CharacterActor.tsx
- * Imports: 11 files
+ * Imports: 12 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -36,6 +36,7 @@ import { generateEntityBlueprint } from '@/systems/entities3d/generateEntityBlue
 import { recipeFromCombatant } from '@/systems/entities3d/recipeFromCombatant';
 import { heightM } from '@/systems/entities3d/types';
 import { resolveControlPose } from '../../controlOptionPose';
+import { elevationUnitsToFeet } from '../../elevationPresentation';
 
 registerAllParts();
 
@@ -217,9 +218,16 @@ const CharacterActor: React.FC<CharacterActorProps> = ({
   // Target highlight color
   const showTargetHighlight = isTargetable && targetingMode;
 
-  // Ground height: prefer the sampled terrain surface (exact match with the
-  // rendered mesh — no hovering over carved banks); fall back to tile elevation.
-  const elevation = groundY ?? tileElevation * ELEVATION_SCALE;
+  // Ground height still comes from the rendered terrain surface. A flying
+  // creature then rises by only the clearance between its absolute altitude
+  // and this tile's ground height. This keeps a 20-foot flyer ten feet above a
+  // ten-foot ridge instead of adding the full altitude twice.
+  const groundElevation = groundY ?? tileElevation * ELEVATION_SCALE;
+  const groundAltitudeFeet = Math.round(elevationUnitsToFeet(tileElevation));
+  const aerialClearanceWorld = character.aerialMovement?.isFlying
+    ? Math.max(0, character.aerialMovement.altitudeFeet - groundAltitudeFeet) * 0.3048
+    : 0;
+  const elevation = groundElevation + aerialClearanceWorld;
 
   // HP percentage for health bar
   const hpPercent = Math.max(0, character.currentHP / character.maxHP);
@@ -426,6 +434,15 @@ const CharacterActor: React.FC<CharacterActorProps> = ({
               {character.currentHP}/{character.maxHP}
               {(character.tempHP ?? 0) > 0 ? ` + ${character.tempHP} temp` : ''}
             </div>
+            {character.aerialMovement?.isFlying && (
+              <div
+                data-testid="aerial-altitude-nameplate"
+                style={{ fontSize: '9px', color: '#7dd3fc', marginTop: '2px', fontWeight: 'bold' }}
+              >
+                Flying · {character.aerialMovement.altitudeFeet} ft
+                {character.aerialMovement.canHover ? ' · hover' : ''}
+              </div>
+            )}
             {distanceToActive !== null && (
               <div style={{ fontSize: '9px', color: '#facc15', marginTop: '2px', fontWeight: 'bold' }}>
                 Distance: {distanceToActive} ft

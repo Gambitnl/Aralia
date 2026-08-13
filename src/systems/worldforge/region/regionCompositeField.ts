@@ -16,6 +16,13 @@
  *   - `N_k` are noise bands at fixed spatial frequencies, weighted per region.
  *   - `G_j` are the geomorphic operators: peak, dune, terrace, erosion.
  *
+ * EROSION IS A DRAINAGE PASS, NOT A TEXTURE. The erosion operator asks, at each
+ * point, whether the ground is concave ACROSS the direction water flows. It
+ * cuts only where it is. Cutting cross-flow concavity elongates every cut along
+ * the flow, so dents join into channels and channels merge downhill. Ridges are
+ * whatever is left standing between the basins, so they are never drawn — they
+ * fall out of the network. See `erosionCutAt`.
+ *
  * WHAT A "REGION" IS HERE. One region = one FMG atlas cell. An L1 window
  * (25,000 ft, 250x250 samples at 100 ft) covers an anchor cell and its
  * neighbors, so a window mixes ~10-60 regions. The mask set is derived from the
@@ -40,16 +47,99 @@
  * a hard clamp turns every big peak into one co-planar mesa. Below 0.7 the
  * composite is unbiased.
  *
- * NOISE. `makeWorldFeetNoise` is a stateless hash lattice. It is used for every
- * band and operator on purpose. The repo's `SimplexNoise` keeps MODULE-LEVEL
- * permutation tables, so two live instances corrupt each other. This file
- * creates no `SimplexNoise`.
+ * NOISE. Every band and operator reads the stateless GRADIENT noise defined at
+ * the top of this file — not the region tier's `makeWorldFeetNoise`, which is
+ * value noise and can only make rounded lobes. See that block for why. The
+ * repo's `SimplexNoise` keeps MODULE-LEVEL permutation tables, so two live
+ * instances corrupt each other. This file creates no `SimplexNoise`.
  *
  * UNITS. Feet only. Heights are the atlas-normalized 0..1 scale, the same scale
  * `generateHeightfield` and `regionTerrainField` use.
  */
 import type { Feet } from '../units';
-import { makeWorldFeetNoise } from '../local/worldFeetNoise';
+
+// ── Noise primitive ───────────────────────────────────────────────────────────
+
+/**
+ * WHY THIS FILE HAS ITS OWN NOISE.
+ *
+ * The region tier's `makeWorldFeetNoise` is BILINEAR VALUE NOISE: it hashes a
+ * scalar at each lattice node and interpolates between them. That is fine for
+ * gentle undulation, and it is wrong for landform. A value-noise field has no
+ * feature between its nodes, so its ridged transform `1 - |n|` produces broad
+ * ROUNDED LOBES instead of crest lines. Every earlier attempt at this file's
+ * mountains rendered as melted wax, and no amount of weighting fixed it,
+ * because the wax was in the noise itself.
+ *
+ * This is GRADIENT NOISE. Each lattice node carries a direction, not a value,
+ * and the field is the interpolated dot product of those directions against the
+ * offset to the node. The field is exactly zero at every node, so features sit
+ * BETWEEN nodes and `1 - |n|` produces a sharp crease — a crest line.
+ *
+ * The interpolant is the QUINTIC fade, not smoothstep. This file measures
+ * CURVATURE to find valley floors, and smoothstep has a discontinuous second
+ * derivative at every lattice line, which would print the lattice straight into
+ * the drainage network as a visible grid.
+ *
+ * It is a pure function of `(worldSeed, world feet)` with no stored state, so
+ * the seam contract is untouched, and it creates no `SimplexNoise` — that class
+ * keeps MODULE-LEVEL permutation tables which two live instances corrupt.
+ */
+
+/** 16 unit directions. A table avoids a `sin`/`cos` pair per lattice corner. */
+const GRAD_COUNT = 16;
+const GRAD_X = new Float64Array(GRAD_COUNT);
+const GRAD_Y = new Float64Array(GRAD_COUNT);
+for (let i = 0; i < GRAD_COUNT; i++) {
+  const a = (i * 2 * Math.PI) / GRAD_COUNT;
+  GRAD_X[i] = Math.cos(a);
+  GRAD_Y[i] = Math.sin(a);
+}
+
+/** Deterministic 32-bit hash of a lattice node. */
+function hashNode(worldSeed: number, i: number, j: number): number {
+  let h = (worldSeed ^ 0x9e3779b9) >>> 0;
+  h = Math.imul(h ^ ((i | 0) + 0x7f4a7c15), 0x2c1b3c6d) >>> 0;
+  h = Math.imul(h ^ ((j | 0) + 0x165667b1), 0x27d4eb2f) >>> 0;
+  h ^= h >>> 15;
+  h = Math.imul(h, 0x85ebca6b) >>> 0;
+  h ^= h >>> 13;
+  return h >>> 0;
+}
+
+/** Quintic fade — C2 continuous, so measured curvature carries no lattice grid. */
+function fade(t: number): number {
+  return t * t * t * (t * (t * 6 - 15) + 10);
+}
+
+/** 2D gradient noise sampled by world feet. Output is in [-1,1]. */
+function makeGradientNoise(worldSeed: number, spanFt: number): (fx: number, fy: number) => number {
+  const span = spanFt || 1;
+  // 2D gradient noise peaks near +-1/sqrt(2); scale so the field fills [-1,1].
+  const NORM = Math.SQRT2;
+  return (fx: number, fy: number): number => {
+    const gx = fx / span;
+    const gy = fy / span;
+    const x0 = Math.floor(gx);
+    const y0 = Math.floor(gy);
+    const dx = gx - x0;
+    const dy = gy - y0;
+    const u = fade(dx);
+    const v = fade(dy);
+    const g00 = hashNode(worldSeed, x0, y0) & (GRAD_COUNT - 1);
+    const g10 = hashNode(worldSeed, x0 + 1, y0) & (GRAD_COUNT - 1);
+    const g01 = hashNode(worldSeed, x0, y0 + 1) & (GRAD_COUNT - 1);
+    const g11 = hashNode(worldSeed, x0 + 1, y0 + 1) & (GRAD_COUNT - 1);
+    const n00 = GRAD_X[g00] * dx + GRAD_Y[g00] * dy;
+    const n10 = GRAD_X[g10] * (dx - 1) + GRAD_Y[g10] * dy;
+    const n01 = GRAD_X[g01] * dx + GRAD_Y[g01] * (dy - 1);
+    const n11 = GRAD_X[g11] * (dx - 1) + GRAD_Y[g11] * (dy - 1);
+    const a = n00 + (n10 - n00) * u;
+    const b = n01 + (n11 - n01) * u;
+    const value = (a + (b - a) * v) * NORM;
+    return value < -1 ? -1 : value > 1 ? 1 : value;
+  };
+}
 
 /** One region: an atlas cell center in feet, its height class, and its biome. */
 export interface RegionSource {
@@ -119,25 +209,31 @@ export function regionProfileFor(biomeId: number, h: number): RegionProfile {
 
   // Noise band weights. Higher country carries more relief at every band.
   // Water carries almost none, so the sea floor stays readable.
+  //
+  // The meso and micro bands are deliberately SMALL on land. They are isotropic
+  // value noise: they can only ever add round bumps. When they carried the
+  // relief the mountain read as melted wax and the plain read as cottage
+  // cheese, because bumps are all they can make. Structure is the job of the
+  // peak operator and the drainage pass. The bands only break up their regularity.
   let macro: number;
   let meso: number;
   let micro: number;
   switch (cls) {
     case 'water':
-      macro = 0.010; meso = 0.006; micro = 0.002; break;
+      macro = 0.014; meso = 0.010; micro = 0.0035; break;
     case 'lowland':
-      macro = 0.030; meso = 0.014; micro = 0.005; break;
+      macro = 0.032; meso = 0.011; micro = 0.0018; break;
     case 'upland':
-      macro = 0.070; meso = 0.030; micro = 0.010; break;
+      macro = 0.060; meso = 0.018; micro = 0.0025; break;
     case 'highland':
-      macro = 0.100; meso = 0.038; micro = 0.009; break;
+      macro = 0.095; meso = 0.030; micro = 0.0045; break;
     case 'alpine':
-      macro = 0.130; meso = 0.050; micro = 0.011; break;
+      macro = 0.105; meso = 0.032; micro = 0.005; break;
   }
 
   // Peaks: high country only. This mirrors the existing ridge field's gate.
-  if (cls === 'highland') operatorWeights.peak = 0.090;
-  if (cls === 'alpine') operatorWeights.peak = 0.190;
+  if (cls === 'highland') operatorWeights.peak = 0.125;
+  if (cls === 'alpine') operatorWeights.peak = 0.240;
   if (FROZEN_BIOMES.has(biomeId) && (cls === 'highland' || cls === 'alpine')) {
     operatorWeights.peak = (operatorWeights.peak ?? 0) * 1.25;
   }
@@ -154,9 +250,11 @@ export function regionProfileFor(biomeId: number, h: number): RegionProfile {
     operatorWeights.terrace = 0.018;
   }
 
-  // Erosion: everywhere on land, strongest where it is wet and steep.
+  // Drainage: everywhere on land, strongest where it is wet and steep.
+  // A plain is not flat noise. It is a surface water has already worked on, so
+  // it gets a real network of swales, just a shallow one.
   if (cls !== 'water') {
-    let erosion = cls === 'lowland' ? 0.020 : cls === 'upland' ? 0.045 : 0.075;
+    let erosion = cls === 'lowland' ? 0.032 : cls === 'upland' ? 0.075 : 0.125;
     if (WET_BIOMES.has(biomeId)) erosion *= 1.6;
     if (DESERT_BIOMES.has(biomeId)) erosion *= 0.5;
     operatorWeights.erosion = erosion;
@@ -170,10 +268,9 @@ export function regionProfileFor(biomeId: number, h: number): RegionProfile {
 /**
  * Wrap a world-feet noise so it is sampled on a ROTATED frame.
  *
- * `makeWorldFeetNoise` is bilinear value noise on an axis-aligned lattice. Its
- * artifacts are therefore axis-aligned too, and stacking several bands on the
- * same lattice orientation lines those artifacts up: the first mountain render
- * came out as rectilinear stair-steps, not ridges. Giving each band and each
+ * The gradient lattice is axis-aligned, so its artifacts are too, and stacking
+ * several bands on the same lattice orientation lines those artifacts up: the
+ * first mountain render came out as rectilinear stair-steps, not ridges. Giving each band and each
  * operator its own rotation breaks the alignment. Rotation is a pure function
  * of world position, so it costs nothing in seam purity.
  */
@@ -193,8 +290,8 @@ const BAND_ANGLES: readonly number[] = [0.37, 1.21, 2.09];
 function makeNoiseBands(worldSeed: number): Array<(x: Feet, y: Feet) => number> {
   return BAND_SPANS_FT.map((spanFt, k) => {
     const seed = (worldSeed ^ Math.imul(k + 1, 0x9e3779b1)) >>> 0;
-    const n = rotated(makeWorldFeetNoise(seed, spanFt), BAND_ANGLES[k]);
-    return (x, y) => n(x, y) * 2 - 1;
+    const n = rotated(makeGradientNoise(seed, spanFt), BAND_ANGLES[k]);
+    return (x, y) => n(x, y);
   });
 }
 
@@ -209,13 +306,13 @@ function makeNoiseBands(worldSeed: number): Array<(x: Feet, y: Feet) => number> 
 export type OperatorField = (x: Feet, y: Feet, running: number) => number;
 
 /** Ridge span in feet for the peak operator's crest lattice. */
-const PEAK_SPAN_FT = 11000;
+const PEAK_SPAN_FT = 15000;
 /**
  * Along-strike coordinate compression for the peak operator. Below 1 the ridge
  * features stretch along the local range grain. 0.3 gives ridges about three
  * times longer than they are wide, which is what a range looks like from above.
  */
-const STRIKE_SQUASH = 0.34;
+const STRIKE_SQUASH = 0.68;
 
 /** The two range grains, radians. Two directions is enough to avoid a combed world. */
 const GRAIN_ANGLES: readonly number[] = [0.42, 1.68];
@@ -231,8 +328,50 @@ const DUNE_SPAN_FT = 900;
  * every 750 ft of relief, which reads as a glaciated shelf.
  */
 export const TERRACE_STEP = 0.075;
-/** Finite-difference arm for the erosion slope probe, feet. */
-const EROSION_PROBE_FT = 120;
+// ── Drainage constants ────────────────────────────────────────────────────────
+
+/** Wavelength of the guide's macro landform term, feet. */
+const GUIDE_SPAN_FT = 9000;
+/**
+ * How much of the peak ridge field the flow guide carries.
+ *
+ * The guide must BE the visible shape, or the valleys land in the wrong place.
+ * One guide serves every height class. In high country the ridge term dominates
+ * and drainage runs down the flanks of real crests. In low country the ridge
+ * term is small in the SURFACE but still steers the guide, so a plain inherits
+ * the same dendritic network at a gentler amplitude — which is correct, because
+ * a plain is a drained surface, not an undrained one.
+ */
+const GUIDE_RIDGE_MIX = 0.95;
+/** How much of the next ridge octave the guide carries, for tributary scale. */
+const GUIDE_FINE_MIX = 0.45;
+/** Softening term on the flow unit vector. Sized near a typical gradient. */
+const FLOW_EPS = 0.02;
+/** Flow-probe arm as a fraction of the convergence arm at the same scale. */
+const FLOW_PROBE_RATIO = 0.7;
+/** Convergence arm for trunk valleys, feet. This is their half-width. */
+const TRUNK_ARM_FT = 2100;
+/** Convergence arm for tributary gullies, feet. */
+const TRIBUTARY_ARM_FT = 430;
+/** Convergence below this is ordinary hillslope and is not cut at all. */
+const CONVERGENCE_FLOOR = 0.07;
+/** Convergence above floor+span is a fully developed channel. */
+const CONVERGENCE_SPAN = 0.70;
+/** Power applied to the channel profile. Higher thins the line. */
+const CHANNEL_SHARPNESS = 1.35;
+/** Share of the cut owned by trunk valleys. */
+const TRUNK_DEPTH = 0.80;
+/** Share of the cut owned by tributaries. */
+const TRIBUTARY_DEPTH = 0.34;
+/**
+ * Width of the ramp above the waterline over which drainage switches on.
+ *
+ * The old value was 0.5, which left a lowland at h=0.30 with a gate of 0.2 —
+ * one fifth of an already tiny weight. That is why the plain had no drainage at
+ * all and read as stucco. 0.12 gives a lowland its full network while still
+ * fading the cut out at the shoreline, so coastlines keep their shape.
+ */
+const LAND_GATE_SPAN = 0.12;
 
 /**
  * The POSITION-ONLY part of every operator, evaluated once per sample point and
@@ -261,9 +400,13 @@ function smoothstep01(t: number): number {
   return t * t * (3 - 2 * t);
 }
 
-/** Relief gate of the erosion operator: nothing is cut below the waterline. */
+/**
+ * Land gate of the drainage operator: nothing is cut below the waterline, and
+ * the cut fades in over `LAND_GATE_SPAN` of height above it. Smoothstep, not a
+ * linear ramp, so the shoreline has no crease.
+ */
 function erosionRelief(running: number): number {
-  return Math.max(0, Math.min(1, (running - WATER_THRESHOLD) / 0.5));
+  return smoothstep01((running - WATER_THRESHOLD) / LAND_GATE_SPAN);
 }
 
 /** The terrace pull, pure arithmetic on the running height. */
@@ -288,11 +431,11 @@ export function makePositionalOperators(worldSeed: number): PositionalOperators 
   // The multifractal squares each ridge (sharpening the crest) and gates the
   // next octave by the previous one, so detail only grows ON the ridges. That
   // is what makes the lines branch and the flanks stay clean.
-  const PEAK_OCTAVES = 2;
+  const PEAK_OCTAVES = 4;
   const PEAK_LACUNARITY = 2.37; // irrational-ish, so octaves never re-align
   const peakOctaves = Array.from({ length: PEAK_OCTAVES }, (_u, o) => ({
     noise: rotated(
-      makeWorldFeetNoise(
+      makeGradientNoise(
         (worldSeed ^ 0x5045414b ^ Math.imul(o + 1, 0x85ebca6b)) >>> 0,
         PEAK_SPAN_FT / Math.pow(PEAK_LACUNARITY, o),
       ),
@@ -303,25 +446,20 @@ export function makePositionalOperators(worldSeed: number): PositionalOperators 
   const peakNorm = peakOctaves.reduce((a, o) => a + o.amp, 0);
   // Range grain. 60,000 ft wavelength, so the strike holds over several
   // windows and a range reads as one range rather than turning every mile.
-  const grainBlend = rotated(makeWorldFeetNoise((worldSeed ^ 0x53545249) >>> 0, 90000), 0.44);
-  const warpX = rotated(makeWorldFeetNoise((worldSeed ^ 0x57415850) >>> 0, PEAK_SPAN_FT), 1.53);
-  const warpY = rotated(makeWorldFeetNoise((worldSeed ^ 0x57415950) >>> 0, PEAK_SPAN_FT), 2.41);
+  const grainBlend = rotated(makeGradientNoise((worldSeed ^ 0x53545249) >>> 0, 90000), 0.44);
+  const warpX = rotated(makeGradientNoise((worldSeed ^ 0x57415850) >>> 0, PEAK_SPAN_FT), 1.53);
+  const warpY = rotated(makeGradientNoise((worldSeed ^ 0x57415950) >>> 0, PEAK_SPAN_FT), 2.41);
   const WARP_FT = 0.22 * PEAK_SPAN_FT;
 
   // Dune: a low-frequency noise steers the wind, a second jitters the phase.
-  const windField = rotated(makeWorldFeetNoise((worldSeed ^ 0x57494e44) >>> 0, 12000), 0.83);
-  const phase = rotated(makeWorldFeetNoise((worldSeed ^ 0x50484153) >>> 0, 4000), 2.77);
+  const windField = rotated(makeGradientNoise((worldSeed ^ 0x57494e44) >>> 0, 12000), 0.83);
+  const phase = rotated(makeGradientNoise((worldSeed ^ 0x50484153) >>> 0, 4000), 2.77);
 
-  // Erosion: a valley network plus a slope probe on a rough field.
-  const valley = rotated(makeWorldFeetNoise((worldSeed ^ 0x56414c4c) >>> 0, 3000), 1.94);
-  const rough = rotated(makeWorldFeetNoise((worldSeed ^ 0x524f5547) >>> 0, 1400), 0.29);
-
-  return {
-    peakAt: (x, y) => {
+  const peakAt = (x: Feet, y: Feet): number => {
       // Domain warp bends the crest lattice, so ridges curve instead of
       // running as a grid.
-      const wx = x + (warpX(x, y) - 0.5) * WARP_FT;
-      const wy = y + (warpY(x, y) - 0.5) * WARP_FT;
+      const wx = x + warpX(x, y) * WARP_FT;
+      const wy = y + warpY(x, y) * WARP_FT;
       // STRIKE. A real range runs in a direction; isotropic ridged noise does
       // not, and it rendered as cauliflower. The grain comes from sampling the
       // ridge stack in a frame that is ROTATED and COMPRESSED along the strike,
@@ -335,7 +473,7 @@ export function makePositionalOperators(worldSeed: number): PositionalOperators 
       // grains are blended by a slowly varying weight. Each grain is an exact
       // linear map, so nothing amplifies, and the world still shows more than
       // one range direction.
-      const blend = smoothstep01(grainBlend(x, y) * 1.6 - 0.3);
+      const blend = smoothstep01(grainBlend(x, y) * 0.8 + 0.5);
       let sum = 0;
       for (let g = 0; g < 2; g++) {
         const weight = g === 0 ? 1 - blend : blend;
@@ -347,36 +485,153 @@ export function makePositionalOperators(worldSeed: number): PositionalOperators 
         let acc = 0;
         let gate = 1;
         for (let o = 0; o < peakOctaves.length; o++) {
-          const n = peakOctaves[o].noise(along, across) * 2 - 1;
-          let r = 1 - Math.abs(n);   // [0,1], 1 on a crest line
-          r = r * r * (3 - 2 * r);   // smoothstep: firm the crest, clean the flank
-          r *= gate;                 // detail grows only on the previous ridge
-          gate = Math.max(0, Math.min(1, r * 1.4));
+          const n = peakOctaves[o].noise(along, across);
+          const raw = 1 - Math.abs(n);  // [0,1], 1 on a crest line, kinked there
+          // SQUARE, never smoothstep. `1-|n|` has a sharp kink at the crest,
+          // which is the whole point of ridged noise. Smoothstep is C1-flat at
+          // r=1, so it ERASED that kink and rounded every summit — that is what
+          // read as melted wax. Squaring keeps the kink and thins the flank.
+          const r = raw * raw * gate;   // detail grows only on the previous ridge
+          // The gate reads the RAW ridge, not the squared one. Gating on the
+          // squared value throttled every octave after the first, and the range
+          // came back smooth and streaky — brushed metal, not rock.
+          gate = Math.min(1, raw * 1.25);
           acc += r * peakOctaves[o].amp;
         }
         sum += weight * acc;
       }
-      return (sum / peakNorm) * 2 - 1; // [-1,1]
-    },
-    duneAt: (x, y) => {
-      // Wind bearing turns slowly across the world, so dune trains fan.
-      const theta = windField(x, y) * Math.PI;
-      const along = x * Math.cos(theta) + y * Math.sin(theta);
-      const t = along / DUNE_SPAN_FT + phase(x, y) * 2;
-      const s = Math.sin(t * Math.PI * 2);
-      // Skew: steep near the trough, round at the crest — the dune profile.
-      return Math.sign(s) * Math.pow(Math.abs(s), 0.6);
-    },
+    return (sum / peakNorm) * 2 - 1; // [-1,1]
+  };
+
+  const duneAt = (x: Feet, y: Feet): number => {
+    // Wind bearing turns slowly across the world, so dune trains fan.
+    const theta = windField(x, y) * Math.PI;
+    const along = x * Math.cos(theta) + y * Math.sin(theta);
+    const t = along / DUNE_SPAN_FT + phase(x, y) * 2;
+    const s = Math.sin(t * Math.PI * 2);
+    // Skew: steep near the trough, round at the crest — the dune profile.
+    return Math.sign(s) * Math.pow(Math.abs(s), 0.6);
+  };
+
+  // ── The flow guide ─────────────────────────────────────────────────────────
+  //
+  // The guide is the LANDFORM the water runs on: the macro band plus the two
+  // coarse crest octaves. It uses the SAME warped, strike-rotated lattice the
+  // peak operator uses, so a valley found here is a valley of the mountain the
+  // composite actually draws. The first version eroded a private `rough` field
+  // that had nothing to do with the visible surface, so the cuts landed in
+  // random places. A drainage network that does not follow the slope you can
+  // see is not drainage. It is wallpaper.
+  //
+  // Both octaves come out of ONE pass, because the warp and the grain blend are
+  // three of the eight noise reads and the drainage probe calls this function
+  // thirty-odd times per sample. Splitting it doubled the window time.
+  const macroGuide = rotated(makeGradientNoise((worldSeed ^ 0x47554944) >>> 0, GUIDE_SPAN_FT), 1.07);
+  const guideAt = (x: Feet, y: Feet, withFine: boolean): number => {
+    const wx = x + warpX(x, y) * WARP_FT;
+    const wy = y + warpY(x, y) * WARP_FT;
+    const blend = smoothstep01(grainBlend(x, y) * 0.8 + 0.5);
+    let coarse = 0;
+    let fine = 0;
+    for (let g = 0; g < 2; g++) {
+      const weight = g === 0 ? 1 - blend : blend;
+      if (weight <= 0) continue;
+      const ct = GRAIN_COS[g];
+      const st = GRAIN_SIN[g];
+      const along = (wx * ct + wy * st) * STRIKE_SQUASH;
+      const across = -wx * st + wy * ct;
+      coarse += weight * (1 - Math.abs(peakOctaves[0].noise(along, across)));
+      if (withFine) fine += weight * (1 - Math.abs(peakOctaves[1].noise(along, across)));
+    }
+    const h = macroGuide(x, y) + GUIDE_RIDGE_MIX * (coarse * 2 - 1);
+    return withFine ? h + GUIDE_FINE_MIX * (fine * 2 - 1) : h;
+  };
+
+  const uA = new Float64Array(2);
+  const uB = new Float64Array(2);
+
+  /**
+   * Downhill unit vector of the guide, probed over `armFt`.
+   *
+   * The arm is also the low-pass: a wide arm reads the massif and ignores the
+   * crests on it, a narrow arm reads the crests. That is how one function
+   * serves both the trunk valleys and their tributaries.
+   */
+  const flowDir = (x: Feet, y: Feet, armFt: number, fine: boolean, out: Float64Array): void => {
+    const gx = guideAt(x + armFt, y, fine) - guideAt(x - armFt, y, fine);
+    const gy = guideAt(x, y + armFt, fine) - guideAt(x, y - armFt, fine);
+    // Dividing by |g| alone would snap the direction on flat ground and tear
+    // the surface. FLOW_EPS makes the vector SHRINK there instead, so a flat
+    // reports weak flow rather than a discontinuity.
+    const inv = 1 / (Math.hypot(gx, gy) + FLOW_EPS);
+    out[0] = -gx * inv;
+    out[1] = -gy * inv;
+  };
+
+  /**
+   * FLOW CONVERGENCE at one scale: the negative divergence of the downhill unit
+   * vector field.
+   *
+   *   flow lines run together  ->  positive  ->  a channel
+   *   flow lines spread apart  ->  negative  ->  a spur or a crest
+   */
+  const convergenceAt = (x: Feet, y: Feet, armFt: number, fine: boolean): number => {
+    const probe = armFt * FLOW_PROBE_RATIO;
+    flowDir(x + armFt, y, probe, fine, uA);
+    flowDir(x - armFt, y, probe, fine, uB);
+    const dudx = uA[0] - uB[0];
+    flowDir(x, y + armFt, probe, fine, uA);
+    flowDir(x, y - armFt, probe, fine, uB);
+    const dvdy = uA[1] - uB[1];
+    return -(dudx + dvdy) * 0.5;
+  };
+
+  /** Shape a convergence reading into a channel depth in [0,1]. */
+  const channelOf = (convergence: number): number =>
+    Math.pow(smoothstep01((convergence - CONVERGENCE_FLOOR) / CONVERGENCE_SPAN), CHANNEL_SHARPNESS);
+
+  return {
+    peakAt,
+    duneAt,
     erosionCutAt: (x, y) => {
-      // Slope by central difference on a coherent field. The running height
-      // alone carries no gradient, so the probe reads the field that shapes it.
-      const gx = rough(x + EROSION_PROBE_FT, y) - rough(x - EROSION_PROBE_FT, y);
-      const gy = rough(x, y + EROSION_PROBE_FT) - rough(x, y - EROSION_PROBE_FT);
-      const slope = Math.min(1, Math.hypot(gx, gy) * 3);
-      // Inverted ridges give BRANCHING lows, not round pits.
-      const v = 1 - 2 * Math.abs(valley(x, y) * 2 - 1);
-      const network = Math.pow(Math.max(0, v), 1.6); // thin the lines
-      return -(0.55 * slope + 0.45 * network);
+      // ── THALWEG-AWARE INCISION ────────────────────────────────────────────
+      //
+      // A thalweg is the line of lowest ground along a valley. This operator
+      // finds it by measuring where water CONVERGES, and cuts there.
+      //
+      // Convergence is the right measure for three reasons.
+      //
+      //   It is CONNECTED. Water that converges here converged upstream and
+      //   will converge downstream, because streamlines that meet stay met. Its
+      //   positive set is therefore a branching network BY CONSTRUCTION, not a
+      //   scatter of dents. Ridges are the boundaries between the basins, so
+      //   they fall out for free and never have to be drawn.
+      //
+      //   It is THIN. It reads the first derivative of a DIRECTION, not the
+      //   second derivative of a height, so it marks the valley FLOOR and not
+      //   the whole valley. A channel is far narrower than the valley that
+      //   holds it, and only a thin measure can say so.
+      //
+      //   It is DIRECTIONAL. The old operator used slope magnitude, which is
+      //   direction-blind. Slope magnitude can make pits. It can never make a
+      //   network.
+      //
+      // TWO SCALES, because drainage has a hierarchy and a single arm can only
+      // resolve one channel width. With one scale every valley came out the
+      // same size and the range read as tree bark. The wide arm finds the trunk
+      // valleys that organize the whole window; the narrow arm finds the
+      // tributaries, and they are gated by the trunk so they appear beside a
+      // real valley instead of scattered over the divides.
+      const trunk = channelOf(convergenceAt(x, y, TRUNK_ARM_FT, false));
+      const tributary = channelOf(convergenceAt(x, y, TRIBUTARY_ARM_FT, true));
+
+      // Flow accumulation proxy. Low ground has more water above it, so trunk
+      // valleys deepen downstream while headwaters stay shallow. Without it the
+      // network reads as one uniformly stamped pattern.
+      const accumulation = 0.30 + 0.70 * smoothstep01((0.5 - guideAt(x, y, false)) / 1.7);
+
+      const cut = TRUNK_DEPTH * trunk + TRIBUTARY_DEPTH * tributary * (0.30 + 0.70 * trunk);
+      return -Math.min(1, cut * accumulation);
     },
   };
 }

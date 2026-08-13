@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 10/08/2026, 13:59:06
+ * Last Sync: 12/08/2026, 06:33:53
  * Dependents: commands/index.ts
  * Imports: 36 files
  *
@@ -514,7 +514,10 @@ class SpellAttackCommand implements SpellCommand {
       const targetId = liveTarget?.id ?? objectTarget?.id ?? 'object'
       const liveCaster = nextState.characters.find(character => character.id === this.caster.id) ?? this.caster
       const hasDisadvantage = liveTarget
-        ? hasTauntAttackDisadvantage(liveCaster, liveTarget.id)
+        // Spell attacks obey the same source-viability rule as weapon attacks.
+        // The live roster prevents a missing or downed taunter from imposing a
+        // stale penalty while status cleanup is still being reconciled.
+        ? hasTauntAttackDisadvantage(liveCaster, liveTarget.id, nextState.characters)
         : false
       const attackRoll = rollD20({ disadvantage: hasDisadvantage })
       const targetAC = liveTarget?.armorClass || 10

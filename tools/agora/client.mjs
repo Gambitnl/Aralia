@@ -12,7 +12,9 @@
 // Identity persistence: registration is stored per (host,port) base URL in a small
 // JSON file (default `.agent/agora/client-identity.json`, dir configurable via
 // AGORA_DIR). Shape: { "<baseUrl>": { agentId, handle, token } }. `register` writes
-// it; other commands read the token from it (or accept `--token`).
+// it; other commands read the token from it (or accept `--token`). The unscoped
+// default file cannot be replaced while its saved agent is still live, preventing
+// a second onboarding attempt from inheriting or releasing the first agent's work.
 // Set AGORA_AGENT_ID=<unique key> to scope the file per agent
 // (`client-identity.<key>.json`) so concurrent agents in one checkout don't share
 // an identity — a shared identity means `unlock --mine` releases the OTHER
@@ -44,6 +46,10 @@ const UNCATEGORIZED_TASK_CATEGORY = 'uncategorized';
 const DEFAULT_HEARTBEAT_EVERY_SEC = 600;
 const DEFAULT_HEARTBEAT_FOR_MIN = 30;
 const DEFAULT_OWNER_POLL_MS = 5000;
+// Focused tests need to exercise the truly unscoped default behavior without
+// writing into this checkout. A symbol keeps that temporary path out of the
+// public environment-variable contract used by real client invocations.
+const IDENTITY_DIR_OVERRIDE = Symbol('identityDirOverride');
 
 // ---------------------------------------------------------------------------
 // argv parsing — supports `--flag value`, `--flag=value`, and bare positionals.
@@ -115,6 +121,10 @@ function asArray(v) {
 // Identity file: { "<baseUrl>": { agentId, handle, token } }
 // ---------------------------------------------------------------------------
 function identityDir(env) {
+  // The in-process test harness may redirect the default file to a temporary
+  // directory while deliberately leaving AGORA_DIR and AGORA_AGENT_ID absent.
+  const override = env[IDENTITY_DIR_OVERRIDE];
+  if (override) return path.isAbsolute(override) ? override : path.resolve(process.cwd(), override);
   const d = env.AGORA_DIR;
   if (d) return path.isAbsolute(d) ? d : path.resolve(process.cwd(), d);
   return path.join(REPO_ROOT, '.agent', 'agora');
@@ -154,6 +164,36 @@ function saveIdentity(env, baseUrl, identity) {
   const file = identityPath(env);
   fs.mkdirSync(path.dirname(file), { recursive: true });
   fs.writeFileSync(file, JSON.stringify(all, null, 2) + '\n');
+}
+
+// Only the shared legacy path needs this extra stop. AGORA_AGENT_ID creates a
+// per-agent file, while AGORA_DIR is already an explicit isolated location.
+function usesLegacyDefaultIdentityScope(env) {
+  const hasAgentId = typeof env.AGORA_AGENT_ID === 'string' && env.AGORA_AGENT_ID.trim();
+  const hasAgoraDir = typeof env.AGORA_DIR === 'string' && env.AGORA_DIR.trim();
+  return !hasAgentId && !hasAgoraDir;
+}
+
+// Refuse to replace a live identity in the shared default file. The public
+// roster is the authority for liveness: retired or expired identities disappear
+// from it and may then be replaced without requiring manual file cleanup.
+async function defaultIdentityIsAvailable(out, env, baseUrl) {
+  if (!usesLegacyDefaultIdentityScope(env)) return true;
+  const stored = loadIdentity(env, baseUrl);
+  if (!stored || !stored.agentId) return true;
+
+  const roster = await api(baseUrl, 'GET', '/agents');
+  if (roster.status !== 200 || !roster.json || !Array.isArray(roster.json.agents)) {
+    out.log(`register refused: could not verify whether the stored default identity is still live (${roster.status})`);
+    out.log('  Set a unique AGORA_AGENT_ID or AGORA_DIR before onboarding. The existing identity was not changed.');
+    return false;
+  }
+
+  const live = roster.json.agents.find((agent) => agent.id === stored.agentId);
+  if (!live) return true;
+  out.log(`register refused: the default identity still belongs to live agent "${live.handle || stored.handle}" (${stored.agentId})`);
+  out.log('  Set a unique AGORA_AGENT_ID or AGORA_DIR before onboarding. The existing identity was not changed.');
+  return false;
 }
 
 // ---------------------------------------------------------------------------
@@ -327,7 +367,8 @@ Commands:
                                           --daemonize survives harness background cleanup;
                                           --forever is explicit opt-in only
   retire [--note "..."]                   clean exit: release claims and invalidate identity
-  whoami                                  print token-free stored identity for the current base URL
+  whoami [--live]                         print token-free stored identity; --live verifies it
+                                          against the daemon without renewing presence
   agents                                  list agents (status, handle, note, last-seen)
   agents --retire-stale <agentId|handle>  orchestrator-safe pet recovery for a stale idle presence
 
@@ -452,6 +493,10 @@ async function cmdRegister(out, parsed, env, baseUrl) {
   }
   sessionId = threadIdentity.sessionId;
 
+  // Registration is the only command that can replace stored identity. Stop
+  // before POSTing when another live agent still owns the legacy default slot.
+  if (!await defaultIdentityIsAvailable(out, env, baseUrl)) return { code: 1 };
+
   const maxTries = wantRandom ? 6 : 1;
   let last = null;
   for (let attempt = 0; attempt < maxTries; attempt++) {
@@ -477,11 +522,11 @@ async function cmdRegister(out, parsed, env, baseUrl) {
         out.log(`Requested pet "${r.json.requestedPetSlug}" was already claimed; Agora assigned "${r.json.pet.slug}" instead.`);
       }
       out.log(`Identity saved to ${identityPath(env)} for ${baseUrl}`);
-      // A stable per-session key is what ties this agent's LATER cli invocations
-      // to this identity. If the caller didn't set one, tell them to pin it — the
-      // daemon-claimed name is the natural value.
+      // The identity file scope was fixed before registration. When no
+      // AGORA_AGENT_ID was provided, remind the caller to preserve that scope;
+      // adding the new handle afterward would select a different, empty file.
       if (!(typeof env.AGORA_AGENT_ID === 'string' && env.AGORA_AGENT_ID.trim())) {
-        out.log(`TIP: export AGORA_AGENT_ID="${r.json.handle}" so your next commands reuse THIS identity`);
+        out.log('TIP: Keep AGORA_AGENT_ID and AGORA_DIR unchanged for later commands; changing either selects a different identity file.');
       }
       return { code: 0, identity: r.json };
     }
@@ -501,12 +546,15 @@ async function cmdRegister(out, parsed, env, baseUrl) {
   return { code: 1 };
 }
 
-function cmdWhoami(out, parsed, env, baseUrl) {
+async function cmdWhoami(out, parsed, env, baseUrl) {
   const id = loadIdentity(env, baseUrl);
   if (!id) {
     out.log(`not registered for ${baseUrl}`);
     return { code: 1 };
   }
+  // Label this as saved client state so the local-only default cannot be
+  // mistaken for proof that the daemon still recognizes the identity.
+  out.log('stored identity:');
   out.log(`handle:    ${id.handle}`);
   out.log(`agentId:   ${id.agentId}`);
   out.log(`baseUrl:   ${baseUrl}`);
@@ -518,7 +566,39 @@ function cmdWhoami(out, parsed, env, baseUrl) {
   // The token remains in the identity file for authenticated commands, but a
   // routine provenance check must never copy it into terminal or task logs.
   const { token: _token, ...publicIdentity } = id;
-  return { code: 0, identity: publicIdentity };
+  if (parsed.flags.live !== true) return { code: 0, identity: publicIdentity };
+
+  // Ask the dedicated authentication endpoint whether this exact saved token
+  // and agent id are current. The endpoint deliberately does not touch presence.
+  const response = await api(baseUrl, 'GET', '/agents/me', { token: id.token });
+  if (response.status === 401) {
+    // Authentication alone cannot say whether the saved presence was reaped or
+    // only its local bearer was damaged. The public roster resolves that split
+    // without sending a secret or touching any agent's presence timestamp.
+    const roster = await api(baseUrl, 'GET', '/agents');
+    if (roster.status !== 200 || !roster.json || !Array.isArray(roster.json.agents)) {
+      out.log(`live status check failed (${roster.status}): bearer was rejected and roster fallback was unavailable`);
+      return { code: 1, identity: publicIdentity, live: false };
+    }
+    const storedPresence = roster.json.agents.find((agent) => agent.id === id.agentId);
+    if (storedPresence) {
+      out.log('live status: not current (stored presence exists, but its saved bearer is invalid)');
+    } else {
+      out.log('live status: not live (stored identity was reaped or retired)');
+    }
+    out.log('  Re-onboard before making authenticated Agora calls.');
+    return { code: 1, identity: publicIdentity, live: false };
+  }
+  if (response.status !== 200 || !response.json || !response.json.agent) {
+    out.log(`live status check failed (${response.status}): ${response.json ? response.json.error : response.text}`);
+    return { code: 1, identity: publicIdentity, live: false };
+  }
+  if (response.json.agent.id !== id.agentId) {
+    out.log(`live status: identity mismatch (stored ${id.agentId}, authenticated ${response.json.agent.id})`);
+    return { code: 1, identity: publicIdentity, live: false };
+  }
+  out.log(`live status: current (${response.json.agent.status})`);
+  return { code: 0, identity: publicIdentity, live: true, agent: response.json.agent };
 }
 
 async function cmdAgents(out, parsed, env, baseUrl) {
@@ -1857,7 +1937,8 @@ function friendlyUnreachable(baseUrl, detail) {
 }
 
 // ---------------------------------------------------------------------------
-// Dispatcher. `run(argv, { env, baseUrl, repoRoot })` -> Promise<{ code, ... }>.
+// Dispatcher. `run(argv, { env, baseUrl, repoRoot, identityDirOverride })`
+// -> Promise<{ code, ... }>.
 // Never calls process.exit; returns an out-buffer in result.lines.
 // ---------------------------------------------------------------------------
 export async function run(argv, {
@@ -1866,7 +1947,11 @@ export async function run(argv, {
   watchOpts,
   heartbeatOpts,
   repoRoot = REPO_ROOT,
+  identityDirOverride,
 } = {}) {
+  // Tests may relocate only the default identity file. Real CLI calls never
+  // receive this option and continue to use the documented environment rules.
+  if (identityDirOverride) env = { ...env, [IDENTITY_DIR_OVERRIDE]: identityDirOverride };
   const out = makeOut();
   const command = argv[0];
   const parsed = parseArgs(argv.slice(1));
@@ -1875,12 +1960,6 @@ export async function run(argv, {
   if (!command || command === 'help' || command === '--help' || command === '-h') {
     out.log(USAGE);
     return { code: 0, lines: out.lines };
-  }
-
-  // whoami is purely local (no network).
-  if (command === 'whoami') {
-    const res = cmdWhoami(out, parsed, env, baseUrl);
-    return { ...res, lines: out.lines };
   }
 
   try {
@@ -1894,6 +1973,9 @@ export async function run(argv, {
         break;
       case 'heartbeat':
         res = await cmdHeartbeat(out, parsed, env, baseUrl, heartbeatOpts || {});
+        break;
+      case 'whoami':
+        res = await cmdWhoami(out, parsed, env, baseUrl);
         break;
       case 'agents':
         res = await cmdAgents(out, parsed, env, baseUrl);

@@ -172,6 +172,45 @@ const UP = new Vector3(0, 1, 0);
  * BipedDriver) — parity lockstep. */
 export const ARM_LINK_K = 0.4;
 
+/** round 22 (humanoid-anatomy): THE SLIM-FRAME FLOOR.
+ *
+ * Round 21's verdict: the dwarf ties the WoW grunt and the HUMAN is the
+ * outlier — "shoulder span reads about 1.1x the pelvis and the arm is one
+ * constant-diameter tube". The cause is structural, not a tuning miss: every
+ * mass feature added since round 13 (shoulderOut, the taper-contrast term
+ * armBulkT, the deltoid growth, the waist pinch, the stance plant) is written
+ * as `max(0, bulk - 1)`, so a frame at bulk 1.0 receives EXACTLY ZERO of it.
+ * The dwarf reads because it carries frameMods (bulk 1.35-1.55, shoulder
+ * x1.22); the human got a scaled-down version of nothing.
+ *
+ * `bipedSlimT` is the mirror-image knob: 1 for every slim frame (bulk <= 1.15
+ * — human, elf, halfling, tiefling ...), 0 for every bulky one (bulk >= 1.25 —
+ * orc, dwarf, goliath, bulky), linear between. Bulky frames are therefore
+ * BIT-IDENTICAL to round 21 everywhere it is used, which is what protects the
+ * dwarf tie and the orc's praised shoulder mass.
+ *
+ * Shared by the driver (gaits.ts BipedDriver), the rest pose below, the loft
+ * (smoothBipedGeometry) and worn gear (parts/gearArmor.ts) — one formula, no
+ * mirrors to drift.
+ */
+export function bipedSlimT(frame: Frame): number {
+  return Math.min(1, Math.max(0, (1.25 - frame.bulk) / 0.1));
+}
+
+/** round 22 (humanoid-anatomy): outward push of the shoulder JOINT — the
+ * deltoid ball, the upper-arm root, and the pauldron that caps them.
+ *
+ * The bulky half (r * 0.22 per unit of bulk over 1) is round 13's, untouched.
+ * The slim half is new: a flat 0.5 baseR push that only slim frames collect,
+ * which is what finally separates the human's shoulder line from his hips. The
+ * hand anchor takes only HALF of it (see shoulderXAnchor), so the upper arm
+ * slants inward from a wide shoulder to a narrow wrist — the grunt's V, not a
+ * wider figure. */
+export function bipedShoulderOutM(frame: Frame): number {
+  const r = heightM(frame) * 0.105 * frame.bulk;
+  return r * 0.22 * Math.max(0, frame.bulk - 1) + r * 0.5 * bipedSlimT(frame);
+}
+
 /** round 6 (humanoid-anatomy): the drawn biped skull radius — ONE formula
  * shared by the driver (gaits.ts BipedDriver), the rest pose below, head-worn
  * gear (parts/gearArmor.ts), and the sculpted head mount (assembleEntity), so
@@ -218,7 +257,14 @@ export function bipedRestPose(frame: Frame): BipedRestPose {
   // SHORT frame multiplies it against a span that is huge relative to its leg
   // length and the feet land outside the pelvis. The floor tightens with bulk
   // (human 0.68, orc ≈0.60, dwarf ≈0.57). Mirror: BipedDriver constructor.
-  const stanceFloorK = 0.68 - 0.34 * Math.min(0.5, Math.max(0, frame.bulk - 1));
+  // round 22 (humanoid-anatomy): slim frames PULL THEIR FEET IN (0.68 → 0.58).
+  // The shoulder-derived stance is the trap that ate every previous attempt at
+  // the human's mass hierarchy: widening the shoulders also widens the stance
+  // that is derived from them, so the hip/leg span grows in lockstep and the
+  // ratio never moves. Decoupling the slim stance from the widened slim
+  // shoulder is half of the round-21 gap fix. Mirror: BipedDriver constructor.
+  const slimT = bipedSlimT(frame);
+  const stanceFloorK = 0.68 - 0.34 * Math.min(0.5, Math.max(0, frame.bulk - 1)) - 0.1 * slimT;
   const stanceHalf = Math.max(((frame.stanceWidthFt * FT_TO_M) / 2) * 1.12, shoulderVisualHalf * stanceFloorK) * 0.85;
 
   // rest heights (bob = 0)
@@ -248,7 +294,13 @@ export function bipedRestPose(frame: Frame): BipedRestPose {
   // round 14 (humanoid-anatomy): floor 0.26, slope 0.38 — the orc head still
   // sat directly on the chest; a touch more lift gives the widened traps
   // wedge vertical run to read as a slope. Mirror: BipedDriver.
-  const neckLift = Math.min(0.55, Math.max(0.26, 0.46 - 0.38 * Math.max(0, frame.bulk - 1)));
+  // round 21 (humanoid-anatomy): slim frames SHORTEN the neck (0.46 → 0.36
+  // lift) — round 20: "a long column neck". Mirror: BipedDriver.advance.
+  // round 23 (humanoid-anatomy): the hunch no longer eats the neck — see the
+  // full diagnosis on the mirror in gaits.ts (BipedDriver.advance). Visible
+  // neck was 0.05 skullR on the orc against 0.35 on the human.
+  const hunchForNeck = frame.hunch ?? 0;
+  const neckLift = Math.min(0.62, Math.max(0.26, 0.36 - 0.28 * Math.max(0, frame.bulk - 1)) + 0.35 * hunchForNeck);
   // round 18 (humanoid-anatomy): FORWARD HUNCH — per-species idle posture
   // (speciesProfiles.hunch → Frame.hunch; the orc's trapezius-dominant lean —
   // round 17: ours "stands bolt upright"). Chest top, shoulders, wrists, and
@@ -265,10 +317,18 @@ export function bipedRestPose(frame: Frame): BipedRestPose {
 
   // round 13 (humanoid-anatomy): bulk-driven outward arm push — mirror of
   // BipedDriver advance()/buildBody shoulderOut.
-  const shoulderOut = r * 0.22 * Math.max(0, frame.bulk - 1);
+  // round 22 (humanoid-anatomy): the push now carries a SLIM FLOOR as well —
+  // see bipedShoulderOutM. Bulky frames get exactly the round-13 number.
+  const shoulderOut = bipedShoulderOutM(frame);
   // rest hands (arm swing = 0): x uses the ANCHOR shoulder width (+0.35r),
-  // exactly as the driver's advance() does for hand anchors
-  const shoulderXAnchor = (frame.shoulderWidthFt * FT_TO_M) / 2 + r * 0.35 + shoulderOut;
+  // exactly as the driver's advance() does for hand anchors.
+  // round 22 (humanoid-anatomy): the hand takes only HALF the slim push, so a
+  // slim frame's upper arm slants inward from the widened shoulder joint to a
+  // wrist that stays near the hip — the taper the round-21 verdict demanded
+  // ("2:1 shoulder to wrist"), instead of a uniformly wider figure. Bulky
+  // frames have no slim push, so this is a no-op for them.
+  const shoulderXAnchor = (frame.shoulderWidthFt * FT_TO_M) / 2 + r * 0.35
+    + r * 0.22 * Math.max(0, frame.bulk - 1) + r * 0.34 * slimT;
   // round 17 (humanoid-anatomy): HANG the arm — the wrist drops to wherever
   // the idle chord equals 0.95 of full reach (2 × 0.4 armLen links), a ~145°
   // near-straight elbow instead of the old ~77° fold that parked the fist at
@@ -298,10 +358,17 @@ export function bipedRestPose(frame: Frame): BipedRestPose {
   // and kept one width down the arm. Shoulder grows, elbow/wrist shrink with
   // bulk; the human wrist narrows too (0.55 → 0.49, the "tube arms with no
   // forearm-to-wrist taper" read). Mirror: BipedDriver.buildBody arm loop.
+  // round 22 (humanoid-anatomy): SLIM FRAMES GET THE SAME TREATMENT. armBulkT
+  // is 0 at bulk 1, so every station above was one armR wide on the human —
+  // literally the round-21 verdict's "one constant-diameter tube from deltoid
+  // to wrist". The slim term widens the shoulder and tightens the wrist by the
+  // same amounts the bulky term does, which puts the human's shoulder:wrist at
+  // ≈4:1 on the segment and its deltoid at ≈2× the forearm — the grunt ratio
+  // the dwarf already hits. Mirror: BipedDriver.buildBody arm loop.
   const armBulkT = Math.min(0.6, Math.max(0, frame.bulk - 1));
-  const shoulderR = armR * (1.48 + 0.5 * armBulkT);
-  const elbowR = armR * (0.68 - 0.12 * armBulkT);
-  const wristR = armR * (0.49 - 0.06 * armBulkT);
+  const shoulderR = armR * (1.48 + 0.5 * armBulkT + 0.42 * slimT);
+  const elbowR = armR * (0.68 - 0.12 * armBulkT - 0.06 * slimT);
+  const wristR = armR * (0.49 - 0.06 * armBulkT - 0.04 * slimT);
   // round 15 (humanoid-anatomy): FIST SCALE — the round-14 verdict's "plain
   // spheres" were hands at 0.38–0.44 of skull width; the references block
   // fists at ~0.6–0.7. The fist half-width now carries a skull-derived floor
@@ -334,7 +401,11 @@ export function bipedRestPose(frame: Frame): BipedRestPose {
   // stations) has somewhere to rise from and fall to. Front outline now runs
   // quad mass → pinched knee → calf swell → ankle → boot. Mirror:
   // BipedDriver.buildBody leg radii.
-  const kneeR = Math.max(legR * 0.52, thighR * 0.4);
+  // round 21 (humanoid-anatomy): knee pinches again (0.52 → 0.46 legR, root
+  // fraction 0.4 → 0.35) — round 20: "thigh and shin are close to the same
+  // width ... reference thighs taper hard into the knee". Mirror:
+  // BipedDriver.buildBody leg radii.
+  const kneeR = Math.max(legR * 0.46, thighR * 0.35);
   // round 19 (humanoid-anatomy): ankle 0.36 → 0.44 legR — Remy's live
   // eyeball: "pinched ankles" snapping into the boot lump; the calf bell
   // (smoothBipedGeometry .shin stations) now lands on a real ankle. Mirror:
@@ -359,7 +430,11 @@ export function bipedRestPose(frame: Frame): BipedRestPose {
   segments.push({ id: 'torso.pelvis', bone: 'pelvis', a: [0, pelvisY - r * 0.2, 0], b: [0, beltY, 0.007], r0: r * 0.9, r1: r * waistK });
   // round 18 (humanoid-anatomy): the chest TOP carries the hunch forward —
   // the whole spine above the belt leans as one line. Mirror: BipedDriver.
-  segments.push({ id: 'torso.chest', bone: 'chest', a: [0, beltY, 0.007], b: [0, chestTopY, 0.02 + hunchZ], r0: r * waistK, r1: r * 1.12 });
+  // round 22 (humanoid-anatomy): slim frames widen the UPPER CHEST (1.12 →
+  // 1.20 r). The round-21 verdict asked for "deltoid/upper-chest volume" on
+  // the human specifically; the waist pinch is untouched, so what grows is the
+  // ribcage-over-waist V and nothing else. Mirror: BipedDriver.buildBody.
+  segments.push({ id: 'torso.chest', bone: 'chest', a: [0, beltY, 0.007], b: [0, chestTopY, 0.02 + hunchZ], r0: r * waistK, r1: r * (1.12 + 0.08 * slimT) });
   // round 3 (humanoid-anatomy): the neck roots EXACTLY at the chest top (no
   // loft step) and buries its tip deep inside the skull (headY - hr * 0.35).
   // round 4 (humanoid-anatomy): tip radius climbs with bulk (r * 0.55, floor
@@ -387,7 +462,9 @@ export function bipedRestPose(frame: Frame): BipedRestPose {
   const neckTipR = Math.min(neckThickR, skullR * 0.42);
   if (neckThickR >= skullR * 0.55) {
     const trapsBury = Math.max(0.47, 0.95 - 1.2 * Math.max(0, frame.bulk - 1));
-    const trapsR1 = Math.min(0.82, 0.54 + 0.55 * Math.max(0, frame.bulk - 1));
+    // round 21 (humanoid-anatomy): the slim trapezius narrows (0.54 → 0.46).
+    // Mirror: BipedDriver.buildBody.
+    const trapsR1 = Math.min(0.82, 0.46 + 0.8 * Math.max(0, frame.bulk - 1));
     // round 14 (humanoid-anatomy): traps root 0.88 r → 1.04 r. The round-9
     // wedge never READ because its root sat INSIDE the chest silhouette
     // (chest top is 1.12 r wide here) — the slope only exists where it owns
@@ -437,7 +514,9 @@ export function bipedRestPose(frame: Frame): BipedRestPose {
     // round 20 (humanoid-anatomy): the deltoid grows with the same bulk term
     // as shoulderR — the boulder shoulder the WoW grunt leads with. Mirror:
     // BipedDriver.buildBody deltoid ball.
-    balls.push({ id: `deltoid${side}`, bone: `upperArm${side}` as BipedBoneName, center: [shoulder.x, shoulder.y, shoulder.z], r: armR * (1.7 + 0.5 * armBulkT) });
+    // round 22 (humanoid-anatomy): + the slim floor (see bipedSlimT) — the
+    // human's deltoid ball was the round-17 number with zero bulk bonus.
+    balls.push({ id: `deltoid${side}`, bone: `upperArm${side}` as BipedBoneName, center: [shoulder.x, shoulder.y, shoulder.z], r: armR * (1.7 + 0.5 * armBulkT + 0.5 * slimT) });
     segments.push({
       id: `arm${side}.upper`,
       bone: `upperArm${side}` as BipedBoneName,
@@ -530,8 +609,31 @@ export function bipedRestPose(frame: Frame): BipedRestPose {
   // narrowing moved into stanceHalf), exact x-mirrored knee bend vectors with
   // a small outward lean (0.1), and heel-to-toe wedge feet as segments —
   // mirror of BipedDriver.buildBody leg loop
-  const heelR = legR * 0.62;
-  const toeR = legR * 0.5;
+  // round 21 (humanoid-anatomy): THE BOOT — see smoothBipedGeometry
+  // footStations for the full diagnosis. The loft radius on a +Z chain is the
+  // foot's X HALF-WIDTH, so it now carries ≈1.8× the ankle (the round-20 gap:
+  // "zero width gain past the ankle"), the height is solved per station from
+  // the heel/toe line so the sole stays flat, and each toe SPLAYS outward so
+  // the foot's length profiles to the front camera instead of pointing
+  // straight at it. Mirror: BipedDriver.buildBody leg loop.
+  // round 22 (humanoid-anatomy): the round-21 boot landed on the DWARF ("boots
+  // that read as FEET in the front panel") and missed the human ("small
+  // rounded nubs barely wider than the ankle with no toe splay"). The reason is
+  // the same slim-frame blind spot: the boot's width floor runs off ankleR,
+  // and the slim ankle is the narrowest of the three subjects, so the same
+  // multiplier bought the human the least width. Slim frames now carry their
+  // own wider floor and a bigger toe splay. Bulky frames are unchanged.
+  const footHalfW = Math.max(ankleR * (1.78 + 0.5 * slimT), legR * (0.8 + 0.14 * slimT));
+  const heelBack = legR * 0.9;
+  const toeFwd = legR * 2.1;
+  const heelH = legR * 0.62;
+  const toeH = legR * 0.34;
+  // round 23 (humanoid-anatomy): the toes SPLAY harder. Round 22 read "no
+  // left/right difference" on every boot, and a mirrored toe-out is the only
+  // thing that can produce one from a front camera — two feet that both point
+  // straight at the lens are the same shape. The bulky base was 0.5 legR (about
+  // 6° on a 2.1-legR foot), which reads as manufacturing tolerance, not stance.
+  const toeOutX = legR * (0.85 + 0.1 * slimT);
   for (const sgn of [-1, 1] as const) {
     const side = sgn < 0 ? 'L' : 'R';
     const foot: [number, number, number] = [sgn * stanceHalf, 0, 0.01];
@@ -550,21 +652,28 @@ export function bipedRestPose(frame: Frame): BipedRestPose {
       r0: thighR,
       r1: kneeR,
     });
+    // round 21 (humanoid-anatomy): the drawn shin STOPS at the ankle instead
+    // of running to the floor. Round 20 read "the shin cylinder runs straight
+    // to the ground and stops" — literally true: the shin tip sat at y 0, its
+    // end cap coplanar with the sole. It now ends inside the boot shaft (the
+    // heel form rises to 2× heelH), which is what turns the ankle into a
+    // visible forward BREAK. leg.pos is untouched, so IK and foot planting are
+    // unchanged. Mirror: BipedDriver.buildBody leg loop.
     segments.push({
       id: `leg${side}.shin`,
       bone: `shin${side}` as BipedBoneName,
       a: [joint.x, joint.y, joint.z],
-      b: foot,
+      b: [foot[0], foot[1] + legR * 0.34, foot[2]],
       r0: kneeR,
       r1: ankleR,
     });
     segments.push({
       id: `foot${side}`,
       bone: `foot${side}` as BipedBoneName,
-      a: [foot[0], foot[1] + heelR, foot[2] - legR * 0.7],
-      b: [foot[0], foot[1] + toeR, foot[2] + legR * 1.75],
-      r0: heelR,
-      r1: toeR,
+      a: [foot[0], foot[1] + heelH, foot[2] - heelBack],
+      b: [foot[0] + sgn * toeOutX, foot[1] + toeH, foot[2] + toeFwd],
+      r0: footHalfW,
+      r1: footHalfW * 0.72,
     });
   }
 

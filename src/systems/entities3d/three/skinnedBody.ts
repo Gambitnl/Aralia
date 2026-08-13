@@ -60,6 +60,12 @@ import type { Frame, SegmentSink } from '../types';
 import type { PlanHeadSocket } from './gaits';
 import { buildBipedSkeleton, createBipedPoseSink } from './skeletonBuilder';
 import { buildPlanSkeleton, createPlanPoseSink } from './planSkeleton';
+import {
+  buildSpeciesSkeleton,
+  createSpeciesPoseSink,
+  type SpeciesGait,
+  type SpeciesRestPose,
+} from './speciesSkeleton';
 import { buildSmoothBipedGeometry } from './smoothBipedGeometry';
 import { outlineMaterial, toonMaterial } from './toon';
 
@@ -347,6 +353,122 @@ export function buildPlanBindGeometry(
     pieces.push({ geometry: sphere, bone });
   }
   return mergePieces(pieces);
+}
+
+/**
+ * Bind-pose geometry for a species gait (slice 5): one rigid cylinder per rest
+ * segment plus its two joint spheres, one sphere per rest ball — every vertex
+ * owned 100% by one bone. Shapes and tessellation are the segment renderer's
+ * exactly (CylinderGeometry(r1, r0, len, 10, 1); joint SphereGeometry(r·0.98,
+ * 8, 6); ball SphereGeometry(r, 12, 9)), so the skinned body reads as the same
+ * creature the segment body draws. Exported for the parity tests.
+ */
+export function buildSpeciesBindGeometry(
+  restPose: SpeciesRestPose,
+  index: ReadonlyMap<string, number>,
+): BufferGeometry {
+  const pieces: Piece[] = [];
+  const quat = new Quaternion();
+  const dir = new Vector3();
+  const mid = new Vector3();
+  const matrix = new Matrix4();
+  const one = new Vector3(1, 1, 1);
+
+  for (const seg of restPose.segs) {
+    const bone = index.get(seg.id);
+    if (bone === undefined) throw new Error(`skinnedBody: no bone for species rest segment "${seg.id}"`);
+    dir.set(seg.b[0] - seg.a[0], seg.b[1] - seg.a[1], seg.b[2] - seg.a[2]);
+    const len = Math.max(dir.length(), 1e-4);
+    mid.set((seg.a[0] + seg.b[0]) / 2, (seg.a[1] + seg.b[1]) / 2, (seg.a[2] + seg.b[2]) / 2);
+    quat.setFromUnitVectors(UP, dir.normalize());
+    matrix.compose(mid, quat, one);
+
+    const cylinder = new CylinderGeometry(seg.r1, seg.r0, len, 10, 1);
+    cylinder.applyMatrix4(matrix);
+    pieces.push({ geometry: cylinder, bone });
+
+    for (const [end, r] of [
+      [seg.a, seg.r0],
+      [seg.b, seg.r1],
+    ] as const) {
+      const joint = new SphereGeometry(r * 0.98, 8, 6);
+      joint.translate(end[0], end[1], end[2]);
+      pieces.push({ geometry: joint, bone });
+    }
+  }
+
+  // Species heads are BALL heads (no sculpted skull mounts on these gaits), so
+  // unlike the biped every ball is baked into the skinned body.
+  for (const ball of restPose.balls) {
+    const bone = index.get(ball.id);
+    if (bone === undefined) throw new Error(`skinnedBody: no bone for species rest ball "${ball.id}"`);
+    const sphere = new SphereGeometry(ball.r, 12, 9);
+    sphere.translate(ball.center[0], ball.center[1], ball.center[2]);
+    pieces.push({ geometry: sphere, bone });
+  }
+  return mergePieces(pieces);
+}
+
+/**
+ * Slice 5: a rigid-weight skinned species body (quad, hexapod, hopper, flyer,
+ * float). One bind-pose BufferGeometry, one fill SkinnedMesh + one inverse-hull
+ * ink shell SkinnedMesh sharing it — 2 draw calls, matching slice 1. The
+ * gait driver's own emissions drive the bones through the species pose sink.
+ * SMOOTH joint weights stay deferred here, exactly as for plan creatures.
+ */
+export function createSkinnedSpecies(gait: SpeciesGait, frame: Frame, options: SkinnedBodyOptions): SkinnedBody {
+  if (options.weights === 'smooth') {
+    // Deferred explicitly (skeleton pivot slice 5) — no silent fallback.
+    throw new Error("skinnedBody: species SMOOTH joint weights are deferred (slice 5) — use 'rigid'");
+  }
+  const built = buildSpeciesSkeleton(gait, frame);
+  const geometry = buildSpeciesBindGeometry(built.restPose, built.index);
+
+  // Skeleton inverses must be captured while the bones hold their bind pose
+  // in entity-local space, before anything reparents or animates them.
+  built.root.updateMatrixWorld(true);
+  const skeleton = new Skeleton(built.bones);
+
+  const fillMaterial = toonMaterial(options.colorHex);
+  if (options.opacity !== undefined && options.opacity < 1) {
+    fillMaterial.transparent = true;
+    fillMaterial.opacity = options.opacity;
+    fillMaterial.depthWrite = false; // translucent bodies must not self-occlude harshly
+  }
+  const inkMaterial = outlineMaterial(options.colorHex, options.outlineThickness);
+
+  const root = new Group();
+  root.name = 'skinnedBody';
+
+  const fill = new SkinnedMesh(geometry, fillMaterial);
+  fill.name = 'skinnedFill';
+  fill.frustumCulled = false;
+  fill.add(built.root); // bones live under the fill mesh (standard three setup)
+  fill.bind(skeleton, IDENTITY);
+
+  const shell = new SkinnedMesh(geometry, inkMaterial);
+  shell.name = 'skinnedOutline';
+  shell.frustumCulled = false;
+  shell.bind(skeleton, IDENTITY); // shares skeleton + geometry; no second bone tree
+
+  root.add(fill, shell);
+
+  const pose = createSpeciesPoseSink(built);
+
+  return {
+    root,
+    skinnedMesh: fill,
+    sink: pose.sink,
+    boneNamed: boneLookup(built.index, built.bones),
+    finishFrame: pose.finishFrame,
+    triangles: () => (geometry.index!.count / 3) * 2,
+    dispose: () => {
+      geometry.dispose();
+      fillMaterial.dispose();
+      inkMaterial.dispose();
+      skeleton.dispose(); // frees the bone texture once a renderer has made one
+    },
+  };
 }
 
 export interface PlanSkinnedBodyOptions extends SkinnedBodyOptions {

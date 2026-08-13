@@ -60,6 +60,43 @@ interface Placed {
   rot: number;
   scale: number;
   variant: number;
+  /**
+   * SURFACE FIT, baked by the prop engine's stage-2 gate (propSchema
+   * `PropInstance.surface`). `tilt` is the lean toward the ground normal in
+   * radians and `tiltAxis` is the horizontal axis it turns about. Zero for a
+   * prop placed before a probe existed, which draws exactly as it used to.
+   */
+  tilt: number;
+  tiltAxis: [number, number];
+}
+
+/**
+ * Reusable scratch quaternions for the tilt composition. A tilted prop turns
+ * about a HORIZONTAL axis, applied OUTSIDE the yaw (premultiply) so the lean
+ * stays in world space and the prop leans downhill instead of sideways. Same
+ * order as vegetationInstanceMatrices.ts, which is the working example.
+ */
+function composeTiltedRotation(
+  out: THREE.Quaternion,
+  up: THREE.Vector3,
+  scratchAxis: THREE.Vector3,
+  scratchTilt: THREE.Quaternion,
+  it: Placed,
+): THREE.Quaternion {
+  out.setFromAxisAngle(up, it.rot);
+  if (it.tilt !== 0) {
+    scratchAxis.set(it.tiltAxis[0], 0, it.tiltAxis[1]);
+    if (scratchAxis.lengthSq() > 1e-12) {
+      scratchAxis.normalize();
+      // NEGATIVE angle. `fitToSurface` returns the axis `[-nz, nx]/|n_xz|`, and
+      // a right-hand turn about that axis by +tiltRad lifts the DOWNHILL edge —
+      // it leans the prop off the slope instead of onto it. See the sign note in
+      // bridge/propPlacementGate.ts; the placement gate scores the same lean.
+      scratchTilt.setFromAxisAngle(scratchAxis, -it.tilt);
+      out.premultiply(scratchTilt);
+    }
+  }
+  return out;
 }
 
 /**
@@ -165,7 +202,14 @@ function placeAll(
 ): Map<string, Placed[]> {
   const byDef = new Map<string, Placed[]>();
   for (const p of props) {
-    const y = groundSurfaceY(ground, p.xM, p.zM);
+    // The surface fit is authoritative when present: the gate read the ground
+    // at this exact point, sank the prop into the slope, and the placement loop
+    // then seated it. `groundYM` is already METERS (propSchema), so no unit
+    // conversion belongs here. Re-sampling the heightfield instead would undo
+    // both corrections and put the prop back on the surface it floats over.
+    const y = p.surface
+      ? p.surface.groundYM - p.surface.sinkM
+      : groundSurfaceY(ground, p.xM, p.zM);
     // Route the emitted def to its render form (expanded defs reuse a bespoke
     // form; see RENDER_VARIANT). Referee data is unaffected — that lives in the
     // catalog and is imprinted separately at combat extraction.
@@ -186,6 +230,8 @@ function placeAll(
       rot: p.rotationRad,
       scale,
       variant: p.variation.variant,
+      tilt: p.surface?.tiltRad ?? 0,
+      tiltAxis: p.surface?.tiltAxis ?? [1, 0],
     });
   }
   return byDef;
@@ -247,14 +293,19 @@ const InstancedForm: React.FC<InstancedFormProps> = ({
     const m = new THREE.Matrix4();
     const q = new THREE.Quaternion();
     const up = new THREE.Vector3(0, 1, 0);
+    const tiltAxis = new THREE.Vector3();
+    const tiltQuat = new THREE.Quaternion();
     const s = new THREE.Vector3();
     const pos = new THREE.Vector3();
     const baseC = new THREE.Color(color);
     const c = new THREE.Color();
     items.forEach((it, i) => {
-      q.setFromAxisAngle(up, it.rot);
+      composeTiltedRotation(q, up, tiltAxis, tiltQuat, it);
       s.set(base[0] * it.scale, base[1] * it.scale, base[2] * it.scale);
-      pos.set(it.x, it.y + base[1] * it.scale * yLift, it.z);
+      // A leaning form raises its center by less than its upright height, so
+      // the lift follows cos(tilt) — the same correction the vegetation
+      // matrices apply. Without it a tilted rock lifts off its own slope.
+      pos.set(it.x, it.y + base[1] * it.scale * yLift * Math.cos(it.tilt), it.z);
       m.compose(pos, q, s);
       mesh.setMatrixAt(i, m);
       if (colorJitter) mesh.setColorAt(i, jitterColor(baseC, it, colorJitter, c));
@@ -412,6 +463,8 @@ const COMPOSED_PROP_IDS = [
 function buildComposedPrimitiveBatches(byDef: Map<string, Placed[]>): ComposedPrimitiveBatch[] {
   const batches = new Map<string, ComposedPrimitiveBatch>();
   const up = new THREE.Vector3(0, 1, 0);
+  const tiltAxis = new THREE.Vector3();
+  const tiltQuat = new THREE.Quaternion();
   const parentPosition = new THREE.Vector3();
   const parentRotation = new THREE.Quaternion();
   const parentScale = new THREE.Vector3();
@@ -424,7 +477,7 @@ function buildComposedPrimitiveBatches(byDef: Map<string, Placed[]>): ComposedPr
   COMPOSED_PROP_IDS.forEach((defId) => {
     (byDef.get(defId) ?? []).forEach((placed) => {
       parentPosition.set(placed.x, placed.y, placed.z);
-      parentRotation.setFromAxisAngle(up, placed.rot);
+      composeTiltedRotation(parentRotation, up, tiltAxis, tiltQuat, placed);
       parentScale.setScalar(placed.scale);
       parentMatrix.compose(parentPosition, parentRotation, parentScale);
 

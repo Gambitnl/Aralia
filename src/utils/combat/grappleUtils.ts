@@ -1,10 +1,10 @@
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 11/08/2026, 20:24:20
- * Dependents: components/DesignPreview/steps/PreviewCombatScenarios.tsx, components/DesignPreview/steps/scenarioControls/grappleEscapeScenarioControls.ts, utils/combat/index.ts
+ * Last Sync: 12/08/2026, 21:31:27
+ * Dependents: components/BattleMap/CombatCharacterInspector.tsx, components/DesignPreview/steps/PreviewCombatScenarios.tsx, components/DesignPreview/steps/scenarioControls/grappleEscapeScenarioControls.ts, utils/combat/index.ts
  * Imports: 6 files
  *
  * MULTI-AGENT SAFETY:
@@ -52,6 +52,13 @@ import { applyRuntimeStatusCondition } from './statusConditionUtils';
 
 export const GRAPPLED_CONDITION_NAME = 'Grappled';
 export const NORMAL_GRAPPLE_REACH_TILES = 1;
+export const GRAPPLED_RULE_SUMMARY = [
+  'Speed 0 and cannot increase.',
+  'Attacks against anyone other than the grappler have disadvantage.',
+  'The grappler can drag or carry the target at 1 extra foot of movement per foot, unless the target is Tiny or at least two sizes smaller.',
+  'Ends on escape, voluntary release, grappler incapacity, or separation beyond the grapple reach.',
+  'Grappled does not also apply Restrained.',
+].join(' ');
 
 export type GrappleEscapeAbility = 'Strength' | 'Dexterity';
 export type GrappleEscapeSkill = 'Athletics' | 'Acrobatics';
@@ -117,14 +124,17 @@ function createGrappledStatus(
   target: CombatCharacter,
   application: GrappleApplication,
 ): StatusEffect {
-  const duration = application.durationRounds ?? 10;
+  // Ordinary grapples have no round countdown. Infinity keeps the legacy
+  // numeric status mirror alive until a real release rule removes it; callers
+  // can still provide a round limit for a special effect that explicitly has one.
+  const duration = application.durationRounds ?? Number.POSITIVE_INFINITY;
   const source = application.source ?? 'Grapple';
 
   return {
     id: `grapple-${application.grapplerId}-${target.id}`,
     name: GRAPPLED_CONDITION_NAME,
     type: 'debuff',
-    description: 'Speed 0; escape with Strength (Athletics) or Dexterity (Acrobatics).',
+    description: GRAPPLED_RULE_SUMMARY,
     duration,
     source,
     sourceCasterId: application.grapplerId,
@@ -143,12 +153,16 @@ function createGrappledStatus(
 function createGrappledCondition(
   application: GrappleApplication,
 ): ActiveCondition {
-  const duration = application.durationRounds ?? 10;
   const source = application.source ?? 'Grapple';
 
   return {
     name: GRAPPLED_CONDITION_NAME,
-    duration: { type: 'rounds', value: duration },
+    // The rules-facing mirror uses its native permanent shape for an ordinary
+    // maintained hold. "Permanent" here means no timer, not unbreakable: escape,
+    // release, incapacity, and reach reconciliation remain authoritative.
+    duration: application.durationRounds === undefined
+      ? { type: 'permanent' }
+      : { type: 'rounds', value: application.durationRounds },
     appliedTurn: 0,
     source,
     sourceCasterId: application.grapplerId,

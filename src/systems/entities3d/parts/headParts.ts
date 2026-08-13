@@ -248,10 +248,37 @@ const beardMesh: PartDef = {
     // verdict's "flat cone sticker". The wedge's base ring is now buried up
     // into the chin/jaw underside (skull local ≈ (0, −0.40, 0.40), inside
     // the ≈0.52 chin front) and the point sweeps down-forward off the jaw.
-    const wedge = new Mesh(new ConeGeometry(r * 0.55, len, 7), ctx.material(hex));
-    wedge.position.set(0, -len * 0.38, r * 0.12);
+    // round 21 (humanoid-anatomy): the beard BREAKS INTO PLANES. Round 20:
+    // "one solid black wedge that fuses into a dark chest triangle with no
+    // strand or plane breaks". One cone at one value has nothing for the toon
+    // ramp to quantize, so it renders as a silhouette hole. Three overlapping
+    // strand masses now: a long centre fork flanked by two shorter side
+    // planes, each stepped in value, each cocked a few degrees so its edge
+    // profiles to at least one camera (the camera-aimed-feature rule), and
+    // each bulging past its neighbour's radius so the outline scallops.
+    const shade = (k: number): string => {
+      const n = parseInt(hex.slice(1), 16);
+      const ch = (v: number): number => Math.max(0, Math.min(255, Math.round(v * k)));
+      const rgb = (ch((n >> 16) & 255) << 16) | (ch((n >> 8) & 255) << 8) | ch(n & 255);
+      return `#${rgb.toString(16).padStart(6, '0')}`;
+    };
+    const wedge = new Mesh(new ConeGeometry(r * 0.5, len, 7), ctx.material(shade(1.35)));
+    wedge.position.set(0, -len * 0.42, r * 0.16);
     wedge.rotation.x = Math.PI - 0.25; // point down, swept slightly forward
     group.add(wedge);
+    for (const sgn of [-1, 1]) {
+      // side planes: darker, shorter, rolled outward so each one owns an edge
+      const strand = new Mesh(new ConeGeometry(r * 0.34, len * 0.78, 6), ctx.material(shade(sgn < 0 ? 0.72 : 0.92)));
+      strand.position.set(sgn * r * 0.3, -len * 0.3, r * 0.04);
+      strand.rotation.set(Math.PI - 0.18, 0, sgn * -0.3);
+      group.add(strand);
+    }
+    // the FORK — a lighter tip mass past the centre wedge's point, so the
+    // beard ends in a braided step instead of dissolving into the chest
+    const forkTip = new Mesh(new ConeGeometry(r * 0.26, len * 0.5, 6), ctx.material(shade(1.6)));
+    forkTip.position.set(0, -len * 0.86, r * 0.24);
+    forkTip.rotation.x = Math.PI - 0.34;
+    group.add(forkTip);
     // round 11 (humanoid-anatomy): mustache rides ABOVE the mouth cut. The
     // round-10 lobes sat at the mouth line and would swallow the new dark
     // mouth bar (assembleEntity mouthLine at skull local y ≈ −0.235); the

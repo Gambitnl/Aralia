@@ -53,7 +53,17 @@ function fistRadiusM(frame: Frame): number {
  * carries (smoothBipedGeometry FINGER_TINT / THUMB_TINT, the round-19
  * hue+value recipe that finally made the thumb read). */
 const WRAP_FINGER: readonly [number, number, number] = [0.82, 0.72, 0.62];
-const WRAP_THUMB: readonly [number, number, number] = [0.68, 0.55, 0.46];
+/** round 23 (humanoid-anatomy): the round-19 thumb step was [0.68,0.55,0.46] —
+ * a hard r>g>b multiplier, i.e. a SATURATING one over a skin tone that is
+ * already r>g>b. On the dark orc and dwarf skins that reads as a warm shadow,
+ * which is why it survived four rounds; over the human's pale '#ffdbac' it
+ * multiplies out to a vivid orange and the round-22 verdict named it exactly
+ * ("the human's thumb reading as an orange proboscis"). The step is now
+ * near-neutral: it drops the same amount of VALUE without pushing the hue,
+ * so it lands one toon band down on every skin instead of one hue over. The
+ * thumb's separation from the fingers is carried by the near-black crease
+ * rings and its own hull rim, not by being a different colour. */
+const WRAP_THUMB: readonly [number, number, number] = [0.72, 0.67, 0.6];
 const WRAP_CREASE: readonly [number, number, number] = [0.3, 0.25, 0.22];
 
 /** round 9 (humanoid-anatomy): GRIP READ — a band at the weapon origin where

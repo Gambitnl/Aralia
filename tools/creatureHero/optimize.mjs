@@ -88,5 +88,12 @@ await io.write(heroPath, best);
 const record = readHero(baseDir, entryId) ?? { entryId, stages: {}, status: 'generated' };
 record.stages.hero = { at: new Date().toISOString() };
 record.triangles = { master: masterTris, hero: bestTris };
-writeHero(baseDir, record);
+// Hero Lab keeps the target creature id inside a job record whose directory is
+// the immutable job id. Preserve that provenance, but always write optimizer
+// results beside the input artifacts instead of redirecting by record.entryId.
+if (record.entryId === entryId) {
+  writeHero(baseDir, record);
+} else {
+  writeFileSync(path.join(dir, 'hero.json'), JSON.stringify(record, null, 2) + '\n');
+}
 console.log(`hero.glb written: ${bestTris.toLocaleString()} triangles (budget ${PLAN_TRIANGLE_BUDGET.toLocaleString()})`);

@@ -32,7 +32,7 @@ import { ANCHORS, FT_TO_M, headRadiusM, heightM } from '../types';
 import { smooth, solveKnee } from './ik';
 import { solveFabrikPoints } from './fabrik';
 import { BallSocketConstraint, type JointConstraint } from './jointConstraints';
-import { ARM_LINK_K, bipedSkullRadiusM } from './skeletonBuilder';
+import { ARM_LINK_K, bipedShoulderOutM, bipedSkullRadiusM, bipedSlimT } from './skeletonBuilder';
 import { TreadmillLeg } from './legs';
 import { spineRadiusAt } from '../textPlan/spineProfile';
 
@@ -102,6 +102,12 @@ function makePose(): Pose {
 // Body v2: bones go straight to the sink as segments — no interpolated balls.
 
 const EULER = new Euler();
+/** round 25 (creature-anatomy): fore/hind mass-event stations (PlanDriver
+ * quadruped withers, brisket, haunches). Two scratch vectors, never one — the
+ * shoulder and hip points are live at the same time. */
+const MASS_FORE = new Vector3();
+const MASS_REAR = new Vector3();
+const MASS_MID = new Vector3();
 const V_HIP = new Vector3();
 const V_KNEE = new Vector3();
 const V_BEND = new Vector3();
@@ -253,7 +259,11 @@ class BipedDriver extends BaseDriver {
     // outside the pelvis. The floor now tightens with bulk (human 0.68, orc
     // ≈0.60, dwarf ≈0.58) — the references' planted stance, feet under the hip
     // sockets. Mirror: skeletonBuilder.bipedRestPose stanceHalf.
-    const stanceFloorK = 0.68 - 0.34 * Math.min(0.5, Math.max(0, frame.bulk - 1));
+    // round 22 (humanoid-anatomy): slim frames pull their feet IN (0.68 →
+    // 0.58). Widening a slim shoulder also widens a shoulder-derived stance,
+    // which is why every earlier attempt at the human's shoulder-to-pelvis
+    // ratio cancelled itself out. Mirror: skeletonBuilder.bipedRestPose.
+    const stanceFloorK = 0.68 - 0.34 * Math.min(0.5, Math.max(0, frame.bulk - 1)) - 0.1 * bipedSlimT(frame);
     const stance = Math.max(((frame.stanceWidthFt * FT_TO_M) / 2) * 1.12, shoulderVisualHalf * stanceFloorK) * 0.85;
     this.legs = [
       new TreadmillLeg(-stance, 0.01, 0, { liftH: this.hM * 0.06 }),
@@ -323,20 +333,37 @@ class BipedDriver extends BaseDriver {
     // round 14 (humanoid-anatomy): floor 0.26, slope 0.38 — the orc head
     // still sat directly on the chest; the widened traps wedge needs the
     // vertical run. Mirror: bipedRestPose neckLift.
-    const neckLift = Math.min(0.55, Math.max(0.26, 0.46 - 0.38 * Math.max(0, this.frame.bulk - 1)));
+    // round 21 (humanoid-anatomy): slim frames SHORTEN the neck (0.46 → 0.36
+    // lift) — round 20 read the human head as sitting on "a long column neck"
+    // that slopes into a hood-like trapezius. Mirror: bipedRestPose neckLift.
     // round 18 (humanoid-anatomy): FORWARD HUNCH — per-species idle posture
     // (Frame.hunch, set from speciesProfiles; the orc's trapezius-dominant
     // lean — round 17: ours "stands bolt upright"). The head drops into the
     // traps and everything above the belt shifts forward (see buildBody).
     // Mirror: skeletonBuilder.bipedRestPose.
     const hunch = this.frame.hunch ?? 0;
+    // round 23 (humanoid-anatomy): THE HUNCH ATE THE ORC'S NECK. Visible neck
+    // is skullR·(neckLift − 0.35·hunch); solving the three subjects gives human
+    // 0.35 skullR, dwarf 0.26 and ORC 0.05 — the round-22 verdict's "there is
+    // no neck", and the reason four rounds of neck work never reached the orc:
+    // hunch is orc-only, it is subtracted from headY, and neckLift was already
+    // sitting on its 0.26 floor so nothing was left to give. The head-drop is
+    // now added back into the lift, so the hunch still leans the skull FORWARD
+    // into the traps (hunchZ, untouched) without deleting the gap it leans out
+    // of. Frames without a hunch are bit-identical. Mirror: bipedRestPose.
+    const neckLift = Math.min(0.62, Math.max(0.26, 0.36 - 0.28 * Math.max(0, this.frame.bulk - 1)) + 0.35 * hunch);
     const hunchZ = this.hM * 0.09 * hunch;
     this.headY = this.chestY + this.baseR * 0.35 + this.skullR * (0.59 + neckLift) - this.skullR * 0.35 * hunch;
     // round 13 (humanoid-anatomy): bulky frames push the whole arm chain
     // outward (shoulderOut) — the round-12 orc's left arm fused into the
     // widened torso in the top panel. Mirror: bipedRestPose shoulder terms.
-    const shoulderOut = this.baseR * 0.22 * Math.max(0, this.frame.bulk - 1);
-    const shoulderX = (this.frame.shoulderWidthFt * FT_TO_M) / 2 + this.baseR * 0.35 + shoulderOut;
+    // round 22 (humanoid-anatomy): the HAND anchor takes the bulky push plus
+    // only HALF the slim push (bipedShoulderOutM carries the full one for the
+    // shoulder joint), so a slim upper arm slants inward from a widened
+    // shoulder to a wrist that stays by the hip. Mirror: bipedRestPose
+    // shoulderXAnchor.
+    const shoulderX = (this.frame.shoulderWidthFt * FT_TO_M) / 2 + this.baseR * 0.35
+      + this.baseR * 0.22 * Math.max(0, this.frame.bulk - 1) + this.baseR * 0.34 * bipedSlimT(this.frame);
     // round 17 (humanoid-anatomy): HANG the arm. The old wrist anchor
     // (pelvisY + 0.015 hM) sat so high against the 0.52+0.52 links that the
     // IK folded every idle elbow to ~77° — the fist parked at belt height
@@ -411,7 +438,12 @@ class BipedDriver extends BaseDriver {
     const hunch = this.frame.hunch ?? 0;
     const hunchZ = this.hM * 0.09 * hunch;
     sink.seg('torso.pelvis', this.sway, this.pelvisY - r * 0.2, 0, this.sway * 0.6, beltY, 0.007, r * 0.9, r * waistK);
-    sink.seg('torso.chest', this.sway * 0.6, beltY, 0.007, 0, this.chestY + r * 0.35, 0.02 + hunchZ, r * waistK, r * 1.12);
+    // round 22 (humanoid-anatomy): slim frames widen the UPPER CHEST (1.12 →
+    // 1.20 r) — the round-21 verdict's "widen the human deltoid/upper-chest
+    // volume". Waist pinch untouched, so only the V grows. Mirror:
+    // skeletonBuilder.bipedRestPose torso.chest.
+    const slimT = bipedSlimT(this.frame);
+    sink.seg('torso.chest', this.sway * 0.6, beltY, 0.007, 0, this.chestY + r * 0.35, 0.02 + hunchZ, r * waistK, r * (1.12 + 0.08 * slimT));
     const headZ = this.skullR * 0.25 + hunchZ * 1.4;
     // round 3 (humanoid-anatomy): the neck roots EXACTLY at the chest top (no
     // loft step) and buries its tip deep inside the skull (headY - skullR * 0.35).
@@ -449,7 +481,10 @@ class BipedDriver extends BaseDriver {
     const neckTipR = Math.min(neckThickR, this.skullR * 0.42);
     if (neckThickR >= this.skullR * 0.55) {
       const trapsBury = Math.max(0.47, 0.95 - 1.2 * Math.max(0, this.frame.bulk - 1));
-      const trapsR1 = Math.min(0.82, 0.54 + 0.55 * Math.max(0, this.frame.bulk - 1));
+      // round 21 (humanoid-anatomy): the slim trapezius narrows (0.54 → 0.46) so
+      // the human neck stops reading as a hood; bulky frames keep the round-10
+      // wedge width. Mirror: bipedRestPose.
+      const trapsR1 = Math.min(0.82, 0.46 + 0.8 * Math.max(0, this.frame.bulk - 1));
       // round 14 (humanoid-anatomy): traps root 0.88 r → 1.04 r — proud of
       // the 1.12 r ribcage so the slope owns the outline. Mirror:
       // bipedRestPose torso.traps.
@@ -459,7 +494,10 @@ class BipedDriver extends BaseDriver {
     sink.ball('head', 0, this.headY, headZ, this.skullR);
     // round 13 (humanoid-anatomy): same bulk-driven outward push as advance()
     // — arm roots clear the widened bulky torso. Mirror: bipedRestPose.
-    const shoulderX = (this.frame.shoulderWidthFt * FT_TO_M) / 2 + r * 0.22 * Math.max(0, this.frame.bulk - 1);
+    // round 22 (humanoid-anatomy): the shoulder JOINT carries the full push,
+    // bulky term + slim floor (bipedShoulderOutM). Mirror: bipedRestPose
+    // shoulderXBody.
+    const shoulderX = (this.frame.shoulderWidthFt * FT_TO_M) / 2 + bipedShoulderOutM(this.frame);
     const armLen = this.frame.armLengthFt * FT_TO_M;
     const armR = Math.max(r * 0.3, armLen * 0.085);
     // round 2 (humanoid-anatomy): deltoid ball buries the arm root into the
@@ -489,10 +527,14 @@ class BipedDriver extends BaseDriver {
     // The shoulder now grows and the elbow/wrist shrink with bulk. The human
     // wrist narrows too (0.55 → 0.49) — round 19 also read "tube arms with no
     // forearm-to-wrist taper" on the human. Mirror: bipedRestPose arm loop.
+    // round 22 (humanoid-anatomy): the SLIM half of the same contrast term —
+    // armBulkT is 0 at bulk 1, so the human collected none of round 20's taper
+    // work ("one constant-diameter tube from deltoid to wrist"). Mirror:
+    // skeletonBuilder.bipedRestPose arm loop.
     const armBulkT = Math.min(0.6, Math.max(0, this.frame.bulk - 1));
-    const shoulderR = armR * (1.48 + 0.5 * armBulkT);
-    const elbowR = armR * (0.68 - 0.12 * armBulkT);
-    const wristR = armR * (0.49 - 0.06 * armBulkT);
+    const shoulderR = armR * (1.48 + 0.5 * armBulkT + 0.42 * slimT);
+    const elbowR = armR * (0.68 - 0.12 * armBulkT - 0.06 * slimT);
+    const wristR = armR * (0.49 - 0.06 * armBulkT - 0.04 * slimT);
     // round 15 (humanoid-anatomy): FIST SCALE — the round-14 "plain sphere"
     // hands were 0.38–0.44 of skull width; references block fists at
     // ~0.6–0.7. Fist half-width now carries a skull-derived floor (0.6
@@ -520,7 +562,8 @@ class BipedDriver extends BaseDriver {
       // round 20 (humanoid-anatomy): the deltoid ball grows with the same
       // bulk term as shoulderR — the boulder shoulder the WoW grunt leads
       // with. Mirror: bipedRestPose deltoid ball.
-      sink.ball('deltoid' + side, V_SH.x, V_SH.y, V_SH.z, armR * (1.7 + 0.5 * armBulkT));
+      // round 22 (humanoid-anatomy): + the slim floor. Mirror: bipedRestPose.
+      sink.ball('deltoid' + side, V_SH.x, V_SH.y, V_SH.z, armR * (1.7 + 0.5 * armBulkT + 0.5 * slimT));
       sink.seg('arm' + side + '.upper', V_SH.x, V_SH.y, V_SH.z, V_KNEE.x, V_KNEE.y, V_KNEE.z, shoulderR, elbowR);
       sink.seg('arm' + side + '.fore', V_KNEE.x, V_KNEE.y, V_KNEE.z, hand.x, hand.y, hand.z, elbowR, wristR);
       // fingers axis: forearm direction cocked forward (+z 0.32 ≈ 18°)
@@ -597,7 +640,10 @@ class BipedDriver extends BaseDriver {
     // 0.4 thighR) and the ankle narrows (0.36 legR) so the loft's calf swell
     // has room to rise and fall (smoothBipedGeometry .shin stations). Mirror:
     // bipedRestPose leg radii.
-    const kneeR = Math.max(legR * 0.52, thighR * 0.4);
+    // round 21 (humanoid-anatomy): knee pinches again (0.46 legR / 0.35
+    // thighR) — round 20: "thigh and shin are close to the same width".
+    // Mirror: bipedRestPose leg radii.
+    const kneeR = Math.max(legR * 0.46, thighR * 0.35);
     // round 19 (humanoid-anatomy): ankle 0.36 → 0.44 legR — Remy: "pinched
     // ankles". Mirror: bipedRestPose leg radii.
     const ankleR = legR * 0.44;
@@ -608,8 +654,21 @@ class BipedDriver extends BaseDriver {
     // small outward lean (0.1; round 1's 0.28 fought a knock-kneed crouch
     // that no longer exists — near-straight legs need the knee tracking
     // straight over the toes). Mirror: skeletonBuilder.bipedRestPose leg loop.
-    const heelR = legR * 0.62;
-    const toeR = legR * 0.5;
+    // round 21 (humanoid-anatomy): THE BOOT — width past the ankle, a splayed
+    // toe so the foot's length profiles to the front camera, and a shin that
+    // stops at the ankle instead of running to the floor. Full diagnosis in
+    // smoothBipedGeometry.footStations. Mirror: bipedRestPose leg loop.
+    // round 22 (humanoid-anatomy): slim frames get their own boot floor and a
+    // bigger toe splay — the round-21 boot landed on the dwarf and left the
+    // human "small rounded nubs". Mirror: bipedRestPose leg loop.
+    const footHalfW = Math.max(ankleR * (1.78 + 0.5 * slimT), legR * (0.8 + 0.14 * slimT));
+    const heelBack = legR * 0.9;
+    const toeFwd = legR * 2.1;
+    const heelH = legR * 0.62;
+    const toeH = legR * 0.34;
+    // round 23 (humanoid-anatomy): harder toe splay — the only front-camera
+    // channel for a left/right foot difference. Mirror: bipedRestPose.
+    const toeOutX = legR * (0.85 + 0.1 * slimT);
     for (const [i, leg] of this.legs.entries()) {
       const side = i === 0 ? 'L' : 'R';
       const sgn = i === 0 ? -1 : 1;
@@ -619,12 +678,12 @@ class BipedDriver extends BaseDriver {
       V_BEND.set(sgn * 0.02, 0, 1).normalize();
       solveKnee(V_HIP, V_HAND.copy(leg.pos), this.legLenM * 0.52, this.legLenM * 0.52, V_BEND, V_KNEE);
       sink.seg('leg' + side + '.thigh', V_HIP.x, V_HIP.y, V_HIP.z, V_KNEE.x, V_KNEE.y, V_KNEE.z, thighR, kneeR);
-      sink.seg('leg' + side + '.shin', V_KNEE.x, V_KNEE.y, V_KNEE.z, leg.pos.x, leg.pos.y, leg.pos.z, kneeR, ankleR);
+      sink.seg('leg' + side + '.shin', V_KNEE.x, V_KNEE.y, V_KNEE.z, leg.pos.x, leg.pos.y + legR * 0.34, leg.pos.z, kneeR, ankleR);
       sink.seg(
         'foot' + side,
-        leg.pos.x, leg.pos.y + heelR, leg.pos.z - legR * 0.7,
-        leg.pos.x, leg.pos.y + toeR, leg.pos.z + legR * 1.75,
-        heelR, toeR,
+        leg.pos.x, leg.pos.y + heelH, leg.pos.z - heelBack,
+        leg.pos.x + sgn * toeOutX, leg.pos.y + toeH, leg.pos.z + toeFwd,
+        footHalfW, footHalfW * 0.72,
       );
     }
   }
@@ -913,6 +972,16 @@ class PlanDriver extends BaseDriver {
     return (0.5 - attach) * this.spec.bodyLenM;
   }
 
+  /** Live spine point at a continuous station u (0 front → 1 rear), lerped
+   * between the two nearest joints. round 25 (creature-anatomy): the quad
+   * mass events sit at fractional stations that no segment count lands on. */
+  private spineAt(u: number, out: Vector3): Vector3 {
+    const n = this.spec.spine.segments;
+    const x = Math.min(n, Math.max(0, u * n));
+    const i = Math.min(n - 1, Math.floor(x));
+    return out.copy(this.spinePts[i]).lerp(this.spinePts[i + 1], x - i);
+  }
+
   /** Body center height for the current stance. */
   private bodyY(): number {
     const s = this.spec;
@@ -981,9 +1050,17 @@ class PlanDriver extends BaseDriver {
         // high while the rear body grounds and undulates — the round-1
         // verdict's "fallen leek" was this exact missing stance. Speed-aware:
         // coiled-tall at idle, a lower forward lunge in motion.
-        const REAR_U = 0.38; // spine fraction that leaves the ground
+        // round 25 (creature-anatomy): TALLER, and a real S. The round-24
+        // verdict: "the body lies flat on the grass as a bent noodle with no
+        // S-curve lift ... the Valheim serpent rears in a tall S". The rise
+        // was 0.26 bodyLen over the front 38% — one monotone arc, which is a
+        // J, not an S — and on a 26 ft body that is barely two body radii of
+        // height. Half the spine now leaves the ground, the rise is 0.42
+        // bodyLen, and the z bow below turns the climb into a genuine
+        // back-then-forward S in the side profile.
+        const REAR_U = 0.5; // spine fraction that leaves the ground
         const v = serp && u < REAR_U ? (REAR_U - u) / REAR_U : 0; // 1 at head
-        const riseM = serp ? s.bodyLenM * 0.26 * (1 - 0.45 * this.speedFactor) : 0;
+        const riseM = serp ? s.bodyLenM * 0.42 * (1 - 0.45 * this.speedFactor) : 0;
         const lift = riseM * Math.pow(v, 1.35);
         // slither is the star: amplitude keys off body LENGTH, idles softly,
         // and fades out along the raised neck (a rearing front holds steady).
@@ -1012,8 +1089,13 @@ class PlanDriver extends BaseDriver {
           // the raised arc spends length on height: pull its horizontal reach
           // inward, bow backward mid-rise then carry forward at the top — S
           const zBase = this.attachZ(REAR_U);
+          // round 25 (creature-anatomy): the back-bow deepens 0.08 → 0.34 of
+          // the rise. At 0.08 the column climbed dead straight and the whole
+          // profile read as one bent noodle; the bow is what makes the side
+          // view an S — the mid-rise leans BACK over the coil, then the neck
+          // carries the skull forward again at the top.
           z = zBase + (this.attachZ(u) - zBase) * (1 - v * 0.55) +
-            riseM * (v * 0.3 - Math.sin(v * Math.PI) * 0.08);
+            riseM * (v * 0.38 - Math.sin(v * Math.PI) * 0.34);
         }
         this.spinePts[i].set(wave, yStation + arch + breath * Math.sin(u * Math.PI) + lift, z);
       }
@@ -1360,15 +1442,20 @@ class PlanDriver extends BaseDriver {
         // a floating orb or an ooze mound IS the head: embed it at the core so
         // the face lives on the mass, not a periscope lump on a neck
         const core = this.spinePts[Math.floor(this.spinePts.length / 2)];
+        // round 24 (creature-anatomy): THE ANCHOR FEATURE. The round-23 verdict
+        // read the ooze as having "no anchor feature ... a formless pile", and
+        // the round-24 sheets show why: the mound compresses its spine z by
+        // 0.55, so a socket at 0.85 bodyRad sat OUTSIDE the membrane, down at
+        // skirt height where the drip lobes hid it. Only the top panel ever saw
+        // the eyes. The face zone now rides the dome's upper-front quadrant —
+        // on the gel, above the skirt, angled up-and-forward so every ground
+        // camera catches it.
         this.sockets.push({
           x: core.x,
-          y: core.y + baseR * 0.15,
-          // round 21 (creature-anatomy): 0.55 → 0.85 — the face socket rides
-          // at the membrane surface so the eyes sit ON the gel as distinct
-          // highlighted spheres instead of dull shapes sunk deep inside it.
-          z: core.z + s.bodyRadM * 0.85,
+          y: core.y + (this.moundBody ? s.bodyRadM * 0.55 : baseR * 0.15),
+          z: core.z + s.bodyRadM * (this.moundBody ? 0.5 : 0.85),
           r: baseR,
-          fx: 0, fy: 0, fz: 1,
+          fx: 0, fy: this.moundBody ? 0.35 : 0, fz: 1,
           eyes: head.eyes,
         });
         return;
@@ -1656,8 +1743,12 @@ class PlanDriver extends BaseDriver {
       // round 23: glints ride OUT with the flecks — inside the opaque core
       // they vanished; on the upper light-facing flank they read as the wet
       // hotspot through the membrane again.
-      sink.ball('interior.gloss0', core.x - R * 0.66, core.y + R * 0.55, core.z + R * 0.48, R * 0.2);
-      sink.ball('interior.gloss1', core.x - R * 0.5, core.y + R * 0.68, core.z + R * 0.26, R * 0.085);
+      // round 24: the glints ride the dome's upper-front-left, just off the
+      // face zone. At the round-23 positions the opaque gel core (0.85 of the
+      // dome) sat in front of them from every ground camera and the round-23
+      // verdict read "no anchor feature ... no core highlight".
+      sink.ball('interior.gloss0', core.x - R * 0.46, core.y + R * 0.74, core.z + R * 0.36, R * 0.22);
+      sink.ball('interior.gloss1', core.x - R * 0.26, core.y + R * 0.86, core.z + R * 0.14, R * 0.095);
     }
     // round 9 (creature-anatomy): driver-owned dorsal crest. The finRidge
     // chain part rode a 3-anchor bezier and detached laterally from the
@@ -1678,7 +1769,12 @@ class PlanDriver extends BaseDriver {
       // tangent in the sagittal plane) instead of world +Y: on the vertical
       // riser +Y points along the column and buried the whole fin inside it.
       const STATIONS = 44;
-      const TEETH = 12;
+      // round 24 (creature-anatomy): FEWER, HEAVIER SPIKES. The round-23
+      // verdict wanted Valheim's serpent dorsal spikes against our "token red
+      // dorsal ridge"; 12 shallow teeth on a 44-station loft read as a saw
+      // edge, not spines. Nine teeth with a far deeper valley (see `serr`)
+      // give each spike its own silhouette peak.
+      const TEETH = 9;
       const U0 = 0.06;
       const U1 = 0.975;
       const base: number[] = [];
@@ -1722,8 +1818,11 @@ class PlanDriver extends BaseDriver {
         // |sin| tooth wave riding it — heights are functions of u only, so
         // the loft's widths stay frame-constant per station
         const env = Math.sin((0.16 + 0.84 * uu) * Math.PI);
-        const serr = 0.55 + 0.45 * Math.pow(Math.abs(Math.sin(uu * Math.PI * TEETH)), 0.6);
-        const h = rHere * (0.5 + 1.05 * env) * serr;
+        // round 24: valley 0.55 → 0.26 and peak envelope 1.05 → 1.55 — the
+        // spikes must rise clear of the back line and drop nearly to the hide
+        // between, so the outline shows teeth rather than a corrugated ridge.
+        const serr = 0.26 + 0.74 * Math.pow(Math.abs(Math.sin(uu * Math.PI * TEETH)), 0.8);
+        const h = rHere * (0.5 + 1.55 * env) * serr;
         base.push(px, py + dy * rHere * 0.35, pz + dz * rHere * 0.35); // rooted INSIDE the trunk
         top.push(
           px + tx * h * 0.4,
@@ -2083,6 +2182,74 @@ class PlanDriver extends BaseDriver {
         }
       }
     }
+    // round 25 (creature-anatomy): QUADRUPED MASS EVENTS. The round-24 verdict
+    // on the Beast Large archetype: "a uniform-diameter grey tube runs from
+    // shoulder to hip with no ribcage, no shoulder hump and no haunch swell",
+    // against a Valheim boar and a WoW worg that both "put a large mass event
+    // at the shoulder, taper the waist, differentiate fore from hind".
+    //
+    // A three-lobe spine profile alone can never fix this: the swept tube is a
+    // surface of revolution, so a radius change moves the WHOLE ring and reads
+    // as a gentle bulge in every direction at once — no landmark. A real
+    // quadruped's mass is anisotropic: the withers rise ABOVE the spine line,
+    // the haunches swell OUTBOARD and rearward, the brisket hangs BELOW the
+    // chest. Each is emitted here as its own form, so the silhouette carries
+    // three named events from every camera. Body tone and body ink, so they
+    // merge into one animal instead of reading as bolted-on balls; only the
+    // part that protrudes past the tube shows an outline at all.
+    if (!this.verticalBody && !this.moundBody && this.legTreads.size >= 4) {
+      const shoulderU = 0.16;
+      const hipU = 0.82;
+      const shoulder = this.spineAt(shoulderU, MASS_FORE);
+      const hip = this.spineAt(hipU, MASS_REAR);
+      const rS = spineRadiusAt(s, shoulderU);
+      const rH = spineRadiusAt(s, hipU);
+      // round-25 eyeball fix: SEGMENTS, NOT BALLS. The first pass emitted one
+      // sphere per landmark and the capture read them as joint balls bolted
+      // onto a tube — a sphere is isotropic, so it can only ever say "lump
+      // here", never "mass running this way". Every landmark is now a TAPERED
+      // SEGMENT running along the direction the muscle actually runs, thick at
+      // its root and thinning into the body, so each one merges at one end and
+      // breaks the silhouette at the other.
+      const backMid = this.spineAt(0.42, MASS_MID);
+      // WITHERS: a crest running from over the shoulder blades back along the
+      // spine, dying out at mid-back — the tallest point of a boar's or a
+      // worg's topline, and what makes the back SLOPE instead of run flat
+      sink.seg(
+        'mass.withers',
+        shoulder.x, shoulder.y + rS * 0.52, shoulder.z - rS * 0.1,
+        backMid.x, backMid.y + rS * 0.16, backMid.z,
+        rS * 0.82, rS * 0.16,
+      );
+      // BRISKET: the chest keel hanging below and ahead of the shoulder, the
+      // forequarter depth that cuts the tube's flat belly line
+      sink.seg(
+        'mass.brisket',
+        shoulder.x, shoulder.y - rS * 0.34, shoulder.z + rS * 0.62,
+        shoulder.x, shoulder.y - rS * 0.5, shoulder.z - rS * 0.5,
+        rS * 0.62, rS * 0.3,
+      );
+      for (const [tag, sg] of [['L', -1], ['R', 1]] as const) {
+        // HAUNCH: a teardrop from the top of the hip, swelling outboard and
+        // rearward and tapering down into the thigh — the widest point of the
+        // rear silhouette from above and a rump curve from the side
+        sink.seg(
+          `mass.haunch${tag}`,
+          hip.x + sg * rH * 0.2, hip.y + rH * 0.36, hip.z - rH * 0.2,
+          hip.x + sg * rH * 0.62, hip.y - rH * 0.62, hip.z - rH * 0.5,
+          rH * 0.92, rH * 0.4,
+        );
+        // SHOULDER: the fore mass, deliberately SMALLER and shorter than the
+        // haunch — the fore/hind differentiation the verdict asked for reads
+        // as a size relationship between two forms, not as two limb radii
+        sink.seg(
+          `mass.shoulder${tag}`,
+          shoulder.x + sg * rS * 0.18, shoulder.y + rS * 0.18, shoulder.z + rS * 0.2,
+          shoulder.x + sg * rS * 0.6, shoulder.y - rS * 0.6, shoulder.z + rS * 0.05,
+          rS * 0.6, rS * 0.3,
+        );
+      }
+    }
     // round 24 (creature-anatomy): ROCKY TORSO — the body IS the element.
     // Overlapping boulder plates climb the spine with dark recessed seams
     // between them (strong value breaks INSIDE the body), two huge shoulder
@@ -2125,13 +2292,44 @@ class PlanDriver extends BaseDriver {
           const rSeam = Math.min(rHere, spineR((i + 1) / n));
           for (let a = 0; a < PLATE_AZ; a++) {
             const th = ((a + 0.5) / PLATE_AZ) * Math.PI * 2 + (i % 2) * (Math.PI / PLATE_AZ) + 0.3;
+            const mx = (p.x + pn.x) / 2;
+            const my = (p.y + pn.y) / 2;
+            const mz = (p.z + pn.z) / 2;
+            // round 25 (creature-anatomy): DEEPER RECESS. The round-24 seam
+            // ball sat at 0.86 rHere with r 0.4 — mostly buried, so the joint
+            // read as a hairline between cobbles rather than the "deep dark
+            // recessed joints" the earth-golem references cut. It now sits
+            // further in (0.72) and runs wider, so the gap between two plates
+            // is a real dark trench with the plates' lit faces on both sides.
             sink.ball(
               `dark.seam${i}_${a}`,
-              (p.x + pn.x) / 2 + Math.cos(th) * rSeam * 0.86,
-              (p.y + pn.y) / 2,
-              (p.z + pn.z) / 2 + Math.sin(th) * rSeam * 0.86,
-              rSeam * 0.4,
+              mx + Math.cos(th) * rSeam * 0.72,
+              my,
+              mz + Math.sin(th) * rSeam * 0.72,
+              rSeam * 0.56,
             );
+            // round 25: CRACK GLOW IN THE JOINTS. The round-24 verdict —
+            // "there is no crack glow anywhere in the body, leaving the whole
+            // mass one flat mid-grey". Round 24 lit exactly two chest seams;
+            // every other joint was unlit. A thin unlit ember line now runs
+            // the length of every second seam, so the glow reads as the light
+            // BETWEEN the stones (the reference's molten-core language) from
+            // any camera, not as two decals on the front.
+            if ((i + a) % 2 === 0) {
+              // round-25 eyeball fix: 0.95 → 1.34 rSeam. The plates crown at
+              // ~1.58 rHere (centre 0.92 + radius 0.66), so an ember line at
+              // 0.95 sat BEHIND them and the first capture still showed no
+              // glow between the stones. The line now runs in the open gap.
+              const nx = Math.cos(th) * rSeam * 1.34;
+              const nz = Math.sin(th) * rSeam * 1.34;
+              sink.seg(
+                `glow.seam${i}_${a}`,
+                p.x + nx, p.y, p.z + nz,
+                pn.x + nx * 0.86, pn.y, pn.z + nz * 0.86,
+                rSeam * 0.075,
+                rSeam * 0.03,
+              );
+            }
           }
         }
       }

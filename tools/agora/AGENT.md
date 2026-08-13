@@ -27,14 +27,15 @@ name you were given; do **not** invent your own.
 a unique one — so claim one from the daemon, which is the authoritative name registry:
 
 ```bash
+# Scope the local identity file before ANY client call. Your task/thread id is
+# already unique even though the daemon-assigned handle is not known yet.
+export AGORA_AGENT_ID="<your-task-or-thread-id>"
+node tools/agora/client.mjs pets
+
 # Claim a free, unique handle. The daemon rejects a name a live agent already holds;
 # --random retries until it wins one.
 node tools/agora/client.mjs register --random myrole --pet <chosen-pet-slug> --session <your-task-or-thread-id>
 #   -> Registered as "myrole-3f9a2c"  ...
-#   -> TIP: export AGORA_AGENT_ID="myrole-3f9a2c" so your next commands reuse THIS identity
-
-# Then PIN it, so your later lock/unlock/task calls reuse the SAME identity:
-export AGORA_AGENT_ID="myrole-3f9a2c"
 ```
 
 Attach provenance at register time: `--model <name>` (which model you are) and
@@ -65,11 +66,12 @@ AGORA_AGENT_ID=<handle> node tools/agora/client.mjs onboard <handle> --pet <chos
 ## 2. The working loop
 
 1. **Lock before you edit.** Every file you intend to change:
-   `client.mjs lock src/foo.ts src/bar.ts --reason "<why>"`. A **409 CONFLICT is a hard stop**
-   on that file — someone else owns it; do not touch it, and say so.
-   If you still need the file later, use `client.mjs reserve src/foo.ts --reason "<why>"`
-   to join the FIFO waiting list. A reservation is only a dibs queue; edit only after your
-   real lock succeeds.
+   `client.mjs lock src/foo.ts src/bar.ts --reason "<why>"`. Multi-path lock requests are
+   atomic all-or-nothing: a **409 CONFLICT grants NONE of the requested paths or globs**.
+   Do not edit any of them. Inspect `client.mjs locks` and `client.mjs reservations`, retry
+   the unconflicted paths, and use `client.mjs reserve <conflicted-path> --reason "<why>"`
+   for each path you still need. A reservation is only FIFO dibs, not edit permission;
+   edit only after your real lock succeeds.
 2. **Pull or post work.** `client.mjs task next` claims the top ready task; or
    `task new "<title>"` then `task claim <id>`. New tasks must include a `creatorAgent`
    block matching the agent that created them; the CLI self-check fails if the daemon omits

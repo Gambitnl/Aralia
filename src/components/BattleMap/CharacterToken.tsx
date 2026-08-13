@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 11/08/2026, 21:39:17
+ * Last Sync: 12/08/2026, 03:23:13
  * Dependents: components/BattleMap/BattleMap.tsx, components/BattleMap/index.ts
  * Imports: 7 files
  *
@@ -720,6 +720,21 @@ const CharacterToken: React.FC<CharacterTokenProps> = React.memo(
               strokeDasharray={`${hpPct * 100} 100`}
             />
           </svg>
+        )}
+
+        {/* Aerial altitude is a real combat-state badge, not a scenario label.
+          Keeping it above the token makes a flying creature's vertical square
+          readable on the flat 2D board while its horizontal footprint remains
+          anchored to the same selectable cell. Grounded creatures add nothing. */}
+        {character.aerialMovement?.isFlying && (
+          <span
+            data-testid="aerial-altitude-badge"
+            aria-label={`${character.name} flying at ${character.aerialMovement.altitudeFeet} feet`}
+            className="pointer-events-none absolute left-1/2 top-[-14px] -translate-x-1/2 whitespace-nowrap rounded-full border border-sky-200 bg-sky-950/95 px-1.5 py-0.5 text-[8px] font-black leading-none text-sky-100 shadow-md"
+            style={{ zIndex: Z_INDEX.CONTENT_OVERLAY_MEDIUM }}
+          >
+            ↟ {character.aerialMovement.altitudeFeet} ft
+          </span>
         )}
 
         {/* Temporary HP is a separate cyan buffer rather than extra green HP.

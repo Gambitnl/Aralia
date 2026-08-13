@@ -1,10 +1,11 @@
 /**
- * Hero pipeline stage 2: reference.png → master.glb via the hosted TRELLIS
- * Space (trellis-community/TRELLIS, free ZeroGPU — proven 2026-07-08).
+ * This compatibility wrapper creates an Aralia master creature mesh through a
+ * hosted TRELLIS Space. Use convert.py for authenticated Microsoft TRELLIS.2
+ * runs: the Python Gradio client was the route proven end to end on 2026-08-12,
+ * while this JavaScript client did not carry the saved token into ZeroGPU.
  *
- * Endpoint names come from the Space's own API description; if the Space
- * changes shape, this logs `view_api()` output and fails loudly rather than
- * guessing.
+ * A successful run writes the high-detail master.glb. optimize.mjs then owns
+ * the separate reduction to Aralia's 30,000-triangle runtime budget.
  *
  * Usage: npx tsx tools/creatureHero/convert.mjs <entryId> [--base dir]
  */
@@ -24,6 +25,11 @@ const spaceFlag = rest.indexOf('--space');
 // Official TRELLIS.2 (higher fidelity) by default; the community TRELLIS 1
 // space remains reachable via --space trellis-community/TRELLIS.
 const SPACE = spaceFlag >= 0 ? rest[spaceFlag + 1] : 'microsoft/TRELLIS.2';
+
+// Microsoft TRELLIS.2 enforced this minimum during the live 2026-08-12 proof.
+// Keeping the remote export large preserves detail for the local optimizer.
+const TRELLIS_EXPORT_FACE_TARGET = 100_000;
+const TRELLIS_TEXTURE_SIZE = 1024;
 
 const { assertStage, heroDir, readHero, writeHero } = await import(
   pathToFileURL(path.resolve('src/systems/entities3d/library/heroStore.ts')).href
@@ -77,8 +83,13 @@ await step('image_to_3d', () =>
 );
 
 console.log('extract_glb…');
+// TRELLIS exports the reusable master at its supported floor. The optimizer,
+// rather than the hosted service, remains the owner of the game-ready budget.
 const genResult = await step('extract_glb', () =>
-  client.predict('/extract_glb', { decimation_target: 30000, texture_size: 1024 }),
+  client.predict('/extract_glb', {
+    decimation_target: TRELLIS_EXPORT_FACE_TARGET,
+    texture_size: TRELLIS_TEXTURE_SIZE,
+  }),
 );
 const flat = JSON.stringify(genResult.data);
 const urlMatch = flat.match(/"(https?:[^"]+\.glb)"/) ?? flat.match(/"url":"([^"]+\.glb)"/);

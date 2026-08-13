@@ -1,6 +1,6 @@
 // tools/agora/store.orchestration.test.mjs
-// Orchestrator-upgrade tests: task deps/priority/refs/result, ready-queue +
-// claim-next, dead-agent reaping, and stale-holder force lock release.
+// Orchestrator-upgrade tests: task deps/priority/refs/result, result disposition,
+// ready-queue + claim-next, dead-agent reaping, and stale-holder force lock release.
 // Node built-in test runner only — run: node --test "tools/agora/*.test.mjs"
 
 import { test } from 'node:test';
@@ -171,7 +171,7 @@ test('tasks: claimTask lets a ready (dep-satisfied) task be claimed normally (WF
   rm(dir);
 });
 
-test('tasks: done accepts a structured result, stored on the task and in history', () => {
+test('tasks: substantive completion stores the summary, finding, and evidence independently', () => {
   const dir = tmpDir();
   const store = createStore({ dir });
   const me = store.registerAgent({ petSlug: 'gf-sd', handle: 'worker' });
@@ -182,11 +182,195 @@ test('tasks: done accepts a structured result, stored on the task and in history
     agentId: me.id,
     state: 'done',
     result: 'edited 3 files; 12 tests green; no tsc errors',
+    resultDisposition: 'substantive',
+    finding: 'The retry path dropped the final response.',
+    evidence: '12 focused tests green.',
   });
   assert.equal(r.ok, true);
   assert.equal(r.task.result, 'edited 3 files; 12 tests green; no tsc errors');
+  assert.equal(r.task.resultDisposition, 'substantive');
+  assert.equal(r.task.finding, 'The retry path dropped the final response.');
+  assert.equal(r.task.evidence, '12 focused tests green.');
   const last = r.task.history[r.task.history.length - 1];
   assert.equal(last.result, 'edited 3 files; 12 tests green; no tsc errors');
+  assert.equal(last.resultDisposition, 'substantive');
+  assert.equal(last.finding, 'The retry path dropped the final response.');
+  assert.equal(last.evidence, '12 focused tests green.');
+  store.close();
+  rm(dir);
+});
+
+test('tasks: triage-only stays live for one later substantive review', () => {
+  const dir = tmpDir();
+  const store = createStore({ dir });
+  const me = store.registerAgent({ petSlug: 'gf-sd', handle: 'reviewer' });
+  const task = store.createTask({ agentId: me.id, title: 'review a broad feature' });
+  store.claimTask({ taskId: task.id, agentId: me.id });
+
+  // An unknown disposition is rejected instead of becoming a new workflow
+  // category that older dashboards would misread.
+  const invalid = store.setTaskState({
+    taskId: task.id,
+    agentId: me.id,
+    state: 'done',
+    result: 'not classified',
+    resultDisposition: 'too_big',
+  });
+  assert.equal(invalid.ok, false);
+  assert.match(invalid.error, /invalid result disposition/);
+
+  // Triage retains the worker's authored reason but cannot smuggle in fields
+  // that would make it look like an evidence-backed review.
+  const contradictory = store.setTaskState({
+    taskId: task.id,
+    agentId: me.id,
+    state: 'done',
+    result: 'SKIP TOO-BIG',
+    resultDisposition: 'triage_only',
+    finding: 'pretend finding',
+  });
+  assert.equal(contradictory.ok, false);
+  assert.match(contradictory.error, /cannot include substantive/);
+
+  const triage = store.setTaskState({
+    taskId: task.id,
+    agentId: me.id,
+    state: 'done',
+    result: 'SKIP TOO-BIG: cross-file review deferred',
+    resultDisposition: 'triage_only',
+  });
+  assert.equal(triage.ok, true);
+  assert.equal(triage.task.state, 'done');
+  assert.equal(triage.task.resultDisposition, 'triage_only');
+  assert.equal(triage.task.finding, null);
+  assert.equal(triage.task.evidence, null);
+  assert.equal(triage.task.history.at(-1).resultDisposition, 'triage_only');
+
+  // Even after the ordinary tidy horizon, triage stays on the live board. That
+  // leaves the same task claimable by a reviewer instead of burying the refusal.
+  store.__setTaskUpdatedAt(task.id, Date.now() - 15 * 86400000);
+  assert.equal(store.archiveDoneTasks().archived, 0);
+  assert.equal(store.listTasks().some((row) => row.id === task.id), true);
+  assert.equal(store.claimTask({ taskId: task.id, agentId: me.id }).ok, true);
+
+  // A reviewer must explicitly promote the triage record and supply both parts
+  // of the proof contract. Merely writing another result is not sufficient.
+  const reviewed = store.setTaskState({
+    taskId: task.id,
+    agentId: me.id,
+    state: 'done',
+    result: 'Review completed after the initial size decline.',
+    resultDisposition: 'substantive',
+    finding: 'The upcast healing branch reads damage dice first.',
+    evidence: 'Focused fixture reproduces the wrong healing total.',
+  });
+  assert.equal(reviewed.ok, true);
+  assert.equal(reviewed.task.resultDisposition, 'substantive');
+  assert.equal(reviewed.task.finding, 'The upcast healing branch reads damage dice first.');
+  assert.equal(reviewed.task.evidence, 'Focused fixture reproduces the wrong healing total.');
+  assert.equal(reviewed.task.history.at(-1).resultDisposition, 'substantive');
+
+  // Once substantive, the existing stale-done archive behavior applies again.
+  store.__setTaskUpdatedAt(task.id, Date.now() - 15 * 86400000);
+  assert.equal(store.archiveDoneTasks().archived, 1);
+  store.close();
+  rm(dir);
+});
+
+test('tasks: triage-only dependencies keep every claim path gated until substantive review', () => {
+  const dir = tmpDir();
+  const store = createStore({ dir });
+  const reviewer = store.registerAgent({ petSlug: 'gf-sd', handle: 'reviewer' });
+  const worker = store.registerAgent({ petSlug: 'gf-sd', handle: 'worker' });
+  const dependency = store.createTask({ agentId: reviewer.id, title: 'review prerequisite' });
+  const direct = store.createTask({ agentId: reviewer.id, title: 'direct downstream', deps: [dependency.id] });
+  const queued = store.createTask({ agentId: reviewer.id, title: 'queued downstream', deps: [dependency.id] });
+
+  // Triage records why the prerequisite was deferred, but it must not release
+  // either downstream route as if the requested review had actually happened.
+  store.claimTask({ taskId: dependency.id, agentId: reviewer.id });
+  const triage = store.setTaskState({
+    taskId: dependency.id,
+    agentId: reviewer.id,
+    state: 'done',
+    result: 'SKIP TOO-BIG: prerequisite review deferred',
+    resultDisposition: 'triage_only',
+  });
+  assert.equal(triage.ok, true);
+  assert.deepEqual(store.listTasks({ ready: true }).map((task) => task.id), []);
+
+  // Hand claims and worker-pull claims must agree about the same unresolved
+  // prerequisite, and the hand-claim error should identify it for operators.
+  const blocked = store.claimTask({ taskId: direct.id, agentId: worker.id });
+  assert.equal(blocked.ok, false);
+  assert.match(blocked.error, new RegExp(dependency.id));
+  assert.equal(store.claimNextReady({ agentId: worker.id }).task, null);
+
+  // Once a reviewer supplies a real finding and evidence, both downstream
+  // tasks become ready; one can be hand-claimed and the other worker-pulled.
+  assert.equal(store.claimTask({ taskId: dependency.id, agentId: reviewer.id }).ok, true);
+  const substantive = store.setTaskState({
+    taskId: dependency.id,
+    agentId: reviewer.id,
+    state: 'done',
+    result: 'Prerequisite review completed.',
+    resultDisposition: 'substantive',
+    finding: 'The prerequisite is safe to proceed from.',
+    evidence: 'Focused review exercised the downstream contract.',
+  });
+  assert.equal(substantive.ok, true);
+  assert.deepEqual(
+    store.listTasks({ ready: true }).map((task) => task.id).sort(),
+    [direct.id, queued.id].sort(),
+  );
+  assert.equal(store.claimTask({ taskId: direct.id, agentId: worker.id }).ok, true);
+  assert.equal(store.claimNextReady({ agentId: reviewer.id }).task.id, queued.id);
+
+  store.close();
+  rm(dir);
+});
+
+test('tasks: bare done result stays legacy-unclassified and cannot imply substantive review', () => {
+  const dir = tmpDir();
+  const store = createStore({ dir });
+  const me = store.registerAgent({ petSlug: 'gf-sd', handle: 'legacy-worker' });
+  const task = store.createTask({ agentId: me.id, title: 'legacy completion' });
+
+  // Existing callers retain their state and free-form result. The missing
+  // disposition is meaningful: no technical review classification was claimed.
+  const legacy = store.setTaskState({
+    taskId: task.id,
+    agentId: me.id,
+    state: 'done',
+    result: 'legacy result without structured proof',
+  });
+  assert.equal(legacy.ok, true);
+  assert.equal(legacy.task.state, 'done');
+  assert.equal(legacy.task.result, 'legacy result without structured proof');
+  assert.equal(legacy.task.resultDisposition, null);
+  assert.equal(legacy.task.history.at(-1).resultDisposition, undefined);
+
+  // Review detail without explicit classification is rejected, as is an
+  // explicit substantive claim missing either half of the proof contract.
+  const implicit = store.setTaskState({
+    taskId: task.id,
+    agentId: me.id,
+    state: 'done',
+    finding: 'finding without classification',
+    evidence: 'evidence without classification',
+  });
+  assert.equal(implicit.ok, false);
+  assert.match(implicit.error, /require explicit substantive/);
+  const missingEvidence = store.setTaskState({
+    taskId: task.id,
+    agentId: me.id,
+    state: 'done',
+    resultDisposition: 'substantive',
+    finding: 'finding only',
+  });
+  assert.equal(missingEvidence.ok, false);
+  assert.match(missingEvidence.error, /requires non-empty finding and evidence/);
+
   store.close();
   rm(dir);
 });
@@ -566,7 +750,7 @@ test('locks: force release works only when the holder is stale or gone', () => {
 
 // --- persistence of the new fields --------------------------------------------
 
-test('persistence: deps/priority/refs/result survive snapshot + journal replay', () => {
+test('persistence: orchestration fields and both result dispositions survive snapshot + journal replay', () => {
   const dir = tmpDir();
   let store = createStore({ dir });
   const me = store.registerAgent({ petSlug: 'gf-sd', handle: 'orch' });
@@ -574,15 +758,37 @@ test('persistence: deps/priority/refs/result survive snapshot + journal replay',
   const b = store.createTask({
     agentId: me.id, title: 'B', deps: [a.id], priority: 7, refs: ['worldforge:G3'],
   });
+  const triageTask = store.createTask({ agentId: me.id, title: 'large review' });
   store.claimTask({ taskId: a.id, agentId: me.id });
-  store.setTaskState({ taskId: a.id, agentId: me.id, state: 'done', result: 'proof: 4 tests' });
+  store.setTaskState({
+    taskId: a.id,
+    agentId: me.id,
+    state: 'done',
+    result: 'proof: 4 tests',
+    resultDisposition: 'substantive',
+    finding: 'The dependency is now satisfied.',
+    evidence: 'Four focused tests passed.',
+  });
+  store.setTaskState({
+    taskId: triageTask.id,
+    agentId: me.id,
+    state: 'done',
+    result: 'SKIP TOO-BIG',
+    resultDisposition: 'triage_only',
+  });
   store.close(); // snapshots
 
   store = createStore({ dir });
   const tasks = store.listTasks();
   const a2 = tasks.find((t) => t.id === a.id);
   const b2 = tasks.find((t) => t.id === b.id);
+  const triage2 = tasks.find((t) => t.id === triageTask.id);
   assert.equal(a2.result, 'proof: 4 tests');
+  assert.equal(a2.resultDisposition, 'substantive');
+  assert.equal(a2.finding, 'The dependency is now satisfied.');
+  assert.equal(a2.evidence, 'Four focused tests passed.');
+  assert.equal(triage2.resultDisposition, 'triage_only');
+  assert.equal(triage2.result, 'SKIP TOO-BIG');
   assert.deepEqual(b2.deps, [a.id]);
   assert.equal(b2.priority, 7);
   assert.deepEqual(b2.refs, ['worldforge:G3']);

@@ -16,13 +16,22 @@ import { spawn } from 'child_process';
 import { mkdirSync, promises as fsp } from 'fs';
 import { tmpdir } from 'os';
 import path from 'path';
+import { pathToFileURL } from 'url';
 import type { DevHubRouteContext } from './routeContext';
-import {
-  PLAN_LIMITS,
-  validateCreaturePlan,
-  type CreaturePlan,
-} from '../../../src/systems/entities3d/textPlan/planSchema';
-import { sizeCategoryForPlan } from '../../../src/systems/entities3d/textPlan/planSize';
+import type { CreaturePlan } from '../../../src/systems/entities3d/textPlan/planSchema';
+
+// These module descriptions preserve exact source types without loading either game module.
+// The route imports their runtime values only after a generation request reaches generatePlan,
+// so loading Vite's configuration cannot pull the 3D entity system into the config process.
+type PlanSchemaModule = typeof import('../../../src/systems/entities3d/textPlan/planSchema');
+type PlanSizeModule = typeof import('../../../src/systems/entities3d/textPlan/planSize');
+
+// Runtime entity modules use absolute, variable-held URLs for the same reason this route is
+// opaque to its manager: literal imports let Vite reconnect the route to its config graph.
+// The explicit filenames preserve Node-compatible resolution on every supported platform.
+function entityModuleUrl(relativeFile: string): string {
+  return pathToFileURL(path.resolve(process.cwd(), 'src/systems/entities3d', relativeFile)).href;
+}
 
 export interface CreatureLibraryEntry {
   id: string;
@@ -128,15 +137,17 @@ function extractPlanJson(stdout: string): unknown {
 async function knownPartIds(): Promise<ReadonlySet<string>> {
   // Lazy import keeps this module light for the dev server's dynamic loader
   // (the part registry pulls in three.js).
+  const partsModuleUrl = entityModuleUrl('parts/index.ts');
+  const registryModuleUrl = entityModuleUrl('registry.ts');
   const [{ registerAllParts }, { allParts }] = await Promise.all([
-    import('../../../src/systems/entities3d/parts'),
-    import('../../../src/systems/entities3d/registry'),
+    import(/* @vite-ignore */ partsModuleUrl) as Promise<typeof import('../../../src/systems/entities3d/parts')>,
+    import(/* @vite-ignore */ registryModuleUrl) as Promise<typeof import('../../../src/systems/entities3d/registry')>,
   ]);
   registerAllParts();
   return new Set(allParts().map((p) => p.id));
 }
 
-function schemaPrompt(): string {
+function schemaPrompt(PLAN_LIMITS: PlanSchemaModule['PLAN_LIMITS']): string {
   return [
     'You design a creature body plan for a stylized 3D game. Output ONLY a JSON object — no prose, no code fences.',
     'The JSON shape (all lengths in feet):',
@@ -214,9 +225,21 @@ async function writeEntry(entry: CreatureLibraryEntry): Promise<void> {
 async function generatePlan(
   runner: CliRunner,
   userSection: string,
-): Promise<{ plan: CreaturePlan } | { errors: string[] }> {
-  const known = await knownPartIds();
-  const basePrompt = `${schemaPrompt()}\nKnown garnish partIds: ${[...known].sort().join(', ')}.\n\n${userSection}`;
+): Promise<
+  | { plan: CreaturePlan; sizeCategory: ReturnType<PlanSizeModule['sizeCategoryForPlan']> }
+  | { errors: string[] }
+> {
+  // Load the schema, sizing rule, and part registry only for a request that will ask the
+  // creature planner to generate or revise a plan. Listing, approval, unrelated routes,
+  // and Vite configuration startup therefore stay independent of the 3D entity runtime.
+  const planSchemaModuleUrl = entityModuleUrl('textPlan/planSchema.ts');
+  const planSizeModuleUrl = entityModuleUrl('textPlan/planSize.ts');
+  const [{ PLAN_LIMITS, validateCreaturePlan }, { sizeCategoryForPlan }, known] = await Promise.all([
+    import(/* @vite-ignore */ planSchemaModuleUrl) as Promise<PlanSchemaModule>,
+    import(/* @vite-ignore */ planSizeModuleUrl) as Promise<PlanSizeModule>,
+    knownPartIds(),
+  ]);
+  const basePrompt = `${schemaPrompt(PLAN_LIMITS)}\nKnown garnish partIds: ${[...known].sort().join(', ')}.\n\n${userSection}`;
   let lastErrors: string[] = [];
   for (let attempt = 0; attempt < 2; attempt++) {
     const prompt =
@@ -232,7 +255,11 @@ async function generatePlan(
       continue;
     }
     const errors = validateCreaturePlan(candidate, known);
-    if (errors.length === 0) return { plan: candidate as CreaturePlan };
+    if (errors.length === 0) {
+      // A validated plan can safely use the shared combat-sizing rule before it is stored.
+      const plan = candidate as CreaturePlan;
+      return { plan, sizeCategory: sizeCategoryForPlan(plan) };
+    }
     lastErrors = errors;
   }
   return { errors: lastErrors };
@@ -301,7 +328,7 @@ export async function handleCreaturePlanRoutes(
           status: 'generated',
           createdAt: new Date().toISOString(),
           revisedFrom: parent.id,
-          sizeCategory: sizeCategoryForPlan(result.plan),
+          sizeCategory: result.sizeCategory,
         };
         await writeEntry(entry);
         json({ entry });
@@ -332,7 +359,7 @@ export async function handleCreaturePlanRoutes(
         plan: result.plan,
         status: 'generated',
         createdAt: new Date().toISOString(),
-        sizeCategory: sizeCategoryForPlan(result.plan),
+        sizeCategory: result.sizeCategory,
       };
       await writeEntry(entry);
       json({ entry });

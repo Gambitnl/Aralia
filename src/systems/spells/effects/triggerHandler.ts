@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 09/08/2026, 22:29:07
+ * Last Sync: 12/08/2026, 04:53:51
  * Dependents: commands/effects/commandAreaMovementEffects.ts, commands/factory/AbilityCommandFactory.ts, components/BattleMap/BattleMapOverlay.tsx, components/BattleMap/vfx/VFXSystem.tsx, components/Combat/MaplessTerrainSummary.tsx, hooks/combat/useVisibility.ts, hooks/useAbilitySystem.ts, systems/spells/effects/AreaEffectTracker.ts, systems/spells/effects/index.ts, utils/combat/resistanceUtils.ts
  * Imports: 6 files
  *
@@ -814,6 +814,34 @@ export function convertSpellEffectToProcessed(
     const saveEffect = recurringMechanic?.saveEffect ?? effect.condition?.saveEffect;
     const requiresSave = effect.condition?.type === 'save' || Boolean(recurringMechanic?.saveType);
 
+    // Some ongoing spells store their future damage beside a status effect
+    // rather than on a second DAMAGE row. Emit that recurring payload before
+    // interpreting the base row so registration through useAbilitySystem does
+    // not silently lose canonical start/end-turn damage.
+    if (
+        recurringMechanic?.damage
+        && effect.type !== 'DAMAGE'
+        && effect.type !== 'SUMMONING'
+    ) {
+        processed.push({
+            type: 'damage',
+            dice: recurringMechanic.damage.dice,
+            damageType: recurringMechanic.damage.type,
+            requiresSave,
+            saveType,
+            saveEffect,
+            sourceContext
+        });
+    }
+
+    if (recurringMechanic?.healing && effect.type !== 'HEALING') {
+        processed.push({
+            type: 'heal',
+            dice: recurringMechanic.healing.dice,
+            sourceContext
+        });
+    }
+
     switch (effect.type) {
         case 'DAMAGE':
             processed.push({
@@ -854,6 +882,16 @@ export function convertSpellEffectToProcessed(
             break;
 
         case 'STATUS_CONDITION': {
+            // A recurring mechanic describes what an already-applied condition
+            // does on later turns. Reapplying the base condition here would
+            // refresh it every tick and create a second source of duration truth.
+            // TODO(next-agent): Route recurring save outcomes such as Searing
+            // Smite's Constitution success through selective schedule/status
+            // cleanup. CS35 exposes this exact unsupported boundary meanwhile.
+            if (recurringMechanic) {
+                break;
+            }
+
             processed.push({
                 type: 'status_condition',
                 statusName: effect.statusCondition?.name,

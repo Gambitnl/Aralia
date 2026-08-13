@@ -1,0 +1,9 @@
+{
+  "piece": "world-scatter",
+  "round": 1,
+  "winner": "reference",
+  "wowed": false,
+  "biggestGap": "The chosen gates are look-only values tuned on a 12x height-exaggerated render. A 42 degree gate on that render is a 3.9 degree real hillside, so almost no real terrain is steep enough to reject a tree. The gate is therefore close to a no-op in the game. Re-derive the slope and treeline gates against unexaggerated terrain before treating these numbers as correct.",
+  "notes": "SLOPE SWEEP — nine panels, 10 to 80 degrees, on one curved ridge. The sweep does its job: the boundary between rejected (red) and kept (green) trees moves cleanly and predictably across the panels, and the counts are printed per panel. Remy chose 42 degrees on 2026-08-12 (3164 kept / 1664 rejected of 4828). At the previous 35 degree default only 2121 were kept, which stripped the whole upper ridge. At 50 degrees and above the gate stops rejecting anything meaningful.\n\nTREELINE SWEEP — same rig, treeline axis. Remy chose 82.\n\nThe other six biomes were scaled by the same ratios: slope x1.2, treeline x1.051. Those six were NOT swept and NOT eyeballed. They inherit a forest-derived ratio on trust.\n\nGATE A-B — a live defect was found and fixed during this round. The tilt-to-normal sign was INVERTED, so trees leaned AWAY from the slope instead of into it. Every tree on a hillside was wrong. The scatter cache version went 2 -> 3 to force a rebuild.\n\nJUDGING NOTE: a sweep is not a verdict. The sweep shows what each value looks like; Remy chose. What is unproven is whether the chosen value is right for real ground, and the exaggeration factor says it is probably not.",
+  "at": "2026-08-12T18:00:00Z"
+}

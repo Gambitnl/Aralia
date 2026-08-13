@@ -7,6 +7,15 @@ import type { CombatCharacter, CombatLogEntry, CombatState } from '../../../type
 import type { CommandContext } from '../../../commands/base/SpellCommand';
 import type { SummoningEffect } from '../../../types/spells';
 import summonBeast from '@/data/spells/level-2/summon-beast.json';
+import {
+  getInitiativeTiesSharedTurnsTotal,
+  INITIATIVE_TIES_CAPTAIN_ID,
+  INITIATIVE_TIES_LATE_GUARD_ID,
+  INITIATIVE_TIES_RIVAL_ID,
+  INITIATIVE_TIES_SHARED_ECHO_ID,
+  INITIATIVE_TIES_TURN_MARKER,
+  prepareInitiativeTiesSharedTurnsCharacters,
+} from '../../../components/DesignPreview/steps/scenarioControls/initiativeTiesSharedTurnsScenarioControls';
 
 /**
  * This test proves the live Summon Beast packet can create a summon that keeps
@@ -96,5 +105,113 @@ describe('useTurnManager shared-initiative summon scheduling', () => {
 
     expect(result.current.turnState.turnOrder).toEqual([caster.id, summonedActor!.id]);
     expect(result.current.turnState.currentCharacterId).toBe(caster.id);
+  });
+
+  it('advances tied and shared actors once while resetting only the actor whose turn starts', async () => {
+    // Build the exact four-actor sandbox fixture, then let the real manager
+    // initialize it through the deterministic initiative seam.
+    let charactersState = prepareInitiativeTiesSharedTurnsCharacters([
+      createMockCombatCharacter({ id: INITIATIVE_TIES_CAPTAIN_ID, name: 'Tie Captain' }),
+      createMockCombatCharacter({ id: INITIATIVE_TIES_RIVAL_ID, name: 'Agile Rival' }),
+      createMockCombatCharacter({ id: INITIATIVE_TIES_SHARED_ECHO_ID, name: 'Shared Echo' }),
+      createMockCombatCharacter({ id: INITIATIVE_TIES_LATE_GUARD_ID, name: 'Late Guard' }),
+    ]);
+    const logs: CombatLogEntry[] = [];
+    const onCharacterUpdate = (updatedCharacter: CombatCharacter) => {
+      charactersState = charactersState.map(character => (
+        character.id === updatedCharacter.id ? updatedCharacter : character
+      ));
+    };
+    const onLogEntry = (entry: CombatLogEntry) => logs.push(entry);
+    const { result, rerender } = renderHook(
+      ({ chars }: { chars: CombatCharacter[] }) => useTurnManager({
+        characters: chars,
+        mapData: null,
+        onCharacterUpdate,
+        onLogEntry,
+        initiativeRoller: getInitiativeTiesSharedTurnsTotal,
+      }),
+      { initialProps: { chars: charactersState } },
+    );
+
+    act(() => {
+      result.current.initializeCombat(charactersState);
+    });
+    // The mounted scenario deliberately reapplies its spent proof ledgers after
+    // normal combat initialization refreshes everyone.
+    charactersState = prepareInitiativeTiesSharedTurnsCharacters(charactersState);
+    rerender({ chars: charactersState });
+
+    expect(result.current.turnState).toMatchObject({
+      currentTurn: 1,
+      currentCharacterId: INITIATIVE_TIES_CAPTAIN_ID,
+      turnOrder: [
+        INITIATIVE_TIES_CAPTAIN_ID,
+        INITIATIVE_TIES_SHARED_ECHO_ID,
+        INITIATIVE_TIES_RIVAL_ID,
+        INITIATIVE_TIES_LATE_GUARD_ID,
+      ],
+    });
+
+    // Ending the captain expires only its own marker and refreshes only Shared
+    // Echo. The rival's spent resources prove tied totals do not merge turns.
+    await act(async () => {
+      await result.current.endTurn();
+    });
+    rerender({ chars: charactersState });
+    const captainAfterEnd = charactersState.find(character => character.id === INITIATIVE_TIES_CAPTAIN_ID)!;
+    const echoAtStart = charactersState.find(character => character.id === INITIATIVE_TIES_SHARED_ECHO_ID)!;
+    const rivalStillWaiting = charactersState.find(character => character.id === INITIATIVE_TIES_RIVAL_ID)!;
+
+    expect(result.current.turnState.currentCharacterId).toBe(INITIATIVE_TIES_SHARED_ECHO_ID);
+    expect(captainAfterEnd.conditions?.map(condition => condition.name))
+      .not.toContain(INITIATIVE_TIES_TURN_MARKER);
+    expect(captainAfterEnd.actionEconomy).toMatchObject({
+      action: { used: true },
+      reaction: { used: true },
+      movement: { used: 15 },
+    });
+    expect(echoAtStart.actionEconomy).toMatchObject({
+      action: { used: false, remaining: 1 },
+      reaction: { used: false, remaining: 1 },
+      movement: { used: 0, total: 30 },
+      freeActions: 1,
+    });
+    expect(rivalStillWaiting.actionEconomy).toMatchObject({
+      action: { used: true },
+      reaction: { used: true },
+      movement: { used: 15 },
+    });
+
+    // The remaining three transitions prove every id appears once before the
+    // round wraps, with no duplicate shared actor and no skipped late guard.
+    await act(async () => {
+      await result.current.endTurn();
+    });
+    rerender({ chars: charactersState });
+    expect(result.current.turnState.currentCharacterId).toBe(INITIATIVE_TIES_RIVAL_ID);
+
+    await act(async () => {
+      await result.current.endTurn();
+    });
+    rerender({ chars: charactersState });
+    expect(result.current.turnState.currentCharacterId).toBe(INITIATIVE_TIES_LATE_GUARD_ID);
+
+    await act(async () => {
+      await result.current.endTurn();
+    });
+    rerender({ chars: charactersState });
+    expect(result.current.turnState).toMatchObject({
+      currentTurn: 2,
+      currentCharacterId: INITIATIVE_TIES_CAPTAIN_ID,
+      turnOrder: [
+        INITIATIVE_TIES_CAPTAIN_ID,
+        INITIATIVE_TIES_SHARED_ECHO_ID,
+        INITIATIVE_TIES_RIVAL_ID,
+        INITIATIVE_TIES_LATE_GUARD_ID,
+      ],
+    });
+    expect(new Set(result.current.turnState.turnOrder).size).toBe(4);
+    expect(logs.map(entry => entry.message)).toContain('Round 2 begins!');
   });
 });

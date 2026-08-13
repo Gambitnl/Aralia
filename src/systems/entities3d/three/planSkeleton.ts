@@ -451,6 +451,10 @@ export function createPlanPoseSink(skeleton: BuiltPlanSkeleton, decorativeDelega
     // round 20 (creature-anatomy): mound drip lobes pooling past the skirt
     // rim — decorative gel-skin balls, no bones.
     if (/^spine\.drip\d+$/.test(id)) return true;
+    // round 25 (creature-anatomy): quadruped mass events (withers, brisket,
+    // haunches, fore shoulders) ride the live spine like the gel lobes do —
+    // decorative body-tone balls on the anchor path, no bones of their own.
+    if (id.startsWith('mass.')) return true;
     for (const cid of chainIds) {
       const pref = cid + '.';
       if (id.startsWith(pref)) {

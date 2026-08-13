@@ -21,6 +21,10 @@ import {
 } from './identity-policy.mjs';
 
 const TASK_STATES = new Set(['open', 'claimed', 'in_progress', 'blocked', 'done']);
+// Result disposition is deliberately smaller than task state. A size-declined
+// triage can therefore remain a `done` board event without being mistaken for
+// the substantive review that the operator still needs.
+const TASK_RESULT_DISPOSITIONS = new Set(['triage_only', 'substantive']);
 const CAMPAIGN_STATES = new Set(['active', 'blocked', 'done']);
 const CAMPAIGN_ROLES = new Set(['lead', 'deputy']);
 
@@ -607,6 +611,11 @@ export function createStore({
       if (!t) return;
       t.state = p.state;
       if (p.result !== undefined) t.result = p.result;
+      // These fields travel in the same journal event as the state change so a
+      // crash cannot restore the prose while losing how that prose should be read.
+      if (p.resultDisposition !== undefined) t.resultDisposition = p.resultDisposition;
+      if (p.finding !== undefined) t.finding = p.finding;
+      if (p.evidence !== undefined) t.evidence = p.evidence;
       t.updatedAt = p.ts;
       t.history.push(p.entry);
     },
@@ -1488,6 +1497,12 @@ export function createStore({
       priority: typeof priority === 'number' && Number.isFinite(priority) ? priority : 0,
       refs: Array.isArray(refs) ? refs.filter((r) => typeof r === 'string') : [],
       result: null,
+      // A missing disposition remains the backward-compatible shape for old
+      // board records. Once a result is classified, finding and evidence stay
+      // separate from the free-form result summary.
+      resultDisposition: null,
+      finding: null,
+      evidence: null,
       createdAt: ts,
       updatedAt: ts,
       history: [{ at: ts, by: agentId, action: 'created', state: 'open' }],
@@ -1496,13 +1511,24 @@ export function createStore({
     return JSON.parse(JSON.stringify(task));
   }
 
-  /** A task is ready when it is open and every dep is done. Pre-upgrade tasks
-   *  have no deps field — they count as dep-free. */
+  /** A task is ready when it is open and every dep has qualifying completion.
+   *  Pre-upgrade tasks have no deps field — they count as dep-free. */
+  // A completed dependency only clears its gate after real work. Triage-only
+  // completion deliberately stays blocking because that review was deferred,
+  // while old records with no disposition retain their historical behavior.
+  function isTaskDependencySatisfied(dependencyId) {
+    const dependency = state.tasks.get(dependencyId);
+    return Boolean(
+      dependency
+      && dependency.state === 'done'
+      && dependency.resultDisposition !== 'triage_only',
+    );
+  }
+
   function isTaskReady(t) {
     if (t.state !== 'open') return false;
     for (const d of t.deps || []) {
-      const dep = state.tasks.get(d);
-      if (!dep || dep.state !== 'done') return false;
+      if (!isTaskDependencySatisfied(d)) return false;
     }
     return true;
   }
@@ -1527,10 +1553,10 @@ export function createStore({
     // claim for deliberate hand-assignment; anyone else is refused.
     if (t.state === 'open' && !isTaskReady(t)) {
       if (!force || t.createdBy !== agentId) {
-        const blocks = (t.deps || []).filter((d) => {
-          const dep = state.tasks.get(d);
-          return !dep || dep.state !== 'done';
-        });
+        // Report the same unresolved gates that the ready queue uses. This
+        // keeps a triage-only dependency visible instead of returning an
+        // unhelpful unknown blocker after readiness has already rejected it.
+        const blocks = (t.deps || []).filter((d) => !isTaskDependencySatisfied(d));
         return { ok: false, error: `task not ready: blocked by dep ${blocks.join(', ') || '(unknown)'}` };
       }
     }
@@ -1551,15 +1577,68 @@ export function createStore({
     return { ok: true, task: JSON.parse(JSON.stringify(state.tasks.get(taskId))) };
   }
 
-  function setTaskState({ taskId, agentId, state: newState, result } = {}) {
+  function setTaskState({ taskId, agentId, state: newState, result, resultDisposition, finding, evidence } = {}) {
     const t = state.tasks.get(taskId);
     if (!t) return { ok: false, error: 'task not found' };
     if (!TASK_STATES.has(newState)) return { ok: false, error: 'invalid state: ' + newState };
+    if (resultDisposition !== undefined && !TASK_RESULT_DISPOSITIONS.has(resultDisposition)) {
+      return { ok: false, error: 'invalid result disposition: ' + resultDisposition };
+    }
+    if (finding !== undefined && typeof finding !== 'string') {
+      return { ok: false, error: 'finding must be a string' };
+    }
+    if (evidence !== undefined && typeof evidence !== 'string') {
+      return { ok: false, error: 'evidence must be a string' };
+    }
+
+    // Existing callers finish work with only `state: done` and a result string.
+    // Preserve that record without classifying it: only an explicit disposition
+    // may claim that a technical review was triage-only or substantive.
+    const hasNewResult = typeof result === 'string' && Boolean(result);
+    const hasFinding = typeof finding === 'string' && Boolean(finding.trim());
+    const hasEvidence = typeof evidence === 'string' && Boolean(evidence.trim());
+    const hasReviewDetail = finding !== undefined || evidence !== undefined;
+    const resolvedDisposition = resultDisposition;
+    const availableResult = hasNewResult ? result : t.result;
+    const availableFinding = finding !== undefined ? finding : t.finding;
+    const availableEvidence = evidence !== undefined ? evidence : t.evidence;
+    if (resolvedDisposition === undefined && hasReviewDetail) {
+      return { ok: false, error: 'finding and evidence require explicit substantive result disposition' };
+    }
+    if (resolvedDisposition === 'triage_only' && !availableResult) {
+      return { ok: false, error: 'triage_only requires free-form result evidence' };
+    }
+    if (resolvedDisposition === 'triage_only' && (hasFinding || hasEvidence)) {
+      return { ok: false, error: 'triage_only cannot include substantive finding or evidence fields' };
+    }
+    if (resolvedDisposition === 'substantive'
+        && (!String(availableFinding || '').trim() || !String(availableEvidence || '').trim())) {
+      return { ok: false, error: 'substantive requires non-empty finding and evidence' };
+    }
+
     const ts = now();
     const entry = { at: ts, by: agentId, action: 'state', state: newState };
-    if (typeof result === 'string' && result) entry.result = result;
+    if (hasNewResult) entry.result = result;
+    if (resolvedDisposition !== undefined) entry.resultDisposition = resolvedDisposition;
+    if (resolvedDisposition === 'triage_only') {
+      // Clear any stale review detail if an operator deliberately reclassifies
+      // the latest result as triage. The authored result summary is preserved.
+      entry.finding = null;
+      entry.evidence = null;
+    } else {
+      if (finding !== undefined) entry.finding = finding;
+      if (evidence !== undefined) entry.evidence = evidence;
+    }
     const payload = { taskId, agentId, state: newState, ts, entry };
-    if (typeof result === 'string' && result) payload.result = result;
+    if (hasNewResult) payload.result = result;
+    if (resolvedDisposition !== undefined) payload.resultDisposition = resolvedDisposition;
+    if (resolvedDisposition === 'triage_only') {
+      payload.finding = null;
+      payload.evidence = null;
+    } else {
+      if (finding !== undefined) payload.finding = finding;
+      if (evidence !== undefined) payload.evidence = evidence;
+    }
     emit('task.state', payload);
     return { ok: true, task: JSON.parse(JSON.stringify(state.tasks.get(taskId))) };
   }
@@ -1757,6 +1836,10 @@ export function createStore({
     let archived = 0;
     for (const task of [...state.tasks.values()]) {
       if (task.state !== 'done') continue;
+      // Triage-only means the first worker declined the substantive review. It
+      // must stay live beyond the normal tidy horizon so another reviewer can
+      // claim it and replace this disposition with evidence-backed completion.
+      if (task.resultDisposition === 'triage_only') continue;
       const stamp = new Date(task.updatedAt ?? task.createdAt ?? 0).getTime();
       if (!(stamp < cutoff)) continue;
       fs.mkdirSync(archiveDir, { recursive: true });

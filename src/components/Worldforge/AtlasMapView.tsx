@@ -1,10 +1,10 @@
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
- * This file appears to be an ISOLATED UTILITY or ORPHAN.
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 20/07/2026, 00:39:28
- * Dependents: None (Orphan)
+ * Last Sync: 12/08/2026, 21:43:43
+ * Dependents: components/DesignPreview/steps/PreviewWorldforge.tsx
  * Imports: 4 files
  *
  * MULTI-AGENT SAFETY:
@@ -23,12 +23,13 @@
  * layers onto an offscreen canvas. Panning simply copies the offscreen canvas,
  * whereas zooming invalidates the cache and triggers a redraw.
  *
- * The duplicate world-map route no longer imports this component. It remains
- * isolated as reference-only canvas code while a separate deletion audit can
- * decide whether any rendering ideas still deserve migration; current game and
- * developer surfaces use AtlasSvgView instead.
+ * The duplicate world-map route no longer imports this component. Design
+ * Preview mounts it only beside the canonical SVG map so artists can inspect
+ * its colour and line work before deciding what deserves migration. It does
+ * not own geography, save state, or a player route; every maintained game map
+ * continues to use AtlasSvgView.
  *
- * Called by: no runtime screen.
+ * Called by: PreviewWorldforge.tsx (retired reference panel only).
  * Depends on: atlasDraw.ts (for the retained canvas reference), generateAtlas.ts
  */
 

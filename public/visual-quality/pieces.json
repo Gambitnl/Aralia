@@ -1,0 +1,72 @@
+{
+  "families": [
+    {
+      "id": "entity",
+      "label": "Entity",
+      "blurb": "Procedural entity generator. Judged on ?step=entitydebug contact sheets against Valheim / WoW / Mixamo. PARKED 2026-08-12."
+    },
+    {
+      "id": "world",
+      "label": "World",
+      "blurb": "Terrain, scatter, placement and towns. Judged on render sweeps and in-game views. No automated capture rig yet — sheets are registered by hand."
+    }
+  ],
+  "pieces": [
+    {
+      "id": "humanoid-anatomy",
+      "family": "entity",
+      "scope": "rest-pose proportions, shoulder/pelvis volumes, limb ratios, hand/foot shapes, neck-head merge",
+      "judgedOn": "idle sheet silhouette + close-ups vs WoW/Valheim humanoids",
+      "rig": "auto"
+    },
+    {
+      "id": "humanoid-motion",
+      "family": "entity",
+      "scope": "clip selection, retarget quality, foot planting, arm swing, idle life, transitions",
+      "judgedOn": "walk/idle frame strips vs Mixamo reference motion",
+      "rig": "auto"
+    },
+    {
+      "id": "creature-anatomy",
+      "family": "entity",
+      "scope": "plan-driven bodies: leg articulation, haunches, spine arcs, head carriage, wing pose, plus random archetype rolls",
+      "judgedOn": "dragon/serpent/ooze + beast/celestial/elemental sheets vs Valheim creatures",
+      "rig": "auto"
+    },
+    {
+      "id": "surface-materials",
+      "family": "entity",
+      "scope": "toon ramp, countershade, outline weight, palette, anti-plastic surface variation",
+      "judgedOn": "all sheets, close-up panels vs both references",
+      "rig": "auto"
+    },
+    {
+      "id": "region-terrain",
+      "family": "world",
+      "scope": "region composite height field: crest lines, valleys, drainage networks, plain structure",
+      "judgedOn": "hillshaded window renders vs real terrain references",
+      "rig": "manual"
+    },
+    {
+      "id": "world-scatter",
+      "family": "world",
+      "scope": "tree, rock and grass placement: slope gates, treeline, tilt-to-normal, bedding",
+      "judgedOn": "slope and treeline sweeps, before/after pairs",
+      "rig": "manual"
+    },
+    {
+      "id": "object-placement",
+      "family": "world",
+      "scope": "props and buildings meeting the ground: floaters, penetration, scale, support",
+      "judgedOn": "before/after contact sheets with failing instances marked",
+      "rig": "manual"
+    },
+    {
+      "id": "town-3d",
+      "family": "world",
+      "scope": "town surfaces in 3D: streets, lots, dressing, prop density",
+      "judgedOn": "in-game ground-level and three-quarter views",
+      "rig": "manual"
+    }
+  ]
+}

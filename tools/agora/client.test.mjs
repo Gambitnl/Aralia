@@ -15,6 +15,7 @@ import path from 'node:path';
 
 import { createAgoraServer } from './server.mjs';
 import { run } from './client.mjs';
+import { createStore } from './store.mjs';
 
 let app;
 let serverDir;
@@ -65,8 +66,10 @@ test('happy path: register -> lock -> locks -> task -> say -> inbox', async () =
   // --- whoami (local, reads the stored identity) ---
   const who = await cli(['whoami']);
   assert.equal(who.code, 0);
+  assert.match(who.lines.join('\n'), /^stored identity:/);
   assert.match(who.lines.join('\n'), /handle:\s+tester/);
   assert.match(who.lines.join('\n'), /pet:.*\(gf-sd\)/);
+  assert.doesNotMatch(who.lines.join('\n'), new RegExp(testerToken));
 
   // --- agents ---
   const agents = await cli(['agents']);
@@ -181,6 +184,125 @@ test('happy path: register -> lock -> locks -> task -> say -> inbox', async () =
   // Clean up the lock so the assertion count is self-contained.
   const unlock = await cli(['unlock', lock.lock.id, '--token', testerToken]);
   assert.equal(unlock.code, 0);
+});
+
+// ---------------------------------------------------------------------------
+// Registration scope continuity
+// ---------------------------------------------------------------------------
+// Registration must never tell an already-onboarded agent to change the scope
+// that selected its identity file. This reproduces the safe AGORA_DIR-only flow
+// and proves the literal printed advice leaves the first owned lock usable.
+// ---------------------------------------------------------------------------
+test('onboarding without AGORA_AGENT_ID preserves its existing identity scope for the next lock', async () => {
+  const continuityDir = fs.mkdtempSync(path.join(os.tmpdir(), 'agora-client-scope-continuity-'));
+  const continuityEnv = { AGORA_DIR: continuityDir, AGORA_PET: 'battle-damaged-idle' };
+  let onboard;
+  try {
+    // A unique AGORA_DIR is already a safe identity scope. Onboarding should
+    // tell the agent to preserve it, never to add AGORA_AGENT_ID afterward.
+    onboard = await run([
+      'onboard', 'scope-continuity-worker', '--session', 'thread-scope-continuity',
+    ], { env: continuityEnv, baseUrl });
+    assert.equal(onboard.code, 0);
+    const printed = onboard.lines.join('\n');
+    assert.match(printed, /Keep AGORA_AGENT_ID and AGORA_DIR unchanged for later commands/);
+    assert.doesNotMatch(printed, /TIP: export AGORA_AGENT_ID=/);
+    assert.doesNotMatch(printed, new RegExp(onboard.identity.token));
+
+    // Following that advice verbatim means reusing the unchanged environment.
+    // The stored bearer remains private while the real server accepts the lock.
+    const lock = await run([
+      'lock', 'tools/agora/scope-continuity-proof.mjs', '--reason', 'scope continuity regression',
+    ], { env: continuityEnv, baseUrl });
+    assert.equal(lock.code, 0);
+    assert.match(lock.lines.join('\n'), /Lock acquired/);
+    assert.doesNotMatch(lock.lines.join('\n'), new RegExp(onboard.identity.token));
+  } finally {
+    // Retiring through the unchanged scope releases any owned proof lock and
+    // prevents this focused case from affecting later tests in the same server.
+    if (onboard?.code === 0) {
+      await run(['retire'], { env: continuityEnv, baseUrl });
+    }
+    fs.rmSync(continuityDir, { recursive: true, force: true });
+  }
+});
+
+// ---------------------------------------------------------------------------
+// Stored identity liveness diagnosis
+// ---------------------------------------------------------------------------
+// This isolated server uses a controlled clock so the test can prove that the
+// live check reads authentication state without extending the presence lease.
+// It then exercises both ways saved identity can stop authenticating: reaping
+// by the server and a locally corrupted bearer token.
+// ---------------------------------------------------------------------------
+test('whoami --live distinguishes live, reaped, and invalid saved identity without renewing presence', async () => {
+  const isolatedServerDir = fs.mkdtempSync(path.join(os.tmpdir(), 'agora-whoami-live-srv-'));
+  const isolatedClientDir = fs.mkdtempSync(path.join(os.tmpdir(), 'agora-whoami-live-id-'));
+  let currentMs = 10_000;
+  const isolatedApp = createAgoraServer({
+    dir: isolatedServerDir,
+    storeFactory: ({ dir }) => createStore({
+      dir,
+      now: () => currentMs,
+      presenceTtlMs: 100,
+      presenceDropMs: 1_000,
+    }),
+  });
+  try {
+    await new Promise((resolve) => isolatedApp.listen(0, resolve));
+    const isolatedBaseUrl = `http://127.0.0.1:${isolatedApp.server.address().port}`;
+    const isolatedEnv = { AGORA_DIR: isolatedClientDir, AGORA_PET: 'nous-girl' };
+
+    // Registration establishes a saved token at the controlled starting time.
+    const registered = await run(['register', 'whoami-live-worker'], {
+      env: isolatedEnv,
+      baseUrl: isolatedBaseUrl,
+    });
+    assert.equal(registered.code, 0);
+    const initialLastSeen = isolatedApp.store.listAgents()[0].lastSeen;
+
+    // Moving the clock makes the identity stale. A successful live check must
+    // report that stored identity yet leave lastSeen at its original value.
+    currentMs += 500;
+    const live = await run(['whoami', '--live'], { env: isolatedEnv, baseUrl: isolatedBaseUrl });
+    assert.equal(live.code, 0);
+    assert.equal(live.live, true);
+    assert.match(live.lines.join('\n'), /live status: current \(stale\)/);
+    assert.equal(isolatedApp.store.listAgents()[0].lastSeen, initialLastSeen, 'diagnosis did not renew presence');
+    assert.doesNotMatch(live.lines.join('\n'), new RegExp(registered.identity.token));
+
+    // Once the controlled clock passes the drop horizon and the store reaps the
+    // agent, the unchanged saved file must be diagnosed as no longer live.
+    currentMs += 501;
+    isolatedApp.store.sweepExpired();
+    const reaped = await run(['whoami', '--live'], { env: isolatedEnv, baseUrl: isolatedBaseUrl });
+    assert.equal(reaped.code, 1);
+    assert.equal(reaped.live, false);
+    assert.match(reaped.lines.join('\n'), /stored identity was reaped or retired/);
+    assert.doesNotMatch(reaped.lines.join('\n'), /saved bearer is invalid/);
+
+    // A new registration proves the same response also covers a malformed
+    // local bearer while its real server-side presence remains current.
+    const replacement = await run(['register', 'whoami-invalid-worker'], {
+      env: isolatedEnv,
+      baseUrl: isolatedBaseUrl,
+    });
+    assert.equal(replacement.code, 0);
+    const identityFile = path.join(isolatedClientDir, 'client-identity.json');
+    const saved = JSON.parse(fs.readFileSync(identityFile, 'utf8'));
+    saved[isolatedBaseUrl].token = 'deliberately-invalid-token';
+    fs.writeFileSync(identityFile, JSON.stringify(saved, null, 2) + '\n');
+    const invalid = await run(['whoami', '--live'], { env: isolatedEnv, baseUrl: isolatedBaseUrl });
+    assert.equal(invalid.code, 1);
+    assert.equal(invalid.live, false);
+    assert.match(invalid.lines.join('\n'), /stored presence exists, but its saved bearer is invalid/);
+    assert.doesNotMatch(invalid.lines.join('\n'), /identity was reaped or retired/);
+    assert.doesNotMatch(invalid.lines.join('\n'), /deliberately-invalid-token/);
+  } finally {
+    await isolatedApp.close();
+    fs.rmSync(isolatedServerDir, { recursive: true, force: true });
+    fs.rmSync(isolatedClientDir, { recursive: true, force: true });
+  }
 });
 
 // ---------------------------------------------------------------------------
@@ -441,6 +563,129 @@ test('AGORA_AGENT_ID scopes identity: unlock --mine cannot release another agent
     const unlockA = await run(['unlock', '--mine'], { env: envA, baseUrl });
     assert.equal(unlockA.code, 0);
     assert.match(unlockA.lines.join('\n'), new RegExp(lockA.lock.id));
+  } finally {
+    fs.rmSync(sharedDir, { recursive: true, force: true });
+  }
+});
+
+// ---------------------------------------------------------------------------
+// Legacy default identity safety
+// ---------------------------------------------------------------------------
+// These cases keep all identity files in fresh temporary directories. The
+// first proves the old shared default slot cannot be silently overwritten; the
+// second proves explicit per-agent scopes still isolate destructive commands.
+// ---------------------------------------------------------------------------
+test('default onboarding refuses to overwrite a live identity and keeps later commands bound to the first agent', async () => {
+  const defaultDir = fs.mkdtempSync(path.join(os.tmpdir(), 'agora-client-default-safety-'));
+  const defaultEnv = { AGORA_PET: 'king-david' };
+  try {
+    // A claims the unscoped default slot and owns a lock through that identity.
+    const onboardA = await run(['onboard', 'legacy-default-a'], {
+      env: defaultEnv,
+      baseUrl,
+      identityDirOverride: defaultDir,
+    });
+    assert.equal(onboardA.code, 0);
+    const lockA = await run(['lock', 'src/default-a.ts'], {
+      env: defaultEnv,
+      baseUrl,
+      identityDirOverride: defaultDir,
+    });
+    assert.equal(lockA.code, 0);
+
+    // B's second default onboarding must stop before registration, preserving
+    // both the saved A identity and the live roster rather than replacing A.
+    const rosterBefore = await fetch(`${baseUrl}/agents`).then((response) => response.json());
+    const onboardB = await run(['onboard', 'legacy-default-b', '--pet', 'king-solomon'], {
+      env: defaultEnv,
+      baseUrl,
+      identityDirOverride: defaultDir,
+    });
+    assert.equal(onboardB.code, 1);
+    assert.match(onboardB.lines.join('\n'), /default identity still belongs to live agent "legacy-default-a"/);
+    assert.match(onboardB.lines.join('\n'), /AGORA_AGENT_ID or AGORA_DIR/);
+
+    const defaultFile = path.join(defaultDir, 'client-identity.json');
+    const saved = JSON.parse(fs.readFileSync(defaultFile, 'utf8'));
+    assert.equal(saved[baseUrl].agentId, onboardA.identity.agentId);
+    assert.equal(saved[baseUrl].handle, 'legacy-default-a');
+    const rosterAfter = await fetch(`${baseUrl}/agents`).then((response) => response.json());
+    assert.equal(rosterAfter.agents.length, rosterBefore.agents.length, 'refused onboarding did not POST a new presence');
+    assert.equal(rosterAfter.agents.some((agent) => agent.handle === 'legacy-default-b'), false);
+
+    // Since B never replaced the file, default-scope unlock and retire remain
+    // authenticated as A and affect only A's lock and presence.
+    const unlockA = await run(['unlock', '--mine'], {
+      env: defaultEnv,
+      baseUrl,
+      identityDirOverride: defaultDir,
+    });
+    assert.equal(unlockA.code, 0);
+    assert.match(unlockA.lines.join('\n'), new RegExp(lockA.lock.id));
+    const retireA = await run(['retire'], {
+      env: defaultEnv,
+      baseUrl,
+      identityDirOverride: defaultDir,
+    });
+    assert.equal(retireA.code, 0);
+    const finalRoster = await fetch(`${baseUrl}/agents`).then((response) => response.json());
+    assert.equal(finalRoster.agents.some((agent) => agent.id === onboardA.identity.agentId), false);
+
+    // Once A is no longer live, the same default slot is reusable. This keeps
+    // the safety stop bounded to real collisions instead of requiring cleanup.
+    const onboardBAfterRetire = await run(['onboard', 'legacy-default-b'], {
+      env: defaultEnv,
+      baseUrl,
+      identityDirOverride: defaultDir,
+    });
+    assert.equal(onboardBAfterRetire.code, 0);
+    const retireB = await run(['retire'], {
+      env: defaultEnv,
+      baseUrl,
+      identityDirOverride: defaultDir,
+    });
+    assert.equal(retireB.code, 0);
+  } finally {
+    fs.rmSync(defaultDir, { recursive: true, force: true });
+  }
+});
+
+test('explicit A and B scopes keep B locked and live when A unlocks and retires', async () => {
+  const sharedDir = fs.mkdtempSync(path.join(os.tmpdir(), 'agora-client-explicit-safety-'));
+  const envA = { AGORA_DIR: sharedDir, AGORA_AGENT_ID: 'explicit-a', AGORA_PET: 'mansui' };
+  const envB = { AGORA_DIR: sharedDir, AGORA_AGENT_ID: 'explicit-b', AGORA_PET: 'dollman' };
+  try {
+    // Both explicit scopes get independent identity files and own one lock.
+    const regA = await run(['register', 'explicit-safety-a'], { env: envA, baseUrl });
+    const regB = await run(['register', 'explicit-safety-b'], { env: envB, baseUrl });
+    assert.equal(regA.code, 0);
+    assert.equal(regB.code, 0);
+    const lockA = await run(['lock', 'src/explicit-a.ts'], { env: envA, baseUrl });
+    const lockB = await run(['lock', 'src/explicit-b.ts'], { env: envB, baseUrl });
+    assert.equal(lockA.code, 0);
+    assert.equal(lockB.code, 0);
+
+    // A may release all of A's own locks without matching B's agent id.
+    const unlockA = await run(['unlock', '--mine'], { env: envA, baseUrl });
+    assert.equal(unlockA.code, 0);
+    assert.match(unlockA.lines.join('\n'), new RegExp(lockA.lock.id));
+    const locksAfterUnlock = await fetch(`${baseUrl}/locks`).then((response) => response.json());
+    assert.ok(locksAfterUnlock.locks.some((lock) => lock.id === lockB.lock.id), "B's lock survived A's unlock --mine");
+
+    // A's retirement removes A alone. B remains present and continues to own
+    // the same lock, proving the saved tokens never crossed identity scopes.
+    const retireA = await run(['retire'], { env: envA, baseUrl });
+    assert.equal(retireA.code, 0);
+    const rosterAfterRetire = await fetch(`${baseUrl}/agents`).then((response) => response.json());
+    assert.equal(rosterAfterRetire.agents.some((agent) => agent.id === regA.identity.agentId), false);
+    assert.equal(rosterAfterRetire.agents.some((agent) => agent.id === regB.identity.agentId), true);
+    const locksAfterRetire = await fetch(`${baseUrl}/locks`).then((response) => response.json());
+    assert.ok(locksAfterRetire.locks.some((lock) => lock.id === lockB.lock.id), "B's lock survived A's retire");
+
+    // Clean the isolated B presence so this regression leaves no state behind
+    // for later tests sharing the same in-process server.
+    const retireB = await run(['retire'], { env: envB, baseUrl });
+    assert.equal(retireB.code, 0);
   } finally {
     fs.rmSync(sharedDir, { recursive: true, force: true });
   }

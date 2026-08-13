@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { createServer, type Server } from 'http';
-import { probeHttpUrl } from '../devServerRoutes';
+import { handleDevServerRoutes, probeHttpUrl } from '../devServerRoutes';
 
 /**
  * Regression coverage for the port-probe hang.
@@ -27,6 +27,19 @@ async function listen(server: Server): Promise<number> {
 
 function target(port: number) {
   return { port, label: 'Test service', expectedUrl: `http://127.0.0.1:${port}/` };
+}
+
+async function inspectChildApps(port: number) {
+  let payload: any = null;
+  const urlPath = `/api/dev/active-servers/${port}/child-apps`;
+  const handled = await handleDevServerRoutes({
+    req: { method: 'GET' },
+    res: {},
+    json: (data: any) => { payload = data; },
+    parsedUrl: new URL(urlPath, 'http://localhost'),
+    urlPath,
+  });
+  return { handled, payload };
 }
 
 afterEach(async () => {
@@ -95,4 +108,28 @@ describe('probeHttpUrl', () => {
     expect(result.active).toBe(false);
     expect(result.error).toBeTruthy();
   }, 10_000);
+});
+
+describe('active-server child apps', () => {
+  it('discovers Dev Hub launch cards served by the selected local port', async () => {
+    const server = createServer((_req, res) => {
+      res.writeHead(200, { 'Content-Type': 'text/html' });
+      res.end('<html><head><title>Test App</title></head><body>ready</body></html>');
+    });
+    const port = await listen(server);
+
+    const { handled, payload } = await inspectChildApps(port);
+
+    expect(handled).toBe(true);
+    expect(payload.port).toBe(port);
+    expect(payload.candidateCount).toBeGreaterThan(0);
+    expect(payload.appCount).toBeGreaterThan(0);
+    expect(payload.apps).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        label: 'MAIN GAME',
+        url: `http://127.0.0.1:${port}/Aralia/`,
+        httpStatus: 200,
+      }),
+    ]));
+  });
 });

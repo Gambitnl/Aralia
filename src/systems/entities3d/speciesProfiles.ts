@@ -50,7 +50,18 @@ export const SPECIES_PROFILES: Record<string, SpeciesProfile> = Object.fromEntri
       heightRangeFt: [4.9, 6.4],
       bulkRange: [0.9, 1.15],
       headScale: 1,
-      features: [],
+      // round 21 (humanoid-anatomy): the human had NO face features at all —
+      // an empty list, so the head loft ran on defaults and round 20 read it as
+      // "a flat pale oval with two dot eyes". The orc face is the one thing the
+      // critic praised against the WoW grunt ("heavy brow shelf, sunken eyes
+      // with real pupils, jaw"), and it is exactly this channel that produces
+      // it. The human now carries the same brow ridge (which shades the
+      // sockets) and a faceSculpt with a real nose and human-scale eyes —
+      // milder numbers than the orc's, so he reads as a man, not a brute.
+      features: [
+        { partId: 'brow', anchor: 'head' },
+        { partId: 'faceSculpt', anchor: 'head', params: { noseDepth: 1.15, noseWidth: 0.9, mouthWidth: 0.95, lidOpen: 1.2, eyeScale: 0.82 } },
+      ],
       skinTones: HUMAN_SKINS,
       eyeTones: COMMON_EYES,
     }),
@@ -153,6 +164,13 @@ export const SPECIES_PROFILES: Record<string, SpeciesProfile> = Object.fromEntri
       features: [
         { partId: 'tuskJaw', anchor: 'jaw' },
         { partId: 'brow', anchor: 'head' },
+        // round 23 (humanoid-anatomy): the orc had NO ear part at all — the
+        // round-22 verdict's "no ears" was literal, not a render miss. Every
+        // ear-bearing profile in this file uses the same cone part; the orc
+        // takes it at 0.9 so the ears swing out from the temple without the
+        // elf's length. This is the same discovery shape as the round-21 human
+        // face (an empty feature list read as a flat oval).
+        { partId: 'earsPointed', anchor: 'head', params: { lengthScale: 0.5 } },
         // round 11 (humanoid-anatomy): broad flat nose + wide maw for the
         // tusked mouth — WoW grunt mid-face, not a human nose on green skin.
         // round 13 (humanoid-anatomy): lidOpen 1.6 raises the upper lid —
@@ -161,7 +179,15 @@ export const SPECIES_PROFILES: Record<string, SpeciesProfile> = Object.fromEntri
         // round 14 (humanoid-anatomy): eyeScale 0.88 — the orc's glossy eye
         // whites read anime against the tusked kit; slightly smaller + the
         // strengthened lidOpen response (assembleEntity) opens the glare.
-        { partId: 'faceSculpt', anchor: 'head', params: { noseDepth: 0.6, noseWidth: 1.6, mouthWidth: 1.25, lidOpen: 1.6, eyeScale: 0.88 } },
+        // round 23 (humanoid-anatomy): noseDepth 0.6 → 1.2 and a heavy jaw.
+        // "Broad flat nose" (round 11) was implemented as a nose SHRUNK to 60%
+        // of the neutral protrusion, which on a low-poly loft under a toon ramp
+        // is no nose at all — the round-22 verdict said exactly that. Broad is
+        // noseWidth, which is already 1.6; depth is what makes the form catch
+        // light, so it now protrudes MORE than a human's, wide and blunt. The
+        // jaw widens to 1.4 because the neutral loft tapers to a 0.2-radius
+        // chin base, and a grunt is built on mandible.
+        { partId: 'faceSculpt', anchor: 'head', params: { noseDepth: 1.2, noseWidth: 1.6, mouthWidth: 1.25, lidOpen: 1.6, eyeScale: 0.88, jawWidth: 1.4 } },
       ],
       skinTones: ['#6a8a4a', '#7f9a5a', '#5a7a44', '#8a9a6a'],
       eyeTones: ['#8a3333', '#8a7a33', '#3b2f2a'],

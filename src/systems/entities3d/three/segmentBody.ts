@@ -21,6 +21,7 @@ import {
   CylinderGeometry,
   EdgesGeometry,
   Group,
+  IcosahedronGeometry,
   LatheGeometry,
   LineBasicMaterial,
   LineSegments,
@@ -37,8 +38,60 @@ import {
 } from 'three';
 import type { SegmentSink } from '../types';
 import { createSweptTube, type SweptTube } from './sweptTube';
+import { crystalGeometry } from './crystalGeometry';
 import { outlineMaterial, toonMaterial, type EntityRenderMode } from './toon';
 import { Color } from 'three';
+
+/** Stable hash of a segment id — the deterministic seed every per-plate
+ * variation reads. */
+function plateHash(id: string): number {
+  let h = 0;
+  for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) | 0;
+  return h;
+}
+
+/** Which of the 64 cached fracture-chunk shapes this plate uses. */
+function plateKey(id: string): number {
+  return ((plateHash(id) % 64) + 64) % 64;
+}
+
+/**
+ * round 25 (creature-anatomy): ONE angular rock slab — a 20-face icosahedron
+ * whose vertices are pulled in and out by a per-variant deterministic factor,
+ * so every face stays FLAT and every edge stays STRAIGHT while the outline
+ * turns irregular. The round-24 verdict on the elemental: "every plate is a
+ * ROUNDED COBBLE ... a stack of grey potatoes", against references built from
+ * "large angular slabs with straight fracture edges". A sphere cannot produce
+ * a straight silhouette edge at any resolution; this does nothing else.
+ *
+ * Flat-shaded (non-indexed + face normals) so the toon ramp bands each facet
+ * separately — that is what makes the fracture planes visible as VALUE, which
+ * is the only thing the shader lets through at sheet distance.
+ */
+function angularPlateGeometry(r: number, variant: number): BufferGeometry {
+  const base = new IcosahedronGeometry(r, 0);
+  const pos = base.attributes.position as BufferAttribute;
+  // vertices are shared per face in a non-indexed icosahedron, so pull by
+  // QUANTIZED direction: matching corners of neighbouring faces move together
+  // and the slab stays closed.
+  const seen = new Map<string, number>();
+  for (let i = 0; i < pos.count; i++) {
+    const x = pos.getX(i);
+    const y = pos.getY(i);
+    const z = pos.getZ(i);
+    const key = `${Math.round((x / r) * 64)}:${Math.round((y / r) * 64)}:${Math.round((z / r) * 64)}`;
+    let k = seen.get(key);
+    if (k === undefined) {
+      const t = Math.sin(variant * 12.9898 + seen.size * 78.233) * 43758.5453;
+      k = 0.68 + 0.5 * (t - Math.floor(t));
+      seen.set(key, k);
+    }
+    pos.setXYZ(i, x * k, y * k, z * k);
+  }
+  pos.needsUpdate = true;
+  base.computeVertexNormals(); // non-indexed ⇒ per-face normals ⇒ flat facets
+  return base;
+}
 
 export interface SegmentBodyOptions {
   renderMode: EntityRenderMode;
@@ -86,7 +139,7 @@ interface Node {
  * quantized dimensions share ONE BufferGeometry. dispose() releases; the last
  * release frees GPU memory.
  */
-type CachedGeometry = CylinderGeometry | SphereGeometry | BoxGeometry;
+type CachedGeometry = BufferGeometry;
 const GEO_CACHE = new Map<string, { geometry: CachedGeometry; refs: number }>();
 const q = (v: number) => Math.round(v * 500); // 2 mm buckets
 
@@ -202,7 +255,10 @@ export function createSegmentBody(options: SegmentBodyOptions): SegmentBody {
   // the front surface — exactly the nucleus-eye trick — so the translucent
   // front shades over them and they read as masses suspended IN the gel.
   let interiorCoreMaterial: MeshToonMaterial | null = null;
-  let interiorChunkMaterial: MeshToonMaterial | null = null;
+  // round 25: unlit — debris inside a translucent gel needs to sit whole toon
+  // bands off the gel tone, and a lit toon surface behind translucency lands
+  // back inside it
+  let interiorChunkMaterial: MeshBasicMaterial | null = null;
   // round 20 (creature-anatomy): the dorsal crest fin renders in the ACCENT
   // tone (toon-lit, not the ring glow) — the round-19 serpent verdict read
   // "one uninterrupted green gradient"; Valheim breaks its serpent with a
@@ -260,16 +316,23 @@ export function createSegmentBody(options: SegmentBodyOptions): SegmentBody {
     }
     return { fill: fillMaterial!, ink: inkMaterial };
   };
-  /** Deterministic per-id squash for plate boulders — irregular rock chunks,
-   * never marbles. Constant per id, so the geometry contract holds. */
+  /** Deterministic per-id squash and TILT for plate boulders — irregular rock
+   * chunks, never marbles. Constant per id, so the geometry contract holds.
+   * round 25 (creature-anatomy): the tilt matters as much as the squash — a
+   * bank of slabs all sharing one axis reads as brickwork; tumbled ones read
+   * as fracture. */
   const plateSquash = (id: string, group: Group): void => {
     if (!id.startsWith('plate.')) return;
-    let h = 0;
-    for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) | 0;
+    const h = plateHash(id);
     group.scale.set(
-      1 + 0.26 * Math.sin(h * 0.61),
-      0.76 + 0.2 * Math.sin(h * 1.7 + 1),
-      1 + 0.26 * Math.sin(h * 2.3 + 2),
+      1 + 0.3 * Math.sin(h * 0.61),
+      0.7 + 0.24 * Math.sin(h * 1.7 + 1),
+      1 + 0.3 * Math.sin(h * 2.3 + 2),
+    );
+    group.rotation.set(
+      Math.sin(h * 0.37) * 0.7,
+      Math.sin(h * 1.13 + 2) * 1.2,
+      Math.sin(h * 0.89 + 4) * 0.7,
     );
   };
 
@@ -332,7 +395,7 @@ export function createSegmentBody(options: SegmentBodyOptions): SegmentBody {
    * round 20 (creature-anatomy): mound drip lobes skip the gel rim shell —
    * they sit mostly buried at the skirt rim where a rim band would double
    * their cost for a sliver of highlight (30k budget headroom). */
-  function makeNode(id: string, geometry: CylinderGeometry | SphereGeometry | BoxGeometry, geoKey?: string): Node {
+  function makeNode(id: string, geometry: BufferGeometry, geoKey?: string): Node {
     const group = new Group();
     group.name = `seg:${id}`;
     let triangles = 0;
@@ -377,6 +440,30 @@ export function createSegmentBody(options: SegmentBodyOptions): SegmentBody {
     seg(id, ax, ay, az, bx, by, bz, r0, r1) {
       let node = nodes.get(id);
       if (!node) {
+        // round 24 (creature-anatomy): CRYSTAL SHARDS are parametric facets,
+        // not blunt cones (see crystalGeometry.ts and the elemental design
+        // language's "Crystal geometry source" section). Any id naming a
+        // crystal builds one, keyed on its own dimensions, and skips the joint
+        // spheres — a sphere on a crystal's point erases the point.
+        if (id.includes('crystal')) {
+          let h = 0;
+          for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) | 0;
+          const seed = (h % 997) / 997;
+          const cry = bodyGeometry(`x:${q(r0)}:${q(r1)}:${id}`, () => {
+            const g = crystalGeometry({
+              facets: 5,
+              length: 1,
+              radius: r0,
+              taper: Math.min(0.5, r1 / Math.max(r0, 1e-5)),
+              roughness: 0.22,
+              bend: 0.12 * Math.sin(h * 0.37),
+              seed,
+            });
+            g.translate(0, -0.5, 0); // seg geometry is centered on its midpoint
+            return g;
+          });
+          node = makeNode(id, cry.geometry, cry.key);
+        } else {
         // unit-height tapered bone; joint spheres round the ends in solid mode
         const cyl = bodyGeometry(`c:${q(r1)}:${q(r0)}`, () => new CylinderGeometry(r1, r0, 1, 10, 1));
         node = makeNode(id, cyl.geometry, cyl.key);
@@ -388,6 +475,7 @@ export function createSegmentBody(options: SegmentBodyOptions): SegmentBody {
             const sph = bodyGeometry(`j:${q(r)}`, () => new SphereGeometry(r * 0.98, 8, 6));
             makeNode(endId, sph.geometry, sph.key);
           }
+        }
         }
       }
       node.seen = true;
@@ -421,8 +509,16 @@ export function createSegmentBody(options: SegmentBodyOptions): SegmentBody {
         if (gel && !wire && id.startsWith('interior.')) {
           const gloss = id.startsWith('interior.gloss');
           const chunk = !gloss && id.startsWith('interior.chunk');
-          if (gloss) gelGlossMaterial ??= new MeshBasicMaterial({ color: new Color(options.colorHex).lerp(new Color('#ffffff'), 0.88) });
-          else if (chunk) interiorChunkMaterial ??= toonMaterial('#cfc3a3');
+          // round 25 (creature-anatomy): the round-24 verdict read the ooze
+          // close-up as "a blank wall of teal ... no specular hot spot, no
+          // debris or bone suspended inside". Both features existed; both
+          // died behind the translucent colour pass, which averages anything
+          // under it toward the gel tone. The gloss lens is now FULLY unlit
+          // white (not an 88% lerp of the body tone) and the debris is bone
+          // white with its own unlit material, so each lands whole toon bands
+          // clear of the teal instead of inside its band.
+          if (gloss) gelGlossMaterial ??= new MeshBasicMaterial({ color: '#ffffff' });
+          else if (chunk) interiorChunkMaterial ??= new MeshBasicMaterial({ color: '#f3ecd8' });
           else interiorCoreMaterial ??= toonMaterial(`#${new Color(options.colorHex).multiplyScalar(0.38).getHexString()}`);
           const geometry = new SphereGeometry(r, 10, 7);
           const mesh = new Mesh(geometry, gloss ? gelGlossMaterial! : chunk ? interiorChunkMaterial! : interiorCoreMaterial!);
@@ -439,10 +535,21 @@ export function createSegmentBody(options: SegmentBodyOptions): SegmentBody {
           node = { group, seen: true, triangles };
           nodes.set(id, node);
           root.add(group);
+        } else if (id.startsWith('plate.')) {
+          // round 25 (creature-anatomy): ANGULAR SLABS. The round-24 verdict:
+          // "every plate is a ROUNDED COBBLE, so the silhouette is all convex
+          // bubbles — a stack of grey potatoes — where the earth-golem refs
+          // use large angular slabs with straight fracture edges". A sphere
+          // has no straight edge anywhere on it; this is a faceted chunk with
+          // 20 flat fracture planes, and per-id vertex pull makes each one an
+          // irregular slab rather than a regular solid. Bonus: 20 triangles
+          // where the sphere spent ~198.
+          const chunk = bodyGeometry(`k:${q(r)}:${plateKey(id)}`, () => angularPlateGeometry(r, plateKey(id)));
+          node = makeNode(id, chunk.geometry, chunk.key);
+          if (!wire) plateSquash(id, node.group); // rocky boulders: per-id squash
         } else {
           const sph = bodyGeometry(`s:${q(r)}`, () => new SphereGeometry(r, 12, 9));
           node = makeNode(id, sph.geometry, sph.key);
-          if (!wire) plateSquash(id, node.group); // rocky boulders: per-id squash
         }
       }
       node.seen = true;

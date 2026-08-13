@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 04/08/2026, 01:50:48
+ * Last Sync: 12/08/2026, 06:33:39
  * Dependents: commands/factory/SpellCommandFactory.ts, commands/index.ts
  * Imports: 28 files
  *
@@ -491,7 +491,10 @@ export class WeaponAttackCommand implements SpellCommand {
       }) || false;
 
       const liveAttacker = newState.characters.find(character => character.id === this.caster.id) ?? this.caster;
-      if (hasTauntAttackDisadvantage(liveAttacker, currentTarget.id)) {
+      // Source viability is part of the taunt rule, not a presentation detail.
+      // Passing the live roster means a downed or removed taunter cannot leave
+      // one stale disadvantaged attack behind before cleanup reconciles state.
+      if (hasTauntAttackDisadvantage(liveAttacker, currentTarget.id, newState.characters)) {
         hasDisadvantage = true;
       }
 

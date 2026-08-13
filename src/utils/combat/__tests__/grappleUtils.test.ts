@@ -65,7 +65,12 @@ describe('grappleUtils', () => {
     expect(grappled.conditions).toContainEqual(expect.objectContaining({
       name: 'Grappled',
       sourceCasterId: 'grappler',
+      duration: { type: 'permanent' },
     }));
+    expect(grappled.statusEffects.find(effect => effect.name === 'Grappled')?.duration)
+      .toBe(Number.POSITIVE_INFINITY);
+    expect(grappled.statusEffects.find(effect => effect.name === 'Grappled')?.description)
+      .toContain('does not also apply Restrained');
     expect(calculateMovementTotal(grappled)).toBe(0);
     expect(grappled.actionEconomy.movement.total).toBe(0);
   });

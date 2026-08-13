@@ -589,6 +589,17 @@ const BattleMapDemo: React.FC<BattleMapDemoProps> = ({
   const [sheetCharacter, setSheetCharacter] = useState<PlayerCharacter | null>(
     null,
   );
+  useEffect(() => {
+    const rebuiltDevPlayer = party.find((member) => member.devPlaytest);
+    if (!rebuiltDevPlayer) return;
+
+    // If the sheet is already open while the lab changes a selection, replace
+    // only that disposable sheet model. Other inspected party members remain
+    // untouched, and the next roster Inspect click also reads this same party.
+    setSheetCharacter((currentSheet) => (
+      currentSheet?.devPlaytest ? rebuiltDevPlayer : currentSheet
+    ));
+  }, [party]);
   const [autoCharacters, setAutoCharacters] = useState<Set<string>>(new Set());
   const [cameraFocusRequest, setCameraFocusRequest] = useState<{
     characterId: string;

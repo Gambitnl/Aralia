@@ -85,6 +85,20 @@ import {
 } from './scripts/vite-plugins/miscManagers';
 
 import { formatProxyTarget } from './scripts/vite-plugins/utils';
+import {
+  isVerificationNoWatchServer,
+  selectMainAppWatchOptions,
+  VERIFICATION_NO_WATCH_PORT,
+} from './scripts/vite-plugins/verificationServerMode';
+
+/**
+ * This file configures every Aralia Vite build and local development-server mode.
+ *
+ * It connects the game and its specialist preview pages to React, local development
+ * APIs, dependency optimization, proxy routes, and build entry points. Named modes
+ * reuse this shared configuration while narrowing only the behavior they explicitly
+ * own, such as the verification server's filesystem watcher.
+ */
 
 /**
  * Helper to add diagnostic hints to Vite proxy errors.
@@ -156,6 +170,7 @@ export default defineConfig(async ({ mode, command }) => {
   const isRoadmapMode = mode === 'roadmap';
   const isHubMode = mode === 'hub';
   const isPlanmapMode = mode === 'planmap';
+  const isVerificationNoWatchDev = isVerificationNoWatchServer({ command, mode });
 
   const isRoadmapOnlyDev = isDevServer && isRoadmapMode;
   const isHubOnlyDev = isDevServer && isHubMode;
@@ -271,6 +286,12 @@ export default defineConfig(async ({ mode, command }) => {
       console.info('[dev] Mode: planmap-only (static plan-map, no app HMR).');
       console.info(`[dev] Planmap server port: ${PLANMAP_DEV_PORT}`);
       console.info('[dev] Open: /Aralia/planmap/index.html (root redirects here)');
+    } else if (isVerificationNoWatchDev) {
+      // Render verification uses the complete main app and normal dependency optimizer.
+      // Only filesystem watching is absent, so the initial watcher crawl cannot delay
+      // the document and `/@vite/client` responses required by screenshot tooling.
+      console.info('[dev] Mode: verification-only (main app without filesystem watching or HMR updates).');
+      console.info(`[dev] Verification server port: ${VERIFICATION_NO_WATCH_PORT}`);
     } else {
       console.info('[dev] Mode: main-app (roadmap APIs and roadmap watch paths are disabled).');
       console.info('[dev] Proxy routes:');
@@ -284,12 +305,15 @@ export default defineConfig(async ({ mode, command }) => {
   if (isRoadmapOnlyDev) port = ROADMAP_DEV_PORT;
   if (isHubOnlyDev) port = DEVHUB_DEV_PORT;
   if (isPlanmapOnlyDev) port = PLANMAP_DEV_PORT;
+  if (isVerificationNoWatchDev) port = VERIFICATION_NO_WATCH_PORT;
 
   return {
     base: '/Aralia/',
     server: {
       port,
-      strictPort: isRoadmapOnlyDev || isHubOnlyDev || isPlanmapOnlyDev,
+      // Specialist servers fail rather than drifting onto another lane's port.
+      // In particular, verification must never fall back to shared port 3000.
+      strictPort: isRoadmapOnlyDev || isHubOnlyDev || isPlanmapOnlyDev || isVerificationNoWatchDev,
       host: '0.0.0.0',
       // The planmap server is static — don't warm the React entry (no react
       // plugin in that mode, so transforming index.tsx would just error).
@@ -297,9 +321,10 @@ export default defineConfig(async ({ mode, command }) => {
       ...(isRoadmapOnlyDev || isPlanmapOnlyDev
         ? {}
         : {
-            watch: {
-              ignored: mainDevRoadmapWatchIgnored
-            },
+            watch: selectMainAppWatchOptions(
+              { command, mode },
+              { ignored: mainDevRoadmapWatchIgnored },
+            ),
             proxy: {
               '/api/ollama': addProxyDiagnostics(
                 '/api/ollama',
@@ -370,6 +395,39 @@ export default defineConfig(async ({ mode, command }) => {
          * there is nothing left to discover and no reason to reload. */
         'three/webgpu',
         'three/tsl',
+        /* THE ENTITY-GENERATOR EXAMPLES, same reasoning as the WebGPU pair.
+         *
+         * `entities3d` reaches three deep `three/examples` modules, and every
+         * one of them sits behind a lazy path the cold-start scan never walks:
+         * GLTFLoader and SkeletonUtils load only when a clip plays (the entity
+         * debugger's `?clip=1`), BufferGeometryUtils only when crowd baking
+         * runs. The first request down any of those paths made the dev server
+         * DISCOVER a new dependency and re-bundle mid-session.
+         *
+         * From a chair that looks like `504 (Outdated Optimize Dep)` and a
+         * server that is LISTENING but answers nothing — during the entity
+         * quality campaign it ate hours across several agents and left the
+         * capture rig timing out against a wedged port. Naming them here puts
+         * them in the FIRST optimize pass so there is nothing to discover. */
+        'three/examples/jsm/loaders/GLTFLoader.js',
+        'three/examples/jsm/utils/SkeletonUtils.js',
+        'three/examples/jsm/utils/BufferGeometryUtils.js',
+        /* THE IMG2THREEJS REFERENCE MODEL, third instance of the same failure.
+         *
+         * `src/systems/entities3d/vendor/img2threejs/createEarthGolemModel.ts` is the
+         * vendored earth golem shown by the entity debugger's Elemental subtype
+         * dropdown (`?step=entitydebug&mode=creature&type=Elemental&subtype=img2threejs`).
+         * It is reached ONLY through a `lazy(() => import(...))` behind that dropdown,
+         * so the cold-start scan never walks it — and it imports six three/examples
+         * modules nothing else in the app touches. Picking the golem from the dropdown
+         * would otherwise be the request that makes the dev server discover six new
+         * dependencies at once and re-bundle mid-session. */
+        'three/examples/jsm/environments/RoomEnvironment.js',
+        'three/examples/jsm/postprocessing/EffectComposer.js',
+        'three/examples/jsm/postprocessing/RenderPass.js',
+        'three/examples/jsm/postprocessing/BokehPass.js',
+        'three/examples/jsm/postprocessing/UnrealBloomPass.js',
+        'three/examples/jsm/controls/OrbitControls.js',
       ],
       // three's TSL BloomNode example imports `PostProcessingUtils`, which the
       // installed three build does not export, so esbuild can't pre-bundle it and

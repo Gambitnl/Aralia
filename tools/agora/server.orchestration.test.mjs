@@ -1,6 +1,6 @@
 // tools/agora/server.orchestration.test.mjs
 // API tests for the orchestrator-upgrade endpoints: task deps/priority/refs,
-// ready filter, claim-next, done-with-result, and force lock release.
+// ready filter, claim-next, classified review results, and force lock release.
 //   node --test "tools/agora/*.test.mjs"
 
 import { test, before, after } from 'node:test';
@@ -126,6 +126,100 @@ test('tasks: POST /tasks/claim-next claims by priority; 200 with task:null when 
   } while (r.json.task);
   assert.equal(r.status, 200);
   assert.equal(r.json.task, null);
+});
+
+test('tasks: result disposition validates, round-trips, and permits a later substantive review', async () => {
+  const reviewer = await registerAgent('triage-api-reviewer');
+  const created = await request('POST', '/tasks', {
+    token: reviewer.token,
+    body: { title: 'review broad TODO' },
+  });
+  assert.equal(created.status, 201);
+  const taskId = created.json.task.id;
+  await request('POST', `/tasks/${taskId}/claim`, { token: reviewer.token });
+
+  // The API refuses unknown taxonomy and malformed review detail instead of
+  // silently dropping fields that an operator thought were durable.
+  const invalidDisposition = await request('POST', `/tasks/${taskId}/state`, {
+    token: reviewer.token,
+    body: { state: 'done', result: 'declined', resultDisposition: 'too_big' },
+  });
+  assert.equal(invalidDisposition.status, 400);
+  assert.match(invalidDisposition.json.error, /invalid result disposition/);
+  const invalidFinding = await request('POST', `/tasks/${taskId}/state`, {
+    token: reviewer.token,
+    body: { state: 'done', result: 'reviewed', finding: { text: 'wrong shape' } },
+  });
+  assert.equal(invalidFinding.status, 400);
+  assert.match(invalidFinding.json.error, /finding must be a string/);
+  const incompleteReview = await request('POST', `/tasks/${taskId}/state`, {
+    token: reviewer.token,
+    body: {
+      state: 'done',
+      resultDisposition: 'substantive',
+      finding: 'finding without evidence',
+    },
+  });
+  assert.equal(incompleteReview.status, 400);
+  assert.match(incompleteReview.json.error, /requires non-empty finding and evidence/);
+
+  const triage = await request('POST', `/tasks/${taskId}/state`, {
+    token: reviewer.token,
+    body: {
+      state: 'done',
+      result: 'SKIP TOO-BIG: cross-file and visual work deferred',
+      resultDisposition: 'triage_only',
+    },
+  });
+  assert.equal(triage.status, 200);
+  assert.equal(triage.json.task.state, 'done');
+  assert.equal(triage.json.task.resultDisposition, 'triage_only');
+  assert.equal(triage.json.task.result, 'SKIP TOO-BIG: cross-file and visual work deferred');
+
+  // Public board reads retain the classification, and the same task can be
+  // claimed for the substantive review rather than becoming terminal.
+  const listed = await request('GET', '/tasks');
+  assert.equal(listed.json.tasks.find((task) => task.id === taskId).resultDisposition, 'triage_only');
+  const reclaimed = await request('POST', `/tasks/${taskId}/claim`, { token: reviewer.token });
+  assert.equal(reclaimed.status, 200);
+  assert.equal(reclaimed.json.task.state, 'claimed');
+
+  // Another bare result cannot silently promote the refusal. Only an explicit
+  // substantive disposition with both proof fields replaces the triage label.
+  const stillTriage = await request('POST', `/tasks/${taskId}/state`, {
+    token: reviewer.token,
+    body: { state: 'done', result: 'another unclassified result' },
+  });
+  assert.equal(stillTriage.status, 200);
+  assert.equal(stillTriage.json.task.resultDisposition, 'triage_only');
+  const substantive = await request('POST', `/tasks/${taskId}/state`, {
+    token: reviewer.token,
+    body: {
+      state: 'done',
+      result: 'Review completed after triage.',
+      resultDisposition: 'substantive',
+      finding: 'The healing branch reads damage dice before healing dice.',
+      evidence: 'Focused fixture reproduced the incorrect total.',
+    },
+  });
+  assert.equal(substantive.status, 200);
+  assert.equal(substantive.json.task.resultDisposition, 'substantive');
+  assert.equal(substantive.json.task.finding, 'The healing branch reads damage dice before healing dice.');
+  assert.equal(substantive.json.task.evidence, 'Focused fixture reproduced the incorrect total.');
+
+  // A fresh legacy caller still succeeds, but its result is explicitly not a
+  // substantive review until a future API call classifies it with full proof.
+  const legacyCreated = await request('POST', '/tasks', {
+    token: reviewer.token,
+    body: { title: 'legacy result API probe' },
+  });
+  const legacyDone = await request('POST', `/tasks/${legacyCreated.json.task.id}/state`, {
+    token: reviewer.token,
+    body: { state: 'done', result: 'bare legacy result' },
+  });
+  assert.equal(legacyDone.status, 200);
+  assert.equal(legacyDone.json.task.result, 'bare legacy result');
+  assert.equal(legacyDone.json.task.resultDisposition, null);
 });
 
 test('tasks: POST /tasks/claim-next accepts campaign and category lane filters', async () => {

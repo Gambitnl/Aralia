@@ -284,6 +284,14 @@ Claudeception/
 # BG3 visual-reference screenshots: local study material, never redistributed.
 .agent/3d-visual-quality/references/
 
+# img2threejs evaluation artifacts (2026-08-12). The golem's texture maps are
+# de-lit CROPS OF THIRD-PARTY REFERENCE ART — published monster illustrations
+# and photos of other people's painted minis, held locally under
+# .agent/critique-refs/ for comparison only. They must never be published to a
+# public repo. The model is served from public/ so the debugger can load it, so
+# this rule is what keeps the daily auto-snapshot from committing the pixels.
+public/img2threejs-earth/
+
 # Agent worktrees checked out inside the repo. These are git worktrees, not
 # submodules, and committing them as gitlinks (mode 160000) made every status
 # report them as modified forever.

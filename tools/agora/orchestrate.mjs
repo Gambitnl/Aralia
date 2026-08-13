@@ -6,7 +6,7 @@
 //
 //   prompt   <plan.json> <packetId>     print the ready-to-dispatch agent prompt
 //   seed     <plan.json>                register orchestrator + announce the wave on the board
-//   dispatch <plan.json> <packetId>     launch an EXTERNAL packet (codex|gemini) in the bg; claude => print prompt
+//   dispatch <plan.json> [packetId]     launch one packet as before, or run a bounded external CLI wave
 //   gate     <plan.json> [--exclude s]  run the integration typecheck, filter to the wave's files, baseline delta
 //   status                              board snapshot (agents / locks / tasks)
 //   feedback [--since N]                dump WORKFLOW: messages from the board
@@ -30,6 +30,7 @@ const REPO = process.cwd();
 const MODULE_DIR = path.dirname(fileURLToPath(import.meta.url));
 const REGISTRY_FILE = path.join(MODULE_DIR, 'agents.json');
 const PET_MANIFEST_FILE = path.join(MODULE_DIR, 'dashboard', 'pets', 'pets.json');
+const DEFAULT_LOCAL_DISPATCH_MAX = 4;
 
 // ------------------------------------------------------------- agent registry
 // agents.json is the machine-readable Agent Matrix: which agents exist, their
@@ -78,6 +79,135 @@ function assertDispatchableWorker(packetId, agentId, def) {
   if (d.type !== 'agent-tool' && !d.command) {
     throw new Error(`packet ${packetId}: agent "${agentId}" has no dispatch wiring (not wired into orchestrate.mjs yet) — ${def.notes || ''}`);
   }
+}
+
+// ---------------------------------------------------- dispatch concurrency
+// A concurrency ceiling is safety policy, so accept only positive whole numbers.
+// Rejecting malformed CLI or registry values here prevents even the first worker
+// from starting under an ambiguous or accidentally unbounded configuration.
+export function validateDispatchMax(value, source = 'dispatch concurrency cap') {
+  const parsed = typeof value === 'number' ? value : Number(value);
+  if (!Number.isInteger(parsed) || parsed < 1) {
+    throw new Error(`${source} must be a positive whole number (received ${JSON.stringify(value)})`);
+  }
+  return parsed;
+}
+
+// Choose one lane's ceiling without changing any other registry policy. An
+// explicit operator value wins, then the agent's own declared ceiling. Only a
+// lane explicitly marked as local receives the conservative default of four;
+// remote/non-local lanes keep their existing unbounded-by-this-tool behavior.
+export function resolveDispatchMax(agentId, packetCount, { registry = loadRegistry(), cliMax } = {}) {
+  const def = registry.agents && registry.agents[agentId];
+  if (!def) throw new Error(`cannot resolve dispatch cap for unknown agent "${agentId}"`);
+  const dispatch = def.dispatch || {};
+
+  if (cliMax !== undefined) return validateDispatchMax(cliMax, '--max');
+  if (dispatch.maxConcurrent !== undefined) {
+    return validateDispatchMax(dispatch.maxConcurrent, `agents.json ${agentId}.dispatch.maxConcurrent`);
+  }
+  if (dispatch.localEngine === true) return DEFAULT_LOCAL_DISPATCH_MAX;
+
+  // A non-local lane with no declared ceiling behaves as it did before WF-G42.
+  // The packet count is a finite scheduler width, not a new policy cap.
+  return Math.max(1, packetCount);
+}
+
+// Run each registry lane through a small worker pool. The injected runner makes
+// the queue independently testable without starting real model processes. Each
+// packet always receives one terminal record, including thrown and non-zero exits.
+export async function dispatchPacketWave(packets, {
+  registry = loadRegistry(),
+  cliMax,
+  runPacket,
+  onRecord = () => {},
+} = {}) {
+  if (!Array.isArray(packets) || packets.length === 0) throw new Error('dispatch wave requires at least one packet');
+  if (typeof runPacket !== 'function') throw new Error('dispatch wave requires a runPacket function');
+
+  // Group packets by agent so registry defaults remain lane-specific. Resolve
+  // every ceiling before launching anything: one invalid lane must reject the
+  // whole request before another lane can start.
+  const grouped = new Map();
+  packets.forEach((packet, index) => {
+    if (!packet || !packet.id || !packet.agent) throw new Error('every dispatch packet requires id and agent');
+    if (!registry.agents || !registry.agents[packet.agent]) {
+      throw new Error(`cannot dispatch packet ${packet.id}: unknown agent "${packet.agent}"`);
+    }
+    if (!grouped.has(packet.agent)) grouped.set(packet.agent, []);
+    grouped.get(packet.agent).push({ packet, index });
+  });
+  let lanes;
+  if (cliMax !== undefined) {
+    // An operator's explicit override is a total wave safety ceiling, including
+    // mixed-agent plans. A single shared queue prevents two local lanes from
+    // each consuming the full override and doubling pressure on one engine.
+    lanes = [{
+      agentId: 'explicit-wave-cap',
+      items: packets.map((packet, index) => ({ packet, index })),
+      maxConcurrent: validateDispatchMax(cliMax, '--max'),
+    }];
+  } else {
+    lanes = [...grouped.entries()].map(([agentId, items]) => ({
+      agentId,
+      items,
+      maxConcurrent: resolveDispatchMax(agentId, items.length, { registry }),
+    }));
+  }
+  const records = new Array(packets.length);
+
+  // Each lane advances through its queue only when a running slot completes.
+  // Separate lanes may progress together, while no lane exceeds its own cap.
+  await Promise.all(lanes.map(async (lane) => {
+    let nextItem = 0;
+    const consume = async () => {
+      for (;;) {
+        const item = lane.items[nextItem];
+        if (!item) return;
+        nextItem += 1;
+
+        let outcome;
+        let failure;
+        try {
+          outcome = (await runPacket(item.packet)) || {};
+        } catch (error) {
+          failure = error;
+          outcome = {};
+        }
+
+        // A thrown runner and a non-zero child exit are both failures. Preserve
+        // the packet identity and exit status so a dead worker cannot disappear
+        // behind a generic wave-level error.
+        const exitCode = failure
+          ? (Number.isInteger(failure.exitCode) ? failure.exitCode : null)
+          : (Number.isInteger(outcome.exitCode) ? outcome.exitCode : 0);
+        const failed = Boolean(failure) || exitCode !== 0;
+        const output = String(outcome.output || outcome.logFile || failure?.message || 'no worker output captured');
+        const result = String(outcome.result || (failed
+          ? `packet ${item.packet.id} failed with exit ${exitCode ?? 'unknown'}`
+          : `packet ${item.packet.id} completed with exit 0`));
+        const record = {
+          packetId: item.packet.id,
+          agent: item.packet.agent,
+          status: failed ? 'failed' : 'succeeded',
+          exitCode,
+          signal: outcome.signal || null,
+          output,
+          result,
+        };
+
+        records[item.index] = record;
+        await onRecord(record);
+      }
+    };
+
+    // Starting at most the lesser of queue length and selected ceiling makes
+    // excess jobs wait instead of competing for the same local engine.
+    const workerCount = Math.min(lane.maxConcurrent, lane.items.length);
+    await Promise.all(Array.from({ length: workerCount }, () => consume()));
+  }));
+
+  return records;
 }
 
 // ---------------------------------------------------------------- plan loading
@@ -696,6 +826,105 @@ async function cmdDispatch(plan, packetId) {
 
 // WF-G5: quota probes and launch specs are REGISTRY-DRIVEN — a new agent needs
 // only agents.json entries (dispatch.command/args + quotaProbe), zero code here.
+//
+// Launch one external packet in the foreground of the wave scheduler. Unlike
+// the legacy one-packet path above, this promise settles only when the worker
+// exits, which is what frees a queue slot and creates a truthful terminal record.
+function runAttachedExternalPacket(plan, pkt, registry) {
+  const prompt = buildPrompt(plan, pkt, { taskId: loadSeededMap(plan)[pkt.id] });
+  const dir = path.resolve(REPO, '.agent/scratch/orchestrate');
+  fs.mkdirSync(dir, { recursive: true });
+  const promptFile = path.join(dir, `${pkt.handle}.prompt.txt`);
+  const logFile = path.join(dir, `${pkt.handle}.log`);
+  fs.writeFileSync(promptFile, prompt);
+
+  const { cmd, args } = launchSpec(pkt.agent, prompt, registry);
+  const logFd = fs.openSync(logFile, 'w');
+  const shimDir = path.join(MODULE_DIR, 'git-shim');
+  const env = { ...process.env, PATH: `${shimDir}${path.delimiter}${process.env.PATH || ''}` };
+
+  return new Promise((resolve, reject) => {
+    let child;
+    let settled = false;
+
+    // Close the shared log descriptor exactly once whether process creation
+    // fails or the worker exits normally. This keeps long waves from leaking
+    // one Windows file handle per packet.
+    const finish = (callback) => {
+      if (settled) return;
+      settled = true;
+      fs.closeSync(logFd);
+      callback();
+    };
+
+    try {
+      child = spawn(cmd, args, { cwd: REPO, stdio: ['ignore', logFd, logFd], env });
+    } catch (error) {
+      finish(() => reject(error));
+      return;
+    }
+
+    console.log(`started ${pkt.agent} packet "${pkt.id}" (pid ${child.pid}); queued slots open only after exit.`);
+    child.once('error', (error) => finish(() => reject(error)));
+    child.once('close', (code, signal) => finish(() => resolve({
+      exitCode: Number.isInteger(code) ? code : (signal ? 1 : 0),
+      signal,
+      output: logFile,
+      result: `pid ${child.pid} exited ${Number.isInteger(code) ? code : `on signal ${signal || 'unknown'}`}`,
+      promptFile,
+      logFile,
+    })));
+  });
+}
+
+// Dispatch every CLI packet in a plan through the bounded scheduler. Agent-tool
+// packets keep their established manual prompt flow, while CLI packets gain a
+// terminal record and visible failure status instead of disappearing detached.
+async function cmdDispatchWave(plan, { cliMax } = {}) {
+  const reg = loadRegistry();
+  const cliPackets = plan.packets.filter((packet) => {
+    const dispatch = reg.agents[packet.agent]?.dispatch || {};
+    return dispatch.type !== 'agent-tool' && Boolean(dispatch.command);
+  });
+  const manualPackets = plan.packets.filter((packet) => !cliPackets.includes(packet));
+
+  // Preserve the existing manual Claude behavior in mixed plans. These packets
+  // are not fake terminal successes: the operator still receives the prompt and
+  // must dispatch them through the Agent tool as before.
+  for (const packet of manualPackets) await cmdDispatch(plan, packet.id);
+  if (cliPackets.length === 0) return [];
+
+  // Cache each lane's synchronous quota probe so a queued wave checks once, not
+  // once per packet. A dry lane returns explicit failed records without spawning.
+  const probes = new Map();
+  const records = await dispatchPacketWave(cliPackets, {
+    registry: reg,
+    cliMax,
+    runPacket: async (packet) => {
+      if (!probes.has(packet.agent)) probes.set(packet.agent, probeAgent(packet.agent, reg));
+      const probe = probes.get(packet.agent);
+      if (!probe.ok) {
+        return {
+          exitCode: 1,
+          output: `quota probe rejected ${packet.agent}: ${probe.reason}`,
+          result: `packet ${packet.id} was not launched because ${packet.agent} is unavailable`,
+        };
+      }
+      return runAttachedExternalPacket(plan, packet, reg);
+    },
+    onRecord: (record) => {
+      const marker = record.status === 'succeeded' ? 'completed' : 'FAILED';
+      console.log(`${marker} packet "${record.packetId}" status=${record.status} exit=${record.exitCode ?? 'unknown'} output=${record.output}`);
+    },
+  });
+
+  const failed = records.filter((record) => record.status === 'failed');
+  console.log(`wave dispatch terminal: ${records.length - failed.length} succeeded / ${failed.length} failed / ${records.length} total.`);
+  return records;
+}
+
+// Probe and command details below continue to come only from agents.json. The
+// scheduler never removes or substitutes registry status, role, or constraints.
 export function probeAgent(agent, registry = loadRegistry()) {
   const def = registry.agents[agent];
   const probe = def && def.quotaProbe;
@@ -771,7 +1000,7 @@ const HELP = `Agora Orchestrator — drive a multi-agent campaign wave.
   node tools/agora/orchestrate.mjs agents                    print the Agent Matrix registry (statuses, policy, expired constraints)
   node tools/agora/orchestrate.mjs prompt   <plan.json> <packetId>
   node tools/agora/orchestrate.mjs seed     <plan.json>
-  node tools/agora/orchestrate.mjs dispatch <plan.json> <packetId>
+  node tools/agora/orchestrate.mjs dispatch <plan.json> [packetId] [--max <positive-integer>]   one packet, or a bounded external CLI wave
   node tools/agora/orchestrate.mjs gate     <plan.json> [--exclude <regex>] [--only <id,id>]   (--only = gate ONE wave's packets)
   node tools/agora/orchestrate.mjs watch    <plan.json> [--interval s] [--timeout min]   block until every seeded task is done/blocked
   node tools/agora/orchestrate.mjs report   <plan.json>                                  wave retrospective (timings, reaps, results)
@@ -783,6 +1012,18 @@ See tools/agora/ORCHESTRATOR.md for the full loop.`;
 function getFlag(argv, name) {
   const i = argv.indexOf(name);
   return i >= 0 ? argv[i + 1] : undefined;
+}
+
+// Distinguish an omitted override from a missing/invalid value. This check runs
+// before dispatch chooses either the legacy one-packet path or the wave path, so
+// a malformed ceiling can never be ignored while a worker is launched.
+function getDispatchMaxFlag(argv) {
+  if (!argv.includes('--max')) return undefined;
+  const value = getFlag(argv, '--max');
+  if (value === undefined || String(value).startsWith('--')) {
+    throw new Error('--max requires a positive whole number');
+  }
+  return validateDispatchMax(value, '--max');
 }
 
 async function main() {
@@ -799,7 +1040,12 @@ async function main() {
   if (cmd === 'seed') return void (await cmdSeed(plan));
   if (cmd === 'status') return void (await cmdStatus(plan));
   if (cmd === 'feedback') return void (await cmdFeedback(plan, Number(getFlag(process.argv, '--since') || 0)));
-  if (cmd === 'dispatch') return void (await cmdDispatch(plan, packetArg));
+  if (cmd === 'dispatch') {
+    const cliMax = getDispatchMaxFlag(process.argv);
+    const requestedPacket = packetArg && !packetArg.startsWith('--') ? packetArg : undefined;
+    if (requestedPacket) return void (await cmdDispatch(plan, requestedPacket));
+    return void (await cmdDispatchWave(plan, { cliMax }));
+  }
   if (cmd === 'watch') {
     process.exitCode = await cmdWatch(plan, {
       intervalSec: Number(getFlag(process.argv, '--interval')) || 20,

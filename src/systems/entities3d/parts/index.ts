@@ -12,10 +12,11 @@ import { HEAD_PARTS } from './headParts';
 import { WEAPON_PARTS } from './gearWeapons';
 import { ARMOR_PARTS } from './gearArmor';
 import { WING_PARTS } from './wingParts';
+import { CELESTIAL_PARTS } from './celestialParts';
 
 export function registerAllParts(): void {
   const registered = new Set(allParts().map((p) => p.id));
-  for (const def of [...CHAIN_PARTS, ...ORGANIC_PARTS, ...HEAD_PARTS, ...WEAPON_PARTS, ...ARMOR_PARTS, ...WING_PARTS]) {
+  for (const def of [...CHAIN_PARTS, ...ORGANIC_PARTS, ...HEAD_PARTS, ...WEAPON_PARTS, ...ARMOR_PARTS, ...WING_PARTS, ...CELESTIAL_PARTS]) {
     if (!registered.has(def.id)) {
       registerPart(def);
     }

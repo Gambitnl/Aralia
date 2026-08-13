@@ -153,6 +153,14 @@ const threeHeadedSerpent: CreaturePlan = {
     // gauge and keeps far more of it at the tip (hero tip 0.54 → 0.7), so
     // the column flows into the skull instead of necking down under it.
     // Stagger holds: no two necks within 30% in width or height.
+    // round 25 (creature-anatomy): THE FLANKERS GET NECKS. The round-24
+    // verdict: "the two flanking heads are nubs pressed against the main neck
+    // with no necks of their own, so the three-head design does not read".
+    // Their chains were 5.4 ft and 3.7 ft long carrying skulls at sizeScale
+    // 3.0 and 2.4 — roughly one head-diameter of neck each, which the hero
+    // column then swallowed. Both roughly double in length while keeping the
+    // authored width stagger (no two necks within 30% in gauge), so each head
+    // stands clear on a visible column of its own.
     {
       // left flanker: mid length AND mid gauge of the stagger
       kind: 'neck',
@@ -160,8 +168,8 @@ const threeHeadedSerpent: CreaturePlan = {
       heightFrac: 0.85,
       count: 1,
       chain: [
-        { lenFt: 3.1, r: 0.62 },
-        { lenFt: 2.3, r: 0.42 },
+        { lenFt: 5.6, r: 0.62 },
+        { lenFt: 4.4, r: 0.42 },
       ],
     },
     {
@@ -183,8 +191,8 @@ const threeHeadedSerpent: CreaturePlan = {
       heightFrac: 0.85,
       count: 1,
       chain: [
-        { lenFt: 2.2, r: 0.42 },
-        { lenFt: 1.5, r: 0.28 },
+        { lenFt: 4.2, r: 0.42 },
+        { lenFt: 3.0, r: 0.28 },
       ],
     },
   ],

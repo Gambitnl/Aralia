@@ -10,7 +10,9 @@
 // Authenticated activity refreshes meaningful presence via store.touch(agent.id).
 // Heartbeats use a separate bounded lease path and cannot extend liveness forever.
 // GET read endpoints (/agents,/locks,/tasks,/messages,/health,/events,/glossary,/) are open so
-// the dashboard works token-free; /messages may take an optional token to resolve `to=me`.
+// the dashboard works token-free. GET /agents/me authenticates without renewing presence so
+// a client can check whether its stored identity is still live; /messages may take an optional
+// token to resolve `to=me`.
 //
 // SSE resume: the store does not expose arbitrary event history, so on connect we send a
 // single `event: hello` carrying lastSeq + a full snapshot of {agents,locks,tasks} for the
@@ -307,6 +309,19 @@ export function createAgoraServer({ dir = DEFAULT_DIR, storeFactory, activityFil
         return sendJson(res, status, result);
       }
       sendJson(res, 200, result);
+    }, { touchPresence: false }),
+  );
+
+  // Report the identity currently authenticated by this bearer without calling
+  // store.touch(). This no-touch path lets `whoami --live` diagnose a stale saved
+  // identity without turning the diagnostic itself into a liveness renewal.
+  router.get(
+    '/agents/me',
+    withAuth(async (_req, res, ctx) => {
+      // The store lookup necessarily sees the secret used for authentication.
+      // Return only the public identity fields so the bearer never reaches logs.
+      const { token: _token, ...publicAgent } = ctx.agent;
+      sendJson(res, 200, { agent: publicAgent });
     }, { touchPresence: false }),
   );
 
@@ -635,6 +650,12 @@ export function createAgoraServer({ dir = DEFAULT_DIR, storeFactory, activityFil
         agentId: ctx.agent.id,
         state: body.state,
         result: typeof body.result === 'string' ? body.result : undefined,
+        // Result disposition is orthogonal to the five task states. Pass the
+        // authored review fields through unchanged; the store owns validation
+        // and journal persistence so HTTP and in-process callers behave alike.
+        resultDisposition: body.resultDisposition,
+        finding: body.finding,
+        evidence: body.evidence,
       });
       if (result.ok) {
         scheduleSyncSoon();

@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:verification": "vite --mode verification-no-watch",
     "agora": "node tools/agora/server.mjs",
     "sync": "node tools/agora/sync-surfaces.mjs",
     "sync:dry": "node tools/agora/sync-surfaces.mjs --dry-run",
@@ -47,6 +48,7 @@
     "mcp:chrome": "tsx scripts/workflows/gemini/image-gen/launch-debug-chrome.js",
     "image-gen:login": "tsx scripts/workflows/gemini/image-gen/open-gemini-profile.ts",
     "typecheck": "tsc --noEmit",
+    "typecheck:delta": "node scripts/quality/typecheck-delta.cjs",
     "lint": "eslint src scripts tests",
     "sync-check": "node scripts/git/sync-check.cjs",
     "intent-gate": "node scripts/git/intent-gate-check.cjs",

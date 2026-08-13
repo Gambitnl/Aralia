@@ -120,8 +120,29 @@ const TYPE_SPECS: Record<CreatureType, CreatureTypeSpec> = {
     // round 23 (creature-anatomy): scale 1.9 — at 1.0 the fan read as "tiny
     // vestigial feather stubs buried in its back" on the Large archetype;
     // a celestial's wings are its identity statement and must span the torso.
-    parts: [{ partId: 'wingsFeathered', anchor: 'back', params: { scale: 1.9 } }],
-    skinTones: ['#ffe8c4', '#f5d9a8', '#e8d4c4'],
+    // round 25 (creature-anatomy): A DESIGNED BODY. The round-24 verdict:
+    // "a naked featureless tan mannequin ... no garment, and nothing
+    // celestial — no halo, no light, no radiance". The archetype now wears
+    // the celestial kit (halo, shoulder mantle, robe — celestialParts.ts) and
+    // a brow, so the silhouette carries a shoulder mass event, a garment
+    // value break and a radiance form before a single anatomy tweak lands.
+    parts: [
+      // round-25 eyeball fix: 1.9 → 1.35. With the round-25 layered feather
+      // groups the wing is a real sheet rather than five stubs, so 1.9 put a
+      // 9 m spread on a 3 m body and the primaries dragged on the grass.
+      { partId: 'wingsFeathered', anchor: 'back', params: { scale: 1.35 } },
+      { partId: 'celestialMantle', anchor: 'chest' },
+      { partId: 'celestialRobe', anchor: 'hips' },
+      { partId: 'halo', anchor: 'crown' },
+      { partId: 'brow', anchor: 'head' },
+    ],
+    // round 24 (creature-anatomy): the round-23 verdict called the Large roll
+    // "a beige mannequin" and the round-24 sheet confirmed it — every tone sat
+    // within one toon band of cream, so the countershade lift (which targets
+    // cream) produced NO value change and the body read as one flat beige.
+    // The hides drop to a mid gold-bronze so the cream ventral lift lands a
+    // full band lighter and the torso finally has a light and a dark side.
+    skinTones: ['#c9a878', '#b89a6e', '#c4a98c'],
     accentHex: '#d9a828',
     eyeHex: '#e8e0cf',
   },

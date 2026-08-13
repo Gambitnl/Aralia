@@ -6,6 +6,7 @@ import { describe, expect, it } from 'vitest'
 import type { CombatCharacter, StatusEffect } from '@/types/combat'
 import {
   breakTauntsForEvent,
+  clearInvalidTaunts,
   hasTauntAttackDisadvantage,
   validateTauntWillingMove
 } from '../tauntConstraint'
@@ -66,9 +67,9 @@ const setup = (targetX = 3) => {
 
 describe('tauntConstraint', () => {
   it('gives disadvantage only against creatures other than the caster', () => {
-    const { caster, compelled, otherEnemy } = setup()
-    expect(hasTauntAttackDisadvantage(compelled, caster.id)).toBe(false)
-    expect(hasTauntAttackDisadvantage(compelled, otherEnemy.id)).toBe(true)
+    const { caster, compelled, otherEnemy, characters } = setup()
+    expect(hasTauntAttackDisadvantage(compelled, caster.id, characters)).toBe(false)
+    expect(hasTauntAttackDisadvantage(compelled, otherEnemy.id, characters)).toBe(true)
   })
 
   it('rejects willing movement beyond the leash but allows movement within it', () => {
@@ -108,5 +109,65 @@ describe('tauntConstraint', () => {
     })
     expect(result.characters).toBe(characters)
     expect(result.breaks).toHaveLength(0)
+  })
+
+  // Source and duration cleanup protects the same live attack/movement
+  // contract. These cases are intentionally separate from authored break
+  // events because no player action is required for expiry or source loss.
+  it.each([
+    ['expired', (characters: CombatCharacter[]) => characters.map(character => (
+      character.id === 'compelled'
+        ? {
+            ...character,
+            statusEffects: character.statusEffects.map(status => ({ ...status, duration: 0 }))
+          }
+        : character
+    ))],
+    ['source_downed', (characters: CombatCharacter[]) => characters.map(character => (
+      character.id === 'caster' ? { ...character, currentHP: 0 } : character
+    ))],
+    ['source_incapacitated', (characters: CombatCharacter[]) => characters.map(character => (
+      character.id === 'caster'
+        ? {
+            ...character,
+            conditions: [{
+              name: 'Incapacitated',
+              duration: { type: 'rounds', value: 1 },
+              appliedTurn: 1,
+              source: 'test'
+            }]
+          }
+        : character
+    ))],
+    ['source_missing', (characters: CombatCharacter[]) => characters.filter(character => (
+      character.id !== 'caster'
+    ))]
+  ] as const)('clears the taunt when it is %s', (reason, mutate) => {
+    const { characters } = setup()
+    const invalidCharacters = mutate(characters)
+    const result = clearInvalidTaunts(invalidCharacters)
+    const compelled = result.characters.find(character => character.id === 'compelled')
+    const caster = result.characters.find(character => character.id === 'caster')
+
+    expect(result.cleanups).toEqual([expect.objectContaining({ reason })])
+    expect(compelled?.statusEffects).toHaveLength(0)
+    expect(caster?.concentratingOn).toBeUndefined()
+  })
+
+  it('stops attack and movement penalties immediately after expiry, source loss, or manual removal', () => {
+    const { caster, compelled, otherEnemy, characters } = setup()
+    const expired = {
+      ...compelled,
+      statusEffects: compelled.statusEffects.map(status => ({ ...status, duration: 0 }))
+    }
+    const sourceDown = characters.map(character => (
+      character.id === caster.id ? { ...character, currentHP: 0 } : character
+    ))
+    const manuallyRemoved = { ...compelled, statusEffects: [] }
+
+    expect(hasTauntAttackDisadvantage(expired, otherEnemy.id, characters)).toBe(false)
+    expect(hasTauntAttackDisadvantage(compelled, otherEnemy.id, sourceDown)).toBe(false)
+    expect(validateTauntWillingMove(compelled, { x: 7, y: 0 }, sourceDown).allowed).toBe(true)
+    expect(hasTauntAttackDisadvantage(manuallyRemoved, otherEnemy.id, characters)).toBe(false)
   })
 })

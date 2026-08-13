@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 12/08/2026, 00:26:02
+ * Last Sync: 12/08/2026, 04:53:33
  * Dependents: components/BattleMap/BattleMap.tsx, components/BattleMap/BattleMap3D.tsx, components/BattleMap/BattleMapDemo.tsx, components/Combat/CombatView.tsx, components/DesignPreview/steps/PreviewCombatScenarios.tsx, hooks/useBattleMap.ts
- * Imports: 14 files
+ * Imports: 15 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -32,11 +32,15 @@ import { CombatCharacter, CombatLogEntry, BattleMapData, LightSource, Ability } 
 import { AI_THINKING_DELAY_MS } from '../../config/combatConfig';
 import { generateId } from '../../utils/combat';
 import { calculateMovementTotal, resetEconomy } from '../../utils/combat/actionEconomyUtils';
+import { buildInitiativeOrder, rollInitiativeTotal } from '../../utils/combat/initiativeUtils';
 import { useActionEconomy } from './useActionEconomy';
 
 import { useCombatVisuals } from './useCombatVisuals';
 import { useTurnOrder } from './useTurnOrder';
-import { useCombatEngine } from './engine/useCombatEngine';
+import {
+  useCombatEngine,
+  type ScheduledEffectDiceRoller,
+} from './engine/useCombatEngine';
 import { useActionExecutor } from './useActionExecutor';
 import { ROUND_DURATION_SECONDS } from '../../utils/core/spellTimeUtils';
 import { evaluateCombatTurn } from '../../utils/combat/combatAI';
@@ -56,6 +60,8 @@ interface UseTurnManagerProps {
   onMapUpdate?: (mapData: BattleMapData) => void;
   /** Optional deterministic full initiative total for visual/replay harnesses. */
   initiativeRoller?: (character: CombatCharacter) => number;
+  /** Optional deterministic scheduled-payload roller for visual/replay harnesses. */
+  scheduledEffectDiceRoller?: ScheduledEffectDiceRoller;
   requestReaction?: (
     attackerId: string,
     targetId: string,
@@ -229,6 +235,7 @@ export const useTurnManager = ({
   autoCharacters,
   onMapUpdate,
   initiativeRoller,
+  scheduledEffectDiceRoller,
   difficulty = 'normal',
   requestReaction,
   executeReactionSpell
@@ -387,7 +394,8 @@ export const useTurnManager = ({
     onCharacterUpdate: handleCharacterUpdateWrapped,
     onLogEntry,
     onMapUpdate,
-    addDamageNumber
+    addDamageNumber,
+    scheduledEffectDiceRoller,
   });
 
   // Stabilize optional auto-controlled character set
@@ -402,9 +410,7 @@ export const useTurnManager = ({
     if (initiativeRoller) {
       return initiativeRoller(character);
     }
-    const dexModifier = Math.floor((character.stats.dexterity - 10) / 2);
-    const roll = Math.floor(Math.random() * 20) + 1;
-    return roll + dexModifier + character.stats.baseInitiative;
+    return rollInitiativeTotal(character);
   }, [initiativeRoller]);
 
   const startTurnFor = useCallback((character: CombatCharacter) => {
@@ -697,7 +703,10 @@ export const useTurnManager = ({
     });
 
     // 4. Start turn for the first character
-    const sorted = [...charactersWithInitiative].sort((a, b) => b.initiative - a.initiative);
+    // The first-turn effect pass and the turn-order hook must use the same
+    // canonical tie and shared-initiative sequence. Otherwise the log can name
+    // a different first actor from the one highlighted in InitiativeTracker.
+    const sorted = buildInitiativeOrder(charactersWithInitiative);
     const firstChar = sorted[0];
 
     if (firstChar) {

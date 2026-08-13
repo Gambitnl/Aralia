@@ -1283,11 +1283,23 @@
           "parallel": true,
           "link": "docs/superpowers/specs/2026-07-14-absorbed-worldforge.md",
           "status_note": "Completed and re-audited 2026-07-21 through Agora tasks 7a74762b-b5f7-4d03-ac50-19c9a2b31b3b and a987c3eb-4111-4611-b1c6-fb89dd11fb48. Run node scripts/world-map/live-game-harness.mjs for cold-start, headed proof of the real PLAYING MapPane at seed 1337. The harness waits for the enabled visible UI button without coupling its click to SPA URL normalization, then requires the live party, open modal, canonical MapPane to viewport to AtlasSvgView ancestry, populated SVG, zero canvas descendants, responsive containment, active seed-scoped States preference and a current source fingerprint; missing evidence exits non-zero. Fifteen focused tests pass, and current screenshot, JSON, Markdown and separate console evidence are under ignored .agent/scratch/proof/world-map-quality/live-game-harness/."
+        },
+        {
+          "title": "Design Preview world map renderer comparison",
+          "status": "done",
+          "parallel": true,
+          "link": "docs/architecture/domains/world-map.md",
+          "open": 3,
+          "status_note": "Completed 2026-08-12 through Agora tasks a39013a4-9a27-4313-9e34-869b50c17a0a and 41f085cf-f2fe-4af9-88ea-4d79925b94a1. Design Preview step=worldforge mounts a clearly labeled retired canvas reference beside the maintained AtlasSvgView, with both panels receiving one getBridgeAtlas result per applied seed. Exact-route proof rejected a lazy-load experiment that could remain on its Suspense fallback in the shared server; the reliable direct mount is preserved. Desktop rendered proof gives equal 772 px cards and 770 x 520 map surfaces; seed 42 culture mode proves equivalent data lenses, the 390 x 844 layout stacks at 358 px without clipping, and the browser reported zero console or page errors. Seven focused tests protect shared-seed behavior, canonical routing and the no-player-import retirement boundary. Ignored proof: .agent/scratch/proof/world-map-comparison/.",
+          "history": {
+            "designed": "2026-08-12",
+            "built": "2026-08-12"
+          }
         }
       ],
       "tier": "component",
-      "updated": "2026-07-21",
-      "status_note": "Completion audit 2026-07-21: all seven original world-map findings and the six strict-audit repairs are implemented, verified and tied back to this topic through Agora planmap refs. Repair tasks are 29effe0c-8cb3-454e-ab5f-2689d71cd0b8, d1ed265a-53e0-4921-9b24-cb13ef1f6e49, a987c3eb-4111-4611-b1c6-fb89dd11fb48, 5dee2e27-7327-41cb-8d69-73e61e567739, 765c8825-5a97-48c2-95aa-298828e1da6c and c758b3df-da54-463b-af51-13c59b41c0c1. The former canvas route is fail-closed; the canonical L0 is getBridgeAtlas plus AtlasSvgView across Design Preview, World Generation, live play and Atlas explorer; Region, Local and Ground descent remains intact. Current inspected desktop and 390 x 844 proof, bounded town selection, deterministic worker preparation, source-fingerprinted live harness and separate console assessment are stored under ignored .agent/scratch/proof/world-map-quality/."
+      "updated": "2026-08-12",
+      "status_note": "Completion audit refreshed 2026-08-12: the former canvas route remains fail-closed and the canonical L0 remains getBridgeAtlas plus AtlasSvgView across World Generation, live play and Atlas explorer. Design Preview now has one explicit side-by-side visual-review exception: the retired canvas reference and maintained SVG receive the same atlas object, while no player component imports AtlasMapView. Exact localhost:3000 route proof confirms the comparison mounts directly with one canvas and one SVG. Region, Local and Ground descent remains intact. Current inspected desktop and 390 x 844 proof is stored under ignored .agent/scratch/proof/world-map-comparison/."
     },
     {
       "id": "shipped-styled-town",
@@ -5960,7 +5972,7 @@
       "tier": "strategic",
       "sub": "The L1 region drilldown is blank: it carries ONE field with real detail (heightfield 250x250 @100ft) and everything else is a stub. Root cause found 2026-07-29: a region window is 25,000 ft = ~2.5 FMG pixels while one FMG cell is ~8x9 px (~79,000 x 89,000 ft), so a window covers ~1/9 the area of a single cell. Every region field except the heightfield is EXTRACTED from atlas data, which has no structure below cell resolution - so there is nothing to extract. The tier cannot inherit its detail, it has to generate it. Measured over 6 burg windows: rivers 2-3 pts over 6.6k-25.5k ft, roads 6-7 pts over ~26k ft, crossings 0 EVERYWHERE (no region bridges or fords exist), markers 0, zones 1 total, biomeSites absent or exactly 1 (no gradient to blend). Rule adopted: the atlas decides which river runs here and how big it is; the region tier decides where it bends. Build order: rivers -> crossings -> roads -> biome sites -> markers/zones.",
       "link": "docs/superpowers/specs/2026-07-29-region-tier-audit.md",
-      "updated": "2026-08-11",
+      "updated": "2026-08-12",
       "features": [
         {
           "title": "Audit: measure every region field across 6 burg windows",
@@ -5988,7 +6000,8 @@
         },
         {
           "title": "Region-weighted composite height field",
-          "status": "done"
+          "status": "done",
+          "status_note": "Module built + 71 tests green. NOT wired into generateRegion.ts - wiring changes terrain in every existing world, needs Remy call. Mountain + plain looks still weak."
         }
       ]
     },
@@ -6220,13 +6233,13 @@
       "updated": "2026-08-09"
     },
     {
-      "id": "entity-quality-perfection",
-      "title": "Entity quality perfection loop",
-      "sub": "blind-critic loop vs Valheim/WoW/Mixamo until every contact sheet ships",
+      "id": "visual-quality-perfection",
+      "title": "Visual quality judging portal",
+      "sub": "blind-critic loop over entity AND world pieces until every sheet ships",
       "campaign": "rendering",
       "status": "active",
-      "updated": "2026-08-10",
-      "status_note": "Remy-directed 2026-08-10: builders per piece (humanoid anatomy, humanoid motion, creature anatomy, surface materials), fresh-context critics judge actual entitydebug sheets blind against references, no round cap. Live page public/entity-quality/index.html; contract tools/entityQuality/CAMPAIGN.md; rig capture.mjs. Round-0 baseline captured (10 sheets).",
+      "updated": "2026-08-12",
+      "status_note": "Remy-directed 2026-08-10 as an entity-only loop; WIDENED 2026-08-12 to a general visual-quality portal because there was no human-eyeball judging surface for world work. Eight pieces: four entity (humanoid anatomy, humanoid motion, creature anatomy, surface materials) and four world (region-terrain, world-scatter, object-placement, town-3d). Fresh-context critics judge sheets blind against references, no round cap. Portal public/visual-quality/index.html reads pieces.json + status.json + verdicts/*.json; contract tools/visualQuality/CAMPAIGN.md; rig capture.mjs (auto for entity pieces, `register` for world pieces — world capture stays manual). Entity campaign PARKED at humanoid r22 / creature r24 (see PARKED.md). World round 1 ingested for all four world pieces: every verdict is wowed:false with a named gap.",
       "deps": [
         {
           "id": "entity-generator-3d",
@@ -6239,7 +6252,7 @@
           "why": "motion piece rides skinned bodies + clips"
         }
       ],
-      "link": "tools/entityQuality/CAMPAIGN.md",
+      "link": "tools/visualQuality/CAMPAIGN.md",
       "tier": "strategic",
       "features": [
         {
@@ -6279,11 +6292,13 @@
       "features": [
         {
           "title": "Slope and elevation gates on scatter",
-          "status": "done"
+          "status": "done",
+          "status_note": "Tree gate LIVE in game (cache v2). Prop/rock gate INERT - bridge groundProps.ts passes no probe and renderers ignore PropInstance.surface. Tree thresholds are agent judgement, not Remy-approved."
         },
         {
           "title": "Render-inspect-correct placement loop",
-          "status": "done"
+          "status": "done",
+          "status_note": "Scorer + corrector + bounded driver built, 20 tests green, proof 14/19 fail -> 0/19. NOT wired to town, region or battle-map call sites."
         }
       ]
     },

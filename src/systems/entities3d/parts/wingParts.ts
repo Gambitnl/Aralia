@@ -106,7 +106,6 @@
 import {
   BufferAttribute,
   BufferGeometry,
-  CapsuleGeometry,
   Color,
   ConeGeometry,
   CylinderGeometry,
@@ -160,6 +159,142 @@ function shoulderBoss(ctx: PartMeshCtx, s: number): Mesh {
   return boss;
 }
 
+/* ------------------------------------------------ feather blade (round 25) */
+
+/**
+ * Unit feather blade outline in (along, across) blade space: root at 0, tip at
+ * 1, widest at ~45%. Walked clockwise (leading edge out, trailing edge back)
+ * so the pillow loft's rim normals resolve.
+ */
+const FEATHER_OUTLINE: Array<[number, number]> = [
+  [0.0, 0.0],
+  [0.14, 0.085],
+  [0.42, 0.125],
+  [0.7, 0.115],
+  [0.9, 0.07],
+  [1.0, 0.0], // tip
+  [0.88, -0.075],
+  [0.62, -0.135],
+  [0.34, -0.145],
+  [0.12, -0.09],
+];
+
+/**
+ * Per-face winding fix: order (a, b, c) so its geometric normal agrees with
+ * `want`. The round-23 lesson — a whole-mesh signed-volume guard passes mixed
+ * orientations, and culled front faces render as the BackSide ink hull (solid
+ * black).
+ */
+function orientFace(
+  pos: number[],
+  a: number,
+  b: number,
+  c: number,
+  want: readonly [number, number, number],
+): [number, number, number] {
+  const ux = pos[b * 3] - pos[a * 3];
+  const uy = pos[b * 3 + 1] - pos[a * 3 + 1];
+  const uz = pos[b * 3 + 2] - pos[a * 3 + 2];
+  const vx = pos[c * 3] - pos[a * 3];
+  const vy = pos[c * 3 + 1] - pos[a * 3 + 1];
+  const vz = pos[c * 3 + 2] - pos[a * 3 + 2];
+  const dot =
+    (uy * vz - uz * vy) * want[0] + (uz * vx - ux * vz) * want[1] + (ux * vy - uy * vx) * want[2];
+  return dot >= 0 ? [a, b, c] : [a, c, b];
+}
+
+/**
+ * round 25 (creature-anatomy): ONE unit feather blade, built once and
+ * instanced by scale/rotation across every feather of both wings. A pillow
+ * loft (outline offset ±half-thickness on z, ear-clipped caps, sealed rim)
+ * rather than a capsule: the round-24 verdict read the capsule vanes as "six
+ * flat opaque paddle blades", and a capsule has no straight leading edge, no
+ * point, and no vane taper. Blade space: +x along the shaft (root→tip), +y
+ * across the vane, ±z the thin axis. A raised shaft ridge (the rachis) runs
+ * the centre line so the blade is a solid form from every camera, not a card.
+ */
+function featherBladeGeometry(): BufferGeometry {
+  const n = FEATHER_OUTLINE.length;
+  const half = 0.028;
+  const positions: number[] = [];
+  for (const side of [1, -1] as const) {
+    for (const [u, v] of FEATHER_OUTLINE) {
+      // the rachis ridge: thickest on the centre line, thinning to the vane
+      // edge, so the blade profiles as a lens and catches a value break down
+      // its middle instead of reading as one flat card
+      const ridge = half * (0.35 + 0.65 * Math.max(0, 1 - Math.abs(v) / 0.145));
+      positions.push(u, v, side * ridge);
+    }
+  }
+  const pts = FEATHER_OUTLINE.map(([z, y]) => ({ z, y }));
+  const index: number[] = [];
+  for (const [a, b, c] of earClip(pts)) {
+    index.push(...orientFace(positions, a, b, c, [0, 0, 1]));
+    index.push(...orientFace(positions, n + a, n + b, n + c, [0, 0, -1]));
+  }
+  for (let i = 0; i < n; i++) {
+    const j = (i + 1) % n;
+    const eu = FEATHER_OUTLINE[j][0] - FEATHER_OUTLINE[i][0];
+    const ev = FEATHER_OUTLINE[j][1] - FEATHER_OUTLINE[i][1];
+    const rim = [-ev, eu, 0] as const; // outward 2D normal of a clockwise walk
+    index.push(...orientFace(positions, i, j, n + j, rim));
+    index.push(...orientFace(positions, i, n + j, n + i, rim));
+  }
+  if (signedVolume(positions, index) < 0) {
+    throw new Error('feather blade loft wound inside-out after per-face orientation');
+  }
+  const indexed = new BufferGeometry();
+  indexed.setAttribute('position', new BufferAttribute(new Float32Array(positions), 3));
+  indexed.setIndex(index);
+  const geometry = indexed.toNonIndexed(); // flat facets, matching the body
+  geometry.computeVertexNormals();
+  indexed.dispose();
+  return geometry;
+}
+
+/**
+ * One layered feather group: `count` blades swept from `u0` to `u1` along the
+ * wing arm, each rotated `rake` back from the arm axis and splayed by `splay`
+ * so neighbouring tips separate. Every blade BULGES past its neighbours'
+ * valley (the round-20 rule) because the tips fan while the roots stack, so
+ * the outline scallops between them instead of inking the row shut.
+ */
+interface FeatherGroupSpec {
+  count: number;
+  /** Root position along the arm axis, span fractions. */
+  u0: number;
+  u1: number;
+  /** Blade length at the first and last feather, span fractions. */
+  len0: number;
+  len1: number;
+  /** Sweep from the outboard arm axis toward the tail, radians (first → last).
+   * 0 = straight outboard, π/2 = straight back. */
+  rake0: number;
+  rake1: number;
+  /** Downward pitch of the blade below the wing plane at the last feather. */
+  droop: number;
+  /** Blade width multiplier. */
+  width: number;
+  /** Value: 0 = body tone, 1 = white. */
+  tint: number;
+}
+
+/** Build-time scratch vectors for the feather basis (no per-frame cost — the
+ * feathered wing is built once and re-anchored). */
+const FEATHER_DIR = new Vector3();
+const FEATHER_UP = new Vector3();
+const FEATHER_SIDE = new Vector3();
+
+const FEATHER_GROUPS: Record<'coverts' | 'secondaries' | 'primaries', FeatherGroupSpec> = {
+  // shoulder pack: short, dark, densely overlapping — the mass event that
+  // roots the wing in the back instead of pinning a fan to the spine
+  coverts: { count: 6, u0: 0.04, u1: 0.36, len0: 0.16, len1: 0.24, rake0: 1.2, rake1: 0.95, droop: 0.12, width: 1.45, tint: 0.34 },
+  // the inner sheet: medium blades, mid value, a scalloped trailing edge
+  secondaries: { count: 6, u0: 0.3, u1: 0.66, len0: 0.34, len1: 0.44, rake0: 0.95, rake1: 0.62, droop: 0.3, width: 1.15, tint: 0.62 },
+  // the finger feathers: long, pale, splayed so SKY shows between the tips
+  primaries: { count: 7, u0: 0.6, u1: 1.0, len0: 0.5, len1: 0.42, rake0: 0.62, rake1: 0.05, droop: 0.5, width: 0.85, tint: 0.9 },
+};
+
 const wingsFeathered: PartDef = {
   id: 'wingsFeathered',
   anchor: 'back',
@@ -170,29 +305,94 @@ const wingsFeathered: PartDef = {
     // wore "tiny vestigial feather stubs buried in its back" (Remy, live).
     const s = span(ctx.frame) * (Number(ctx.params.scale) || 1);
     const group = new Group();
+    // round 25 (creature-anatomy): the plan driver mounts a vertical body's
+    // back anchor at the very TOP of the spine (a 4-segment torso rounds
+    // u≈0.12 to station 0), which is neck height — the round-24 celestial
+    // face panel framed a feather blade standing beside the skull. The whole
+    // wing assembly drops to the true shoulder line here, inside the part,
+    // where the fix cannot disturb the shared driver.
+    // round-25 eyeball fix: keyed to the FRAME, not the span — the span
+    // carries params.scale (1.35 on a celestial), so a span-fraction drop
+    // slid the whole assembly to the hips.
+    group.position.y = -heightM(ctx.frame) * 0.14;
+    const blade = featherBladeGeometry();
+    const skin = ctx.palette.skinHex;
+    // three GROUP tones a full toon band apart: dark coverts, mid secondaries,
+    // pale primaries. The round-24 fan was one cream value across all five
+    // vanes, so the layers had no boundary and read as a folding paper fan.
+    const toneFor = (spec: FeatherGroupSpec) => wingColor(ctx, tintHex(skin, spec.tint));
     for (const [name, sgn] of [
       ['wingL', -1],
       ['wingR', 1],
     ] as const) {
       const wing = new Group();
       wing.name = name;
-      const feathers = 5;
-      for (let i = 0; i < feathers; i++) {
-        const u = (i + 1) / feathers;
-        // rounded feather board: a squashed capsule, longer toward the tip
-        const len = s * (0.3 + u * 0.34);
-        const rad = s * (0.055 - u * 0.018);
-        const feather = new Mesh(new CapsuleGeometry(rad, len, 3, 7), ctx.material(wingColor(ctx, tintHex(ctx.palette.skinHex, 0.72))));
-        feather.scale.z = 0.35; // flatten into a vane
-        // fan out from the shoulder: root near anchor, tips sweep out and back
-        feather.position.set(sgn * (s * 0.16 + u * s * 0.36), s * 0.16 - u * s * 0.1, -u * s * 0.05);
-        feather.rotation.z = sgn * (-0.5 - u * 0.75);
-        wing.add(feather);
+      // wing arm axis: outboard, a little up, raked back off the shoulder.
+      // round-25 eyeball fix: 0.86 → 0.5 of the span. `span()` is already a
+      // FULL-wingspan gauge, so an 0.86 arm per side put a 9 m spread on a
+      // 3 m celestial and the feathers swept the ground.
+      const armLen = s * 0.5;
+      for (const spec of [FEATHER_GROUPS.coverts, FEATHER_GROUPS.secondaries, FEATHER_GROUPS.primaries]) {
+        const material = ctx.material(toneFor(spec));
+        for (let i = 0; i < spec.count; i++) {
+          const f = spec.count > 1 ? i / (spec.count - 1) : 0;
+          const u = spec.u0 + (spec.u1 - spec.u0) * f;
+          const len = (spec.len0 + (spec.len1 - spec.len0) * f) * s;
+          const feather = new Mesh(blade, material);
+          feather.scale.set(len, len * spec.width, len * spec.width);
+          // root walks out along the arm; the arm itself rises then flattens
+          feather.position.set(
+            sgn * u * armLen,
+            s * (0.12 + 0.1 * Math.sin(u * 1.5)) - u * s * 0.06,
+            -s * (0.03 + u * 0.07),
+          );
+          // round-25 eyeball fix: MIRRORING. Composing sgn-flipped Euler
+          // rotations does not mirror a shape whose own +x is the shaft — the
+          // first capture grew one wing of vertical spikes and one of
+          // down-swept blades. Each blade now aims an explicit direction
+          // whose x simply negates across the midline, and its basis is built
+          // from that direction, so left and right are exact mirrors.
+          const rake = spec.rake0 + (spec.rake1 - spec.rake0) * f;
+          const pitch = -spec.droop * (0.35 + 0.65 * f);
+          FEATHER_DIR.set(
+            sgn * Math.cos(rake) * Math.cos(pitch),
+            Math.sin(pitch),
+            -Math.sin(rake) * Math.cos(pitch),
+          ).normalize();
+          // the vane spreads in the wing's own sheet: the thin axis runs
+          // horizontally across the sheet, so every blade shows its WIDTH to
+          // the front and side cameras and its edge to none of them
+          FEATHER_UP.set(0, 1, 0);
+          FEATHER_SIDE.crossVectors(FEATHER_DIR, FEATHER_UP);
+          if (FEATHER_SIDE.lengthSq() < 1e-8) FEATHER_SIDE.set(sgn, 0, 0);
+          FEATHER_SIDE.normalize();
+          FEATHER_UP.crossVectors(FEATHER_SIDE, FEATHER_DIR).normalize();
+          feather.quaternion.setFromRotationMatrix(
+            new Matrix4().makeBasis(FEATHER_DIR, FEATHER_UP, FEATHER_SIDE),
+          );
+          // a few degrees of twist per blade about its own shaft: identical
+          // vanes stacked flush have no silhouette event between them
+          feather.rotateX(sgn * (f - 0.45) * 0.5);
+          wing.add(feather);
+        }
       }
-      const boss = shoulderBoss(ctx, s);
-      boss.position.set(sgn * s * 0.1, s * 0.12, -s * 0.01);
+      // MASS EVENT at the shoulder: the deltoid boss plus a second, larger
+      // scapular hump behind it, so the wing root is a volume the feathers
+      // grow out of. Round 24's boss was one small ball lost under the fan.
+      // round-25 eyeball fix: the boss and scapula are span-fraction sized,
+      // and the span is a wingspan — at 1.9× and 0.1 s they rendered as a
+      // pair of tan boulders bigger than the skull. Both now key off the
+      // FRAME height, so the root reads as shoulder muscle at any wing scale.
+      const rootR = heightM(ctx.frame) * 0.055;
+      const boss = new Mesh(new SphereGeometry(rootR, 8, 6), ctx.material(skin));
+      boss.scale.set(1.3, 0.9, 0.9);
+      boss.position.set(sgn * rootR * 1.5, rootR * 0.9, -rootR * 0.2);
       boss.rotation.z = sgn * -0.5;
       wing.add(boss);
+      const scapula = new Mesh(new SphereGeometry(rootR * 0.9, 8, 6), ctx.material(shadeHex(skin, 0.72)));
+      scapula.scale.set(1.6, 1.0, 0.8);
+      scapula.position.set(sgn * rootR * 0.6, -rootR * 0.2, -rootR * 1.1);
+      wing.add(scapula);
       group.add(wing);
     }
     return { object: group };
@@ -270,11 +470,17 @@ const POSE: { spread: WingPose; folded: WingPose } = {
  * folded idle pose is what every anatomy sheet judges. Folded, the near-
  * parallel spars sweep back along the flank a hand-width apart, with the
  * membrane sagging between them. */
+/* round 25 (creature-anatomy): the fan WIDENS from ~39° to ~64° and the inner
+ * finger keeps most of its length. The narrow fan was authored in round 7 so
+ * the spread armature could bundle when it folded; since round 9 the fold is a
+ * DIFFERENT MESH (buildFoldedWing) and this armature never folds, so nothing
+ * was buying that constraint any more — it only crowded the finger bays until
+ * the distal edge read as one straight cut with no scallop. */
 const FINGERS: Array<{ d: [number, number, number]; len: number }> = [
-  { d: [0.97, -0.02, 0.1], len: 0.72 },
-  { d: [0.9, -0.06, 0.32], len: 0.64 },
-  { d: [0.78, -0.1, 0.5], len: 0.54 },
-  { d: [0.62, -0.14, 0.62], len: 0.4 },
+  { d: [0.99, 0.02, -0.06], len: 0.78 },
+  { d: [0.9, -0.05, 0.32], len: 0.74 },
+  { d: [0.72, -0.1, 0.62], len: 0.66 },
+  { d: [0.48, -0.16, 0.84], len: 0.56 },
 ];
 
 /* ----------------------------------------------------- folded blade (r9) */
@@ -672,6 +878,22 @@ const wingsMembrane: PartDef = {
       // hand carry beatSign 0, so a wing beat rotates the arm and everything
       // under it together). While the wing folds, the assembler cross-scales
       // this armature out and the dedicated folded blade in.
+      //
+      // round 25 (creature-anatomy): THE BRACHIOPATAGIUM. The round-24 fan was
+      // apexed at the shoulder ROOT with its first outline point at the elbow
+      // and its last at 0.55 of the innermost fingertip — both nearly along
+      // the humerus, so the wedge angle AT the apex was a few degrees and the
+      // sheet had ~zero width beside the upper arm. The round-24 verdict named
+      // it exactly: "a bare cylindrical humerus ... with open sky on both
+      // sides, and the membrane only begins above that elbow ... a flag on a
+      // pole with the brachiopatagium missing entirely".
+      //
+      // The outline now CLOSES ON THE BODY: after the last fingertip it walks
+      // a sagging trailing edge inboard to a FLANK point below and behind the
+      // shoulder. The apex fan therefore opens through a wide angle at the
+      // shoulder and the sheet is unbroken from the flank to the wingtip —
+      // real bat/drake anatomy, where the membrane spans shoulder-to-elbow
+      // along the body side.
       {
         const qElbow = ls.elbow;
         const qHand = ls.elbow.clone().multiply(ls.hand);
@@ -682,21 +904,39 @@ const wingsMembrane: PartDef = {
           [elbowP.x, elbowP.y, elbowP.z],
           [wristP.x, wristP.y, wristP.z],
         ];
+        /** Catenary dip between two edge points: the membrane HANGS. Depth is
+         * a fraction of the bay width, so every bay scallops in proportion —
+         * the round-24 verdict read "every trailing edge is a dead-straight
+         * line with zero sag or scallop between fingers". */
+        const bay = (a: Vector3, b: Vector3, depth: number, pull: number): [number, number, number] => {
+          const mid = a.clone().add(b).multiplyScalar(0.5).lerp(wristP, pull);
+          mid.y -= a.distanceTo(b) * depth;
+          return [mid.x, mid.y, mid.z];
+        };
         for (let i = 0; i < armTips.length; i++) {
           outline.push([armTips[i].x, armTips[i].y, armTips[i].z]);
           if (i < armTips.length - 1) {
-            // catenary dip between neighbouring spars: the membrane hangs
-            const sag = armTips[i].clone().add(armTips[i + 1]).multiplyScalar(0.5).lerp(wristP, 0.12);
-            sag.y -= s * 0.1;
-            outline.push([sag.x, sag.y, sag.z]);
+            outline.push(bay(armTips[i], armTips[i + 1], 0.42, 0.1));
           }
         }
-        // trailing-edge sag between the last spar and the flank: without it the
-        // implicit apex→tip run is a dead-straight cut, which reads as a sail
+        // The flank anchor, in the ARM's own frame: down and rearward from the
+        // shoulder root, on the body wall. Authored in wing-local space (x
+        // lateral, y up, z toward the head) and pulled back through the arm's
+        // spread rotation, so it lands on the FLANK whatever pose the arm
+        // holds.
+        const flank = new Vector3(sgn * s * 0.02, -s * 0.42, -s * 0.3).applyQuaternion(
+          ls.arm.clone().invert(),
+        );
+        // the trailing edge runs fingertip → flank in THREE sagging steps, so
+        // the long rear edge scallops like a drape instead of cutting one
+        // dead-straight chord back to the body
         const lastTip = armTips[armTips.length - 1];
-        const trail = lastTip.clone().multiplyScalar(0.55);
-        trail.y -= s * 0.11;
-        outline.push([trail.x, trail.y, trail.z]);
+        for (const k of [0.62, 0.32] as const) {
+          const p = lastTip.clone().lerp(flank, 1 - k);
+          p.y -= s * 0.13 * Math.sin((1 - k) * Math.PI);
+          outline.push([p.x, p.y, p.z]);
+        }
+        outline.push([flank.x, flank.y, flank.z]);
         arm.add(markNoOutline(new Mesh(membraneFan([0, 0, 0], outline), ctx.material(membraneHex))));
       }
 

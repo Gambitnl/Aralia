@@ -160,11 +160,17 @@ import type {
 } from "@/types/combat";
 import { generateGroundHostiles } from "./groundHostiles";
 import {
-  buildGroundProps,
+  buildGroundPropsInstrumented,
+  groundPropsGateSummary,
   imprintPropOnTile,
   propFootprintRadiusM,
   PROPS_BY_ID,
 } from "./groundProps";
+import {
+  makeGroundWorldProbe,
+  runPropPlacementGate,
+  summarizeGate,
+} from "./propPlacementGate";
 import type { PropInstance } from "../props/propSchema";
 import type { EntranceKind } from "../dungeon/world/dungeonSites";
 import { dungeonEntrancesForWindow } from "./dungeonEntrances";
@@ -1682,7 +1688,38 @@ export function computeGroundProps(
   region?: RegionArtifact,
   opts: MakeGroundWorldOptions = {},
 ): PropInstance[] {
-  return buildGroundProps(world, seed, region?.seedPath, opts.worldBusinesses);
+  const build = buildGroundPropsInstrumented(
+    world,
+    seed,
+    region?.seedPath,
+    opts.worldBusinesses,
+  );
+  // Instrumentation, not decoration. A surface gate that considered NOTHING is a
+  // gate that never read the ground, and this line is how that shows up in the
+  // running game instead of hiding behind props that all look level.
+  const summary = groundPropsGateSummary();
+  if (summary) console.info(summary);
+  // Same numbers, machine-readable, for the live browser proof. Set on both the
+  // window and the worker global, because a ground window builds in either.
+  (globalThis as unknown as { __araliaPropGate?: unknown }).__araliaPropGate = {
+    summary,
+    considered: build.gateStats.total.considered,
+    kept: build.gateStats.total.kept,
+    rejected: build.gateStats.total.rejected,
+    byReason: build.gateStats.total.byReason,
+    byPass: build.gateStats.byPass,
+    placementSurface: build.placementSurface,
+    placement: build.placement
+      ? {
+          seated: build.placement.report.passedCount,
+          total: build.placement.report.outcomes.length,
+          unfixed: build.placement.failureLines.length,
+          iterations: build.placement.report.totalIterations,
+          failureLines: build.placement.failureLines.slice(0, 20),
+        }
+      : null,
+  };
+  return build.props;
 }
 
 export function makeGroundWorld(
@@ -4649,6 +4686,55 @@ export function extractLocalTerrainPatch(
   const centerX = Math.floor(width / 2);
   const centerY = Math.floor(height / 2);
 
+  // ── Placement gate, BATTLEMAP profile ──────────────────────────────────────
+  // The battle map is the surface where a floating crate is a referee bug, not
+  // a cosmetic one: the player stands five feet from it. It therefore runs the
+  // STRICTEST profile — 1.5 in contact tolerance, 0.75 contact ratio — while
+  // the town and region profiles stay loose. The three never become uniform.
+  //
+  // `throwOnFailure` is wired and OFF, with a measured reason. Aralia renders
+  // ground at 12x vertical exaggeration (world3d/config VERTICAL_EXAGGERATION),
+  // so an ordinary town street reads as a 7 degree grade and wilderness relief
+  // steepens in proportion. The prop catalog's tilt caps are authored for REAL
+  // grades — a crate leans at most 3 degrees, a bush at most 12 — so a natural
+  // scatter prop on exaggerated relief cannot meet a 1.5 in bar however it is
+  // posed. Measured on seed 42: a town crop seats 184 of 194, a wilderness crop
+  // 79 of 118. Turning the throw on today aborts every wilderness encounter, so
+  // the failures are REPORTED loudly with their real numbers and the
+  // exaggeration-versus-tilt-cap conflict goes to the catalog owner. Nothing is
+  // hidden: the console line and `__araliaBattlemapGate` carry the full count.
+  //
+  // Ground co-deformation is off for the same evidence-led reason. Pads are
+  // legal on a battle map, but in a dense dockside cluster each pad un-seats its
+  // neighbors: measured 181 of 194 seated with pads, 184 of 194 without.
+  const cropMarginM = GROUND_METERS_PER_CELL * 2;
+  const cropMinX = playerX - (centerX + 2) * GROUND_METERS_PER_CELL - cropMarginM;
+  const cropMaxX = playerX + (width - centerX + 1) * GROUND_METERS_PER_CELL + cropMarginM;
+  const cropMinZ = playerZ - (centerY + 2) * GROUND_METERS_PER_CELL - cropMarginM;
+  const cropMaxZ = playerZ + (height - centerY + 1) * GROUND_METERS_PER_CELL + cropMarginM;
+  const cropProps = (ground.props ?? []).filter(
+    (p) =>
+      p.xM >= cropMinX && p.xM <= cropMaxX && p.zM >= cropMinZ && p.zM <= cropMaxZ,
+  );
+  const battleProbe = makeGroundWorldProbe(ground);
+  const battleGate = runPropPlacementGate(cropProps, battleProbe, {
+    surface: "battlemap",
+    groundMutable: false,
+    throwOnFailure: false,
+  });
+  const battlePads = battleGate.patchedSurface;
+  const battleGateLine = summarizeGate("battlemap", battleGate.result);
+  if (battleGate.result) {
+    console.info(battleGateLine);
+    (globalThis as unknown as { __araliaBattlemapGate?: unknown }).__araliaBattlemapGate = {
+      summary: battleGateLine,
+      seated: battleGate.result.report.passedCount,
+      total: battleGate.result.report.outcomes.length,
+      pads: battleGate.result.report.patches.length,
+      iterations: battleGate.result.report.totalIterations,
+    };
+  }
+
   for (let ty = 0; ty < height; ty++) {
     for (let tx = 0; tx < width; tx++) {
       const tileId = `${tx}-${ty}`;
@@ -4665,7 +4751,12 @@ export function extractLocalTerrainPatch(
       // BattleMap stores relief in renderer units, so divide by the shared
       // metres-per-unit constant. TerrainMesh and the 2D player readout both
       // import this contract instead of repeating a magic 0.3 value.
-      const realHeightM = groundSurfaceY(ground, wx, wz);
+      // Ground pads the battle-map gate laid are baked in HERE, so the tile the
+      // referee reads is the same ground the corrected props stand on.
+      const padDeltaM = battlePads
+        ? battlePads.deltaAt(wx / FEET_TO_METERS, wz / FEET_TO_METERS) * FEET_TO_METERS
+        : 0;
+      const realHeightM = groundSurfaceY(ground, wx, wz) + padDeltaM;
       const elevation = realHeightM / BATTLE_MAP_ELEVATION_METERS_PER_UNIT;
 
       // 2. Biome lookup: Sample the nearest biome from the GroundWorld grid.

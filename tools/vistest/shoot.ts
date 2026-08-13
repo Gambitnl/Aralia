@@ -18,8 +18,9 @@
  */
 import { chromium, type Browser, type Page } from 'playwright';
 import { spawnSync } from 'node:child_process';
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { mkdirSync, renameSync, rmSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
+import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { SCENARIOS, validateScenarios, type CaptureStep, type VisScenario } from '../../src/devtools/vistest/scenarios';
 import { outputPath, scenarioUrl } from '../../src/devtools/vistest/runnerCore';
@@ -189,19 +190,81 @@ function parseCommand(argv: readonly string[]): ParsedCommand {
 // Capture recipe execution
 // ============================================================================
 // These helpers execute the scenario recipes only after the command-line safety
-// boundary has accepted the request. They preserve the existing capture modes
-// and error reporting so scenario authors do not need to change their recipes.
+// boundary has accepted the request. A watched Vite tree may reload while a
+// recipe is evaluating the page. The bounded recovery path below waits for the
+// replacement document, rechecks the recipe's latest readiness hook, and then
+// retries only the interrupted instruction. Ordinary recipe failures remain
+// failures so a broken action cannot be mistaken for a transient reload.
 // ============================================================================
 
 /** Pause when a scenario recipe needs the rendered game to settle before its next action. */
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+/** A recipe gets two chances to recover after its first interrupted attempt. */
+export const MAX_RELOAD_RECOVERIES = 2;
+
+type WaitHookStep = Extract<CaptureStep, { kind: 'waitHook' }>;
+
+type CaptureRunState = {
+  publishedFrames: Set<string>;
+};
+
+type RecoveryOptions = {
+  maxReloadRecoveries?: number;
+};
+
+/** Normalize thrown values before they cross the command-line reporting boundary. */
+function errorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
+}
+
+/**
+ * Recognize only errors that mean the current JavaScript world disappeared
+ * during navigation. Timeouts, missing elements, recipe exceptions, closed
+ * pages, and filesystem failures are deliberately excluded from recovery.
+ */
+export function isReloadInterruption(error: unknown): boolean {
+  const message = errorMessage(error);
+  return /execution context was destroyed|cannot find context with specified id|most likely because of a navigation/i.test(message);
+}
+
+/**
+ * Publish a completed PNG as one filesystem operation.
+ *
+ * The browser first returns the whole frame in memory. This helper writes that
+ * frame beside its destination and then renames it into place, so a reload or
+ * failed browser operation can never leave a partial PNG at the proof path.
+ * The per-scenario set also makes a repeated terminal instruction idempotent:
+ * once this run has published a frame, later calls cannot publish it twice.
+ */
+function publishFrameAtomically(targetPath: string, png: Buffer, state: CaptureRunState): void {
+  if (state.publishedFrames.has(targetPath)) return;
+
+  const temporaryPath = `${targetPath}.${process.pid}.${Date.now()}.tmp`;
+  try {
+    writeFileSync(temporaryPath, png, { flag: 'wx' });
+    renameSync(temporaryPath, targetPath);
+    state.publishedFrames.add(targetPath);
+  } finally {
+    // The rename removes a successful temporary file. A failed write or rename
+    // may leave one behind, so remove only this invocation's exact scratch path.
+    rmSync(temporaryPath, { force: true });
+  }
+}
 
 /**
  * Carry out one declarative scenario instruction and surface enough context to
  * explain a bad capture to the scenario author. Each instruction remains the
  * authority for its own timing and capture mode.
  */
-async function runStep(page: Page, s: VisScenario, index: number, step: CaptureStep, outDir: string): Promise<void> {
+async function runStep(
+  page: Page,
+  s: VisScenario,
+  index: number,
+  step: CaptureStep,
+  outDir: string,
+  state: CaptureRunState,
+): Promise<void> {
   switch (step.kind) {
     case 'sleep':
       await sleep(step.ms);
@@ -251,18 +314,108 @@ async function runStep(page: Page, s: VisScenario, index: number, step: CaptureS
       if (b64.length < 10000) {
         throw new Error(`readback produced a suspiciously small frame (${b64.length} b64 chars)`);
       }
-      writeFileSync(outputPath(outDir, s), Buffer.from(b64, 'base64'));
+      publishFrameAtomically(outputPath(outDir, s), Buffer.from(b64, 'base64'), state);
       return;
     }
     case 'screenshot': {
       await page.evaluate(() => document.fonts?.ready?.then(() => true).catch(() => true));
-      await page.screenshot({ path: outputPath(outDir, s), timeout: 60000 });
+      const png = await page.screenshot({ type: 'png', timeout: 60000 });
+      publishFrameAtomically(outputPath(outDir, s), png, state);
       return;
     }
     default: {
       const never: never = step;
       throw new Error(`unknown step ${JSON.stringify(never)}`);
     }
+  }
+}
+
+/**
+ * Run one recipe instruction with a bounded resume path for watched-tree
+ * reloads. Each recovery consumes the same small budget whether navigation
+ * interrupts document settling, the readiness hook, or the instruction itself.
+ */
+async function runStepWithReloadRecovery(
+  page: Page,
+  scenario: VisScenario,
+  index: number,
+  step: CaptureStep,
+  outDir: string,
+  state: CaptureRunState,
+  readinessHook: WaitHookStep | undefined,
+  maxReloadRecoveries: number,
+): Promise<void> {
+  let recoveryCount = 0;
+  let recoveryPending = false;
+
+  while (true) {
+    try {
+      if (recoveryPending) {
+        // Wait for the replacement document before asking its readiness hook.
+        // Without this boundary, the hook could run in the dying document and
+        // immediately consume another recovery for no useful work.
+        await page.waitForLoadState('domcontentloaded', { timeout: 30_000 });
+        if (readinessHook) {
+          await runStep(page, scenario, index, readinessHook, outDir, state);
+        }
+      }
+
+      await runStep(page, scenario, index, step, outDir, state);
+      return;
+    } catch (error) {
+      if (!isReloadInterruption(error)) throw error;
+
+      if (recoveryCount >= maxReloadRecoveries) {
+        throw new Error(
+          `reload recovery exhausted after ${maxReloadRecoveries} attempt(s): ${errorMessage(error)}`,
+        );
+      }
+
+      recoveryCount += 1;
+      recoveryPending = true;
+      console.warn(
+        `vistest: scenario "${scenario.id}" step ${index} (${step.kind}) reload recovery ` +
+        `${recoveryCount}/${maxReloadRecoveries}`,
+      );
+    }
+  }
+}
+
+/**
+ * Execute one scenario from its opening readiness check through its terminal
+ * frame. Successful earlier scenarios remain durable if a later scenario
+ * fails, while this scenario publishes its one terminal frame at most once.
+ */
+export async function captureScenarioRecipe(
+  page: Page,
+  scenario: VisScenario,
+  outDir: string,
+  options: RecoveryOptions = {},
+): Promise<void> {
+  const state: CaptureRunState = { publishedFrames: new Set<string>() };
+  const maxReloadRecoveries = options.maxReloadRecoveries ?? MAX_RELOAD_RECOVERIES;
+  let latestReadinessHook: WaitHookStep | undefined;
+
+  for (const [index, step] of scenario.capture.entries()) {
+    // A waitHook is itself the readiness checkpoint. Later interrupted steps
+    // replay the latest completed hook before retrying their own instruction.
+    const recoveryReadinessHook = step.kind === 'waitHook' ? undefined : latestReadinessHook;
+    try {
+      await runStepWithReloadRecovery(
+        page,
+        scenario,
+        index,
+        step,
+        outDir,
+        state,
+        recoveryReadinessHook,
+        maxReloadRecoveries,
+      );
+    } catch (error) {
+      throw new Error(`scenario "${scenario.id}" step ${index} (${step.kind}): ${errorMessage(error)}`);
+    }
+
+    if (step.kind === 'waitHook') latestReadinessHook = step;
   }
 }
 
@@ -370,13 +523,7 @@ async function main({
       });
       try {
         await page.goto(scenarioUrl(base, s), { waitUntil: 'domcontentloaded', timeout: 30000 });
-        for (const [i, step] of s.capture.entries()) {
-          try {
-            await runStep(page, s, i, step, outDir);
-          } catch (e) {
-            throw new Error(`scenario "${s.id}" step ${i} (${step.kind}): ${(e as Error).message}`);
-          }
-        }
+        await captureScenarioRecipe(page, s, outDir);
         console.log(`shot ${outputPath(outDir, s)}`);
       } catch (e) {
         failed += 1;
@@ -406,16 +553,23 @@ async function main({
 // ignored-output safeguard above.
 // ============================================================================
 
-const command = parseCommand(process.argv.slice(2));
+// Tests import the recovery helpers above without starting a production
+// capture. A direct terminal invocation still follows the original CLI path.
+const invokedPath = process.argv[1] ? path.resolve(process.argv[1]) : '';
+const isDirectInvocation = invokedPath === fileURLToPath(import.meta.url);
 
-if (command.kind === 'help') {
-  console.log(HELP_TEXT);
-  process.exit(0);
+if (isDirectInvocation) {
+  const command = parseCommand(process.argv.slice(2));
+
+  if (command.kind === 'help') {
+    console.log(HELP_TEXT);
+    process.exit(0);
+  }
+
+  if (command.kind === 'error') {
+    console.error(command.message);
+    process.exit(1);
+  }
+
+  await main(command.options);
 }
-
-if (command.kind === 'error') {
-  console.error(command.message);
-  process.exit(1);
-}
-
-await main(command.options);

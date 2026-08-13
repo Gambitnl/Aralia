@@ -45,7 +45,10 @@ import {
 const S = WORLD3D_CONFIG.CHUNK_WORLD_SIZE;
 // Bumped when the surface gate landed: cached payloads predate the gate and
 // would otherwise serve un-gated scatter forever.
-const VEGETATION_SCATTER_CACHE_VERSION = 2;
+// v3: Remy's swept gate values (forest 42 deg / treeline 82, other six scaled)
+// plus the tilt-sign fix. A v2 payload carries the old gates and the backward
+// lean, so it must never be served after this change.
+const VEGETATION_SCATTER_CACHE_VERSION = 3;
 const VEGETATION_SCATTER_CACHE_MAX_ENTRIES = 256;
 
 // `forest_floor` is the leaf-litter tint a forest window's `grass` ground now
@@ -79,44 +82,55 @@ function deg(d: number): number {
  * Per-biome tree tolerance. A tree grows toward the sky, so `maxTiltRad` stays
  * small: it follows the ground only enough to look rooted. Slope limits differ
  * by species — a swamp tree needs near-flat wet ground, a conifer takes a hill.
+ *
+ * WARNING: these numbers are LOOK values for the exaggerated render, not real
+ * grades. Slopes are measured through `renderedFeet()`, which carries
+ * VERTICAL_EXAGGERATION = 12, so a 42 degree gate is a 3.9 degree real
+ * hillside. Change the exaggeration and every value here silently changes
+ * meaning. Re-run the sweep before you trust them again.
+ *
+ * Remy set the forest pair from a rendered sweep on 2026-08-12: slope 42, tree-
+ * line 82. The other six keep their intended relationship to forest, scaled by
+ * the same ratios (slope x1.2, treeline x1.051) rather than swept separately.
+ * Sweep images: `.agent/scratch/veg-sweep-slope.png` and `-treeline.png`.
  */
 const TREE_GATES: Readonly<Record<string, SurfaceGate>> = {
   forest: {
     minElevationFt: renderedFeet(21),
-    maxElevationFt: renderedFeet(78), // treeline
-    maxSlopeRad: deg(35),
+    maxElevationFt: renderedFeet(82), // treeline — Remy, 2026-08-12
+    maxSlopeRad: deg(42),
     maxTiltRad: deg(7),
     baseRadiusFt: 3,
     slopeScaleFloor: 0.7,
   },
   forest_floor: {
     minElevationFt: renderedFeet(21),
-    maxElevationFt: renderedFeet(78),
-    maxSlopeRad: deg(35),
+    maxElevationFt: renderedFeet(82),
+    maxSlopeRad: deg(42),
     maxTiltRad: deg(7),
     baseRadiusFt: 3,
     slopeScaleFloor: 0.7,
   },
   jungle: {
     minElevationFt: renderedFeet(21),
-    maxElevationFt: renderedFeet(62),
-    maxSlopeRad: deg(30),
+    maxElevationFt: renderedFeet(65),
+    maxSlopeRad: deg(36),
     maxTiltRad: deg(6),
     baseRadiusFt: 3.5,
     slopeScaleFloor: 0.75,
   },
   plains: {
     minElevationFt: renderedFeet(21),
-    maxElevationFt: renderedFeet(70),
-    maxSlopeRad: deg(28),
+    maxElevationFt: renderedFeet(74),
+    maxSlopeRad: deg(34),
     maxTiltRad: deg(5),
     baseRadiusFt: 2.5,
     slopeScaleFloor: 0.75,
   },
   grassland: {
     minElevationFt: renderedFeet(21),
-    maxElevationFt: renderedFeet(70),
-    maxSlopeRad: deg(28),
+    maxElevationFt: renderedFeet(74),
+    maxSlopeRad: deg(34),
     maxTiltRad: deg(5),
     baseRadiusFt: 2.5,
     slopeScaleFloor: 0.75,
@@ -124,16 +138,16 @@ const TREE_GATES: Readonly<Record<string, SurfaceGate>> = {
   // Wet ground pools; a marsh tree cannot stand on a bank.
   wetland: {
     minElevationFt: renderedFeet(19),
-    maxElevationFt: renderedFeet(45),
-    maxSlopeRad: deg(12),
+    maxElevationFt: renderedFeet(47),
+    maxSlopeRad: deg(14),
     maxTiltRad: deg(4),
     baseRadiusFt: 2.5,
     slopeScaleFloor: 0.8,
   },
   swamp: {
     minElevationFt: renderedFeet(19),
-    maxElevationFt: renderedFeet(45),
-    maxSlopeRad: deg(12),
+    maxElevationFt: renderedFeet(47),
+    maxSlopeRad: deg(14),
     maxTiltRad: deg(4),
     baseRadiusFt: 2.5,
     slopeScaleFloor: 0.8,

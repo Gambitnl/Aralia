@@ -3,8 +3,8 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 04/08/2026, 01:59:29
- * Dependents: commands/effects/DamageCommand.ts, commands/factory/AbilityCommandFactory.ts, commands/factory/SpellCommandFactory.ts, hooks/combat/useActionExecutor.ts, hooks/combat/useTurnManager.ts
+ * Last Sync: 12/08/2026, 06:33:24
+ * Dependents: commands/effects/DamageCommand.ts, commands/factory/AbilityCommandFactory.ts, commands/factory/SpellCommandFactory.ts, components/DesignPreview/steps/PreviewCombatScenarios.tsx, components/DesignPreview/steps/scenarioControls/tauntForcedTargetingScenarioControls.ts, hooks/combat/useActionExecutor.ts, hooks/combat/useTurnManager.ts
  * Imports: 3 files
  *
  * MULTI-AGENT SAFETY:
@@ -18,8 +18,9 @@
  * This file enforces structured taunt rules such as Compelled Duel.
  *
  * A taunt lives on the compelled target's status effect. These helpers keep
- * attack rolls, willing movement and early-end events on that same contract,
- * without restricting forced movement or teaching combat AI new strategy.
+ * attack rolls, willing movement, source viability, expiry, and early-end
+ * events on that same contract, without restricting forced movement or
+ * teaching combat AI new strategy.
  */
 import type { CombatCharacter, Position, StatusEffect } from '@/types/combat'
 import type { TauntBreakEvent } from '@/types/spells'
@@ -38,20 +39,64 @@ export interface TauntBreakResult {
   breaks: TauntBreakRecord[]
 }
 
+export type TauntCleanupReason =
+  | 'expired'
+  | 'source_missing'
+  | 'source_downed'
+  | 'source_incapacitated'
+
+export interface TauntCleanupRecord {
+  casterId: string
+  targetId: string
+  spellId?: string
+  spellName: string
+  reason: TauntCleanupReason
+}
+
+export interface TauntCleanupResult {
+  characters: CombatCharacter[]
+  cleanups: TauntCleanupRecord[]
+}
+
 type TauntEventContext =
   | { event: 'caster_attacks_other'; casterId: string; targetIds: string[] }
   | { event: 'caster_casts_spell_on_other_enemy'; casterId: string; targetIds: string[] }
   | { event: 'caster_ally_damages_target'; casterId: string; targetId: string }
   | { event: 'caster_ends_turn_outside_leash'; casterId: string }
 
+// A zero-round marker is already expired even if a caller has not yet run the
+// turn-boundary cleanup pass. Excluding it here prevents one stale attack or
+// movement penalty between duration expiry and state reconciliation.
 const activeTaunts = (character: CombatCharacter): StatusEffect[] =>
-  (character.statusEffects || []).filter(status => status.taunt && status.sourceCasterId)
+  (character.statusEffects || []).filter(status => (
+    status.taunt &&
+    status.sourceCasterId &&
+    status.duration > 0
+  ))
+
+// Incapacitation ends concentration, so a downed, Unconscious, or otherwise
+// Incapacitated source cannot keep a source-bound taunt active. This helper is
+// shared by attack, movement, and explicit cleanup to prevent rule drift.
+const sourceCanMaintainTaunt = (source: CombatCharacter | undefined): boolean => (
+  Boolean(source) &&
+  (source?.currentHP ?? 1) > 0 &&
+  !(source?.conditions ?? []).some(condition => (
+    condition.name === 'Incapacitated' || condition.name === 'Unconscious'
+  )) &&
+  !(source?.statusEffects ?? []).some(status => (
+    status.name === 'Incapacitated' || status.name === 'Unconscious'
+  ))
+)
 
 /** Returns true when the compelled creature attacks anyone except its caster. */
 export const hasTauntAttackDisadvantage = (
   attacker: CombatCharacter,
-  targetId: string
+  targetId: string,
+  characters?: CombatCharacter[]
 ): boolean => activeTaunts(attacker).some(status =>
+  (!characters || sourceCanMaintainTaunt(
+    characters.find(character => character.id === status.sourceCasterId)
+  )) &&
   status.taunt?.disadvantageAgainstOthers === true &&
   status.sourceCasterId !== targetId
 )
@@ -68,7 +113,7 @@ export const validateTauntWillingMove = (
   for (const status of activeTaunts(character)) {
     const leashRangeFeet = status.taunt?.leashRangeFeet
     const caster = characters.find(candidate => candidate.id === status.sourceCasterId)
-    if (!caster || !leashRangeFeet || leashRangeFeet <= 0) {
+    if (!caster || !sourceCanMaintainTaunt(caster) || !leashRangeFeet || leashRangeFeet <= 0) {
       continue
     }
 
@@ -78,6 +123,91 @@ export const validateTauntWillingMove = (
   }
 
   return { allowed: true }
+}
+
+// ============================================================================
+// Source And Duration Cleanup
+// ============================================================================
+// Normal turn processing may remove an expired status before this helper runs.
+// When the marker is still present, this pass removes only invalid taunts and
+// their matching concentration owner; unrelated statuses and spells survive.
+// ============================================================================
+
+const getTauntCleanupReason = (
+  status: StatusEffect,
+  characters: CombatCharacter[]
+): TauntCleanupReason | null => {
+  if (status.duration <= 0) {
+    return 'expired'
+  }
+
+  const source = characters.find(character => character.id === status.sourceCasterId)
+  if (!source) {
+    return 'source_missing'
+  }
+  if ((source.currentHP ?? 1) <= 0) {
+    return 'source_downed'
+  }
+  if (!sourceCanMaintainTaunt(source)) {
+    return 'source_incapacitated'
+  }
+
+  return null
+}
+
+/**
+ * Removes taunts whose duration or living source can no longer sustain them.
+ * A caller can run this after HP, condition, removal, or turn-duration changes;
+ * the result is unchanged when every current taunt is still valid.
+ */
+export const clearInvalidTaunts = (
+  characters: CombatCharacter[]
+): TauntCleanupResult => {
+  const cleanups = characters.flatMap(target => (
+    (target.statusEffects ?? [])
+      .filter(status => status.taunt && status.sourceCasterId)
+      .map(status => ({
+        target,
+        status,
+        reason: getTauntCleanupReason(status, characters)
+      }))
+      .filter((entry): entry is typeof entry & { reason: TauntCleanupReason } => (
+        entry.reason !== null
+      ))
+  ))
+
+  if (cleanups.length === 0) {
+    return { characters, cleanups: [] }
+  }
+
+  const statusIdsToRemove = new Set(cleanups.map(({ status }) => status.id))
+  const casterSpellKeys = new Set(cleanups.map(({ status }) => (
+    `${status.sourceCasterId}:${status.sourceSpellId ?? ''}`
+  )))
+
+  const nextCharacters = characters.map(character => {
+    const concentrationKey = `${character.id}:${character.concentratingOn?.spellId ?? ''}`
+    return {
+      ...character,
+      statusEffects: (character.statusEffects ?? []).filter(status => (
+        !statusIdsToRemove.has(status.id)
+      )),
+      concentratingOn: casterSpellKeys.has(concentrationKey)
+        ? undefined
+        : character.concentratingOn
+    }
+  })
+
+  return {
+    characters: nextCharacters,
+    cleanups: cleanups.map(({ target, status, reason }) => ({
+      casterId: status.sourceCasterId as string,
+      targetId: target.id,
+      spellId: status.sourceSpellId,
+      spellName: status.source || 'Taunt',
+      reason
+    }))
+  }
 }
 
 const eventBreaksStatus = (

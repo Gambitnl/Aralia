@@ -253,9 +253,18 @@ function beastPlan(name: string, h: number, b: number, head?: PlanHead): PlanTem
     // a real three-lobe mass profile (deep chest, tucked waist, driving
     // hips) and legs thick enough to carry haunches through compilePlan's
     // root swell.
-    spine: { segments: 5, taper: 0.72, arch: 0.06, bulge: 0.42, mass: [1.32, 0.88, 1.18] },
+    // round 25 (creature-anatomy): the waist CUTS. Round 24's [1.32, 0.88,
+    // 1.18] is a 1.5:1 chest-to-waist ratio that the swept tube smooths into
+    // a gentle swell — the verdict still read "a uniform-diameter grey tube
+    // from shoulder to hip". At 2:1 the taper survives the loft, and the
+    // driver's explicit withers/brisket/haunch masses carry the landmarks the
+    // profile cannot.
+    spine: { segments: 5, taper: 0.72, arch: 0.06, bulge: 0.42, mass: [1.5, 0.75, 1.34] },
     appendages: [
-      ...quadLegs(reach, 0.48, 0.62),
+      // fore/hind differentiation: the round-24 verdict read "all four limbs
+      // the same width root to toe". A boar's hind limb is visibly the
+      // heavier one — 0.48/0.62 was not a big enough gap to see.
+      ...quadLegs(reach, 0.4, 0.8),
       // round 24 (creature-anatomy): SHORT THICK REAL NECK — the round-23
       // verdict read the auto S-neck carriage as a "camel-long sausage neck";
       // that carriage is dragon-tuned (rise 2.15 bodyR). A beast gets an
@@ -328,10 +337,15 @@ function dragonPlan(h: number, b: number): PlanTemplate {
     frame: { heightFt: h, lengthFt: h * 1.8, bulk: Math.max(b, 0.55), stance: 'horizontal' },
     // three-lobe mass: deep chest (wings + forelegs), tucked waist, driving hips —
     // the 2026-07-27 "hot dog dragon" was the old single-sine bulge sausage
-    spine: { segments: 5, taper: 0.7, arch: 0.08, bulge: 0.5, mass: [1.42, 0.76, 1.2] },
+    // round 25 (creature-anatomy): WEIGHT INTO THE HINDQUARTERS. The round-24
+    // verdict: "the fore and hind limbs are the same stubby column so there
+    // is no haunch mass anywhere in the silhouette; the black-drake ref
+    // ... loads visible weight into the hindquarters". Hips now out-gauge the
+    // chest lobe, which is what makes a drake read as rear-driven.
+    spine: { segments: 5, taper: 0.7, arch: 0.08, bulge: 0.5, mass: [1.4, 0.74, 1.46] },
     appendages: [
       // heavier haunches than the generic quad — dragon hindquarters drive it
-      ...quadLegs(reach, 0.52, 0.85),
+      ...quadLegs(reach, 0.46, 1.05),
       // index 2 — neck: ~0.6x torso per the mz-3 therapsid reference
       // (was 0.84h garden hose, then over-cut to 0.53h in wave 5);
       // thick base tapering to the head; compilePlan thickens it further
@@ -340,11 +354,18 @@ function dragonPlan(h: number, b: number): PlanTemplate {
         attach: 0.04,
         perSide: false,
         count: 1,
+        // round 25 (creature-anatomy): the neck TAPERS INTO THE SHOULDER. The
+        // round-24 verdict read "a constant-diameter tube that plugs into the
+        // torso with a hard step and no shoulder merge" — 0.72 → 0.34 over
+        // four links is only a 2:1 run, and the first link's 0.72 is well
+        // under the chest gauge, so the joint was a STEP DOWN followed by a
+        // near-hose. The root now starts at chest gauge and the taper is a
+        // 4:1 run, so the neck grows out of the shoulder mass.
         chain: [
-          { lenFt: h * 0.3, r: 0.72 },
-          { lenFt: h * 0.26, r: 0.56 },
-          { lenFt: h * 0.24, r: 0.44 },
-          { lenFt: h * 0.2, r: 0.34 },
+          { lenFt: h * 0.26, r: 1.15 },
+          { lenFt: h * 0.26, r: 0.78 },
+          { lenFt: h * 0.26, r: 0.5 },
+          { lenFt: h * 0.22, r: 0.29 },
         ],
       },
       tailChain([
@@ -474,7 +495,11 @@ function basePlanForCreature(
         legR: 0.26,
         armR: 0.22,
         hands: true,
-        head: { form: 'blunt', sizeScale: 1.0, eyes: { count: 2, sizeScale: 0.7 } },
+        // round 24 second pass: eyes 0.7 → 0.48. The round-24 sheet still read
+        // as "two dot eyes on an egg" — at 0.7 the white sclera discs sit ON
+        // the skull as googly balls (the dragon's round-6 lesson). Small eyes
+        // sit IN it and let the brow carry the face.
+        head: { form: 'blunt', sizeScale: 1.0, eyes: { count: 2, sizeScale: 0.48 } },
       });
 
     case CreatureType.Construct:

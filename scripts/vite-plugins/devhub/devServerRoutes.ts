@@ -13,6 +13,7 @@ const DEV_SERVER_SCAN_DEFAULT_CONCURRENCY = 24;
 const DEV_SERVER_SCAN_MAX_RANGE = 4000;
 const DEV_SERVER_SCAN_MIN_PORT = 1;
 const DEV_SERVER_SCAN_MAX_PORT = 65535;
+const DEV_SERVER_CHILD_APP_CONCURRENCY = 8;
 const DEV_SERVER_SCAN_TARGETS = {
   3000: 'Core App',
   3010: 'Roadmap',
@@ -55,6 +56,12 @@ type SymlinkRow = {
   sizeLabel: string;
   sizeNote: string;
   category: string;
+};
+
+type DevHubChildApp = {
+  label: string;
+  description: string;
+  path: string;
 };
 
 // Process types the dashboard can enumerate. Keys map to the executable names
@@ -508,6 +515,74 @@ const toTitleFromHtml = (value: string) => {
   return stripMarkdownInline(match[1]).replace(/\s+/g, ' ').trim();
 };
 
+// The Dev Hub launch-card anchors are the canonical inventory of local app
+// surfaces. Reading them when a port is expanded means a newly added card is
+// discoverable without maintaining a second list in this server scanner.
+const DEV_HUB_CARD_ANCHOR_PATTERN = /<a\b(?=[^>]*\bhref="([^"]+)")(?=[^>]*\bclass="[^"]*\bcard\b[^"]*")[^>]*>([\s\S]*?)<\/a>/gi;
+
+const htmlFragmentToText = (value: string) => stripMarkdownInline(
+  String(value || '')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/&(?:nbsp|amp);/gi, ' ')
+    .replace(/&gt;/gi, '>')
+    .replace(/&lt;/gi, '<'),
+).replace(/\s+/g, ' ').trim();
+
+const readDevHubChildApps = async (): Promise<DevHubChildApp[]> => {
+  const hubPath = path.resolve(process.cwd(), 'misc', 'dev_hub.html');
+  const hubHtml = await fs.readFile(hubPath, 'utf8');
+  const appsByPath = new Map<string, DevHubChildApp>();
+
+  for (const match of hubHtml.matchAll(new RegExp(DEV_HUB_CARD_ANCHOR_PATTERN.source, 'gi'))) {
+    const href = String(match[1] || '');
+    const cardMarkup = String(match[2] || '');
+    const parsedHref = new URL(href, 'http://localhost');
+    // Only local Aralia routes are safe to probe through this endpoint. External
+    // links or launcher-only controls never become child-app scan targets.
+    if (!parsedHref.pathname.startsWith('/Aralia/')) continue;
+
+    const label = htmlFragmentToText(cardMarkup.match(/<h2\b[^>]*>([\s\S]*?)<\/h2>/i)?.[1] || '');
+    if (!label) continue;
+    const description = htmlFragmentToText(cardMarkup.match(/<p\b[^>]*>([\s\S]*?)<\/p>/i)?.[1] || '');
+    const appPath = `${parsedHref.pathname}${parsedHref.search}`;
+    appsByPath.set(appPath, { label, description, path: appPath });
+  }
+
+  return Array.from(appsByPath.values()).sort((left, right) => left.label.localeCompare(right.label));
+};
+
+// Probe only paths taken from the Dev Hub inventory and only after the user
+// expands one port. A successful HTTP response means that specific app surface
+// is served by the selected process; a 404 is deliberately excluded.
+const findChildAppsForPort = async (port: number, candidates: DevHubChildApp[]) => {
+  const apps: Array<DevHubChildApp & { url: string; httpStatus: number; httpStatusText: string; title: string; responseMs: number }> = [];
+  let index = 0;
+
+  const worker = async () => {
+    while (index < candidates.length) {
+      const candidate = candidates[index++];
+      const probe = await probeHttpUrl(
+        { port, label: candidate.label, expectedUrl: `http://${DEV_SERVER_SCAN_HOST}:${port}${candidate.path}` },
+        candidate.path,
+      );
+      // Treat normal page and redirect responses as an attached app. Auth and
+      // error endpoints are not presented as applications in this launch list.
+      if (!probe.active || probe.httpStatus < 200 || probe.httpStatus >= 400) continue;
+      apps.push({
+        ...candidate,
+        url: probe.activeUrl,
+        httpStatus: probe.httpStatus,
+        httpStatusText: probe.httpStatusText,
+        title: probe.title,
+        responseMs: probe.responseMs,
+      });
+    }
+  };
+
+  await Promise.all(Array.from({ length: Math.min(DEV_SERVER_CHILD_APP_CONCURRENCY, Math.max(1, candidates.length)) }, () => worker()));
+  return apps.sort((left, right) => left.label.localeCompare(right.label));
+};
+
 const buildScanTargetsFromRange = (start: number, end: number, includeKnown = true) => {
   const safeStart = Math.max(DEV_SERVER_SCAN_MIN_PORT, Math.min(DEV_SERVER_SCAN_MAX_PORT, Math.floor(start || DEV_SERVER_SCAN_MIN_PORT)));
   const safeEnd = Math.max(DEV_SERVER_SCAN_MIN_PORT, Math.min(DEV_SERVER_SCAN_MAX_PORT, Math.floor(end || DEV_SERVER_SCAN_MAX_PORT)));
@@ -839,6 +914,35 @@ export async function handleDevServerRoutes(ctx: DevHubRouteContext): Promise<bo
       });
     } catch (error) {
       json({ error: `Could not inspect processes: ${String(error)}` }, 500);
+    }
+    return true;
+  }
+
+  const childAppsMatch = urlPath.match(/^\/(?:Aralia\/)?api\/dev\/active-servers\/(\d+)\/child-apps$/);
+  if (childAppsMatch) {
+    if (String(req.method || 'GET').toUpperCase() !== 'GET') {
+      json({ error: 'Use GET to inspect child apps for an active port.' }, 405);
+      return true;
+    }
+
+    const port = Number(childAppsMatch[1]);
+    if (!Number.isInteger(port) || port < DEV_SERVER_SCAN_MIN_PORT || port > DEV_SERVER_SCAN_MAX_PORT) {
+      json({ error: 'Port must be between 1 and 65535.' }, 400);
+      return true;
+    }
+
+    try {
+      const candidates = await readDevHubChildApps();
+      const apps = await findChildAppsForPort(port, candidates);
+      json({
+        port,
+        scannedAt: new Date().toISOString(),
+        candidateCount: candidates.length,
+        appCount: apps.length,
+        apps,
+      });
+    } catch (error) {
+      json({ error: `Could not inspect child apps: ${String(error)}` }, 500);
     }
     return true;
   }

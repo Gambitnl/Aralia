@@ -13,6 +13,34 @@ describe("vistest scenario registry", () => {
     expect(validateScenarios(SCENARIOS)).toEqual([]);
   });
 
+  it("keeps the concrete 3D captures on the canonical Battle Map route and Select Biome surface", () => {
+    // These are the maintained equivalents of the campaign's party, enemy,
+    // and play-camera shots. Pinning the complete set prevents a future route
+    // migration from leaving one historical capture on a removed app phase.
+    const concreteBattleMapCaptures = [
+      "combat3d-party",
+      "combat3d-enemies",
+      "combat3d-play-camera",
+    ];
+
+    for (const id of concreteBattleMapCaptures) {
+      const scenario = SCENARIOS.find((candidate) => candidate.id === id);
+
+      expect(scenario?.url, `${id} must use the Design Preview Battle Map`).toBe(
+        "misc/design.html?step=battlemap",
+      );
+      expect(
+        scenario?.capture.some(
+          (step) =>
+            step.kind === "waitHook" &&
+            step.expr.includes("#biomeSelect") &&
+            step.expr.includes("3D View"),
+        ),
+        `${id} must wait for the Select Biome control and 3D renderer toggle`,
+      ).toBe(true);
+    }
+  });
+
   it("keeps the authored hostile opening in the permanent visual harness", () => {
     const opening = SCENARIOS.find(
       (scenario) => scenario.id === "combat-world-hostile-opening",
