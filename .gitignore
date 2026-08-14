@@ -157,6 +157,20 @@ src/components/DesignPreview/steps/*
 # The World Battle Lab is a canonical Vistest/debug contract, not a local-only
 # preview experiment; keep this one scenario harness in shared history.
 !src/components/DesignPreview/steps/PreviewBattleMapScenarioLab.tsx
+# The shared Tactical Sandbox domain-tab shell is an intentional cross-domain
+# contract, so keep its source and focused proof visible despite the local-only
+# Design Preview default above.
+!src/components/DesignPreview/steps/PreviewCombatDomainTabs.tsx
+!src/components/DesignPreview/steps/PreviewCombatDomainTabs.test.tsx
+# These three folders are the durable, self-contained domain panels registered
+# by the shared Tactical Sandbox shell. Their internals stay owned by the peer
+# domain lanes while the central host imports only each folder's public export.
+!src/components/DesignPreview/steps/classes/
+!src/components/DesignPreview/steps/classes/**
+!src/components/DesignPreview/steps/raceDomain/
+!src/components/DesignPreview/steps/raceDomain/**
+!src/components/DesignPreview/steps/spells/
+!src/components/DesignPreview/steps/spells/**
 # The tracked Building Identity Lab imports this renderer, so keep its complete
 # visual contract reproducible from a fresh checkout rather than local-only.
 !src/components/DesignPreview/steps/PreviewBuilding3D.tsx

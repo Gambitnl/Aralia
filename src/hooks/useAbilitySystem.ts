@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 04/08/2026, 01:58:12
- * Dependents: components/BattleMap/BattleMap.tsx, components/BattleMap/BattleMap3D.tsx, components/BattleMap/BattleMapDemo.tsx, components/Combat/CombatView.tsx, components/DesignPreview/steps/PreviewCombatScenarios.tsx, hooks/useBattleMap.ts
- * Imports: 26 files
+ * Last Sync: 13/08/2026, 17:53:47
+ * Dependents: components/BattleMap/BattleMap.tsx, components/BattleMap/BattleMap3D.tsx, components/BattleMap/BattleMapDemo.tsx, components/Combat/CombatView.tsx, components/DesignPreview/steps/PreviewCombatScenarios.tsx, components/DesignPreview/steps/scenarioControls/counterspellNestedReactionsScenarioControls.ts, hooks/useBattleMap.ts
+ * Imports: 28 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -97,12 +97,14 @@ import {
 import { combatEvents } from '../systems/events/CombatEvents';
 import { TargetResolver } from '../systems/spells/targeting/TargetResolver';
 import { buildSelectedSpellTargetsForPosition } from '../systems/spells/targeting/selectedSpellTargets';
+import { validateSpellTargetSelection } from '../systems/spells/targeting/SpellTargetSelectionValidator';
 import {
   hasTrueStrikeImmediateAttackAugment,
   resolveTrueStrikeAttackTarget,
   resolveTrueStrikeWeaponSnapshot,
   validateTrueStrikeWeaponSnapshot
 } from '../commands/factory/trueStrikeAttackBridge';
+import { resolvePostDamageReactionQueue } from '../systems/combat/reactions/postDamageReactionQueue';
 
 /**
  * Pull the selectable command words out of structured utility effects.
@@ -344,6 +346,26 @@ export const hasSpellInterruptionVisibility = (
   }
 
   return hasSpellInterruptionLineOfSight(reactor, caster, mapData);
+};
+
+export const getSpellInterruptionDistanceFeet = (
+  reactor: CombatCharacter,
+  caster: CombatCharacter,
+): number => {
+  // Battle-map positions are five-foot grid cells, while Counterspell stores
+  // its maximum range in feet. Converting at this boundary keeps the reaction
+  // window aligned with every other spell range check on the combat map.
+  return getDistance(reactor.position, caster.position) * 5;
+};
+
+export const isWithinSpellInterruptionRange = (
+  reactor: CombatCharacter,
+  caster: CombatCharacter,
+  maxRangeFeet: number,
+): boolean => {
+  // A creature exactly on the listed boundary remains eligible. Only a caster
+  // farther away is rejected before a prompt, Reaction, or slot is created.
+  return getSpellInterruptionDistanceFeet(reactor, caster) <= maxRangeFeet;
 };
 
 const restoreInterruptedSpellSlot = (
@@ -589,6 +611,26 @@ interface UseAbilitySystemProps {
   currentPlane?: Plane; // NEW: Added plane context
 }
 
+/**
+ * Optional deterministic sources for one production ability transaction.
+ * The Tactical Sandbox and focused tests use this seam; ordinary gameplay
+ * omits it and keeps the command layer's normal randomness.
+ */
+export interface AbilityExecutionRandomSources {
+  attackRollRng?: () => number;
+  damageRng?: () => number;
+  /** Post-damage save rolls share this deterministic seam with attack/damage previews. */
+  saveRng?: () => number;
+  /**
+   * Stable identity for a delivered ability event. Retained UI or network
+   * delivery may repeat the same request, but only its first accepted or
+   * declined visit may reach action payment or command execution.
+   */
+  executionEventId?: string;
+  /** Explicit delivery decision for retained prompts; decline claims the id but pays nothing. */
+  executionDecision?: 'accept' | 'decline';
+}
+
 export interface PendingReaction {
   attackerId: string;
   targetId: string;
@@ -680,6 +722,14 @@ export const useAbilitySystem = ({
     getCharacterAtPosition
   } = useTargetValidator({ characters, mapData });
   const [pendingReaction, setPendingReaction] = useState<PendingReaction | null>(null);
+  // Damage-log IDs are the stable once-only ownership boundary. Keeping the
+  // claimed set in a ref survives renders and async prompts without turning a
+  // reaction receipt into component state or reopening it during UI replay.
+  const processedPostDamageReactionEventIdsRef = useRef(new Set<string>());
+  // Ability delivery has a separate claim ledger from post-damage reactions.
+  // Normal clicks omit an id; scenario and retained-event callers can provide
+  // one so duplicate casts become atomic no-ops before resources are touched.
+  const processedAbilityExecutionEventIdsRef = useRef(new Set<string>());
   const [pendingTeleportAssignment, setPendingTeleportAssignment] = useState<PendingTeleportDestinationAssignment | null>(null);
   const [targetValidationReason, setTargetValidationReason] = useState<string | null>(null);
 
@@ -709,6 +759,42 @@ export const useAbilitySystem = ({
         }
       });
     });
+  }, []);
+
+  const replayPostDamageReactionEvents = useCallback(async (entries: CombatLogEntry[]) => {
+    // This public replay seam exists for retained event delivery, reconnection,
+    // and deterministic scenario proof. It goes through the same claimed-ID
+    // queue as first delivery; a duplicate emits a readable no-op receipt but
+    // cannot reopen the prompt, spend resources, or apply either damage again.
+    const replay = await resolvePostDamageReactionQueue({
+      characters: charactersRef.current,
+      combatLog: entries,
+      mapData: mapDataRef.current,
+      processedEventIds: processedPostDamageReactionEventIdsRef.current,
+      requestReaction,
+    });
+
+    replay.characters.forEach(character => {
+      const previous = charactersRef.current.find(candidate => candidate.id === character.id);
+      if (previous !== character) onCharacterUpdate(character);
+    });
+    replay.logEntries.forEach(entry => onLogEntry?.(entry));
+    replay.duplicateEventIds.forEach(eventId => onLogEntry?.({
+      id: `${eventId}:post-damage-replay-no-op`,
+      timestamp: Date.now(),
+      type: 'status',
+      message: `Duplicate post-HP event ${eventId}: no prompt, damage, Reaction, or spell slot was applied.`,
+      data: { outcome: 'duplicate_event', notes: `post-hp-event:${eventId}` },
+    }));
+
+    return replay;
+  }, [onCharacterUpdate, onLogEntry, requestReaction]);
+
+  // Encounter reset starts a new delivery epoch. Stable event ids may be used
+  // again only after the owning board explicitly resets this ledger; ordinary
+  // rerenders and turn changes deliberately preserve once-only claims.
+  const resetProcessedAbilityExecutionEvents = useCallback(() => {
+    processedAbilityExecutionEventIdsRef.current.clear();
   }, []);
 
   const getValidTargets = useCallback((ability: Ability, caster: CombatCharacter): Position[] => {
@@ -996,7 +1082,7 @@ export const useAbilitySystem = ({
               return Boolean(spellOption) &&
                 trigger?.type === 'when_visible_creature_casts_spell' &&
                 trigger.requiredCost === spellOption.castingTime?.unit &&
-                getDistance(possibleReactor.position, caster.position) <= maxRange &&
+                isWithinSpellInterruptionRange(possibleReactor, caster, maxRange) &&
                 (!visibilityRequired || hasSpellInterruptionVisibility(possibleReactor, caster, currentMapData)) &&
                 Boolean(interruptionCost) &&
                 canAffordActionCost(possibleReactor, interruptionCost!);
@@ -1143,7 +1229,27 @@ export const useAbilitySystem = ({
 
         if (result.success) {
           const movementEffects = spell.effects.filter(isMovementEffect);
-          const finalState = resolveImmediateAfterForcedMovementRepeatSaves(result.finalState, executionTargets, movementEffects);
+          const movementResolvedState = resolveImmediateAfterForcedMovementRepeatSaves(result.finalState, executionTargets, movementEffects);
+          const resourceResolvedState = {
+            ...movementResolvedState,
+            characters: movementResolvedState.characters.map(finalChar => (
+              finalChar.id === caster.id && resourceSnapshot
+                ? applyResourceSnapshotToCaster(finalChar, resourceSnapshot)
+                : finalChar
+            )),
+          };
+          const postDamageReactions = await resolvePostDamageReactionQueue({
+            characters: resourceResolvedState.characters,
+            combatLog: resourceResolvedState.combatLog,
+            mapData: currentMapData,
+            processedEventIds: processedPostDamageReactionEventIdsRef.current,
+            requestReaction,
+          });
+          const finalState = {
+            ...resourceResolvedState,
+            characters: postDamageReactions.characters,
+            combatLog: [...resourceResolvedState.combatLog, ...postDamageReactions.logEntries],
+          };
 
           // 4. Propagate State Changes
           finalState.characters.forEach(finalChar => {
@@ -1151,9 +1257,9 @@ export const useAbilitySystem = ({
             const isCaster = caster.id === finalChar.id;
 
             if (isTarget || isCaster) {
-              onCharacterUpdate(isCaster && resourceSnapshot
-                ? applyResourceSnapshotToCaster(finalChar, resourceSnapshot)
-                : finalChar);
+              // Resource snapshots were merged before the post-damage queue so
+              // a nested reaction cannot be overwritten during propagation.
+              onCharacterUpdate(finalChar);
             }
           });
 
@@ -1417,13 +1523,51 @@ export const useAbilitySystem = ({
     targetPosition: Position,
     targetCharacterIds: string[],
     playerInput?: string,
-    selectedSpellTargets?: SelectedSpellTarget[]
+    selectedSpellTargets?: SelectedSpellTarget[],
+    randomSources?: AbilityExecutionRandomSources,
   ) => {
     // Access latest data from refs
     const currentCharacters = charactersRef.current;
     const currentTriggers = reactiveTriggersRef.current;
     const activePlane = currentPlaneRef.current;
     const liveCaster = currentCharacters.find(character => character.id === caster.id) ?? caster;
+
+    // Claim a supplied event immediately before its action transaction. Input
+    // prompts and target preparation are allowed to finish first, so resuming a
+    // pending choice does not look like a duplicate. Once claimed, a declined
+    // action remains claimed and cannot later spend resources under the same id.
+    const claimExecutionEvent = (): boolean => {
+      const eventId = randomSources?.executionEventId;
+      if (!eventId) return true;
+
+      if (processedAbilityExecutionEventIdsRef.current.has(eventId)) {
+        onLogEntry?.({
+          id: `${eventId}:ability-execution-no-op`,
+          timestamp: Date.now(),
+          type: 'status',
+          message: `Duplicate ability event ${eventId}: no action, spell slot, effect, or damage was applied.`,
+          characterId: liveCaster.id,
+          data: { outcome: 'duplicate_event', notes: `ability-event:${eventId}` },
+        });
+        return false;
+      }
+
+      processedAbilityExecutionEventIdsRef.current.add(eventId);
+
+      if (randomSources?.executionDecision === 'decline') {
+        onLogEntry?.({
+          id: `${eventId}:ability-execution-declined`,
+          timestamp: Date.now(),
+          type: 'status',
+          message: `Declined ability event ${eventId}: no action, spell slot, effect, or damage was applied.`,
+          characterId: liveCaster.id,
+          data: { outcome: 'declined_event', notes: `ability-event:${eventId}` },
+        });
+        return false;
+      }
+
+      return true;
+    };
 
     // --- Path A: Spell System (Command Pattern) ---
     if (ability.spell) {
@@ -1476,6 +1620,41 @@ export const useAbilitySystem = ({
         .map(id => currentCharacters.find(c => c.id === id))
         .filter((c): c is CombatCharacter => !!c);
 
+      // Validate the complete rich selection before claiming a stable event or
+      // asking the turn manager to pay. Map clicks already validate one position,
+      // but direct callers can supply objects or several creature ids; this gate
+      // gives both entry routes the same category, range, sight, uniqueness, cap,
+      // taxonomy, relation, and willingness contract.
+      const completeSelectedTargets = selectedSpellTargets?.some(target => target.kind !== 'creature')
+        ? selectedSpellTargets
+        : targetCharacterIds.map(id => ({ kind: 'creature' as const, id }));
+      const targetSelectionRejection = validateSpellTargetSelection({
+        spell: ability.spell,
+        caster: liveCaster,
+        characters: currentCharacters,
+        mapData: mapDataRef.current,
+        selectedTargets: completeSelectedTargets,
+        castLevel: ability.spell.level,
+      });
+      if (targetSelectionRejection) {
+        onNotification?.(targetSelectionRejection.message, 'warning');
+        onLogEntry?.({
+          id: generateId(),
+          timestamp: Date.now(),
+          type: 'action',
+          message: targetSelectionRejection.message,
+          characterId: liveCaster.id,
+          targetIds: targetCharacterIds,
+          data: {
+            spellId: ability.spell.id,
+            rejectedReason: targetSelectionRejection.code,
+            payment: 'not_started',
+          },
+        });
+        cancelTargeting();
+        return;
+      }
+
       const bloodCircleRejection = getBloodCircleRejection(liveCaster, targets[0] ?? null);
       if (bloodCircleRejection) {
         onNotification?.(bloodCircleRejection, 'warning');
@@ -1501,7 +1680,15 @@ export const useAbilitySystem = ({
             // selected option belongs to that one target and is passed into
             // command creation as playerInput. Multi-target casts use the
             // sequential assignment flow below instead.
-            executeAbilityInternal(ability, caster, targetPosition, targetCharacterIds, input, selectedSpellTargets);
+            executeAbilityInternal(
+              ability,
+              caster,
+              targetPosition,
+              targetCharacterIds,
+              input,
+              selectedSpellTargets,
+              randomSources,
+            );
           });
           return;
         }
@@ -1515,7 +1702,7 @@ export const useAbilitySystem = ({
             executeAbilityInternal({
               ...ability,
               spell: addPerTargetChoicesToSpell(ability.spell, choicesByTargetId)
-            } as Ability, caster, targetPosition, targetCharacterIds, undefined, selectedSpellTargets);
+            } as Ability, caster, targetPosition, targetCharacterIds, undefined, selectedSpellTargets, randomSources);
           });
           return;
         }
@@ -1556,6 +1743,11 @@ export const useAbilitySystem = ({
             data: { abilityName: ability.name, pendingGap: 'SSO-TELEPORT-DESTINATION-SELECTION-001' }
           });
         }
+        cancelTargeting();
+        return;
+      }
+
+      if (!claimExecutionEvent()) {
         cancelTargeting();
         return;
       }
@@ -1660,6 +1852,11 @@ export const useAbilitySystem = ({
     // Verify economy costs before command effects run. The turn manager remains
     // the authoritative executor, while the local resource snapshot protects
     // command results from restoring a stale caster.
+    if (!claimExecutionEvent()) {
+      cancelTargeting();
+      return;
+    }
+
     const action: CombatAction = {
       ...buildAbilityCombatAction(ability, liveCaster, targetPosition, targetCharacterIds, selectedSpellTargets),
       suppressAbilityEvents: true
@@ -1726,6 +1923,7 @@ export const useAbilitySystem = ({
       commandGameState,
       selectedSpellTargets,
       requestReaction,
+      randomSources,
     );
 
     // Snapshot the event trace immediately before command execution. Weapon
@@ -1754,11 +1952,25 @@ export const useAbilitySystem = ({
         });
       }
 
-      const finalCharacters = result.finalState.characters.map(finalChar =>
+      const commandFinalCharacters = result.finalState.characters.map(finalChar =>
         finalChar.id === liveCaster.id
           ? applyResourceSnapshotToCaster(finalChar, casterAfterCost)
           : finalChar
       );
+      const postDamageReactions = await resolvePostDamageReactionQueue({
+        characters: commandFinalCharacters,
+        combatLog: result.finalState.combatLog,
+        mapData: mapDataRef.current,
+        processedEventIds: processedPostDamageReactionEventIdsRef.current,
+        requestReaction,
+        damageRng: randomSources?.damageRng,
+        saveRng: randomSources?.saveRng,
+      });
+      const finalCharacters = postDamageReactions.characters;
+      const finalCombatLog = [
+        ...result.finalState.combatLog,
+        ...postDamageReactions.logEntries,
+      ];
       const commandCharacterIds = new Set(commandCharacters.map(character => character.id));
       const finalCharacterIds = new Set(result.finalState.characters.map(character => character.id));
       const rosterChanged = commandCharacters.length !== result.finalState.characters.length ||
@@ -1844,7 +2056,7 @@ export const useAbilitySystem = ({
 
       // Propagate Logs
       if (onLogEntry) {
-        result.finalState.combatLog.forEach(entry => onLogEntry(entry));
+        finalCombatLog.forEach(entry => onLogEntry(entry));
       }
 
       // Ability-backed utility commands can also create light sources. Publish
@@ -1986,7 +2198,7 @@ export const useAbilitySystem = ({
 
       // Handle Cooldowns (Manually for now, could be a command)
       if (ability.cooldown) {
-        const updatedCaster = result.finalState.characters.find(c => c.id === caster.id) || caster;
+        const updatedCaster = finalCharacters.find(c => c.id === caster.id) || caster;
         const newCaster = {
           ...applyResourceSnapshotToCaster(updatedCaster, casterAfterCost),
           abilities: updatedCaster.abilities.map(a =>
@@ -1995,7 +2207,7 @@ export const useAbilitySystem = ({
         };
         onCharacterUpdate(newCaster);
       } else if (ability.recharge?.threshold) {
-        const updatedCaster = result.finalState.characters.find(c => c.id === caster.id) || caster;
+        const updatedCaster = finalCharacters.find(c => c.id === caster.id) || caster;
         const newCaster = {
           ...applyResourceSnapshotToCaster(updatedCaster, casterAfterCost),
           abilities: updatedCaster.abilities.map(a =>
@@ -2009,7 +2221,7 @@ export const useAbilitySystem = ({
       // usesRemaining bottoms out at 0; the ability stays on the character so the name
       // is still visible in the inspect panel even when depleted.
       if (ability.maxUses !== undefined) {
-        const updatedCaster = result.finalState.characters.find(c => c.id === caster.id) || caster;
+        const updatedCaster = finalCharacters.find(c => c.id === caster.id) || caster;
         const newCaster = {
           ...applyResourceSnapshotToCaster(updatedCaster, casterAfterCost),
           abilities: updatedCaster.abilities.map(a =>
@@ -2544,9 +2756,11 @@ export const useAbilitySystem = ({
     getTargetValidation,
     executeSpell,
     executeAbility,
+    resetProcessedAbilityExecutionEvents,
     dropConcentration,
     pendingReaction,
     requestReaction,
+    replayPostDamageReactionEvents,
   }), [
     selectedAbility,
     targetingMode,
@@ -2563,9 +2777,11 @@ export const useAbilitySystem = ({
     getTargetValidation, // Reactive (Changes with map/chars)
     executeSpell, // Stable
     executeAbility, // Stable
+    resetProcessedAbilityExecutionEvents, // Stable
     dropConcentration, // Stable
     pendingReaction, // Reactive
-    requestReaction // Stable
+    requestReaction, // Stable
+    replayPostDamageReactionEvents // Stable
   ]);
 };
 

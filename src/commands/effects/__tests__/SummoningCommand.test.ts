@@ -1,3 +1,17 @@
+/**
+ * This file proves that production summoning creates and replaces controlled actors.
+ *
+ * The focused cases cover exact placement, live ability materialization, shared
+ * initiative metadata, and exact-owner replacement without substituting preview-only
+ * behavior for the command result.
+ *
+ * Covers: SummoningCommand.
+ */
+
+// ============================================================================
+// Imports
+// ============================================================================
+
 import { describe, it, expect } from 'vitest';
 import simulacrum from '@/data/spells/level-7/simulacrum.json';
 import conjureAnimals from '@/data/spells/level-3/conjure-animals.json';
@@ -5,8 +19,51 @@ import { SummoningCommand } from '../SummoningCommand';
 import { CommandContext } from '../../base/SpellCommand';
 import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '@/utils/core';
 import type { SummoningEffect } from '@/types/spells';
+import summonBeast from '@/data/spells/level-2/summon-beast.json';
 
 describe('SummoningCommand', () => {
+  it('rejects an occupied exact point instead of moving a one-creature summon nearby', () => {
+    const caster = createMockCombatCharacter({ id: 'caster', position: { x: 2, y: 2 } });
+    const blocker = createMockCombatCharacter({ id: 'blocker', name: 'Blocking Guard', position: { x: 8, y: 6 } });
+    const state = createMockCombatState({ characters: [caster, blocker] });
+    const effect = summonBeast.effects.find(entry => entry.type === 'SUMMONING') as unknown as SummoningEffect;
+    const command = new SummoningCommand(effect, {
+      spellId: summonBeast.id,
+      spellName: summonBeast.name,
+      castAtLevel: 2,
+      caster,
+      targets: [],
+      selectedSpellTargets: [{ kind: 'point', position: blocker.position, purpose: 'ground_target' }],
+      playerInput: 'Air',
+      gameState: createMockGameState(),
+    });
+
+    const nextState = command.execute(state);
+
+    expect(nextState.characters.filter(character => character.isSummon)).toHaveLength(0);
+    expect(nextState.combatLog.at(-1)?.message).toContain('occupied by Blocking Guard');
+  });
+
+  it('materializes the Summon Beast slot-level Rend formula on the live actor', () => {
+    const caster = createMockCombatCharacter({ id: 'caster', position: { x: 2, y: 2 } });
+    const state = createMockCombatState({ characters: [caster] });
+    const effect = summonBeast.effects.find(entry => entry.type === 'SUMMONING') as unknown as SummoningEffect;
+    const command = new SummoningCommand(effect, {
+      spellId: summonBeast.id,
+      spellName: summonBeast.name,
+      castAtLevel: 2,
+      caster,
+      targets: [],
+      selectedSpellTargets: [{ kind: 'point', position: { x: 8, y: 6 }, purpose: 'ground_target' }],
+      playerInput: 'Air',
+      gameState: createMockGameState(),
+    });
+
+    const summon = command.execute(state).characters.find(character => character.isSummon);
+    expect(summon?.abilities.find(ability => ability.name === 'Rend')?.effects)
+      .toContainEqual(expect.objectContaining({ type: 'damage', dice: '1d8 + 4 + 2' }));
+  });
+
   it('anchors a point-targeted summon at its selected point', () => {
     const caster = createMockCombatCharacter({
       id: 'caster',

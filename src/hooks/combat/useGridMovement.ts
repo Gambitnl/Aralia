@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 04/08/2026, 01:56:32
+ * Last Sync: 13/08/2026, 08:01:16
  * Dependents: hooks/useBattleMap.ts
- * Imports: 4 files
+ * Imports: 5 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -40,6 +40,12 @@ import { useState, useCallback, useMemo } from 'react';
 import { BattleMapData, BattleMapTile, CombatCharacter, CharacterPosition } from '../../types/combat';
 import { findPath } from '../../utils/spatial/pathfinding';
 import { getCharacterSizeMultiplier } from '../../utils/combat';
+import {
+  buildAerialRoute,
+  getAerialWaypointRejection,
+} from '../../utils/combat/aerialMovementUtils';
+import { calculateMovementModeTotal } from '../../utils/combat/actionEconomyUtils';
+import { getElevationTransitionCostFeet } from '../../utils/spatial/elevationGeometry';
 // calculateMovementCost: base cost of a single step (5 or 10 ft depending on diagonal parity)
 // getTileMovementMultiplier: normalizes tile terrain cost to a multiplier (1 = normal, 2 = difficult)
 // calculateStepMovementCost: combines the above two (kept imported for potential future use)
@@ -49,6 +55,8 @@ interface UseGridMovementProps {
   mapData: BattleMapData | null;
   characterPositions: Map<string, CharacterPosition>;
   selectedCharacter: CombatCharacter | null;
+  /** Full roster enables altitude-aware occupied-footprint checks. */
+  characters?: CombatCharacter[];
 }
 
 interface UseGridMovementReturn {
@@ -58,7 +66,7 @@ interface UseGridMovementReturn {
   clearMovementState: () => void;
 }
 
-export function useGridMovement({ mapData, characterPositions, selectedCharacter }: UseGridMovementProps): UseGridMovementReturn {
+export function useGridMovement({ mapData, characterPositions, selectedCharacter, characters = [] }: UseGridMovementProps): UseGridMovementReturn {
   const [activePath, setActivePath] = useState<BattleMapTile[]>([]);
 
   // ------------------------------------------------------------------
@@ -88,9 +96,18 @@ export function useGridMovement({ mapData, characterPositions, selectedCharacter
     const visited = new Map<string, number>();
     visited.set(`${startNode.id}-0`, 0);
 
-    // Figure out how many feet of movement the character has left this turn.
+    // Figure out how many feet of the selected movement mode remain. Distance
+    // already moved is shared across modes, so walking before flight reduces
+    // this pool without letting the larger Fly Speed refill the turn.
     const movement = selectedCharacter.actionEconomy?.movement;
-    const movementRemaining = movement ? (movement.total - movement.used) : 0;
+    const isFlying = Boolean(
+      selectedCharacter.aerialMovement?.isFlying
+      && (selectedCharacter.stats.extraMovementSpeeds?.fly ?? 0) > 0,
+    );
+    const movementModeTotal = isFlying
+      ? calculateMovementModeTotal(selectedCharacter, 'fly')
+      : calculateMovementModeTotal(selectedCharacter, 'walk');
+    const movementRemaining = movement ? Math.max(0, movementModeTotal - movement.used) : 0;
 
     const isProne = selectedCharacter.conditions?.some(c => c.name === 'Prone' || c.name === 'prone') || false;
     const ignoreDifficultTerrain = selectedCharacter.modifiers?.ignoreDifficultTerrain || selectedCharacter.ignoreDifficultTerrain || false;
@@ -110,34 +127,64 @@ export function useGridMovement({ mapData, characterPositions, selectedCharacter
           const newX = tile.coordinates.x + dx;
           const newY = tile.coordinates.y + dy;
           
-          // Check if all tiles in the multiplier square are passable
+          // Flying checks the complete three-dimensional footprint at the
+          // current altitude. Walking keeps the established ground blocker and
+          // terrain-multiplier path below.
           let canPass = true;
           let maxTerrainMultiplier = 1;
-          
-          for (let sx = 0; sx < multiplier; sx++) {
-            for (let sy = 0; sy < multiplier; sy++) {
-              const checkId = `${newX + sx}-${newY + sy}`;
-              const checkTile = mapData.tiles.get(checkId);
-              
-              if (!checkTile || checkTile.blocksMovement) {
-                canPass = false;
-                break;
+          let maxElevationCostFeet = 0;
+
+          if (isFlying && selectedCharacter.aerialMovement) {
+            canPass = getAerialWaypointRejection(
+              selectedCharacter,
+              {
+                position: { x: newX, y: newY },
+                altitudeFeet: selectedCharacter.aerialMovement.altitudeFeet,
+              },
+              mapData,
+              characters,
+            ) === null;
+          } else {
+            for (let sx = 0; sx < multiplier; sx++) {
+              for (let sy = 0; sy < multiplier; sy++) {
+                const checkId = `${newX + sx}-${newY + sy}`;
+                const checkTile = mapData.tiles.get(checkId);
+
+                if (!checkTile || checkTile.blocksMovement) {
+                  canPass = false;
+                  break;
+                }
+
+                // If any part of the creature is in difficult terrain, the whole movement is hampered
+                const terrainMult = getTileMovementMultiplier(checkTile.movementCost);
+                if (terrainMult > maxTerrainMultiplier) {
+                  maxTerrainMultiplier = terrainMult;
+                }
+
+                // A multi-square creature pays the steepest transition under
+                // its footprint so no corner can step onto raised ground free.
+                const currentFootprintTile = mapData.tiles.get(
+                  `${tile.coordinates.x + sx}-${tile.coordinates.y + sy}`,
+                );
+                if (currentFootprintTile) {
+                  maxElevationCostFeet = Math.max(
+                    maxElevationCostFeet,
+                    getElevationTransitionCostFeet(currentFootprintTile, checkTile),
+                  );
+                }
               }
-              
-              // If any part of the creature is in difficult terrain, the whole movement is hampered
-              const terrainMult = getTileMovementMultiplier(checkTile.movementCost);
-              if (terrainMult > maxTerrainMultiplier) {
-                maxTerrainMultiplier = terrainMult;
-              }
+              if (!canPass) break;
             }
-            if (!canPass) break;
           }
 
           if (canPass) {
             const { cost: baseCost, isDiagonal } = calculateMovementCost(dx, dy, diagonalCount);
             const crawlCost = isProne ? 1 : 0;
-            const effectiveTerrainMultiplier = (maxTerrainMultiplier > 1 && ignoreDifficultTerrain) ? 1 : maxTerrainMultiplier;
-            const stepCost = baseCost * (effectiveTerrainMultiplier + crawlCost);
+            const effectiveTerrainMultiplier = isFlying
+              ? 1
+              : (maxTerrainMultiplier > 1 && ignoreDifficultTerrain) ? 1 : maxTerrainMultiplier;
+            const stepCost = baseCost * (effectiveTerrainMultiplier + crawlCost)
+              + (isFlying ? 0 : maxElevationCostFeet);
 
             const newCost = cost + stepCost;
             const newDiagonalCount = isDiagonal ? diagonalCount + 1 : diagonalCount;
@@ -158,7 +205,7 @@ export function useGridMovement({ mapData, characterPositions, selectedCharacter
       }
     }
     return reachableTiles;
-  }, [selectedCharacter, mapData, characterPositions]);
+  }, [selectedCharacter, mapData, characterPositions, characters]);
 
   // ------------------------------------------------------------------
   // Path Calculation (A* with Prone crawling cost)
@@ -186,11 +233,23 @@ export function useGridMovement({ mapData, characterPositions, selectedCharacter
 
       // Pass crawling state to the A* pathfinder in physicsUtils, which adds
       // +1 foot per foot to every step's cost when isCrawling is true.
+      const isFlying = Boolean(
+        character.aerialMovement?.isFlying
+        && (character.stats.extraMovementSpeeds?.fly ?? 0) > 0,
+      );
       const multiplier = getCharacterSizeMultiplier(character.stats.size);
-      const path = findPath(startTile, targetTile, mapData, { 
-        isCrawling: isProne,
-        ignoreDifficultTerrain: ignoreDifficultTerrain
-      }, multiplier);
+      const path = isFlying && character.aerialMovement
+        ? buildAerialRoute(
+            startTile.coordinates,
+            targetTile.coordinates,
+            character.aerialMovement.altitudeFeet,
+            character.aerialMovement.altitudeFeet,
+          ).map(waypoint => mapData.tiles.get(`${waypoint.position.x}-${waypoint.position.y}`))
+            .filter((tile): tile is BattleMapTile => Boolean(tile))
+        : findPath(startTile, targetTile, mapData, {
+            isCrawling: isProne,
+            ignoreDifficultTerrain: ignoreDifficultTerrain
+          }, multiplier);
       setActivePath(path);
     }
   }, [mapData, characterPositions, validMoves]);

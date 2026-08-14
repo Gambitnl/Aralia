@@ -2,9 +2,9 @@
  * This file proves the shared Multiattack sequence resolves real independent attacks.
  *
  * The fixtures exercise one action payment, separate hit and miss outcomes, target
- * selection per authored attack, hit-gated rider matching and consumption, and the
- * normal poison-immunity damage boundary. These are the engine facts used by the
- * Tactical Sandbox Multiattack & Attack Riders board.
+ * selection per authored attack, all-target preflight, hit-gated rider matching and
+ * consumption, downing, and the normal poison-immunity damage boundary. These are
+ * the engine facts used by the Tactical Sandbox Multiattack & Attack Riders board.
  */
 
 import { describe, expect, it } from 'vitest';
@@ -227,5 +227,51 @@ describe('resolveMultiattackSequence', () => {
       strikes: [],
     });
     expect(result.state).toBe(state);
+  });
+
+  it('rejects the whole transaction before payment when an authored target is missing', () => {
+    const state = createMockCombatState({ characters: createActors() });
+    const result = resolveMultiattackSequence({
+      state,
+      attackerId: 'drake',
+      strikes: [
+        strike('bite', 'Bite', 'guard', 12, '1d8+4', 'Piercing'),
+        strike('claw', 'Claw', 'missing-ward', 12, '1d6+4', 'Slashing'),
+      ],
+    });
+
+    // A malformed second target must not spend the Action or preserve damage
+    // from the otherwise valid first attack.
+    expect(result).toMatchObject({
+      attempted: false,
+      actionSpent: false,
+      failure: 'target_missing',
+      strikes: [],
+    });
+    expect(result.state).toBe(state);
+    expect(findCharacter(result.state.characters, 'guard').currentHP).toBe(40);
+    expect(findCharacter(result.state.characters, 'drake').actionEconomy.action.used)
+      .toBe(false);
+  });
+
+  it('uses the shared HP transition when a strike downs a target', () => {
+    const actors = createActors().map(character => (
+      character.id === 'guard'
+        ? { ...character, currentHP: 5, maxHP: 40 }
+        : character
+    ));
+    const state = createMockCombatState({ characters: actors });
+    const result = resolveMultiattackSequence({
+      state,
+      attackerId: 'drake',
+      strikes: [strike('bite', 'Bite', 'guard', 12, '1d8+4', 'Piercing')],
+    });
+    const guard = findCharacter(result.state.characters, 'guard');
+
+    // The same HP helper used by production commands owns the 0-HP transition,
+    // including death-save state and the Unconscious condition for player actors.
+    expect(guard.currentHP).toBe(0);
+    expect(guard.deathSaves).toEqual({ successes: 0, failures: 0, isStable: false });
+    expect(guard.conditions?.some(condition => condition.name === 'Unconscious')).toBe(true);
   });
 });

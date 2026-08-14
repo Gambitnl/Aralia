@@ -1,5 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { hasSpellInterruptionLineOfSight, hasSpellInterruptionVisibility } from '../useAbilitySystem';
+import {
+  getSpellInterruptionDistanceFeet,
+  hasSpellInterruptionLineOfSight,
+  hasSpellInterruptionVisibility,
+  isWithinSpellInterruptionRange,
+} from '../useAbilitySystem';
 import * as lineOfSightUtils from '../../utils/spatial';
 import type { BattleMapData, BattleMapTile, CombatCharacter } from '../../types/combat';
 import counterspell from '@/data/spells/level-3/counterspell.json';
@@ -200,6 +205,28 @@ describe('hasSpellInterruptionVisibility', () => {
       mapData.tiles.get('2-0'),
       mapData
     );
+  });
+});
+
+// ============================================================================
+// Counterspell Range Boundary
+// ============================================================================
+// The spell data uses feet while the battle map uses five-foot cells. These
+// checks protect the live reaction gate from treating 60 cells as 60 feet.
+// ============================================================================
+
+describe('Counterspell interruption range', () => {
+  it('allows the exact 60-foot boundary and rejects the next five-foot cell', () => {
+    const reactor = makeCharacterAt('reactor', 0, 0);
+    const boundaryCaster = makeCharacterAt('boundary-caster', 12, 0);
+    const distantCaster = makeCharacterAt('distant-caster', 13, 0);
+
+    // Twelve grid cells are 60 feet, while thirteen are 65 feet. No Reaction
+    // prompt or payment should exist for the second caster.
+    expect(getSpellInterruptionDistanceFeet(reactor, boundaryCaster)).toBe(60);
+    expect(isWithinSpellInterruptionRange(reactor, boundaryCaster, 60)).toBe(true);
+    expect(getSpellInterruptionDistanceFeet(reactor, distantCaster)).toBe(65);
+    expect(isWithinSpellInterruptionRange(reactor, distantCaster, 60)).toBe(false);
   });
 });
 

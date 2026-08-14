@@ -34,6 +34,8 @@ export interface OpportunityAttackResult {
 type MovementMode = 'fly' | 'walk' | 'swim' | 'climb' | 'any';
 export interface OpportunityAttackCheckOptions {
     movementMode?: MovementMode;
+    /** Only voluntary movement can open an Opportunity Attack window. */
+    movementKind?: 'voluntary' | 'forced' | 'teleport';
 }
 export declare class OpportunityAttackSystem {
     /**

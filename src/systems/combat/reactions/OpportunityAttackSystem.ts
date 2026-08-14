@@ -3,8 +3,8 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 04/08/2026, 01:59:13
- * Dependents: hooks/combat/useActionExecutor.ts
+ * Last Sync: 13/08/2026, 05:47:40
+ * Dependents: components/DesignPreview/steps/scenarioControls/reachCreatureSizeScenarioControls.ts, hooks/combat/useActionExecutor.ts
  * Imports: 3 files
  *
  * MULTI-AGENT SAFETY:
@@ -27,8 +27,15 @@
  */
 
 import { CombatCharacter, Position, BattleMapData } from '../../../types/combat';
-import { getDistance, canTakeReaction } from '../../../utils/combat';
+import { canTakeReaction, getCharacterDistance } from '../../../utils/combat';
 import { hasLineOfSight } from '../../../utils/spatial';
+
+// ============================================================================
+// Opportunity Attack Contracts
+// ============================================================================
+// Results identify one eligible attacker and the exact threatened boundary
+// crossed. Options carry movement facts that cannot be inferred from positions.
+// ============================================================================
 
 export interface OpportunityAttackResult {
   canAttack: boolean;
@@ -43,7 +50,18 @@ type MovementMode = 'fly' | 'walk' | 'swim' | 'climb' | 'any';
 
 export interface OpportunityAttackCheckOptions {
   movementMode?: MovementMode;
+  movementKind?: 'voluntary' | 'forced' | 'teleport';
+  /** Current initiative sequence used to arbitrate simultaneous responders. */
+  turnOrder?: string[];
 }
+
+// ============================================================================
+// Production Trigger Discovery
+// ============================================================================
+// The detector is pure: it discovers legal reaction windows without spending
+// resources or applying attacks. The action executor owns player acceptance,
+// payment, and resolved combat effects.
+// ============================================================================
 
 export class OpportunityAttackSystem {
   /**
@@ -66,11 +84,23 @@ export class OpportunityAttackSystem {
   ): OpportunityAttackResult[] {
     const results: OpportunityAttackResult[] = [];
 
-    // 1. Check if mover is immune
+    // Opportunity Attacks belong only to voluntary movement. Most production
+    // callers already keep forced movement and teleportation on separate
+    // command paths, but this guard makes the rule explicit at the detector as
+    // well so a future caller cannot provoke by passing the wrong event kind.
+    if (options.movementKind === 'forced' || options.movementKind === 'teleport') {
+      return [];
+    }
+
+    // A creature that Disengaged or has a form-specific movement exemption
+    // leaves reach without opening an Opportunity Attack reaction window.
     if (this.isDisengaged(mover)) {
       return [];
     }
     if (this.hasSummonOpportunitySuppression(mover, options.movementMode)) {
+      return [];
+    }
+    if (this.isUnseenMover(mover)) {
       return [];
     }
     // Note: Teleportation and Forced Movement checks are handled by the caller
@@ -104,7 +134,7 @@ export class OpportunityAttackSystem {
       // We keep the lowest threatened reach that was crossed so a character
       // with both 5ft and 10ft weapons still provokes at the first boundary
       // without generating duplicate OA entries for the same reaction spend.
-      const triggeredReach = this.getTriggeredReach(attacker, fromPos, toPos);
+      const triggeredReach = this.getTriggeredReach(attacker, mover, fromPos, toPos);
       if (triggeredReach === null) continue;
 
       // Valid Trigger
@@ -120,11 +150,49 @@ export class OpportunityAttackSystem {
       });
     }
 
-    return results;
+    // A single movement step can leave several creatures' reaches at once.
+    // Use the visible initiative sequence as the arbitration order, then place
+    // actors missing from that sequence after it in stable id order. This makes
+    // prompt, payment, damage, and replay receipts independent of roster order.
+    const turnOrder = options.turnOrder ?? [];
+    const orderOf = (attackerId: string): number => {
+      const index = turnOrder.indexOf(attackerId);
+      return index >= 0 ? index : Number.MAX_SAFE_INTEGER;
+    };
+    return results.sort((left, right) => (
+      orderOf(left.attackerId) - orderOf(right.attackerId)
+      || left.attackerId.localeCompare(right.attackerId)
+    ));
   }
+
+  // ============================================================================
+  // Eligibility And Threatened-Reach Helpers
+  // ============================================================================
+  // These helpers keep condition exemptions, summon movement traits, weapon
+  // reaches, and footprint boundary comparisons behind one detector contract.
+  // ============================================================================
 
   private isDisengaged(character: CombatCharacter): boolean {
     return character.statusEffects.some(e => e.id === 'disengage' || e.name === 'Disengage');
+  }
+
+  private isUnseenMover(character: CombatCharacter): boolean {
+    // Opportunity Attacks require the observer to see the departing creature.
+    // Hidden and Invisible can live on either of the combat runtime's mirrored
+    // condition collections, so inspect both before geometric line of sight.
+    return [
+      ...(character.statusEffects ?? []),
+      ...(character.conditions ?? []),
+    ].some(effect => {
+      const effectId = 'id' in effect && typeof effect.id === 'string'
+        ? effect.id.toLowerCase()
+        : '';
+      const effectName = effect.name.toLowerCase();
+      return effectId === 'hidden'
+        || effectName === 'hidden'
+        || effectId === 'invisible'
+        || effectName === 'invisible';
+    });
   }
 
   private hasSummonOpportunitySuppression(character: CombatCharacter, explicitMovementMode?: MovementMode): boolean {
@@ -170,10 +238,22 @@ export class OpportunityAttackSystem {
     return [...threatenedReaches].sort((a, b) => a - b);
   }
 
-  private getTriggeredReach(character: CombatCharacter, fromPos: Position, toPos: Position): number | null {
-    const threatenedReaches = this.getThreatenedReaches(character);
-    const distFrom = getDistance(character.position, fromPos);
-    const distTo = getDistance(character.position, toPos);
+  private getTriggeredReach(
+    attacker: CombatCharacter,
+    mover: CombatCharacter,
+    fromPos: Position,
+    toPos: Position,
+  ): number | null {
+    const threatenedReaches = this.getThreatenedReaches(attacker);
+
+    // Project the mover at each end of this movement step, then ask the same
+    // canonical geometry used by melee targeting for the nearest pair of
+    // occupied squares. This keeps Large and larger attackers and movers on
+    // the same 5-foot/10-foot boundary as an ordinary attack validity check.
+    const moverBefore = { ...mover, position: { ...fromPos } };
+    const moverAfter = { ...mover, position: { ...toPos } };
+    const distFrom = getCharacterDistance(attacker, moverBefore);
+    const distTo = getCharacterDistance(attacker, moverAfter);
 
     // Pick the first threatened boundary that was crossed so one movement step
     // still spends only one reaction even if the move passed through multiple

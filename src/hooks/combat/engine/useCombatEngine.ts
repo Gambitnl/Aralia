@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 12/08/2026, 05:12:37
+ * Last Sync: 13/08/2026, 09:22:18
  * Dependents: hooks/combat/useTurnManager.ts
  * Imports: 14 files
  *
@@ -20,7 +20,7 @@
  * Handles the "physics" of combat: damage, saving throws, area effects, and triggers.
  * Decoupled from turn scheduling (useTurnOrder) and UI (CombatView).
  */
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import {
     CombatCharacter,
     CombatLogEntry,
@@ -264,6 +264,11 @@ interface UseCombatEngineProps {
      * legal totals without replacing timing, damage, HP, or cleanup behavior.
      */
     scheduledEffectDiceRoller?: ScheduledEffectDiceRoller;
+    /**
+     * Optional deterministic d20 source for scheduled recurring saves. The
+     * shared saving-throw utility still owns modifiers, proficiency, and DC.
+     */
+    scheduledEffectSaveRng?: ScheduledEffectSaveRng;
 }
 
 export interface ScheduledEffectDiceRollContext {
@@ -277,6 +282,17 @@ export type ScheduledEffectDiceRoller = (
     context: ScheduledEffectDiceRollContext,
 ) => number;
 
+export interface ScheduledEffectSaveRollContext {
+    scheduledEffect: ScheduledSpellEffect;
+    timing: 'turn_start' | 'turn_end';
+    target: CombatCharacter;
+    saveDC: number;
+}
+
+export type ScheduledEffectSaveRng = (
+    context: ScheduledEffectSaveRollContext,
+) => number;
+
 export const useCombatEngine = ({
     characters,
     mapData,
@@ -285,6 +301,7 @@ export const useCombatEngine = ({
     onMapUpdate,
     addDamageNumber,
     scheduledEffectDiceRoller,
+    scheduledEffectSaveRng,
 }: UseCombatEngineProps) => {
 
     // --- Engine State ---
@@ -292,6 +309,32 @@ export const useCombatEngine = ({
     const [scheduledSpellEffects, setScheduledSpellEffects] = useState<ScheduledSpellEffect[]>([]);
     const [movementDebuffs, setMovementDebuffs] = useState<MovementTriggerDebuff[]>([]);
     const [reactiveTriggers, setReactiveTriggers] = useState<ReactiveTrigger[]>([]);
+    // A phase claim is written synchronously before a scheduled record fires.
+    // This protects against two stale End Turn callbacks resolving the same
+    // record before React has committed the queue update.
+    const scheduledPhaseClaimsRef = useRef(new Set<string>());
+
+    // A target that leaves combat cannot receive later turn phases. Remove only
+    // target-orphaned schedules; source loss deliberately preserves delayed
+    // spells such as Searing Smite and Acid Arrow, which do not require a live
+    // or concentrating caster after they have been applied.
+    useEffect(() => {
+        const liveCharacterIds = new Set(characters.map(character => character.id));
+        setScheduledSpellEffects(previousEffects => {
+            const survivingEffects = previousEffects.filter(effect => liveCharacterIds.has(effect.targetId));
+            if (survivingEffects.length === previousEffects.length) {
+                return previousEffects;
+            }
+
+            const survivingIds = new Set(survivingEffects.map(effect => effect.id));
+            scheduledPhaseClaimsRef.current = new Set(
+                [...scheduledPhaseClaimsRef.current].filter(claim => (
+                    [...survivingIds].some(effectId => claim.startsWith(`${effectId}:`))
+                )),
+            );
+            return survivingEffects;
+        });
+    }, [characters]);
 
     // --- Core Mechanics ---
 
@@ -590,19 +633,38 @@ export const useCombatEngine = ({
         return updatedCharacter;
     }, [characters, mapData, onLogEntry]);
 
+    // Remove only the status/condition/active-effect mirrors owned by one
+    // scheduled spell and caster. The repeat-save cleanup utility already
+    // understands those paired records and restores movement when needed.
+    const removeScheduledSourceLinks = useCallback((
+        character: CombatCharacter,
+        scheduledEffect: ScheduledSpellEffect,
+    ): CombatCharacter => {
+        const ownedStatusIds = character.statusEffects
+            .filter(status => (
+                status.sourceSpellId === scheduledEffect.spellId
+                && status.sourceCasterId === scheduledEffect.casterId
+            ))
+            .map(status => status.id);
+
+        return removeRepeatSaveLinkedEffects(character, ownedStatusIds).character;
+    }, []);
+
     const handleDamage = useCallback((
         character: CombatCharacter,
         amount: number,
         source: string,
         damageType?: string,
-        currentTurnNumber = 0
+        currentTurnNumber = 0,
+        sourceCharacter?: CombatCharacter,
+        damageTrigger?: 'turn_start' | 'turn_end' | 'on_start_turn_in_area' | 'on_end_turn_in_area',
     ): CombatCharacter => {
         let updatedCharacter = { ...character };
 
-        // Apply Resistance/Vulnerability if damageType provided
-        // We pass null for caster as environmental damage has no specific caster usually,
-        // or we don't have the caster object handy here.
-        const triggeringDamage = calculateDamage(amount, null, character, damageType, {
+        // The same defense calculator serves immediate, environmental, and
+        // scheduled packets. A known owner is passed through for source feats;
+        // environmental callers remain source-less through the optional field.
+        const triggeringDamage = calculateDamage(amount, sourceCharacter ?? null, character, damageType, {
             spellZones,
             characters
         });
@@ -621,7 +683,7 @@ export const useCombatEngine = ({
         // affect both the triggering and extra damage consistently.
         updatedCharacter = onDamageResolution.character;
         const finalAmount = extraDamage > 0
-            ? calculateDamage(amount + extraDamage, null, updatedCharacter, damageType, {
+            ? calculateDamage(amount + extraDamage, sourceCharacter ?? null, updatedCharacter, damageType, {
                 spellZones,
                 characters
             })
@@ -632,6 +694,7 @@ export const useCombatEngine = ({
             ...updatedCharacter,
             currentHP: updatedTarget.currentHP,
             tempHP: updatedTarget.tempHP,
+            temporaryHitPointSource: updatedTarget.temporaryHitPointSource,
             deathSaves: updatedTarget.deathSaves,
             statusEffects: updatedTarget.statusEffects,
             conditions: updatedTarget.conditions,
@@ -647,14 +710,19 @@ export const useCombatEngine = ({
             id: generateId(),
             timestamp: Date.now(),
             type: 'damage',
-            message: `${character.name} takes ${amount} ${damageType || ''} damage from ${source}${isDeath ? ' and is defeated!' : ''}`,
+            message: `${character.name} takes ${finalAmount} ${damageType || ''} damage from ${source}${isDeath ? ' and is defeated!' : ''}`,
             characterId: character.id,
             data: {
                 damage: amount,
                 damageType,
                 source,
                 damageDealt: finalAmount,
-                spellId: onDamageResolution.sourceSpellId,
+                trigger: damageTrigger,
+                // Delayed and area-phase callers pass the owning spell id as
+                // `source`. Preserve that provenance even when no on-damage
+                // rider fired during this packet.
+                spellId: onDamageResolution.sourceSpellId
+                    ?? (damageTrigger ? source : undefined),
                 isDeath,
                 targetTags: character.creatureTypes
             }
@@ -686,11 +754,45 @@ export const useCombatEngine = ({
         currentTurnNumber: number
     ): CombatCharacter => {
         let updatedCharacter = { ...character };
-        const triggeredScheduledIds: string[] = [];
+        const scheduledIdsToRemove = new Set<string>();
 
         scheduledSpellEffects
             .filter(effect => effect.targetId === character.id && effect.timing === timing)
             .forEach(scheduledEffect => {
+                // `expiresAtRound` is an exclusive boundary. A one-minute
+                // record created in round 1 may fire through round 10, but the
+                // round-11 phase removes its source links without an extra tick.
+                if (
+                    typeof scheduledEffect.expiresAtRound === 'number'
+                    && scheduledEffect.expiresAtRound <= currentTurnNumber
+                ) {
+                    updatedCharacter = removeScheduledSourceLinks(updatedCharacter, scheduledEffect);
+                    scheduledIdsToRemove.add(scheduledEffect.id);
+                    onLogEntry({
+                        id: generateId(),
+                        timestamp: Date.now(),
+                        type: 'status',
+                        message: `${scheduledEffect.spellId} expires before ${character.name}'s ${timing === 'turn_start' ? 'turn starts' : 'turn ends'}; no scheduled payload fires.`,
+                        characterId: character.id,
+                        data: {
+                            spellId: scheduledEffect.spellId,
+                            effectId: scheduledEffect.id,
+                            trigger: timing,
+                            cleanup: 'scheduled_effect_expiry',
+                        },
+                    });
+                    return;
+                }
+
+                // A round/timing pair can be requested twice by overlapping UI,
+                // AI, or replay callbacks. Claim it before any roll so the
+                // second request is a strict no-op, including one-shot records.
+                const phaseClaim = `${scheduledEffect.id}:${currentTurnNumber}:${timing}`;
+                if (scheduledPhaseClaimsRef.current.has(phaseClaim)) {
+                    return;
+                }
+                scheduledPhaseClaimsRef.current.add(phaseClaim);
+
                 const movementEffects = scheduledEffect.effects.filter((effect): effect is MovementEffect => effect.type === 'MOVEMENT');
                 const processedEffects = scheduledEffect.effects.flatMap(effect => convertSpellEffectToProcessed(
                     effect,
@@ -702,6 +804,7 @@ export const useCombatEngine = ({
                     scheduledEffect.recurringMechanic
                 ));
                 let didTrigger = false;
+                let endedByRecurringSave = false;
 
                 movementEffects.forEach(effect => {
                     // Scheduled movement effects reuse the command layer so push, pull,
@@ -787,33 +890,29 @@ export const useCombatEngine = ({
 
                 processedEffects.forEach(effect => {
                     if (effect.type === 'damage' && effect.dice) {
-                        const damage = scheduledEffectDiceRoller
+                        const rolledDamage = scheduledEffectDiceRoller
                             ? scheduledEffectDiceRoller(effect.dice, {
                                 scheduledEffect,
                                 timing,
                                 payload: 'damage'
                             })
                             : rollDice(effect.dice);
-                        const updatedTarget = applyDamageAndCheckDowned(updatedCharacter, damage);
-                        updatedCharacter = {
-                            ...updatedCharacter,
-                            currentHP: updatedTarget.currentHP,
-                            tempHP: updatedTarget.tempHP,
-                            deathSaves: updatedTarget.deathSaves,
-                            statusEffects: updatedTarget.statusEffects,
-                            conditions: updatedTarget.conditions,
-                            damagedThisTurn: updatedTarget.damagedThisTurn
-                        };
-                        addDamageNumber(damage, updatedCharacter.position, 'damage');
+                        const caster = characters.find(candidate => candidate.id === scheduledEffect.casterId);
+
+                        // Scheduled damage now enters the same transaction as
+                        // ordinary engine damage: source-aware defenses first,
+                        // then temporary HP, downing/death saves, logs, and
+                        // on-damage repeat-save hooks.
+                        updatedCharacter = handleDamage(
+                            updatedCharacter,
+                            rolledDamage,
+                            scheduledEffect.spellId,
+                            effect.damageType,
+                            currentTurnNumber,
+                            caster,
+                            timing,
+                        );
                         didTrigger = true;
-                        onLogEntry({
-                            id: generateId(),
-                            timestamp: Date.now(),
-                            type: 'damage',
-                            message: `${character.name} takes ${damage} ${effect.damageType || ''} damage from ${scheduledEffect.spellId}.`,
-                            characterId: character.id,
-                            data: { damage, damageType: effect.damageType, trigger: timing, spellId: scheduledEffect.spellId }
-                        });
                     }
 
                     if (effect.type === 'heal' && effect.dice) {
@@ -935,17 +1034,116 @@ export const useCombatEngine = ({
                     }
                 });
 
-                if (didTrigger && !shouldKeepScheduledEffectAfterTrigger(scheduledEffect, currentTurnNumber)) {
-                    triggeredScheduledIds.push(scheduledEffect.id);
+                // Recurring saves happen after every payload in this schedule.
+                // Searing Smite therefore applies Fire damage first, then rolls
+                // the captured original Constitution save. A success removes
+                // exactly this schedule and its caster-owned status mirrors;
+                // failure preserves both for the next target turn.
+                const recurringSaveType = scheduledEffect.recurringMechanic?.saveType;
+                if (didTrigger && recurringSaveType) {
+                    const caster = characters.find(candidate => candidate.id === scheduledEffect.casterId);
+                    const saveDC = scheduledEffect.saveDC
+                        ?? (caster ? calculateSpellDC(caster) : undefined);
+
+                    if (saveDC === undefined) {
+                        onLogEntry({
+                            id: generateId(),
+                            timestamp: Date.now(),
+                            type: 'status',
+                            message: `${character.name} cannot resolve ${scheduledEffect.spellId}'s ${recurringSaveType} save because the original DC and source are unavailable; the schedule remains.`,
+                            characterId: character.id,
+                            data: {
+                                spellId: scheduledEffect.spellId,
+                                effectId: scheduledEffect.id,
+                                saveType: recurringSaveType,
+                                trigger: timing,
+                                status: 'missing_original_dc',
+                            },
+                        });
+                    } else if (!isRepeatSaveRollAbility(recurringSaveType)) {
+                        onLogEntry({
+                            id: generateId(),
+                            timestamp: Date.now(),
+                            type: 'status',
+                            message: `${character.name} keeps ${scheduledEffect.spellId}; scheduled save type ${recurringSaveType} has no saving-throw adapter.`,
+                            characterId: character.id,
+                            data: {
+                                spellId: scheduledEffect.spellId,
+                                effectId: scheduledEffect.id,
+                                saveType: recurringSaveType,
+                                dc: saveDC,
+                                trigger: timing,
+                                status: 'unsupported_save_type',
+                            },
+                        });
+                    } else {
+                        const saveResult = rollSavingThrow(
+                            updatedCharacter,
+                            recurringSaveType,
+                            saveDC,
+                            undefined,
+                            {
+                                damageType: scheduledEffect.recurringMechanic?.damage?.type,
+                                tags: ['magic', 'scheduled_effect'],
+                            },
+                            undefined,
+                            {
+                                rng: scheduledEffectSaveRng
+                                    ? () => scheduledEffectSaveRng({
+                                        scheduledEffect,
+                                        timing,
+                                        target: updatedCharacter,
+                                        saveDC,
+                                    })
+                                    : undefined,
+                            },
+                        );
+                        endedByRecurringSave = saveResult.success;
+
+                        if (endedByRecurringSave) {
+                            updatedCharacter = removeScheduledSourceLinks(updatedCharacter, scheduledEffect);
+                            scheduledIdsToRemove.add(scheduledEffect.id);
+                        }
+
+                        onLogEntry({
+                            id: generateId(),
+                            timestamp: Date.now(),
+                            type: 'status',
+                            message: saveResult.success
+                                ? `${character.name} succeeds on the ${recurringSaveType} save against ${scheduledEffect.spellId}; the owned schedule and condition end.`
+                                : `${character.name} fails the ${recurringSaveType} save against ${scheduledEffect.spellId}; the owned schedule and condition continue.`,
+                            characterId: character.id,
+                            data: {
+                                spellId: scheduledEffect.spellId,
+                                effectId: scheduledEffect.id,
+                                saveType: recurringSaveType,
+                                dc: saveDC,
+                                saveTotal: saveResult.total,
+                                saveSucceeded: saveResult.success,
+                                trigger: timing,
+                                cleanup: saveResult.success ? 'scheduled_source_links' : 'none',
+                            },
+                        });
+                    }
+                }
+
+                if (
+                    didTrigger
+                    && !endedByRecurringSave
+                    && !shouldKeepScheduledEffectAfterTrigger(scheduledEffect, currentTurnNumber)
+                ) {
+                    scheduledIdsToRemove.add(scheduledEffect.id);
                 }
             });
 
-        if (triggeredScheduledIds.length > 0) {
-            setScheduledSpellEffects(prev => prev.filter(effect => !triggeredScheduledIds.includes(effect.id)));
+        if (scheduledIdsToRemove.size > 0) {
+            setScheduledSpellEffects(previousEffects => previousEffects.filter(
+                effect => !scheduledIdsToRemove.has(effect.id),
+            ));
         }
 
         return updatedCharacter;
-    }, [addDamageNumber, characters, mapData, onLogEntry, processRepeatSaves, scheduledEffectDiceRoller, scheduledSpellEffects, shouldKeepScheduledEffectAfterTrigger]);
+    }, [addDamageNumber, characters, handleDamage, mapData, onLogEntry, processRepeatSaves, removeScheduledSourceLinks, scheduledEffectDiceRoller, scheduledEffectSaveRng, scheduledSpellEffects, shouldKeepScheduledEffectAfterTrigger]);
 
     const processTileEffects = useCallback((
         character: CombatCharacter,
@@ -1014,31 +1212,46 @@ export const useCombatEngine = ({
             for (const effect of result.effects) {
                 if (effect.type !== 'damage' || !effect.dice) continue;
 
-                const damage = rollDice(effect.dice);
-                const updatedTarget = applyDamageAndCheckDowned(updatedCharacter, damage);
-                updatedCharacter = {
-                    ...updatedCharacter,
-                    currentHP: updatedTarget.currentHP,
-                    tempHP: updatedTarget.tempHP,
-                    deathSaves: updatedTarget.deathSaves,
-                    statusEffects: updatedTarget.statusEffects,
-                    conditions: updatedTarget.conditions,
-                    damagedThisTurn: updatedTarget.damagedThisTurn
-                };
-                addDamageNumber(damage, updatedCharacter.position, 'damage');
-                onLogEntry({
-                    id: generateId(),
-                    timestamp: Date.now(),
-                    type: 'damage',
-                    message: `${character.name} takes ${damage} ${effect.damageType || ''} damage at the start of its turn in a spell area.`,
-                    characterId: character.id,
-                    data: { damage, damageType: effect.damageType, trigger: 'on_start_turn_in_area' }
-                });
+                let damage = rollDice(effect.dice);
+                const sourceCaster = effect.sourceContext?.casterId
+                    ? characters.find(candidate => candidate.id === effect.sourceContext?.casterId)
+                    : undefined;
+
+                // Turn-start area damage uses the source DC captured by the
+                // zone. A successful save changes only this packet; the shared
+                // damage transaction below still owns defenses, temporary HP,
+                // downing, and the final combat receipt.
+                if (effect.requiresSave && isRepeatSaveRollAbility(effect.saveType)) {
+                    const dc = effect.sourceContext?.saveDC
+                        ?? calculateSpellDC(sourceCaster || updatedCharacter);
+                    const saveResult = rollSavingThrow(updatedCharacter, effect.saveType, dc);
+                    onLogEntry({
+                        id: generateId(),
+                        timestamp: Date.now(),
+                        type: 'status',
+                        message: `${updatedCharacter.name} ${saveResult.success ? 'succeeds' : 'fails'} ${effect.saveType} save (${saveResult.total} vs DC ${dc})`,
+                        characterId: updatedCharacter.id,
+                        data: { trigger: 'on_start_turn_in_area', saveDC: dc, saveResult: saveResult.success }
+                    });
+                    if (saveResult.success) {
+                        damage = effect.saveEffect === 'half' ? Math.floor(damage / 2) : 0;
+                    }
+                }
+
+                updatedCharacter = handleDamage(
+                    updatedCharacter,
+                    damage,
+                    effect.sourceContext?.spellId ?? 'spell area',
+                    effect.damageType,
+                    currentTurnNumber,
+                    sourceCaster,
+                    'on_start_turn_in_area',
+                );
             }
         }
 
         return processScheduledSpellEffects(updatedCharacter, 'turn_start', currentTurnNumber);
-    }, [addDamageNumber, onLogEntry, processScheduledSpellEffects, spellZones]);
+    }, [characters, handleDamage, onLogEntry, processScheduledSpellEffects, spellZones]);
 
     const processEndOfTurnEffects = useCallback((character: CombatCharacter, currentTurnNumber: number) => {
         let updatedCharacter = { ...character };
@@ -1052,26 +1265,41 @@ export const useCombatEngine = ({
         for (const result of zoneResults) {
             for (const effect of result.effects) {
                 if (effect.type === 'damage' && effect.dice) {
-                    const damage = rollDice(effect.dice);
-                    const updatedTarget = applyDamageAndCheckDowned(updatedCharacter, damage);
-                    updatedCharacter = {
-                        ...updatedCharacter,
-                        currentHP: updatedTarget.currentHP,
-                        tempHP: updatedTarget.tempHP,
-                        deathSaves: updatedTarget.deathSaves,
-                        statusEffects: updatedTarget.statusEffects,
-                        conditions: updatedTarget.conditions,
-                        damagedThisTurn: updatedTarget.damagedThisTurn
-                    };
-                    addDamageNumber(damage, updatedCharacter.position, 'damage');
-                    onLogEntry({
-                        id: generateId(),
-                        timestamp: Date.now(),
-                        type: 'damage',
-                        message: `${character.name} takes ${damage} ${effect.damageType || ''} damage for ending turn in a hazard!`,
-                        characterId: character.id,
-                        data: { damage, damageType: effect.damageType, trigger: 'on_end_turn_in_area' }
-                    });
+                    let damage = rollDice(effect.dice);
+                    const sourceCaster = effect.sourceContext?.casterId
+                        ? characters.find(candidate => candidate.id === effect.sourceContext?.casterId)
+                        : undefined;
+
+                    // End-turn zones resolve the same captured save and damage
+                    // transaction as turn-start zones. This prevents a hazard
+                    // phase from bypassing Fire resistance, immunity, temporary
+                    // HP, or the canonical unconscious/death-save mirrors.
+                    if (effect.requiresSave && isRepeatSaveRollAbility(effect.saveType)) {
+                        const dc = effect.sourceContext?.saveDC
+                            ?? calculateSpellDC(sourceCaster || updatedCharacter);
+                        const saveResult = rollSavingThrow(updatedCharacter, effect.saveType, dc);
+                        onLogEntry({
+                            id: generateId(),
+                            timestamp: Date.now(),
+                            type: 'status',
+                            message: `${updatedCharacter.name} ${saveResult.success ? 'succeeds' : 'fails'} ${effect.saveType} save (${saveResult.total} vs DC ${dc})`,
+                            characterId: updatedCharacter.id,
+                            data: { trigger: 'on_end_turn_in_area', saveDC: dc, saveResult: saveResult.success }
+                        });
+                        if (saveResult.success) {
+                            damage = effect.saveEffect === 'half' ? Math.floor(damage / 2) : 0;
+                        }
+                    }
+
+                    updatedCharacter = handleDamage(
+                        updatedCharacter,
+                        damage,
+                        effect.sourceContext?.spellId ?? 'spell area',
+                        effect.damageType,
+                        currentTurnNumber,
+                        sourceCaster,
+                        'on_end_turn_in_area',
+                    );
                 }
             }
         }
@@ -1129,7 +1357,7 @@ export const useCombatEngine = ({
 
         onCharacterUpdate(updatedCharacter);
         return updatedCharacter;
-    }, [addDamageNumber, onCharacterUpdate, onLogEntry, spellZones, handleDamage, processRepeatSaves, processScheduledSpellEffects, processTileEffects]);
+    }, [addDamageNumber, characters, onCharacterUpdate, onLogEntry, spellZones, handleDamage, processRepeatSaves, processScheduledSpellEffects, processTileEffects]);
 
     // --- State Managers ---
     const addSpellZone = useCallback((zone: ActiveSpellZone) => {
@@ -1138,16 +1366,36 @@ export const useCombatEngine = ({
 
     const addScheduledSpellEffect = useCallback((scheduledEffect: ScheduledSpellEffect) => {
         // A stable schedule identity represents one future payload. Reset,
-        // hydration, or a repeated cast callback may publish that same record
-        // again; replace it in authored order instead of stacking a duplicate
-        // that would damage the target twice at one phase.
-        setScheduledSpellEffects(prev => [
-            ...prev.filter(effect => effect.id !== scheduledEffect.id),
-            scheduledEffect
-        ]);
+        // hydration, or a repeated cast callback may publish that same record.
+        // Replace it in its existing slot so refreshing one record cannot move
+        // it behind an independent effect and change authored phase order.
+        setScheduledSpellEffects(previousEffects => {
+            const existingIndex = previousEffects.findIndex(effect => effect.id === scheduledEffect.id);
+            if (existingIndex < 0) {
+                // A record absent from the queue is a new cast or an explicit
+                // remove-then-reset. It may reuse a stable preview id, so its
+                // prior generation's phase claims must not suppress it.
+                scheduledPhaseClaimsRef.current = new Set(
+                    [...scheduledPhaseClaimsRef.current].filter(claim => (
+                        !claim.startsWith(`${scheduledEffect.id}:`)
+                    )),
+                );
+                return [...previousEffects, scheduledEffect];
+            }
+
+            // Refreshing a still-live record preserves its phase claim. This
+            // prevents hydration or duplicate callbacks from reopening an
+            // already resolved round/timing pair and double-firing damage.
+            return previousEffects.map((effect, index) => (
+                index === existingIndex ? scheduledEffect : effect
+            ));
+        });
     }, []);
 
     const removeScheduledSpellEffect = useCallback((scheduledEffectId: string) => {
+        scheduledPhaseClaimsRef.current = new Set(
+            [...scheduledPhaseClaimsRef.current].filter(claim => !claim.startsWith(`${scheduledEffectId}:`)),
+        );
         setScheduledSpellEffects(prev => prev.filter(effect => effect.id !== scheduledEffectId));
     }, []);
 
@@ -1163,10 +1411,66 @@ export const useCombatEngine = ({
         setSpellZones(prev => prev.filter(z => z.id !== zoneId));
     }, []);
 
-    const updateRoundBasedEffects = useCallback((currentTurnNumber: number) => {
+    const updateRoundBasedEffects = useCallback((
+        currentTurnNumber: number,
+        boundaryCharacters: CombatCharacter[] = [],
+    ) => {
         resetZoneTurnTracking(spellZones);
         setSpellZones(prev => prev.filter(z => !z.expiresAtRound || z.expiresAtRound > currentTurnNumber + 1));
-        setScheduledSpellEffects(prev => prev.filter(effect => !effect.expiresAtRound || effect.expiresAtRound > currentTurnNumber + 1));
+
+        // The next round number is the exclusive expiry boundary. Clean the
+        // matching source-owned condition at the same boundary that removes
+        // its schedule, so a one-minute status cannot outlive its damage clock.
+        const expiringScheduledEffects = scheduledSpellEffects.filter(effect => (
+            typeof effect.expiresAtRound === 'number'
+            && effect.expiresAtRound <= currentTurnNumber + 1
+        ));
+        // End-of-turn damage is published just before the round transition,
+        // while React's parent roster can still be one render behind. Overlay
+        // those just-processed actors so expiry cleanup never republishes stale
+        // HP, temporary HP, downing, or condition state.
+        const boundaryCharactersById = new Map(
+            characters.map(character => [character.id, character]),
+        );
+        boundaryCharacters.forEach(character => {
+            boundaryCharactersById.set(character.id, character);
+        });
+        expiringScheduledEffects.forEach(effect => {
+            const target = boundaryCharactersById.get(effect.targetId);
+            if (!target) {
+                return;
+            }
+
+            const cleanedTarget = removeScheduledSourceLinks(target, effect);
+            if (cleanedTarget !== target) {
+                // Carry one cleanup into the next effect for the same target;
+                // independently expiring schedules must compose rather than
+                // restore one another's source-owned condition mirrors.
+                boundaryCharactersById.set(cleanedTarget.id, cleanedTarget);
+                onCharacterUpdate(cleanedTarget);
+            }
+            onLogEntry({
+                id: generateId(),
+                timestamp: Date.now(),
+                type: 'status',
+                message: `${effect.spellId} reaches its round ${effect.expiresAtRound} expiry boundary; its owned schedule and condition end before another tick.`,
+                characterId: target.id,
+                data: {
+                    spellId: effect.spellId,
+                    effectId: effect.id,
+                    cleanup: 'scheduled_effect_expiry',
+                },
+            });
+        });
+        const expiringScheduledIds = new Set(expiringScheduledEffects.map(effect => effect.id));
+        scheduledPhaseClaimsRef.current = new Set(
+            [...scheduledPhaseClaimsRef.current].filter(claim => (
+                ![...expiringScheduledIds].some(effectId => claim.startsWith(`${effectId}:`))
+            )),
+        );
+        setScheduledSpellEffects(previousEffects => previousEffects.filter(
+            effect => !expiringScheduledIds.has(effect.id),
+        ));
         setMovementDebuffs(prev => prev.filter(d => d.expiresAtRound > currentTurnNumber + 1 && !d.hasTriggered));
         setReactiveTriggers(prev => prev.filter(t => !t.expiresAtRound || t.expiresAtRound > currentTurnNumber + 1));
 
@@ -1212,7 +1516,7 @@ export const useCombatEngine = ({
                 });
             }
         }
-    }, [mapData, onMapUpdate, onLogEntry, spellZones]);
+    }, [characters, mapData, onCharacterUpdate, onLogEntry, onMapUpdate, removeScheduledSourceLinks, scheduledSpellEffects, spellZones]);
 
     return {
         // State

@@ -10,6 +10,9 @@ import { combatEvents } from '../../systems/events/CombatEvents';
 import * as combatUtils from '../../utils/combat';
 import shiningSmite from '@/data/spells/level-2/shining-smite.json';
 import blindingSmite from '@/data/spells/level-3/blinding-smite.json';
+import hellishRebuke from '@/data/spells/level-1/hellish-rebuke.json';
+import { createAbilityFromSpell } from '../../utils/character/spellAbilityFactory';
+import type { PlayerCharacter } from '../../types';
 import { shieldSpell, attacker, defender, swordItem, basicAttack } from './useAbilitySystem.fixtures';
 
 /**
@@ -101,7 +104,8 @@ vi.mock('../../utils/combat', () => ({
 
 vi.mock('../../utils/character/savingThrowUtils', () => ({
     calculateSpellDC: () => 17,
-    rollSavingThrow: vi.fn(() => ({ total: 18, success: true, modifiersApplied: [] }))
+    rollSavingThrow: vi.fn(() => ({ total: 18, success: true, modifiersApplied: [] })),
+    calculateSaveDamage: (damage: number, save: { success: boolean }) => save.success ? Math.floor(damage / 2) : damage
 }));
 
 beforeEach(() => {
@@ -195,6 +199,96 @@ describe('useAbilitySystem - Reactions', () => {
         });
         await expect(reactionChoice!).resolves.toBeNull();
         expect(result.current.pendingReaction).toBeNull();
+    });
+
+    it('discovers Hellish Rebuke from a normal command post-HP event and waits for an explicit choice', async () => {
+        const { AbilityCommandFactory, CommandExecutor } = await import('../../commands');
+        vi.mocked(AbilityCommandFactory.createCommands).mockReturnValueOnce([{} as any]);
+        const retaliator = {
+            ...defender,
+            currentHP: 12,
+            maxHP: 20,
+            level: 5,
+            spellcastingAbility: 'charisma',
+            spellSlots: {
+                level_1: { current: 1, max: 1 }, level_2: { current: 0, max: 0 },
+                level_3: { current: 0, max: 0 }, level_4: { current: 0, max: 0 },
+                level_5: { current: 0, max: 0 }, level_6: { current: 0, max: 0 },
+                level_7: { current: 0, max: 0 }, level_8: { current: 0, max: 0 },
+                level_9: { current: 0, max: 0 }
+            },
+        } as CombatCharacter;
+        retaliator.abilities = [createAbilityFromSpell(
+            hellishRebuke as unknown as Spell,
+            retaliator as unknown as PlayerCharacter
+        )];
+        const damagedRetaliator = { ...retaliator, currentHP: 4 };
+        const damageEvent = {
+            id: 'normal-damage-event-1', timestamp: 1, type: 'damage' as const,
+            message: 'Attacker damages Retaliator for 8 slashing damage',
+            characterId: retaliator.id, targetIds: [retaliator.id],
+            data: {
+                damageEventBoundary: 'post_hp' as const,
+                sourceCharacterId: attacker.id,
+                targetCharacterId: retaliator.id,
+                hitConfirmed: true,
+                rawDamage: 8,
+                finalDamage: 8,
+                damageType: 'Slashing',
+                hitPointsBefore: 12,
+                hitPointsAfter: 4,
+                temporaryHitPointsBefore: 0,
+                temporaryHitPointsAfter: 0,
+                targetDownedAfter: false,
+                targetIncapacitatedAfter: false,
+            }
+        };
+        vi.mocked(CommandExecutor.execute).mockResolvedValueOnce({
+            success: true,
+            finalState: {
+                characters: [attacker, damagedRetaliator],
+                combatLog: [damageEvent],
+                reactiveTriggers: [],
+                activeLightSources: []
+            }
+        } as any);
+
+        const onCharacterUpdate = vi.fn();
+        const onLogEntry = vi.fn();
+        const { result } = renderHook(() => useAbilitySystem({
+            characters: [attacker, retaliator], mapData: null,
+            onExecuteAction: vi.fn(() => true), onCharacterUpdate, onLogEntry,
+            onAbilityEffect: vi.fn()
+        }));
+
+        let executionPromise: Promise<void>;
+        act(() => {
+            executionPromise = result.current.executeAbility(
+                basicAttack, attacker, retaliator.position, [retaliator.id],
+                undefined, undefined,
+                { damageRng: () => 0.55, saveRng: () => 0.2 }
+            );
+        });
+
+        await _waitFor(() => expect(result.current.pendingReaction).toMatchObject({
+            attackerId: attacker.id,
+            targetId: retaliator.id,
+            triggerType: 'on_take_damage',
+            reactionSpells: [expect.objectContaining({ id: 'hellish-rebuke' })]
+        }));
+
+        act(() => result.current.pendingReaction?.onResolve('hellish-rebuke'));
+        await act(async () => executionPromise!);
+
+        expect(onCharacterUpdate).toHaveBeenCalledWith(expect.objectContaining({
+            id: retaliator.id,
+            currentHP: 4,
+            actionEconomy: expect.objectContaining({ reaction: expect.objectContaining({ used: true }) }),
+            spellSlots: expect.objectContaining({ level_1: expect.objectContaining({ current: 0 }) })
+        }));
+        expect(onLogEntry).toHaveBeenCalledWith(expect.objectContaining({
+            message: expect.stringContaining('accepts Hellish Rebuke')
+        }));
     });
 
     it('should execute command via AbilityCommandFactory', async () => {

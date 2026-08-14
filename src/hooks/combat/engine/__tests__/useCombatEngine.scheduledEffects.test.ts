@@ -1,8 +1,8 @@
-import { act, renderHook } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { act, renderHook, waitFor } from '@testing-library/react';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { useCombatEngine } from '../useCombatEngine';
-import type { CombatCharacter } from '../../../../types/combat';
-import type { ScheduledSpellEffect } from '../../../../systems/spells/effects';
+import type { CombatCharacter, CombatLogEntry } from '../../../../types/combat';
+import type { ActiveSpellZone, ScheduledSpellEffect } from '../../../../systems/spells/effects';
 import * as savingThrowUtils from '@/utils/character';
 
 vi.mock('@/utils/character/savingThrowUtils', async importOriginal => {
@@ -11,6 +11,17 @@ vi.mock('@/utils/character/savingThrowUtils', async importOriginal => {
     ...actual,
     rollSavingThrow: vi.fn(() => ({ total: 8, success: false, modifiersApplied: [] }))
   };
+});
+
+beforeEach(() => {
+  // Each case owns its saving-throw transaction. Clearing call history keeps
+  // once-only assertions independent while preserving the shared failure stub.
+  vi.clearAllMocks();
+  vi.mocked(savingThrowUtils.rollSavingThrow).mockReturnValue({
+    total: 8,
+    success: false,
+    modifiersApplied: [],
+  });
 });
 
 /**
@@ -71,18 +82,152 @@ const createCharacter = (overrides: Partial<CombatCharacter> = {}): CombatCharac
 // Each test gets fresh callbacks so logs and updates from one scheduled effect
 // cannot accidentally satisfy assertions in the next scheduled effect.
 // ----------------------------------------------------------------------------
-const renderEngine = (characters: CombatCharacter[]) => {
+const renderEngine = (
+  characters: CombatCharacter[],
+  overrides: Partial<Parameters<typeof useCombatEngine>[0]> = {},
+) => {
+  const onLogEntry = vi.fn<(entry: CombatLogEntry) => void>();
+  const onCharacterUpdate = vi.fn<(character: CombatCharacter) => void>();
   const props = {
     characters,
     mapData: null,
-    onCharacterUpdate: vi.fn(),
-    onLogEntry: vi.fn(),
     onMapUpdate: vi.fn(),
-    addDamageNumber: vi.fn()
+    addDamageNumber: vi.fn(),
+    ...overrides,
+    // Tests inspect this exact producer. Keep it after optional mechanical
+    // overrides so its Vitest call ledger never widens to a plain callback.
+    onCharacterUpdate,
+    onLogEntry,
   };
 
   return { props, ...renderHook(() => useCombatEngine(props)) };
 };
+
+// ----------------------------------------------------------------------------
+// Canonical Recurring Damage Fixture
+// ----------------------------------------------------------------------------
+// Searing Smite stores future Fire damage and its Constitution save on one
+// recurring status payload. This fixture includes both owned condition mirrors
+// plus an unrelated ward so cleanup selectivity is directly observable.
+// ----------------------------------------------------------------------------
+
+const createSearingSchedule = (overrides: Partial<ScheduledSpellEffect> = {}): ScheduledSpellEffect => ({
+  id: 'scheduled-searing-smite',
+  spellId: 'searing-smite',
+  casterId: 'caster',
+  targetId: 'target',
+  timing: 'turn_start',
+  createdAtRound: 1,
+  expiresAtRound: 11,
+  saveDC: 15,
+  effects: [{
+    type: 'STATUS_CONDITION',
+    condition: { type: 'always' },
+    statusCondition: { name: 'Ignited' },
+  } as any],
+  recurringMechanic: {
+    timing: 'turn_start',
+    frequency: 'every_time',
+    damage: { dice: '1d6', type: 'Fire' },
+    saveType: 'Constitution',
+    saveEffect: 'negates_condition',
+    successOutcome: 'spell_ends',
+    failureOutcome: 'spell_continues',
+  },
+  ...overrides,
+});
+
+const createIgnitedTarget = (overrides: Partial<CombatCharacter> = {}): CombatCharacter => createCharacter({
+  id: 'target',
+  team: 'player',
+  statusEffects: [
+    {
+      id: 'owned-ignited',
+      name: 'Ignited',
+      type: 'debuff',
+      duration: 10,
+      source: 'Searing Smite',
+      sourceSpellId: 'searing-smite',
+      sourceCasterId: 'caster',
+    },
+    {
+      id: 'unrelated-ward',
+      name: 'Blessed',
+      type: 'buff',
+      duration: 10,
+      source: 'bless',
+      sourceSpellId: 'bless',
+      sourceCasterId: 'other-caster',
+    },
+  ],
+  conditions: [
+    {
+      name: 'Ignited',
+      duration: { type: 'minutes', value: 1 },
+      appliedTurn: 1,
+      source: 'searing-smite',
+      sourceCasterId: 'caster',
+    },
+    {
+      name: 'Blessed',
+      duration: { type: 'rounds', value: 10 },
+      appliedTurn: 1,
+      source: 'bless',
+      sourceCasterId: 'other-caster',
+    },
+  ],
+  activeEffects: [
+    {
+      id: 'owned-searing-link',
+      spellId: 'searing-smite',
+      casterId: 'caster',
+      sourceName: 'Searing Smite',
+      type: 'debuff',
+      duration: { type: 'minutes', value: 1 },
+      startTime: 1,
+    },
+    {
+      id: 'unrelated-bless-link',
+      spellId: 'bless',
+      casterId: 'other-caster',
+      sourceName: 'Bless',
+      type: 'buff',
+      duration: { type: 'rounds', value: 10 },
+      startTime: 1,
+    },
+  ],
+  ...overrides,
+});
+
+// ----------------------------------------------------------------------------
+// CS13 Turn-Phase Hazard Fixture
+// ----------------------------------------------------------------------------
+// This zone uses deterministic one-point damage so tests can isolate save,
+// resistance, temporary-HP, and downing ownership without mocking the damage
+// transaction itself. The source DC is captured on the real zone record.
+// ----------------------------------------------------------------------------
+
+const createTurnPhaseZone = (
+  timing: 'turn_start' | 'on_end_turn_in_area',
+  requiresSave = false,
+): ActiveSpellZone => ({
+  id: `cs13-${timing}`,
+  spellId: 'sandbox-burning-ground',
+  casterId: 'caster',
+  position: { x: 1, y: 0 },
+  areaOfEffect: { shape: 'cube', size: 5 },
+  saveDC: 15,
+  effects: [{
+    type: 'DAMAGE',
+    damage: { dice: '1d1', type: 'Radiant' },
+    trigger: { type: timing, frequency: 'first_per_turn' },
+    condition: requiresSave
+      ? { type: 'save', saveType: 'Dexterity', saveEffect: 'half' }
+      : { type: 'always' },
+  }],
+  triggeredThisTurn: new Set(),
+  triggeredEver: new Set(),
+});
 
 describe('useCombatEngine scheduled spell effects', () => {
   it('executes a source-backed recurring damage payload through the scheduled engine', () => {
@@ -159,6 +304,83 @@ describe('useCombatEngine scheduled spell effects', () => {
     expect(updatedTarget.currentHP).toBe(19);
     expect(props.onLogEntry).toHaveBeenCalledWith(expect.objectContaining({
       data: expect.objectContaining({ trigger: 'on_start_turn_in_area', damageType: 'Radiant' })
+    }));
+  });
+
+  it('resolves a turn-start zone save before the canonical damage transaction', () => {
+    const caster = createCharacter({ id: 'caster', team: 'player', position: { x: 0, y: 0 } });
+    const target = createCharacter({ currentHP: 1 });
+    const { props, result } = renderEngine([caster, target]);
+    vi.mocked(savingThrowUtils.rollSavingThrow).mockReturnValue({
+      total: 20,
+      success: true,
+      modifiersApplied: [],
+    });
+
+    act(() => result.current.addSpellZone(createTurnPhaseZone('turn_start', true)));
+
+    let updatedTarget = target;
+    act(() => {
+      updatedTarget = result.current.processStartOfTurnEffects(target, 2);
+    });
+
+    expect(updatedTarget.currentHP).toBe(1);
+    expect(savingThrowUtils.rollSavingThrow).toHaveBeenCalledWith(target, 'Dexterity', 15);
+    expect(props.onLogEntry).toHaveBeenCalledWith(expect.objectContaining({
+      type: 'status',
+      data: expect.objectContaining({ trigger: 'on_start_turn_in_area', saveResult: true }),
+    }));
+    expect(props.onLogEntry).toHaveBeenCalledWith(expect.objectContaining({
+      type: 'damage',
+      data: expect.objectContaining({ damageDealt: 0, trigger: 'on_start_turn_in_area' }),
+    }));
+  });
+
+  it('routes end-turn zone damage through resistance and temporary HP', () => {
+    const caster = createCharacter({ id: 'caster', team: 'player', position: { x: 0, y: 0 } });
+    const resistantTarget = createCharacter({ currentHP: 1, resistances: ['Radiant'] });
+    const resistantEngine = renderEngine([caster, resistantTarget]);
+
+    act(() => resistantEngine.result.current.addSpellZone(createTurnPhaseZone('on_end_turn_in_area')));
+
+    let afterResistance = resistantTarget;
+    act(() => {
+      afterResistance = resistantEngine.result.current.processEndOfTurnEffects(resistantTarget, 2);
+    });
+    expect(afterResistance.currentHP).toBe(1);
+    expect(resistantEngine.props.onLogEntry).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({ damageDealt: 0, trigger: 'on_end_turn_in_area' }),
+    }));
+
+    const wardedTarget = createCharacter({ currentHP: 1, tempHP: 1 });
+    const wardedEngine = renderEngine([caster, wardedTarget]);
+    act(() => wardedEngine.result.current.addSpellZone(createTurnPhaseZone('on_end_turn_in_area')));
+
+    let afterWard = wardedTarget;
+    act(() => {
+      afterWard = wardedEngine.result.current.processEndOfTurnEffects(wardedTarget, 2);
+    });
+    expect(afterWard).toMatchObject({ currentHP: 1, tempHP: 0 });
+  });
+
+  it('uses canonical downing mirrors for lethal end-turn zone damage', () => {
+    const caster = createCharacter({ id: 'caster', team: 'player', position: { x: 0, y: 0 } });
+    const target = createCharacter({ currentHP: 1, team: 'player' });
+    const { props, result } = renderEngine([caster, target]);
+
+    act(() => result.current.addSpellZone(createTurnPhaseZone('on_end_turn_in_area')));
+
+    let downedTarget = target;
+    act(() => {
+      downedTarget = result.current.processEndOfTurnEffects(target, 2);
+    });
+
+    expect(downedTarget.currentHP).toBe(0);
+    expect(downedTarget.statusEffects.some(effect => effect.name === 'Unconscious')).toBe(true);
+    expect(downedTarget.conditions?.some(condition => condition.name === 'Unconscious')).toBe(true);
+    expect(props.onLogEntry).toHaveBeenCalledWith(expect.objectContaining({
+      message: expect.stringContaining('is defeated'),
+      data: expect.objectContaining({ isDeath: true, trigger: 'on_end_turn_in_area' }),
     }));
   });
 
@@ -549,5 +771,300 @@ describe('useCombatEngine scheduled save DC snapshots', () => {
     expect(props.onLogEntry).toHaveBeenCalledWith(expect.objectContaining({
       data: expect.objectContaining({ dc: 23, spellId: 'delayed-paralysis' })
     }));
+  });
+});
+
+// ----------------------------------------------------------------------------
+// GG-54 Scheduled Damage Transaction And Lifecycle
+// ----------------------------------------------------------------------------
+// These cases protect the complete delayed packet: defenses and temporary HP
+// resolve before downing, damage precedes the recurring save, success cleans
+// only owned links, expiry is exclusive, and repeated phase requests are inert.
+// ----------------------------------------------------------------------------
+
+describe('useCombatEngine canonical scheduled damage transaction', () => {
+  it('routes resistance and temporary HP through one damage transaction', () => {
+    const caster = createCharacter({ id: 'caster', team: 'player' });
+    const target = createIgnitedTarget({
+      currentHP: 20,
+      maxHP: 20,
+      tempHP: 2,
+      temporaryHitPointSource: {
+        spellId: 'proof-ward',
+        spellName: 'Proof Ward',
+        casterId: caster.id,
+      },
+      resistances: ['Fire'],
+    });
+    const { props, result } = renderEngine([caster, target], {
+      scheduledEffectDiceRoller: () => 4,
+      scheduledEffectSaveRng: () => (5 - 0.5) / 20,
+    });
+
+    act(() => result.current.addScheduledSpellEffect(createSearingSchedule()));
+    let resolved = target;
+    act(() => {
+      resolved = result.current.processScheduledSpellEffects(target, 'turn_start', 1);
+    });
+
+    expect(resolved).toMatchObject({ currentHP: 20, tempHP: 0 });
+    expect(resolved.temporaryHitPointSource).toBeUndefined();
+    expect(props.onLogEntry).toHaveBeenCalledWith(expect.objectContaining({
+      type: 'damage',
+      data: expect.objectContaining({ damage: 4, damageDealt: 2, trigger: 'turn_start' }),
+    }));
+  });
+
+  it('honors immunity without spending temporary HP, then still resolves the recurring save', () => {
+    vi.mocked(savingThrowUtils.rollSavingThrow).mockReturnValue({
+      total: 5,
+      success: false,
+      modifiersApplied: [],
+    } as any);
+    const caster = createCharacter({ id: 'caster', team: 'player' });
+    const target = createIgnitedTarget({
+      currentHP: 20,
+      maxHP: 20,
+      tempHP: 3,
+      immunities: ['Fire'],
+    });
+    const { props, result } = renderEngine([caster, target], {
+      scheduledEffectDiceRoller: () => 4,
+    });
+
+    act(() => result.current.addScheduledSpellEffect(createSearingSchedule()));
+    let resolved = target;
+    act(() => {
+      resolved = result.current.processScheduledSpellEffects(target, 'turn_start', 1);
+    });
+
+    expect(resolved).toMatchObject({ currentHP: 20, tempHP: 3 });
+    expect(savingThrowUtils.rollSavingThrow).toHaveBeenCalled();
+    expect(props.onLogEntry).toHaveBeenCalledWith(expect.objectContaining({
+      type: 'damage',
+      data: expect.objectContaining({ damageDealt: 0 }),
+    }));
+    expect(props.onLogEntry).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({ saveSucceeded: false }),
+    }));
+  });
+
+  it('applies lethal scheduled damage through the player downing path before the save', () => {
+    vi.mocked(savingThrowUtils.rollSavingThrow).mockReturnValue({
+      total: 5,
+      success: false,
+      modifiersApplied: [],
+    } as any);
+    const caster = createCharacter({ id: 'caster', team: 'player' });
+    const target = createIgnitedTarget({ currentHP: 3, maxHP: 20 });
+    const { props, result } = renderEngine([caster, target], {
+      scheduledEffectDiceRoller: () => 4,
+    });
+
+    act(() => result.current.addScheduledSpellEffect(createSearingSchedule()));
+    let resolved = target;
+    act(() => {
+      resolved = result.current.processScheduledSpellEffects(target, 'turn_start', 1);
+    });
+
+    expect(resolved.currentHP).toBe(0);
+    expect(resolved.deathSaves).toMatchObject({ successes: 0, failures: 0 });
+    expect(resolved.statusEffects.map(status => status.name)).toContain('Unconscious');
+    const logTypes = props.onLogEntry.mock.calls.map(([entry]) => entry.type);
+    expect(logTypes.indexOf('damage')).toBeLessThan(logTypes.lastIndexOf('status'));
+  });
+
+  it('deals damage first, then a successful save removes only owned source links and schedule', () => {
+    vi.mocked(savingThrowUtils.rollSavingThrow).mockReturnValue({
+      total: 18,
+      success: true,
+      modifiersApplied: [],
+    } as any);
+    const caster = createCharacter({ id: 'caster', team: 'player' });
+    const target = createIgnitedTarget();
+    const { props, result } = renderEngine([caster, target], {
+      scheduledEffectDiceRoller: () => 4,
+    });
+
+    act(() => result.current.addScheduledSpellEffect(createSearingSchedule()));
+    let resolved = target;
+    act(() => {
+      resolved = result.current.processScheduledSpellEffects(target, 'turn_start', 1);
+    });
+
+    expect(resolved.currentHP).toBe(16);
+    expect(resolved.statusEffects.map(status => status.id)).toEqual(['unrelated-ward']);
+    expect(resolved.conditions?.map(condition => condition.name)).toEqual(['Blessed']);
+    expect(resolved.activeEffects?.map(effect => effect.id)).toEqual(['unrelated-bless-link']);
+    expect(result.current.scheduledSpellEffects).toEqual([]);
+    const entries = props.onLogEntry.mock.calls.map(([entry]) => entry);
+    const damageIndex = entries.findIndex(entry => entry.type === 'damage');
+    const saveIndex = entries.findIndex(entry => entry.data?.saveSucceeded === true);
+    expect(damageIndex).toBeGreaterThanOrEqual(0);
+    expect(saveIndex).toBeGreaterThan(damageIndex);
+  });
+
+  it('preserves the schedule and owned links on failure, while a repeated phase is a no-op', () => {
+    vi.mocked(savingThrowUtils.rollSavingThrow).mockReturnValue({
+      total: 5,
+      success: false,
+      modifiersApplied: [],
+    } as any);
+    const caster = createCharacter({ id: 'caster', team: 'player' });
+    const target = createIgnitedTarget();
+    const { props, result } = renderEngine([caster, target], {
+      scheduledEffectDiceRoller: () => 4,
+    });
+
+    act(() => result.current.addScheduledSpellEffect(createSearingSchedule()));
+    let first = target;
+    act(() => {
+      first = result.current.processScheduledSpellEffects(target, 'turn_start', 1);
+    });
+    act(() => {
+      // A duplicate live-record publication must preserve the round claim;
+      // otherwise hydration could reopen this exact target-start phase.
+      result.current.addScheduledSpellEffect(createSearingSchedule());
+    });
+    let repeated = first;
+    act(() => {
+      repeated = result.current.processScheduledSpellEffects(first, 'turn_start', 1);
+    });
+
+    expect(first.currentHP).toBe(16);
+    expect(repeated.currentHP).toBe(16);
+    expect(first.statusEffects.map(status => status.id)).toContain('owned-ignited');
+    expect(result.current.scheduledSpellEffects.map(effect => effect.id))
+      .toEqual(['scheduled-searing-smite']);
+    expect(props.onLogEntry.mock.calls.filter(([entry]) => entry.type === 'damage')).toHaveLength(1);
+    expect(savingThrowUtils.rollSavingThrow).toHaveBeenCalledTimes(1);
+  });
+
+  it('uses an exclusive ten-round expiry and removes links before a round-11 tick', () => {
+    vi.mocked(savingThrowUtils.rollSavingThrow).mockReturnValue({
+      total: 5,
+      success: false,
+      modifiersApplied: [],
+    } as any);
+    const caster = createCharacter({ id: 'caster', team: 'player' });
+    const target = createIgnitedTarget();
+    const { props, result } = renderEngine([caster, target], {
+      scheduledEffectDiceRoller: () => 4,
+    });
+
+    act(() => result.current.addScheduledSpellEffect(createSearingSchedule()));
+    let roundTen = target;
+    act(() => {
+      roundTen = result.current.processScheduledSpellEffects(target, 'turn_start', 10);
+    });
+    let roundEleven = roundTen;
+    act(() => {
+      roundEleven = result.current.processScheduledSpellEffects(roundTen, 'turn_start', 11);
+    });
+
+    expect(roundTen.currentHP).toBe(16);
+    expect(roundEleven.currentHP).toBe(16);
+    expect(roundEleven.statusEffects.map(status => status.id)).toEqual(['unrelated-ward']);
+    expect(result.current.scheduledSpellEffects).toEqual([]);
+    expect(props.onLogEntry.mock.calls.filter(([entry]) => entry.type === 'damage')).toHaveLength(1);
+    expect(props.onLogEntry).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({ cleanup: 'scheduled_effect_expiry' }),
+    }));
+  });
+
+  it('keeps just-resolved HP when round-boundary cleanup crosses the React roster seam', () => {
+    const caster = createCharacter({ id: 'caster', team: 'player' });
+    const staleTarget = createIgnitedTarget({ currentHP: 20 });
+    const processedTarget = { ...staleTarget, currentHP: 15 };
+    const { props, result } = renderEngine([caster, staleTarget]);
+
+    act(() => result.current.addScheduledSpellEffect(createSearingSchedule({
+      expiresAtRound: 2,
+    })));
+    act(() => result.current.updateRoundBasedEffects(1, [processedTarget]));
+
+    expect(props.onCharacterUpdate).toHaveBeenCalledWith(expect.objectContaining({
+      id: 'target',
+      currentHP: 15,
+      statusEffects: [expect.objectContaining({ id: 'unrelated-ward' })],
+    }));
+    expect(result.current.scheduledSpellEffects).toEqual([]);
+  });
+
+  it('preserves captured schedules after source removal and prunes them after target removal', async () => {
+    const caster = createCharacter({ id: 'caster', team: 'player' });
+    const target = createIgnitedTarget();
+    const hook = renderHook(
+      ({ characters }: { characters: CombatCharacter[] }) => useCombatEngine({
+        characters,
+        mapData: null,
+        onCharacterUpdate: vi.fn(),
+        onLogEntry: vi.fn(),
+        onMapUpdate: vi.fn(),
+        addDamageNumber: vi.fn(),
+        scheduledEffectDiceRoller: () => 4,
+      }),
+      { initialProps: { characters: [caster, target] } },
+    );
+
+    act(() => hook.result.current.addScheduledSpellEffect(createSearingSchedule()));
+    hook.rerender({ characters: [target] });
+    await waitFor(() => {
+      expect(hook.result.current.scheduledSpellEffects.map(effect => effect.id))
+        .toEqual(['scheduled-searing-smite']);
+    });
+
+    hook.rerender({ characters: [] });
+    await waitFor(() => {
+      expect(hook.result.current.scheduledSpellEffects).toEqual([]);
+    });
+  });
+
+  it('preserves authored order when one record is refreshed and resolves each record once', () => {
+    const caster = createCharacter({ id: 'caster', team: 'player' });
+    const target = createCharacter();
+    const first = createSearingSchedule({
+      id: 'ordered-first',
+      recurringMechanic: {
+        timing: 'turn_start',
+        frequency: 'once',
+        damage: { dice: '1', type: 'Fire' },
+      },
+    });
+    const second = createSearingSchedule({
+      id: 'ordered-second',
+      spellId: 'second-schedule',
+      recurringMechanic: {
+        timing: 'turn_start',
+        frequency: 'once',
+        damage: { dice: '1', type: 'Cold' },
+      },
+    });
+    const { props, result } = renderEngine([caster, target], {
+      scheduledEffectDiceRoller: () => 1,
+    });
+
+    act(() => {
+      result.current.addScheduledSpellEffect(first);
+      result.current.addScheduledSpellEffect(second);
+      result.current.addScheduledSpellEffect({ ...first });
+    });
+    expect(result.current.scheduledSpellEffects.map(effect => effect.id))
+      .toEqual(['ordered-first', 'ordered-second']);
+
+    let resolved = target;
+    act(() => {
+      resolved = result.current.processScheduledSpellEffects(target, 'turn_start', 1);
+    });
+    act(() => {
+      resolved = result.current.processScheduledSpellEffects(resolved, 'turn_start', 1);
+    });
+
+    expect(resolved.currentHP).toBe(18);
+    expect(props.onLogEntry.mock.calls
+      .filter(([entry]) => entry.type === 'damage')
+      .map(([entry]) => entry.data?.source))
+      .toEqual(['searing-smite', 'second-schedule']);
+    expect(result.current.scheduledSpellEffects).toEqual([]);
   });
 });

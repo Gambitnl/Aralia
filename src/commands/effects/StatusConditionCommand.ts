@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 10/08/2026, 13:45:04
+ * Last Sync: 13/08/2026, 13:33:52
  * Dependents: commands/effects/AttackRollModifierCommand.ts, commands/effects/DamageCommand.ts, commands/effects/GraspingVineCommand.ts, commands/effects/ReactiveEffectCommand.ts, commands/factory/AbilityCommandFactory.ts, commands/factory/SpellCommandFactory.ts
- * Imports: 13 files
+ * Imports: 14 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -31,10 +31,11 @@ import { STATUS_ICONS, DEFAULT_STATUS_ICON } from '@/config/statusIcons';
 import { SavePenaltySystem } from '../../systems/combat/SavePenaltySystem';
 import { ConditionToStateTag } from '../../types/elemental';
 import { applyStateToTags } from '../../systems/physics/ElementalInteractionSystem';
-import { breakFriendsConcentrationForCaster } from './ConcentrationCommands';
+import { BreakConcentrationCommand, breakFriendsConcentrationForCaster } from './ConcentrationCommands';
 import { refreshConditionsByName, refreshStatusEffectsByName } from '../../utils/combat/statusConditionUtils';
 import { getRecurringMechanics } from '../../hooks/spellEffectUtils';
 import { resolveSourceSaveAdvantageModifiers } from '../../systems/spells/mechanics/sourceSaveModifierResolution';
+import { isIncapacitated } from '../../utils/combat/deathSaveUtils';
 
 const FRIENDS_MEMORY_DURATION_ROUNDS = 24 * 60 * 10;
 const SPECIAL_STATUS_DURATION_ROUNDS = Number.MAX_SAFE_INTEGER;
@@ -271,6 +272,26 @@ export class StatusConditionCommand extends BaseEffectCommand {
         targetIds: [target.id],
         data: { statusId: appliedStatus.id, condition: appliedCondition }
       });
+
+      // Becoming Incapacitated, Unconscious, Stunned, Paralyzed, or Petrified
+      // ends concentration at the exact condition transition. Reuse the shared
+      // break command so linked statuses, conditions, map artifacts, and the
+      // caster pointer are removed by one owner-aware lifecycle operation.
+      const liveTarget = currentState.characters.find(character => character.id === target.id);
+      if (
+        target.concentratingOn &&
+        !isIncapacitated(target) &&
+        isIncapacitated(liveTarget)
+      ) {
+        const breakCommand = new BreakConcentrationCommand({
+          ...this.context,
+          caster: liveTarget ?? target,
+          spellId: target.concentratingOn.spellId,
+          spellName: target.concentratingOn.spellName,
+          targets: []
+        });
+        currentState = await breakCommand.execute(currentState);
+      }
     }
 
     const controlledEntityType = (this.effect as unknown as WrathOfNatureStatusMetadata).controlledEntity?.entityType;

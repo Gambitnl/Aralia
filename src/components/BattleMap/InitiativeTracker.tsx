@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 12/08/2026, 01:29:54
+ * Last Sync: 13/08/2026, 08:34:21
  * Dependents: components/BattleMap/BattleMapDemo.tsx, components/BattleMap/index.ts, components/Combat/CombatView.tsx, components/DesignPreview/steps/PreviewCombatScenarios.tsx
  * Imports: 7 files
  *
@@ -129,6 +129,8 @@ export const InitiativeTracker: React.FC<InitiativeTrackerProps> = ({
     >
       {ordered.map((char, index) => {
         const isCurrent = char.id === turnState.currentCharacterId;
+        const isActiveGroupMember = turnState.activeGroup?.memberIds.includes(char.id) ?? false;
+        const hasCompletedActiveGroupTurn = turnState.activeGroup?.completedMemberIds.includes(char.id) ?? false;
         const isPlayer  = char.team === 'player';
         const hpPct     = Math.max(0, Math.round((char.currentHP / char.maxHP) * 100));
         const initial   = char.name[0].toUpperCase();
@@ -167,6 +169,8 @@ export const InitiativeTracker: React.FC<InitiativeTrackerProps> = ({
               className={`flex flex-col items-center gap-0.5 px-1.5 py-1 rounded-lg border shrink-0 transition-all
                 ${isCurrent
                   ? 'bg-amber-500/20 border-amber-400 shadow-md shadow-amber-900/40'
+                  : isActiveGroupMember
+                    ? 'bg-violet-950/35 border-violet-500/60 shadow-sm shadow-violet-950/40'
                   : isPlayer
                     ? 'bg-gray-700/60 border-sky-800/40 hover:border-sky-500/60 hover:bg-sky-900/20'
                     : 'bg-gray-700/60 border-red-800/40 hover:border-red-500/60 hover:bg-red-900/20'}
@@ -179,6 +183,17 @@ export const InitiativeTracker: React.FC<InitiativeTrackerProps> = ({
               <span className={`text-[9px] leading-none font-bold ${isCurrent ? 'text-amber-400' : 'text-gray-400'}`}>
                 {index + 1}
               </span>
+
+              {/* Shared initiative is one production group with one active
+                  member. Completed and waiting members remain visible so the
+                  tracker never implies that resources or effects are pooled. */}
+              {isActiveGroupMember && (
+                <span className={`text-[7px] font-black uppercase tracking-wide ${
+                  isCurrent ? 'text-amber-300' : hasCompletedActiveGroupTurn ? 'text-violet-400' : 'text-violet-300'
+                }`}>
+                  {isCurrent ? 'Active member' : hasCompletedActiveGroupTurn ? 'Member done' : 'Group waiting'}
+                </span>
+              )}
 
               {/* Avatar: use the same combat SVG identity as map tokens so the
                   turn strip, side roster, and grid speak the same visual

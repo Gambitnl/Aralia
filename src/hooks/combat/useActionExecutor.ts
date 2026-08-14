@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 10/08/2026, 14:07:29
+ * Last Sync: 13/08/2026, 08:01:46
  * Dependents: hooks/combat/useTurnManager.ts
- * Imports: 12 files
+ * Imports: 14 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -56,6 +56,11 @@ import { OpportunityAttackSystem } from '../../systems/combat/reactions/Opportun
 import { applyRuntimeStatusCondition } from '../../utils/combat/statusConditionUtils';
 import { validateTauntWillingMove } from '../../systems/combat/tauntConstraint';
 import { groundImpactOfAbility, type ImpactAbilityLike } from '../../systems/combat/groundImpact';
+import {
+  resolveAerialMovement,
+  type AerialMovementResolution,
+} from '../../utils/combat/aerialMovementUtils';
+import { resolveAerialLandingImpact } from '../../systems/combat/fallingGroundImpactResolution';
 
 export interface UseActionExecutorProps {
   characters: CombatCharacter[];
@@ -637,6 +642,12 @@ export const useActionExecutor = ({
   // Avoids allocating a new object on every movement action (previously `new AreaEffectTracker(spellZones)`).
   const areaEffectTrackerRef = useRef<AreaEffectTracker>(new AreaEffectTracker([]));
 
+  // Movement action ids are stable event identities for the entire transaction.
+  // Claiming before validation or an asynchronous reaction prompt makes replay
+  // a complete no-op: it cannot pay movement again, prompt again, move again,
+  // or publish duplicate attack and movement receipts.
+  const processedMovementActionIdsRef = useRef<Set<string>>(new Set());
+
   // ============================================================================
   // On-Target-Attack Reactive Resolver
   // ============================================================================
@@ -748,7 +759,8 @@ export const useActionExecutor = ({
     movedCharacter: CombatCharacter,
     previousPosition: { x: number; y: number },
     targetPosition: { x: number; y: number },
-    movementMode?: CombatAction['movementMode']
+    movementMode: CombatAction['movementMode'] | undefined,
+    decisions: CombatAction['opportunityAttackDecisions'],
   ): Promise<CombatCharacter> => {
     let updatedCharacter = movedCharacter;
     const oaSystem = new OpportunityAttackSystem();
@@ -757,7 +769,16 @@ export const useActionExecutor = ({
     // what lets a shared summon trait such as Summon Beast Air's Flyby mean
     // "while flying" instead of "any movement by this form."
     const oaResults = oaSystem.checkOpportunityAttacks(
-      updatedCharacter, previousPosition, targetPosition, characters, mapData, { movementMode }
+      updatedCharacter,
+      previousPosition,
+      targetPosition,
+      characters,
+      mapData,
+      {
+        movementMode,
+        movementKind: 'voluntary',
+        turnOrder: turnState.turnOrder,
+      },
     );
 
     for (const result of oaResults) {
@@ -787,7 +808,15 @@ export const useActionExecutor = ({
       }
 
       let chosenWeaponId: string | null = null;
-      if (attacker.team === 'player' && requestReaction) {
+      const suppliedDecision = decisions?.[attacker.id];
+      if (suppliedDecision) {
+        // Deterministic controllers preserve the same explicit choice the
+        // player prompt would return. Decline is represented by no selected
+        // ability and therefore cannot spend the observer's Reaction.
+        chosenWeaponId = suppliedDecision.decision === 'accept'
+          ? suppliedDecision.abilityId ?? reactionWeapons[0]?.id ?? warCasterSpells[0]?.id ?? null
+          : null;
+      } else if (attacker.team === 'player' && requestReaction) {
         // Ask the player to choose between a weapon strike and any War Caster
         // spell that can legally replace the opportunity attack.
         chosenWeaponId = await requestReaction(
@@ -798,30 +827,29 @@ export const useActionExecutor = ({
           reactionWeapons
         );
 
-        // If the player chooses to skip, log the decision and move to the next
-        // possible Opportunity Attack. This does not spend the character's
-        // reaction resource.
-        if (!chosenWeaponId) {
-          onLogEntry({
-            id: generateId(),
-            timestamp: Date.now(),
-            type: 'action',
-            message: `${attacker.name} declines the Opportunity Attack reaction.`,
-            characterId: attacker.id,
-            targetIds: [updatedCharacter.id]
-          });
-          continue;
-        }
-
-        const chosenSpell = warCasterSpells.find(a => a.id === chosenWeaponId);
-        if (chosenSpell) {
-          await executeReactionSpell?.(attacker, updatedCharacter, chosenSpell);
-          continue;
-        }
       } else {
         // Enemies and auto-run characters automatically strike with their first valid melee attack.
         chosenWeaponId = reactionWeapons[0]?.id || null;
-        if (!chosenWeaponId) continue;
+      }
+
+      // Every controller reaches the same decline receipt. This keeps AI,
+      // player prompt, replay fixture, and future network decisions aligned.
+      if (!chosenWeaponId) {
+        onLogEntry({
+          id: generateId(),
+          timestamp: Date.now(),
+          type: 'action',
+          message: `${attacker.name} declines the Opportunity Attack reaction.`,
+          characterId: attacker.id,
+          targetIds: [updatedCharacter.id]
+        });
+        continue;
+      }
+
+      const chosenSpell = warCasterSpells.find(a => a.id === chosenWeaponId);
+      if (chosenSpell) {
+        await executeReactionSpell?.(attacker, updatedCharacter, chosenSpell);
+        continue;
       }
 
       const weaponAbility = reactionWeapons.find(a => a.id === chosenWeaponId) || reactionWeapons[0];
@@ -832,7 +860,11 @@ export const useActionExecutor = ({
         ...attacker,
         actionEconomy: {
           ...attacker.actionEconomy,
-          reaction: { ...attacker.actionEconomy.reaction, used: true }
+          reaction: {
+            ...attacker.actionEconomy.reaction,
+            used: true,
+            remaining: 0,
+          }
         }
       });
 
@@ -845,10 +877,17 @@ export const useActionExecutor = ({
         if (dis.toLowerCase().includes('attack')) hasDisadvantage = true;
       });
 
-      const d20 = rollD20({
-        advantage: hasAdvantage && !hasDisadvantage,
-        disadvantage: hasDisadvantage && !hasAdvantage
-      });
+      // Replay and scenario controllers can pin the rolled face while ordinary
+      // combat keeps the normal advantage/disadvantage roller authoritative.
+      const pinnedAttackRoll = suppliedDecision?.attackRoll;
+      const d20 = Number.isInteger(pinnedAttackRoll)
+        && Number(pinnedAttackRoll) >= 1
+        && Number(pinnedAttackRoll) <= 20
+        ? Number(pinnedAttackRoll)
+        : rollD20({
+            advantage: hasAdvantage && !hasDisadvantage,
+            disadvantage: hasDisadvantage && !hasAdvantage
+          });
 
       // Calculate which modifier to use: finesse weapons use the higher of Strength or Dexterity.
       // Other weapons use Strength, while ranged weapons default to Dexterity.
@@ -895,7 +934,10 @@ export const useActionExecutor = ({
         });
         const damageFormula = getOpportunityAttackDamageFormula(weaponAbility);
         if (damageFormula) {
-          let damage = rollDice(damageFormula);
+          const pinnedDamageRoll = suppliedDecision?.damageRoll;
+          let damage = Number.isFinite(pinnedDamageRoll) && Number(pinnedDamageRoll) >= 0
+            ? Math.floor(Number(pinnedDamageRoll))
+            : rollDice(damageFormula);
           if (isCrit) damage += rollDice(damageFormula);
           updatedCharacter = handleDamage(
             updatedCharacter, damage, `${attacker.name} (Opportunity Attack)`,
@@ -978,12 +1020,24 @@ export const useActionExecutor = ({
   // ============================================================================
   const handleMoveExecution = useCallback(async (
     character: CombatCharacter,
-    action: CombatAction
+    action: CombatAction,
+    resolvedMovementCharacter?: CombatCharacter,
   ): Promise<CombatCharacter> => {
     if (action.type !== 'move' || !action.targetPosition) return character;
 
     const previousPosition = character.position;
-    let updatedCharacter = { ...character, position: action.targetPosition };
+    // Aerial movement reaches this handler only after the complete 3D route and
+    // mode-specific budget have resolved atomically. Ground movement keeps the
+    // historical endpoint projection used by every existing caller.
+    // Resource payment and aerial validation return a new character without
+    // committing the horizontal destination. Apply that destination here so
+    // the final update cannot preserve the origin simply because a paid state
+    // was supplied. Opportunity Attack damage is still resolved before this
+    // completed mover state is published to React.
+    let updatedCharacter = {
+      ...(resolvedMovementCharacter ?? character),
+      position: { ...action.targetPosition },
+    };
 
     combatEvents.emit({
       type: 'unit_move',
@@ -995,7 +1049,13 @@ export const useActionExecutor = ({
     });
 
     updatedCharacter = processTileEffects(updatedCharacter, action.targetPosition);
-    updatedCharacter = await handleOpportunityAttacks(updatedCharacter, previousPosition, action.targetPosition, action.movementMode);
+    updatedCharacter = await handleOpportunityAttacks(
+      updatedCharacter,
+      previousPosition,
+      action.targetPosition,
+      action.movementMode,
+      action.opportunityAttackDecisions,
+    );
 
     // Movement-debuff triggers (e.g., Entangle)
     const moveTriggerResults = processMovementTriggers(movementDebuffs, updatedCharacter, turnState.currentTurn, {
@@ -1349,6 +1409,8 @@ export const useActionExecutor = ({
 
     const startCharacter = characters.find(c => c.id === action.characterId);
     if (!startCharacter) return false;
+    let resolvedAction = action;
+    let aerialMovement: AerialMovementResolution | null = null;
 
     // Post-command reactive replays use the same action envelope after attack
     // commands have emitted hit/miss facts. They should not spend resources,
@@ -1357,6 +1419,33 @@ export const useActionExecutor = ({
     if (action.reactiveEventsOnly) {
       handleAbilityEvents(action, startCharacter);
       return true;
+    }
+
+    // Turn-owned actions must be rejected before resource checks or any
+    // mechanics execute. Reactions, legendary actions, and lair actions have
+    // their own out-of-turn timing; the free reactive replay returned above is
+    // also intentionally exempt. This closes the shared production boundary,
+    // so direct ability callers cannot make an inactive actor attack.
+    const ownsCurrentTurn = turnState.currentCharacterId === startCharacter.id;
+    const isOutOfTurnCost = ['reaction', 'legendary', 'lair'].includes(action.cost.type);
+    if (!ownsCurrentTurn && !isOutOfTurnCost) {
+      onLogEntry({
+        id: generateId(), timestamp: Date.now(), type: 'action',
+        message: `${startCharacter.name} cannot perform this action because it is not their turn.`,
+        characterId: startCharacter.id,
+        data: { rejectedReason: 'not_turn_owner' },
+      });
+      return false;
+    }
+
+    // Claim the complete movement delivery before any resource, position, HP,
+    // or log mutation. Invalid first delivery remains an atomic rejection, and
+    // a simultaneous or later replay of the same stable id is a silent no-op.
+    if (action.type === 'move') {
+      if (processedMovementActionIdsRef.current.has(action.id)) {
+        return true;
+      }
+      processedMovementActionIdsRef.current.add(action.id);
     }
 
     if (action.type === 'move' && action.targetPosition) {
@@ -1394,24 +1483,70 @@ export const useActionExecutor = ({
         return false;
       }
 
-      const multiplier = getCharacterSizeMultiplier(startCharacter.stats.size);
-      for (let dx = 0; dx < multiplier; dx++) {
-        for (let dy = 0; dy < multiplier; dy++) {
-          const checkPos = { x: action.targetPosition.x + dx, y: action.targetPosition.y + dy };
-          const occupyingCombatant = getOccupyingCombatant(characters, action.characterId, checkPos);
-          if (occupyingCombatant) {
-            onLogEntry({
-              id: generateId(), timestamp: Date.now(), type: 'action',
-              message: `${startCharacter.name} cannot move there because ${occupyingCombatant.name} is in the way.`,
-              characterId: startCharacter.id, targetIds: [occupyingCombatant.id]
-            });
-            return false;
+      if (action.movementMode === 'fly') {
+        if (
+          !mapData
+          || typeof action.targetAltitudeFeet !== 'number'
+          || !startCharacter.aerialMovement?.isFlying
+        ) {
+          onLogEntry({
+            id: generateId(), timestamp: Date.now(), type: 'action',
+            message: `${startCharacter.name} cannot fly because the Move action has no battle map or destination altitude.`,
+            characterId: startCharacter.id,
+          });
+          return false;
+        }
+
+        aerialMovement = resolveAerialMovement({
+          character: startCharacter,
+          destination: action.targetPosition,
+          destinationAltitudeFeet: action.targetAltitudeFeet,
+          mapData,
+          characters,
+          route: action.movementPath?.map((position, index, path) => ({
+            position,
+            altitudeFeet: startCharacter.aerialMovement!.altitudeFeet
+              + (action.targetAltitudeFeet! - startCharacter.aerialMovement!.altitudeFeet)
+                * (path.length <= 1 ? 1 : index / (path.length - 1)),
+          })),
+        });
+        if (!aerialMovement.allowed) {
+          onLogEntry({
+            id: generateId(), timestamp: Date.now(), type: 'action',
+            message: `${startCharacter.name} cannot complete the aerial Move: ${aerialMovement.reason}`,
+            characterId: startCharacter.id,
+          });
+          return false;
+        }
+
+        // The resolver is authoritative for horizontal-plus-vertical cost.
+        // Replacing a caller's preview cost prevents stale UI math from under-
+        // charging the actual route or charging it a second time.
+        resolvedAction = {
+          ...action,
+          cost: { ...action.cost, movementCost: aerialMovement.costFeet },
+          movementPath: aerialMovement.route.map(waypoint => waypoint.position),
+        };
+      } else {
+        const multiplier = getCharacterSizeMultiplier(startCharacter.stats.size);
+        for (let dx = 0; dx < multiplier; dx++) {
+          for (let dy = 0; dy < multiplier; dy++) {
+            const checkPos = { x: action.targetPosition.x + dx, y: action.targetPosition.y + dy };
+            const occupyingCombatant = getOccupyingCombatant(characters, action.characterId, checkPos);
+            if (occupyingCombatant) {
+              onLogEntry({
+                id: generateId(), timestamp: Date.now(), type: 'action',
+                message: `${startCharacter.name} cannot move there because ${occupyingCombatant.name} is in the way.`,
+                characterId: startCharacter.id, targetIds: [occupyingCombatant.id]
+              });
+              return false;
+            }
           }
         }
       }
     }
 
-    if (!canAfford(startCharacter, action.cost)) {
+    if (!aerialMovement && !canAfford(startCharacter, resolvedAction.cost)) {
       onLogEntry({
         id: generateId(), timestamp: Date.now(), type: 'action',
         message: `${startCharacter.name} cannot perform this action (not enough resources or action already used).`,
@@ -1420,7 +1555,8 @@ export const useActionExecutor = ({
       return false;
     }
 
-    let updatedCharacter = consumeAction(startCharacter, action.cost);
+    let updatedCharacter = aerialMovement?.character
+      ?? consumeAction(startCharacter, resolvedAction.cost);
     let followUpActionLogs: CombatLogEntry[] = [];
 
     // Immediate turn-resource effects (Dash, Disengage, Stand Up)
@@ -1473,17 +1609,44 @@ export const useActionExecutor = ({
 
     // Movement: delegate to full movement handler
     if (action.type === 'move' && action.targetPosition) {
-      updatedCharacter = await handleMoveExecution(updatedCharacter, action);
-      processTenserFloatingDiskFollow(updatedCharacter, action.targetPosition);
+      // A controlled descent to the surface closes through CS32's canonical
+      // landing transaction with zero falling distance. This preserves one
+      // placement/receipt path without applying fall damage to paid descent.
+      if (aerialMovement && !aerialMovement.character.aerialMovement?.isFlying && mapData) {
+        const landing = resolveAerialLandingImpact({
+          eventId: `${resolvedAction.id}-controlled-landing`,
+          character: aerialMovement.character,
+          landingPosition: resolvedAction.targetPosition!,
+          mapData,
+          characters,
+          fallDistanceFeet: 0,
+        });
+        if (landing.status !== 'resolved' || !landing.faller) {
+          onLogEntry({
+            id: generateId(), timestamp: Date.now(), type: 'action',
+            message: `${startCharacter.name} cannot complete the landing: ${landing.reason}`,
+            characterId: startCharacter.id,
+          });
+          return false;
+        }
+        updatedCharacter = landing.faller;
+      }
+
+      updatedCharacter = await handleMoveExecution(
+        startCharacter,
+        resolvedAction,
+        updatedCharacter,
+      );
+      processTenserFloatingDiskFollow(updatedCharacter, resolvedAction.targetPosition!);
     }
 
     onCharacterUpdate(updatedCharacter);
-    recordAction(action);
+    recordAction(resolvedAction);
     onLogEntry({
       id: generateId(), timestamp: Date.now(), type: 'action',
-      message: getActionMessage(action, updatedCharacter),
+      message: getActionMessage(resolvedAction, updatedCharacter),
       characterId: updatedCharacter.id,
-      data: action as any
+      data: resolvedAction as any
     });
     followUpActionLogs.forEach(entry => onLogEntry(entry));
 
@@ -1492,16 +1655,23 @@ export const useActionExecutor = ({
     // miss is not known until commands execute. useAbilitySystem replays a
     // reactive-only action with the resolved attackResults afterward.
     if (!action.suppressAbilityEvents) {
-      handleAbilityEvents(action, updatedCharacter);
+      handleAbilityEvents(resolvedAction, updatedCharacter);
     }
 
     return true;
   }, [
-    characters, turnState, endTurn, canAfford, consumeAction,
+    characters, turnState, mapData, endTurn, canAfford, consumeAction,
     onCharacterUpdate, onLogEntry, recordAction,
     handleDamage, processRepeatSaves, reactiveTriggers,
     handleMoveExecution, handleAbilityEvents, processTenserFloatingDiskFollow
   ]);
 
-  return { executeAction };
+  // Encounter initialization and Reset Board need a fresh delivery namespace.
+  // Clearing only execution receipts preserves all combat state while allowing
+  // the same deterministic fixture id to resolve once in the new encounter.
+  const resetActionReceipts = useCallback(() => {
+    processedMovementActionIdsRef.current.clear();
+  }, []);
+
+  return { executeAction, resetActionReceipts };
 };

@@ -17,7 +17,13 @@
 import { CombatState, Position, StatusEffect } from '@/types/combat'
 import { rollDice } from '../../utils/combat'
 import { generateId } from '../../utils/core'
-import { ActiveSpellZone, processAreaMoveWithinTriggers } from '../../systems/spells/effects/triggerHandler'
+import {
+    ActiveSpellZone,
+    processAreaEntryTriggers,
+    processAreaExitTriggers,
+    processAreaMoveWithinTriggers,
+    type TriggerResult
+} from '../../systems/spells/effects/triggerHandler'
 
 type SpellZoneWithTracking = NonNullable<CombatState['spellZones']>[number] &
     Partial<Pick<ActiveSpellZone, 'triggeredThisTurn' | 'triggeredEver' | 'expiresAtRound' | 'saveDC'>>
@@ -58,9 +64,29 @@ export function applyCommandAreaMovementEffects(
             triggeredEver: trackedZone.triggeredEver ?? new Set<string>()
         }
     })
-    const triggerResults = processAreaMoveWithinTriggers(zones, character, newPosition, previousPosition, movementPath)
+    const triggerResults: TriggerResult[] = []
 
-    let nextState = state
+    // Walk the accepted path one boundary at a time. A long push can enter a
+    // zone, travel inside it, and leave it during one command; evaluating only
+    // the two endpoints would silently miss both authored boundary events.
+    for (let step = 1; step < movementPath.length; step++) {
+        const segmentStart = movementPath[step - 1]
+        const segmentEnd = movementPath[step]
+
+        // Preserve physical event order for each five-foot segment: crossing
+        // into the area, travelling within it, then crossing out. The shared
+        // trigger helpers own target filters and once/turn frequency tracking.
+        triggerResults.push(
+            ...processAreaEntryTriggers(zones, character, segmentEnd, segmentStart, state.turnState.currentTurn),
+            ...processAreaMoveWithinTriggers(zones, character, segmentEnd, segmentStart, [segmentStart, segmentEnd]),
+            ...processAreaExitTriggers(zones, character, segmentEnd, segmentStart)
+        )
+    }
+
+    // Keep the frequency sets mutated by the canonical trigger helpers in live
+    // combat state. Later commands in the same turn must see that a once-only
+    // entry or exit has already happened.
+    let nextState = { ...state, spellZones: zones }
     let currentCharacter = character
 
     for (const result of triggerResults) {

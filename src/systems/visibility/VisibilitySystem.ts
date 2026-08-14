@@ -3,8 +3,8 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 29/06/2026, 13:41:53
- * Dependents: systems/visibility/index.ts
+ * Last Sync: 13/08/2026, 15:06:13
+ * Dependents: components/DesignPreview/steps/scenarioControls/darkvisionScenarioControls.ts, systems/visibility/index.ts
  * Imports: 2 files
  *
  * MULTI-AGENT SAFETY:
@@ -15,10 +15,14 @@
 // @dependencies-end
 
 /**
- * @file VisibilitySystem.ts
- * Core logic for calculating light levels and character visibility in the Underdark.
+ * This file calculates the light level and visibility tier of every map tile.
  *
- * "In the deep, light is not a given. It is a resource." - Depthcrawler
+ * Light may illuminate an opaque wall face, but an observer cannot see through
+ * that wall or through a sealed diagonal corner. Keeping both decisions on the
+ * shared line-of-sight helper prevents targeting and presentation from drifting.
+ *
+ * Called by: combat visibility, map presentation, and Tactical Sandbox proofs.
+ * Depends on: combat map data and the canonical spatial line-of-sight helper.
  */
 
 import {
@@ -28,7 +32,7 @@ import {
   LightLevel,
   Position
 } from '../../types/combat';
-import { bresenhamLine } from '../../utils/spatial';
+import { hasLineOfSight } from '../../utils/spatial';
 
 export type VisibilityTier = 'visible' | 'dim' | 'hidden';
 
@@ -82,7 +86,7 @@ export class VisibilitySystem {
 
           if (dist > maxRadiusUnits) continue;
 
-          if (this.isLineBlocked(sourcePos, tile.coordinates, mapData)) {
+          if (this.isLineBlocked(sourcePos, tile.coordinates, mapData, false)) {
             continue;
           }
 
@@ -170,19 +174,21 @@ export class VisibilitySystem {
     return visibilityMap;
   }
 
-  private static isLineBlocked(start: Position, end: Position, mapData: BattleMapData): boolean {
-    const line = bresenhamLine(start.x, start.y, end.x, end.y);
+  private static isLineBlocked(
+    start: Position,
+    end: Position,
+    mapData: BattleMapData,
+    blockOpaqueEndpoint = true,
+  ): boolean {
+    const startTile = mapData.tiles.get(`${start.x}-${start.y}`);
+    const endTile = mapData.tiles.get(`${end.x}-${end.y}`);
 
-    for (let i = 1; i < line.length - 1; i++) {
-      const pt = line[i];
-      const tileId = `${pt.x}-${pt.y}`;
-      const tile = mapData.tiles.get(tileId);
-
-      if (tile && tile.blocksLoS) {
-        return true;
-      }
-    }
-    return false;
+    // Visibility and target selection must never disagree about a sealed
+    // corner or opaque endpoint. Missing endpoint tiles are outside the board
+    // and therefore cannot provide a visible route.
+    return !startTile || !endTile || !hasLineOfSight(startTile, endTile, mapData, {
+      includeEndTileBlocker: blockOpaqueEndpoint,
+    });
   }
 
   /**

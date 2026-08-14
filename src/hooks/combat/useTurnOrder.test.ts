@@ -38,6 +38,8 @@ describe('useTurnOrder', () => {
         expect(result.current.turnState.turnOrder).toEqual(['char1', 'char2']);
         expect(result.current.turnState.currentCharacterId).toBe('char1');
         expect(result.current.turnState.currentTurn).toBe(1);
+        expect(result.current.turnState.turnGroups?.map(group => group.memberIds))
+            .toEqual([['char1'], ['char2']]);
     });
 
     it('should use canonical tie facts and keep shared followers consecutive', () => {
@@ -70,6 +72,8 @@ describe('useTurnOrder', () => {
 
         expect(result.current.turnState.turnOrder)
             .toEqual(['agile-rival', 'char1', 'shared-follower']);
+        expect(result.current.turnState.turnGroups?.map(group => group.memberIds))
+            .toEqual([['agile-rival'], ['char1', 'shared-follower']]);
     });
 
     it('should advance turns correctly', () => {

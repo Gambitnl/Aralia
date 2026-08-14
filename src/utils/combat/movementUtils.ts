@@ -45,6 +45,7 @@
 
 import { Position } from '../../types/combat';
 import type { BattleMapTile } from '../../types/combat';
+import { getElevationTransitionCostFeet } from '../spatial/elevationGeometry';
 
 // ============================================================================
 // Tile Cost Normalization
@@ -151,7 +152,10 @@ export function calculatePathMovementCost(path: BattleMapTile[]): number {
     const dy = next.coordinates.y - previous.coordinates.y;
     const step = calculateStepMovementCost(dx, dy, diagonalCount, next.movementCost);
 
-    totalCost += step.cost;
+    // Ground travel pays the horizontal/terrain step and the real vertical
+    // separation. This matches aerial movement's additive three-dimensional
+    // ruler without turning controlled descent into fall damage.
+    totalCost += step.cost + getElevationTransitionCostFeet(previous, next);
     if (step.isDiagonal) {
       diagonalCount += 1;
     }

@@ -146,7 +146,11 @@ describe('createSkinnedPlan — decorative emissions stay on the anchor path (d)
 });
 
 describe('assembleEntity — slice 4 guards (e)', () => {
-  it('bodyTech skinned + a species gait (quad) throws', () => {
+  // Slice 5 (speciesSkeleton.ts) gave the species gaits their own bone
+  // hierarchies, so the quad no longer refuses skinned — it builds one. The
+  // guard that remains is the wireframe one (decided Remy 2026-07-21).
+  // Full species parity coverage lives in speciesSkeleton.test.ts.
+  it('bodyTech skinned + a species gait (quad) now builds a skinned body', () => {
     const blueprint: EntityBlueprint = {
       gait: 'quad',
       frame: deriveFrame('quad', 6, 1, 1),
@@ -154,7 +158,12 @@ describe('assembleEntity — slice 4 guards (e)', () => {
       parts: [],
       label: 'TestQuad',
     };
-    expect(() => assembleEntity(blueprint, { bodyTech: 'skinned' })).toThrow(/only the biped and plan gaits/);
+    const handle = assembleEntity(blueprint, { bodyTech: 'skinned' });
+    expect(handle.group.getObjectByName('skinnedBody'), 'quad has no skinned body').toBeTruthy();
+    handle.dispose();
+    expect(() => assembleEntity(blueprint, { bodyTech: 'skinned', renderMode: 'wireframe' })).toThrow(
+      /solid shaded only/,
+    );
   });
 
   it('skinned plan blueprints assemble (no throw) and stay under budget', () => {

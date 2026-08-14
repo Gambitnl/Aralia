@@ -149,6 +149,34 @@ describe('inferMovementModeForAction', () => {
     expect(inferMovementModeForAction(fighter)).toBeUndefined();
   });
 
+  it('marks an ordinary airborne actor with live Fly Speed for the normal Move path', () => {
+    const flyer = createMockCombatCharacter({ id: 'ordinary-flyer', name: 'Ordinary Flyer' });
+    flyer.stats.extraMovementSpeeds = { fly: 40 };
+    flyer.aerialMovement = {
+      altitudeFeet: 15,
+      isFlying: true,
+      canHover: false,
+      source: 'stat block',
+    };
+
+    // Normal creatures do not need summon-only Flyby metadata. Their persisted
+    // airborne state selects the canonical aerial resolver for ordinary Move.
+    expect(inferMovementModeForAction(flyer)).toBe('fly');
+  });
+
+  it('keeps a grounded creature with an unused Fly Speed on ground movement', () => {
+    const grounded = createMockCombatCharacter({ id: 'grounded-flyer', name: 'Grounded Flyer' });
+    grounded.stats.extraMovementSpeeds = { fly: 40 };
+    grounded.aerialMovement = {
+      altitudeFeet: 0,
+      isFlying: false,
+      canHover: false,
+      source: 'stat block',
+    };
+
+    expect(inferMovementModeForAction(grounded)).toBeUndefined();
+  });
+
   it('ignores movement-mode traits that keep normal opportunity exposure', () => {
     const climbingSpirit = createMockCombatCharacter({ id: 'climbing-spirit', name: 'Climbing Spirit' });
 

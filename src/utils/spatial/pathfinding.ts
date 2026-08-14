@@ -22,6 +22,7 @@
 import { BattleMapTile, BattleMapData, Position } from '../../types/combat';
 import { calculateMovementCost, isDifficultMovementCost } from '../combat/movementUtils';
 import { applyMovementCostModifiers, MovementConfig } from '../combat/physicsUtils';
+import { getElevationTransitionCostFeet } from './elevationGeometry';
 
 interface PathNode {
   tile: BattleMapTile;
@@ -38,7 +39,11 @@ interface PathNode {
  * Multiplied by 5 to match 5e movement scale.
  */
 export function heuristic(a: BattleMapTile, b: BattleMapTile): number {
-  return Math.max(Math.abs(a.coordinates.x - b.coordinates.x), Math.abs(a.coordinates.y - b.coordinates.y)) * 5;
+  const horizontalFeet = Math.max(
+    Math.abs(a.coordinates.x - b.coordinates.x),
+    Math.abs(a.coordinates.y - b.coordinates.y),
+  ) * 5;
+  return horizontalFeet + getElevationTransitionCostFeet(a, b);
 }
 
 /**
@@ -114,6 +119,7 @@ export function findPath(
         // Multi-tile collision check
         let canPass = true;
         let maxTerrainCost = 1; // Normalized base cost
+        let maxElevationCostFeet = 0;
         
         for (let sx = 0; sx < sizeMultiplier; sx++) {
           for (let sy = 0; sy < sizeMultiplier; sy++) {
@@ -127,6 +133,19 @@ export function findPath(
             
             if (isDifficultMovementCost(checkTile.movementCost)) {
               maxTerrainCost = 2;
+            }
+
+            // Large creatures pay the greatest height transition under any
+            // occupied square, preventing part of a footprint from clipping
+            // up a ledge for free.
+            const currentFootprintTile = mapData.tiles.get(
+              `${currentNode.tile.coordinates.x + sx}-${currentNode.tile.coordinates.y + sy}`,
+            );
+            if (currentFootprintTile) {
+              maxElevationCostFeet = Math.max(
+                maxElevationCostFeet,
+                getElevationTransitionCostFeet(currentFootprintTile, checkTile),
+              );
             }
           }
           if (!canPass) break;
@@ -142,7 +161,8 @@ export function findPath(
           isDifficultTerrain: maxTerrainCost === 2,
         };
 
-        const stepCost = applyMovementCostModifiers(baseStepCost, stepConfig);
+        const stepCost = applyMovementCostModifiers(baseStepCost, stepConfig)
+          + maxElevationCostFeet;
         const gScore = currentNode.g + stepCost;
         const newDiagonalCount = isDiagonal ? currentNode.diagonalCount + 1 : currentNode.diagonalCount;
         const newParity = newDiagonalCount % 2;

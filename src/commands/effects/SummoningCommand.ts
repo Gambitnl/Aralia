@@ -23,6 +23,7 @@ import { CLASSES_DATA } from '@/constants'
 import { MONSTERS_DATA } from '../../data/monsters'
 import { generateId } from '../../utils/combat'
 import { getSummonTemplate, type SummonTemplate } from '../../data/summonTemplates'
+import { resolveSummonPlacement } from '../../systems/combat/summonControlledResolution'
 
 /**
  * This command creates temporary combat characters for spells that summon a creature,
@@ -74,21 +75,35 @@ export class SummoningCommand extends BaseEffectCommand {
             newState = this.removeExistingPersistentSummon(newState, caster.id)
         }
 
-        // Point-targeted summons, such as Conjure Animals, anchor their actor
-        // at the selected point rather than silently falling back to the
-        // caster. Keeping the fallback preserves older summon callers that do
-        // not provide the richer selected-target envelope.
-        const summonOrigin = this.context.selectedSpellTargets?.find(target => target.kind === 'point')?.position
+        // A one-creature point summon must honor the exact chosen space. Multi-
+        // creature spells still use the established nearby-space search because
+        // one point cannot hold their complete group.
+        const selectedPoint = this.context.selectedSpellTargets?.find(target => target.kind === 'point')?.position
+        const summonOrigin = selectedPoint
             ?? caster.position
 
         for (let i = 0; i < count; i++) {
-            const spawnPosition = this.findSpawnPosition(newState, summonOrigin)
+            const exactPlacement = selectedPoint && count === 1
+                ? resolveSummonPlacement({
+                    caster,
+                    destination: selectedPoint,
+                    characters: newState.characters,
+                    mapData: newState.mapData,
+                    requireLineOfSight: false
+                })
+                : null
+            const spawnPosition = exactPlacement?.status === 'allowed'
+                ? selectedPoint
+                : exactPlacement?.status === 'rejected'
+                    ? null
+                    : this.findSpawnPosition(newState, summonOrigin)
 
             if (!spawnPosition) {
-                // If no space is available, log failure and stop spawning
+                // Exact placement failures keep their production reason. Generic
+                // multi-summon searches retain the established no-space message.
                 newState = this.addLogEntry(newState, {
                     type: 'action',
-                    message: `${caster.name} fails to summon ${effect.summon?.entityType ?? effect.summonType ?? 'entity'}: No space available`,
+                    message: `${caster.name} fails to summon ${effect.summon?.entityType ?? effect.summonType ?? 'entity'}: ${exactPlacement?.status === 'rejected' ? exactPlacement.message : 'No space available'}`,
                     characterId: caster.id
                 })
                 break
@@ -680,7 +695,10 @@ export class SummoningCommand extends BaseEffectCommand {
                 : []
             const damageEffect: AbilityEffect[] = specialAction.damage ? [{
                 type: 'damage',
-                dice: specialAction.damage.dice,
+                // Structured summon formulas use the selected slot as the spell
+                // level. Materialize it when the live actor is created so the
+                // ordinary damage roller receives executable dice notation.
+                dice: specialAction.damage.dice.replace(/spell_level/g, String(this.context.castAtLevel)),
                 damageType: specialAction.damage.type as AbilityEffect['damageType']
             }] : []
 

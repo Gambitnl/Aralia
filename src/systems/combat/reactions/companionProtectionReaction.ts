@@ -3,8 +3,8 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 12/08/2026, 06:57:12
- * Dependents: components/DesignPreview/steps/scenarioControls/companionReactionsScenarioControls.ts
+ * Last Sync: 13/08/2026, 10:58:16
+ * Dependents: components/DesignPreview/steps/PreviewCombatScenarios.tsx, components/DesignPreview/steps/scenarioControls/companionReactionsScenarioControls.ts, systems/combat/reactions/alliedProtectionReaction.ts
  * Imports: 7 files
  *
  * MULTI-AGENT SAFETY:
@@ -21,8 +21,9 @@
  * creature about its own reactions. A caller that has already identified a possible
  * protector can use this transaction to validate ownership, team, range, sight,
  * equipment, condition, and Reaction state before reducing the incoming damage.
- * The result applies final damage through the shared downing helper and reports every
- * fact needed by a future combat reaction chooser or the Tactical Sandbox.
+ * The qualification and reduction exports let the normal damage command discover
+ * responders before HP changes, while the complete transaction remains available
+ * to callers that need reduction and HP application together.
  *
  * Called by: companionReactionsScenarioControls and future damage-event arbitration.
  * Depends on: canonical feat data, combat distance/sight, action economy, and HP helpers.
@@ -73,7 +74,7 @@ export type CompanionProtectionReactionReason =
   | 'protector_missing_interception'
   | 'protector_missing_weapon_or_shield'
   | 'protected_target_out_of_range'
-  | 'protected_target_not_visible'
+  | 'attacker_not_visible'
   | 'protector_incapacitated'
   | 'protector_reaction_unavailable';
 
@@ -111,6 +112,13 @@ export interface CompanionProtectionReactionReceipt {
   summary: string;
 }
 
+export interface CompanionProtectionQualification {
+  eligible: boolean;
+  reason: CompanionProtectionReactionReason;
+  distanceFeet: number;
+  lineOfSight: boolean;
+}
+
 // ============================================================================
 // Eligibility Helpers
 // ============================================================================
@@ -131,13 +139,13 @@ function hasInterceptionEquipment(protector: CombatCharacter): boolean {
 
 function readLineOfSight(
   protector: CombatCharacter,
-  protectedTarget: CombatCharacter,
+  attacker: CombatCharacter,
   mapData: BattleMapData,
 ): boolean {
   const protectorTile = mapData.tiles.get(`${protector.position.x}-${protector.position.y}`);
-  const targetTile = mapData.tiles.get(`${protectedTarget.position.x}-${protectedTarget.position.y}`);
-  if (!protectorTile || !targetTile) return false;
-  return hasLineOfSight(protectorTile, targetTile, mapData);
+  const attackerTile = mapData.tiles.get(`${attacker.position.x}-${attacker.position.y}`);
+  if (!protectorTile || !attackerTile) return false;
+  return hasLineOfSight(protectorTile, attackerTile, mapData);
 }
 
 function reject(
@@ -167,29 +175,37 @@ function reject(
 }
 
 // ============================================================================
-// Ordered Protection Transaction
+// Qualification And Ordered Protection Transaction
 // ============================================================================
-// Eligibility is fully checked before payment. A legal response then spends the
-// protector's Reaction, rolls 1d10 plus proficiency, reduces no more than the
-// incoming damage, and sends only the remainder through canonical HP/downing.
+// Qualification is reusable by the allied-responder chooser and never mutates
+// an actor. A selected legal response then spends the protector's Reaction and
+// rolls the reduction. The pre-damage form leaves HP to DamageCommand; the
+// complete form applies the remainder through canonical HP/downing.
 // ============================================================================
 
-export function resolveCompanionProtectionReaction(
+export function qualifyCompanionProtectionReaction(
   input: CompanionProtectionReactionInput,
-): CompanionProtectionReactionReceipt {
+): CompanionProtectionQualification {
   // The shared footprint helper reports grid cells. Interception rule text is
   // written in feet, so convert one adjacent cell to the canonical 5 feet.
   const distanceFeet = getCharacterDistance(input.protector, input.protectedTarget) * 5;
-  const lineOfSight = readLineOfSight(input.protector, input.protectedTarget, input.mapData);
+  const lineOfSight = readLineOfSight(input.protector, input.attacker, input.mapData);
+
+  const qualification = (reason: CompanionProtectionReactionReason): CompanionProtectionQualification => ({
+    eligible: reason === 'resolved',
+    reason,
+    distanceFeet,
+    lineOfSight,
+  });
 
   if (!INTERCEPTION_STYLE || !INTERCEPTION_STYLE_DESCRIPTION) {
-    return reject(input, 'canonical_rule_unavailable', distanceFeet, lineOfSight);
+    return qualification('canonical_rule_unavailable');
   }
   if (!input.attack.isHit) {
-    return reject(input, 'attack_missed', distanceFeet, lineOfSight);
+    return qualification('attack_missed');
   }
   if (input.attack.damage <= 0) {
-    return reject(input, 'no_incoming_damage', distanceFeet, lineOfSight);
+    return qualification('no_incoming_damage');
   }
   // The owner witnesses who controls the companion, so the owner may also be
   // the ally receiving protection. The three combat roles must still be
@@ -201,34 +217,45 @@ export function resolveCompanionProtectionReaction(
     || input.owner.id === input.protector.id
     || input.owner.id === input.attacker.id;
   if (hasInvalidActorOverlap) {
-    return reject(input, 'not_distinct_actors', distanceFeet, lineOfSight);
+    return qualification('not_distinct_actors');
   }
   if (!isOwnedCompanion(input.owner, input.protector)) {
-    return reject(input, 'protector_not_owned_by_owner', distanceFeet, lineOfSight);
+    return qualification('protector_not_owned_by_owner');
   }
   if (input.protector.team !== input.protectedTarget.team || input.owner.team !== input.protector.team) {
-    return reject(input, 'protected_target_not_allied', distanceFeet, lineOfSight);
+    return qualification('protected_target_not_allied');
   }
   if (input.attacker.team === input.protectedTarget.team) {
-    return reject(input, 'attacker_not_hostile', distanceFeet, lineOfSight);
+    return qualification('attacker_not_hostile');
   }
   if (!input.protector.feats?.includes(INTERCEPTION_STYLE_ID)) {
-    return reject(input, 'protector_missing_interception', distanceFeet, lineOfSight);
+    return qualification('protector_missing_interception');
   }
   if (!hasInterceptionEquipment(input.protector)) {
-    return reject(input, 'protector_missing_weapon_or_shield', distanceFeet, lineOfSight);
+    return qualification('protector_missing_weapon_or_shield');
   }
   if (distanceFeet > INTERCEPTION_RANGE_FEET) {
-    return reject(input, 'protected_target_out_of_range', distanceFeet, lineOfSight);
+    return qualification('protected_target_out_of_range');
   }
   if (!lineOfSight) {
-    return reject(input, 'protected_target_not_visible', distanceFeet, lineOfSight);
+    return qualification('attacker_not_visible');
   }
   if (isIncapacitated(input.protector)) {
-    return reject(input, 'protector_incapacitated', distanceFeet, lineOfSight);
+    return qualification('protector_incapacitated');
   }
   if (!canAffordActionCost(input.protector, { type: 'reaction' })) {
-    return reject(input, 'protector_reaction_unavailable', distanceFeet, lineOfSight);
+    return qualification('protector_reaction_unavailable');
+  }
+
+  return qualification('resolved');
+}
+
+export function resolveCompanionProtectionReduction(
+  input: CompanionProtectionReactionInput,
+): CompanionProtectionReactionReceipt {
+  const qualification = qualifyCompanionProtectionReaction(input);
+  if (!qualification.eligible) {
+    return reject(input, qualification.reason, qualification.distanceFeet, qualification.lineOfSight);
   }
 
   // Pay only after every rule gate succeeds. The owner never subsidizes or
@@ -243,29 +270,38 @@ export function resolveCompanionProtectionReaction(
   const proficiencyBonus = calculateProficiencyBonus(input.protector.level);
   const totalReduction = Math.min(input.attack.damage, reductionRoll + proficiencyBonus);
   const finalDamage = Math.max(0, input.attack.damage - totalReduction);
-  const protectedTarget = applyDamageAndCheckDowned(input.protectedTarget, finalDamage);
-
-  // When the owner is also the protected ally, both receipt roles must point
-  // to the same damaged character. This keeps HP, downing state, and the
-  // owner's still-ready Reaction from splitting into contradictory copies.
-  const owner = input.owner.id === protectedTarget.id ? protectedTarget : input.owner;
-
   return {
     outcome: 'resolved',
     reason: 'resolved',
-    owner,
+    owner: input.owner,
     protector: paidProtector,
-    protectedTarget,
+    protectedTarget: input.protectedTarget,
     attacker: input.attacker,
-    distanceFeet,
-    lineOfSight,
+    distanceFeet: qualification.distanceFeet,
+    lineOfSight: qualification.lineOfSight,
     incomingDamage: input.attack.damage,
     reductionRoll,
     proficiencyBonus,
     totalReduction,
     finalDamage,
     protectedHPBefore: input.protectedTarget.currentHP,
-    protectedHPAfter: protectedTarget.currentHP,
+    protectedHPAfter: input.protectedTarget.currentHP,
     summary: `${INTERCEPTION_STYLE_NAME} resolved: ${input.attack.damage} ${input.attack.damageType} incoming - ${reductionRoll} (${INTERCEPTION_REDUCTION_DICE}) - ${proficiencyBonus} proficiency = ${finalDamage} damage. ${input.protector.name} spends its Reaction; ${input.owner.name} keeps its own Reaction.`,
+  };
+}
+
+export function resolveCompanionProtectionReaction(
+  input: CompanionProtectionReactionInput,
+): CompanionProtectionReactionReceipt {
+  const reduction = resolveCompanionProtectionReduction(input);
+  if (reduction.outcome === 'rejected') return reduction;
+
+  const protectedTarget = applyDamageAndCheckDowned(input.protectedTarget, reduction.finalDamage);
+  const owner = input.owner.id === protectedTarget.id ? protectedTarget : reduction.owner;
+  return {
+    ...reduction,
+    owner,
+    protectedTarget,
+    protectedHPAfter: protectedTarget.currentHP,
   };
 }

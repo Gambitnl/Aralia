@@ -7,7 +7,8 @@
  */
 
 import { describe, expect, it } from 'vitest';
-import type { BattleMapData, BattleMapTile, CombatCharacter } from '../../../types/combat';
+import type { Ability, BattleMapData, BattleMapTile, CombatCharacter } from '../../../types/combat';
+import { applyImmediateAbilityTurnEffects } from '../../../hooks/combat/useActionExecutor';
 import {
   createMockCombatCharacter,
   createMockCombatState,
@@ -18,6 +19,8 @@ import {
   isTargetSizeEligibleForShove,
   resolveShoveAttempt,
 } from '../shoveUtils';
+import { consumeActionCost } from '../actionEconomyUtils';
+import { advanceStatusConditionDurationsAtTurnStart } from '../repeatSaveUtils';
 
 // ============================================================================
 // Stable Combat Fixture
@@ -76,8 +79,10 @@ function createActors(targetSize: CombatCharacter['stats']['size'] = 'Medium'): 
     position: { x: 2, y: 1 },
     stats: {
       ...createMockCombatCharacter().stats,
-      strength: 10,
-      dexterity: 10,
+      // Different modifiers make the defender's chosen save auditable. The
+      // same d20 must total +2 higher on Strength than on Dexterity.
+      strength: 14,
+      dexterity: 8,
       size: targetSize,
     },
   });
@@ -96,12 +101,32 @@ function resolveFixture(
     rng?: () => number;
     destinationBlocked?: boolean;
     targetSize?: CombatCharacter['stats']['size'];
+    saveAbility?: 'Strength' | 'Dexterity';
+    currentCharacterId?: string;
+    attackRemaining?: number;
   } = {},
 ) {
   const actors = createActors(options.targetSize);
+  const shover = {
+    ...actors.shover,
+    actionEconomy: {
+      ...actors.shover.actionEconomy,
+      action: {
+        used: (options.attackRemaining ?? 1) <= 0,
+        remaining: options.attackRemaining ?? 1,
+      },
+    },
+  };
   const state = createMockCombatState({
-    characters: [actors.shover, actors.target, actors.bystander],
+    characters: [shover, actors.target, actors.bystander],
     mapData: createMap(options.destinationBlocked),
+    turnState: {
+      currentTurn: 1,
+      turnOrder: [shover.id, actors.target.id, actors.bystander.id],
+      currentCharacterId: options.currentCharacterId ?? shover.id,
+      phase: 'action',
+      actionsThisTurn: [],
+    },
   });
   const result = resolveShoveAttempt({
     state,
@@ -109,7 +134,7 @@ function resolveFixture(
     shoverId: actors.shover.id,
     targetId: actors.target.id,
     choice: options.choice ?? 'push',
-    saveAbility: 'Strength',
+    saveAbility: options.saveAbility ?? 'Strength',
     rng: options.rng ?? (() => 0.01),
   });
 
@@ -143,7 +168,7 @@ describe('resolveShoveAttempt', () => {
       shoveSucceeded: false,
       reason: 'save_succeeded',
       saveDc: 14,
-      save: { roll: 18, total: 18, success: true },
+      save: { roll: 18, total: 20, success: true },
     });
     expect(findTarget(result)).toBe(actors.target);
     expect(result.message).toContain('position and conditions are unchanged');
@@ -157,8 +182,12 @@ describe('resolveShoveAttempt', () => {
       attempted: true,
       shoveSucceeded: true,
       reason: 'resolved_push',
-      save: { roll: 1, total: 1, success: false },
+      save: { roll: 1, total: 3, success: false },
     });
+    expect(result.attackSpent).toBe(true);
+    expect(result.attacksRemaining).toBe(0);
+    expect(result.state.characters.find(character => character.id === 'shover')?.actionEconomy.action)
+      .toEqual({ used: true, remaining: 0 });
     expect(target.position).toEqual({ x: 3, y: 1 });
     expect(result.state.combatLog.at(-1)?.message).toBe('Shove Target is pushed 5 feet onto floor');
     expect(result.state.characters.find(character => character.id === 'bystander')).toBe(actors.bystander);
@@ -177,8 +206,103 @@ describe('resolveShoveAttempt', () => {
     }));
     expect(target.statusEffects).toContainEqual(expect.objectContaining({
       name: 'Prone',
+      duration: 0,
+      persistsUntilRemoved: true,
       effect: { type: 'condition' },
     }));
+    expect(target.conditions).toContainEqual(expect.objectContaining({
+      duration: { type: 'permanent' },
+    }));
+  });
+
+  it('uses the defender-selected Strength or Dexterity modifier with the same d20', () => {
+    const strength = resolveFixture({ saveAbility: 'Strength', rng: () => 0.49 }).result;
+    const dexterity = resolveFixture({ saveAbility: 'Dexterity', rng: () => 0.49 }).result;
+
+    expect(strength.save).toMatchObject({ roll: 10, total: 12 });
+    expect(dexterity.save).toMatchObject({ roll: 10, total: 9 });
+    expect(strength.message).toContain('Strength save');
+    expect(dexterity.message).toContain('Dexterity save');
+  });
+
+  it('rejects off-turn and exhausted repeats before rolling, spending, or applying an effect', () => {
+    let rolls = 0;
+    const offTurn = resolveFixture({
+      currentCharacterId: 'target',
+      rng: () => {
+        rolls += 1;
+        return 0.01;
+      },
+    }).result;
+
+    expect(offTurn).toMatchObject({
+      attempted: false,
+      attackSpent: false,
+      reason: 'not_turn_owner',
+    });
+    expect(offTurn.state.characters.find(character => character.id === 'shover')?.actionEconomy.action)
+      .toEqual({ used: false, remaining: 1 });
+
+    const first = resolveFixture({
+      rng: () => {
+        rolls += 1;
+        return 0.89;
+      },
+    }).result;
+    const repeat = resolveShoveAttempt({
+      state: first.state,
+      gameState: createMockGameState(),
+      shoverId: 'shover',
+      targetId: 'target',
+      choice: 'push',
+      saveAbility: 'Strength',
+      rng: () => {
+        rolls += 1;
+        return 0.01;
+      },
+    });
+
+    expect(first.reason).toBe('save_succeeded');
+    expect(repeat).toMatchObject({
+      attempted: false,
+      attackSpent: false,
+      attacksRemaining: 0,
+      reason: 'attack_unavailable',
+    });
+    expect(repeat.state).toBe(first.state);
+    expect(rolls).toBe(1);
+  });
+
+  it('keeps Shove Prone across turns and removes both mirrors through canonical Stand Up', () => {
+    const prone = resolveFixture({ choice: 'prone' }).result;
+    const target = findTarget(prone);
+    const afterTurns = advanceStatusConditionDurationsAtTurnStart(
+      advanceStatusConditionDurationsAtTurnStart(target).character,
+    ).character;
+    const standUp: Ability = {
+      id: 'stand_up',
+      name: 'Stand Up',
+      description: 'Spend half Speed to right yourself.',
+      type: 'movement',
+      cost: { type: 'movement-only', movementCost: 15 },
+      targeting: 'self',
+      range: 0,
+      effects: [],
+      icon: 'Stand',
+    };
+
+    expect(afterTurns.statusEffects.map(effect => effect.name)).toContain('Prone');
+    expect(afterTurns.conditions?.map(condition => condition.name)).toContain('Prone');
+
+    // The ordinary executor order pays the movement cost first, then applies
+    // Stand Up's immediate paired cleanup. It does not spend the Action.
+    const paid = consumeActionCost(afterTurns, standUp.cost);
+    const standing = applyImmediateAbilityTurnEffects(paid, standUp, 3).character;
+
+    expect(standing.actionEconomy.movement.used).toBe(15);
+    expect(standing.actionEconomy.action.used).toBe(false);
+    expect(standing.statusEffects.map(effect => effect.name)).not.toContain('Prone');
+    expect(standing.conditions?.map(condition => condition.name)).not.toContain('Prone');
   });
 
   // ========================================================================

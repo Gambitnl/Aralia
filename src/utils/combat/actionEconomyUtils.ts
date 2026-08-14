@@ -1,11 +1,11 @@
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
- * SHARED UTILITY: Multiple systems rely on these exports.
+ * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 09/06/2026, 04:23:01
- * Dependents: hooks/combat/useActionEconomy.ts, hooks/combat/useTurnManager.ts, hooks/useAbilitySystem.ts, utils/combat/index.ts
- * Imports: 4 files
+ * Last Sync: 13/08/2026, 08:00:44
+ * Dependents: commands/effects/MovementCommand.ts, commands/factory/AbilityCommandFactory.ts, components/DesignPreview/steps/scenarioControls/companionReactionsScenarioControls.ts, components/DesignPreview/steps/scenarioControls/conditionsScenarioControls.ts, components/DesignPreview/steps/scenarioControls/counterspellNestedReactionsScenarioControls.ts, components/DesignPreview/steps/scenarioControls/damageOverTimeScheduledEffectsScenarioControls.ts, components/DesignPreview/steps/scenarioControls/dispelMagicCleanupScenarioControls.ts, components/DesignPreview/steps/scenarioControls/grappleEscapeScenarioControls.ts, components/DesignPreview/steps/scenarioControls/multiattackRidersScenarioControls.ts, components/DesignPreview/steps/scenarioControls/reachCreatureSizeScenarioControls.ts, components/DesignPreview/steps/scenarioControls/reactiveDamageRetaliationScenarioControls.ts, components/DesignPreview/steps/scenarioControls/repeatSavesConditionExpiryScenarioControls.ts, components/DesignPreview/steps/scenarioControls/spellSlotsUpcastingScenarioControls.ts, components/DesignPreview/steps/scenarioControls/sustainActionsOngoingControlScenarioControls.ts, components/DesignPreview/steps/scenarioControls/tauntForcedTargetingScenarioControls.ts, components/DesignPreview/steps/scenarioControls/teleportationOccupiedSpacesScenarioControls.ts, hooks/combat/useActionEconomy.ts, hooks/combat/useActionExecutor.ts, hooks/combat/useGridMovement.ts, hooks/combat/useTargetValidator.ts, hooks/combat/useTurnManager.ts, hooks/useAbilitySystem.ts, systems/combat/fallingGroundImpactResolution.ts, systems/combat/reactions/companionProtectionReaction.ts, systems/spells/mechanics/directDamageSpellCastResolution.ts, systems/spells/mechanics/dispelMagicResolution.ts, systems/spells/mechanics/healingTemporaryHitPointResolution.ts, systems/spells/mechanics/reactiveDamageRetaliationResolution.ts, systems/spells/mechanics/teleportationResolution.ts, systems/spells/mechanics/witchBoltOngoingResolution.ts, utils/combat/aerialMovementUtils.ts, utils/combat/grappleUtils.ts, utils/combat/index.ts, utils/combat/multiattackUtils.ts, utils/combat/repeatSaveUtils.ts, utils/combat/shoveUtils.ts
+ * Imports: 5 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -60,7 +60,10 @@ const getActiveEffectMovementDelta = (effect: ActiveEffect): number => {
  * so speed changes can actually flow into movement.total instead of being left
  * behind on the character sheet.
  */
-export function calculateMovementTotal(character: CombatCharacter): number {
+export function calculateMovementModeTotal(
+    character: CombatCharacter,
+    mode: 'walk' | 'fly' | 'swim' | 'climb' | 'burrow',
+): number {
     const hasZeroSpeedCondition = [
         ...(character.statusEffects ?? []),
         ...(character.conditions ?? [])
@@ -79,7 +82,29 @@ export function calculateMovementTotal(character: CombatCharacter): number {
         0
     );
 
-    return Math.max(0, character.stats.speed + statusEffectDelta + activeEffectDelta);
+    const authoredSpeed = mode === 'walk'
+        ? character.stats.speed
+        : character.stats.extraMovementSpeeds?.[mode] ?? 0;
+
+    return Math.max(0, authoredSpeed + statusEffectDelta + activeEffectDelta);
+}
+
+/**
+ * Returns the largest movement mode available this turn.
+ *
+ * A single used-distance counter implements the canonical switching rule: if
+ * a creature walks 10 feet and then flies, that same 10 feet is subtracted from
+ * its Fly Speed. Mode-specific validation still stops a slower walking speed
+ * from borrowing the creature's larger flying maximum.
+ */
+export function calculateMovementTotal(character: CombatCharacter): number {
+    return Math.max(
+        calculateMovementModeTotal(character, 'walk'),
+        calculateMovementModeTotal(character, 'fly'),
+        calculateMovementModeTotal(character, 'swim'),
+        calculateMovementModeTotal(character, 'climb'),
+        calculateMovementModeTotal(character, 'burrow'),
+    );
 }
 
 const canAffordActionByType = (economy: ActionEconomyState, cost: AbilityCost): boolean => {
@@ -285,7 +310,15 @@ export function consumeActionCost(character: CombatCharacter, cost: AbilityCost)
     // creature's turn. Movement-only actions only change the movement counter.
     switch (cost.type) {
         case 'action':
-            newEconomy.action = { ...newEconomy.action, used: true };
+            // Keep the explicit finite-action counter synchronized with the
+            // historical `used` flag. Scenario controls and multi-attack
+            // adapters can now audit a real 1 -> 0 payment instead of seeing a
+            // stale remaining budget after the action was already rejected.
+            newEconomy.action = {
+                ...newEconomy.action,
+                used: true,
+                remaining: Math.max(0, (newEconomy.action.remaining ?? 1) - 1),
+            };
             break;
         case 'bonus':
             newEconomy.bonusAction = { ...newEconomy.bonusAction, used: true };

@@ -3,8 +3,8 @@
  * ARCHITECTURAL ADVISORY:
  * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 10/08/2026, 14:00:28
- * Dependents: commands/base/BaseEffectCommand.ts, commands/base/CommandExecutor.ts, commands/effects/CommandedSummonCommand.ts, commands/effects/ConcentrationCommands.ts, commands/effects/DefensiveCommand.ts, commands/effects/ElementalBaneCommand.ts, commands/effects/EnhanceAbilityCommand.ts, commands/effects/FamiliarPocketCommands.ts, commands/effects/FamiliarSharedSensesCommand.ts, commands/effects/GrantedActionCommand.ts, commands/effects/GraspingVineCommand.ts, commands/effects/MovementCommand.ts, commands/effects/NarrativeCommand.ts, commands/effects/ReactiveEffectCommand.ts, commands/effects/RegisterRiderCommand.ts, commands/effects/SummonDismissCommand.ts, commands/effects/SummonReturnHomeCommand.ts, commands/effects/SummoningCommand.ts, commands/effects/TerrainCommand.ts, commands/effects/UtilityCommand.ts, commands/factory/AbilityCommandFactory.ts, commands/factory/SpellCommandFactory.ts, commands/index.ts, systems/spells/socialServiceResolution.ts, utils/core/factories.ts
+ * Last Sync: 13/08/2026, 10:57:40
+ * Dependents: commands/base/BaseEffectCommand.ts, commands/base/CommandExecutor.ts, commands/effects/CommandedSummonCommand.ts, commands/effects/ConcentrationCommands.ts, commands/effects/DefensiveCommand.ts, commands/effects/ElementalBaneCommand.ts, commands/effects/EnhanceAbilityCommand.ts, commands/effects/FamiliarPocketCommands.ts, commands/effects/FamiliarSharedSensesCommand.ts, commands/effects/GrantedActionCommand.ts, commands/effects/GraspingVineCommand.ts, commands/effects/MovementCommand.ts, commands/effects/NarrativeCommand.ts, commands/effects/ReactiveEffectCommand.ts, commands/effects/RegisterRiderCommand.ts, commands/effects/SummonDismissCommand.ts, commands/effects/SummonReturnHomeCommand.ts, commands/effects/SummoningCommand.ts, commands/effects/TerrainCommand.ts, commands/effects/UtilityCommand.ts, commands/factory/AbilityCommandFactory.ts, commands/factory/SpellCommandFactory.ts, commands/index.ts, components/DesignPreview/steps/scenarioControls/tauntForcedTargetingScenarioControls.ts, systems/spells/socialServiceResolution.ts, utils/combat/shoveUtils.ts, utils/core/factories.ts
  * Imports: 4 files
  *
  * MULTI-AGENT SAFETY:
@@ -176,6 +176,27 @@ export interface CommandContext {
   conditionalEndings?: ConditionalEnding[]
   /** Tracks if this execution is a critical hit (5e: doubles damage dice) */
   isCritical?: boolean
+  /**
+   * Optional attack-roll source for deterministic simulations and focused
+   * tests. Ordinary combat omits it and keeps using the normal random source.
+   */
+  attackRollRng?: () => number
+  /**
+   * Optional damage-roll source threaded through every damage command in this
+   * transaction. It never changes the game's default randomness when absent.
+   */
+  damageRng?: () => number
+  /**
+   * Optional die source for pre-damage reactions such as Interception. Keeping
+   * it separate from damageRng lets deterministic proof pin both rolls without
+   * changing ordinary combat randomness.
+   */
+  reactionRng?: () => number
+  /**
+   * Stable id for one delivered damage hit. Retained/replayed callers reuse it;
+   * ordinary commands fall back to their own stable command id plus target id.
+   */
+  damageEventId?: string
   /**
    * Optional damage multiplier applied after the damage dice are rolled and
    * before resistance, immunity, damage prevention, temporary HP, and

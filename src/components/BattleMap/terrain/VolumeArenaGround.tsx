@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 13/08/2026, 04:04:44
+ * Dependents: components/BattleMap/BattleMap3D.tsx, components/BattleMap/terrain/index.ts
+ * Imports: 12 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file VolumeArenaGround.tsx — the combat arena drawn as MATTER.
  *
@@ -43,6 +59,7 @@ import {
 import { colorAtDepth } from '@/systems/worldforge/terrain/materials';
 import { meshCellRange, aoReachCellsY, AO_REACH_CELLS } from '@/systems/worldforge/terrain/surfaceNets';
 import { resolveTerrainTileCoordinates } from './terrainTileMapping';
+import { createTilePointerGestureGuard } from '../camera/battleMapCameraInput';
 import {
   arenaTilesFromMapData,
   arenaDepthDatum,
@@ -817,6 +834,7 @@ const VolumeArenaGround: React.FC<VolumeArenaGroundProps> = ({
   }, [mapData, onTileClick, width, height]);
 
   const lastHover = useRef<string | null>(null);
+  const tilePointerGesture = useMemo(() => createTilePointerGestureGuard(), []);
   const handlePointerMove = useMemo(() => {
     if (!onTileHover) return undefined;
     return (e: ThreeEvent<PointerEvent>) => {
@@ -848,8 +866,23 @@ const VolumeArenaGround: React.FC<VolumeArenaGroundProps> = ({
           material={material}
           receiveShadow
           castShadow
-          onClick={handleClick}
-          onPointerMove={handlePointerMove}
+          onPointerDown={(event: ThreeEvent<PointerEvent>) => {
+            tilePointerGesture.begin(event.nativeEvent);
+          }}
+          onPointerUp={(event: ThreeEvent<PointerEvent>) => {
+            tilePointerGesture.end(event.nativeEvent);
+          }}
+          onClick={(event: ThreeEvent<MouseEvent>) => {
+            if (!tilePointerGesture.consumeClick()) {
+              event.stopPropagation();
+              return;
+            }
+            handleClick?.(event);
+          }}
+          onPointerMove={(event: ThreeEvent<PointerEvent>) => {
+            tilePointerGesture.move(event.nativeEvent);
+            handlePointerMove?.(event);
+          }}
         />
       ))}
     </>

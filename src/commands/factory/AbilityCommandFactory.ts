@@ -3,8 +3,8 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 12/08/2026, 06:33:39
- * Dependents: commands/factory/SpellCommandFactory.ts, commands/index.ts
+ * Last Sync: 13/08/2026, 12:25:33
+ * Dependents: commands/factory/SpellCommandFactory.ts, commands/index.ts, components/DesignPreview/steps/spells/shieldScenario.tsx
  * Imports: 28 files
  *
  * MULTI-AGENT SAFETY:
@@ -60,6 +60,10 @@ import { isBoomingBladeRuntimeAbility } from './boomingBladeAttackBridge';
 import { isGreenFlameBladeRuntimeAbility } from './greenFlameBladeAttackBridge';
 import { canAffordActionCost, consumeActionCost } from '@/utils/combat/actionEconomyUtils';
 import { breakTauntsForEvent, hasTauntAttackDisadvantage } from '@/systems/combat/tauntConstraint';
+import {
+  hasUndetectedHiddenSource,
+  revealHideDerivedHiddenAfterAttack,
+} from '@/systems/perception/stealthResolution';
 
 type HeldWeaponAugment = NonNullable<NonNullable<NonNullable<CombatCharacter['activeEffects']>[number]['mechanics']>['heldWeaponAugment']>;
 
@@ -500,6 +504,17 @@ export class WeaponAttackCommand implements SpellCommand {
 
       let hasAdvantage = false;
 
+      // Hide-derived Hidden is observer-relative: it grants Advantage only
+      // while this defender has not detected the source. The status is removed
+      // after the roll is published below, so this attack keeps its benefit.
+      const hiddenAttackerAdvantage = hasUndetectedHiddenSource(
+        liveAttacker,
+        currentTarget.id,
+      );
+      if (hiddenAttackerAdvantage) {
+        hasAdvantage = true;
+      }
+
       // ================================================================
       // PRONE ATTACK MODIFIERS (2024 PHB Rules)
       // ================================================================
@@ -573,24 +588,28 @@ export class WeaponAttackCommand implements SpellCommand {
         hasAdvantage = true;
       }
 
-      // --- Lighting-based (dark maps only) ---
-      // Skip on bright-ambient maps to avoid the tile-scan cost.
+      // --- Production visibility (dark maps only) ---
+      // Cave and dungeon attacks ask the same VisibilitySystem used by both
+      // battle-map renderers. This preserves exact sense radii, makes mundane
+      // darkness dim through Darkvision, lets Blindsight work only inside its
+      // radius, and keeps magical darkness or blocked geometry hidden.
       if (state.mapData && (state.mapData.theme === 'cave' || state.mapData.theme === 'dungeon')) {
         const lightLevels = VisibilitySystem.calculateLightLevels(
           state.mapData,
           state.activeLightSources ?? []
         );
         const targetTileId = `${currentTarget.position.x}-${currentTarget.position.y}`;
-        const lightAtTarget = lightLevels.get(targetTileId) ?? 'darkness';
+        const targetVisibility = VisibilitySystem.calculateVisibility(
+          liveAttacker,
+          state.mapData,
+          lightLevels
+        ).get(targetTileId) ?? 'hidden';
 
-        if (lightAtTarget === 'darkness' || lightAtTarget === 'magical_darkness') {
-          // Need darkvision or blindsight ≥ distance (feet) to see the target.
-          const distFeet = getDistance(this.caster.position, currentTarget.position) * 5;
-          const darkvision = this.caster.stats.senses?.darkvision ?? 0;
-          const blindsight = this.caster.stats.senses?.blindsight ?? 0;
-          if (darkvision < distFeet && blindsight < distFeet) {
-            hasDisadvantage = true;
-          }
+        // An unseen target can still be attacked when its location is known,
+        // but the attack roll has Disadvantage. Dim visibility is sufficient
+        // for an ordinary attack and remains dim for perception/rendering.
+        if (targetVisibility === 'hidden') {
+          hasDisadvantage = true;
         }
       }
 
@@ -633,7 +652,7 @@ export class WeaponAttackCommand implements SpellCommand {
         if (mod === 'bonus' || mod === 'penalty') {
           const diceStr = activeEffect.mechanics.attackRollDice;
           if (diceStr) {
-             const val = rollDice(diceStr);
+             const val = rollDice(diceStr, { rng: this.context.attackRollRng });
              const signedVal = mod === 'bonus' ? val : -val;
              attackRiderDiceTotal += signedVal;
              attackRiderSources.push(`${signedVal >= 0 ? '+' : ''}${signedVal} [${activeEffect.sourceName}]`);
@@ -679,7 +698,8 @@ export class WeaponAttackCommand implements SpellCommand {
       // Use centralized rollD20 with integrated advantage/disadvantage handling
       const d20 = rollD20({
         advantage: hasAdvantage && !hasDisadvantage,
-        disadvantage: hasDisadvantage && !hasAdvantage
+        disadvantage: hasDisadvantage && !hasAdvantage,
+        rng: this.context.attackRollRng,
       });
 
       let rollStr = `Rolled ${d20}`;
@@ -800,8 +820,53 @@ export class WeaponAttackCommand implements SpellCommand {
         type: 'action',
         message: `${this.caster.name} attacks ${currentTarget.name}${coverText}. ${rollStr} + ${modifiers} = ${attackRoll} vs AC ${targetAC}. ${isHit ? (isCritical ? "CRITICAL HIT!" : "HIT!") : (isAutoMiss ? "CRITICAL MISS!" : "MISS.")}`,
         characterId: this.caster.id,
-        targetIds: [currentTarget.id]
+        targetIds: [currentTarget.id],
+        // Keep the production log machine-readable as well as player-facing.
+        // Scenario proof and reactive consumers can audit the resolved roll
+        // without parsing the prose or reimplementing attack truth.
+        data: {
+          attackRoll: d20,
+          attackModifier: modifiers,
+          attackTotal: attackRoll,
+          targetArmorClass: targetAC,
+          isHit,
+          isCritical,
+          isAutoMiss,
+          attackType: attackEventClassification.attackType,
+          weaponType: attackEventClassification.weaponType,
+          hiddenAttackerAdvantage,
+        },
       });
+
+      // Attacking ends only Hide-derived sources that opted into this trigger.
+      // Run after the attack result is logged so the current roll retains
+      // Advantage, and preserve unrelated Hidden or Invisible state exactly.
+      const liveCasterAfterRoll = newState.characters.find(
+        character => character.id === this.caster.id,
+      );
+      if (liveCasterAfterRoll) {
+        const reveal = revealHideDerivedHiddenAfterAttack(liveCasterAfterRoll);
+        if (reveal.removedStatusIds.length > 0) {
+          newState = {
+            ...newState,
+            characters: newState.characters.map(character => (
+              character.id === liveCasterAfterRoll.id ? reveal.character : character
+            )),
+            combatLog: [
+              ...newState.combatLog,
+              {
+                id: generateId(),
+                timestamp: Date.now(),
+                type: 'status',
+                message: `${liveCasterAfterRoll.name} reveals their position after attacking; Hide-derived Hidden ends.`,
+                characterId: liveCasterAfterRoll.id,
+                targetIds: [currentTarget.id],
+                data: { removedStatusIds: reveal.removedStatusIds },
+              },
+            ],
+          };
+        }
+      }
 
       if (!isHit) {
         // Some attack riders are consumed by the next matching attack even on
@@ -1381,7 +1446,8 @@ export class AbilityCommandFactory {
     targets: CombatCharacter[],
     gameState: GameState,
     selectedSpellTargets?: SelectedSpellTarget[],
-    requestReaction?: (attackerId: string, targetId: string, triggerType: 'on_hit' | 'on_take_damage', options: any[]) => Promise<string | null>
+    requestReaction?: (attackerId: string, targetId: string, triggerType: 'on_hit' | 'on_take_damage', options: any[]) => Promise<string | null>,
+    randomSources?: Pick<CommandContext, 'attackRollRng' | 'damageRng'>,
   ): SpellCommand[] {
     const context: CommandContext = {
       // Spell-created utility buttons, such as familiar dismiss/recall, have
@@ -1395,7 +1461,9 @@ export class AbilityCommandFactory {
       targets,
       selectedSpellTargets: selectedSpellTargets ?? targets.map(target => ({ kind: 'creature', id: target.id })),
       gameState,
-      requestReaction
+      requestReaction,
+      attackRollRng: randomSources?.attackRollRng,
+      damageRng: randomSources?.damageRng,
     };
 
     // Spell-created summons can have both a normal action cost and a

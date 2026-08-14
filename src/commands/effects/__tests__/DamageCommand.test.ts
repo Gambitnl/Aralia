@@ -1,3 +1,11 @@
+/**
+ * This suite verifies DamageCommand through concrete combat-state transitions.
+ *
+ * Cover cases deliberately reuse the production map calculation and saving
+ * throw utility. The tests mock only random dice totals, never cover grade,
+ * modifier ownership, HP changes, resistance, or combat-log construction.
+ */
+
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { DamageCommand } from '../DamageCommand'
 import { CombatState, CombatCharacter } from '../../../types/combat'
@@ -575,7 +583,10 @@ describe('DamageCommand', () => {
         expect(nextSaveRider).toBeUndefined();
     });
 
-    it('applies cover as a flat modifier to Dexterity saving throws', async () => {
+    it.each([
+        { decoration: 'tree', expectedBonus: 2, coverLabel: 'Half Cover' },
+        { decoration: 'pillar', expectedBonus: 5, coverLabel: 'Three-Quarters Cover' },
+    ])('applies $coverLabel as +$expectedBonus to Dexterity saving throws', async ({ decoration, expectedBonus }) => {
         const effect: SpellEffect = {
             type: "DAMAGE",
             damage: { dice: '2d6', type: 'Fire' },
@@ -603,7 +614,9 @@ describe('DamageCommand', () => {
                 seed: 1,
                 tiles: new Map([
                     ['0-0', { id: '0-0', coordinates: { x: 0, y: 0 }, terrain: 'grass', elevation: 0, movementCost: 1, blocksLoS: false, blocksMovement: false, decoration: null, effects: [] }],
-                    ['1-0', { id: '1-0', coordinates: { x: 1, y: 0 }, terrain: 'grass', elevation: 0, movementCost: 1, blocksLoS: false, blocksMovement: false, decoration: 'tree', effects: [], providesCover: true }],
+                    // Cover grade comes from the same production decoration
+                    // distinction used by attack AC: tree +2, pillar +5.
+                    ['1-0', { id: '1-0', coordinates: { x: 1, y: 0 }, terrain: 'grass', elevation: 0, movementCost: 1, blocksLoS: false, blocksMovement: decoration === 'pillar', decoration, effects: [], providesCover: true }],
                     ['2-0', { id: '2-0', coordinates: { x: 2, y: 0 }, terrain: 'grass', elevation: 0, movementCost: 1, blocksLoS: false, blocksMovement: false, decoration: null, effects: [] }]
                 ])
             }
@@ -621,7 +634,7 @@ describe('DamageCommand', () => {
         // weapon attacks already use. This makes ordinary cover meaningful for
         // saves, while cover-bypass spells such as Sacred Flame can opt out.
         const saveLog = newState.combatLog.find(l => l.message.includes('Dexterity save'));
-        expect(saveLog?.message).toContain('[Cover]');
+        expect(saveLog?.message).toContain(`+${expectedBonus} [Cover]`);
     });
 
     it('honors cover-bypass save metadata for Dexterity saving throws', async () => {
@@ -796,5 +809,48 @@ describe('DamageCommand', () => {
         expect(vi.mocked(combatUtils.rollDice).mock.calls.some(([dice]) => dice === '1d20')).toBe(false);
         expect(result.characters.find(character => character.id === plantTarget.id)?.currentHP).toBeLessThan(100);
         expect(result.combatLog.some(entry => entry.message.includes('source-backed outcome override'))).toBe(true);
+    });
+
+    // Stable external hit IDs protect retained and replayed transactions at
+    // the command boundary. Invalid supplied IDs reject before dice or state,
+    // while a valid repeated ID preserves the first HP/resource receipt.
+    it('treats a blank supplied damage event id as an atomic no-op', async () => {
+        const effect: SpellEffect = {
+            type: 'DAMAGE',
+            damage: { dice: '10d1', type: 'Fire' },
+            trigger: { type: 'immediate' },
+            condition: { type: 'always' }
+        };
+        const invalidContext = {
+            ...mockContext,
+            damageEventId: '   '
+        };
+        const result = await new DamageCommand(effect, invalidContext).execute(mockState);
+
+        expect(result).toBe(mockState);
+        expect(result.characters.find(character => character.id === mockTarget.id)?.currentHP)
+            .toBe(mockTarget.currentHP);
+        expect(result.combatLog).toHaveLength(mockState.combatLog.length);
+    });
+
+    it('applies a supplied damage event id once and rejects its replay atomically', async () => {
+        const effect: SpellEffect = {
+            type: 'DAMAGE',
+            damage: { dice: '10d1', type: 'Fire' },
+            trigger: { type: 'immediate' },
+            condition: { type: 'always' }
+        };
+        const replayContext = {
+            ...mockContext,
+            damageEventId: 'cs06-command-event-001'
+        };
+        const first = await new DamageCommand(effect, replayContext).execute(mockState);
+        const replay = await new DamageCommand(effect, replayContext).execute(first);
+        const firstTarget = first.characters.find(character => character.id === mockTarget.id);
+        const replayTarget = replay.characters.find(character => character.id === mockTarget.id);
+
+        expect(firstTarget?.currentHP).toBeLessThan(mockTarget.currentHP);
+        expect(replayTarget?.currentHP).toBe(firstTarget?.currentHP);
+        expect(replay.combatLog).toEqual(first.combatLog);
     });
 });

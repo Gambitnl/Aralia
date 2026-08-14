@@ -1,5 +1,5 @@
 /**
- * This file proves deterministic initiative ties and shared-initiative order.
+ * This file proves Aralia's deterministic house tie policy and shared order.
  *
  * The tests use real CombatCharacter facts so the Tactical Sandbox and combat
  * hooks cannot drift into different tie breakers. They also prove that a shared
@@ -53,7 +53,7 @@ describe('buildInitiativeOrder', () => {
     expect(rollInitiativeTotal(actor, () => 0.45)).toBe(15);
   });
 
-  it('uses total, Dexterity, initiative bonus, then stable authored order', () => {
+  it('uses Aralia house order: total, Dexterity, bonus, then stable authored order', () => {
     const slowTotal = createInitiativeActor('slow-total', 12, 20, 5);
     const highDexterity = createInitiativeActor('high-dexterity', 15, 18, 0);
     const highBonus = createInitiativeActor('high-bonus', 15, 16, 3);

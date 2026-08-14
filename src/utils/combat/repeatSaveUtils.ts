@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 12/08/2026, 00:25:43
+ * Last Sync: 13/08/2026, 03:23:13
  * Dependents: components/DesignPreview/steps/scenarioControls/repeatSavesConditionExpiryScenarioControls.ts, hooks/combat/engine/useCombatEngine.ts, hooks/combat/useTurnManager.ts
  * Imports: 2 files
  *
@@ -140,8 +140,9 @@ export function removeRepeatSaveLinkedEffects(
 // Turn-Start Duration Ticking
 // ============================================================================
 // Status effects use numeric remaining rounds, while structured conditions use
-// EffectDuration. This helper advances both representations at the same turn
-// start and removes both when either mirror reaches the expiry boundary.
+// EffectDuration. Explicit until-removed effects and their permanent condition
+// mirrors survive the clock; timed pairs advance together and disappear when
+// either mirror reaches the expiry boundary.
 // ============================================================================
 
 export interface StatusConditionDurationAdvanceResult {
@@ -156,6 +157,12 @@ function isTurnEndCondition(condition: ActiveCondition): boolean {
     || condition.duration.type === 'turn_end';
 }
 
+function isPersistentCondition(condition: ActiveCondition): boolean {
+  // Permanent conditions are ended by a named rule action rather than elapsed
+  // turns. Prone uses this path and Stand Up removes both mirrors explicitly.
+  return condition.duration.type === 'permanent';
+}
+
 export function advanceStatusConditionDurationsAtTurnStart(
   character: CombatCharacter,
 ): StatusConditionDurationAdvanceResult {
@@ -164,15 +171,25 @@ export function advanceStatusConditionDurationsAtTurnStart(
       .filter(isTurnEndCondition)
       .map(condition => String(condition.name)),
   );
+  const persistentConditionNames = new Set(
+    (character.conditions ?? [])
+      .filter(isPersistentCondition)
+      .map(condition => String(condition.name)),
+  );
   const expiredStatusNames = new Set<string>();
   const tickedStatusEffects = character.statusEffects
     .map(status => (
-      turnEndConditionNames.has(String(status.name))
+      status.persistsUntilRemoved
+        || turnEndConditionNames.has(String(status.name))
+        || persistentConditionNames.has(String(status.name))
         ? status
         : { ...status, duration: status.duration - 1 }
     ))
     .filter(status => {
-      const keep = turnEndConditionNames.has(String(status.name)) || status.duration > 0;
+      const keep = status.persistsUntilRemoved
+        || turnEndConditionNames.has(String(status.name))
+        || persistentConditionNames.has(String(status.name))
+        || status.duration > 0;
       if (!keep) {
         expiredStatusNames.add(String(status.name));
       }

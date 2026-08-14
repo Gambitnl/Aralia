@@ -3,8 +3,8 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 10/08/2026, 13:58:44
- * Dependents: commands/effects/GraspingVineCommand.ts, commands/effects/ReactiveEffectCommand.ts, commands/factory/AbilityCommandFactory.ts, commands/factory/SpellCommandFactory.ts, hooks/combat/engine/useCombatEngine.ts
+ * Last Sync: 13/08/2026, 16:00:36
+ * Dependents: commands/effects/GraspingVineCommand.ts, commands/effects/ReactiveEffectCommand.ts, commands/factory/AbilityCommandFactory.ts, commands/factory/SpellCommandFactory.ts, components/DesignPreview/steps/scenarioControls/tauntForcedTargetingScenarioControls.ts, hooks/combat/engine/useCombatEngine.ts, utils/combat/shoveUtils.ts
  * Imports: 11 files
  *
  * MULTI-AGENT SAFETY:
@@ -55,7 +55,9 @@ interface TenserDiskRemoval {
  *
  * @remarks
  * Movement calculations assume a standard 5-foot grid system.
- * Forced movement stops early if the path is blocked by terrain or other creatures.
+ * Physical push and pull effects validate their complete authored path before
+ * moving anyone. A wall, creature, map edge, or invalid direction therefore
+ * rejects the displacement without leaving the target partway along the path.
  */
 export class MovementCommand extends BaseEffectCommand {
     private static readonly RAY_OF_FROST_SLOW_NAME = 'Ray of Frost Slow'
@@ -119,53 +121,37 @@ export class MovementCommand extends BaseEffectCommand {
         const distance = effect.distance || 0
         const tiles = Math.floor(distance / 5)
 
-        // Calculate direction away from caster
-        const dx = target.position.x - caster.position.x
-        const dy = target.position.y - caster.position.y
-        const magnitude = Math.sqrt(dx * dx + dy * dy)
-
-        if (magnitude === 0) return state // Same position, can't push
-
-        // Iterate tiles to find furthest valid position
-        let bestX = target.position.x
-        let bestY = target.position.y
-        const movementPath: Position[] = [target.position]
-
-        for (let i = 1; i <= tiles; i++) {
-            const nextX = target.position.x + Math.round((dx / magnitude) * i)
-            const nextY = target.position.y + Math.round((dy / magnitude) * i)
-
-            if (this.validatePosition(state, { x: nextX, y: nextY }, target.id)) {
-                bestX = nextX
-                bestY = nextY
-                if (movementPath[movementPath.length - 1].x !== nextX || movementPath[movementPath.length - 1].y !== nextY) {
-                    movementPath.push({ x: nextX, y: nextY })
-                }
-            } else {
-                // Blocked or off-map, stop pushing
-                break
-            }
-        }
-
-        // Check if we actually moved
-        if (bestX === target.position.x && bestY === target.position.y) {
+        // Resolve every authored square before changing the target. This keeps
+        // a blocked last square from turning a ten-foot push into an unintended
+        // five-foot push, and it also rejects zero/NaN/rounding-stalled vectors.
+        const resolvedPath = this.resolveAtomicForcedMovementPath(
+            state,
+            target,
+            caster.position,
+            tiles,
+            'away'
+        )
+        if (!resolvedPath.path) {
             return this.addLogEntry(state, {
                 type: 'action',
-                message: `${target.name} cannot be pushed (blocked)`,
+                message: `${target.name} cannot be pushed (${resolvedPath.reason})`,
                 characterId: target.id
             })
         }
 
+        const movementPath = resolvedPath.path
+        const destination = movementPath[movementPath.length - 1]
+
         const updatedState = this.updateCharacter(state, target.id, {
-            position: { x: bestX, y: bestY }
+            position: destination
         })
-        const landingState = this.applyLandingTerrainEffects(updatedState, target.id, { x: bestX, y: bestY })
-        const zoneState = applyCommandAreaMovementEffects(landingState, target.id, target.position, { x: bestX, y: bestY }, movementPath)
-        const distanceMoved = Math.round(Math.sqrt(Math.pow(bestX - target.position.x, 2) + Math.pow(bestY - target.position.y, 2)) * 5)
+        const landingState = this.applyLandingTerrainEffects(updatedState, target.id, destination)
+        const zoneState = applyCommandAreaMovementEffects(landingState, target.id, target.position, destination, movementPath)
+        const distanceMoved = tiles * 5
 
         return this.addLogEntry(zoneState, {
             type: 'action',
-            message: `${target.name} is pushed ${distanceMoved} feet${this.describeLandingTerrain(state, { x: bestX, y: bestY })}`,
+            message: `${target.name} is pushed ${distanceMoved} feet${this.describeLandingTerrain(state, destination)}`,
             characterId: target.id
         })
     }
@@ -192,57 +178,101 @@ export class MovementCommand extends BaseEffectCommand {
         const distance = effect.distance || 0
         const tiles = Math.floor(distance / 5)
 
-        // Calculate direction toward caster
-        const dx = caster.position.x - target.position.x
-        const dy = caster.position.y - target.position.y
-        const magnitude = Math.sqrt(dx * dx + dy * dy)
-
-        if (magnitude === 0) return state // Same position
-
-        let bestX = target.position.x
-        let bestY = target.position.y
-        const movementPath: Position[] = [target.position]
-
-        for (let i = 1; i <= tiles; i++) {
-            const nextX = target.position.x + Math.round((dx / magnitude) * i)
-            const nextY = target.position.y + Math.round((dy / magnitude) * i)
-
-            // Don't pull ONTO the caster (unless they are ghost/flying? assume no for now)
-            if (nextX === caster.position.x && nextY === caster.position.y) {
-                break
-            }
-
-            if (this.validatePosition(state, { x: nextX, y: nextY }, target.id)) {
-                bestX = nextX
-                bestY = nextY
-                if (movementPath[movementPath.length - 1].x !== nextX || movementPath[movementPath.length - 1].y !== nextY) {
-                    movementPath.push({ x: nextX, y: nextY })
-                }
-            } else {
-                break
-            }
-        }
-
-        if (bestX === target.position.x && bestY === target.position.y) {
+        // Pull uses the same all-or-nothing path contract as push. The live
+        // caster (or spell-object origin) remains an occupied blocker, so an
+        // authored pull can never overlap its source.
+        const resolvedPath = this.resolveAtomicForcedMovementPath(
+            state,
+            target,
+            caster.position,
+            tiles,
+            'toward'
+        )
+        if (!resolvedPath.path) {
             return this.addLogEntry(state, {
                 type: 'action',
-                message: `${target.name} cannot be pulled (blocked)`,
+                message: `${target.name} cannot be pulled (${resolvedPath.reason})`,
                 characterId: target.id
             })
         }
 
+        const movementPath = resolvedPath.path
+        const destination = movementPath[movementPath.length - 1]
+
         const updatedState = this.updateCharacter(state, target.id, {
-            position: { x: bestX, y: bestY }
+            position: destination
         })
-        const landingState = this.applyLandingTerrainEffects(updatedState, target.id, { x: bestX, y: bestY })
-        const zoneState = applyCommandAreaMovementEffects(landingState, target.id, target.position, { x: bestX, y: bestY }, movementPath)
-        const distanceMoved = Math.round(Math.sqrt(Math.pow(bestX - target.position.x, 2) + Math.pow(bestY - target.position.y, 2)) * 5)
+        const landingState = this.applyLandingTerrainEffects(updatedState, target.id, destination)
+        const zoneState = applyCommandAreaMovementEffects(landingState, target.id, target.position, destination, movementPath)
+        const distanceMoved = tiles * 5
 
         return this.addLogEntry(zoneState, {
             type: 'action',
-            message: `${target.name} is pulled ${distanceMoved} feet${this.describeLandingTerrain(state, { x: bestX, y: bestY })}`,
+            message: `${target.name} is pulled ${distanceMoved} feet${this.describeLandingTerrain(state, destination)}`,
             characterId: target.id
         })
+    }
+
+    /**
+     * Builds the complete straight-line path for a physical push or pull.
+     *
+     * No character or map state changes here. The caller receives a path only
+     * when every authored square is distinct, on-board, unblocked, and empty.
+     */
+    private resolveAtomicForcedMovementPath(
+        state: CombatState,
+        target: CombatCharacter,
+        sourcePosition: Position,
+        tiles: number,
+        direction: 'away' | 'toward'
+    ): { path: Position[] | null; reason: 'blocked' | 'invalid vector' } {
+        const directionSign = direction === 'away' ? 1 : -1
+        const dx = (target.position.x - sourcePosition.x) * directionSign
+        const dy = (target.position.y - sourcePosition.y) * directionSign
+        const magnitude = Math.sqrt(dx * dx + dy * dy)
+
+        // A physical effect needs at least one five-foot square and a finite,
+        // non-zero source-to-target direction. Reject malformed coordinates
+        // before rounding can produce a misleading destination.
+        if (
+            tiles < 1
+            || !Number.isFinite(magnitude)
+            || magnitude === 0
+            || !Number.isFinite(target.position.x)
+            || !Number.isFinite(target.position.y)
+        ) {
+            return { path: null, reason: 'invalid vector' }
+        }
+
+        const path: Position[] = [{ ...target.position }]
+        for (let step = 1; step <= tiles; step++) {
+            const nextPosition = {
+                x: target.position.x + Math.round((dx / magnitude) * step),
+                y: target.position.y + Math.round((dy / magnitude) * step)
+            }
+            const previousPosition = path[path.length - 1]
+
+            // Rounding an oblique vector can repeat a square. Treat that as an
+            // invalid authored vector rather than reporting movement farther
+            // than the token actually travelled.
+            if (
+                nextPosition.x === previousPosition.x
+                && nextPosition.y === previousPosition.y
+            ) {
+                return { path: null, reason: 'invalid vector' }
+            }
+
+            // Validate every square against the original state. Nothing has
+            // moved yet, so a failure at any distance leaves the target, hazard
+            // state, and movement allowance exactly where they began.
+            if (!this.validatePosition(state, nextPosition, target.id)) {
+                return { path: null, reason: 'blocked' }
+            }
+
+            path.push(nextPosition)
+        }
+
+        return { path, reason: 'blocked' }
     }
 
     /**

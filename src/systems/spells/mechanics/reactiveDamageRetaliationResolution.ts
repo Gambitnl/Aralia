@@ -3,8 +3,8 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 12/08/2026, 05:47:47
- * Dependents: components/DesignPreview/steps/scenarioControls/reactiveDamageRetaliationScenarioControls.ts
+ * Last Sync: 13/08/2026, 09:59:41
+ * Dependents: components/DesignPreview/steps/scenarioControls/reactiveDamageRetaliationScenarioControls.ts, systems/combat/reactions/postDamageReactionQueue.ts
  * Imports: 11 files
  *
  * MULTI-AGENT SAFETY:
@@ -15,17 +15,15 @@
 // @dependencies-end
 
 /**
- * This file resolves one damage event followed by a Hellish Rebuke response.
+ * This file resolves Hellish Rebuke after the normal damage command commits HP.
  *
- * Hellish Rebuke already has complete spell data, but the combat event buses do
- * not yet turn a resolved damage event into a reaction-spell opportunity. This
- * narrow production helper supplies that missing rules transaction: it applies
- * the triggering damage first, checks event identity, range, sight, condition,
- * Reaction, and spell slot, then uses the shared save, damage, defense, and HP
- * systems for the retaliation. A later event-bus integration can call this
- * helper without moving any of those rules into UI code.
+ * DamageCommand is the sole owner of the triggering hit. It publishes a stable
+ * post-HP event containing the already-resolved HP receipt. This module checks
+ * that event, applies the explicit accept or decline decision, pays the exact
+ * Reaction and spell slot, then uses shared save, defense, and downing helpers
+ * for the retaliation. It never reapplies the triggering damage.
  *
- * Called by: the Tactical Sandbox Reactive Damage & Retaliation adapter.
+ * Called by: the production post-damage reaction queue and Tactical Sandbox.
  * Depends on: canonical Hellish Rebuke JSON and shared combat-rule utilities.
  */
 
@@ -57,10 +55,10 @@ import { hasLineOfSight } from '../../../utils/spatial/lineOfSight';
 import { ScalingEngine } from './ScalingEngine';
 
 // ============================================================================
-// Canonical Spell Facts
+// Canonical Spell Facts And Ownership
 // ============================================================================
-// Every spell-owned fact comes from the live JSON record. Missing or malformed
-// data rejects the transaction instead of falling back to a scenario rule.
+// Range, cost, save, dice, and scaling all come from the live spell record.
+// Character ownership still comes from the actor's authored ability list.
 // ============================================================================
 
 const HELLISH_REBUKE = hellishRebukeData as unknown as Spell;
@@ -71,24 +69,50 @@ const HELLISH_REBUKE_DAMAGE_EFFECT = HELLISH_REBUKE.effects.find(
 export const HELLISH_REBUKE_RANGE_FEET = HELLISH_REBUKE.range.distance;
 export const HELLISH_REBUKE_BASE_LEVEL = HELLISH_REBUKE.level;
 
+export function getOwnedHellishRebukeSpells(retaliator: CombatCharacter): Spell[] {
+  // Return the character-owned spell objects so the reaction prompt presents
+  // the same labels and IDs as the rest of the ability system. The resolver
+  // below still reads rules from canonical JSON, preventing sheet drift from
+  // changing range, damage, or payment.
+  return (retaliator.abilities ?? [])
+    .map(ability => ability.spell)
+    .filter((spell): spell is Spell => (
+      spell?.id === HELLISH_REBUKE.id
+      && String(spell.castingTime?.unit ?? '').toLowerCase() === 'reaction'
+    ));
+}
+
 // ============================================================================
-// Public Event And Receipt Contract
+// Public Post-HP Event And Receipt Contract
 // ============================================================================
-// The caller supplies the resolved hit/damage fact and an event id. The result
-// carries both changed actors and a readable ordering receipt so UI, tests, and
-// future event-bus wiring can inspect the same decision without parsing logs.
+// The event records damage that has already happened. Its stable ID owns both
+// the prompt and the response, so a replay is a no-op across UI invocations.
 // ============================================================================
 
 export interface ReactiveDamageEvent {
   id: string;
+  boundary: 'post_hp';
+  sourceCharacterId: string;
+  targetCharacterId: string;
   isHit: boolean;
-  damage: number;
+  rawDamage: number;
+  finalDamage: number;
   damageType: string;
+  hpBefore: number;
+  hpAfter: number;
+  tempHPBefore?: number;
+  tempHPAfter?: number;
+  targetDownedAfter?: boolean;
+  targetIncapacitatedAfter?: boolean;
 }
+
+export type ReactiveDamageRetaliationChoice = 'accept' | 'decline';
 
 export type ReactiveDamageRetaliationReason =
   | 'resolved'
+  | 'declined'
   | 'duplicate_event'
+  | 'invalid_event_ownership'
   | 'attack_missed'
   | 'no_triggering_damage'
   | 'retaliator_downed'
@@ -102,8 +126,15 @@ export type ReactiveDamageRetaliationReason =
 
 export type ReactiveDamageDefense = 'none' | 'resistance' | 'immunity' | 'vulnerability';
 
+export interface ReactiveDamageRetaliationEligibility {
+  eligible: boolean;
+  reason: ReactiveDamageRetaliationReason;
+  distanceFeet: number;
+  lineOfSight: boolean;
+}
+
 export interface ReactiveDamageRetaliationReceipt {
-  outcome: 'resolved' | 'rejected';
+  outcome: 'resolved' | 'declined' | 'rejected';
   reason: ReactiveDamageRetaliationReason;
   attacker: CombatCharacter;
   retaliator: CombatCharacter;
@@ -136,8 +167,9 @@ export interface ReactiveDamageRetaliationReceipt {
 export interface ResolveReactiveDamageRetaliationInput {
   attacker: CombatCharacter;
   retaliator: CombatCharacter;
-  mapData: BattleMapData;
+  mapData: BattleMapData | null;
   event: ReactiveDamageEvent;
+  choice: ReactiveDamageRetaliationChoice;
   castAtLevel?: number;
   resolvedEventIds?: readonly string[];
   /** Deterministic tests and previews can inject dice; normal play can omit it. */
@@ -149,293 +181,162 @@ export interface ResolveReactiveDamageRetaliationInput {
 // ============================================================================
 // Map, Cost, And Defense Helpers
 // ============================================================================
-// These helpers adapt the existing shared systems into the one transaction. No
-// helper owns a second damage, sight, spell-slot, or incapacitation rule.
+// Mapless encounters retain the existing theater-of-the-mind visibility rule.
+// A populated but incomplete map rejects rather than inventing line of sight.
 // ============================================================================
 
 function getLineOfSight(
-  mapData: BattleMapData,
+  mapData: BattleMapData | null,
   retaliator: CombatCharacter,
   attacker: CombatCharacter,
 ): boolean | null {
+  if (!mapData) return true;
+
   const retaliatorTile = mapData.tiles.get(`${retaliator.position.x}-${retaliator.position.y}`);
   const attackerTile = mapData.tiles.get(`${attacker.position.x}-${attacker.position.y}`);
-  if (!retaliatorTile || !attackerTile) {
-    return null;
-  }
+  if (!retaliatorTile || !attackerTile) return null;
 
   return hasLineOfSight(retaliatorTile, attackerTile, mapData);
 }
 
-function createHellishRebukeCost(
-  retaliator: CombatCharacter,
-  castAtLevel: number,
-) {
-  // The shared spell adapter reads the live casting-time resource. Adding the
-  // chosen slot level tells the canonical ledger which inventory row to spend.
+function createHellishRebukeCost(retaliator: CombatCharacter, castAtLevel: number) {
   const ability = createAbilityFromSpell(
     HELLISH_REBUKE,
     retaliator as unknown as PlayerCharacter,
   );
-  return {
-    ...ability.cost,
-    spellSlotLevel: castAtLevel,
-  };
+  return { ...ability.cost, spellSlotLevel: castAtLevel };
 }
 
 function describeDefense(
   damageAfterSave: number,
   finalDamage: number,
 ): ReactiveDamageDefense {
-  if (damageAfterSave > 0 && finalDamage === 0) {
-    return 'immunity';
-  }
-  if (finalDamage < damageAfterSave) {
-    return 'resistance';
-  }
-  if (finalDamage > damageAfterSave) {
-    return 'vulnerability';
-  }
+  if (damageAfterSave > 0 && finalDamage === 0) return 'immunity';
+  if (finalDamage < damageAfterSave) return 'resistance';
+  if (finalDamage > damageAfterSave) return 'vulnerability';
   return 'none';
 }
 
-function appendEventId(
-  resolvedEventIds: readonly string[],
-  eventId: string,
-): string[] {
-  return [...resolvedEventIds, eventId];
+function triggeringReceipt(event: ReactiveDamageEvent) {
+  return {
+    raw: event.rawDamage,
+    final: event.finalDamage,
+    hpBefore: event.hpBefore,
+    hpAfter: event.hpAfter,
+  };
 }
 
 // ============================================================================
-// Ordered Damage-To-Reaction Resolution
+// Eligibility Before Player Choice
 // ============================================================================
-// The triggering hit is committed before the reaction eligibility check. That
-// order matters: a hit that downs or incapacitates the retaliator prevents the
-// reaction, while a legal response can subsequently down the attacker.
+// The queue calls this before opening a prompt. Invalid triggers therefore do
+// not spend resources and do not ask the player to choose an impossible spell.
+// ============================================================================
+
+export function getReactiveDamageRetaliationEligibility(
+  input: Omit<ResolveReactiveDamageRetaliationInput, 'choice' | 'damageRng' | 'saveRng'>,
+): ReactiveDamageRetaliationEligibility {
+  const distanceFeet = getCharacterDistance(input.retaliator, input.attacker) * 5;
+  const rejected = (
+    reason: ReactiveDamageRetaliationReason,
+    lineOfSight = true,
+  ): ReactiveDamageRetaliationEligibility => ({ eligible: false, reason, distanceFeet, lineOfSight });
+
+  if ((input.resolvedEventIds ?? []).includes(input.event.id)) return rejected('duplicate_event', false);
+  if (
+    input.event.boundary !== 'post_hp'
+    || input.event.sourceCharacterId !== input.attacker.id
+    || input.event.targetCharacterId !== input.retaliator.id
+  ) return rejected('invalid_event_ownership', false);
+  if (!input.event.isHit) return rejected('attack_missed');
+  if (input.event.finalDamage <= 0) return rejected('no_triggering_damage');
+  if (input.event.targetDownedAfter || input.event.hpAfter <= 0) return rejected('retaliator_downed');
+  if (input.event.targetIncapacitatedAfter || isIncapacitated(input.retaliator)) return rejected('retaliator_incapacitated');
+  if (distanceFeet > HELLISH_REBUKE_RANGE_FEET) return rejected('attacker_out_of_range');
+
+  const lineOfSight = getLineOfSight(input.mapData, input.retaliator, input.attacker);
+  if (lineOfSight === null) return rejected('missing_map_tile', false);
+  if (!lineOfSight) return rejected('attacker_not_visible', false);
+
+  const damageEffect = HELLISH_REBUKE_DAMAGE_EFFECT;
+  if (
+    !damageEffect?.damage.dice
+    || !damageEffect.condition.saveType
+    || HELLISH_REBUKE.castingTime.unit !== 'reaction'
+  ) return rejected('missing_canonical_spell_data', lineOfSight);
+
+  const castAtLevel = input.castAtLevel ?? HELLISH_REBUKE_BASE_LEVEL;
+  if (!Number.isInteger(castAtLevel) || castAtLevel < HELLISH_REBUKE_BASE_LEVEL || castAtLevel > 9) {
+    return rejected('invalid_cast_level', lineOfSight);
+  }
+
+  if (!canAffordActionCost(input.retaliator, createHellishRebukeCost(input.retaliator, castAtLevel))) {
+    return rejected('reaction_or_slot_unavailable', lineOfSight);
+  }
+
+  return { eligible: true, reason: 'resolved', distanceFeet, lineOfSight };
+}
+
+// ============================================================================
+// Explicit Choice And Retaliation Resolution
+// ============================================================================
+// Every non-duplicate event is claimed exactly once, including decline and
+// rejection. The triggering receipt is reported but never applied here.
 // ============================================================================
 
 export function resolveReactiveDamageRetaliation(
   input: ResolveReactiveDamageRetaliationInput,
 ): ReactiveDamageRetaliationReceipt {
   const resolvedEventIds = input.resolvedEventIds ?? [];
-  const distanceFeet = getCharacterDistance(input.retaliator, input.attacker) * 5;
-
-  // An event id is a once-only boundary for both the triggering damage and the
-  // response. Replaying the same event cannot double either side of the trade.
-  if (resolvedEventIds.includes(input.event.id)) {
-    return {
-      outcome: 'rejected',
-      reason: 'duplicate_event',
-      attacker: input.attacker,
-      retaliator: input.retaliator,
-      resolvedEventIds: [...resolvedEventIds],
-      distanceFeet,
-      lineOfSight: false,
-      triggeringDamage: {
-        raw: 0,
-        final: 0,
-        hpBefore: input.retaliator.currentHP,
-        hpAfter: input.retaliator.currentHP,
-      },
-      order: ['Duplicate event rejected before triggering damage or retaliation.'],
-    };
-  }
-
-  const nextEventIds = appendEventId(resolvedEventIds, input.event.id);
-
-  // A miss never deals the authored triggering damage and therefore cannot
-  // open Hellish Rebuke's "damages you" reaction window.
-  if (!input.event.isHit) {
-    return {
-      outcome: 'rejected',
-      reason: 'attack_missed',
-      attacker: input.attacker,
-      retaliator: input.retaliator,
-      resolvedEventIds: nextEventIds,
-      distanceFeet,
-      lineOfSight: true,
-      triggeringDamage: {
-        raw: 0,
-        final: 0,
-        hpBefore: input.retaliator.currentHP,
-        hpAfter: input.retaliator.currentHP,
-      },
-      order: ['1. Attack misses; no triggering damage is applied.'],
-    };
-  }
-
-  // The triggering attack uses the normal defense pipeline before HP changes.
-  // Hellish Rebuke requires actual damage, so a zero final result is not enough.
-  const triggeringDamage = calculateDamage(
-    input.event.damage,
-    input.attacker,
-    input.retaliator,
-    input.event.damageType,
-  );
-  const damagedRetaliator = applyDamageAndCheckDowned(
-    input.retaliator,
-    triggeringDamage,
-  );
-  const triggeringReceipt = {
-    raw: input.event.damage,
-    final: triggeringDamage,
-    hpBefore: input.retaliator.currentHP,
-    hpAfter: damagedRetaliator.currentHP,
-  };
-  const order = [
-    `1. Triggering hit deals ${triggeringDamage} ${input.event.damageType} damage; retaliator HP ${input.retaliator.currentHP} -> ${damagedRetaliator.currentHP}.`,
+  const eligibility = getReactiveDamageRetaliationEligibility(input);
+  const eventIds = eligibility.reason === 'duplicate_event'
+    ? [...resolvedEventIds]
+    : [...resolvedEventIds, input.event.id];
+  const trigger = triggeringReceipt(input.event);
+  const committedOrder = [
+    `1. Post-HP event ${input.event.id} records ${input.event.finalDamage} ${input.event.damageType} damage; retaliator HP ${input.event.hpBefore} -> ${input.event.hpAfter}.`,
   ];
 
-  if (triggeringDamage <= 0) {
+  if (!eligibility.eligible) {
     return {
       outcome: 'rejected',
-      reason: 'no_triggering_damage',
+      reason: eligibility.reason,
       attacker: input.attacker,
-      retaliator: damagedRetaliator,
-      resolvedEventIds: nextEventIds,
-      distanceFeet,
-      lineOfSight: true,
-      triggeringDamage: triggeringReceipt,
-      order: [...order, '2. No damage was taken, so no reaction window opens.'],
+      retaliator: input.retaliator,
+      resolvedEventIds: eventIds,
+      distanceFeet: eligibility.distanceFeet,
+      lineOfSight: eligibility.lineOfSight,
+      triggeringDamage: trigger,
+      order: eligibility.reason === 'duplicate_event'
+        ? ['Duplicate post-HP event rejected before prompt, payment, or retaliation.']
+        : [...committedOrder, `2. Reaction rejected: ${eligibility.reason}.`],
     };
   }
 
-  // The hit has already landed. A creature at zero HP cannot answer it, even
-  // if its Reaction and spell slot were ready before the damage was applied.
-  if (damagedRetaliator.currentHP <= 0) {
+  if (input.choice === 'decline') {
     return {
-      outcome: 'rejected',
-      reason: 'retaliator_downed',
+      outcome: 'declined',
+      reason: 'declined',
       attacker: input.attacker,
-      retaliator: damagedRetaliator,
-      resolvedEventIds: nextEventIds,
-      distanceFeet,
-      lineOfSight: true,
-      triggeringDamage: triggeringReceipt,
-      order: [...order, '2. Retaliator is down after the hit and cannot take a Reaction.'],
+      retaliator: input.retaliator,
+      resolvedEventIds: eventIds,
+      distanceFeet: eligibility.distanceFeet,
+      lineOfSight: eligibility.lineOfSight,
+      triggeringDamage: trigger,
+      order: [...committedOrder, '2. Hellish Rebuke is declined; Reaction and spell slot remain ready.'],
     };
   }
 
-  if (isIncapacitated(damagedRetaliator)) {
-    return {
-      outcome: 'rejected',
-      reason: 'retaliator_incapacitated',
-      attacker: input.attacker,
-      retaliator: damagedRetaliator,
-      resolvedEventIds: nextEventIds,
-      distanceFeet,
-      lineOfSight: true,
-      triggeringDamage: triggeringReceipt,
-      order: [...order, '2. Retaliator is incapacitated and cannot take a Reaction.'],
-    };
-  }
-
-  if (distanceFeet > HELLISH_REBUKE_RANGE_FEET) {
-    return {
-      outcome: 'rejected',
-      reason: 'attacker_out_of_range',
-      attacker: input.attacker,
-      retaliator: damagedRetaliator,
-      resolvedEventIds: nextEventIds,
-      distanceFeet,
-      lineOfSight: true,
-      triggeringDamage: triggeringReceipt,
-      order: [...order, `2. Attacker is ${distanceFeet} feet away, beyond the ${HELLISH_REBUKE_RANGE_FEET}-foot reaction range.`],
-    };
-  }
-
-  const lineOfSight = getLineOfSight(input.mapData, damagedRetaliator, input.attacker);
-  if (lineOfSight === null) {
-    return {
-      outcome: 'rejected',
-      reason: 'missing_map_tile',
-      attacker: input.attacker,
-      retaliator: damagedRetaliator,
-      resolvedEventIds: nextEventIds,
-      distanceFeet,
-      lineOfSight: false,
-      triggeringDamage: triggeringReceipt,
-      order: [...order, '2. Reaction rejected because an actor map tile is unavailable.'],
-    };
-  }
-  if (!lineOfSight) {
-    return {
-      outcome: 'rejected',
-      reason: 'attacker_not_visible',
-      attacker: input.attacker,
-      retaliator: damagedRetaliator,
-      resolvedEventIds: nextEventIds,
-      distanceFeet,
-      lineOfSight,
-      triggeringDamage: triggeringReceipt,
-      order: [...order, '2. Total Cover blocks sight, so Hellish Rebuke cannot target the attacker.'],
-    };
-  }
-
-  const damageEffect = HELLISH_REBUKE_DAMAGE_EFFECT;
+  const damageEffect = HELLISH_REBUKE_DAMAGE_EFFECT!;
   const castAtLevel = input.castAtLevel ?? HELLISH_REBUKE_BASE_LEVEL;
-  if (
-    !damageEffect?.damage.dice
-    || !damageEffect.condition.saveType
-    || HELLISH_REBUKE.castingTime.unit !== 'reaction'
-  ) {
-    return {
-      outcome: 'rejected',
-      reason: 'missing_canonical_spell_data',
-      attacker: input.attacker,
-      retaliator: damagedRetaliator,
-      resolvedEventIds: nextEventIds,
-      distanceFeet,
-      lineOfSight,
-      triggeringDamage: triggeringReceipt,
-      order: [...order, '2. Canonical Hellish Rebuke damage, save, or Reaction metadata is unavailable.'],
-    };
-  }
-
-  // Spell slots exist only at whole-numbered levels from the spell's canonical
-  // base level through level 9. Rejecting malformed levels here preserves the
-  // triggering hit and event receipt, but prevents an invalid cost from
-  // bypassing inventory checks or reaching the retaliation scaling pipeline.
-  if (
-    !Number.isInteger(castAtLevel)
-    || castAtLevel < HELLISH_REBUKE_BASE_LEVEL
-    || castAtLevel > 9
-  ) {
-    return {
-      outcome: 'rejected',
-      reason: 'invalid_cast_level',
-      attacker: input.attacker,
-      retaliator: damagedRetaliator,
-      resolvedEventIds: nextEventIds,
-      distanceFeet,
-      lineOfSight,
-      triggeringDamage: triggeringReceipt,
-      order: [...order, '2. Reaction rejected because the chosen spell level is invalid.'],
-    };
-  }
-
-  const cost = createHellishRebukeCost(damagedRetaliator, castAtLevel);
-  if (!canAffordActionCost(damagedRetaliator, cost)) {
-    return {
-      outcome: 'rejected',
-      reason: 'reaction_or_slot_unavailable',
-      attacker: input.attacker,
-      retaliator: damagedRetaliator,
-      resolvedEventIds: nextEventIds,
-      distanceFeet,
-      lineOfSight,
-      triggeringDamage: triggeringReceipt,
-      order: [...order, '2. Reaction or chosen spell slot is unavailable; no response cost or damage is applied.'],
-    };
-  }
-
-  // Payment happens only after every trigger and targeting guard passes. The
-  // save and damage then resolve through the same helpers used by normal spells.
-  const paidRetaliator = consumeActionCost(damagedRetaliator, cost);
+  const paidRetaliator = consumeActionCost(
+    input.retaliator,
+    createHellishRebukeCost(input.retaliator, castAtLevel),
+  );
   const saveDC = calculateSpellDC(paidRetaliator);
   const save = rollSavingThrow(
     input.attacker,
-    damageEffect.condition.saveType,
+    damageEffect.condition.saveType!,
     saveDC,
     undefined,
     { damageType: damageEffect.damage.type, tags: HELLISH_REBUKE.tags },
@@ -469,10 +370,10 @@ export function resolveReactiveDamageRetaliation(
     reason: 'resolved',
     attacker: damagedAttacker,
     retaliator: paidRetaliator,
-    resolvedEventIds: nextEventIds,
-    distanceFeet,
-    lineOfSight,
-    triggeringDamage: triggeringReceipt,
+    resolvedEventIds: eventIds,
+    distanceFeet: eligibility.distanceFeet,
+    lineOfSight: eligibility.lineOfSight,
+    triggeringDamage: trigger,
     retaliation: {
       spellId: HELLISH_REBUKE.id,
       dice: scaledDice,
@@ -488,8 +389,8 @@ export function resolveReactiveDamageRetaliation(
       attackerDowned: damagedAttacker.currentHP <= 0,
     },
     order: [
-      ...order,
-      `2. Hellish Rebuke spends Reaction and level-${castAtLevel} slot.`,
+      ...committedOrder,
+      `2. Hellish Rebuke accepted; retaliator spends Reaction and level-${castAtLevel} slot.`,
       `3. Attacker Dexterity save ${save.total} vs DC ${saveDC} ${save.success ? 'succeeds' : 'fails'}; ${rolledDamage} becomes ${damageAfterSave}.`,
       `4. ${defense === 'none' ? 'No matching defense' : defense} changes retaliation to ${finalDamage}; attacker HP ${input.attacker.currentHP} -> ${damagedAttacker.currentHP}.`,
     ],

@@ -78,7 +78,11 @@ const makeLinkedAlly = (): CombatCharacter => createMockCombatCharacter({
             name: 'Blessed',
             duration: { type: 'rounds', value: 3 },
             appliedTurn: 1,
-            source: LINKED_CONDITION_SOURCE
+            source: LINKED_CONDITION_SOURCE,
+            // Production concentration cleanup is owner-scoped. The mirrored
+            // condition therefore carries the same caster provenance as the
+            // linked status above instead of relying on a spell-name match.
+            sourceCasterId: 'caster'
         },
         {
             name: 'Courageous',

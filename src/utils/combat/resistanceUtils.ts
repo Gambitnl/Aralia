@@ -1,10 +1,10 @@
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 10/08/2026, 13:56:57
- * Dependents: commands/effects/DamageCommand.ts, utils/combat/combatUtils.ts, utils/combat/index.ts
+ * Last Sync: 13/08/2026, 14:31:43
+ * Dependents: commands/effects/DamageCommand.ts, components/DesignPreview/steps/classes/subclasses/barbarian/WildHeartDemo.tsx, components/DesignPreview/steps/scenarioControls/savingThrowsHalfDamageScenarioControls.ts, components/DesignPreview/steps/spells/fireBoltScenario.tsx, systems/spells/mechanics/directDamageSpellCastResolution.ts, utils/combat/combatUtils.ts, utils/combat/index.ts, utils/combat/multiattackUtils.ts
  * Imports: 4 files
  *
  * MULTI-AGENT SAFETY:
@@ -101,17 +101,15 @@ export class ResistanceCalculator {
 
     const effectiveResistance = hasResistance && !ignoresResistance;
 
-    // 2. Interaction: Resistance and Vulnerability cancel each other out (XGtE p.77)
-    if (effectiveResistance && hasVulnerability) {
-      return finalDamage;
-    }
-
-    // 3. Resistance (Damage -> floor(Damage / 2))
+    // 2. Resistance (Damage -> floor(Damage / 2))
+    // The project uses the 2024 rules order: ordinary modifiers first,
+    // Resistance second, and Vulnerability third. Keeping the two operations
+    // explicit matters for odd damage; 25 becomes 12 and then 24, not 25.
     if (effectiveResistance) {
       finalDamage = Math.floor(finalDamage / 2);
     }
 
-    // 4. Vulnerability (Damage -> Damage * 2)
+    // 3. Vulnerability (Damage -> Damage * 2)
     if (hasVulnerability) {
       finalDamage = finalDamage * 2;
     }

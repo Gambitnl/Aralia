@@ -163,7 +163,7 @@ describe('BattleMap3D visibility handoff', () => {
       getLightLevel: (tileId: string) => lightLevels.get(tileId) || 'darkness'
     });
 
-    render(
+    const { container } = render(
       <BattleMap3D
         mapData={mapData}
         characters={[hero]}
@@ -205,6 +205,11 @@ describe('BattleMap3D visibility handoff', () => {
       />
     );
 
+    // A tall scenario sidebar must not stretch the shared WebGL drawing buffer
+    // several pages below the visible camera controls. The viewport cap is a
+    // shared renderer guard; ordinary combat panes shorter than 100dvh still
+    // fill their parent exactly as before.
+    expect(container.firstElementChild).toHaveStyle({ maxHeight: '100dvh' });
     expect(mockUseVisibility).toHaveBeenCalledWith(expect.objectContaining({
       activeCharacterId: hero.id,
       combatState: expect.objectContaining({

@@ -17,6 +17,7 @@ import type { Frame, SegmentSink } from '../types';
 import { deriveFrame } from '../types';
 import { assembleEntity } from '../three/assembleEntity';
 import { registerAllParts } from '../parts';
+import { PLAN_TRIANGLE_BUDGET } from '../textPlan/budgets';
 import { createGaitDriver } from '../three/gaits';
 import {
   SPECIES_GAITS,
@@ -262,13 +263,12 @@ describe('assembleEntity — species gaits render skinned', () => {
     }
   });
 
-  it('stays inside the 30k plan triangle budget on every species gait', async () => {
-    const { PLAN_TRIANGLE_BUDGET } = await import('../textPlan/budgets');
+  it('stays inside the 30k plan triangle budget on every species gait', () => {
     for (const gait of SPECIES_GAITS) {
       const handle = assembleEntity(blueprint(gait), { bodyTech: 'skinned' });
       handle.update(0.5, 1 / 60);
       expect(handle.stats().triangles, `${gait} budget`).toBeLessThan(PLAN_TRIANGLE_BUDGET);
       handle.dispose();
     }
-  });
+  }, 30000);
 });

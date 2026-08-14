@@ -1,10 +1,10 @@
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 27/02/2026, 09:34:18
- * Dependents: spatial/index.ts, targetingUtils.ts
+ * Last Sync: 13/08/2026, 15:36:01
+ * Dependents: commands/effects/TerrainCommand.ts, components/DesignPreview/steps/scenarioControls/areaEffectScenarioControls.ts, hooks/combat/useTargeting.ts, hooks/useAbilitySystem.ts, systems/spells/mechanics/areaDamageSpellCastResolution.ts, utils/spatial/index.ts
  * Imports: 3 files
  *
  * MULTI-AGENT SAFETY:
@@ -90,8 +90,10 @@ export const resolveAoEParams = (
                 direction = facingToDegrees(caster.facing);
             }
 
-            // For Lines, the click point defines the endpoint explicitly.
-            if (shape === 'Line') {
+            // A line confirmed on the caster's cell is self-origin geometry,
+            // so facing must project its canonical length. Only an actually
+            // different click owns an explicit endpoint.
+            if (shape === 'Line' && (center.x !== origin.x || center.y !== origin.y)) {
                 targetPoint = center;
             }
         } else {

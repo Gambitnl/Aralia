@@ -2,219 +2,38 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<title>Visual quality — judging portal</title>
+<title>Visual quality — moved into Judge</title>
+<!--
+  RETIRED 2026-08-13 (Remy). The judging portal moved INTO the Design Preview
+  harness and merged with the Judge step, so there is one address for a human
+  eye instead of two: `?step=judge`, tab "Quality campaign".
+
+  The DATA still lives in this directory and is still the source of truth:
+    pieces.json · status.json · verdicts/<piece>.json · sheets/<piece>/*.png
+  The React board reads exactly these files. Do not move them, and do not
+  gitignore them — the sheet IS the judging record, and it dies with a working
+  tree if it never enters git. `.claude/hooks/stray-image-warn.cjs` carries an
+  allowlist for `public/visual-quality/sheets/` for that reason.
+
+  This page is a redirect, not a copy. A second renderer would drift from the
+  React one and quietly show a stale verdict.
+-->
+<meta http-equiv="refresh" content="0; url=/Aralia/misc/design.html?step=judge" />
 <style>
-  :root {
-    color-scheme: dark;
-    --bg: #0d1117; --panel: #141a24; --line: #263042;
-    --fg: #dfe6f0; --dim: #8fa0b8; --faint: #66788f;
-    --warn: #f0b56a; --good: #7fe39a; --bad: #f09a9a; --accent: #6f9de0;
-  }
-  * { box-sizing: border-box; }
-  body { margin: 0; background: var(--bg); color: var(--fg); font: 14px/1.5 system-ui, sans-serif; }
-  header { position: sticky; top: 0; z-index: 20; background: var(--bg); border-bottom: 1px solid var(--line); padding: 14px 20px 10px; }
-  h1 { font-size: 19px; margin: 0 0 3px; }
-  .sub { color: var(--dim); font-size: 13px; max-width: 90ch; }
-  nav { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
-  nav a { font-size: 12px; padding: 3px 9px; border: 1px solid var(--line); border-radius: 11px;
-          color: var(--dim); text-decoration: none; }
-  nav a:hover { color: var(--fg); border-color: var(--accent); }
-  nav a .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 5px; vertical-align: middle; }
-  .dot.no { background: var(--warn); } .dot.yes { background: var(--good); } .dot.none { background: var(--faint); }
-  main { padding: 18px 20px 60px; }
-  h2.family { font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--faint);
-              margin: 26px 0 2px; border-top: 1px solid var(--line); padding-top: 16px; }
-  h2.family:first-of-type { border-top: none; margin-top: 4px; padding-top: 0; }
-  .familyblurb { color: var(--faint); font-size: 12px; margin-bottom: 12px; max-width: 90ch; }
-
-  .piece { background: var(--panel); border: 1px solid var(--line); border-radius: 7px;
-           padding: 14px 16px 16px; margin-bottom: 16px; }
-  .phead { display: flex; align-items: baseline; flex-wrap: wrap; gap: 10px; }
-  .pname { font-size: 17px; font-weight: 600; }
-  .pscope { color: var(--faint); font-size: 12px; flex: 1 1 40ch; }
-  .badge { font-size: 11px; padding: 2px 9px; border-radius: 10px; white-space: nowrap;
-           background: #3a2f16; color: #e8c26a; }
-  .badge.wowed { background: #16391f; color: var(--good); }
-  .badge.ref { background: #3a1c1c; color: var(--bad); }
-  .badge.manual { background: #1c2b3a; color: #8fc0f0; }
-
-  /* wowed:false + a written gap is THE signal. Make it impossible to miss. */
-  .gap { margin: 11px 0 4px; padding: 10px 13px; border-left: 3px solid var(--warn);
-         background: #241d10; border-radius: 0 5px 5px 0; }
-  .gaplabel { font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--warn); }
-  .gaptext { color: #f4d9ae; font-size: 14px; }
-
-  .sheets { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 12px; }
-  .sheets figure { margin: 0; }
-  .sheets img { max-width: min(560px, 44vw); max-height: 460px; display: block;
-                border: 1px solid var(--line); border-radius: 4px; background: #000; cursor: zoom-in; }
-  .sheets figcaption { font-size: 11px; color: var(--dim); margin-top: 3px; }
-  .meta { font-size: 12px; color: var(--faint); margin-top: 10px; }
-
-  details { margin-top: 10px; }
-  summary { cursor: pointer; font-size: 12px; color: var(--dim); user-select: none; }
-  .notes { white-space: pre-wrap; color: #c3cddc; font-size: 13px; margin-top: 8px;
-           border-left: 2px solid var(--line); padding-left: 12px; max-width: 100ch; }
-  .subjrow { margin: 9px 0 2px; }
-  .subjlabel { font-size: 12px; color: #aab8cc; margin-bottom: 3px; }
-  .timeline { display: flex; flex-wrap: wrap; gap: 6px; }
-  .timeline a { text-align: center; text-decoration: none; }
-  .timeline img { width: 150px; border: 1px solid var(--line); border-radius: 3px; background: #000; display: block; }
-  .timeline .rcap { font-size: 10px; color: var(--faint); margin-top: 1px; }
-  .timeline a.latest img { border-color: var(--accent); }
-
-  .err { color: var(--bad); }
-  /* Lightbox: judging means comparing at full size. */
-  #lb { position: fixed; inset: 0; background: #000d; display: none; z-index: 50;
-        align-items: center; justify-content: center; cursor: zoom-out; }
-  #lb.on { display: flex; }
-  #lb img { max-width: 97vw; max-height: 93vh; }
-  #lb .lbcap { position: absolute; bottom: 10px; left: 0; right: 0; text-align: center;
-               color: var(--dim); font-size: 12px; }
+  body { margin: 0; background: #0d1117; color: #dfe6f0;
+         font: 14px/1.6 system-ui, sans-serif; padding: 40px 24px; }
+  a { color: #6f9de0; }
+  code { color: #8fc0f0; }
 </style>
 </head>
 <body>
-<header>
-  <h1>Visual quality — judging portal</h1>
-  <div class="sub">Builders fix the named gap. A fresh critic judges blind. A piece closes only on a wowed verdict.
-    Click any sheet to open it full size. Auto-refreshes every 10 s.</div>
-  <nav id="nav"></nav>
-</header>
-<main id="root">loading…</main>
-<div id="lb"><img alt="" /><div class="lbcap"></div></div>
-<script>
-const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-async function jget(url) { try { const r = await fetch(url + '?t=' + Date.now()); return r.ok ? await r.json() : null; } catch { return null; } }
-
-const open = new Set();
-document.addEventListener('toggle', (e) => {
-  const k = e.target.dataset && e.target.dataset.k;
-  if (!k) return;
-  if (e.target.open) open.add(k); else open.delete(k);
-}, true);
-
-const lb = document.getElementById('lb');
-lb.addEventListener('click', () => lb.classList.remove('on'));
-document.addEventListener('keydown', (e) => { if (e.key === 'Escape') lb.classList.remove('on'); });
-document.addEventListener('click', (e) => {
-  const img = e.target.closest && e.target.closest('.sheets img, .timeline img');
-  if (!img) return;
-  e.preventDefault();
-  lb.querySelector('img').src = img.dataset.full || img.src;
-  lb.querySelector('.lbcap').textContent = img.dataset.cap || '';
-  lb.classList.add('on');
-});
-
-async function refresh() {
-  const root = document.getElementById('root');
-  // No-fallback: the piece registry is required. Say so instead of showing a guess.
-  const registry = await jget('pieces.json');
-  if (!registry || !Array.isArray(registry.pieces)) {
-    root.innerHTML = '<p class="err">pieces.json missing or unreadable. The portal reads its piece list from '
-      + 'public/visual-quality/pieces.json. Nothing is shown until that file loads.</p>';
-    return;
-  }
-  const status = await jget('status.json') || { rounds: [] };
-  const nav = document.getElementById('nav');
-  let navHtml = '';
-  let html = '';
-
-  for (const fam of registry.families) {
-    const inFam = registry.pieces.filter((p) => p.family === fam.id);
-    if (!inFam.length) continue;
-    html += '<h2 class="family">' + esc(fam.label) + '</h2>';
-    if (fam.blurb) html += '<div class="familyblurb">' + esc(fam.blurb) + '</div>';
-
-    for (const p of inFam) {
-      const verdict = await jget('verdicts/' + p.id + '.json');
-      const rounds = status.rounds.filter((r) => (r.captured || []).some((c) => c.startsWith(p.id + '/')));
-      const latest = rounds[rounds.length - 1];
-
-      const state = verdict ? (verdict.wowed ? 'yes' : 'no') : 'none';
-      navHtml += '<a href="#' + p.id + '"><span class="dot ' + state + '"></span>' + esc(p.id) + '</a>';
-
-      const badge = verdict
-        ? (verdict.wowed
-            ? '<span class="badge wowed">WOWED — shippable</span>'
-            : '<span class="badge ref">not shippable — round ' + esc(verdict.round) + '</span>')
-        : '<span class="badge">no verdict yet</span>';
-      const rigBadge = p.rig === 'manual' ? '<span class="badge manual">manual capture</span>' : '';
-
-      html += '<section class="piece" id="' + p.id + '">';
-      html += '<div class="phead"><span class="pname">' + esc(p.id) + '</span>' + badge + rigBadge
-            + '<span class="pscope">' + esc(p.scope) + '</span></div>';
-
-      if (verdict && verdict.biggestGap) {
-        html += '<div class="gap"><div class="gaplabel">biggest gap</div>'
-              + '<div class="gaptext">' + esc(verdict.biggestGap) + '</div></div>';
-      } else if (verdict && !verdict.wowed) {
-        html += '<div class="gap"><div class="gaplabel">biggest gap</div>'
-              + '<div class="gaptext err">verdict says not shippable but names no gap — the verdict is incomplete.</div></div>';
-      }
-
-      // Latest round's sheets, large, for actual comparison.
-      if (latest) {
-        html += '<div class="sheets">';
-        for (const cap of latest.captured.filter((c) => c.startsWith(p.id + '/'))) {
-          const id = cap.split('/')[1];
-          for (const suffix of ['', '-strip']) {
-            const src = 'sheets/' + p.id + '/round-' + latest.round + '-' + id + suffix + '.png';
-            const capt = id + suffix + ' · round ' + latest.round;
-            html += '<figure><img src="' + src + '?t=' + Date.now() + '" data-full="' + src + '" data-cap="'
-                  + esc(capt) + '" onerror="this.parentElement.style.display=\'none\'" />'
-                  + '<figcaption>' + esc(capt) + '</figcaption></figure>';
-          }
-        }
-        html += '</div>';
-        html += '<div class="meta">judged on: ' + esc(p.judgedOn) + '</div>';
-        html += '<div class="meta">' + rounds.length + ' capture round' + (rounds.length === 1 ? '' : 's')
-              + (latest.note ? ' · latest: ' + esc(latest.note) : '') + '</div>';
-      } else {
-        html += '<div class="meta">no sheets captured yet · judged on: ' + esc(p.judgedOn) + '</div>';
-      }
-
-      if (verdict && verdict.notes) {
-        const k = p.id + ':notes';
-        html += '<details data-k="' + k + '"' + (open.has(k) ? ' open' : '')
-              + '><summary>critic notes — round ' + esc(verdict.round) + '</summary>'
-              + '<div class="notes">' + esc(verdict.notes) + '</div></details>';
-      }
-
-      // Round-over-round history: the point of the campaign.
-      const bySubject = {};
-      for (const r of rounds) {
-        for (const cap of (r.captured || []).filter((c) => c.startsWith(p.id + '/'))) {
-          (bySubject[cap.split('/')[1]] ||= []).push(r.round);
-        }
-      }
-      const subjects = Object.keys(bySubject);
-      if (subjects.length && rounds.length > 1) {
-        const k = p.id + ':hist';
-        html += '<details data-k="' + k + '"' + (open.has(k) ? ' open' : '')
-              + '><summary>round history (' + rounds.length + ' rounds)</summary>';
-        for (const id of subjects) {
-          const seen = [...new Set(bySubject[id])];
-          html += '<div class="subjrow"><div class="subjlabel">' + esc(id) + '</div><div class="timeline">';
-          for (const rn of seen) {
-            const src = 'sheets/' + p.id + '/round-' + rn + '-' + id + '.png';
-            const isLatest = rn === seen[seen.length - 1];
-            html += '<a href="' + src + '"' + (isLatest ? ' class="latest"' : '') + '>'
-                  + '<img loading="lazy" src="' + src + '" data-full="' + src + '" data-cap="'
-                  + esc(id + ' · round ' + rn) + '" onerror="this.parentElement.style.display=\'none\'" />'
-                  + '<div class="rcap">r' + rn + '</div></a>';
-          }
-          html += '</div></div>';
-        }
-        html += '</details>';
-      }
-      html += '</section>';
-    }
-  }
-  nav.innerHTML = navHtml;
-  root.innerHTML = html;
-}
-refresh();
-setInterval(refresh, 10000);
-</script>
+  <h1 style="font-size:19px;margin:0 0 8px">This portal moved.</h1>
+  <p>The visual-quality board is now a tab inside the Judge step.</p>
+  <p><a href="/Aralia/misc/design.html?step=judge">Open Judge → Quality campaign</a></p>
+  <p style="color:#66788f;font-size:13px;max-width:80ch">
+    The data did not move. <code>pieces.json</code>, <code>status.json</code>,
+    <code>verdicts/</code> and <code>sheets/</code> still live in this directory,
+    and the board reads them from here.
+  </p>
 </body>
 </html>

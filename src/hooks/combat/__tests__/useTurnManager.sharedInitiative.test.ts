@@ -105,6 +105,14 @@ describe('useTurnManager shared-initiative summon scheduling', () => {
 
     expect(result.current.turnState.turnOrder).toEqual([caster.id, summonedActor!.id]);
     expect(result.current.turnState.currentCharacterId).toBe(caster.id);
+    expect(result.current.turnState.activeGroup).toMatchObject({
+      memberIds: [caster.id, summonedActor!.id],
+      activeMemberId: caster.id,
+      actionOwnership: 'member',
+      movementOwnership: 'member',
+      reactionOwnership: 'member',
+      effectTiming: 'member_start_and_end',
+    });
   });
 
   it('advances tied and shared actors once while resetting only the actor whose turn starts', async () => {
@@ -151,6 +159,11 @@ describe('useTurnManager shared-initiative summon scheduling', () => {
         INITIATIVE_TIES_RIVAL_ID,
         INITIATIVE_TIES_LATE_GUARD_ID,
       ],
+      activeGroup: {
+        memberIds: [INITIATIVE_TIES_CAPTAIN_ID, INITIATIVE_TIES_SHARED_ECHO_ID],
+        activeMemberId: INITIATIVE_TIES_CAPTAIN_ID,
+        completedMemberIds: [],
+      },
     });
 
     // Ending the captain expires only its own marker and refreshes only Shared
@@ -164,6 +177,11 @@ describe('useTurnManager shared-initiative summon scheduling', () => {
     const rivalStillWaiting = charactersState.find(character => character.id === INITIATIVE_TIES_RIVAL_ID)!;
 
     expect(result.current.turnState.currentCharacterId).toBe(INITIATIVE_TIES_SHARED_ECHO_ID);
+    expect(result.current.turnState.activeGroup).toMatchObject({
+      memberIds: [INITIATIVE_TIES_CAPTAIN_ID, INITIATIVE_TIES_SHARED_ECHO_ID],
+      activeMemberId: INITIATIVE_TIES_SHARED_ECHO_ID,
+      completedMemberIds: [INITIATIVE_TIES_CAPTAIN_ID],
+    });
     expect(captainAfterEnd.conditions?.map(condition => condition.name))
       .not.toContain(INITIATIVE_TIES_TURN_MARKER);
     expect(captainAfterEnd.actionEconomy).toMatchObject({
@@ -213,5 +231,78 @@ describe('useTurnManager shared-initiative summon scheduling', () => {
     });
     expect(new Set(result.current.turnState.turnOrder).size).toBe(4);
     expect(logs.map(entry => entry.message)).toContain('Round 2 begins!');
+  });
+
+  it('makes repeated endings a no-op and advances once when the active shared member is removed', async () => {
+    // Keep each member ledger independent and capture roster removal exactly as
+    // the mounted sandbox does. The deterministic manager remains the only
+    // owner of group completion and next-member selection.
+    let charactersState = prepareInitiativeTiesSharedTurnsCharacters([
+      createMockCombatCharacter({ id: INITIATIVE_TIES_CAPTAIN_ID, name: 'Tie Captain' }),
+      createMockCombatCharacter({ id: INITIATIVE_TIES_RIVAL_ID, name: 'Agile Rival' }),
+      createMockCombatCharacter({ id: INITIATIVE_TIES_SHARED_ECHO_ID, name: 'Shared Echo' }),
+      createMockCombatCharacter({ id: INITIATIVE_TIES_LATE_GUARD_ID, name: 'Late Guard' }),
+    ]);
+    const logs: CombatLogEntry[] = [];
+    const onCharacterUpdate = (updatedCharacter: CombatCharacter) => {
+      charactersState = charactersState.map(character => (
+        character.id === updatedCharacter.id ? updatedCharacter : character
+      ));
+    };
+    const onCharacterRemove = (characterId: string) => {
+      charactersState = charactersState.filter(character => character.id !== characterId);
+    };
+    const { result, rerender } = renderHook(
+      ({ chars }: { chars: CombatCharacter[] }) => useTurnManager({
+        characters: chars,
+        mapData: null,
+        onCharacterUpdate,
+        onCharacterRemove,
+        onLogEntry: entry => logs.push(entry),
+        initiativeRoller: getInitiativeTiesSharedTurnsTotal,
+      }),
+      { initialProps: { chars: charactersState } },
+    );
+
+    act(() => result.current.initializeCombat(charactersState));
+    charactersState = prepareInitiativeTiesSharedTurnsCharacters(charactersState);
+    rerender({ chars: charactersState });
+
+    // Two requests from the same rendered boundary process Captain only once.
+    await act(async () => {
+      await Promise.all([result.current.endTurn(), result.current.endTurn()]);
+    });
+    rerender({ chars: charactersState });
+    expect(result.current.turnState.currentCharacterId).toBe(INITIATIVE_TIES_SHARED_ECHO_ID);
+    expect(logs.filter(entry => (
+      entry.characterId === INITIATIVE_TIES_CAPTAIN_ID
+      && entry.data?.cleanup === 'turn_boundary_condition_expiry'
+    ))).toHaveLength(1);
+
+    const rivalBeforeRemoval = charactersState.find(character => character.id === INITIATIVE_TIES_RIVAL_ID)!;
+    expect(rivalBeforeRemoval.actionEconomy.action.used).toBe(true);
+
+    // Active removal completes the shared group, removes only Echo, and starts
+    // Rival once. Repeating the same removal does not advance to Late Guard.
+    let removalResult: ReturnType<typeof result.current.removeCharacterFromCombat>;
+    act(() => {
+      removalResult = result.current.removeCharacterFromCombat(INITIATIVE_TIES_SHARED_ECHO_ID);
+    });
+    rerender({ chars: charactersState });
+    expect(removalResult!).toMatchObject({
+      previousCharacterId: INITIATIVE_TIES_SHARED_ECHO_ID,
+      nextCharacterId: INITIATIVE_TIES_RIVAL_ID,
+      isGroupCompleted: true,
+    });
+    expect(result.current.turnState.currentCharacterId).toBe(INITIATIVE_TIES_RIVAL_ID);
+    expect(charactersState.map(character => character.id)).not.toContain(INITIATIVE_TIES_SHARED_ECHO_ID);
+    expect(charactersState.find(character => character.id === INITIATIVE_TIES_RIVAL_ID)?.actionEconomy.action.used).toBe(false);
+
+    const departureLogsBeforeRepeat = logs.filter(entry => entry.message.includes('leaves combat')).length;
+    act(() => {
+      expect(result.current.removeCharacterFromCombat(INITIATIVE_TIES_SHARED_ECHO_ID)).toBeNull();
+    });
+    expect(result.current.turnState.currentCharacterId).toBe(INITIATIVE_TIES_RIVAL_ID);
+    expect(logs.filter(entry => entry.message.includes('leaves combat'))).toHaveLength(departureLogsBeforeRepeat);
   });
 });

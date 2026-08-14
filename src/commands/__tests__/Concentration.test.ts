@@ -1,10 +1,11 @@
 import { describe, it, expect } from 'vitest'
 import { StartConcentrationCommand, BreakConcentrationCommand } from '../effects/ConcentrationCommands'
 import { DamageCommand } from '../effects/DamageCommand'
+import { StatusConditionCommand } from '../effects/StatusConditionCommand'
 import { SpellCommandFactory } from '../factory/SpellCommandFactory'
 import { calculateConcentrationDC, checkConcentration } from '../../utils/character'
 import { createMockSpell, createMockCombatCharacter, createMockCombatState, createMockGameState, createMockPlayerCharacter } from '../../utils/core'
-import type { DamageEffect } from '@/types/spells'
+import type { DamageEffect, StatusConditionEffect } from '@/types/spells'
 import type { PlayerCharacter } from '@/types'
 import type { ActiveRider } from '@/types/combat'
 
@@ -137,6 +138,78 @@ describe('Concentration System', () => {
             const logMessages = newState.combatLog.map((entry) => entry.message).join(' ');
             expect(logMessages).toContain('concentration');
         })
+
+        it('uses delivered damage for the save DC and skips a fully immune packet', async () => {
+            const attacker = createMockCombatCharacter({ id: 'attacker', name: 'Attacker' });
+            const concentratingTarget = createMockCombatCharacter({
+                id: 'target',
+                name: 'Target',
+                currentHP: 60,
+                maxHP: 60,
+                resistances: ['Piercing'],
+                concentratingOn: {
+                    spellId: 'bless',
+                    spellName: 'Bless',
+                    spellLevel: 1,
+                    startedTurn: 1,
+                    effectIds: [],
+                    canDropAsFreeAction: true
+                }
+            });
+            // A large bonus makes the assertion deterministic without replacing
+            // the canonical Constitution-save helper used by DamageCommand.
+            concentratingTarget.stats.constitution = 30;
+            concentratingTarget.stats.saveBonuses = {
+                ...concentratingTarget.stats.saveBonuses,
+                con: 20
+            };
+            const damageEffect: DamageEffect = {
+                type: 'DAMAGE',
+                damage: { dice: '22d1', type: 'Piercing' },
+                trigger: { type: 'immediate' },
+                condition: { type: 'hit' }
+            };
+            const gameState = createMockGameState();
+            const context = {
+                spellId: 'test-hit',
+                spellName: 'Test Hit',
+                castAtLevel: 1,
+                caster: attacker,
+                targets: [concentratingTarget],
+                gameState
+            };
+
+            const resisted = await new DamageCommand(damageEffect, context).execute(createMockCombatState({
+                characters: [attacker, concentratingTarget],
+                combatLog: []
+            }));
+            const resistedTarget = resisted.characters.find(character => character.id === concentratingTarget.id)!;
+            const resistedLog = resisted.combatLog.map(entry => entry.message).join(' ');
+
+            // Raw 22 becomes delivered 11 after resistance, so the minimum DC
+            // remains 10. Using raw damage here would incorrectly expose DC 11.
+            expect(resistedTarget.currentHP).toBe(49);
+            expect(resistedTarget.concentratingOn?.spellId).toBe('bless');
+            expect(resistedLog).toMatch(/concentration.*DC 10/i);
+
+            const immuneTarget = createMockCombatCharacter({
+                ...concentratingTarget,
+                immunities: ['Piercing'],
+                resistances: []
+            });
+            const immune = await new DamageCommand(damageEffect, {
+                ...context,
+                targets: [immuneTarget]
+            }).execute(createMockCombatState({
+                characters: [attacker, immuneTarget],
+                combatLog: []
+            }));
+            const immuneResult = immune.characters.find(character => character.id === immuneTarget.id)!;
+
+            expect(immuneResult.currentHP).toBe(60);
+            expect(immuneResult.concentratingOn?.spellId).toBe('bless');
+            expect(immune.combatLog.map(entry => entry.message).join(' ')).not.toMatch(/concentration.*DC/i);
+        })
     })
 
     describe('Commands', () => {
@@ -169,6 +242,121 @@ describe('Concentration System', () => {
             expect(newState.characters[0].concentratingOn).toBeDefined();
             expect(newState.characters[0].concentratingOn!.spellId).toBe(spell.id);
             expect(newState.characters[0].concentratingOn!.startedTurn).toBe(5);
+        })
+
+        it('replaces only the caster-owned prior effect when started directly', async () => {
+            const oldSpell = createMockSpell({ id: 'bless', name: 'Bless' });
+            const newSpell = createMockSpell({ id: 'protection', name: 'Protection' });
+            const caster = createMockCombatCharacter({
+                id: 'caster',
+                name: 'Caster',
+                concentratingOn: {
+                    spellId: oldSpell.id,
+                    spellName: oldSpell.name,
+                    spellLevel: 1,
+                    startedTurn: 1,
+                    effectIds: ['owned-bless'],
+                    canDropAsFreeAction: true
+                }
+            });
+            const ownedTarget = createMockCombatCharacter({
+                id: 'owned-target',
+                statusEffects: [{
+                    id: 'owned-bless',
+                    name: 'Blessed',
+                    type: 'buff',
+                    duration: 10,
+                    source: oldSpell.name,
+                    sourceSpellId: oldSpell.id,
+                    sourceCasterId: caster.id,
+                    effect: { type: 'condition' }
+                }]
+            });
+            const unrelatedTarget = createMockCombatCharacter({
+                id: 'unrelated-target',
+                statusEffects: [{
+                    id: 'other-bless',
+                    name: 'Blessed',
+                    type: 'buff',
+                    duration: 10,
+                    source: oldSpell.name,
+                    sourceSpellId: oldSpell.id,
+                    sourceCasterId: 'other-caster',
+                    effect: { type: 'condition' }
+                }]
+            });
+            const state = createMockCombatState({
+                characters: [caster, ownedTarget, unrelatedTarget],
+                combatLog: []
+            });
+            const gameState = createMockGameState();
+
+            const result = await new StartConcentrationCommand(newSpell, {
+                spellId: newSpell.id,
+                spellName: newSpell.name,
+                castAtLevel: 1,
+                caster,
+                targets: [],
+                gameState
+            }).execute(state);
+
+            expect(result.characters.find(character => character.id === caster.id)?.concentratingOn?.spellId).toBe(newSpell.id);
+            expect(result.characters.find(character => character.id === ownedTarget.id)?.statusEffects).toEqual([]);
+            expect(result.characters.find(character => character.id === unrelatedTarget.id)?.statusEffects.map(effect => effect.id)).toEqual(['other-bless']);
+            expect(result.combatLog.map(entry => entry.message).join(' ')).toMatch(/stops concentrating.*begins concentrating/i);
+        })
+
+        it('ends concentration once when a status command applies incapacitated', async () => {
+            const source = createMockCombatCharacter({ id: 'source', name: 'Source' });
+            const target = createMockCombatCharacter({
+                id: 'target',
+                name: 'Target',
+                concentratingOn: {
+                    spellId: 'bless',
+                    spellName: 'Bless',
+                    spellLevel: 1,
+                    startedTurn: 1,
+                    effectIds: ['owned-bless'],
+                    canDropAsFreeAction: true
+                },
+                statusEffects: [{
+                    id: 'owned-bless',
+                    name: 'Blessed',
+                    type: 'buff',
+                    duration: 10,
+                    source: 'Bless',
+                    sourceSpellId: 'bless',
+                    sourceCasterId: 'target',
+                    effect: { type: 'condition' }
+                }]
+            });
+            const effect: StatusConditionEffect = {
+                type: 'STATUS_CONDITION',
+                statusCondition: {
+                    name: 'Incapacitated',
+                    duration: { type: 'rounds', value: 1 },
+                    level: 0
+                },
+                condition: { type: 'always' } as never,
+                trigger: { type: 'immediate' } as never
+            };
+            const state = createMockCombatState({ characters: [source, target], combatLog: [] });
+
+            const result = await new StatusConditionCommand(effect, {
+                spellId: 'incapacitating-effect',
+                spellName: 'Incapacitating Effect',
+                castAtLevel: 1,
+                caster: source,
+                targets: [target],
+                gameState: createMockGameState()
+            }).execute(state);
+            const updatedTarget = result.characters.find(character => character.id === target.id)!;
+            const stopMessages = result.combatLog.filter(entry => entry.message.includes('stops concentrating'));
+
+            expect(updatedTarget.conditions?.some(condition => condition.name === 'Incapacitated')).toBe(true);
+            expect(updatedTarget.concentratingOn).toBeUndefined();
+            expect(updatedTarget.statusEffects.some(status => status.id === 'owned-bless')).toBe(false);
+            expect(stopMessages).toHaveLength(1);
         })
 
         it('BreakConcentrationCommand clears state', async () => {

@@ -180,15 +180,17 @@ describe('assembleEntity bodyTech switch', () => {
     skin.dispose();
   });
 
-  it('fails honestly outside scope: wireframe (decided out — solid shaded only) and non-biped gaits', () => {
+  it('fails honestly outside scope: wireframe is decided out — skinned is solid shaded only', () => {
     // Decision 2026-07-21: deforming (skinned) bodies render solid shaded;
     // wireframe is a segment-body debug look and never reaches the skeleton.
     expect(() => assembleEntity(bp(), { renderMode: 'wireframe', bodyTech: 'skinned' })).toThrow(/solid shaded only/);
-    // Skinned supports biped (slice 1) and plan (slice 4) gaits. A gait outside
-    // that set — a non-plan quad — still fails honestly. Build one directly so
-    // the guard is tested regardless of what the generator currently emits
-    // (creature profiles became plan-driven in slice 4).
+    // Slice 5 closed the last gap: biped (slice 1), plan (slice 4) and the five
+    // species gaits (slice 5) all have skeletons, so a non-plan quad now BUILDS
+    // one instead of throwing. The wireframe guard still binds it.
     const quad = { ...bp(), gait: 'quad' as const, planSpec: undefined };
-    expect(() => assembleEntity(quad, { renderMode: 'solid', bodyTech: 'skinned' })).toThrow(/biped and plan/);
+    const handle = assembleEntity(quad, { renderMode: 'solid', bodyTech: 'skinned' });
+    expect(handle.group.getObjectByName('skinnedBody'), 'quad has no skinned body').toBeTruthy();
+    handle.dispose();
+    expect(() => assembleEntity(quad, { renderMode: 'wireframe', bodyTech: 'skinned' })).toThrow(/solid shaded only/);
   });
 });

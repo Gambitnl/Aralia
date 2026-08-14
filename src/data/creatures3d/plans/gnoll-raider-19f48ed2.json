@@ -1,0 +1,164 @@
+{
+  "id": "19f48ed2",
+  "name": "Gnoll Raider",
+  "slug": "gnoll-raider-19f48ed2",
+  "description": "a gnoll: a hunched hyena-headed humanoid raider, digitigrade legs, long lanky arms ending in clawed hands, matted spotted fur with a bristling mane down the neck and shoulders, a laughing fanged muzzle, ragged ears",
+  "plan": {
+    "name": "Gnoll Raider",
+    "frame": {
+      "heightFt": 7.2,
+      "bulk": 0.42,
+      "stance": "upright"
+    },
+    "spine": {
+      "segments": 6,
+      "taper": 0.72,
+      "arch": 0.28,
+      "bulge": 0.4
+    },
+    "appendages": [
+      {
+        "kind": "neck",
+        "attach": 0.05,
+        "count": 1,
+        "chain": [
+          {
+            "lenFt": 0.7,
+            "r": 0.34
+          },
+          {
+            "lenFt": 0.6,
+            "r": 0.3
+          }
+        ],
+        "blend": 0.4
+      },
+      {
+        "kind": "leg",
+        "attach": 0.85,
+        "perSide": true,
+        "count": 1,
+        "chain": [
+          {
+            "lenFt": 1.5,
+            "r": 0.3
+          },
+          {
+            "lenFt": 1.4,
+            "r": 0.2
+          },
+          {
+            "lenFt": 0.9,
+            "r": 0.15
+          },
+          {
+            "lenFt": 0.5,
+            "r": 0.13
+          }
+        ],
+        "blend": 0.35
+      },
+      {
+        "kind": "arm",
+        "attach": 0.15,
+        "heightFrac": 0.86,
+        "perSide": true,
+        "count": 1,
+        "chain": [
+          {
+            "lenFt": 1.6,
+            "r": 0.19
+          },
+          {
+            "lenFt": 1.5,
+            "r": 0.14
+          },
+          {
+            "lenFt": 0.5,
+            "r": 0.1
+          }
+        ],
+        "tips": "hand",
+        "blend": 0.35
+      },
+      {
+        "kind": "tail",
+        "attach": 1,
+        "count": 1,
+        "chain": [
+          {
+            "lenFt": 0.9,
+            "r": 0.16
+          },
+          {
+            "lenFt": 0.8,
+            "r": 0.11
+          },
+          {
+            "lenFt": 0.6,
+            "r": 0.07
+          }
+        ],
+        "blend": 0.4
+      }
+    ],
+    "heads": [
+      {
+        "neckIndex": 0,
+        "form": "beast",
+        "sizeScale": 1.15,
+        "eyes": {
+          "count": 2,
+          "sizeScale": 0.85,
+          "pupil": "round"
+        },
+        "snout": {
+          "lengthScale": 1.5,
+          "droop": 0.1
+        }
+      }
+    ],
+    "palette": {
+      "bodyHex": "#8a7550",
+      "accentHex": "#4a3a28",
+      "bellyHex": "#c2b08a",
+      "eyeHex": "#d8a531"
+    },
+    "skin": {
+      "blend": 0.35
+    },
+    "garnish": [
+      {
+        "partId": "earsPointed",
+        "params": {
+          "scale": 1.2
+        }
+      },
+      {
+        "partId": "tuskJaw",
+        "params": {
+          "scale": 0.9
+        }
+      },
+      {
+        "partId": "crest",
+        "params": {
+          "scale": 1.3,
+          "count": 9
+        }
+      },
+      {
+        "partId": "beltPouch"
+      },
+      {
+        "partId": "axeMain",
+        "params": {
+          "scale": 1.05
+        }
+      }
+    ]
+  },
+  "status": "generated",
+  "createdAt": "2026-08-13T08:31:51.732Z",
+  "sizeCategory": "Large"
+}

@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 12/08/2026, 04:53:33
+ * Last Sync: 13/08/2026, 18:03:20
  * Dependents: components/BattleMap/BattleMap.tsx, components/BattleMap/BattleMap3D.tsx, components/BattleMap/BattleMapDemo.tsx, components/Combat/CombatView.tsx, components/DesignPreview/steps/PreviewCombatScenarios.tsx, hooks/useBattleMap.ts
- * Imports: 15 files
+ * Imports: 19 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -32,7 +32,9 @@ import { CombatCharacter, CombatLogEntry, BattleMapData, LightSource, Ability } 
 import { AI_THINKING_DELAY_MS } from '../../config/combatConfig';
 import { generateId } from '../../utils/combat';
 import { calculateMovementTotal, resetEconomy } from '../../utils/combat/actionEconomyUtils';
+import { resolveDeathSavingThrow } from '../../utils/combat/deathSaveUtils';
 import { buildInitiativeOrder, rollInitiativeTotal } from '../../utils/combat/initiativeUtils';
+import { buildCombatTurnGroups } from '../../utils/combat/groupTurnUtils';
 import { useActionEconomy } from './useActionEconomy';
 
 import { useCombatVisuals } from './useCombatVisuals';
@@ -40,6 +42,7 @@ import { useTurnOrder } from './useTurnOrder';
 import {
   useCombatEngine,
   type ScheduledEffectDiceRoller,
+  type ScheduledEffectSaveRng,
 } from './engine/useCombatEngine';
 import { useActionExecutor } from './useActionExecutor';
 import { ROUND_DURATION_SECONDS } from '../../utils/core/spellTimeUtils';
@@ -47,6 +50,8 @@ import { evaluateCombatTurn } from '../../utils/combat/combatAI';
 import { getAbilityModifierValue } from '../../utils/character';
 import { breakTauntsForEvent } from '../../systems/combat/tauntConstraint';
 import { advanceStatusConditionDurationsAtTurnStart } from '../../utils/combat/repeatSaveUtils';
+import { reconcileGrappleMaintenance } from '../../utils/combat/grappleUtils';
+import { advanceRuntimeStatusConditionsAtTurnEnd } from '../../utils/combat/statusConditionUtils';
 
 interface UseTurnManagerProps {
   difficulty?: keyof typeof AI_THINKING_DELAY_MS;
@@ -62,6 +67,8 @@ interface UseTurnManagerProps {
   initiativeRoller?: (character: CombatCharacter) => number;
   /** Optional deterministic scheduled-payload roller for visual/replay harnesses. */
   scheduledEffectDiceRoller?: ScheduledEffectDiceRoller;
+  /** Optional deterministic scheduled-save d20 source for visual/replay harnesses. */
+  scheduledEffectSaveRng?: ScheduledEffectSaveRng;
   requestReaction?: (
     attackerId: string,
     targetId: string,
@@ -87,51 +94,10 @@ const RAY_OF_FROST_SOURCE_NAMES = new Set(['Ray of Frost', 'ray-of-frost']);
 // so player-facing labels and rules-facing state cannot disagree.
 // ============================================================================
 
-const isTurnBoundaryCondition = (condition: NonNullable<CombatCharacter['conditions']>[number]): boolean => (
-  condition.duration.type === 'until_end_of_current_turn' ||
-  condition.duration.type === 'turn_end'
-);
-
-export const advanceTurnEndConditionExpiry = (
-  character: CombatCharacter
-): { character: CombatCharacter; expiredNames: string[] } => {
-  const expiredNames: string[] = [];
-  let changed = false;
-
-  // Only the affected creature's own turn end advances this countdown. A
-  // value of two therefore survives the current turn and expires next turn.
-  const conditions = (character.conditions || []).flatMap(condition => {
-    if (!isTurnBoundaryCondition(condition)) {
-      return [condition];
-    }
-
-    const remaining = condition.turnEndEventsRemaining ?? 1;
-    if (remaining <= 1) {
-      changed = true;
-      expiredNames.push(String(condition.name));
-      return [];
-    }
-
-    changed = true;
-    return [{ ...condition, turnEndEventsRemaining: remaining - 1 }];
-  });
-
-  if (!changed) {
-    return { character, expiredNames };
-  }
-
-  const expiredNameSet = new Set(expiredNames);
-  return {
-    character: {
-      ...character,
-      conditions,
-      statusEffects: expiredNameSet.size > 0
-        ? character.statusEffects.filter(effect => !expiredNameSet.has(String(effect.name)))
-        : character.statusEffects
-    },
-    expiredNames
-  };
-};
+// The turn manager owns when this boundary occurs; the shared paired-condition
+// helper owns how both mirrors advance. Re-export the established name so
+// existing combat and focused tests keep one public boundary API.
+export const advanceTurnEndConditionExpiry = advanceRuntimeStatusConditionsAtTurnEnd;
 
 /**
  * Clears the Ray of Frost rider from one combatant when the source caster's
@@ -236,6 +202,7 @@ export const useTurnManager = ({
   onMapUpdate,
   initiativeRoller,
   scheduledEffectDiceRoller,
+  scheduledEffectSaveRng,
   difficulty = 'normal',
   requestReaction,
   executeReactionSpell
@@ -268,7 +235,11 @@ export const useTurnManager = ({
   // Remember which concentration cleanup keys already ran in the current render batch.
   // This keeps stale synchronous updates from re-cleaning the same ally effects.
   const concentrationCleanupKeysRef = useRef<Set<string>>(new Set());
-  const lastCharactersRef = useRef(characters);
+  // React may batch several character writes before the parent roster reaches
+  // this hook again. Keep the most recently published roster locally so paired
+  // mechanics such as Grappled are released exactly once during that batch.
+  const lastCharactersPropRef = useRef(characters);
+  const pendingCharactersRef = useRef(characters);
   const getStatusCleanupKey = (characterId: string, effectId: string) => `status:${characterId}:${effectId}`;
   const getConditionCleanupKey = (characterId: string, source: string) => `condition:${characterId}:${source}`;
   const syncMovementEconomy = (character: CombatCharacter): CombatCharacter => {
@@ -292,15 +263,27 @@ export const useTurnManager = ({
 
   // Wrapped character update callback to handle immediate concentration drop when a character is downed (0 HP)
   const handleCharacterUpdateWrapped = useCallback((updatedChar: CombatCharacter) => {
-    if (lastCharactersRef.current !== characters) {
+    if (lastCharactersPropRef.current !== characters) {
       concentrationCleanupKeysRef.current.clear();
-      lastCharactersRef.current = characters;
+      lastCharactersPropRef.current = characters;
+      pendingCharactersRef.current = characters;
     }
 
-    const originalChar = characters.find(c => c.id === updatedChar.id);
+    const currentCharacters = pendingCharactersRef.current;
+    const originalChar = currentCharacters.find(c => c.id === updatedChar.id);
     let finalChar = updatedChar;
 
-    if (originalChar && originalChar.currentHP > 0 && updatedChar.currentHP === 0 && originalChar.concentratingOn) {
+    // Command-driven damage may already have run the canonical break command
+    // before publishing this character. Only the fallback hook cleanup runs
+    // when the incoming downed record still carries concentration; otherwise
+    // the same source-loss transition would log and clean a second time.
+    if (
+      originalChar &&
+      originalChar.currentHP > 0 &&
+      updatedChar.currentHP === 0 &&
+      originalChar.concentratingOn &&
+      updatedChar.concentratingOn
+    ) {
       const previousSpell = originalChar.concentratingOn.spellName;
       const previousSpellId = originalChar.concentratingOn.spellId;
       const trackedEffectIds = new Set(originalChar.concentratingOn.effectIds || []);
@@ -323,7 +306,7 @@ export const useTurnManager = ({
       });
 
       // 2. Clean up status effects and conditions on all OTHER characters
-      characters.forEach(char => {
+      currentCharacters.forEach(char => {
         if (char.id === finalChar.id) return;
 
         const statusEffectsToRemove = (char.statusEffects || []).filter(eff =>
@@ -359,12 +342,64 @@ export const useTurnManager = ({
       setActiveLightSources(prev => prev.filter(ls => ls.sourceSpellId !== previousSpellId && !trackedEffectIds.has(ls.id)));
     }
 
-    onCharacterUpdate(syncMovementEconomy(finalChar));
+    const synchronizedFinalChar = syncMovementEconomy(finalChar);
+    const finalCharExists = currentCharacters.some(character => character.id === synchronizedFinalChar.id);
+    const updatedRoster = finalCharExists
+      ? currentCharacters.map(character => (
+          character.id === synchronizedFinalChar.id ? synchronizedFinalChar : character
+        ))
+      : [...currentCharacters, synchronizedFinalChar];
+    const maintenance = reconcileGrappleMaintenance(updatedRoster);
+
+    // Every ordinary map move reaches this production transition through
+    // executeAction. Reconcile the complete roster before publishing the mover
+    // so a hold that exceeds reach clears both condition mirrors and restores
+    // movement in the same React batch. Position changes caused by forced
+    // movement remain legal; they simply run the same maintenance rule.
+    pendingCharactersRef.current = maintenance.characters;
+    maintenance.characters.forEach(character => {
+      const previousCharacter = currentCharacters.find(previous => previous.id === character.id);
+      if (character.id === synchronizedFinalChar.id || character !== previousCharacter) {
+        onCharacterUpdate(character);
+      }
+    });
+
+    maintenance.releases.forEach(release => {
+      const targetName = maintenance.characters.find(character => character.id === release.targetId)?.name
+        ?? release.targetId;
+      const grapplerName = currentCharacters.find(character => character.id === release.grapplerId)?.name
+        ?? release.grapplerId;
+      const reason = release.reason === 'out_of_reach'
+        ? `${grapplerName} moved beyond maintained reach`
+        : release.reason === 'grappler_incapacitated'
+          ? `${grapplerName} became Incapacitated`
+          : `${grapplerName} is no longer present`;
+      onLogEntry({
+        id: generateId(),
+        timestamp: Date.now(),
+        type: 'status',
+        message: `Grapple ends: ${targetName} is released because ${reason}.`,
+        characterId: release.grapplerId,
+        targetIds: [release.targetId],
+      });
+    });
   }, [characters, onCharacterUpdate, onLogEntry]);
 
   // Ref to executeActionRef — set after useActionExecutor initializes.
   // Allows endTurn to trigger legendary actions without a circular useCallback dependency.
   const executeActionRef = useRef<((action: import('../../types/combat').CombatAction) => Promise<boolean>) | null>(null);
+  // The action executor is declared later in this hook. This ref lets combat
+  // initialization clear stable delivery receipts without creating a circular
+  // callback dependency between Reset and action execution.
+  const resetActionReceiptsRef = useRef<(() => void) | null>(null);
+  // UI, AI, and browser automation can request the same End Turn together.
+  // Only the first request may process effects and move the group pointer;
+  // overlapping repeats are safe no-ops instead of duplicate member endings.
+  const endingTurnRef = useRef(false);
+  // React can keep an old callback alive for one event-loop turn even after a
+  // synchronous transition. Remember the completed boundary so a repeated
+  // stale callback also becomes a no-op after the first request has finished.
+  const completedTurnBoundaryRef = useRef<string | null>(null);
 
   const {
     spellZones,
@@ -396,6 +431,7 @@ export const useTurnManager = ({
     onMapUpdate,
     addDamageNumber,
     scheduledEffectDiceRoller,
+    scheduledEffectSaveRng,
   });
 
   // Stabilize optional auto-controlled character set
@@ -482,63 +518,20 @@ export const useTurnManager = ({
     // Roll Death Saving Throw for downed player character at start of turn
     if (character.currentHP === 0 && character.team === 'player' && character.deathSaves && !character.deathSaves.isStable) {
       const roll = Math.floor(Math.random() * 20) + 1;
-      let successes = character.deathSaves.successes || 0;
-      let failures = character.deathSaves.failures || 0;
-      let isStable = character.deathSaves.isStable || false;
-      let hp = character.currentHP;
-      let newStatusEffects = [...character.statusEffects];
-      let newConditions = [...(character.conditions || [])];
+      const deathSaveResult = resolveDeathSavingThrow(updatedChar, roll);
+      updatedChar = deathSaveResult.character;
 
-      if (roll === 20) {
-        hp = 1;
-        newStatusEffects = newStatusEffects.filter(se => se.name.toLowerCase() !== 'unconscious');
-        newConditions = newConditions.filter(c => c.name.toLowerCase() !== 'unconscious');
-        
-        updatedChar = {
-          ...updatedChar,
-          currentHP: hp,
-          deathSaves: undefined,
-          statusEffects: newStatusEffects,
-          conditions: newConditions
-        };
-
-        onLogEntry({
-          id: generateId(),
-          timestamp: Date.now(),
-          type: 'action',
-          message: `${character.name} rolls a 20 on Death Saving Throw and revives with 1 HP!`,
-          characterId: character.id
-        });
-      } else {
-        if (roll === 1) {
-          failures = Math.min(3, failures + 2);
-        } else if (roll >= 10) {
-          successes = Math.min(3, successes + 1);
-        } else {
-          failures = Math.min(3, failures + 1);
-        }
-
-        if (successes >= 3) {
-          isStable = true;
-        }
-
-        updatedChar = {
-          ...updatedChar,
-          deathSaves: {
-            successes,
-            failures,
-            isStable
-          }
-        };
-
-        onLogEntry({
-          id: generateId(),
-          timestamp: Date.now(),
-          type: 'action',
-          message: `${character.name} rolls a ${roll} on Death Saving Throw (${successes} successes, ${failures} failures).`,
-          characterId: character.id
-        });
-      }
+      // The shared transaction owns the state. The turn manager adds only the
+      // timestamped receipt at the real start-of-turn boundary.
+      onLogEntry({
+        id: generateId(),
+        timestamp: Date.now(),
+        type: 'action',
+        message: deathSaveResult.outcome === 'revived'
+          ? `${character.name} rolls a 20 on Death Saving Throw and revives with 1 HP!`
+          : `${character.name} rolls a ${roll} on Death Saving Throw (${updatedChar.deathSaves?.successes ?? 0} successes, ${updatedChar.deathSaves?.failures ?? 0} failures).`,
+        characterId: character.id
+      });
     }
     
     // Tick down round-based activeEffects. Keep the expired effects so
@@ -688,6 +681,10 @@ export const useTurnManager = ({
   }, [characters, handleCharacterUpdateWrapped, onLogEntry, processRepeatSaves, processStartOfTurnEffects, turnState.currentTurn]);
 
   const initializeCombat = useCallback((initialCharacters: CombatCharacter[]) => {
+    // A new encounter or deterministic Reset creates a fresh member boundary;
+    // no completion receipt from the previous sequence may suppress it.
+    completedTurnBoundaryRef.current = null;
+    resetActionReceiptsRef.current?.();
     // 1. Roll initiatives
     const charactersWithInitiative = initialCharacters.map(char => ({
       ...char,
@@ -707,6 +704,7 @@ export const useTurnManager = ({
     // canonical tie and shared-initiative sequence. Otherwise the log can name
     // a different first actor from the one highlighted in InitiativeTracker.
     const sorted = buildInitiativeOrder(charactersWithInitiative);
+    const turnGroups = buildCombatTurnGroups(sorted);
     const firstChar = sorted[0];
 
     if (firstChar) {
@@ -718,7 +716,17 @@ export const useTurnManager = ({
       timestamp: Date.now(),
       type: 'turn_start',
       message: `Combat begins! Turn order: ${sorted.map(c => c.name).join(' → ')}`,
-      data: { turnOrder: sorted.map(c => c.id), initiatives: sorted.map(c => ({ id: c.id, initiative: c.initiative })) }
+      data: {
+        turnOrder: sorted.map(c => c.id),
+        initiatives: sorted.map(c => ({ id: c.id, initiative: c.initiative })),
+        turnGroups,
+        groupContract: {
+          actionOwnership: 'member',
+          movementOwnership: 'member',
+          reactionOwnership: 'member',
+          effectTiming: 'member_start_and_end',
+        },
+      }
     });
   }, [handleCharacterUpdateWrapped, onLogEntry, rollInitiative, startTurnFor, initializeTurnOrder]);
 
@@ -744,7 +752,10 @@ export const useTurnManager = ({
     // that called them, while immediate summons enter after the actor whose
     // turn is already resolving. Rolled summons use their own initiative value,
     // and ordinary late joiners keep the generic append behavior in useTurnOrder.
-    joinTurnOrder(readyChar.id, turnOrderAnchor, { initiative: rolledInitiative });
+    joinTurnOrder(readyChar.id, turnOrderAnchor, {
+      initiative: rolledInitiative,
+      groupWithAnchor: Boolean(sharedInitiativeAnchor),
+    });
 
     onLogEntry({
       id: generateId(),
@@ -759,8 +770,27 @@ export const useTurnManager = ({
 
   // --- End of Turn Logic ---
   const endTurn = useCallback(async () => {
+    if (endingTurnRef.current) return;
+    const boundaryKey = `${turnState.currentTurn}:${turnState.activeGroup?.groupId ?? 'legacy'}:${turnState.currentCharacterId ?? 'none'}:${turnState.activeGroup?.completedMemberIds.join(',') ?? ''}`;
+    if (completedTurnBoundaryRef.current === boundaryKey) return;
+    endingTurnRef.current = true;
+    completedTurnBoundaryRef.current = boundaryKey;
+
+    try {
     const currentCharacter = characters.find(c => c.id === turnState.currentCharacterId);
-    if (!currentCharacter) return;
+    if (!currentCharacter) {
+      // A synchronized dismissal can remove the active member before its
+      // pending End Turn arrives. Skip that missing member without processing
+      // effects, then start the scheduler's next eligible member once.
+      const missingTransition = advanceTurnOrder();
+      if (missingTransition.nextCharacterId) {
+        const nextCharacter = characters.find(character => (
+          character.id === missingTransition.nextCharacterId
+        ));
+        if (nextCharacter) startTurnFor(nextCharacter);
+      }
+      return;
+    }
 
     // 1. Apply end-of-turn effects to the current character (Delegated to Engine)
     let processedChar = processEndOfTurnEffects(currentCharacter, turnState.currentTurn);
@@ -811,7 +841,32 @@ export const useTurnManager = ({
     expireSavePenaltiesForCaster(characters, currentCharacter.id, turnState.currentTurn);
 
     // 3. Advance the turn order
-    const { isNewRound, nextCharacterId } = advanceTurnOrder();
+    const groupTransition = advanceTurnOrder();
+    const { isNewRound, nextCharacterId } = groupTransition;
+
+    // A group/member transition is scheduling truth, not another effect tick.
+    // Log the exact boundary while startTurnFor/endTurn keep all resources and
+    // effects owned by the active member.
+    if (groupTransition.nextGroupId === groupTransition.previousGroupId && nextCharacterId) {
+      const nextMember = characters.find(character => character.id === nextCharacterId);
+      onLogEntry({
+        id: generateId(),
+        timestamp: Date.now(),
+        type: 'turn_start',
+        message: `Shared group advances to ${nextMember?.name ?? nextCharacterId}; each member keeps independent Action, movement, Reaction, and effect timing.`,
+        characterId: nextCharacterId,
+        data: { groupTransition },
+      });
+    } else if (groupTransition.isGroupCompleted) {
+      onLogEntry({
+        id: generateId(),
+        timestamp: Date.now(),
+        type: 'turn_start',
+        message: `Initiative group ${groupTransition.previousGroupId ?? 'unknown'} completes.`,
+        characterId: currentCharacter.id,
+        data: { groupTransition },
+      });
+    }
 
     // 3. Handle New Round Events
     if (isNewRound) {
@@ -821,7 +876,10 @@ export const useTurnManager = ({
       // state into the low-level combat coordinator.
       onRoundElapsed?.(ROUND_DURATION_SECONDS);
 
-      updateRoundBasedEffects(turnState.currentTurn);
+      // Pass the just-processed actor across React's asynchronous roster seam.
+      // Round expiry cleanup must preserve damage and downing resolved earlier
+      // in this same End Turn transaction.
+      updateRoundBasedEffects(turnState.currentTurn, [processedChar]);
 
       // Concentration-ending aftermath can leave a summon on the board for a
       // short grace period instead of deleting it immediately. When that grace
@@ -918,9 +976,48 @@ export const useTurnManager = ({
         startTurnFor(nextCharacter);
       }
     }
-
+    } catch (error) {
+      // A failed effect or transition did not complete the member boundary;
+      // allow a deliberate retry after the caller handles the failure.
+      completedTurnBoundaryRef.current = null;
+      throw error;
+    } finally {
+      endingTurnRef.current = false;
+    }
   }, [turnState, characters, mapData, processEndOfTurnEffects, expireSavePenaltiesForCaster, onLogEntry, onRoundElapsed, onCharacterRemove, onCharacterUpdate, removeFromTurnOrder, startTurnFor, advanceTurnOrder, updateRoundBasedEffects]);
 
+
+  // Dismiss or remove one combatant without rebuilding initiative. When the
+  // active member leaves, useTurnOrder returns the exact replacement member;
+  // only that member receives a start boundary and economy reset.
+  const removeCharacterFromCombat = useCallback((characterId: string) => {
+    const removedCharacter = characters.find(character => character.id === characterId);
+    if (!removedCharacter && !turnState.turnOrder.includes(characterId)) {
+      // Repeated removal is idempotent. It cannot advance another member or
+      // emit a second departure log after the requested id has already gone.
+      return null;
+    }
+    const transition = removeFromTurnOrder(characterId);
+    onCharacterRemove?.(characterId);
+
+    onLogEntry({
+      id: generateId(),
+      timestamp: Date.now(),
+      type: 'status',
+      message: `${removedCharacter?.name ?? characterId} leaves combat; the active group continues from the next eligible member.`,
+      characterId,
+      data: { groupTransition: transition, removal: 'group_member' },
+    });
+
+    if (transition.nextCharacterId) {
+      const nextCharacter = characters.find(character => (
+        character.id === transition.nextCharacterId
+      ));
+      if (nextCharacter) startTurnFor(nextCharacter);
+    }
+
+    return transition;
+  }, [characters, onCharacterRemove, onLogEntry, removeFromTurnOrder, startTurnFor, turnState.turnOrder]);
 
   const skipToCharacter = useCallback((characterId: string) => {
     const target = characters.find(c => c.id === characterId);
@@ -929,7 +1026,7 @@ export const useTurnManager = ({
     startTurnFor(target);
   }, [characters, setCurrentCharacter, startTurnFor]);
 
-  const { executeAction } = useActionExecutor({
+  const { executeAction, resetActionReceipts } = useActionExecutor({
     characters,
     turnState,
     mapData,
@@ -955,6 +1052,7 @@ export const useTurnManager = ({
 
   // Keep the ref in sync so endTurn can invoke executeAction without a circular dependency.
   executeActionRef.current = executeAction;
+  resetActionReceiptsRef.current = resetActionReceipts;
 
   const currentCharacter = useMemo(() => {
     return characters.find(c => c.id === turnState.currentCharacterId);
@@ -967,6 +1065,7 @@ export const useTurnManager = ({
     turnState,
     initializeCombat,
     joinCombat,
+    removeCharacterFromCombat,
     // TODO: Extract reactive trigger processing. The logic for filtering and executing
     // `reactiveTriggers` is duplicated/inlined across 'sustain', 'move', and 'attack' in the
     // action executor; a shared `processReactiveTriggers(type, context, state)` helper would

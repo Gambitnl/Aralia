@@ -1,6 +1,6 @@
 # Combat
 
-Verified: unknown — predates the verification rule (see AGENTS.md)
+Verified: 2026-08-13
 
 ## Purpose
 
@@ -16,6 +16,8 @@ High-signal current entry points verified in this pass:
 - src/systems/events/CombatEvents.ts
 - src/utils/combat/combatUtils.ts
 - src/utils/combat/deathSaveUtils.ts
+- src/utils/combat/initiativeUtils.ts
+- src/utils/combat/groupTurnUtils.ts
 - src/types/combat.ts
 
 ## Current Domain Shape
@@ -55,6 +57,25 @@ This pass verified that the combat domain already has:
 - event infrastructure
 - action-economy, line-of-sight, targeting, area-of-effect, and saving-throw utility surfaces
 - spell-aware combat orchestration through useAbilitySystem
+
+### Initiative and shared group turns
+
+`initiativeUtils.ts` rolls ordinary initiative and applies Aralia's deterministic
+house tie policy: total initiative, Dexterity score, initiative bonus, then stable
+authored order. That tie ladder is deliberately deterministic for replays and
+network hosts; it is not presented as a canonical 5e tie rule.
+
+`groupTurnUtils.ts` converts the ordered actors into initiative groups. Ordinary
+actors are singleton groups. A summon with `initiativePolicy: "shared"` joins
+its caster's group in deterministic member order. `useTurnOrder` stores the
+group definitions and one active member, while `useTurnManager` runs that
+member's start/end effects and economy transition.
+
+The group owns only sequencing and completion. Action, movement, Reaction, and
+effect timing remain independently member-owned. Incapacitated members retain
+their start/end boundary, missing or dead members are skipped, active removal
+continues from the next eligible member without rebuilding initiative, and a
+repeated member-end/removal request is an idempotent no-op.
 
 ## Known Limitations
 

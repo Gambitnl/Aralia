@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { canAffordActionCost, consumeActionCost, createDefaultActionEconomy, resetEconomy } from '../actionEconomyUtils';
+import { calculateMovementModeTotal, canAffordActionCost, consumeActionCost, createDefaultActionEconomy, resetEconomy } from '../actionEconomyUtils';
 import { createMockCombatCharacter } from '../../core/factories';
 
 // ============================================================================
@@ -75,6 +75,18 @@ describe('actionEconomyUtils', () => {
   });
 
   describe('resetEconomy', () => {
+    it('publishes the fastest pool while preserving each mixed movement-mode cap', () => {
+      const character = createMockCombatCharacter();
+      character.stats.speed = 30;
+      character.stats.extraMovementSpeeds = { fly: 40, swim: 20 };
+
+      // The turn ledger is shared, but a slower mode cannot borrow the faster
+      // mode's ceiling. A normal Move resolver selects the relevant mode total.
+      expect(calculateMovementModeTotal(character, 'walk')).toBe(30);
+      expect(calculateMovementModeTotal(character, 'fly')).toBe(40);
+      expect(calculateMovementModeTotal(character, 'swim')).toBe(20);
+      expect(resetEconomy(character).actionEconomy.movement.total).toBe(40);
+    });
     it('should reset a character\'s action economy', () => {
       const character = createMockCombatCharacter({
         stats: { speed: 40, strength: 10, dexterity: 10, constitution: 10, intelligence: 10, wisdom: 10, charisma: 10, baseInitiative: 0, cr: "1" },
@@ -256,6 +268,7 @@ describe('actionEconomyUtils', () => {
       const afterAttack = consumeActionCost(character, { type: 'action' });
 
       expect(afterAttack.actionEconomy.action.used).toBe(true);
+      expect(afterAttack.actionEconomy.action.remaining).toBe(0);
       expect(canAffordActionCost(afterAttack, { type: 'action' })).toBe(false);
       expect(canAffordActionCost(afterAttack, { type: 'bonus' })).toBe(true);
     });

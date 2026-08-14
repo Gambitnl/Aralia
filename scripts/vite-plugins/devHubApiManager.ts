@@ -61,7 +61,7 @@ export const devHubApiManager = () => ({
 
       const parsedUrl = new URL(req.url || '/', 'http://localhost');
       const urlPath = parsedUrl.pathname;
-      const ctx = { req, res, json, parsedUrl, urlPath };
+      const ctx = { req, res, json, parsedUrl, urlPath, server };
 
       const { handleProjectRoutes } = await import('./devhub/projectRoutes.ts');
       if (await handleProjectRoutes(ctx)) return;

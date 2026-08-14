@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 10/08/2026, 15:44:21
+ * Last Sync: 13/08/2026, 18:32:11
  * Dependents: components/BattleMap/BattleMapDemo.tsx, components/Combat/CombatView.tsx, components/DesignPreview/steps/PreviewCombatScenarios.tsx
  * Imports: 23 files
  *
@@ -764,11 +764,15 @@ const BattleMap3D: React.FC<BattleMap3DProps> = ({ mapData, characters, spellMap
 
   // The combat view supplies the available windowpane size; this wrapper fills
   // that box so the Three.js canvas resizes with the encounter instead of
-  // collapsing into a short, content-sized strip.
+  // collapsing into a short, content-sized strip. Some teaching surfaces pair
+  // it with a much taller sidebar, however, and CSS grid stretch can then make
+  // `h-full` several pages high. Cap only that pathological stretch at one
+  // viewport: normal combat panes remain unchanged, while the initial camera
+  // target cannot land thousands of pixels below the visible screen.
   return (
     <div
       className="relative h-full min-h-[320px] w-full overflow-hidden rounded-lg bg-slate-950"
-      style={{ flex: '1 1 0%' }}
+      style={{ flex: '1 1 0%', maxHeight: '100dvh' }}
     >
       {openingSceneFacts3D && (
         <span

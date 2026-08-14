@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 11/08/2026, 22:18:21
+ * Last Sync: 13/08/2026, 05:18:19
  * Dependents: components/DesignPreview/steps/scenarioControls/multiattackRidersScenarioControls.ts
  * Imports: 7 files
  *
@@ -74,7 +74,8 @@ export interface MultiattackSequenceRequest {
 export type MultiattackSequenceFailure =
   | 'attacker_missing'
   | 'action_unavailable'
-  | 'no_authored_attacks';
+  | 'no_authored_attacks'
+  | 'target_missing';
 
 export interface MultiattackStrikeResolution {
   id: string;
@@ -124,18 +125,18 @@ function replaceCharacter(
   };
 }
 
-function applyDamagePacket(
+function calculateAppliedDamage(
   state: CombatState,
   attacker: CombatCharacter,
   target: CombatCharacter,
   rolledDamage: number,
   damageType: DamageType,
   isMagical: boolean,
-  isCritical: boolean,
-): { state: CombatState; target: CombatCharacter; appliedDamage: number } {
-  // Immunity, resistance, and vulnerability are settled before the shared HP
-  // transition, matching the production DamageCommand order.
-  const appliedDamage = ResistanceCalculator.applyResistances(
+): number {
+  // Each damage type settles immunity, resistance, or vulnerability on its own.
+  // The caller combines those post-defense amounts before one HP transition so
+  // a Bite plus venom remains one hit rather than two downing events.
+  return ResistanceCalculator.applyResistances(
     rolledDamage,
     damageType,
     target,
@@ -143,25 +144,15 @@ function applyDamagePacket(
     isMagical,
     { spellZones: state.spellZones, characters: state.characters },
   );
-  const damagedTarget = applyDamageAndCheckDowned(
-    target,
-    appliedDamage,
-    isCritical,
-  );
-
-  return {
-    state: replaceCharacter(state, damagedTarget),
-    target: damagedTarget,
-    appliedDamage,
-  };
 }
 
 // ============================================================================
 // One-Action, Many-Roll Resolution
 // ============================================================================
-// The action is validated and consumed once before any authored strike resolves.
-// Every strike then gets its own target lookup, attack result, damage packet,
-// and hit-gated rider match. A miss never asks the rider system for hit riders.
+// The complete authored transaction is validated before its one Action is paid.
+// This prevents a broken later target from leaving an earlier attack applied.
+// Every valid strike then gets its own attack result, damage packet, and
+// hit-gated rider match. A miss never asks the rider system for hit riders.
 // ============================================================================
 
 export function resolveMultiattackSequence(
@@ -188,6 +179,22 @@ export function resolveMultiattackSequence(
       attempted: false,
       actionSpent: false,
       failure: 'no_authored_attacks',
+      strikes: [],
+    };
+  }
+
+  // Every authored target must exist before the Action is consumed. Multiattack
+  // is one transaction: a stale second target cannot turn it into a paid partial
+  // sequence after the first attack has already changed hit points.
+  const hasMissingTarget = request.strikes.some(strike => (
+    !request.state.characters.some(character => character.id === strike.targetId)
+  ));
+  if (hasMissingTarget) {
+    return {
+      state: request.state,
+      attempted: false,
+      actionSpent: false,
+      failure: 'target_missing',
       strikes: [],
     };
   }
@@ -267,18 +274,14 @@ export function resolveMultiattackSequence(
         1,
         strike.damageRng,
       );
-      const basePacket = applyDamagePacket(
+      baseDamageApplied = calculateAppliedDamage(
         state,
         liveAttacker,
         liveTarget,
         baseDamageRolled,
         strike.damageType,
         strike.isMagical ?? false,
-        attack.isCritical,
       );
-      state = basePacket.state;
-      liveTarget = basePacket.target;
-      baseDamageApplied = basePacket.appliedDamage;
 
       // AttackRiderSystem remains the authority for hit gating, target binding,
       // attack filters, and first-hit/per-turn consumption. This first narrow
@@ -294,29 +297,33 @@ export function resolveMultiattackSequence(
       }).filter(rider => isDamageEffect(rider.effect));
 
       for (const rider of matchingDamageRiders) {
-        const currentTarget = state.characters.find(
-          character => character.id === liveTarget.id,
-        ) ?? liveTarget;
         const rolledRiderDamage = rollDamage(
           rider.effect.damage.dice,
           attack.isCritical,
           1,
           strike.damageRng,
         );
-        const riderPacket = applyDamagePacket(
+        const appliedRiderDamage = calculateAppliedDamage(
           state,
           liveAttacker,
-          currentTarget,
+          liveTarget,
           rolledRiderDamage,
           rider.effect.damage.type,
           true,
-          attack.isCritical,
         );
-        state = riderPacket.state;
-        liveTarget = riderPacket.target;
         riderDamageRolled += rolledRiderDamage;
-        riderDamageApplied += riderPacket.appliedDamage;
+        riderDamageApplied += appliedRiderDamage;
       }
+
+      // Base and rider defenses are now known. Apply their combined result as
+      // one attack event so crossing 0 HP initializes death saves once and does
+      // not immediately count the rider as damage taken while already downed.
+      liveTarget = applyDamageAndCheckDowned(
+        liveTarget,
+        baseDamageApplied + riderDamageApplied,
+        attack.isCritical,
+      );
+      state = replaceCharacter(state, liveTarget);
 
       if (matchingDamageRiders.length > 0) {
         state = riderSystem.consumeRiders(

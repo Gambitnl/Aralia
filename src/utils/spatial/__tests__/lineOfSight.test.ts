@@ -1,3 +1,14 @@
+/**
+ * This file proves the grid line tracer answers the same way for targeting and visibility.
+ *
+ * Straight, diagonal, corner, and endpoint cases use complete map tiles so a
+ * future geometry change cannot silently make the target validator and both
+ * battle-map renderers disagree about Total Cover.
+ *
+ * Exercises: lineOfSight.ts.
+ * Depends on: production combat map shapes.
+ */
+
 import { describe, it, expect } from 'vitest';
 import { bresenhamLine, hasLineOfSight } from '../lineOfSight';
 import { BattleMapTile, BattleMapData } from '../../../types/combat';
@@ -126,15 +137,17 @@ describe('lineOfSight', () => {
       expect(hasLineOfSight(start, end, map)).toBe(true);
     });
 
-    it('returns true if start or end tile is blocking (e.g. shooting from cover)', () => {
-        // Technically hasLineOfSight excludes start and end from the check loop
-        // If I am standing IN a fog cloud (blocks LoS), I can see out?
-        // 5e rules say heavily obscured blocks vision.
-        // But the code explicitly skips start and end.
-        // Let's verify this behavior.
+    it('ignores the occupied source tile but treats an opaque target endpoint as blocked', () => {
         const map = createMap([{ x: 0, y: 0 }, { x: 4, y: 0 }]);
         const start = map.tiles.get('0-0')!;
         const end = map.tiles.get('4-0')!;
+
+        // The attacker may stand in an opaque source cell such as dense smoke,
+        // but a target endpoint explicitly marked as Total Cover is not a legal
+        // visible endpoint. This distinction protects endpoint targeting.
+        expect(hasLineOfSight(start, end, map)).toBe(false);
+
+        end.blocksLoS = false;
         expect(hasLineOfSight(start, end, map)).toBe(true);
     });
 
@@ -152,6 +165,51 @@ describe('lineOfSight', () => {
         const end = map.tiles.get('1-0')!; // Adjacent
         // Loop runs from i=1 to length-1. Length is 2. Loop 1 to 1. i < 1 is false. Loop doesn't run.
         expect(hasLineOfSight(start, end, map)).toBe(true);
+    });
+
+    it('blocks a diagonal ray through a sealed corner but leaves a one-sided corner open', () => {
+      const sealedCorner = createMap([{ x: 1, y: 0 }, { x: 0, y: 1 }]);
+      const openCorner = createMap([{ x: 1, y: 0 }]);
+
+      // Moving diagonally between two opaque orthogonal neighbours would let
+      // a ray pass through the zero-width join unless both sides are checked.
+      expect(hasLineOfSight(
+        sealedCorner.tiles.get('0-0')!,
+        sealedCorner.tiles.get('2-2')!,
+        sealedCorner,
+      )).toBe(false);
+      expect(hasLineOfSight(
+        openCorner.tiles.get('0-0')!,
+        openCorner.tiles.get('2-2')!,
+        openCorner,
+      )).toBe(true);
+    });
+
+    it('looks over a low authored blocker but not a blocker crossing the elevated ray', () => {
+      const map = createMap([{ x: 2, y: 0 }]);
+      const start = map.tiles.get('0-0')!;
+      const end = map.tiles.get('4-0')!;
+      end.elevation = 10;
+
+      // The ray rises from a five-foot eye line to fifteen feet. At its
+      // midpoint a five-foot obstacle is below sight, while a ten-foot top
+      // intersects the ray and remains Total Cover.
+      map.tiles.get('2-0')!.airspace = { blockerTopFeet: 5 };
+      expect(hasLineOfSight(start, end, map)).toBe(true);
+
+      map.tiles.get('2-0')!.airspace = { blockerTopFeet: 10 };
+      expect(hasLineOfSight(start, end, map)).toBe(false);
+    });
+
+    it('preserves legacy opaque walls when no finite blocker top is authored', () => {
+      const map = createMap([{ x: 2, y: 0 }]);
+      map.tiles.get('4-0')!.elevation = 20;
+
+      expect(hasLineOfSight(
+        map.tiles.get('0-0')!,
+        map.tiles.get('4-0')!,
+        map,
+      )).toBe(false);
     });
   });
 });

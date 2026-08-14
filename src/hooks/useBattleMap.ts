@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 12/06/2026, 22:40:15
+ * Last Sync: 13/08/2026, 08:01:31
  * Dependents: components/BattleMap/BattleMap.tsx, components/BattleMap/BattleMap3D.tsx
- * Imports: 6 files
+ * Imports: 7 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -40,6 +40,7 @@ import { useAbilitySystem } from './useAbilitySystem';
 import { useGridMovement } from './combat/useGridMovement';
 import { findPath } from '../utils/spatial/pathfinding';
 import { calculatePathMovementCost } from '../utils/combat';
+import { resolveAerialMovement } from '../utils/combat/aerialMovementUtils';
 
 interface UseBattleMapReturn {
   characterPositions: Map<string, CharacterPosition>;
@@ -64,12 +65,22 @@ export function inferMovementModeForAction(character: CombatCharacter): CombatAc
   // without hardcoding any one spell into the movement executor. Summon Beast's
   // Air form currently uses this to mark normal map movement as flying so
   // Flyby can mean "while flying out of reach."
-  return matchingTraits.find(trait =>
+  const summonedMode = matchingTraits.find(trait =>
     trait.opportunityAttackPolicy &&
     trait.opportunityAttackPolicy !== 'normal' &&
     trait.movementModeRequired &&
     trait.movementModeRequired !== 'any'
   )?.movementModeRequired;
+
+  if (summonedMode) return summonedMode;
+
+  // A creature already occupying aerial space uses its Fly Speed for ordinary
+  // map Move clicks. Grounded creatures with a Fly Speed keep walking until a
+  // dedicated takeoff/altitude choice puts them into aerial state.
+  return character.aerialMovement?.isFlying
+    && (character.stats.extraMovementSpeeds?.fly ?? 0) > 0
+    ? 'fly'
+    : undefined;
 }
 
 export function useBattleMap(
@@ -127,7 +138,7 @@ export function useBattleMap(
     activePath,
     calculatePath,
     clearMovementState
-  } = useGridMovement({ mapData, characterPositions, selectedCharacter });
+  } = useGridMovement({ mapData, characterPositions, selectedCharacter, characters });
 
   const selectCharacter = useCallback((character: CombatCharacter) => {
     if (character.team !== 'player') return; // Prevent selecting enemy characters
@@ -185,7 +196,25 @@ export function useBattleMap(
       const startTile = startPos ? mapData.tiles.get(`${startPos.x}-${startPos.y}`) : null;
 
       if (startTile) {
-        const path = findPath(startTile, tile, mapData);
+        const movementMode = inferMovementModeForAction(character);
+        const targetAltitudeFeet = movementMode === 'fly'
+          ? character.aerialMovement?.altitudeFeet
+          : undefined;
+        const aerialPreview = movementMode === 'fly' && typeof targetAltitudeFeet === 'number'
+          ? resolveAerialMovement({
+              character,
+              destination: tile.coordinates,
+              destinationAltitudeFeet: targetAltitudeFeet,
+              mapData,
+              characters,
+            })
+          : null;
+        if (aerialPreview && !aerialPreview.allowed) return;
+
+        const path = aerialPreview
+          ? aerialPreview.route.map(waypoint => mapData.tiles.get(`${waypoint.position.x}-${waypoint.position.y}`))
+              .filter((pathTile): pathTile is BattleMapTile => Boolean(pathTile))
+          : findPath(startTile, tile, mapData);
         // We call calculatePath to update the visual state in the hook,
         // but we use the local 'path' var for immediate execution logic.
         calculatePath(character, tile);
@@ -193,7 +222,7 @@ export function useBattleMap(
         // Charge movement with the same feet-based path cost used by the range
         // preview. Summing raw tile movementCost was unsafe because maps mix
         // two conventions: 5/10 feet-per-tile and 1/2 terrain multipliers.
-        const moveCost = calculatePathMovementCost(path);
+        const moveCost = aerialPreview?.costFeet ?? calculatePathMovementCost(path);
         const moveActionCost: AbilityCost = { type: 'movement-only', movementCost: moveCost };
 
         if (await turnManager.executeAction({
@@ -202,7 +231,8 @@ export function useBattleMap(
           type: 'move',
           cost: moveActionCost,
           targetPosition: tile.coordinates,
-          movementMode: inferMovementModeForAction(character),
+          movementMode,
+          targetAltitudeFeet,
           // Preserve the exact path found by the map click so spell zones that
           // react to movement through an area can count walked tiles instead of
           // only seeing the start and destination squares.

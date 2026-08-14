@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 10/08/2026, 13:58:24
+ * Last Sync: 13/08/2026, 14:32:31
  * Dependents: commands/effects/AttackRollModifierCommand.ts, commands/effects/GrantedActionCommand.ts, commands/effects/GraspingVineCommand.ts, commands/effects/ReactiveEffectCommand.ts, commands/factory/AbilityCommandFactory.ts, commands/factory/SpellCommandFactory.ts
- * Imports: 18 files
+ * Imports: 19 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -39,7 +39,7 @@ import { ResistanceCalculator } from '../../utils/combat/resistanceUtils';
 import { getPlanarSpellModifier } from '../../utils/planar';
 import { StatusConditionCommand } from './StatusConditionCommand';
 import { SavePenaltySystem } from '../../systems/combat/SavePenaltySystem';
-import { applyDamageAndCheckDowned } from '../../utils/combat/deathSaveUtils';
+import { applyDamageAndCheckDowned, isIncapacitated } from '../../utils/combat/deathSaveUtils';
 import { combatEvents } from '../../systems/events/CombatEvents';
 import { getStateTagForDamageType } from '../../types/elemental';
 import { applyStateToTags } from '../../systems/physics/ElementalInteractionSystem';
@@ -47,6 +47,10 @@ import { breakTauntsForEvent } from '../../systems/combat/tauntConstraint';
 import { getRecurringMechanics } from '../../hooks/spellEffectUtils';
 import { resolveOnDamageSpellEffect } from '../../systems/spells/effects/onDamageSpellEffects';
 import { resolveSourceSaveAdvantageModifiers } from '../../systems/spells/mechanics/sourceSaveModifierResolution';
+import {
+  getAlliedProtectionClaimId,
+  resolveAlliedProtectionReactionWindow,
+} from '../../systems/combat/reactions/alliedProtectionReaction';
 
 /** Unique key for tracking Slasher speed reduction once-per-turn usage */
 const SLASHER_SLOW_USAGE_KEY = 'slasher_slow';
@@ -84,6 +88,16 @@ export class DamageCommand extends BaseEffectCommand<DamageEffect> {
   async execute(state: CombatState): Promise<CombatState> {
     if (!isDamageEffect(this.effect)) {
       console.warn('DamageCommand received non-damage effect')
+      return state
+    }
+
+    // A caller that explicitly supplies an empty stable id has not identified
+    // a valid transaction. Reject it before target discovery, dice, reactions,
+    // HP, events, or logs so malformed retained deliveries are atomic no-ops.
+    if (
+      this.context.damageEventId !== undefined
+      && this.context.damageEventId.trim().length === 0
+    ) {
       return state
     }
 
@@ -141,6 +155,16 @@ export class DamageCommand extends BaseEffectCommand<DamageEffect> {
 
     // --- MAIN DAMAGE LOOP: Process each target ---
     for (const target of this.getTargets(currentState)) {
+      // One command instance owns one stable hit id per target. Retained callers
+      // can supply a cross-instance id; ordinary execution uses this command's
+      // stable id. A prior pre-damage claim makes the whole replay a no-op before
+      // dice, riders, resource payment, HP, or downstream events can repeat.
+      const hitEventId = `${this.context.damageEventId ?? this.id}:${target.id}`;
+      const alliedProtectionClaimId = getAlliedProtectionClaimId(hitEventId);
+      if ((currentState.combatLog ?? []).some(entry => entry.id === alliedProtectionClaimId)) {
+        continue;
+      }
+
       // Step 1: Roll base damage
       // - Parses dice string (e.g., "2d6+3") and rolls
       // - Doubles dice on critical hits
@@ -173,7 +197,7 @@ export class DamageCommand extends BaseEffectCommand<DamageEffect> {
         const dieSizeMatch = this.effect.damage.dice.match(/\b\d*d(\d+)\b/i);
         if (dieSizeMatch && dieSizeMatch[1]) {
           const dieSize = parseInt(dieSizeMatch[1], 10);
-          const extraRoll = rollDamageUtil(`1d${dieSize}`, false, minRoll);
+          const extraRoll = rollDamageUtil(`1d${dieSize}`, false, minRoll, this.context.damageRng);
           damageRoll += extraRoll;
           currentState = this.addLogEntry(currentState, {
             type: 'status',
@@ -310,7 +334,7 @@ export class DamageCommand extends BaseEffectCommand<DamageEffect> {
       );
 
       if (onDamageResolution.damageDice) {
-        const extraDamage = rollDamageUtil(onDamageResolution.damageDice, false, 1);
+        const extraDamage = rollDamageUtil(onDamageResolution.damageDice, false, 1, this.context.damageRng);
         damageRoll += extraDamage;
         currentState = {
           ...currentState,
@@ -373,6 +397,57 @@ export class DamageCommand extends BaseEffectCommand<DamageEffect> {
         finalDamage = Math.max(0, finalDamage - hamPB);
       }
 
+      // --- ALLIED PRE-DAMAGE REACTIONS (e.g. Interception) ---
+      // This window runs after passive defenses but before target-owned reactions
+      // and HP. It discovers every qualifying owned protector, presents one
+      // ordered accept/decline choice, spends only the selected Reaction, and
+      // returns the reduced packet for the normal HP/downing path below.
+      const alliedProtection = await resolveAlliedProtectionReactionWindow({
+        characters: currentState.characters,
+        turnOrder: currentState.turnState.turnOrder,
+        mapData: currentState.mapData,
+        attacker: caster,
+        protectedTarget: targetAfterResistance,
+        hitEventId,
+        claimedEventIds: new Set((currentState.combatLog ?? []).map(entry => entry.id)),
+        attack: {
+          isHit: this.effect.condition.type === 'hit'
+            || this.context.attackType !== undefined
+            || this.context.weaponProperties !== undefined,
+          damage: finalDamage,
+          damageType: this.effect.damage.type,
+        },
+        requestReaction: this.context.requestReaction,
+        reductionRng: this.context.reactionRng,
+      });
+      if (alliedProtection.outcome === 'duplicate_event') {
+        continue;
+      }
+      currentState = {
+        ...currentState,
+        characters: alliedProtection.characters,
+        combatLog: [
+          ...(currentState.combatLog ?? []),
+          {
+            id: alliedProtection.claimId,
+            timestamp: Date.now(),
+            type: 'status',
+            message: alliedProtection.summary,
+            characterId: alliedProtection.selectedProtectorId ?? target.id,
+            targetIds: [target.id],
+            data: {
+              outcome: alliedProtection.outcome,
+              notes: `pre-damage-hit:${hitEventId}`,
+              sourceCharacterId: caster.id,
+              targetCharacterId: target.id,
+              rawDamage: finalDamage,
+              finalDamage: alliedProtection.finalDamage,
+            },
+          },
+        ],
+      };
+      finalDamage = alliedProtection.finalDamage;
+
       // --- RACIAL REACTIONS (e.g. Stone's Endurance) ---
       if (this.context.requestReaction && target.modifiers?.reactions && finalDamage > 0) {
         const validReactions = target.modifiers.reactions.filter(r => r.trigger?.type === 'on_target_takes_damage');
@@ -401,7 +476,7 @@ export class DamageCommand extends BaseEffectCommand<DamageEffect> {
                 const damageReduction = chosenReaction.effect.damageReduction;
                 if (!damageReduction) continue;
                 const dice = damageReduction.dice || '1d12';
-                const drRoll = rollDamageUtil(dice, false, 1);
+                const drRoll = rollDamageUtil(dice, false, 1, this.context.damageRng);
                 let modifier = 0;
                 if (damageReduction.abilityModifier === 'Constitution') {
                   modifier = Math.floor((target.stats.constitution - 10) / 2);
@@ -419,7 +494,7 @@ export class DamageCommand extends BaseEffectCommand<DamageEffect> {
                 });
               } else if (chosenReaction.effect?.type === 'DAMAGE') {
                 const rdDice = chosenReaction.effect.damage.dice;
-                const rdRoll = rollDamageUtil(rdDice, false, 1);
+                const rdRoll = rollDamageUtil(rdDice, false, 1, this.context.damageRng);
                 const newCasterHP = Math.max(0, caster.currentHP - rdRoll);
                 currentState = this.updateCharacter(currentState, caster.id, { currentHP: newCasterHP });
                 currentState = this.addLogEntry(currentState, {
@@ -483,7 +558,15 @@ export class DamageCommand extends BaseEffectCommand<DamageEffect> {
       }
 
       // --- LOGGING ---
-      currentState = this.logDamage(currentState, caster, target, finalDamage, planarModifier);
+      currentState = this.logDamage(
+        currentState,
+        caster,
+        targetAfterResistance,
+        updatedTarget,
+        damageRoll,
+        finalDamage,
+        planarModifier
+      );
 
       // Negative Energy Flood has a delayed death animation instead of an
       // immediate summon. When its damage actually kills a non-Undead target,
@@ -534,7 +617,11 @@ export class DamageCommand extends BaseEffectCommand<DamageEffect> {
       // they must make a Constitution save (DC = 10 or half damage, whichever is higher).
       // If the damage drops them to 0 HP (downed/unconscious), they automatically fail and drop concentration immediately.
       // Failure breaks concentration and ends their maintained spell.
-      if (target.concentratingOn && damageRoll > 0) {
+      // Concentration uses damage actually delivered after saving throws,
+      // resistance, prevention, and reactions. Raw dice must not create a save
+      // when the final packet is zero or inflate the boundary DC above the hit
+      // the creature truly took.
+      if (target.concentratingOn && finalDamage > 0) {
         if (updatedTarget.currentHP === 0) {
           // Downed characters automatically lose concentration without rolling.
           const breakCommand = new BreakConcentrationCommand({
@@ -553,7 +640,7 @@ export class DamageCommand extends BaseEffectCommand<DamageEffect> {
             characterId: target.id
           });
         } else {
-          const check = checkConcentration(target, damageRoll);
+          const check = checkConcentration(target, finalDamage);
 
           if (!check.success) {
             // Concentration broken - execute command to clean up the spell's effects
@@ -1375,7 +1462,9 @@ export class DamageCommand extends BaseEffectCommand<DamageEffect> {
   private logDamage(
     state: CombatState,
     caster: CombatState['characters'][0],
-    target: CombatState['characters'][0],
+    targetBeforeDamage: CombatState['characters'][0],
+    targetAfterDamage: CombatState['characters'][0],
+    rawDamage: number,
     finalDamage: number,
     planarModifier: number
   ): CombatState {
@@ -1390,20 +1479,39 @@ export class DamageCommand extends BaseEffectCommand<DamageEffect> {
     let logMessage = '';
 
     if (sourceName && sourceName !== 'Attack') {
-      logMessage = `${caster.name} ${verb} ${target.name} with ${sourceName} for ${finalDamage} ${damageType} damage`;
+      logMessage = `${caster.name} ${verb} ${targetBeforeDamage.name} with ${sourceName} for ${finalDamage} ${damageType} damage`;
       if (planarModifier !== 0) {
         logMessage += ` (Planar Boost: ${planarModifier > 0 ? '+' : ''}${planarModifier})`;
       }
     } else {
-      logMessage = `${caster.name} ${verb} ${target.name} for ${finalDamage} ${damageType} damage`;
+      logMessage = `${caster.name} ${verb} ${targetBeforeDamage.name} for ${finalDamage} ${damageType} damage`;
     }
 
     return this.addLogEntry(state, {
       type: 'damage',
       message: logMessage,
-      characterId: target.id,
-      targetIds: [target.id],
-      data: { value: finalDamage, type: this.effect.damage.type }
+      characterId: targetBeforeDamage.id,
+      targetIds: [targetBeforeDamage.id],
+      data: {
+        value: finalDamage,
+        type: this.effect.damage.type,
+        damageType: this.effect.damage.type,
+        // This log entry is the normal combat pipeline's once-only handoff.
+        // Its generated log ID becomes the stable reaction event ID; consumers
+        // must never apply this triggering damage again.
+        damageEventBoundary: 'post_hp',
+        sourceCharacterId: caster.id,
+        targetCharacterId: targetBeforeDamage.id,
+        hitConfirmed: true,
+        rawDamage,
+        finalDamage,
+        hitPointsBefore: targetBeforeDamage.currentHP,
+        hitPointsAfter: targetAfterDamage.currentHP,
+        temporaryHitPointsBefore: targetBeforeDamage.tempHP ?? 0,
+        temporaryHitPointsAfter: targetAfterDamage.tempHP ?? 0,
+        targetDownedAfter: targetAfterDamage.currentHP <= 0,
+        targetIncapacitatedAfter: isIncapacitated(targetAfterDamage)
+      }
     });
   }
 
@@ -1436,7 +1544,12 @@ export class DamageCommand extends BaseEffectCommand<DamageEffect> {
       return { state, damage: incomingDamage };
     }
 
-    const reductionRoll = rollDamageUtil(matchingEffect.mechanics?.damageReduction?.dice || '1d4', false, 1);
+    const reductionRoll = rollDamageUtil(
+      matchingEffect.mechanics?.damageReduction?.dice || '1d4',
+      false,
+      1,
+      this.context.damageRng,
+    );
     const reducedDamage = Math.max(0, incomingDamage - reductionRoll);
     const updatedActiveEffects = (liveTarget.activeEffects || []).map(effect => {
       if (effect.id !== matchingEffect.id) return effect;
@@ -1509,7 +1622,7 @@ export class DamageCommand extends BaseEffectCommand<DamageEffect> {
    * Delegates to centralized combatUtils for consistent critical hit logic.
    */
   private rollDamage(diceString: string, isCritical: boolean, minRoll: number = 1): number {
-    return rollDamageUtil(diceString, isCritical, minRoll);
+    return rollDamageUtil(diceString, isCritical, minRoll, this.context.damageRng);
   }
 
   /**

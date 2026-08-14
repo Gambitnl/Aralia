@@ -109,4 +109,36 @@ describe('InitiativeTracker monster inspection', () => {
     fireEvent.click(screen.getByRole('button', { name: /player ranger, turn 3/i }));
     expect(onCharacterSelect).toHaveBeenCalledWith(ally.id);
   });
+
+  it('shows completed, active, and waiting members from production group state', () => {
+    const groupedTurnState = {
+      ...turnState,
+      currentCharacterId: laterEnemy.id,
+      turnGroups: [
+        { id: 'initiative-group:escape-target', initiative: 15, memberIds: [currentEnemy.id, laterEnemy.id] },
+        { id: 'initiative-group:player-ranger', initiative: 11, memberIds: [ally.id] },
+      ],
+      activeGroup: {
+        groupId: 'initiative-group:escape-target',
+        memberIds: [currentEnemy.id, laterEnemy.id],
+        activeMemberId: laterEnemy.id,
+        completedMemberIds: [currentEnemy.id],
+        actionOwnership: 'member' as const,
+        movementOwnership: 'member' as const,
+        reactionOwnership: 'member' as const,
+        effectTiming: 'member_start_and_end' as const,
+      },
+    };
+
+    render(
+      <InitiativeTracker
+        characters={[currentEnemy, laterEnemy, ally]}
+        turnState={groupedTurnState}
+      />,
+    );
+
+    expect(screen.getByText('Member done')).toBeInTheDocument();
+    expect(screen.getByText('Active member')).toBeInTheDocument();
+    expect(screen.queryByText('Group waiting')).not.toBeInTheDocument();
+  });
 });

@@ -6,8 +6,9 @@
  * POST /devhub/api/creature-plan/approve  { id }              → flip status to approved
  * GET  /devhub/api/creature-plans                             → { entries } newest first
  *
- * The brain is the Claude CLI (`claude -p --model claude-fable-5 --effort
- * medium --output-format json`). An invalid plan gets ONE retry with the named
+ * The brain is the Claude CLI (`claude -p --model <PLAN_MODEL> --effort medium
+ * --output-format json`; set ARALIA_CREATURE_PLAN_MODEL to override the
+ * default). An invalid plan gets ONE retry with the named
  * validation errors appended; still invalid → 422 with the list, verbatim, and
  * nothing is stored. The game never calls these routes: approved entries are
  * plain JSON under src/data/creatures3d/plans, importable at build time.
@@ -16,7 +17,6 @@ import { spawn } from 'child_process';
 import { mkdirSync, promises as fsp } from 'fs';
 import { tmpdir } from 'os';
 import path from 'path';
-import { pathToFileURL } from 'url';
 import type { DevHubRouteContext } from './routeContext';
 import type { CreaturePlan } from '../../../src/systems/entities3d/textPlan/planSchema';
 
@@ -29,8 +29,18 @@ type PlanSizeModule = typeof import('../../../src/systems/entities3d/textPlan/pl
 // Runtime entity modules use absolute, variable-held URLs for the same reason this route is
 // opaque to its manager: literal imports let Vite reconnect the route to its config graph.
 // The explicit filenames preserve Node-compatible resolution on every supported platform.
-function entityModuleUrl(relativeFile: string): string {
-  return pathToFileURL(path.resolve(process.cwd(), 'src/systems/entities3d', relativeFile)).href;
+// Loaded through Vite (`server.ssrLoadModule`), NOT a raw file:// import.
+//
+// A raw `import(pathToFileURL(...).href)` dies on the first transitive hop: our
+// source uses extensionless relative specifiers (`import … from '../registry'`)
+// and Node's ESM resolver cannot resolve those. Node 22.19's type stripping made
+// the `.ts` entry file itself load, which only moved the failure one level down
+// ("Cannot find module …/types imported from …/registry.ts"). Vite resolves them
+// the way the app does. This stays a RUNTIME call, so the entity graph is still
+// absent from vite.config.ts's config-dependency list and entity edits still do
+// not restart the dev server — the property this route was built to preserve.
+function entitySrcPath(relativeFile: string): string {
+  return `/src/systems/entities3d/${relativeFile}`;
 }
 
 export interface CreatureLibraryEntry {
@@ -77,6 +87,16 @@ function cleanCliEnv(): NodeJS.ProcessEnv {
   return env;
 }
 
+/**
+ * The planner model, overridable with ARALIA_CREATURE_PLAN_MODEL.
+ *
+ * This was hardcoded to `claude-fable-5` until 2026-08-13, when that model's
+ * quota ran out and every generation came back as a bare `exited 1`. The model
+ * is a quota-bound resource, so it must not be welded into the source: name it
+ * in the environment when the default is unavailable.
+ */
+const PLAN_MODEL = process.env.ARALIA_CREATURE_PLAN_MODEL || 'claude-opus-5';
+
 const defaultRunner: CliRunner = (prompt) =>
   new Promise((resolve, reject) => {
     // The prompt goes through STDIN: as an argv with shell:true (needed for the
@@ -84,7 +104,7 @@ const defaultRunner: CliRunner = (prompt) =>
     // cwd keeps the CLI from loading this repo's CLAUDE.md and following it.
     const child = spawn(
       'claude',
-      ['-p', '--model', 'claude-fable-5', '--effort', 'medium', '--output-format', 'json'],
+      ['-p', '--model', PLAN_MODEL, '--effort', 'medium', '--output-format', 'json'],
       { windowsHide: true, shell: process.platform === 'win32', cwd: tmpdir(), env: cleanCliEnv() },
     );
     let stdout = '';
@@ -134,14 +154,12 @@ function extractPlanJson(stdout: string): unknown {
   return JSON.parse(text.slice(start, end + 1)) as unknown;
 }
 
-async function knownPartIds(): Promise<ReadonlySet<string>> {
-  // Lazy import keeps this module light for the dev server's dynamic loader
+async function knownPartIds(server: any): Promise<ReadonlySet<string>> {
+  // Lazy load keeps this module light for the dev server's dynamic loader
   // (the part registry pulls in three.js).
-  const partsModuleUrl = entityModuleUrl('parts/index.ts');
-  const registryModuleUrl = entityModuleUrl('registry.ts');
   const [{ registerAllParts }, { allParts }] = await Promise.all([
-    import(/* @vite-ignore */ partsModuleUrl) as Promise<typeof import('../../../src/systems/entities3d/parts')>,
-    import(/* @vite-ignore */ registryModuleUrl) as Promise<typeof import('../../../src/systems/entities3d/registry')>,
+    server.ssrLoadModule(entitySrcPath('parts/index.ts')) as Promise<typeof import('../../../src/systems/entities3d/parts')>,
+    server.ssrLoadModule(entitySrcPath('registry.ts')) as Promise<typeof import('../../../src/systems/entities3d/registry')>,
   ]);
   registerAllParts();
   return new Set(allParts().map((p) => p.id));
@@ -225,6 +243,7 @@ async function writeEntry(entry: CreatureLibraryEntry): Promise<void> {
 async function generatePlan(
   runner: CliRunner,
   userSection: string,
+  server: any,
 ): Promise<
   | { plan: CreaturePlan; sizeCategory: ReturnType<PlanSizeModule['sizeCategoryForPlan']> }
   | { errors: string[] }
@@ -232,12 +251,10 @@ async function generatePlan(
   // Load the schema, sizing rule, and part registry only for a request that will ask the
   // creature planner to generate or revise a plan. Listing, approval, unrelated routes,
   // and Vite configuration startup therefore stay independent of the 3D entity runtime.
-  const planSchemaModuleUrl = entityModuleUrl('textPlan/planSchema.ts');
-  const planSizeModuleUrl = entityModuleUrl('textPlan/planSize.ts');
   const [{ PLAN_LIMITS, validateCreaturePlan }, { sizeCategoryForPlan }, known] = await Promise.all([
-    import(/* @vite-ignore */ planSchemaModuleUrl) as Promise<PlanSchemaModule>,
-    import(/* @vite-ignore */ planSizeModuleUrl) as Promise<PlanSizeModule>,
-    knownPartIds(),
+    server.ssrLoadModule(entitySrcPath('textPlan/planSchema.ts')) as Promise<PlanSchemaModule>,
+    server.ssrLoadModule(entitySrcPath('textPlan/planSize.ts')) as Promise<PlanSizeModule>,
+    knownPartIds(server),
   ]);
   const basePrompt = `${schemaPrompt(PLAN_LIMITS)}\nKnown garnish partIds: ${[...known].sort().join(', ')}.\n\n${userSection}`;
   let lastErrors: string[] = [];
@@ -313,6 +330,7 @@ export async function handleCreaturePlanRoutes(
         const result = await generatePlan(
           runner,
           `Current plan:\n${JSON.stringify(parent.plan, null, 2)}\n\nRevision request: ${note}\nReturn the FULL revised plan.`,
+          ctx.server,
         );
         if ('errors' in result) {
           json({ errors: result.errors }, 422);
@@ -345,7 +363,7 @@ export async function handleCreaturePlanRoutes(
         json({ entry: existing });
         return true;
       }
-      const result = await generatePlan(runner, `Creature description: ${text}`);
+      const result = await generatePlan(runner, `Creature description: ${text}`, ctx.server);
       if ('errors' in result) {
         json({ errors: result.errors }, 422);
         return true;

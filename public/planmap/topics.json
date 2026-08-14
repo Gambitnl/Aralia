@@ -6238,7 +6238,7 @@
       "sub": "blind-critic loop over entity AND world pieces until every sheet ships",
       "campaign": "rendering",
       "status": "active",
-      "updated": "2026-08-12",
+      "updated": "2026-08-13",
       "status_note": "Remy-directed 2026-08-10 as an entity-only loop; WIDENED 2026-08-12 to a general visual-quality portal because there was no human-eyeball judging surface for world work. Eight pieces: four entity (humanoid anatomy, humanoid motion, creature anatomy, surface materials) and four world (region-terrain, world-scatter, object-placement, town-3d). Fresh-context critics judge sheets blind against references, no round cap. Portal public/visual-quality/index.html reads pieces.json + status.json + verdicts/*.json; contract tools/visualQuality/CAMPAIGN.md; rig capture.mjs (auto for entity pieces, `register` for world pieces — world capture stays manual). Entity campaign PARKED at humanoid r22 / creature r24 (see PARKED.md). World round 1 ingested for all four world pieces: every verdict is wowed:false with a named gap.",
       "deps": [
         {
@@ -6278,6 +6278,16 @@
         {
           "title": "Coherence passes between waves",
           "status": "parked"
+        },
+        {
+          "title": "World pieces: terrain, scatter, placement, town",
+          "status": "active",
+          "status_note": "Four world pieces added 2026-08-13 with round-1 sheets from the WorldClaw wave. All four verdicts are wowed:false. region-terrain is explicitly NOT wired into generateRegion.ts."
+        },
+        {
+          "title": "One judging address: merged into the Judge step",
+          "status": "done",
+          "status_note": "Portal moved out of public/visual-quality/index.html into PreviewVisualQuality.tsx, then merged into PreviewJudge as a second mode. Standalone page is now a redirect. Data still reads from public/visual-quality/."
         }
       ]
     },

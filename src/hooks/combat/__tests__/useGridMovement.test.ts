@@ -163,6 +163,34 @@ describe('useGridMovement', () => {
     expect(result.current.validMoves.has('14-7')).toBe(false);
   });
 
+  it('reduces reachable ground tiles by the real cost of climbing', () => {
+    const openMap = createOpenMap(8, 1, 5);
+    const climber = {
+      ...mockCharacter,
+      position: { x: 0, y: 0 },
+      actionEconomy: {
+        ...mockCharacter.actionEconomy,
+        movement: { used: 0, total: 30 }
+      }
+    };
+    const positions = new Map<string, CharacterPosition>([
+      [climber.id, { characterId: climber.id, coordinates: climber.position }]
+    ]);
+    openMap.tiles.get('3-0')!.elevation = 10;
+    for (let x = 4; x < 8; x += 1) openMap.tiles.get(`${x}-0`)!.elevation = 10;
+
+    const { result } = renderHook(() => useGridMovement({
+      mapData: openMap,
+      characterPositions: positions,
+      selectedCharacter: climber
+    }));
+
+    // Two flat steps cost ten, the third step climbs ten and costs fifteen,
+    // leaving only five feet for one final high-ground square.
+    expect(result.current.validMoves.has('4-0')).toBe(true);
+    expect(result.current.validMoves.has('5-0')).toBe(false);
+  });
+
   it('should calculate path', () => {
     const { result } = renderHook(() => useGridMovement({
         mapData: mockMapData,

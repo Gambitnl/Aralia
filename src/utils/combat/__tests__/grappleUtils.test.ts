@@ -134,4 +134,36 @@ describe('grappleUtils', () => {
     expect(reachResult.releases).toEqual([expect.objectContaining({ reason: 'out_of_reach' })]);
     expect(reachResult.characters[1].conditions?.some(condition => condition.name === 'Grappled')).toBe(false);
   });
+
+  it('preserves an in-reach hold and repeats maintenance as a state-preserving no-op', () => {
+    const { grappler, target } = createActors();
+    const grappled = grappleTarget(target);
+    const inReachGrappler = { ...grappler, position: { x: 4, y: 5 } };
+
+    const first = reconcileGrappleMaintenance([inReachGrappler, grappled]);
+    const repeated = reconcileGrappleMaintenance(first.characters);
+
+    expect(first.releases).toEqual([]);
+    expect(first.characters[1]).toBe(grappled);
+    expect(repeated.releases).toEqual([]);
+    expect(repeated.characters[1]).toBe(grappled);
+    expect(calculateMovementTotal(repeated.characters[1])).toBe(0);
+  });
+
+  it('allows a forced target position change while releasing the now-distant hold', () => {
+    const { grappler, target } = createActors();
+    const grappled = grappleTarget(target);
+    const forcedTarget = { ...grappled, position: { x: 8, y: 4 } };
+
+    // Forced movement does not spend the target's Speed. Maintenance only
+    // inspects the resulting positions and must not reject or undo the move.
+    const result = reconcileGrappleMaintenance([grappler, forcedTarget]);
+    const releasedTarget = result.characters[1];
+
+    expect(releasedTarget.position).toEqual({ x: 8, y: 4 });
+    expect(result.releases).toEqual([expect.objectContaining({ reason: 'out_of_reach' })]);
+    expect(releasedTarget.statusEffects.some(effect => effect.name === 'Grappled')).toBe(false);
+    expect(releasedTarget.conditions?.some(condition => condition.name === 'Grappled')).toBe(false);
+    expect(calculateMovementTotal(releasedTarget)).toBe(30);
+  });
 });

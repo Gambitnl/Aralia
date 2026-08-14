@@ -16,6 +16,7 @@ import { createMockCombatCharacter } from '../../../../utils/core';
 import {
   INTERCEPTION_STYLE_DESCRIPTION,
   INTERCEPTION_STYLE_NAME,
+  resolveCompanionProtectionReduction,
   resolveCompanionProtectionReaction,
 } from '../companionProtectionReaction';
 
@@ -45,15 +46,6 @@ function makeMap(blocker?: { x: number; y: number }): BattleMapData {
     }
   }
   return { dimensions: { width: 16, height: 12 }, tiles, theme: 'dungeon', seed: 38 };
-}
-
-function makeMapWithoutTargetTile(): BattleMapData {
-  // Adjacent actors cannot have an intervening wall. Missing endpoint evidence
-  // is the fail-closed sight case for the production resolver; the mounted
-  // scenario correctly labels Total Cover as geometrically inapplicable.
-  const map = makeMap();
-  map.tiles.delete('6-5');
-  return map;
 }
 
 function makeActors(): {
@@ -157,6 +149,20 @@ describe('companion protection successful resolution', () => {
     expect(result.owner).toBe(result.protectedTarget);
     expect(result.owner.actionEconomy.reaction.used).toBe(false);
   });
+
+  it('can spend the selected Reaction and return reduced pre-HP damage', () => {
+    const actors = makeActors();
+    const result = resolveCompanionProtectionReduction({
+      ...actors,
+      mapData: makeMap(),
+      attack: { isHit: true, damage: 14, damageType: 'Slashing' },
+      reductionRng: () => 0.55,
+    });
+
+    expect(result).toMatchObject({ outcome: 'resolved', finalDamage: 5, protectedHPAfter: 30 });
+    expect(result.protectedTarget.currentHP).toBe(30);
+    expect(result.protector.actionEconomy.reaction.used).toBe(true);
+  });
 });
 
 // ============================================================================
@@ -185,7 +191,9 @@ describe('companion protection rejection boundaries', () => {
     ['wrong owner', (actors: ReturnType<typeof makeActors>) => ({ ...actors, protector: { ...actors.protector, summonMetadata: { ...actors.protector.summonMetadata!, casterId: 'someone-else' } } }), makeMap(), { isHit: true, damage: 14, damageType: 'Slashing' }, 'protector_not_owned_by_owner'],
     ['non-allied target', (actors: ReturnType<typeof makeActors>) => ({ ...actors, protectedTarget: { ...actors.protectedTarget, team: 'enemy' as const } }), makeMap(), { isHit: true, damage: 14, damageType: 'Slashing' }, 'protected_target_not_allied'],
     ['out of range', (actors: ReturnType<typeof makeActors>) => ({ ...actors, protectedTarget: { ...actors.protectedTarget, position: { x: 8, y: 5 } } }), makeMap(), { isHit: true, damage: 14, damageType: 'Slashing' }, 'protected_target_out_of_range'],
-    ['missing sight evidence', (actors: ReturnType<typeof makeActors>) => actors, makeMapWithoutTargetTile(), { isHit: true, damage: 14, damageType: 'Slashing' }, 'protected_target_not_visible'],
+    // The ally stays visible and adjacent while the wall at 7,5 blocks the
+    // protector's sight to the attacker. Interception watches the attacker.
+    ['attacker out of sight', (actors: ReturnType<typeof makeActors>) => actors, makeMap({ x: 7, y: 5 }), { isHit: true, damage: 14, damageType: 'Slashing' }, 'attacker_not_visible'],
     ['incapacitated', (actors: ReturnType<typeof makeActors>) => ({ ...actors, protector: { ...actors.protector, conditions: [{ name: 'Incapacitated', source: 'test', duration: { type: 'rounds', value: 1 }, appliedTurn: 0 }] } }), makeMap(), { isHit: true, damage: 14, damageType: 'Slashing' }, 'protector_incapacitated'],
     ['spent Reaction', (actors: ReturnType<typeof makeActors>) => ({ ...actors, protector: { ...actors.protector, actionEconomy: { ...actors.protector.actionEconomy, reaction: { used: true, remaining: 0 } } } }), makeMap(), { isHit: true, damage: 14, damageType: 'Slashing' }, 'protector_reaction_unavailable'],
   ] as const)('rejects %s without effect or payment', (_label, update, mapData, attack, reason) => {

@@ -3,8 +3,8 @@
  * ARCHITECTURAL ADVISORY:
  * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 12/08/2026, 03:21:12
- * Dependents: App.tsx, commands/base/BaseEffectCommand.ts, commands/base/CommandExecutor.ts, commands/base/SpellCommand.ts, commands/effects/AttackRollModifierCommand.ts, commands/effects/CommandedSummonCommand.ts, commands/effects/ConcentrationCommands.ts, commands/effects/DamageCommand.ts, commands/effects/DefensiveCommand.ts, commands/effects/ElementalBaneCommand.ts, commands/effects/EnhanceAbilityCommand.ts, commands/effects/FamiliarPocketCommands.ts, commands/effects/FamiliarSharedSensesCommand.ts, commands/effects/GrantedActionCommand.ts, commands/effects/GraspingVineCommand.ts, commands/effects/HealingCommand.ts, commands/effects/MovementCommand.ts, commands/effects/NarrativeCommand.ts, commands/effects/ReactiveEffectCommand.ts, commands/effects/RegisterRiderCommand.ts, commands/effects/StatusConditionCommand.ts, commands/effects/SummonDismissCommand.ts, commands/effects/SummonReturnHomeCommand.ts, commands/effects/SummoningCommand.ts, commands/effects/TerrainCommand.ts, commands/effects/UtilityCommand.ts, commands/effects/commandAreaMovementEffects.ts, commands/effects/utility/combatSupport.ts, commands/effects/utility/controlledEntities.ts, commands/effects/utility/core.ts, commands/effects/utility/minorUtility.ts, commands/effects/utility/moduleFunctions.ts, commands/effects/utility/objects.ts, commands/effects/utility/senses.ts, commands/effects/utility/summons.ts, commands/effects/utility/transformation.ts, commands/effects/utility/undead.ts, commands/factory/AbilityCommandFactory.ts, commands/factory/AbilityEffectMapper.ts, commands/factory/SpellCommandFactory.ts, commands/factory/boomingBladeAttackBridge.ts, commands/factory/greenFlameBladeAttackBridge.ts, commands/factory/trueStrikeAttackBridge.ts, components/BattleMap/AbilityButton.tsx, components/BattleMap/AbilityPalette.tsx, components/BattleMap/ActionEconomyBar.tsx, components/BattleMap/BattleMap.tsx, components/BattleMap/BattleMap3D.tsx, components/BattleMap/BattleMap3DGpuScene.tsx, components/BattleMap/BattleMapDemo.tsx, components/BattleMap/BattleMapFogCanvas.tsx, components/BattleMap/BattleMapGroundCanvas.tsx, components/BattleMap/BattleMapOverlay.tsx, components/BattleMap/BattleMapTile.tsx, components/BattleMap/CharacterToken.tsx, components/BattleMap/CombatCharacterInspector.tsx, components/BattleMap/CombatIntentPreview.tsx, components/BattleMap/CombatLog.tsx, components/BattleMap/CompactTurnStrip.tsx, components/BattleMap/DamageNumberOverlay.tsx, components/BattleMap/InitiativeTracker.tsx, components/BattleMap/OpeningThreatScene3D.tsx, components/BattleMap/PartyDisplay.tsx, components/BattleMap/camera/CameraController.tsx, components/BattleMap/characters/characterActor/CharacterActor.tsx, components/BattleMap/characters/characterActor/conditionBadges.tsx, components/BattleMap/characters/characterActor/defenseBadges.tsx, components/BattleMap/elevationPresentation.ts, components/BattleMap/fogModel.ts, components/BattleMap/groundPainter/paintPipeline.ts, components/BattleMap/groundPainter/textures.ts, components/BattleMap/pixi/PixiBattleBoard.tsx, components/BattleMap/pixi/PixiBoardPrototype.tsx, components/BattleMap/pixi/tokenViewModel.ts, components/BattleMap/quickAttack.ts, components/BattleMap/spellMapArtifacts.ts, components/BattleMap/spritePacks.ts, components/BattleMap/terrain/DecorationProps.tsx, components/BattleMap/terrain/EzTreeLayer.tsx, components/BattleMap/terrain/FordStones.tsx, components/BattleMap/terrain/GrassLayer.tsx, components/BattleMap/terrain/GridOverlay.tsx, components/BattleMap/terrain/GroundMist.tsx, components/BattleMap/terrain/GroundScatter.tsx, components/BattleMap/terrain/TerrainApron.tsx, components/BattleMap/terrain/TerrainMesh.tsx, components/BattleMap/terrain/VolumeArenaGround.tsx, components/BattleMap/terrain/VolumeArenaWater.tsx, components/BattleMap/terrain/WaterSystem.tsx, components/BattleMap/terrain/apronField.ts, components/BattleMap/terrain/arenaVolume.ts, components/BattleMap/terrain/terrainHeightSampler.ts, components/BattleMap/terrain/terrainSurfaceMaterial.ts, components/BattleMap/vfx/LivingWorld.tsx, components/BattleMap/vfx/VFXSystem.tsx, components/BattleMap/visibilityObserverPolicy.ts, components/Combat/CombatView.tsx, components/Combat/InPlaceCombatScene.tsx, components/Combat/ReactionPrompt.tsx, components/DesignPreview/steps/PreviewBattleMapScenarioLab.tsx, components/DesignPreview/steps/PreviewCombatScenarioLights.ts, components/DesignPreview/steps/PreviewCombatScenarioObjects.ts, components/DesignPreview/steps/PreviewCombatScenarios.tsx, components/DesignPreview/steps/scenarioControls/PreviewCombatScenarioControlTypes.ts, components/DesignPreview/steps/scenarioControls/actionEconomyScenarioControls.ts, components/DesignPreview/steps/scenarioControls/areaEffectScenarioControls.ts, components/DesignPreview/steps/scenarioControls/concentrationScenarioControls.ts, components/DesignPreview/steps/scenarioControls/conditionsScenarioControls.ts, components/DesignPreview/steps/scenarioControls/counterspellNestedReactionsScenarioControls.ts, components/DesignPreview/steps/scenarioControls/coverScenarioControls.ts, components/DesignPreview/steps/scenarioControls/criticalHitsScenarioControls.ts, components/DesignPreview/steps/scenarioControls/darkvisionScenarioControls.ts, components/DesignPreview/steps/scenarioControls/deathSavesScenarioControls.ts, components/DesignPreview/steps/scenarioControls/dispelMagicCleanupScenarioControls.ts, components/DesignPreview/steps/scenarioControls/elevationRangeScenarioControls.ts, components/DesignPreview/steps/scenarioControls/fallingGroundImpactScenarioControls.ts, components/DesignPreview/steps/scenarioControls/flyingAerialMovementScenarioControls.ts, components/DesignPreview/steps/scenarioControls/forcedMovementScenarioControls.ts, components/DesignPreview/steps/scenarioControls/grappleEscapeScenarioControls.ts, components/DesignPreview/steps/scenarioControls/hazardsZonesScenarioControls.ts, components/DesignPreview/steps/scenarioControls/healingTempHpScenarioControls.ts, components/DesignPreview/steps/scenarioControls/lineOfSightScenarioControls.ts, components/DesignPreview/steps/scenarioControls/multiattackRidersScenarioControls.ts, components/DesignPreview/steps/scenarioControls/objectInteractionScenarioControls.ts, components/DesignPreview/steps/scenarioControls/reachCreatureSizeScenarioControls.ts, components/DesignPreview/steps/scenarioControls/reactionScenarioControls.ts, components/DesignPreview/steps/scenarioControls/repeatSavesConditionExpiryScenarioControls.ts, components/DesignPreview/steps/scenarioControls/resistanceScenarioControls.ts, components/DesignPreview/steps/scenarioControls/savingThrowsHalfDamageScenarioControls.ts, components/DesignPreview/steps/scenarioControls/shoveProneScenarioControls.ts, components/DesignPreview/steps/scenarioControls/spellSlotsUpcastingScenarioControls.ts, components/DesignPreview/steps/scenarioControls/spellTargetRestrictionsScenarioControls.ts, components/DesignPreview/steps/scenarioControls/stealthHiddenScenarioControls.ts, components/DesignPreview/steps/scenarioControls/summonsControlledScenarioControls.ts, components/DesignPreview/steps/scenarioControls/sustainActionsOngoingControlScenarioControls.ts, components/DesignPreview/steps/scenarioControls/teleportationOccupiedSpacesScenarioControls.ts, components/DesignPreview/steps/scenarioControls/terrainScenarioControls.ts, components/World3D/World3DWrapper.tsx, components/demo/CombatMessagingDemo.tsx, data/adapters/5eTools/actionsAdapter.ts, data/adapters/5eTools/index.ts, data/adapters/5eTools/legendaryAdapter.ts, data/adapters/5eTools/reactionsAdapter.ts, data/adapters/5eTools/shared.ts, data/adapters/5eTools/spellEffectMapper.ts, data/adapters/5eTools/spellcastingAdapter.ts, data/religion/blessings.ts, hooks/actionUtils.ts, hooks/combat/engine/useCombatEngine.ts, hooks/combat/useActionEconomy.ts, hooks/combat/useActionExecutor.ts, hooks/combat/useCombatAI.ts, hooks/combat/useCombatLog.ts, hooks/combat/useCombatOutcome.ts, hooks/combat/useCombatValidation.ts, hooks/combat/useCombatVisuals.ts, hooks/combat/useGridMovement.ts, hooks/combat/useSummons.ts, hooks/combat/useTargetSelection.ts, hooks/combat/useTargetValidator.ts, hooks/combat/useTargeting.ts, hooks/combat/useTurnManager.ts, hooks/combat/useTurnOrder.ts, hooks/combat/useVisibility.ts, hooks/movementUtils.ts, hooks/perTargetChoiceUtils.ts, hooks/teleportUtils.ts, hooks/useAbilitySystem.ts, hooks/useBattleMap.ts, hooks/useBattleMapGeneration.ts, services/battleMapGenerator.ts, systems/combat/AttackRiderSystem.ts, systems/combat/MovementEventEmitter.ts, systems/combat/SavePenaltySystem.ts, systems/combat/SustainActionSystem.ts, systems/combat/fightInPlace/activeGroundCombatSession.ts, systems/combat/fightInPlace/inSceneMovement.ts, systems/combat/reactions/OpportunityAttackSystem.ts, systems/combat/tauntConstraint.ts, systems/combat/worldScenario/liveSettlementEncounter.ts, systems/combat/worldScenario/openingThreatBattlefield.ts, systems/combat/worldScenario/openingThreatOutcome.ts, systems/combat/worldScenario/settlementDefenderProjection.ts, systems/combat/worldScenario/settlementEncounterHostility.ts, systems/combat/worldScenario/travelAmbushBattlefield.ts, systems/combat/worldScenario/worldBattleScenario.ts, systems/combat/worldScenario/worldEncounterCombatants.ts, systems/combat/worldScenario/worldforgeEncounterReceipt.ts, systems/entities3d/recipeFromCombatant.ts, systems/environment/EnvironmentSystem.ts, systems/environment/hazards.ts, systems/events/CombatEvents.ts, systems/logic/ConditionEvaluator.ts, systems/puzzles/puzzleRuntime.ts, systems/puzzles/puzzleSystem.ts, systems/religion/CombatReligionAdapter.ts, systems/rituals/RitualManager.ts, systems/spells/ai/AISpellArbitrator.ts, systems/spells/effects/AreaEffectTracker.ts, systems/spells/effects/onDamageSpellEffects.ts, systems/spells/effects/triggerHandler.ts, systems/spells/mechanics/ConcentrationTracker.ts, systems/spells/mechanics/dispelMagicResolution.ts, systems/spells/mechanics/sourceSaveModifierResolution.ts, systems/spells/mechanics/teleportationResolution.ts, systems/spells/mechanics/witchBoltOngoingResolution.ts, systems/spells/socialServiceResolution.ts, systems/spells/targeting/ObjectTargetRegistry.ts, systems/spells/targeting/TargetAllocator.ts, systems/spells/targeting/TargetValidationUtils.ts, systems/spells/targeting/selectedSpellTargets.ts, systems/visibility/VisibilitySystem.ts, systems/worldforge/bridge/groundChunkLoader.ts, systems/worldforge/bridge/groundProps.ts, types/index.ts, types/infernal.ts, utils/character/checkUtils.ts, utils/character/concentrationUtils.ts, utils/character/savingThrowUtils.ts, utils/character/spellAbilityFactory.ts, utils/combat/actionEconomyUtils.ts, utils/combat/aerialMovementUtils.ts, utils/combat/aoeCalculations.ts, utils/combat/battleEndActions.ts, utils/combat/combatAI.ts, utils/combat/combatLogToMessageAdapter.ts, utils/combat/combatUtils.ts, utils/combat/createEnemyFromMonster.ts, utils/combat/deathSaveUtils.ts, utils/combat/grappleUtils.ts, utils/combat/movementUtils.ts, utils/combat/multiattackUtils.ts, utils/combat/physicsUtils.ts, utils/combat/repeatSaveUtils.ts, utils/combat/shoveUtils.ts, utils/combat/statusConditionUtils.ts, utils/core/factories.ts, utils/planar/planarTargeting.ts, utils/sandbox/quickCharacterGenerator.ts, utils/spatial/geometry.ts, utils/spatial/lineOfSight.ts, utils/spatial/pathfinding.ts, utils/spatial/targetingUtils.ts, utils/visuals/combatIconVisuals.ts, utils/world/religionUtils.ts
+ * Last Sync: 13/08/2026, 09:59:10
+ * Dependents: App.tsx, commands/base/BaseEffectCommand.ts, commands/base/CommandExecutor.ts, commands/base/SpellCommand.ts, commands/effects/AttackRollModifierCommand.ts, commands/effects/CommandedSummonCommand.ts, commands/effects/ConcentrationCommands.ts, commands/effects/DamageCommand.ts, commands/effects/DefensiveCommand.ts, commands/effects/ElementalBaneCommand.ts, commands/effects/EnhanceAbilityCommand.ts, commands/effects/FamiliarPocketCommands.ts, commands/effects/FamiliarSharedSensesCommand.ts, commands/effects/GrantedActionCommand.ts, commands/effects/GraspingVineCommand.ts, commands/effects/HealingCommand.ts, commands/effects/MovementCommand.ts, commands/effects/NarrativeCommand.ts, commands/effects/ReactiveEffectCommand.ts, commands/effects/RegisterRiderCommand.ts, commands/effects/StatusConditionCommand.ts, commands/effects/SummonDismissCommand.ts, commands/effects/SummonReturnHomeCommand.ts, commands/effects/SummoningCommand.ts, commands/effects/TerrainCommand.ts, commands/effects/UtilityCommand.ts, commands/effects/commandAreaMovementEffects.ts, commands/effects/utility/combatSupport.ts, commands/effects/utility/controlledEntities.ts, commands/effects/utility/core.ts, commands/effects/utility/minorUtility.ts, commands/effects/utility/moduleFunctions.ts, commands/effects/utility/objects.ts, commands/effects/utility/senses.ts, commands/effects/utility/summons.ts, commands/effects/utility/transformation.ts, commands/effects/utility/undead.ts, commands/factory/AbilityCommandFactory.ts, commands/factory/AbilityEffectMapper.ts, commands/factory/SpellCommandFactory.ts, commands/factory/boomingBladeAttackBridge.ts, commands/factory/greenFlameBladeAttackBridge.ts, commands/factory/trueStrikeAttackBridge.ts, components/BattleMap/AbilityButton.tsx, components/BattleMap/AbilityPalette.tsx, components/BattleMap/ActionEconomyBar.tsx, components/BattleMap/BattleMap.tsx, components/BattleMap/BattleMap3D.tsx, components/BattleMap/BattleMap3DGpuScene.tsx, components/BattleMap/BattleMapDemo.tsx, components/BattleMap/BattleMapFogCanvas.tsx, components/BattleMap/BattleMapGroundCanvas.tsx, components/BattleMap/BattleMapOverlay.tsx, components/BattleMap/BattleMapTile.tsx, components/BattleMap/CharacterToken.tsx, components/BattleMap/CombatCharacterInspector.tsx, components/BattleMap/CombatIntentPreview.tsx, components/BattleMap/CombatLog.tsx, components/BattleMap/CompactTurnStrip.tsx, components/BattleMap/DamageNumberOverlay.tsx, components/BattleMap/InitiativeTracker.tsx, components/BattleMap/OpeningThreatScene3D.tsx, components/BattleMap/PartyDisplay.tsx, components/BattleMap/camera/CameraController.tsx, components/BattleMap/characters/characterActor/CharacterActor.tsx, components/BattleMap/characters/characterActor/conditionBadges.tsx, components/BattleMap/characters/characterActor/defenseBadges.tsx, components/BattleMap/elevationPresentation.ts, components/BattleMap/fogModel.ts, components/BattleMap/groundPainter/paintPipeline.ts, components/BattleMap/groundPainter/textures.ts, components/BattleMap/pixi/PixiBattleBoard.tsx, components/BattleMap/pixi/PixiBoardPrototype.tsx, components/BattleMap/pixi/tokenViewModel.ts, components/BattleMap/quickAttack.ts, components/BattleMap/spellMapArtifacts.ts, components/BattleMap/spritePacks.ts, components/BattleMap/terrain/DecorationProps.tsx, components/BattleMap/terrain/EzTreeLayer.tsx, components/BattleMap/terrain/FordStones.tsx, components/BattleMap/terrain/GrassLayer.tsx, components/BattleMap/terrain/GridOverlay.tsx, components/BattleMap/terrain/GroundMist.tsx, components/BattleMap/terrain/GroundScatter.tsx, components/BattleMap/terrain/TerrainApron.tsx, components/BattleMap/terrain/TerrainMesh.tsx, components/BattleMap/terrain/VolumeArenaGround.tsx, components/BattleMap/terrain/VolumeArenaWater.tsx, components/BattleMap/terrain/WaterSystem.tsx, components/BattleMap/terrain/apronField.ts, components/BattleMap/terrain/arenaVolume.ts, components/BattleMap/terrain/terrainHeightSampler.ts, components/BattleMap/terrain/terrainSurfaceMaterial.ts, components/BattleMap/vfx/LivingWorld.tsx, components/BattleMap/vfx/VFXSystem.tsx, components/BattleMap/visibilityObserverPolicy.ts, components/Combat/CombatView.tsx, components/Combat/InPlaceCombatScene.tsx, components/Combat/ReactionPrompt.tsx, components/DesignPreview/steps/PreviewBattleMapScenarioLab.tsx, components/DesignPreview/steps/PreviewCombatScenarioLights.ts, components/DesignPreview/steps/PreviewCombatScenarioObjects.ts, components/DesignPreview/steps/PreviewCombatScenarios.tsx, components/DesignPreview/steps/scenarioControls/PreviewCombatScenarioControlTypes.ts, components/DesignPreview/steps/scenarioControls/actionEconomyScenarioControls.ts, components/DesignPreview/steps/scenarioControls/areaEffectScenarioControls.ts, components/DesignPreview/steps/scenarioControls/companionReactionsScenarioControls.ts, components/DesignPreview/steps/scenarioControls/concentrationScenarioControls.ts, components/DesignPreview/steps/scenarioControls/conditionsScenarioControls.ts, components/DesignPreview/steps/scenarioControls/counterspellNestedReactionsScenarioControls.ts, components/DesignPreview/steps/scenarioControls/coverScenarioControls.ts, components/DesignPreview/steps/scenarioControls/criticalHitsScenarioControls.ts, components/DesignPreview/steps/scenarioControls/damageOverTimeScheduledEffectsScenarioControls.ts, components/DesignPreview/steps/scenarioControls/darkvisionScenarioControls.ts, components/DesignPreview/steps/scenarioControls/deathSavesScenarioControls.ts, components/DesignPreview/steps/scenarioControls/dispelMagicCleanupScenarioControls.ts, components/DesignPreview/steps/scenarioControls/elevationRangeScenarioControls.ts, components/DesignPreview/steps/scenarioControls/fallingGroundImpactScenarioControls.ts, components/DesignPreview/steps/scenarioControls/flyingAerialMovementScenarioControls.ts, components/DesignPreview/steps/scenarioControls/forcedMovementScenarioControls.ts, components/DesignPreview/steps/scenarioControls/grappleEscapeScenarioControls.ts, components/DesignPreview/steps/scenarioControls/hazardsZonesScenarioControls.ts, components/DesignPreview/steps/scenarioControls/healingTempHpScenarioControls.ts, components/DesignPreview/steps/scenarioControls/initiativeTiesSharedTurnsScenarioControls.ts, components/DesignPreview/steps/scenarioControls/lineOfSightScenarioControls.ts, components/DesignPreview/steps/scenarioControls/multiattackRidersScenarioControls.ts, components/DesignPreview/steps/scenarioControls/objectInteractionScenarioControls.ts, components/DesignPreview/steps/scenarioControls/reachCreatureSizeScenarioControls.ts, components/DesignPreview/steps/scenarioControls/reactionScenarioControls.ts, components/DesignPreview/steps/scenarioControls/reactiveDamageRetaliationScenarioControls.ts, components/DesignPreview/steps/scenarioControls/repeatSavesConditionExpiryScenarioControls.ts, components/DesignPreview/steps/scenarioControls/resistanceScenarioControls.ts, components/DesignPreview/steps/scenarioControls/savingThrowsHalfDamageScenarioControls.ts, components/DesignPreview/steps/scenarioControls/shoveProneScenarioControls.ts, components/DesignPreview/steps/scenarioControls/spellSlotsUpcastingScenarioControls.ts, components/DesignPreview/steps/scenarioControls/spellTargetRestrictionsScenarioControls.ts, components/DesignPreview/steps/scenarioControls/stealthHiddenScenarioControls.ts, components/DesignPreview/steps/scenarioControls/summonsControlledScenarioControls.ts, components/DesignPreview/steps/scenarioControls/sustainActionsOngoingControlScenarioControls.ts, components/DesignPreview/steps/scenarioControls/tauntForcedTargetingScenarioControls.ts, components/DesignPreview/steps/scenarioControls/teleportationOccupiedSpacesScenarioControls.ts, components/DesignPreview/steps/scenarioControls/terrainScenarioControls.ts, components/World3D/World3DWrapper.tsx, components/demo/CombatMessagingDemo.tsx, data/adapters/5eTools/actionsAdapter.ts, data/adapters/5eTools/index.ts, data/adapters/5eTools/legendaryAdapter.ts, data/adapters/5eTools/reactionsAdapter.ts, data/adapters/5eTools/shared.ts, data/adapters/5eTools/spellEffectMapper.ts, data/adapters/5eTools/spellcastingAdapter.ts, data/religion/blessings.ts, hooks/actionUtils.ts, hooks/combat/engine/useCombatEngine.ts, hooks/combat/useActionEconomy.ts, hooks/combat/useActionExecutor.ts, hooks/combat/useCombatAI.ts, hooks/combat/useCombatLog.ts, hooks/combat/useCombatOutcome.ts, hooks/combat/useCombatValidation.ts, hooks/combat/useCombatVisuals.ts, hooks/combat/useGridMovement.ts, hooks/combat/useSummons.ts, hooks/combat/useTargetSelection.ts, hooks/combat/useTargetValidator.ts, hooks/combat/useTargeting.ts, hooks/combat/useTurnManager.ts, hooks/combat/useTurnOrder.ts, hooks/combat/useVisibility.ts, hooks/movementUtils.ts, hooks/perTargetChoiceUtils.ts, hooks/teleportUtils.ts, hooks/useAbilitySystem.ts, hooks/useBattleMap.ts, hooks/useBattleMapGeneration.ts, services/battleMapGenerator.ts, systems/combat/AttackRiderSystem.ts, systems/combat/MovementEventEmitter.ts, systems/combat/SavePenaltySystem.ts, systems/combat/SustainActionSystem.ts, systems/combat/fallingGroundImpactResolution.ts, systems/combat/fightInPlace/activeGroundCombatSession.ts, systems/combat/fightInPlace/inSceneMovement.ts, systems/combat/reactions/OpportunityAttackSystem.ts, systems/combat/reactions/companionProtectionReaction.ts, systems/combat/reactions/postDamageReactionQueue.ts, systems/combat/tauntConstraint.ts, systems/combat/worldScenario/liveSettlementEncounter.ts, systems/combat/worldScenario/openingThreatBattlefield.ts, systems/combat/worldScenario/openingThreatOutcome.ts, systems/combat/worldScenario/settlementDefenderProjection.ts, systems/combat/worldScenario/settlementEncounterHostility.ts, systems/combat/worldScenario/travelAmbushBattlefield.ts, systems/combat/worldScenario/worldBattleScenario.ts, systems/combat/worldScenario/worldEncounterCombatants.ts, systems/combat/worldScenario/worldforgeEncounterReceipt.ts, systems/entities3d/recipeFromCombatant.ts, systems/environment/EnvironmentSystem.ts, systems/environment/hazards.ts, systems/events/CombatEvents.ts, systems/logic/ConditionEvaluator.ts, systems/puzzles/puzzleRuntime.ts, systems/puzzles/puzzleSystem.ts, systems/religion/CombatReligionAdapter.ts, systems/rituals/RitualManager.ts, systems/spells/ai/AISpellArbitrator.ts, systems/spells/effects/AreaEffectTracker.ts, systems/spells/effects/onDamageSpellEffects.ts, systems/spells/effects/triggerHandler.ts, systems/spells/mechanics/ConcentrationTracker.ts, systems/spells/mechanics/directDamageSpellCastResolution.ts, systems/spells/mechanics/dispelMagicResolution.ts, systems/spells/mechanics/healingTemporaryHitPointResolution.ts, systems/spells/mechanics/reactiveDamageRetaliationResolution.ts, systems/spells/mechanics/sourceSaveModifierResolution.ts, systems/spells/mechanics/teleportationResolution.ts, systems/spells/mechanics/witchBoltOngoingResolution.ts, systems/spells/socialServiceResolution.ts, systems/spells/targeting/ObjectTargetRegistry.ts, systems/spells/targeting/TargetAllocator.ts, systems/spells/targeting/TargetValidationUtils.ts, systems/spells/targeting/selectedSpellTargets.ts, systems/visibility/VisibilitySystem.ts, systems/worldforge/bridge/groundChunkLoader.ts, systems/worldforge/bridge/groundProps.ts, types/index.ts, types/infernal.ts, utils/character/checkUtils.ts, utils/character/concentrationUtils.ts, utils/character/savingThrowUtils.ts, utils/character/spellAbilityFactory.ts, utils/combat/actionEconomyUtils.ts, utils/combat/aerialMovementUtils.ts, utils/combat/aoeCalculations.ts, utils/combat/battleEndActions.ts, utils/combat/combatAI.ts, utils/combat/combatLogToMessageAdapter.ts, utils/combat/combatUtils.ts, utils/combat/createEnemyFromMonster.ts, utils/combat/deathSaveUtils.ts, utils/combat/grappleUtils.ts, utils/combat/groupTurnUtils.ts, utils/combat/initiativeUtils.ts, utils/combat/movementUtils.ts, utils/combat/multiattackUtils.ts, utils/combat/physicsUtils.ts, utils/combat/repeatSaveUtils.ts, utils/combat/shoveUtils.ts, utils/combat/statusConditionUtils.ts, utils/core/factories.ts, utils/planar/planarTargeting.ts, utils/sandbox/quickCharacterGenerator.ts, utils/spatial/geometry.ts, utils/spatial/lineOfSight.ts, utils/spatial/pathfinding.ts, utils/spatial/targetingUtils.ts, utils/visuals/combatIconVisuals.ts, utils/world/religionUtils.ts
  * Imports: None
  *
  * MULTI-AGENT SAFETY:
@@ -98,17 +98,44 @@ export interface OnDamageSpellEffectState {
   lastTriggeredTurn?: number;
 }
 
+/**
+ * Observer-relative truth created by a successful Hide action.
+ *
+ * Hidden remains one owned status record, while this receipt remembers the
+ * Stealth total, observers that have found the creature, and stable events
+ * already applied to that exact source. This avoids turning detection into one
+ * global boolean and lets attacks remove only Hide-derived concealment.
+ */
+export interface HiddenStealthState {
+  /** Stable owner/source key for exact replacement and removal. */
+  ownerId: string;
+  /** The successful Dexterity (Stealth) total observers must meet or beat. */
+  stealthDc: number;
+  /** Character ids that have detected this hidden source. */
+  detectedBy: string[];
+  /** Hide-derived state ends immediately after its owner makes an attack roll. */
+  breaksOnAttack: boolean;
+}
+
 export interface StatusEffect {
   id: string;
   name: ConditionName | string;
   type: "buff" | "debuff" | "neutral" | "dot" | "hot";
   description?: string;
-  duration: number; // in rounds
+  duration: number; // in rounds when the effect has a timed expiry
+  /**
+   * Some physical conditions, including Prone, last until a creature takes the
+   * rule action that removes them. Their numeric duration is display-compatible
+   * legacy data only and must not be decremented by the turn clock.
+   */
+  persistsUntilRemoved?: boolean;
   source?: string; // Ability or spell name
   /** Spell id that created this status, used for concentration-owned cleanup. */
   sourceSpellId?: string;
   /** Character id that applied this status, needed for caster-relative rules such as Fear's line-of-sight repeat-save gate. */
   sourceCasterId?: string;
+  /** Structured Hide ownership and observer knowledge for the Hidden condition. */
+  stealth?: HiddenStealthState;
   /** Structured compelled-target rule read by attacks, movement and break events. */
   taunt?: TauntEffect;
   icon?: string;
@@ -631,6 +658,23 @@ export interface CombatCharacter {
     /** Human-readable provenance such as a stat block, spell, or scenario fixture. */
     source?: string;
   };
+  /**
+   * Canonical receipt for a creature that is currently falling or has just
+   * resolved one fall event.
+   *
+   * The event id prevents a delayed UI callback or reaction replay from
+   * applying the same landing, damage, resource payment, or death-state change
+   * twice. Ordinary grounded creatures omit this record entirely.
+   */
+  fallingState?: {
+    eventId: string;
+    isFalling: boolean;
+    sourcePosition: Position;
+    sourceElevationFeet: number;
+    fallDistanceFeet: number;
+    resolvedAt?: Position;
+    mitigation?: 'feather_fall';
+  };
   stats: CharacterStats;
   abilities: Ability[];
   team: "player" | "enemy" | "neutral";
@@ -660,6 +704,8 @@ export interface CombatCharacter {
   hitPointDice?: HitPointDicePool[];
   initiative: number;
   statusEffects: StatusEffect[];
+  /** Stable Hide, search, and movement event ids already applied to this actor. */
+  stealthEventIds?: string[];
   conditions?: ActiveCondition[];
   /**
    * Long-lived spell interaction memory used for recast gates such as Friends'
@@ -1145,10 +1191,45 @@ export interface Ability {
   validCreatureTypes?: string[];
 }
 
+// ============================================================================
+// Initiative group turns
+// ============================================================================
+// A shared-initiative group owns one place in the initiative sequence while
+// its members remain independently playable creatures. The group controls only
+// member order and completion; every member keeps its own combat resources and
+// receives its own start/end effect boundaries.
+// ============================================================================
+
+export interface CombatTurnGroup {
+  /** Stable scheduler identity derived from the group's first authored member. */
+  id: string;
+  /** Shared initiative count used to place the group among ordinary actors. */
+  initiative: number;
+  /** Deterministic member order; the first eligible member becomes active. */
+  memberIds: string[];
+}
+
+export interface ActiveCombatTurnGroup {
+  groupId: string;
+  memberIds: string[];
+  activeMemberId: string;
+  completedMemberIds: string[];
+  /** Actions, movement, and reactions never leak between group members. */
+  actionOwnership: "member";
+  movementOwnership: "member";
+  reactionOwnership: "member";
+  /** Start/end effects run for the active member, not once for the whole group. */
+  effectTiming: "member_start_and_end";
+}
+
 export interface TurnState {
   currentTurn: number;
   turnOrder: string[]; // character IDs in initiative order
   currentCharacterId: string | null;
+  /** Production group definitions. Optional only for old saves/test fixtures. */
+  turnGroups?: CombatTurnGroup[];
+  /** Current group/member contract; null when combat has no eligible actor. */
+  activeGroup?: ActiveCombatTurnGroup | null;
   phase: "planning" | "action" | "resolution" | "end_turn";
   actionsThisTurn: CombatAction[];
 }
@@ -1193,14 +1274,16 @@ export interface SelectedSpellObjectTarget {
   isCoveredByOpaqueMaterial?: boolean;
   /** Optional damage facts preserved for Mending-style repair spells. */
   damageState?: SelectedSpellObjectDamageState;
+  /** Live combat interaction state for doors, containers, devices, and breakable objects. */
+  interactionState?: MapObjectInteractionState;
 }
 
 /**
  * Optional damage facts preserved alongside a targetable object.
  *
- * The combat runtime does not yet track object HP, so this keeps the
- * break-or-tear size and magic-item hints available without inventing a fake
- * durability pool.
+ * Mending still consumes this spell-facing description. Ordinary attacks and
+ * interaction actions use `MapObjectInteractionState` below, so repair details
+ * remain separate from the object's finite combat durability.
  */
 export interface SelectedSpellObjectDamageState {
   kind: "break_or_tear" | "broken" | "torn" | string;
@@ -1277,6 +1360,29 @@ export interface CombatAction {
    * climbed out of reach.
    */
   movementMode?: "fly" | "walk" | "swim" | "climb" | "any";
+  /**
+   * Optional decisions supplied by a deterministic controller for each
+   * Opportunity Attack responder discovered during this Move.
+   *
+   * Normal player combat omits this record and uses the reaction prompt; enemy
+   * AI omits it and accepts with its first legal melee option. Replays and
+   * teaching fixtures can preserve the exact accept/decline and pinned dice
+   * facts without replacing the production discovery or damage transaction.
+   */
+  opportunityAttackDecisions?: Record<string, {
+    decision: "accept" | "decline";
+    abilityId?: string;
+    attackRoll?: number;
+    damageRoll?: number;
+  }>;
+  /**
+   * Absolute battle-map altitude chosen for a flying Move.
+   *
+   * Walking actions omit this value. A normal map click made while already
+   * flying preserves the creature's current altitude, while scenario or future
+   * altitude controls can choose a climb, descent, or ground landing.
+   */
+  targetAltitudeFeet?: number;
   targetCharacterIds?: string[];
   /** Rich spell target refs for creature, object, and point selections. */
   selectedSpellTargets?: SelectedSpellTarget[];
@@ -1792,6 +1898,24 @@ export interface ActiveSpellForce {
   };
   /** Effect rows replayed by a source-backed follow-up action such as Grasping Vine. */
   followUpEffects?: SpellEffect[];
+}
+
+/**
+ * Canonical mutable facts for a targetable combat object.
+ *
+ * Stable event IDs live with the object because replay protection must survive
+ * React snapshots and map replacement. Ownership is optional: an unowned prop
+ * is public, while an owned prop accepts interactions only from its owner.
+ */
+export interface MapObjectInteractionState {
+  kind: "container" | "device" | "breakable";
+  isOpen: boolean;
+  useCount: number;
+  hitPoints: number;
+  maxHitPoints: number;
+  destroyed: boolean;
+  ownerId?: string;
+  resolvedEventIds: string[];
 }
 
 export interface ActiveSpellGuardian {
@@ -2747,6 +2871,21 @@ export interface BattleMapTile {
   environmentalEffects?: EnvironmentalEffect[];
   material?: MaterialType;
   thicknessInches?: number;
+  /**
+   * Optional authored limits for the volume above this tactical square.
+   *
+   * Ground elevation still describes the surface and the top of ordinary
+   * blockers. These facts cover enclosed ceilings and exceptional obstacles
+   * that block flight above the surface without changing walking behavior.
+   */
+  airspace?: {
+    /** Lowest ceiling over this square, measured from the map's local zero. */
+    ceilingFeet?: number;
+    /** Highest solid obstruction in the square when it differs from elevation. */
+    blockerTopFeet?: number;
+    /** Closes the whole vertical column, such as a sealed wall or force plane. */
+    blocksFlight?: boolean;
+  };
 }
 
 /**
@@ -3236,6 +3375,21 @@ export interface ActionCombatLogData extends CommonCombatLogData {
 
 /** Records for hit-point loss and damage dealt to combat objects. */
 export interface DamageCombatLogData extends CommonCombatLogData {
+  /** Marks the one authoritative boundary after defenses, temporary HP, HP, and downing have resolved. */
+  damageEventBoundary?: 'post_hp';
+  /** Stable source/target ownership lets reaction consumers avoid guessing from display-oriented log fields. */
+  sourceCharacterId?: string;
+  targetCharacterId?: string;
+  /** DamageCommand only publishes this event for a confirmed effect path; zero final damage remains explicit. */
+  hitConfirmed?: boolean;
+  rawDamage?: number;
+  finalDamage?: number;
+  hitPointsBefore?: number;
+  hitPointsAfter?: number;
+  temporaryHitPointsBefore?: number;
+  temporaryHitPointsAfter?: number;
+  targetDownedAfter?: boolean;
+  targetIncapacitatedAfter?: boolean;
   currentHitPoints?: number;
   damageDealt?: number;
   damageDice?: string;

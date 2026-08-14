@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 16/07/2026, 11:54:41
+ * Last Sync: 13/08/2026, 04:04:29
  * Dependents: components/BattleMap/BattleMap3DGpuScene.tsx, components/BattleMap/terrain/DecorationProps.tsx, components/BattleMap/terrain/EzTreeLayer.tsx, components/BattleMap/terrain/GrassLayer.tsx, components/BattleMap/terrain/GridOverlay.tsx, components/BattleMap/terrain/GroundScatter.tsx, components/BattleMap/terrain/WaterSystem.tsx, components/BattleMap/terrain/index.ts
- * Imports: 3 files
+ * Imports: 6 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -34,6 +34,7 @@ import { ThreeEvent } from "@react-three/fiber";
 import * as THREE from "three";
 import { BattleMapData, BattleMapTile } from "../../../types/combat";
 import { resolveTerrainTileCoordinates } from "./terrainTileMapping";
+import { createTilePointerGestureGuard } from "../camera/battleMapCameraInput";
 /* The surface formula moved to a plain module so the arena volume's WORKER can
  * import the ground truth without importing React and the terrain shader with
  * it. Re-exported here because every existing consumer imports it from this
@@ -278,6 +279,7 @@ const TerrainMesh: React.FC<TerrainMeshProps> = ({
   // tile crossing instead of on every pointermove event. Same height-aware
   // coordinate resolution as clicks.
   const lastHoverTileId = useRef<string | null>(null);
+  const tilePointerGesture = useMemo(() => createTilePointerGestureGuard(), []);
   const handlePointerMove = useMemo(() => {
     if (!onTileHover) return undefined;
     return (e: ThreeEvent<PointerEvent>) => {
@@ -304,13 +306,23 @@ const TerrainMesh: React.FC<TerrainMeshProps> = ({
         geometry={geometry}
         material={surface.material}
         receiveShadow
+        onPointerDown={(event: ThreeEvent<PointerEvent>) => {
+          tilePointerGesture.begin(event.nativeEvent);
+        }}
+        onPointerUp={(event: ThreeEvent<PointerEvent>) => {
+          tilePointerGesture.end(event.nativeEvent);
+        }}
         onClick={(e: ThreeEvent<MouseEvent>) => {
           e.stopPropagation();
+          if (!tilePointerGesture.consumeClick()) return;
           if (e.intersections[0]) {
             handleClick(e.intersections[0]);
           }
         }}
-        onPointerMove={handlePointerMove}
+        onPointerMove={(event: ThreeEvent<PointerEvent>) => {
+          tilePointerGesture.move(event.nativeEvent);
+          handlePointerMove?.(event);
+        }}
       />
     </>
   );

@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 12/08/2026, 04:16:31
+ * Last Sync: 13/08/2026, 08:34:21
  * Dependents: components/DesignPreview/steps/PreviewCombatScenarios.tsx, hooks/combat/useTurnManager.ts, hooks/combat/useTurnOrder.ts
  * Imports: 1 files
  *
@@ -15,14 +15,15 @@
 // @dependencies-end
 
 /**
- * This file builds the canonical combat initiative sequence.
+ * This file builds Aralia's deterministic combat initiative sequence.
  *
- * Combatants act from the highest initiative total to the lowest. Equal totals
- * use the real Dexterity score and initiative bonus as deterministic facts,
- * then preserve the encounter's authored order when every fact still ties.
+ * Combatants act from the highest initiative total to the lowest. The 2024 5e
+ * rules leave tied-order resolution to table adjudication; Aralia's explicit
+ * house policy uses Dexterity score, then initiative bonus, then stable authored
+ * order so replays, AI turns, tests, and multiplayer hosts always agree.
  * Summons whose live metadata says they share initiative remain directly after
- * their caster, but they still receive their own turn because the combat engine
- * does not currently execute several actors inside one simultaneous group turn.
+ * their caster. The turn scheduler then places those adjacent actors in one
+ * initiative group while giving each member its own resource/effect boundary.
  *
  * Called by: useTurnOrder and useTurnManager.
  * Depends on: CombatCharacter initiative, stats, and summon metadata.
@@ -42,11 +43,11 @@ export function rollInitiativeTotal(
 }
 
 // ============================================================================
-// Canonical Tie-Break Facts
+// Aralia deterministic tie-break policy
 // ============================================================================
-// These comparisons use only durable combat facts. Returning zero preserves the
-// input order through JavaScript's stable sort, which makes exact replays agree
-// without pretending an arbitrary character id is a D&D rule.
+// This is a house policy, not a claim about a canonical 5e tie-break ladder.
+// Returning zero preserves authored order and avoids inventing an arbitrary id
+// comparison when every declared Aralia policy fact remains equal.
 // ============================================================================
 
 export function compareInitiativeTieFacts(

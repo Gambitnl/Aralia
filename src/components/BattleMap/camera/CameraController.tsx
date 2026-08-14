@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 16/07/2026, 18:24:08
+ * Last Sync: 13/08/2026, 04:04:14
  * Dependents: components/BattleMap/camera/index.ts
- * Imports: 1 files
+ * Imports: 2 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -39,6 +39,7 @@ import { useThree, useFrame } from '@react-three/fiber';
 import { MapControls } from '@react-three/drei';
 import * as THREE from 'three';
 import { CombatCharacter } from '../../../types/combat';
+import { BATTLE_MAP_CAMERA_MOUSE_BUTTONS } from './battleMapCameraInput';
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -462,6 +463,9 @@ const CameraController: React.FC<CameraControllerProps> = ({
       enableDamping
       dampingFactor={0.08}
       screenSpacePanning={false}
+      // Tile/actor selection keeps left click. Camera input uses the documented
+      // non-conflicting middle-pan and right-orbit gestures.
+      mouseButtons={BATTLE_MAP_CAMERA_MOUSE_BUTTONS}
     />
   );
 };

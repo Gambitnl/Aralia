@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 12/08/2026, 04:53:51
+ * Last Sync: 13/08/2026, 09:09:38
  * Dependents: commands/effects/commandAreaMovementEffects.ts, commands/factory/AbilityCommandFactory.ts, components/BattleMap/BattleMapOverlay.tsx, components/BattleMap/vfx/VFXSystem.tsx, components/Combat/MaplessTerrainSummary.tsx, hooks/combat/useVisibility.ts, hooks/useAbilitySystem.ts, systems/spells/effects/AreaEffectTracker.ts, systems/spells/effects/index.ts, utils/combat/resistanceUtils.ts
  * Imports: 6 files
  *
@@ -104,6 +104,7 @@ export interface ScheduledSpellEffect {
     timing: 'turn_start' | 'turn_end';
     effects: SpellEffect[];
     createdAtRound: number;
+    /** Exclusive round boundary: payloads never fire at or after this round. */
     expiresAtRound?: number;
     /** Spell save DC captured at cast time for delayed target-bound payloads. */
     saveDC?: number;
@@ -885,9 +886,9 @@ export function convertSpellEffectToProcessed(
             // A recurring mechanic describes what an already-applied condition
             // does on later turns. Reapplying the base condition here would
             // refresh it every tick and create a second source of duration truth.
-            // TODO(next-agent): Route recurring save outcomes such as Searing
-            // Smite's Constitution success through selective schedule/status
-            // cleanup. CS35 exposes this exact unsupported boundary meanwhile.
+            // The scheduled combat engine resolves any recurring save after
+            // these damage/healing payloads, then removes the exact owned
+            // schedule and source-linked condition on a successful outcome.
             if (recurringMechanic) {
                 break;
             }

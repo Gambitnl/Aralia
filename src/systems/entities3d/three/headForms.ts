@@ -721,8 +721,22 @@ export function buildHeadForm(
     jaw.name = 'jaw';
     jawGroup.add(jaw);
 
-    if (gape > 0.3) {
-      // gullet: a dark wedge lining the open mouth (serpent/skull gapes)
+    if (gape > 0.01) {
+      // gullet: a dark wedge lining the open mouth.
+      //
+      // 2026-08-13 (Remy, live eyeball on a generated gnoll): this was gated at
+      // `gape > 0.3`, on the assumption that a smaller gape reads as a closed
+      // mouth needing no interior. It does not. The skull and jaw are each a
+      // CLOSED BUT HOLLOW loft rendered FrontSide, so wherever the jaw swings
+      // clear of the skull underside the camera looks at inward-facing
+      // triangles, backface culling discards them, and you SEE THROUGH THE HEAD
+      // to the background. On the gnoll (gape 0.176, jaw tip stopping 0.175
+      // short of the snout tip) that reads as a hole in the muzzle — "you can
+      // look inside the nose". It hit every form with a modest gape, which is
+      // most of them.
+      //
+      // The gullet is enclosed by skull+jaw at rest, so the only thing the old
+      // threshold bought was a missing interior. Any open jaw now gets one.
       const gulletMaterial = new MeshBasicMaterial({ color: '#3a1418' });
       const gullet = new Mesh(new OctahedronGeometry(0.6, 1), gulletMaterial);
       const tip = spec.jawSections[spec.jawSections.length - 1];

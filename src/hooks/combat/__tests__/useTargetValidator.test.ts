@@ -223,6 +223,68 @@ describe('useTargetValidator', () => {
         expect(result.current.getValidTargets(meleeAttack, caster)).toEqual([adjacentEnemy.position]);
     });
 
+    it('uses terrain elevation in ordinary attack range validation', () => {
+        const mapData = createMap(8, 3);
+        const caster = createMockCombatCharacter({
+            id: 'elevation-caster',
+            name: 'Elevation Caster',
+            team: 'player',
+            position: { x: 0, y: 1 }
+        });
+        const target = createMockCombatCharacter({
+            id: 'elevation-target',
+            name: 'Elevation Target',
+            team: 'enemy',
+            position: { x: 4, y: 1 }
+        });
+        mapData.tiles.get('4-1')!.elevation = 10;
+        const thirtyFootProbe = { ...meleeAttack, name: 'Elevation Probe', range: 6 };
+        const twentyFiveFootProbe = { ...thirtyFootProbe, range: 5 };
+
+        const { result } = renderHook(() => useTargetValidator({
+            characters: [caster, target],
+            mapData
+        }));
+
+        expect(result.current.getTargetValidation(thirtyFootProbe, caster, target.position))
+            .toEqual({ isValid: true });
+        expect(result.current.getTargetValidation(twentyFiveFootProbe, caster, target.position))
+            .toEqual({
+                isValid: false,
+                reason: 'Elevation Target is too far away for Elevation Probe. Range: 5 tiles (25 ft); distance: 6 tiles (30 ft).'
+            });
+    });
+
+    it('uses a flying creature altitude for range and line-of-sight origins', () => {
+        const mapData = createMap(8, 3);
+        const caster = createMockCombatCharacter({
+            id: 'flying-caster',
+            name: 'Flying Caster',
+            team: 'player',
+            position: { x: 0, y: 1 },
+            aerialMovement: { altitudeFeet: 20, isFlying: true, canHover: true, source: 'test' }
+        });
+        const target = createMockCombatCharacter({
+            id: 'ground-target',
+            name: 'Ground Target',
+            team: 'enemy',
+            position: { x: 2, y: 1 }
+        });
+        mapData.tiles.get('1-1')!.blocksLoS = true;
+        mapData.tiles.get('1-1')!.airspace = { blockerTopFeet: 8 };
+        const thirtyFootProbe = { ...meleeAttack, name: 'Aerial Probe', range: 6 };
+
+        const { result } = renderHook(() => useTargetValidator({
+            characters: [caster, target],
+            mapData
+        }));
+
+        // Ten horizontal plus twenty vertical feet is in range, and the eye
+        // ray from altitude passes above the eight-foot blocker.
+        expect(result.current.getTargetValidation(thirtyFootProbe, caster, target.position))
+            .toEqual({ isValid: true });
+    });
+
     it('explains when a single-target enemy ability is aimed at empty ground', () => {
         const caster = createMockCombatCharacter({
             id: 'kaelen',

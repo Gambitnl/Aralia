@@ -134,4 +134,43 @@ describe('repeatSaveUtils', () => {
     expect(result.character).toBe(target);
     expect(result.removedStatusEffects).toBe(0);
   });
+
+  it('preserves paired until-removed conditions across any number of turn starts', () => {
+    const proneTarget = createMockCombatCharacter({
+      id: 'prone-target',
+      statusEffects: [{
+        id: 'prone-status',
+        name: 'Prone',
+        type: 'debuff',
+        duration: 0,
+        persistsUntilRemoved: true,
+        source: 'Unarmed Strike: Shove',
+        effect: { type: 'condition' },
+      }],
+      conditions: [{
+        name: 'Prone',
+        duration: { type: 'permanent' },
+        appliedTurn: 1,
+        source: 'Unarmed Strike: Shove',
+      }],
+    });
+
+    // Repeated turns must not invent an expiry for a physical posture. Stand
+    // Up, not the duration clock, owns removal of both Prone records.
+    const afterFirstTurn = advanceStatusConditionDurationsAtTurnStart(proneTarget);
+    const afterThirdTurn = advanceStatusConditionDurationsAtTurnStart(
+      advanceStatusConditionDurationsAtTurnStart(afterFirstTurn.character).character,
+    );
+
+    expect(afterFirstTurn.expiredNames).toEqual([]);
+    expect(afterThirdTurn.expiredNames).toEqual([]);
+    expect(afterThirdTurn.character.statusEffects).toContainEqual(expect.objectContaining({
+      name: 'Prone',
+      persistsUntilRemoved: true,
+    }));
+    expect(afterThirdTurn.character.conditions).toContainEqual(expect.objectContaining({
+      name: 'Prone',
+      duration: { type: 'permanent' },
+    }));
+  });
 });

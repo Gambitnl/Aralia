@@ -24,9 +24,29 @@ import {
     resetActionExecutorMocks,
 } from './useActionExecutor.fixtures';
 
+/**
+ * This file proves the mounted action executor discovers and resolves Opportunity Attacks.
+ *
+ * The cases cover reaction payment, weapon and spell choice, hit metadata,
+ * Sentinel, and replay safety. The replay case deliberately delivers one
+ * movement event twice while its first prompt is still in flight, protecting
+ * the production acceptance/payment seam from duplicate side effects.
+ *
+ * Called by: the focused combat-hook Vitest gate.
+ * Depends on: useActionExecutor and the shared mounted hook fixtures.
+ */
+
 describe('useActionExecutor', () => {
     beforeEach(() => {
         resetActionExecutorMocks();
+    });
+
+    // Movement is a turn-owned production action. Every fixture names its
+    // mover explicitly, so the turn state must name the same actor before the
+    // Opportunity Attack reaction window can legally open.
+    const turnFor = (characterId: string): TurnState => ({
+        ...mockTurnState,
+        currentCharacterId: characterId,
     });
 
     it('should spend an enemy reaction and log an opportunity attack when movement leaves reach', async () => {
@@ -59,7 +79,8 @@ describe('useActionExecutor', () => {
 
         const { result } = renderHook(() => useActionExecutor({
             ...defaultProps,
-            characters: [mover, attacker]
+            characters: [mover, attacker],
+            turnState: turnFor(mover.id),
         }));
 
         const action: CombatAction = {
@@ -77,11 +98,356 @@ describe('useActionExecutor', () => {
         expect(mockOnCharacterUpdate).toHaveBeenCalledWith(expect.objectContaining({
             id: 'orc',
             actionEconomy: expect.objectContaining({
-                reaction: expect.objectContaining({ used: true })
+                reaction: expect.objectContaining({ used: true, remaining: 0 })
             })
         }));
         expect(mockOnLogEntry).toHaveBeenCalledWith(expect.objectContaining({
             message: expect.stringContaining('Opportunity Attack')
+        }));
+    });
+
+    it('claims one movement event before prompting so replay cannot spend or attack twice', async () => {
+        const rapier: Ability = {
+            id: 'replay-rapier',
+            name: 'Replay Rapier',
+            description: 'A melee weapon used to prove one accepted reaction per movement event.',
+            type: 'attack',
+            cost: { type: 'action' },
+            targeting: 'single_enemy',
+            weapon: {
+                id: 'replay-rapier-item',
+                name: 'Replay Rapier',
+                description: 'A finesse weapon.',
+                type: 'weapon',
+                properties: ['finesse']
+            },
+            range: 1,
+            effects: [{ type: 'damage', value: 4, damageType: 'piercing', dice: '1d6' }]
+        };
+        const mover = {
+            ...mockCharacter,
+            id: 'replayed-mover',
+            team: 'enemy' as const,
+            position: { x: 0, y: 1 }
+        };
+        const attacker: CombatCharacter = {
+            ...mockCharacter,
+            id: 'replay-defender',
+            team: 'player',
+            position: { x: 0, y: 0 },
+            abilities: [rapier],
+            actionEconomy: {
+                ...mockCharacter.actionEconomy,
+                reaction: { used: false, remaining: 1 }
+            }
+        };
+        const requestReaction = vi.fn().mockResolvedValue(rapier.id);
+        mockConsumeAction.mockReturnValue(mover);
+        mockProcessTileEffects.mockImplementation(character => character);
+        mockHandleDamage.mockImplementation(character => character);
+
+        const { result } = renderHook(() => useActionExecutor({
+            ...defaultProps,
+            characters: [mover, attacker],
+            turnState: turnFor(mover.id),
+            requestReaction
+        }));
+        const action: CombatAction = {
+            id: 'same-movement-event',
+            characterId: mover.id,
+            type: 'move',
+            targetPosition: { x: 0, y: 2 },
+            cost: { type: 'movement-only', movementCost: 5 },
+            timestamp: 52
+        };
+
+        await Promise.all([
+            result.current.executeAction(action),
+            result.current.executeAction(action),
+        ]);
+
+        const defenderUpdates = mockOnCharacterUpdate.mock.calls
+            .map(call => call[0] as CombatCharacter)
+            .filter(character => character.id === attacker.id);
+        const opportunityLogs = mockOnLogEntry.mock.calls
+            .map(call => call[0].message as string)
+            .filter(message => message.includes('Opportunity Attack'));
+        expect(requestReaction).toHaveBeenCalledTimes(1);
+        expect(mockConsumeAction).toHaveBeenCalledTimes(1);
+        expect(defenderUpdates).toHaveLength(1);
+        expect(defenderUpdates[0].actionEconomy.reaction.used).toBe(true);
+        expect(opportunityLogs).toHaveLength(1);
+
+        // A new combat/reset clears only execution receipts. The same authored
+        // fixture can then run again and pay exactly once in the fresh combat.
+        result.current.resetActionReceipts();
+        await result.current.executeAction(action);
+        expect(mockConsumeAction).toHaveBeenCalledTimes(2);
+        expect(requestReaction).toHaveBeenCalledTimes(2);
+    });
+
+    it('honors an explicit enemy decline without spending its Reaction', async () => {
+        const scimitar: Ability = {
+            id: 'decline-scimitar',
+            name: 'Decline Scimitar',
+            description: 'A melee weapon offered to a deterministic enemy controller.',
+            type: 'attack',
+            cost: { type: 'action' },
+            targeting: 'single_enemy',
+            weapon: {
+                id: 'decline-scimitar-item',
+                name: 'Decline Scimitar',
+                description: 'A scenario melee weapon.',
+                type: 'weapon',
+                properties: [],
+            },
+            range: 1,
+            effects: [{ type: 'damage', value: 1, damageType: 'slashing', dice: '1d4' }],
+        };
+        const mover = {
+            ...mockCharacter,
+            id: 'decline-mover',
+            team: 'player' as const,
+            position: { x: 0, y: 1 },
+        };
+        const guard = {
+            ...mockCharacter,
+            id: 'declining-guard',
+            team: 'enemy' as const,
+            position: { x: 0, y: 0 },
+            abilities: [scimitar],
+        };
+        mockConsumeAction.mockImplementation(character => character);
+        mockProcessTileEffects.mockImplementation(character => character);
+
+        const { result } = renderHook(() => useActionExecutor({
+            ...defaultProps,
+            characters: [mover, guard],
+            turnState: turnFor(mover.id),
+        }));
+
+        await result.current.executeAction({
+            id: 'enemy-declines-leave-reach',
+            characterId: mover.id,
+            type: 'move',
+            targetPosition: { x: 0, y: 2 },
+            cost: { type: 'movement-only', movementCost: 5 },
+            timestamp: 54,
+            opportunityAttackDecisions: {
+                [guard.id]: { decision: 'decline' },
+            },
+        });
+
+        expect(mockOnCharacterUpdate).not.toHaveBeenCalledWith(expect.objectContaining({
+            id: guard.id,
+            actionEconomy: expect.objectContaining({
+                reaction: expect.objectContaining({ used: true }),
+            }),
+        }));
+        expect(mockOnLogEntry).toHaveBeenCalledWith(expect.objectContaining({
+            message: 'Hero declines the Opportunity Attack reaction.',
+        }));
+    });
+
+    it('resolves accepted damage before publishing the completed movement state', async () => {
+        const sword: Ability = {
+            id: 'timing-sword',
+            name: 'Timing Sword',
+            description: 'A deterministic melee weapon for movement timing proof.',
+            type: 'attack',
+            cost: { type: 'action' },
+            targeting: 'single_enemy',
+            weapon: {
+                id: 'timing-sword-item',
+                name: 'Timing Sword',
+                description: 'A timing fixture.',
+                type: 'weapon',
+                properties: [],
+            },
+            range: 1,
+            effects: [{ type: 'damage', value: 1, damageType: 'slashing', dice: '1d8' }],
+            isProficient: true,
+        };
+        const mover = {
+            ...mockCharacter,
+            id: 'timing-mover',
+            team: 'player' as const,
+            position: { x: 0, y: 1 },
+            currentHP: 20,
+            maxHP: 20,
+        };
+        const guard = {
+            ...mockCharacter,
+            id: 'timing-guard',
+            team: 'enemy' as const,
+            position: { x: 0, y: 0 },
+            abilities: [sword],
+        };
+        mockConsumeAction.mockImplementation(character => ({
+            ...character,
+            actionEconomy: {
+                ...character.actionEconomy,
+                movement: { ...character.actionEconomy.movement, used: 5 },
+            },
+        }));
+        mockProcessTileEffects.mockImplementation(character => character);
+        mockHandleDamage.mockImplementation((character: CombatCharacter, amount: number) => ({
+            ...character,
+            currentHP: character.currentHP - amount,
+        }));
+
+        const { result } = renderHook(() => useActionExecutor({
+            ...defaultProps,
+            characters: [mover, guard],
+            turnState: turnFor(mover.id),
+        }));
+
+        await result.current.executeAction({
+            id: 'timed-leave-reach',
+            characterId: mover.id,
+            type: 'move',
+            targetPosition: { x: 0, y: 2 },
+            movementPath: [{ x: 0, y: 1 }, { x: 0, y: 2 }],
+            cost: { type: 'movement-only', movementCost: 5 },
+            timestamp: 55,
+            opportunityAttackDecisions: {
+                [guard.id]: {
+                    decision: 'accept',
+                    abilityId: sword.id,
+                    attackRoll: 14,
+                    damageRoll: 6,
+                },
+            },
+        });
+
+        const guardUpdate = mockOnCharacterUpdate.mock.calls
+            .map(call => call[0] as CombatCharacter)
+            .find(character => character.id === guard.id);
+        const moverUpdate = mockOnCharacterUpdate.mock.calls
+            .map(call => call[0] as CombatCharacter)
+            .find(character => character.id === mover.id);
+        expect(guardUpdate?.actionEconomy.reaction).toMatchObject({ used: true, remaining: 0 });
+        expect(moverUpdate).toMatchObject({
+            currentHP: 14,
+            position: { x: 0, y: 2 },
+            actionEconomy: { movement: { used: 5, total: 30 } },
+        });
+        expect(mockHandleDamage).toHaveBeenCalledWith(
+            expect.objectContaining({ id: mover.id }),
+            6,
+            'Hero (Opportunity Attack)',
+            'slashing',
+            mockTurnState.currentTurn,
+        );
+        const messages = mockOnLogEntry.mock.calls.map(call => call[0].message as string);
+        expect(messages.findIndex(message => message.includes('Opportunity Attack')))
+            .toBeLessThan(messages.findIndex(message => message.includes('moves')));
+    });
+
+    it('claims an unaffordable movement rejection before any payment and keeps its replay atomic', async () => {
+        const mover = {
+            ...mockCharacter,
+            id: 'rejected-mover',
+            position: { x: 0, y: 1 },
+        };
+        mockCanAfford.mockReturnValue(false);
+        const { result } = renderHook(() => useActionExecutor({
+            ...defaultProps,
+            characters: [mover],
+            turnState: turnFor(mover.id),
+        }));
+        const rejectedAction: CombatAction = {
+            id: 'unaffordable-stable-move',
+            characterId: mover.id,
+            type: 'move',
+            targetPosition: { x: 0, y: 2 },
+            cost: { type: 'movement-only', movementCost: 35 },
+            timestamp: 56,
+        };
+
+        expect(await result.current.executeAction(rejectedAction)).toBe(false);
+        mockCanAfford.mockReturnValue(true);
+        expect(await result.current.executeAction(rejectedAction)).toBe(true);
+
+        expect(mockConsumeAction).not.toHaveBeenCalled();
+        expect(mockOnCharacterUpdate).not.toHaveBeenCalled();
+        expect(mockOnLogEntry).toHaveBeenCalledTimes(1);
+        expect(mockOnLogEntry).toHaveBeenCalledWith(expect.objectContaining({
+            message: expect.stringContaining('not enough resources'),
+        }));
+    });
+
+    it('prompts multiple eligible responders in initiative order instead of roster order', async () => {
+        const weapon = (id: string): Ability => ({
+            id,
+            name: id,
+            description: 'A melee weapon used to prove deterministic responder order.',
+            type: 'attack',
+            cost: { type: 'action' },
+            targeting: 'single_enemy',
+            weapon: {
+                id: `${id}-item`,
+                name: id,
+                description: 'A scenario sword.',
+                type: 'weapon',
+                properties: [],
+            },
+            range: 1,
+            effects: [{ type: 'damage', value: 1, damageType: 'slashing', dice: '1d4' }],
+        });
+        const mover = {
+            ...mockCharacter,
+            id: 'ordered-mover',
+            team: 'enemy' as const,
+            position: { x: 0, y: 1 },
+        };
+        const firstResponder = {
+            ...mockCharacter,
+            id: 'first-responder',
+            team: 'player' as const,
+            position: { x: 0, y: 0 },
+            abilities: [weapon('first-sword')],
+        };
+        const secondResponder = {
+            ...mockCharacter,
+            id: 'second-responder',
+            team: 'player' as const,
+            position: { x: 1, y: 0 },
+            abilities: [weapon('second-sword')],
+        };
+        const requestReaction = vi.fn().mockResolvedValue(null);
+        mockConsumeAction.mockImplementation(character => character);
+        mockProcessTileEffects.mockImplementation(character => character);
+
+        const { result } = renderHook(() => useActionExecutor({
+            ...defaultProps,
+            // Roster order is the opposite of initiative order on purpose.
+            characters: [mover, secondResponder, firstResponder],
+            turnState: {
+                ...turnFor(mover.id),
+                turnOrder: [mover.id, firstResponder.id, secondResponder.id],
+            },
+            requestReaction,
+        }));
+
+        await result.current.executeAction({
+            id: 'ordered-leave-reach',
+            characterId: mover.id,
+            type: 'move',
+            targetPosition: { x: 0, y: 2 },
+            cost: { type: 'movement-only', movementCost: 5 },
+            timestamp: 53,
+        });
+
+        expect(requestReaction.mock.calls.map(call => call[0])).toEqual([
+            firstResponder.id,
+            secondResponder.id,
+        ]);
+        expect(mockOnCharacterUpdate).not.toHaveBeenCalledWith(expect.objectContaining({
+            id: firstResponder.id,
+            actionEconomy: expect.objectContaining({
+                reaction: expect.objectContaining({ used: true }),
+            }),
         }));
     });
 
@@ -167,6 +533,7 @@ describe('useActionExecutor', () => {
         const hitHarness = renderHook(() => useActionExecutor({
             ...defaultProps,
             characters: [protectedMover, attacker],
+            turnState: turnFor(protectedMover.id),
             reactiveTriggers: [{
                 id: 'armor-retaliation-opportunity-hit',
                 sourceEffect: armorRetaliation,
@@ -183,7 +550,8 @@ describe('useActionExecutor', () => {
             expect.objectContaining({ id: attacker.id }),
             5,
             'reactive effect',
-            'Cold'
+            'Cold',
+            mockTurnState.currentTurn,
         );
         hitRoll.mockRestore();
 
@@ -197,6 +565,7 @@ describe('useActionExecutor', () => {
         const missHarness = renderHook(() => useActionExecutor({
             ...defaultProps,
             characters: [protectedMover, attacker],
+            turnState: turnFor(protectedMover.id),
             reactiveTriggers: [{
                 id: 'armor-retaliation-opportunity-miss',
                 sourceEffect: armorRetaliation,
@@ -213,7 +582,8 @@ describe('useActionExecutor', () => {
             expect.objectContaining({ id: attacker.id }),
             5,
             'reactive effect',
-            'Cold'
+            'Cold',
+            mockTurnState.currentTurn,
         );
         missRoll.mockRestore();
     });
@@ -254,7 +624,8 @@ describe('useActionExecutor', () => {
 
         const { result } = renderHook(() => useActionExecutor({
             ...defaultProps,
-            characters: [mover, attacker]
+            characters: [mover, attacker],
+            turnState: turnFor(mover.id),
         }));
 
         const action = {
@@ -321,7 +692,8 @@ describe('useActionExecutor', () => {
         try {
             const { result } = renderHook(() => useActionExecutor({
                 ...defaultProps,
-                characters: [mover, sentinelAttacker]
+                characters: [mover, sentinelAttacker],
+                turnState: turnFor(mover.id),
             }));
 
             const action: CombatAction = {
@@ -394,6 +766,7 @@ describe('useActionExecutor', () => {
         const { result } = renderHook(() => useActionExecutor({
             ...defaultProps,
             characters: [mover, playerAttacker],
+            turnState: turnFor(mover.id),
             requestReaction: mockRequestReaction
         }));
 
@@ -467,6 +840,7 @@ describe('useActionExecutor', () => {
         const { result } = renderHook(() => useActionExecutor({
             ...defaultProps,
             characters: [mover, playerAttacker],
+            turnState: turnFor(mover.id),
             requestReaction: mockRequestReaction
         }));
 
@@ -543,6 +917,7 @@ describe('useActionExecutor', () => {
         const { result } = renderHook(() => useActionExecutor({
             ...defaultProps,
             characters: [mover, warCasterAttacker],
+            turnState: turnFor(mover.id),
             requestReaction: mockRequestReaction,
             executeReactionSpell: mockExecuteReactionSpell
         } as any));

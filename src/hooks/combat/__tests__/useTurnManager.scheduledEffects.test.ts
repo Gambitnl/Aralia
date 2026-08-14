@@ -23,6 +23,7 @@ import {
   getDamageOverTimeScheduledEffectsInitiativeTotal,
   prepareDamageOverTimeScheduledEffectsCharacters,
   rollDamageOverTimeScheduledEffect,
+  rollDamageOverTimeScheduledSave,
 } from '../../../components/DesignPreview/steps/scenarioControls/damageOverTimeScheduledEffectsScenarioControls';
 
 // ============================================================================
@@ -55,6 +56,9 @@ describe('useTurnManager scheduled damage phases', () => {
         scheduledEffectDiceRoller: (dice, context) => (
           rollDamageOverTimeScheduledEffect(dice, context.scheduledEffect)
         ),
+        // Keep the authored repeat save on its failure path so this turn-order
+        // case can prove recurring ticks independently from the success case.
+        scheduledEffectSaveRng: () => rollDamageOverTimeScheduledSave('failure'),
       }),
       { initialProps: { chars: charactersState } },
     );
@@ -127,6 +131,10 @@ describe('useTurnManager scheduled damage phases', () => {
       'turn_end',
       'turn_start',
     ]);
+    expect(logs
+      .filter(entry => entry.type === 'status' && typeof entry.data?.saveSucceeded === 'boolean')
+      .map(entry => entry.data?.saveSucceeded))
+      .toEqual([false, false]);
 
     // Removing the final live record before another matching phase prevents
     // every later tick; ordinary turn advancement still proceeds.

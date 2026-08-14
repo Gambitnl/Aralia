@@ -302,7 +302,36 @@ export function assembleEntity(blueprint: EntityBlueprint, options: AssembleOpti
         const m = o as Mesh;
         if ((m.userData as { noOutline?: boolean }).noOutline) return;
         if (m.isMesh) {
-          const shell = new Mesh(m.geometry, outlineMaterial('#20242c', outlineThickness));
+          // 2026-08-13 (Remy, live eyeball on a generated gnoll): the ink is
+          // CLAMPED TO EACH MESH'S OWN GIRTH, not just the entity's height.
+          //
+          // `outlineThickness` is one entity-scale number (hM * 0.011). On a
+          // slim part that is not an outline, it is the part. The gnoll's ear
+          // cone has radius 0.053 m and the hull pushed 0.024 m — 45% of the
+          // radius — so the dark BackSide rim was as wide as the ear itself and
+          // swallowed it completely toward the tip, where the radius goes to 0.
+          // It read as a hollow shell you could see inside. The note above
+          // describes the same failure on horn points and wing spars; those
+          // were fixed one at a time with `noOutline`, which every new thin
+          // part has to remember. Clamping needs no opt-out: a chunky mesh
+          // keeps the full weight (its girth term is larger), and only genuinely
+          // slim geometry gets a proportionate line.
+          m.geometry.computeBoundingBox();
+          const bb = m.geometry.boundingBox;
+          let ink = outlineThickness;
+          if (bb) {
+            // Girth in WORLD units: the bounding box is geometry-local, so a
+            // scaled-down mesh is thinner than its box claims. The first pass
+            // of this clamp ignored `scale` and under-corrected exactly those
+            // meshes — the shellAssumptions guard caught it on the Undead
+            // archetype (ink 0.0169 vs girth 0.0298) minutes after being added.
+            const halfX = ((bb.max.x - bb.min.x) / 2) * Math.abs(m.scale.x);
+            const halfY = ((bb.max.y - bb.min.y) / 2) * Math.abs(m.scale.y);
+            const halfZ = ((bb.max.z - bb.min.z) / 2) * Math.abs(m.scale.z);
+            const girth = Math.min(halfX, halfY, halfZ);
+            if (girth > 0) ink = Math.min(ink, girth * 0.25);
+          }
+          const shell = new Mesh(m.geometry, outlineMaterial('#20242c', ink));
           shell.name = 'partOutline';
           shell.position.copy(m.position);
           shell.quaternion.copy(m.quaternion);
