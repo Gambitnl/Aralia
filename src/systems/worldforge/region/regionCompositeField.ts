@@ -151,10 +151,32 @@ export interface RegionSource {
   h: number;
   /** FMG biome id, 0..12. 0 is Marine. */
   biomeId: number;
+  /**
+   * Rock hardness 0..1 from `erosion/rockHardness`. See REFERENCE_HARDNESS.
+   *
+   * Omitted means REFERENCE ROCK, not "no rock". Reference rock has erodibility
+   * exactly 1 and talus scale exactly 1, so the operators run unmodified. There
+   * is one code path either way — the neutral value is a documented rock type,
+   * never a second branch.
+   */
+  hardness?: number;
+  /**
+   * Normalized atlas discharge 0..1 from `erosion/atlasErosionBake`.
+   *
+   * Omitted means REFERENCE_DISCHARGE — the flow an unchanneled hillslope cell
+   * carries. Same rule as hardness: a documented neutral, not a fallback.
+   */
+  discharge?: number;
 }
 
-/** The four geomorphic operators named by the method. */
-export type GeomorphOperator = 'peak' | 'dune' | 'terrace' | 'erosion';
+/**
+ * The geomorphic operators named by the method.
+ *
+ * `interfluve` is the drainage-organized macro relief. It is listed with the
+ * others because it is one of the `G_j` terms, not a noise band. See the
+ * INTERFLUVE block for why a plain cannot get its broad relief from noise.
+ */
+export type GeomorphOperator = 'peak' | 'dune' | 'terrace' | 'erosion' | 'interfluve';
 
 /** Per-region terrain profile: base elevation, noise band weights, operators. */
 export interface RegionProfile {
@@ -164,6 +186,14 @@ export interface RegionProfile {
   bandWeights: number[];
   /** `a_rj` — operator weights. Absent means the operator does not apply. */
   operatorWeights: Partial<Record<GeomorphOperator, number>>;
+  /**
+   * How completely fine channels cover the surface, 0..1.
+   *
+   * 0 is high country: bare crests shed water, so gullies live only in the
+   * valleys. 1 is low country, where the interfluves are themselves dissected.
+   * See `gullyLive` in `shapeChannelCut`.
+   */
+  dissection: number;
 }
 
 /**
@@ -175,6 +205,10 @@ export const BAND_SPANS_FT: readonly number[] = [8000, 2200, 700];
 
 /** Height class of a cell — the second axis of the profile, after biome. */
 export type HeightClass = 'water' | 'lowland' | 'upland' | 'highland' | 'alpine';
+
+/** Height below which the surface is fully dissected, and the fade above it. */
+const DISSECTION_FULL = 0.45;
+const DISSECTION_SPAN = 0.22;
 
 /** Waterline, matching `generateRegion`'s WATER_THRESHOLD. */
 const WATER_THRESHOLD = 0.2;
@@ -215,6 +249,26 @@ export function regionProfileFor(biomeId: number, h: number): RegionProfile {
   // relief the mountain read as melted wax and the plain read as cottage
   // cheese, because bumps are all they can make. Structure is the job of the
   // peak operator and the drainage pass. The bands only break up their regularity.
+  //
+  // THE MACRO BAND IS NOW SMALL ON LOW GROUND, and the `interfluve` operator
+  // replaces it. See the INTERFLUVE block. Short form: on a plain the macro
+  // band WAS the whole picture — measured field sd over the plain window was
+  // 0.0147 against a macro amplitude of 0.026 — and it was statistically
+  // independent of the drainage network, so the two fought. Free noise is kept
+  // only as a small irregularity term, never as the landform.
+  //
+  // THE SWAP FADES IN ABOVE THE WATERLINE. The first version cut the lowland
+  // macro band everywhere and SHATTERED the coast: that window's whole island
+  // stands within 0.023 of the waterline, so the macro band WAS its land, and
+  // removing it dropped half the island under water. The fade below is the same
+  // ramp the drainage cut uses, read from the region's ATLAS height rather than
+  // its running height, so it is a per-region constant with no ordering
+  // question. At the shore the profile is exactly what it was before; a few
+  // hundred feet inland it is the drainage-organized one.
+  const inland = smoothstep01((h - WATER_THRESHOLD) / LAND_GATE_SPAN);
+  const mix = (shore: number, inlandValue: number): number =>
+    shore + (inlandValue - shore) * inland;
+
   let macro: number;
   let meso: number;
   let micro: number;
@@ -222,13 +276,27 @@ export function regionProfileFor(biomeId: number, h: number): RegionProfile {
     case 'water':
       macro = 0.014; meso = 0.010; micro = 0.0035; break;
     case 'lowland':
-      macro = 0.032; meso = 0.011; micro = 0.0018; break;
+      macro = mix(0.026, 0.004); meso = mix(0.011, 0.0025); micro = mix(0.0018, 0.0012); break;
     case 'upland':
-      macro = 0.060; meso = 0.018; micro = 0.0025; break;
+      macro = 0.012; meso = 0.013; micro = 0.0030; break;
     case 'highland':
-      macro = 0.095; meso = 0.030; micro = 0.0045; break;
+      macro = 0.070; meso = 0.028; micro = 0.0045; break;
     case 'alpine':
-      macro = 0.105; meso = 0.032; micro = 0.005; break;
+      macro = 0.090; meso = 0.032; micro = 0.005; break;
+  }
+
+  // Drainage-organized macro relief. Low country gets almost all of its broad
+  // shape from here, so its swells ARE the interfluves between its valleys.
+  // High country gets little: there the peak operator already supplies a
+  // landform, and the flow guide is built from that same peak field, so the two
+  // agree already. Adding a large interfluve term over a massif would only
+  // double-draw the range.
+  switch (cls) {
+    case 'water': break;
+    case 'lowland': operatorWeights.interfluve = 0.024 * inland; break;
+    case 'upland': operatorWeights.interfluve = 0.030; break;
+    case 'highland': operatorWeights.interfluve = 0.014; break;
+    case 'alpine': operatorWeights.interfluve = 0.010; break;
   }
 
   // Peaks: high country only. This mirrors the existing ridge field's gate.
@@ -253,14 +321,35 @@ export function regionProfileFor(biomeId: number, h: number): RegionProfile {
   // Drainage: everywhere on land, strongest where it is wet and steep.
   // A plain is not flat noise. It is a surface water has already worked on, so
   // it gets a real network of swales, just a shallow one.
+  //
+  // RETUNED 2026-08-14, roughly doubled at every class. The measured cut over a
+  // mountain window was 285 ft at its deepest and exactly zero over three
+  // quarters of the area, while the fine crest texture on the same window was
+  // 570 ft. Drainage was therefore WEAKER than the noise it was supposed to
+  // organize, which is why the range read as a texture and not as a landform.
+  // A valley must be the second-biggest feature in a mountain window, after the
+  // massif itself.
   if (cls !== 'water') {
-    let erosion = cls === 'lowland' ? 0.032 : cls === 'upland' ? 0.075 : 0.125;
+    let erosion = cls === 'lowland' ? mix(0.100, 0.090)
+      : cls === 'upland' ? 0.150 : 0.260;
     if (WET_BIOMES.has(biomeId)) erosion *= 1.6;
     if (DESERT_BIOMES.has(biomeId)) erosion *= 0.5;
     operatorWeights.erosion = erosion;
   }
 
-  return { baseElevation: h, bandWeights: [macro, meso, micro], operatorWeights };
+  // Dissection. Low country is dissected all over; a mountain is not, because
+  // its crests are bare and its gullies are confined to its valleys.
+  //
+  // It is a RAMP, not a class test. A class test put a hard step at h=0.55, and
+  // two neighboring regions on opposite sides of it cut with different laws.
+  // The mask blend then printed the atlas cell boundaries into a mountain
+  // window as visible rectangular patches. The ramp costs nothing and the step
+  // is gone.
+  const dissection = 1 - smoothstep01((h - DISSECTION_FULL) / DISSECTION_SPAN);
+
+  return {
+    baseElevation: h, bandWeights: [macro, meso, micro], operatorWeights, dissection,
+  };
 }
 
 // ── Noise bands ───────────────────────────────────────────────────────────────
@@ -347,22 +436,79 @@ const GUIDE_RIDGE_MIX = 0.95;
 const GUIDE_FINE_MIX = 0.45;
 /** Softening term on the flow unit vector. Sized near a typical gradient. */
 const FLOW_EPS = 0.02;
+/**
+ * Guide slope, per foot, at which the incision law reaches half strength.
+ *
+ * MEASURED from the trunk probe over the three eyeball windows. It is the `S`
+ * of `E = K*Q^m*S^n` in a saturating form, so a flat carries no incision and a
+ * real hillside carries all of it. See `slopeScratch` for why the term is not
+ * optional.
+ */
+const SLOPE_HALF = 6.0e-5;
 /** Flow-probe arm as a fraction of the convergence arm at the same scale. */
 const FLOW_PROBE_RATIO = 0.7;
 /** Convergence arm for trunk valleys, feet. This is their half-width. */
 const TRUNK_ARM_FT = 2100;
 /** Convergence arm for tributary gullies, feet. */
 const TRIBUTARY_ARM_FT = 430;
-/** Convergence below this is ordinary hillslope and is not cut at all. */
-const CONVERGENCE_FLOOR = 0.07;
 /** Convergence above floor+span is a fully developed channel. */
 const CONVERGENCE_SPAN = 0.70;
-/** Power applied to the channel profile. Higher thins the line. */
-const CHANNEL_SHARPNESS = 1.35;
-/** Share of the cut owned by trunk valleys. */
-const TRUNK_DEPTH = 0.80;
-/** Share of the cut owned by tributaries. */
-const TRIBUTARY_DEPTH = 0.34;
+/** Convergence range the low-country swale ramps across. The measured spread. */
+const SWALE_LOW = -1.7;
+const SWALE_HIGH = 1.7;
+/** The same ramp at the tributary scale. Measured spread of the fine probe. */
+const RILL_LOW = -1.4;
+const RILL_HIGH = 1.4;
+
+// ── Channel ORDER — the fix for uniform width ─────────────────────────────────
+//
+// Before this, the operator cut exactly TWO channel classes: trunk and
+// tributary. A real basin shows four to six Horton orders across 25,000 ft, and
+// channel width grows with order (Horton 1945; Leopold & Maddock 1953 give
+// width ~ Q^0.5). Two classes is why every channel read as the same width.
+//
+// The three orders below all come from the SAME two convergence probes. That is
+// deliberate, and it is free: convergence magnitude already IS a magnitude
+// measure, because streamlines that have met more often converge harder. So a
+// HIGH threshold on the trunk field selects only the main stem — few lines,
+// wide, deep. A LOW threshold on the same field selects the whole branch net —
+// many lines, narrower. The tributary probe supplies the finest order. Adding a
+// third convergence probe would have cost 50% more noise reads for the same
+// result.
+//
+// Per order: convergence floor, profile sharpness, cut depth. A LOWER floor and
+// a LOWER sharpness both widen the line.
+
+/**
+ * Order 3 — the inner gorge. A HIGH floor selects only the strongest
+ * convergence, so this is rare and narrow, and it is the deepest cut.
+ */
+const MAIN_FLOOR = 0.62;
+const MAIN_SHARPNESS = 0.70;
+const MAIN_DEPTH = 0.60;
+/**
+ * Order 2 — the valley itself. A LOW floor on the same trunk field gives a
+ * broad footprint, so the two orders together are one cross-section: an open
+ * valley floor with a deeper channel down the middle of it.
+ */
+const BRANCH_FLOOR = 0.05;
+const BRANCH_SHARPNESS = 1.10;
+const BRANCH_DEPTH = 0.55;
+/**
+ * Order 1 — gullies, from the fine probe.
+ *
+ * The floor is HIGH. Once the fine guide moved onto the 2,671 and 1,127 ft
+ * octaves, tributary convergence gained real magnitude — measured p75 rose from
+ * 0.21 to 0.46 and p98 from 0.80 to 1.38 — and the old 0.06 floor passed about
+ * half of every window. That rendered as a dense mat of worms: the brain coral,
+ * moved from the crest into the cut. A channel is a RARE event in a landscape.
+ * Only the strongest convergence is one.
+ */
+const GULLY_FLOOR = 1.05;
+const GULLY_SHARPNESS = 1.55;
+const GULLY_DEPTH = 0.42;
+/** Extra gully depth on a fully dissected surface. See `gullyLive`. */
+const GULLY_DISSECTED_BOOST = 0.15;
 /**
  * Width of the ramp above the waterline over which drainage switches on.
  *
@@ -372,6 +518,224 @@ const TRIBUTARY_DEPTH = 0.34;
  * fading the cut out at the shoreline, so coastlines keep their shape.
  */
 const LAND_GATE_SPAN = 0.12;
+
+// ── INTERFLUVE — the fix for "noise with scratches" ───────────────────────────
+//
+// THE FAULT. A plain used to get its broad shape from noise band 0, an 8,000 ft
+// gradient field with its own lattice and its own rotation. The drainage pass
+// ran on the flow guide, a different field at a different orientation. Neither
+// knew about the other. Measured over the plain window, three quarters of the
+// area took NO cut at all and the median cut was 0.0014 against a macro
+// amplitude of 0.026. So the picture was mottled noise with a few scratches on
+// it, and no amount of extra incision fixed it: pushing lowland erosion from
+// 0.100 to 0.145 only made the scratches into pits.
+//
+// THE LAW. A plain is not a noisy surface that happens to have rivers. It is a
+// surface water has already removed material from. Its broad swells are the
+// INTERFLUVES — the divides left standing between the drainage lines (Horton
+// 1945; Hack 1960 on the drainage-basin form of an eroded landscape). So the
+// macro relief must be a function OF the drainage field, not a neighbor of it.
+//
+// THE TERM. `interfluve` is a MONOTONE INCREASING map of the flow guide, and
+// monotone is the load-bearing word. A monotone map never reorders height, so
+// every low of the visible surface is a low of the guide — which is exactly
+// where flow converges and the erosion operator cuts. The broad relief and the
+// channel network cannot disagree, because they are one field read twice.
+//
+// THE MAP IS CONCAVE. `t^k` with `k < 1` is steep near 0 and flat near 1, so
+// guide lows become NARROW and DEEP while guide highs open into BROAD FLATS.
+// That is the cross-section of a dissected plain: wide interfluve, sharp
+// valley. A linear map would only have moved the plain's rounded swells to a
+// different place, and the plain would still have read as swells.
+//
+// TWO ROUTES WERE TRIED AND REJECTED, both recorded here so they are not tried
+// again:
+//
+//   NEGATING THE PEAK FIELD. The peak operator SQUARES each octave, so its
+//   crest web is BROAD. A broad web upside down is a field of lobes. That is
+//   the brain coral, back again.
+//
+//   STACKING `|n|` AS THE MIRROR OF `1 - |n|`. The zero set of a smooth random
+//   field is a set of CLOSED LOOPS, not a tree. Each loop rendered as a ring
+//   valley around its own hill, and the plain read as quilted leather.
+//
+// The guide route has neither defect, because the guide is the field the flow
+// already runs on. It does not have to LOOK like a network. The network is the
+// erosion operator's job, and it lands in the right places by construction.
+
+/** Concavity of the interfluve map. Below 1 gives broad divides, sharp valleys. */
+const INTERFLUVE_CONCAVITY = 0.55;
+/**
+ * Center and half-width of the interfluve map, in guide units. MEASURED.
+ *
+ * The guide over the three eyeball windows runs about 0.0 to 1.5 with a median
+ * near 0.78. Centering the map anywhere else wastes most of its range on values
+ * the guide never takes.
+ */
+const INTERFLUVE_MID = 0.78;
+const INTERFLUVE_SCALE = 0.45;
+
+/**
+ * Map a flow-guide reading to interfluve relief in [-1,1].
+ *
+ * `tanh` normalizes instead of a clamp because a clamp puts a crease along its
+ * own level set, and that crease would print across the plain as a hard edge.
+ */
+export function interfluveOf(guide: number): number {
+  const t = 0.5 + 0.5 * Math.tanh((guide - INTERFLUVE_MID) / INTERFLUVE_SCALE);
+  return Math.pow(t, INTERFLUVE_CONCAVITY) * 2 - 1;
+}
+
+// ── Flow accumulation at the channel head — the fix for broken channels ───────
+//
+// THE FAULT. Valley floors broke into isolated blobs. Convergence is connected
+// as a SIGN, but a fixed THRESHOLD on it is not: convergence fluctuates along a
+// real valley, and wherever it dipped under the floor the channel stopped.
+//
+// THE LAW. Channel initiation is not a slope criterion, it is an area-slope
+// criterion: a channel starts where `A^k * S` passes a threshold, and A grows
+// monotonically downstream (Montgomery & Dietrich 1988). So the threshold that
+// a line must beat FALLS as you go down the network. A channel therefore cannot
+// die downstream — the test it has to pass gets easier every step.
+//
+// The accumulation proxy is a decreasing function of guide height, and guide
+// height decreases downstream by definition of flow. So the proxy is monotone
+// downstream for free, and using it to move the floor costs no noise reads.
+//
+// THE PROXY WAS ALSO MIS-CENTERED. It read `smoothstep((0.5 - guide)/1.7)`, but
+// the measured guide over all three eyeball windows runs about 0.0 to 1.5 with
+// a median near 0.81. So the smoothstep sat at ZERO over more than half of
+// every window: accumulation was pinned at its floor and carried no signal at
+// all. The constants below are the measured range.
+
+/** Guide value at the bottom of its measured range — most water. */
+const GUIDE_LOW = 0.0;
+/** Guide value at the top of its measured range — headwater. */
+const GUIDE_HIGH = 1.5;
+/** Accumulation at the driest point, and the span it climbs over. */
+const ACCUM_FLOOR = 0.30;
+const ACCUM_SPAN = 0.70;
+/**
+ * Fraction of the height above base level that incision may remove.
+ *
+ * A river cannot cut below the level it drains to. Without this the plain's
+ * deepest channels punched through the waterline and rendered as a scatter of
+ * lakes, which is exactly the "deep disconnected pits" that killed the previous
+ * attempt at a stronger lowland cut. It is a limit, not a fallback: the same
+ * arithmetic runs on every sample and the limit binds only where the physical
+ * law says it must.
+ */
+const BASE_LEVEL_KEEP = 0.80;
+
+/** Depth scale at the driest point, and how much it climbs with accumulation. */
+const ACCUM_DEPTH_MIN = 0.13;
+const ACCUM_DEPTH_RANGE = 0.42;
+/** Accumulation at which the channel floors are unmoved. Below it they rise. */
+const ACCUM_FLOOR_PIVOT = 0.55;
+/**
+ * How far accumulation moves the branch and gully floors.
+ *
+ * It has to be COMPARABLE TO THE CONVERGENCE SPREAD, which is about +-1.6. At
+ * 0.26 the drop was a tenth of that, so a convergence spike still passed the
+ * floor alone while its neighbors a few hundred feet downstream did not, and
+ * the channel existed only at the spike. In shaded relief that is a round hole
+ * in flat ground. At this value the valley floor follows ACCUMULATION, which is
+ * smooth and monotone downstream, and convergence only decides how deep inside
+ * that floor the channel runs.
+ */
+const ACCUM_FLOOR_DROP = 1.15;
+
+// ── Rock hardness at region scale ─────────────────────────────────────────────
+//
+// One atlas cell spans about 78,839 ft. An L1 window is 25,000 ft, so a window
+// sits INSIDE one cell and sees at most a gentle gradient of the per-cell
+// hardness. Per-cell hardness alone therefore cannot break up a window's
+// texture — it only makes one window differ from the next.
+//
+// The term that varies WITHIN the window is the STRUCTURAL BAND. Bedded and
+// foliated rock erodes differentially into strike-parallel ridges and valleys;
+// the Valley-and-Ridge province is the textbook case. So the band is not a free
+// noise field bolted onto hardness. Two properties tie it to real structure:
+//
+//   ORIENTATION  It runs along the SAME strike grain the peak operator uses,
+//                because folding sets both the range trend and the bedding
+//                trend. A band that ignored the grain would cross the ridges,
+//                which is what a free noise field would have done.
+//   AMPLITUDE    It is gated by the cell's own atlas-derived hardness. Competent
+//                bedded rock bands. Alluvium and saprolite do not, so lowlands
+//                and coasts get almost none.
+
+/** Band wavelength across strike, feet. ~10 band pairs across a window. */
+const BAND_SPAN_FT = 2600;
+/** Along-strike compression. Below 1 the bands run long and parallel. */
+const BAND_ALONG_SQUASH = 0.12;
+/** Peak shift the band may make to local hardness. */
+const BAND_AMPLITUDE = 0.30;
+/** Cell hardness at which banding starts, and the width of its ramp. */
+const BAND_GATE_START = 0.25;
+const BAND_GATE_SPAN = 0.45;
+
+/**
+ * Crest octaves that count as the MASSIF rather than its surface texture.
+ *
+ * Octaves 0 and 1 sit at 15,000 and 6,300 ft — the range and its spurs. Octaves
+ * 2 and 3 sit at 2,700 and 1,100 ft, and those two are what covered every
+ * window in identical worm-shaped lobes. They are the brain coral.
+ */
+const PEAK_COARSE_OCTAVES = 2;
+/**
+ * How much fine crest texture the reference rock keeps, and how much more the
+ * hardest rock keeps than the softest.
+ *
+ * Competent rock holds fine relief because it fails in blocks. Weak rock creeps
+ * and rounds, so its fine texture is gone. Running the fine octaves at full
+ * strength EVERYWHERE was the single biggest cause of the repeating look: it
+ * put the same 1,100 ft lobe on the shoulder of a limestone valley and on a
+ * granite arete.
+ */
+const FINE_TEXTURE_REFERENCE = 0.20;
+const FINE_TEXTURE_RANGE = 1.10;
+
+/**
+ * Elevation the differential-erosion term gives per unit of band hardness.
+ *
+ * This is hardness acting on the SURFACE, not on a rate. A landscape that has
+ * already been eroded stands high on its resistant bands and low on its weak
+ * ones — that IS the Valley-and-Ridge landform. Scaled by the region's own
+ * erosion weight, because no erosion means no differential erosion.
+ */
+const DIFFERENTIAL_RELIEF = 1.9;
+
+/** Hardness of the reference rock. Erodibility 1, talus scale 1. */
+const REFERENCE_HARDNESS = 0.5;
+/** How strongly hardness resists incision. */
+const HARD_ERODIBILITY_STR = 1.2;
+/** How strongly hardness steepens the slope the ground holds. */
+const HARD_TALUS_STR = 0.6;
+
+// ── Atlas discharge at region scale ───────────────────────────────────────────
+//
+// Discharge is an ATLAS property here, for the same scale reason. It answers
+// "how much water reaches this part of the world", which is what decides
+// whether a window holds a main stem or only headwater gullies. It cannot
+// answer "which of these two gullies is bigger" — that is the window's own
+// network, and the three orders above answer it.
+
+/**
+ * Dissection of the reference surface: how completely fine channels cover it.
+ *
+ * Zero is the high-country case � bare crests shed water and only the valleys
+ * carry gullies. Low country runs at 1. Same rule as hardness and discharge: a
+ * documented neutral, never a second code path.
+ */
+const REFERENCE_DISSECTION = 0;
+
+/** Normalized discharge that reads as an unchanneled hillslope. */
+const REFERENCE_DISCHARGE = 0.0301;
+/** Discharge below this leaves a window with no main stem at all. */
+const DISCHARGE_LOW = 0.010;
+/** Discharge at which a window's main stem is fully developed. */
+const DISCHARGE_HIGH = 0.300;
 
 /**
  * The POSITION-ONLY part of every operator, evaluated once per sample point and
@@ -385,12 +749,55 @@ const LAND_GATE_SPAN = 0.12;
  * standalone operators below return the same numbers.
  */
 export interface PositionalOperators {
-  /** `G_peak(x)` in [-1,1]. */
+  /** `G_peak(x)` in [-1,1]. Equals `peakCoarseAt + peakFineAt`. */
   peakAt: (x: Feet, y: Feet) => number;
+  /**
+   * The two COARSE crest octaves of `G_peak`, in [-1,1]. This is the massif:
+   * the shape of the range itself.
+   */
+  peakCoarseAt: (x: Feet, y: Feet) => number;
+  /**
+   * The two FINE crest octaves of `G_peak`, in [0, ~0.5]. This is the surface
+   * texture on the massif, and it is the term that read as brain coral when it
+   * ran at full strength over every square foot of a window. Competent rock
+   * holds fine relief; weak rock creeps and rounds it off, so the composite
+   * scales this term by local hardness and the coarse term by nothing.
+   */
+  peakFineAt: (x: Feet, y: Feet) => number;
   /** `G_dune(x)` in [-1,1]. */
   duneAt: (x: Feet, y: Feet) => number;
   /** The position part of `G_erosion(x)` in [-1,0]; scale by relief(running). */
   erosionCutAt: (x: Feet, y: Feet) => number;
+  /**
+   * The raw drainage reading at a point, written into `out` (length 4):
+   *   [0] trunk-scale flow convergence
+   *   [1] tributary-scale flow convergence
+   *   [2] the flow-accumulation proxy of the UPLIFT regime, 0..1
+   *   [3] the interfluve relief, -1..1
+   *   [4] the normalized slope factor `S`, 0..1
+   *
+   * The expensive noise probes are here, where they are shared by every region
+   * at the point. The per-region shaping — which order each convergence becomes
+   * and how deep it cuts — happens in the composite, because it needs the
+   * region's hardness and discharge.
+   */
+  drainageProbeAt: (x: Feet, y: Feet, out: Float64Array) => void;
+  /**
+   * Strike-parallel structural banding in [-1,1]. Add to a cell's hardness,
+   * scaled and gated, to get the local hardness at a point.
+   */
+  structuralBandAt: (x: Feet, y: Feet) => number;
+  /**
+   * Both halves of the peak split into `out` (length 2): `[coarse, fine]`. One
+   * evaluation instead of the two `peakCoarseAt` + `peakFineAt` cost.
+   */
+  peakSplitInto: (x: Feet, y: Feet, out: Float64Array) => void;
+  /**
+   * `G_interfluve(x)` in [-1,1]. The drainage-organized macro relief: a
+   * monotone concave map of the flow guide, so its lows are exactly the lines
+   * the erosion operator cuts. See the INTERFLUVE block.
+   */
+  interfluveAt: (x: Feet, y: Feet) => number;
 }
 
 /** Clamped smoothstep on [0,1]. */
@@ -455,7 +862,7 @@ export function makePositionalOperators(worldSeed: number): PositionalOperators 
   const windField = rotated(makeGradientNoise((worldSeed ^ 0x57494e44) >>> 0, 12000), 0.83);
   const phase = rotated(makeGradientNoise((worldSeed ^ 0x50484153) >>> 0, 4000), 2.77);
 
-  const peakAt = (x: Feet, y: Feet): number => {
+  const peakSplitAt = (x: Feet, y: Feet): void => {
       // Domain warp bends the crest lattice, so ridges curve instead of
       // running as a grid.
       const wx = x + warpX(x, y) * WARP_FT;
@@ -474,7 +881,8 @@ export function makePositionalOperators(worldSeed: number): PositionalOperators 
       // linear map, so nothing amplifies, and the world still shows more than
       // one range direction.
       const blend = smoothstep01(grainBlend(x, y) * 0.8 + 0.5);
-      let sum = 0;
+      let coarse = 0;
+      let fine = 0;
       for (let g = 0; g < 2; g++) {
         const weight = g === 0 ? 1 - blend : blend;
         if (weight <= 0) continue;
@@ -482,7 +890,8 @@ export function makePositionalOperators(worldSeed: number): PositionalOperators 
         const st = GRAIN_SIN[g];
         const along = (wx * ct + wy * st) * STRIKE_SQUASH;
         const across = -wx * st + wy * ct;
-        let acc = 0;
+        let accCoarse = 0;
+        let accFine = 0;
         let gate = 1;
         for (let o = 0; o < peakOctaves.length; o++) {
           const n = peakOctaves[o].noise(along, across);
@@ -496,11 +905,22 @@ export function makePositionalOperators(worldSeed: number): PositionalOperators 
           // squared value throttled every octave after the first, and the range
           // came back smooth and streaky — brushed metal, not rock.
           gate = Math.min(1, raw * 1.25);
-          acc += r * peakOctaves[o].amp;
+          if (o < PEAK_COARSE_OCTAVES) accCoarse += r * peakOctaves[o].amp;
+          else accFine += r * peakOctaves[o].amp;
         }
-        sum += weight * acc;
+        coarse += weight * accCoarse;
+        fine += weight * accFine;
       }
-    return (sum / peakNorm) * 2 - 1; // [-1,1]
+    // The split is exact: coarse + fine reproduces the single-value form to the
+    // last bit, so the standalone operator and every existing gate are unmoved.
+    outPeak[0] = (coarse / peakNorm) * 2 - 1;
+    outPeak[1] = (fine / peakNorm) * 2;
+  };
+
+  const outPeak = new Float64Array(2);
+  const peakAt = (x: Feet, y: Feet): number => {
+    peakSplitAt(x, y);
+    return outPeak[0] + outPeak[1];
   };
 
   const duneAt = (x: Feet, y: Feet): number => {
@@ -526,6 +946,7 @@ export function makePositionalOperators(worldSeed: number): PositionalOperators 
   // Both octaves come out of ONE pass, because the warp and the grain blend are
   // three of the eight noise reads and the drainage probe calls this function
   // thirty-odd times per sample. Splitting it doubled the window time.
+
   const macroGuide = rotated(makeGradientNoise((worldSeed ^ 0x47554944) >>> 0, GUIDE_SPAN_FT), 1.07);
   const guideAt = (x: Feet, y: Feet, withFine: boolean): number => {
     const wx = x + warpX(x, y) * WARP_FT;
@@ -547,8 +968,27 @@ export function makePositionalOperators(worldSeed: number): PositionalOperators 
     return withFine ? h + GUIDE_FINE_MIX * (fine * 2 - 1) : h;
   };
 
-  const uA = new Float64Array(2);
-  const uB = new Float64Array(2);
+  const uA = new Float64Array(3);
+  const uB = new Float64Array(3);
+  /**
+   * Mean guide slope over the last convergence probe, in guide units per foot.
+   *
+   * THE MISSING S. The published incision law is `E = K*Q^m*S^n`, and this
+   * operator carried K, Q and no S at all. That omission had a visible cost.
+   * Convergence is the divergence of a UNIT vector, and a unit vector has no
+   * defined direction at a critical point of the guide — a local high, low or
+   * saddle where the gradient vanishes. So convergence SPIKES at those isolated
+   * points, and with no slope term the cut spiked with it. On a mountain the
+   * spikes hide inside real valleys. On a plain each one rendered as a small
+   * round hole with a bright rim, and no amount of retuning the thresholds
+   * moved them, because they are singularities of the measure and not features
+   * of the landscape.
+   *
+   * With `S` in the law the spikes cancel: the slope is near zero exactly where
+   * the convergence blows up. Restoring the missing term and removing the
+   * artifact are the same change.
+   */
+  let slopeScratch = 0;
 
   /**
    * Downhill unit vector of the guide, probed over `armFt`.
@@ -563,9 +1003,12 @@ export function makePositionalOperators(worldSeed: number): PositionalOperators 
     // Dividing by |g| alone would snap the direction on flat ground and tear
     // the surface. FLOW_EPS makes the vector SHRINK there instead, so a flat
     // reports weak flow rather than a discontinuity.
-    const inv = 1 / (Math.hypot(gx, gy) + FLOW_EPS);
+    const mag = Math.hypot(gx, gy);
+    const inv = 1 / (mag + FLOW_EPS);
     out[0] = -gx * inv;
     out[1] = -gy * inv;
+    // The SLOPE, kept because the incision law needs it. See `slopeScratch`.
+    out[2] = mag / armFt;
   };
 
   /**
@@ -580,19 +1023,73 @@ export function makePositionalOperators(worldSeed: number): PositionalOperators 
     flowDir(x + armFt, y, probe, fine, uA);
     flowDir(x - armFt, y, probe, fine, uB);
     const dudx = uA[0] - uB[0];
+    let slope = uA[2] + uB[2];
     flowDir(x, y + armFt, probe, fine, uA);
     flowDir(x, y - armFt, probe, fine, uB);
     const dvdy = uA[1] - uB[1];
+    slope += uA[2] + uB[2];
+    slopeScratch = slope * 0.25;
     return -(dudx + dvdy) * 0.5;
   };
 
-  /** Shape a convergence reading into a channel depth in [0,1]. */
-  const channelOf = (convergence: number): number =>
-    Math.pow(smoothstep01((convergence - CONVERGENCE_FLOOR) / CONVERGENCE_SPAN), CHANNEL_SHARPNESS);
+  // ── Structural banding ─────────────────────────────────────────────────────
+  //
+  // Sampled in the SAME warped, strike-rotated frame the peak operator uses, so
+  // the bands run with the range, not across it. The along-strike axis is
+  // compressed hard, which is what makes bands rather than blobs.
+  const bandNoise = rotated(makeGradientNoise((worldSeed ^ 0x42414e44) >>> 0, BAND_SPAN_FT), 0.29);
+  const structuralBandAt = (x: Feet, y: Feet): number => {
+    const wx = x + warpX(x, y) * WARP_FT;
+    const wy = y + warpY(x, y) * WARP_FT;
+    // SATURATED blend, unlike the peak operator's. The two grains are 72 deg
+    // apart. Averaging two band systems at 72 deg gives a CROSS-HATCH, and a
+    // cross-hatch of two stripe fields reads as lobes — which is the exact
+    // texture this term exists to break. Rock is bedded in ONE direction at a
+    // time. Saturating the blend picks one grain almost everywhere and keeps a
+    // narrow continuous transition where the strike really does turn.
+    const blend = smoothstep01((smoothstep01(grainBlend(x, y) * 0.8 + 0.5) - 0.5) * 4 + 0.5);
+    let sum = 0;
+    for (let g = 0; g < 2; g++) {
+      const weight = g === 0 ? 1 - blend : blend;
+      if (weight <= 0) continue;
+      const ct = GRAIN_COS[g];
+      const st = GRAIN_SIN[g];
+      const along = wx * ct + wy * st;
+      const across = -wx * st + wy * ct;
+      sum += weight * bandNoise(across, along * BAND_ALONG_SQUASH);
+    }
+    return sum;
+  };
+
+  const drainageProbeAt = (x: Feet, y: Feet, out: Float64Array): void => {
+    out[0] = convergenceAt(x, y, TRUNK_ARM_FT, false);
+    const trunkSlope = slopeScratch;
+    out[1] = convergenceAt(x, y, TRIBUTARY_ARM_FT, true);
+    // Flow accumulation proxy. Low ground has more water above it, so channels
+    // deepen downstream while headwaters stay shallow.
+    const guide = guideAt(x, y, false);
+    const gN = smoothstep01((guide - GUIDE_LOW) / (GUIDE_HIGH - GUIDE_LOW));
+    out[2] = ACCUM_FLOOR + ACCUM_SPAN * (1 - gN);
+    // The interfluve reads the COARSE guide only. It is the broad ground
+    // between the valleys, and broad is the point: reading the fine guide put
+    // the tributary octaves into the macro relief and the plain came back as a
+    // mat of worms. Fine structure is the erosion operator's job.
+    out[3] = interfluveOf(guide);
+    // `S` of `E = K*Q^m*S^n`, normalized to 1 at a fully developed hillslope.
+    // The trunk slope is used for both orders: it is the slope of the ground
+    // the whole local network sits on.
+    out[4] = trunkSlope / (trunkSlope + SLOPE_HALF);
+  };
 
   return {
     peakAt,
+    peakCoarseAt: (x, y) => { peakSplitAt(x, y); return outPeak[0]; },
+    peakFineAt: (x, y) => { peakSplitAt(x, y); return outPeak[1]; },
     duneAt,
+    drainageProbeAt,
+    structuralBandAt,
+    peakSplitInto: (x, y, out) => { peakSplitAt(x, y); out[0] = outPeak[0]; out[1] = outPeak[1]; },
+    interfluveAt: (x, y) => interfluveOf(guideAt(x, y, false)),
     erosionCutAt: (x, y) => {
       // ── THALWEG-AWARE INCISION ────────────────────────────────────────────
       //
@@ -616,24 +1113,164 @@ export function makePositionalOperators(worldSeed: number): PositionalOperators 
       //   direction-blind. Slope magnitude can make pits. It can never make a
       //   network.
       //
-      // TWO SCALES, because drainage has a hierarchy and a single arm can only
-      // resolve one channel width. With one scale every valley came out the
-      // same size and the range read as tree bark. The wide arm finds the trunk
-      // valleys that organize the whole window; the narrow arm finds the
-      // tributaries, and they are gated by the trunk so they appear beside a
-      // real valley instead of scattered over the divides.
-      const trunk = channelOf(convergenceAt(x, y, TRUNK_ARM_FT, false));
-      const tributary = channelOf(convergenceAt(x, y, TRIBUTARY_ARM_FT, true));
-
-      // Flow accumulation proxy. Low ground has more water above it, so trunk
-      // valleys deepen downstream while headwaters stay shallow. Without it the
-      // network reads as one uniformly stamped pattern.
-      const accumulation = 0.30 + 0.70 * smoothstep01((0.5 - guideAt(x, y, false)) / 1.7);
-
-      const cut = TRUNK_DEPTH * trunk + TRIBUTARY_DEPTH * tributary * (0.30 + 0.70 * trunk);
-      return -Math.min(1, cut * accumulation);
+      // TWO PROBES, THREE ORDERS. Two arms is all the probing the hierarchy
+      // needs; `shapeChannelCut` reads three orders out of them. See the
+      // channel-order block for why a third probe would have been waste.
+      drainageProbeAt(x, y, probeScratch);
+      return shapeChannelCut(
+        probeScratch[0], probeScratch[1], probeScratch[2],
+        REFERENCE_HARDNESS, REFERENCE_DISCHARGE, REFERENCE_DISSECTION, probeScratch[4],
+      );
     },
   };
+}
+
+/** Scratch for the standalone `erosionCutAt`. Never shared with the composite. */
+const probeScratch = new Float64Array(5);
+
+/** Shape a convergence reading into a channel depth in [0,1]. */
+function channelOf(convergence: number, floor: number, sharpness: number): number {
+  return Math.pow(smoothstep01((convergence - floor) / CONVERGENCE_SPAN), sharpness);
+}
+
+/**
+ * Turn one drainage probe into a cut, given the LOCAL rock and the ATLAS water.
+ *
+ * This is the single place the two new terms act, and it is shared by the
+ * standalone operator and the composite, so there is exactly one code path.
+ *
+ * HARDNESS acts TWICE, which is the whole point of the field.
+ *
+ *   It resists INCISION.  `erodibility` scales every order's depth.
+ *   It holds a STEEPER SLOPE. `talusScale` raises the convergence floors and the
+ *   profile sharpness together, so hard rock cuts a narrow gorge and soft rock
+ *   opens into a broad floored valley at the same flow.
+ *
+ * DISCHARGE decides how much of the hierarchy is present. A headwater window
+ * gets gullies and no main stem. A main-valley window gets a wide main stem and
+ * its gullies are relatively minor, which is what a real trunk valley looks
+ * like.
+ *
+ * @param trunkConv - Trunk-scale flow convergence.
+ * @param tribConv - Tributary-scale flow convergence.
+ * @param accum - Flow-accumulation proxy, 0..1.
+ * @param localHardness - Rock hardness at the point, 0..1.
+ * @param discharge - Normalized atlas discharge, 0..1.
+ * @returns The cut, in [-1, 0]. The operator only ever removes height.
+ */
+export function shapeChannelCut(
+  trunkConv: number,
+  tribConv: number,
+  accum: number,
+  localHardness: number,
+  discharge: number,
+  dissection: number,
+  slope: number,
+): number {
+  const erodibility = 1 + HARD_ERODIBILITY_STR * (REFERENCE_HARDNESS - localHardness);
+  const talusScale = 1 + HARD_TALUS_STR * (localHardness - REFERENCE_HARDNESS);
+  const qd = smoothstep01((discharge - DISCHARGE_LOW) / (DISCHARGE_HIGH - DISCHARGE_LOW));
+
+  // AREA-SLOPE CHANNEL INITIATION. The threshold a line must beat falls as
+  // accumulation rises, so a channel gets EASIER to hold the further down the
+  // network it runs, and cannot die out downstream. Above the pivot the drop is
+  // negative, which thins the headwater gullies out. Without this the floor was
+  // a constant, convergence fluctuated across it, and every valley floor broke
+  // into a chain of separate blobs.
+  const accumDrop = ACCUM_FLOOR_DROP * (accum - ACCUM_FLOOR_PIVOT);
+
+  // More water lowers the threshold at which a line counts as a channel, so a
+  // wet window carries a wider main stem. Harder rock raises it back.
+  const main = channelOf(
+    trunkConv, (MAIN_FLOOR - 0.16 * qd - 0.25 * accumDrop) * talusScale,
+    MAIN_SHARPNESS * talusScale,
+  );
+  const branch = channelOf(
+    trunkConv, (BRANCH_FLOOR - 0.03 * qd - accumDrop) * talusScale,
+    BRANCH_SHARPNESS * talusScale,
+  );
+  // THE SWALE, and why low country does not use a threshold.
+  //
+  // `channelOf` is a THRESHOLD. Across 0.70 of convergence it runs from nothing
+  // to a full channel, and the measured convergence spread is about 3.4 wide.
+  // On a mountain that is right: a valley either exists or it does not, and the
+  // ground between valleys is rock. On a plain it is wrong. Convergence on a
+  // plain fluctuates across the threshold, so the cut appeared only at isolated
+  // spikes. Measured: 0.0244 of cut at a spike against 0.0006 six hundred feet
+  // away, a fortyfold step. Every spike rendered as a ROUND HOLE in flat
+  // ground. Lowering the floor did not help. It moved the holes.
+  //
+  // A plain has no threshold. All of it drains, and depth grows smoothly with
+  // how much flow converges there. So low country reads the SAME convergence
+  // through a gentle full-range ramp. There is no cliff to fall off, so it
+  // cannot make an isolated pit, and its low set is exactly as connected as the
+  // convergence field itself.
+  const swale = smoothstep01((trunkConv - SWALE_LOW) / (SWALE_HIGH - SWALE_LOW));
+  const valley = branch * (1 - dissection) + swale * dissection;
+  // The same argument at the tributary scale, and it mattered more there. The
+  // thresholded gully was the term that punched the round holes: a fine
+  // convergence spike passed the floor on its own, with no valley anywhere near
+  // it, and the cut went straight down. Zeroing the gully removed every hole
+  // and nothing else. The unthresholded RILL replaces it on low country.
+  const rill = smoothstep01((tribConv - RILL_LOW) / (RILL_HIGH - RILL_LOW));
+
+  const gully = channelOf(
+    tribConv, (GULLY_FLOOR - 0.5 * accumDrop) * talusScale, GULLY_SHARPNESS * talusScale,
+  );
+
+  // WHERE GULLIES LIVE. On a mountain they live in the valleys, because the
+  // crests are bare rock that sheds water off both sides. On a plain they are
+  // everywhere: the interfluve IS dissected, that is what makes it an
+  // interfluve rather than a swell. `dissection` opens that gate.
+  //
+  // This is the term that carries a plain's read. Its wavelength is the
+  // tributary probe's, about ten times finer than the trunk network, so it is
+  // the only part of the hierarchy that puts twenty features across a window
+  // instead of three.
+  //
+  // A gully still has to REACH the network, even on a plain. Cutting it free of
+  // `branch` altogether punched isolated round holes into the interfluves,
+  // because the fine convergence field spikes in places no valley reaches. The
+  // dissected form only RAISES the floor of the gate, it does not remove it.
+  const gullyLive =
+    (0.35 + 0.65 * branch) * (1 - dissection) + (0.35 + 0.65 * swale) * dissection;
+  const fineOrder = gully * (1 - dissection) + rill * dissection;
+
+  // The orders NEST. `main` is a subset of `branch` by construction, because
+  // both read the same field at different thresholds, so their depths add into
+  // one cross-section: a broad valley floor with a deeper inner channel.
+  const cut =
+    // NO WATER, NO GORGE. A window whose atlas cell carries almost no discharge
+    // has no main stem to cut one. The old floor of 0.20 left a deep inner
+    // gorge running on convergence alone, and over a plain it printed as round
+    // holes in flat ground where the convergence field happened to spike.
+    MAIN_DEPTH * main * (0.05 + 0.95 * qd) +
+    // The valley order scales with water too, for the same reason the gorge
+    // does. A window whose atlas cell carries little discharge gets a broad
+    // shallow swale, not a deep trough � and a deep trough at an isolated
+    // convergence spike is a closed pit, which is what printed as round holes.
+    BRANCH_DEPTH * valley * (0.55 + 0.45 * qd) +
+    GULLY_DEPTH * fineOrder * gullyLive * (1 + GULLY_DISSECTED_BOOST * dissection)
+      * (1 - 0.30 * qd);
+
+  // ACCUMULATION AS A DEPTH SCALE, NORMALIZED. The raw proxy used to sit pinned
+  // at its 0.30 floor, so `cut * accum` was in practice `cut * 0.30`. Fixing the
+  // centering unpinned it and every cut in the world got about three times
+  // deeper, which shattered the coastline. The depth scale below restores the
+  // old average while keeping the downstream VARIATION the fix bought.
+  const aN = (accum - ACCUM_FLOOR) / ACCUM_SPAN;
+  const depthScale = ACCUM_DEPTH_MIN + ACCUM_DEPTH_RANGE * aN;
+  return -Math.min(1, cut * slope * depthScale * erodibility * (0.80 + 0.45 * qd));
+}
+
+/**
+ * Local rock hardness at a point: the cell's atlas hardness plus the structural
+ * band, with the band gated so only competent rock bands.
+ */
+export function localHardnessOf(cellHardness: number, band: number): number {
+  const gate = smoothstep01((cellHardness - BAND_GATE_START) / BAND_GATE_SPAN);
+  const h = cellHardness + BAND_AMPLITUDE * band * gate;
+  return h < 0 ? 0 : h > 1 ? 1 : h;
 }
 
 /**
@@ -674,6 +1311,18 @@ export function makeErosionOperator(worldSeed: number): OperatorField {
   return (x, y, running) => erosionCutAt(x, y) * erosionRelief(running);
 }
 
+/**
+ * `G_interfluve` — drainage-organized macro relief. It is the broad shape of a
+ * surface that water has already worked: divides standing between the lines the
+ * erosion operator cuts. Land only, gated by the same waterline ramp the
+ * erosion operator uses, so a coastline keeps the shape the atlas gave it.
+ * Output is in [-1,1].
+ */
+export function makeInterfluveOperator(worldSeed: number): OperatorField {
+  const { interfluveAt } = makePositionalOperators(worldSeed);
+  return (x, y, running) => interfluveAt(x, y) * erosionRelief(running);
+}
+
 /** The full operator set, built once per world seed. */
 export function makeOperators(worldSeed: number): Record<GeomorphOperator, OperatorField> {
   return {
@@ -681,6 +1330,7 @@ export function makeOperators(worldSeed: number): Record<GeomorphOperator, Opera
     dune: makeDuneOperator(worldSeed),
     terrace: makeTerraceOperator(),
     erosion: makeErosionOperator(worldSeed),
+    interfluve: makeInterfluveOperator(worldSeed),
   };
 }
 
@@ -806,10 +1456,18 @@ export function makeCompositeHeightField(
   const aDune = new Float64Array(n);
   const aTerrace = new Float64Array(n);
   const aErosion = new Float64Array(n);
+  const aInterfluve = new Float64Array(n);
+  const rDissection = new Float64Array(n);
   const baseH = new Float64Array(n);
+  // Atlas rock and atlas water, one per region. An absent value is the
+  // documented reference rock / reference flow, never a second code path.
+  const cellHardness = new Float64Array(n);
+  const cellDischarge = new Float64Array(n);
   for (let r = 0; r < n; r++) {
     const p = profiles[r];
     baseH[r] = p.baseElevation;
+    cellHardness[r] = sources[r].hardness ?? REFERENCE_HARDNESS;
+    cellDischarge[r] = sources[r].discharge ?? REFERENCE_DISCHARGE;
     for (let k = 0; k < BAND_SPANS_FT.length; k++) {
       wBand[r * BAND_SPANS_FT.length + k] = p.bandWeights[k];
     }
@@ -817,21 +1475,36 @@ export function makeCompositeHeightField(
     aDune[r] = p.operatorWeights.dune ?? 0;
     aTerrace[r] = p.operatorWeights.terrace ?? 0;
     aErosion[r] = p.operatorWeights.erosion ?? 0;
+    aInterfluve[r] = p.operatorWeights.interfluve ?? 0;
+    rDissection[r] = p.dissection;
   }
 
   /** The position-only terms, evaluated once per point and reused per region. */
   const bandScratch = new Float64Array(BAND_SPANS_FT.length);
+  const peakScratch = new Float64Array(2);
+  const drainage = new Float64Array(5);
   let cacheX = NaN;
   let cacheY = NaN;
-  let cachePeak = 0;
+  let cachePeakCoarse = 0;
+  let cachePeakFine = 0;
   let cacheDune = 0;
-  let cacheErosion = 0;
+  let cacheStructural = 0;
   const loadPoint = (x: Feet, y: Feet): void => {
     if (x === cacheX && y === cacheY) return;
     for (let k = 0; k < bands.length; k++) bandScratch[k] = bands[k](x, y);
-    cachePeak = pos.peakAt(x, y);
+    // ONE peak evaluation, not two. `peakCoarseAt` and `peakFineAt` each run the
+    // whole eleven-read split, and the composite needs both halves at every
+    // sample.
+    pos.peakSplitInto(x, y, peakScratch);
+    cachePeakCoarse = peakScratch[0];
+    cachePeakFine = peakScratch[1];
     cacheDune = pos.duneAt(x, y);
-    cacheErosion = pos.erosionCutAt(x, y);
+    cacheStructural = pos.structuralBandAt(x, y);
+    // The RAW drainage reading is position-only and shared. Turning it into a
+    // cut is per-region, because the cut depends on the region's rock and its
+    // atlas discharge. Only the cheap arithmetic is per-region; the ~250 noise
+    // reads stay hoisted.
+    pos.drainageProbeAt(x, y, drainage);
     cacheX = x;
     cacheY = y;
   };
@@ -851,10 +1524,50 @@ export function makeCompositeHeightField(
     for (let k = 0; k < BAND_SPANS_FT.length; k++) {
       running += wBand[off + k] * bandScratch[k];
     }
-    if (aPeak[r] !== 0) running += aPeak[r] * cachePeak;
+    // Local rock: the cell's atlas hardness, banded by structure.
+    const hard = localHardnessOf(cellHardness[r], cacheStructural);
+    // EFFECT TWO of hardness. Hard rock holds a steeper slope, so it stands in
+    // higher relief for the same uplift; soft rock relaxes toward its mean.
+    // This is the same `talusScale` the incision term uses, applied to the term
+    // that builds relief rather than the one that removes it.
+    const talusScale = 1 + HARD_TALUS_STR * (hard - REFERENCE_HARDNESS);
+    if (aPeak[r] !== 0) {
+      // The massif is the massif whatever it is made of. Only the fine texture
+      // is a property of the rock, so only the fine term reads hardness.
+      const fineKeep = Math.max(
+        0,
+        Math.min(1, FINE_TEXTURE_REFERENCE + FINE_TEXTURE_RANGE * (hard - REFERENCE_HARDNESS)),
+      );
+      running += aPeak[r] * (cachePeakCoarse + cachePeakFine * fineKeep) * talusScale;
+    }
+    // INTERFLUVE. It runs BEFORE terrace and erosion, because it is a relief
+    // builder and those two are shape operators that must act on the surface
+    // this one leaves. It is gated by the waterline ramp so a shoreline keeps
+    // the shape the atlas gave it, exactly as the erosion cut is.
+    //
+    if (aInterfluve[r] !== 0) {
+      running += aInterfluve[r] * drainage[3] * erosionRelief(running);
+    }
     if (aDune[r] !== 0) running += aDune[r] * cacheDune;
     if (aTerrace[r] !== 0) running += aTerrace[r] * terracePull(running);
-    if (aErosion[r] !== 0) running += aErosion[r] * cacheErosion * erosionRelief(running);
+    if (aErosion[r] !== 0) {
+      const relief = erosionRelief(running);
+      // DIFFERENTIAL EROSION. Resistant bands are left standing, weak bands are
+      // stripped out. The signal is the band's DEVIATION from the cell's own
+      // hardness, so the cell mean is untouched and the atlas keeps its
+      // authority over elevation.
+      running +=
+        aErosion[r] * DIFFERENTIAL_RELIEF * (hard - cellHardness[r]) * relief;
+      const cut = shapeChannelCut(
+        drainage[0], drainage[1], drainage[2], hard, cellDischarge[r], rDissection[r],
+        drainage[4],
+      );
+      // BASE LEVEL. `cut` is negative. The channel may take at most
+      // BASE_LEVEL_KEEP of the ground standing above the waterline.
+      const deepest = Math.max(0, running - WATER_THRESHOLD) * BASE_LEVEL_KEEP;
+      const applied = aErosion[r] * cut * relief;
+      running += applied < -deepest ? -deepest : applied;
+    }
     return running - baseH[r];
   };
 
@@ -1030,6 +1743,7 @@ export function selectRegionsForWindow(
   feetPerPixel: number,
   bounds: WindowFt,
   maskRadiusFt: number,
+  erosion?: AtlasErosionInput,
 ): RegionSource[] {
   const out: RegionSource[] = [];
   for (let id = 0; id < cellPoints.length; id++) {
@@ -1041,9 +1755,29 @@ export function selectRegionsForWindow(
       x < bounds.x - maskRadiusFt || x > bounds.x + bounds.width + maskRadiusFt ||
       y < bounds.y - maskRadiusFt || y > bounds.y + bounds.height + maskRadiusFt
     ) continue;
-    out.push({ id, x, y, h: cellHeights[id] / 100, biomeId: cellBiomes ? cellBiomes[id] : 0 });
+    out.push({
+      id, x, y,
+      h: cellHeights[id] / 100,
+      biomeId: cellBiomes ? cellBiomes[id] : 0,
+      hardness: erosion?.hardness[id],
+      discharge: erosion?.discharge[id],
+    });
   }
   return out;
+}
+
+/**
+ * The bake result this file reads, stated structurally.
+ *
+ * Declared here rather than imported from `erosion/atlasErosionBake`, so the
+ * region tier does not depend on the erosion module. The bake produces the
+ * atlas facts; the region only consumes two arrays of numbers.
+ */
+export interface AtlasErosionInput {
+  /** Rock hardness per pack cell, 0..1. */
+  hardness: ArrayLike<number>;
+  /** Normalized discharge per pack cell, 0..1. */
+  discharge: ArrayLike<number>;
 }
 
 /**
@@ -1094,10 +1828,11 @@ export function buildWindowComposite(
   worldSeed: number,
   bounds: WindowFt,
   resolutionFt = 100,
+  erosion?: AtlasErosionInput,
 ): { field: CompositeHeightField; heightfield: CompositeHeightfield } {
   const maskRadiusFt = MASK_RADIUS_SPACINGS * computeRegionSpacingFt(cellPoints, feetPerPixel);
   const sources = selectRegionsForWindow(
-    cellPoints, cellHeights, cellBiomes, feetPerPixel, bounds, maskRadiusFt,
+    cellPoints, cellHeights, cellBiomes, feetPerPixel, bounds, maskRadiusFt, erosion,
   );
   const field = makeCompositeHeightField(sources, maskRadiusFt, worldSeed >>> 0);
   return { field, heightfield: rasterizeComposite(field, bounds, resolutionFt) };

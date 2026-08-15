@@ -20,15 +20,37 @@
  * (positions come from the chunk loaders — placement is NOT re-invented here)
  * into per-(species, variant) instance buckets for instanced tree rendering.
  *
- * Species selection: the scatter's per-instance palette color is authored by
- * biome in the chunk loaders, so we classify from it — dark greens read as
- * conifer country (taiga/highland), yellow-shifted dry palettes as scrub,
- * everything else broadleaf — then a positional hash mixes ~1 in 5 the other
- * way so forests are not monocultures. With no colors, hash-only mix.
- * Pure + deterministic from the scatter buffers alone.
+ * TWO PARTITIONS LIVE HERE.
+ *
+ * `partitionTreeInstances` is the PRESET path. Species selection reads the
+ * scatter's per-instance palette color, then a positional hash mixes ~1 in 5
+ * the other way so forests are not monocultures.
+ *
+ * `partitionGrownTreeInstances` is the GROWN path. It reads the per-instance
+ * BIOME the loaders now carry, and never looks at a color.
+ *
+ * WHY THE PALETTE WAS USED, AND WHY IT IS WRONG
+ *
+ * When the preset path was written the scatter carried positions, scales,
+ * rotations and colors — and nothing that said where the tree stood. The
+ * palette was the only per-instance channel with any authored meaning, so it
+ * was read as a biome proxy.
+ *
+ * It never was one. In ground mode — the mode the game runs in — the palette
+ * comes from a THREE-ENTRY green table picked by a hash of the feature id
+ * (`buildGroundVegetation`), identical in every biome on the map. Classifying
+ * from it therefore returns a fixed 3-way hash split, not a biome: a taiga and
+ * a rainforest draw from the same three colors, and the deep-saturated third
+ * entry resolves into the rainforest band, so palms grow on tundra.
+ *
+ * The fix is not a better color rule. It is to carry the biome, which the
+ * loaders knew all along and threw away.
+ *
+ * Both partitions are pure and deterministic from the scatter buffers alone.
  */
 import type { TreeSpecies } from './treeMeshGenerator';
 import { VARIANTS_PER_SPECIES, TREE_SPECIES } from './treeMeshGenerator';
+import { GROWN_VARIANTS_PER_BIOME } from './grownTreeVariants';
 
 export interface TreeInstanceBucket {
   species: TreeSpecies;
@@ -144,4 +166,91 @@ export function partitionTreeInstances(scatter: {
     bucketIndex.get(`${species}|${variant}`)!.instanceIndices.push(i);
   }
   return buckets;
+}
+
+// ── The grown path ──────────────────────────────────────────────────────────
+
+/** One (biome, variant) bucket of instances for the grown-tree renderer. */
+export interface GrownTreeBucket {
+  /** A `treeEnvironment` biome key — an FMG name or a ground biome id. */
+  biome: string;
+  variant: number;
+  /** Indices into the scatter arrays (instance i = positions[i*3..]). */
+  instanceIndices: number[];
+}
+
+/**
+ * The per-instance biome channel a grown-tree scatter must carry.
+ *
+ * Codes rather than strings so the array survives a worker `postMessage` as a
+ * typed array instead of one cloned string per tree.
+ */
+export interface GrownScatterBiomes {
+  /** One code per instance; the code indexes `biomeTable`. */
+  biomeCodes?: Uint8Array;
+  /** Distinct biome keys this scatter references. */
+  biomeTable?: readonly string[];
+}
+
+/**
+ * Partition scatter instances into per-(biome, variant) buckets.
+ *
+ * Bucket order is fixed: `biomeTable` order x variant ascending, so the
+ * renderer's mesh list is stable across rebuilds. Empty buckets are dropped —
+ * unlike the preset path there is no fixed global biome list to enumerate, and
+ * a chunk normally touches one or two biomes out of eleven.
+ *
+ * THROWS when the biome channel is missing. NO FALLBACK: a scatter with no
+ * biome cannot grow a tree, and guessing one is the fault this path removes.
+ */
+export function partitionGrownTreeInstances(scatter: {
+  positions: Float32Array;
+} & GrownScatterBiomes): GrownTreeBucket[] {
+  const count = scatter.positions.length / 3;
+  if (count === 0) return [];
+  const { biomeCodes, biomeTable } = scatter;
+  if (!biomeCodes || !biomeTable) {
+    throw new Error(
+      'partitionGrownTreeInstances: scatter carries no biome channel. '
+      + 'The grown-tree path needs `biomeCodes` + `biomeTable` from the chunk '
+      + 'loader; a scatter built before that channel existed must be rebuilt, '
+      + 'not guessed at.',
+    );
+  }
+  if (biomeCodes.length !== count) {
+    throw new Error(
+      `partitionGrownTreeInstances: ${biomeCodes.length} biome codes for `
+      + `${count} instances — the loader wrote a mismatched channel.`,
+    );
+  }
+
+  const buckets: GrownTreeBucket[] = [];
+  const bucketIndex = new Map<string, GrownTreeBucket>();
+  for (const biome of biomeTable) {
+    for (let v = 0; v < GROWN_VARIANTS_PER_BIOME; v++) {
+      const bucket: GrownTreeBucket = { biome, variant: v, instanceIndices: [] };
+      buckets.push(bucket);
+      bucketIndex.set(`${biome}|${v}`, bucket);
+    }
+  }
+
+  for (let i = 0; i < count; i++) {
+    const biome = biomeTable[biomeCodes[i]];
+    if (biome === undefined) {
+      throw new Error(
+        `partitionGrownTreeInstances: instance ${i} has biome code `
+        + `${biomeCodes[i]}, outside a table of ${biomeTable.length}.`,
+      );
+    }
+    const x = scatter.positions[i * 3];
+    const z = scatter.positions[i * 3 + 2];
+    // Same salt and the same variant count as the preset path, so which
+    // variant lands where is decided the same way in both.
+    const variant = Math.min(
+      GROWN_VARIANTS_PER_BIOME - 1,
+      Math.floor(positionHash(x, z, 211) * GROWN_VARIANTS_PER_BIOME),
+    );
+    bucketIndex.get(`${biome}|${variant}`)!.instanceIndices.push(i);
+  }
+  return buckets.filter((b) => b.instanceIndices.length > 0);
 }

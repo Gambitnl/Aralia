@@ -67,6 +67,13 @@
       "scope": "town surfaces in 3D: streets, lots, dressing, prop density",
       "judgedOn": "in-game ground-level and three-quarter views",
       "rig": "manual"
+    },
+    {
+      "id": "open-ocean",
+      "family": "world",
+      "scope": "FFT open-ocean surface: wave scale mix, crest shape, foam, water-level read, tiling",
+      "judgedOn": "camera heights from 1.6 m to overhead; the water-level view is the hard one",
+      "rig": "manual"
     }
   ]
 }

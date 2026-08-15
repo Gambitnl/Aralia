@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 25/07/2026, 01:18:53
- * Dependents: components/CharacterSheet/Spellbook/SpellbookOverlay.tsx, components/CharacterSheet/Spellbook/SpellbookTab.tsx, components/Party/PartyPane/PartyMemberCard.tsx, services/premadeCharacterService.ts, systems/party/npcToPartyMember.ts, utils/character/characterValidation.ts, utils/character/index.ts, utils/character/spellAbilityFactory.ts, utils/character/spellUtils.ts, utils/characterUtils.ts, utils/combat/actionEconomyUtils.ts, utils/combat/combatUtils.ts, utils/sandbox/quickCharacterGenerator.ts
- * Imports: 12 files
+ * Last Sync: 15/08/2026, 00:54:48
+ * Dependents: components/CharacterSheet/Spellbook/SpellbookOverlay.tsx, components/CharacterSheet/Spellbook/SpellbookTab.tsx, components/DesignPreview/steps/raceDomain/leaves/astralElfRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/autognomeRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/autumnEladrinRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/beastbornHumanRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/beasthideShifterRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/blackDragonbornRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/blueDragonbornRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/brassDragonbornRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/bronzeDragonbornRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/chthonicTieflingRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/cloudGiantGoliathRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/copperDragonbornRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/deepGnomeRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/draconbloodDragonbornRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/drowHalfElfRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/drowRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/fallenAasimarRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/firbolgRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/fireGiantGoliathRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/forestGnomeRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/forgebornHumanRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/frostGiantGoliathRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/giffRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/githyankiRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/githzeraiRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/goblinRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/goldDragonbornRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/grayDwarfDuergarRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/greenDragonbornRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/guardianHumanRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/hadozeeRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/halfElfRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/halfOrcRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/halflingRaceLeaf.tsx, components/Party/PartyPane/PartyMemberCard.tsx, services/premadeCharacterService.ts, systems/party/npcToPartyMember.ts, utils/character/characterValidation.ts, utils/character/index.ts, utils/character/spellAbilityFactory.ts, utils/character/spellUtils.ts, utils/combat/actionEconomyUtils.ts, utils/combat/combatUtils.ts, utils/sandbox/quickCharacterGenerator.ts, utils/spells/outOfCombatCasting.ts
+ * Imports: 13 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -73,6 +73,9 @@ export { getAbilityModifierValue, calculateFinalAbilityScores, getAbilityModifie
 export { getMaxPreparedSpells } from './getMaxPreparedSpells';
 import { getMaxPreparedSpells as computeMaxPreparedSpells } from './getMaxPreparedSpells';
 import { getAbilityModifierValue, calculateFinalAbilityScores, calculateFixedRacialBonuses, calculateArmorClass } from './statUtils';
+// Reused for the Powerful Build / size-aware carrying capacity (GG-6). physicsUtils
+// is pure (types only), so this import adds no cycle.
+import { calculateCarryingCapacity } from '../combat/physicsUtils';
 import {
   isWeaponProficient,
   isWeaponMartial
@@ -1466,6 +1469,168 @@ export function calculateCharacterSpeed(character: PlayerCharacter): number {
   }
 
   return finalSpeed;
+}
+
+export type MovementMode = 'swim' | 'climb' | 'fly' | 'burrow';
+
+/** Movement mode keywords, matching both base and inflected ("-ing") spellings. */
+const MODE_WORD = '(swim|swimming|climb|climbing|fly|flying|burrow|burrowing)';
+
+/**
+ * Derives a character's alternate movement speeds (swim/climb/fly/burrow) from
+ * its race trait prose (GG-7). Race data encodes these as free text, e.g.
+ * `"Speed: 30 feet, swim 30 feet"`, `"Swim Speed: 30 feet"`, or relative forms
+ * like `"you have a flying speed equal to your walking speed"`.
+ *
+ * Only always-present modes tied to the race are surfaced; conditional/limited
+ * abilities (e.g. level-gated Draconic Flight) are intentionally NOT claimed
+ * here so the overview never shows a false permanent speed — that nuance is
+ * left to the owning progression/runtime path.
+ *
+ * @param character - The character to inspect.
+ * @returns A partial map of movement mode → feet, present only for modes the
+ *   race actually grants. Relative "equal to your walking speed" modes resolve
+ *   to the character's computed walking speed.
+ */
+export function deriveAlternateMovementSpeeds(
+  character: PlayerCharacter
+): Partial<Record<MovementMode, number>> {
+  const walking = calculateCharacterSpeed(character);
+  const text = (character.race?.traits ?? []).join(' ');
+
+  const out: Partial<Record<MovementMode, number>> = {};
+
+  // "swim 30 feet" / "Swim Speed: 30 feet" / "flying speed of 40 feet"
+  const numericPattern = new RegExp(
+    `${MODE_WORD}\\s*(?:speed)?\\b\\s*(?::|of|=)?\\s*(\\d+)\\s*(?:ft|foot|feet)`,
+    'gi'
+  );
+  let m: RegExpExecArray | null;
+  while ((m = numericPattern.exec(text)) !== null) {
+    const mode = normalizeMode(m[1]);
+    if (mode) out[mode] = parseInt(m[2], 10);
+  }
+
+  // Comma form: "Speed: 30 feet, swim 30 feet", "Speed: 30 feet, climb 30 feet"
+  const commaPattern = new RegExp(
+    `speed\\s*:\\s*\\d+\\s*(?:ft|foot|feet)\\s*,\\s*${MODE_WORD}\\s+(\\d+)\\s*(?:ft|foot|feet)`,
+    'gi'
+  );
+  let cm: RegExpExecArray | null;
+  while ((cm = commaPattern.exec(text)) !== null) {
+    const mode = normalizeMode(cm[1]);
+    if (mode) out[mode] = parseInt(cm[2], 10);
+  }
+
+  // Relative form: "... <mode> speed equal to your walking speed"
+  const relativePattern = new RegExp(
+    `${MODE_WORD}\\s+speed\\b[^.]*?equal to your walking speed`,
+    'gi'
+  );
+  let rm: RegExpExecArray | null;
+  while ((rm = relativePattern.exec(text)) !== null) {
+    const mode = normalizeMode(rm[1]);
+    if (mode && out[mode] === undefined) out[mode] = walking;
+  }
+
+  return out;
+}
+
+/** Lowercases a captured mode keyword into a MovementMode, or undefined. */
+function normalizeMode(word: string): MovementMode | undefined {
+  const lower = word.toLowerCase();
+  if (lower === 'swim' || lower === 'swimming') return 'swim';
+  if (lower === 'climb' || lower === 'climbing') return 'climb';
+  if (lower === 'fly' || lower === 'flying') return 'fly';
+  if (lower === 'burrow' || lower === 'burrowing') return 'burrow';
+  return undefined;
+}
+
+/**
+ * 5e carrying-capacity size multipliers per size category (PHB: Tiny 0.5,
+ * Small/Medium 1, Large 2, Huge 4, Gargantuan 8). Distinct from the grid
+ * occupancy multiplier in combat (Large 2, Huge 3, Gargantuan 4).
+ */
+const CARRYING_SIZE_MULTIPLIERS: Record<string, number> = {
+  Tiny: 0.5,
+  Small: 1,
+  Medium: 1,
+  Large: 2,
+  Huge: 4,
+  Gargantuan: 8,
+};
+
+/** Carrying capacity result for a character, including 5e-variant thresholds. */
+export interface CharacterCarryingCapacity {
+  /** Total carry weight in lbs (STR × 15, times size/Powerful Build multiplier). */
+  carryingCapacity: number;
+  /** Push, drag, or lift limit in lbs (= carryingCapacity × 2). */
+  pushDragLift: number;
+  /** Base carrying multiplier from the character's size category. */
+  sizeMultiplier: number;
+  /** Effective multiplier after Powerful Build ("count as one size larger"). */
+  effectiveMultiplier: number;
+  /** 5e variant encumbrance thresholds in lbs (light/medium/heavy). */
+  encumbrance: { light: number; medium: number; heavy: number };
+}
+
+export type EncumbranceLevel = 'none' | 'light' | 'medium' | 'heavy';
+
+/**
+ * Computes a character's carrying capacity, push/drag/lift, and the 5e variant
+ * encumbrance thresholds, honoring the Powerful Build racial trait (GG-6).
+ *
+ * Powerful Build makes the creature "count as one size larger when determining
+ * your carrying capacity and the weight you can push, drag, or lift", so its
+ * effect is a doubling of the effective carrying multiplier. All three variant
+ * thresholds scale with that effective multiplier (the standard rule treats
+ * them as fractions of carrying capacity): light = ⅓, medium = ⅔, heavy =
+ * full. This keeps Powerful Build's mechanical impact on inventory real.
+ *
+ * @param character - The character whose capacity to compute.
+ * @returns Carrying capacity result; defaults to Medium, multiplier 1 when size
+ *   is unknown and STR 10 when ability scores are absent.
+ */
+export function calculateCharacterCarryingCapacity(character: PlayerCharacter): CharacterCarryingCapacity {
+  const strength =
+    character.finalAbilityScores?.Strength ?? character.abilityScores?.Strength ?? 10;
+  const size = character.ageSizeOverride ?? 'Medium';
+  const sizeMultiplier = CARRYING_SIZE_MULTIPLIERS[size] ?? 1;
+  const powerfulBuild = character.modifiers?.powerfulBuild ?? false;
+  // Powerful Build counts as one size larger → carry one step up, i.e. double.
+  const effectiveMultiplier = powerfulBuild ? sizeMultiplier * 2 : sizeMultiplier;
+
+  const { carryingCapacity, pushDragLift } = calculateCarryingCapacity(strength, effectiveMultiplier);
+
+  return {
+    carryingCapacity,
+    pushDragLift,
+    sizeMultiplier,
+    effectiveMultiplier,
+    encumbrance: {
+      light: carryingCapacity / 3,
+      medium: (carryingCapacity * 2) / 3,
+      heavy: carryingCapacity,
+    },
+  };
+}
+
+/**
+ * Classifies a carried weight against the 5e variant encumbrance thresholds for
+ * a character (GG-6). Returns the level and thresholds used, so callers can
+ * display or gate behavior (e.g. speed) on the result.
+ */
+export function getCharacterEncumbrance(
+  character: PlayerCharacter,
+  carriedWeightLbs: number
+): { level: EncumbranceLevel; carrying: CharacterCarryingCapacity } {
+  const carrying = calculateCharacterCarryingCapacity(character);
+  const { light, medium, heavy } = carrying.encumbrance;
+  let level: EncumbranceLevel = 'none';
+  if (carriedWeightLbs > heavy) level = 'heavy';
+  else if (carriedWeightLbs > medium) level = 'medium';
+  else if (carriedWeightLbs > light) level = 'light';
+  return { level, carrying };
 }
 
 export function calculateCharacterDarkvisionFromRace(race: PlayerCharacter['race'], racialSelections: PlayerCharacter['racialSelections'] = {}): number {

@@ -178,6 +178,8 @@ import { dungeonEntrancesForWindow } from "./dungeonEntrances";
 // a type-only binding (elided at build), so it is worker-safe here.
 import { BIOMES } from "../../../data/biomes";
 import { biomeIdForCell } from "../local/biomeForCell";
+import { wfBiomeIndexToName } from "../local/wfBiomeToLegacy";
+import { biomeGrowsTrees } from "../vegetation/treeEnvironment";
 import { forestKindForCell } from "../forests/forestKindForCell";
 import type { ForestKind } from "../forests/forestClusters";
 import {
@@ -594,6 +596,24 @@ export interface GroundWorld {
    * pre-canopy lighting.
    */
   canopy?: GroundCanopy | null;
+  /**
+   * The FMG biome NAME this window's trees grow against (grown-tree wave), e.g.
+   * `'Taiga'`. Resolved ONCE from the anchor atlas cell, the same cell the
+   * canopy and snow line already come from.
+   *
+   * WHY THE ANCHOR CELL AND NOT `biomeIds`. The per-cell `biomeIds` grid is a
+   * MATERIAL map — grassland / forest_floor / wetland / mountain / desert. It
+   * cannot tell a taiga from a rainforest, because both are `grass` ground
+   * under the material vocabulary. A local window is far smaller than one FMG
+   * cell, so the anchor cell IS the window's biome; that is the same
+   * assumption the canopy resolve makes.
+   *
+   * Absent when no anchor cell was given (tests, legacy callers) and when the
+   * anchor biome grows no trees — Marine and Glacier, which are exactly the two
+   * profiles with `treeDensity: 0`, so a window with no tree biome also has no
+   * trees to grow.
+   */
+  treeBiome?: string;
   /**
    * Encoded-height snow line for this window (Task 10 MOUNTAINS), resolved ONCE
    * from the anchor cell's latitude band (spec §5). Ground vertices at/above it
@@ -1887,6 +1907,22 @@ export function makeGroundWorld(
         )
       : null;
 
+  // The window's TREE BIOME (grown-tree wave): the anchor cell's FMG biome
+  // name, which is what `vegetation/treeEnvironment.ts` keys on. Same atlas
+  // cell and same per-seed atlas cache the canopy resolve just used.
+  //
+  // A biome that grows no tree (Marine, Glacier) is left undefined rather than
+  // substituted. Those are exactly the two profiles with `treeDensity: 0` in
+  // generateLocal, so such a window has no trees for it to answer for.
+  let treeBiome: string | undefined;
+  if (opts.anchorCellId != null) {
+    const atlas = getBridgeAtlas(seed);
+    const index = (atlas.pack.cells as unknown as { biome?: ArrayLike<number> })
+      .biome?.[opts.anchorCellId];
+    const name = wfBiomeIndexToName(index);
+    treeBiome = name != null && biomeGrowsTrees(name) ? name : undefined;
+  }
+
   // Snow line (Task 10 MOUNTAINS, reworked 2026-07-21): resolved ONCE per
   // window from the anchor cell's atlas latitude (spec §5's 3-band table) as
   // ABSOLUTE local-elevation feet, then converted to this window's RELATIVE
@@ -2031,6 +2067,7 @@ export function makeGroundWorld(
     townKeepOuts: townContent.townKeepOuts,
     boundsFeet: { x: local.bounds.x, y: local.bounds.y },
     canopy,
+    treeBiome,
     snowLineH,
     farShells,
   };
@@ -3397,8 +3434,22 @@ export function buildGroundVegetation(
   const uCol: number[] = [];
   const uSpecies: UnderstorySpecies[] = [];
 
+  /* The window's tree biome, carried onto every tree instance (grown-tree
+   * wave). One code per instance, indexing a one-entry table: within a window
+   * the biome is constant, because a local window is smaller than the FMG cell
+   * that names it. The channel is per instance anyway so the renderer reads
+   * every scatter the same way, whichever loader built it.
+   *
+   * Undefined tree biome = no channel. The grown renderer then fails loudly on
+   * these trees instead of inventing a biome for them. */
+  const treeBiome = ground.treeBiome;
+
   // Species palettes (tree-variety dispatch, 2026-06-12): 3 green variants
   // per kind picked by id hash — deterministic, instanced-friendly.
+  //
+  // WARNING: this palette is the SAME three greens in every biome on the map.
+  // It is a tint, not a biome signal, and the old species classifier read it as
+  // one. See treeInstancePartition.ts.
   const TREE_PALETTE: Array<[number, number, number]> = [
     [0.12, 0.3, 0.17],
     [0.18, 0.42, 0.25],
@@ -3511,7 +3562,15 @@ export function buildGroundVegetation(
       scales: new Float32Array(tScl),
       rotations: new Float32Array(tRot),
       colors: new Float32Array(tCol),
-      cacheKey: `ground-tree|${cx}|${cy}|${tPos.length}`,
+      ...(treeBiome
+        ? {
+            biomeCodes: new Uint8Array(tScl.length),
+            biomeTable: [treeBiome],
+          }
+        : {}),
+      // `gv2` marks the biome channel: a key minted before it existed means a
+      // payload without one, and must not be reused as if it had one.
+      cacheKey: `ground-tree|gv2|${treeBiome ?? "none"}|${cx}|${cy}|${tPos.length}`,
     },
     bushes: {
       positions: new Float32Array(bPos),

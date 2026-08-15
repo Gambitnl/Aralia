@@ -26,6 +26,7 @@
  * - ViewModeToggle: switch between 3D/Atlas modes
  * - DebugHUD: dev-only technical readout (chunk count, FPS, coords, streamer
  *   stats) — hosted inside the "3D World View" title dropdown when dev mode is on
+ * - Controls Hint: subtle bottom-center pill reminding players of WASD/hotkey controls
  */
 
 import React, { useState, useRef, useEffect } from 'react';
@@ -128,9 +129,6 @@ const WorldViewTitle: React.FC<{
   const pillStyle: React.CSSProperties = {
     fontSize: '14px',
     fontWeight: 600,
-    // D2: the title sat as light-gray text directly over the bright sky and
-    // was nearly invisible. Dark translucent pill backing + text-shadow keep
-    // it legible over any 3D background.
     color: '#ffffff',
     backgroundColor: 'rgba(15, 23, 33, 0.66)',
     padding: '4px 10px',
@@ -183,7 +181,6 @@ const WorldViewTitle: React.FC<{
             top: '100%',
             left: 0,
             marginTop: '4px',
-            // Above canvas chrome, mirroring the Controls dropdown (D5).
             zIndex: 1000,
           }}
         >
@@ -217,9 +214,6 @@ const InWorldHUD: React.FC<InWorldHUDProps> = ({
   groundFocus,
   groundTownIdentity,
 }) => {
-  // Ground place identity comes from the retained Local receipt. Relationship
-  // facts stay compact so the HUD names the place and its visual cues without
-  // covering the scene with developer diagnostics.
   const groundRelationship = groundTownIdentity
     ? [
         groundTownIdentity.settlementType,
@@ -241,7 +235,7 @@ const InWorldHUD: React.FC<InWorldHUDProps> = ({
         position: 'absolute',
         inset: 0,
         zIndex: 10,
-        pointerEvents: 'none', // Let clicks pass through to canvas by default
+        pointerEvents: 'none',
       }}
     >
       {/* Top bar: location name + control panel */}
@@ -250,16 +244,10 @@ const InWorldHUD: React.FC<InWorldHUDProps> = ({
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          // D5: the Controls dropdown sat flush at the right edge where the fixed
-          // "Party Chat" tab also lives, so they collided / the tab clipped over it.
-          // Reserve extra right clearance so the Controls trigger never tucks under
-          // the right-edge tab strip.
           padding: '8px 56px 8px 12px',
-          // Give the interactive top bar its own stacking context above the HUD base
-          // so its dropdown (raised further in HUDControlPanel) sits over canvas chrome.
           position: 'relative',
           zIndex: 30,
-          pointerEvents: 'auto', // Re-enable pointer events for interactive elements
+          pointerEvents: 'auto',
         }}
       >
         <WorldViewTitle
@@ -397,10 +385,6 @@ const InWorldHUD: React.FC<InWorldHUDProps> = ({
             type="button"
             data-testid="hud-toggle-ground-mode"
             onClick={onToggleGroundMode}
-            // D6: distinguish this from the exit controls. This toggle changes the
-            // 3D zoom level (walking village ↔ flying continent) — it does NOT leave
-            // 3D. The tooltip spells that out so it isn't confused with "Open Map"
-            // (returns to the 2D game) or "Exit to Menu" (quits).
             title={
               isGroundMode
                 ? 'Zoom out to the continent view — stays in 3D'
@@ -432,6 +416,50 @@ const InWorldHUD: React.FC<InWorldHUDProps> = ({
           </button>
         )}
         <ViewModeToggle onOpenMap={onOpenMap} />
+      </div>
+
+      {/* Bottom Center: Exploration Controls Hint Bar */}
+      <div
+        data-testid="hud-controls-hint"
+        className="hidden sm:flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-slate-950/85 border border-slate-700/60 shadow-xl backdrop-blur-sm text-xs font-medium text-slate-200"
+        style={{
+          position: 'absolute',
+          bottom: '16px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          pointerEvents: 'none',
+          zIndex: 10,
+        }}
+      >
+        <span className="flex items-center gap-1">
+          <kbd className="px-1.5 py-0.5 rounded bg-slate-800 text-sky-300 font-mono text-[10px] border border-slate-700">WASD</kbd>
+          <span className="text-slate-300 text-[11px]">Move</span>
+        </span>
+        <span className="text-slate-600">·</span>
+        <span className="flex items-center gap-1">
+          <kbd className="px-1.5 py-0.5 rounded bg-slate-800 text-sky-300 font-mono text-[10px] border border-slate-700">Shift</kbd>
+          <span className="text-slate-300 text-[11px]">Sprint</span>
+        </span>
+        <span className="text-slate-600">·</span>
+        <span className="flex items-center gap-1">
+          <kbd className="px-1.5 py-0.5 rounded bg-slate-800 text-sky-300 font-mono text-[10px] border border-slate-700">M</kbd>
+          <span className="text-slate-300 text-[11px]">Map</span>
+        </span>
+        <span className="text-slate-600">·</span>
+        <span className="flex items-center gap-1">
+          <kbd className="px-1.5 py-0.5 rounded bg-slate-800 text-sky-300 font-mono text-[10px] border border-slate-700">C</kbd>
+          <span className="text-slate-300 text-[11px]">Character</span>
+        </span>
+        <span className="text-slate-600">·</span>
+        <span className="flex items-center gap-1">
+          <kbd className="px-1.5 py-0.5 rounded bg-slate-800 text-sky-300 font-mono text-[10px] border border-slate-700">Q</kbd>
+          <span className="text-slate-300 text-[11px]">Quests</span>
+        </span>
+        <span className="text-slate-600">·</span>
+        <span className="flex items-center gap-1">
+          <kbd className="px-1.5 py-0.5 rounded bg-slate-800 text-sky-300 font-mono text-[10px] border border-slate-700">Esc</kbd>
+          <span className="text-slate-300 text-[11px]">Menu</span>
+        </span>
       </div>
 
       {/* Bottom left: in-3D minimap (deferred Plan 4 UX) */}

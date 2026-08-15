@@ -171,3 +171,30 @@ it('stays deterministic with the gate applied', () => {
   expect(Array.from(a.positions)).toEqual(Array.from(b.positions));
   expect(Array.from(a.tilts!)).toEqual(Array.from(b.tilts!));
 });
+
+/* The biome channel (grown-tree wave). The grown renderer grows geometry from
+ * the biome, so the scatter must SAY which biome each instance stands on. It
+ * used to be inferred from the palette color, which carries no biome at all. */
+
+it('carries the biome of every instance, one code per tree', () => {
+  const veg = buildVegetationScatter(chunk('forest'));
+  const instances = veg.positions.length / 3;
+  expect(instances).toBeGreaterThan(0);
+  expect(veg.biomeCodes).toHaveLength(instances);
+  expect(veg.biomeTable).toEqual(['forest']);
+  for (const code of veg.biomeCodes!) expect(veg.biomeTable![code]).toBe('forest');
+});
+
+it('tables every distinct biome a mixed chunk touches', () => {
+  const data = chunk('forest');
+  for (let i = 0; i < data.biomeIds.length; i++) {
+    data.biomeIds[i] = i % 2 === 0 ? 'forest' : 'wetland';
+  }
+  data.cx = 9;
+  const veg = buildVegetationScatter(data);
+  const seen = new Set(
+    Array.from(veg.biomeCodes!).map((code) => veg.biomeTable![code]),
+  );
+  expect(seen.size).toBeGreaterThan(1);
+  for (const biome of seen) expect(['forest', 'wetland']).toContain(biome);
+});

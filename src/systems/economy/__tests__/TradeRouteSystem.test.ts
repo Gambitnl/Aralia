@@ -1,6 +1,9 @@
 import { describe, it, expect } from 'vitest';
 import { TradeRouteSystem } from '../TradeRouteSystem';
-import { TradeRoute, MarketEventType, MarketEvent } from '../../../types/economy';
+import { TradeRoute, MarketEventType } from '../../../types/economy';
+// EnrichedMarketEvent is the canonical payload shape produced by generateMarketEvents;
+// getEventPriceModifier reads priceModifier from it. Using it removes the old `as any` casts.
+import { EnrichedMarketEvent } from '../../../utils/economy/marketEvents';
 
 
 describe('TradeRouteSystem', () => {
@@ -36,7 +39,7 @@ describe('TradeRouteSystem', () => {
   });
 
   it('increases profitability during Shortage events (High Prices)', () => {
-    const warEvent: MarketEvent = {
+    const warEvent: EnrichedMarketEvent = {
       id: 'war',
       type: MarketEventType.BOOM,
       name: 'Local War',
@@ -46,7 +49,7 @@ describe('TradeRouteSystem', () => {
       intensity: 1.0,
       affectedCategories: ['weapon'],
       priceModifier: 1.5
-    } as any;
+    };
 
     const profitNormal = TradeRouteSystem.calculateProfitability(mockRoute, []);
     const profitWar = TradeRouteSystem.calculateProfitability(mockRoute, [warEvent]);
@@ -55,7 +58,7 @@ describe('TradeRouteSystem', () => {
   });
 
   it('increases risk during dangerous events', () => {
-    const banditEvent: MarketEvent = {
+    const banditEvent: EnrichedMarketEvent = {
       id: 'bandits',
       type: MarketEventType.BUST,
       name: 'Bandit Activity',
@@ -65,7 +68,7 @@ describe('TradeRouteSystem', () => {
       intensity: 1.0,
       affectedCategories: [],
       priceModifier: 1.0
-    } as any;
+    };
 
     const riskNormal = TradeRouteSystem.calculateRisk(mockRoute, []);
     const riskBandits = TradeRouteSystem.calculateRisk(mockRoute, [banditEvent]);

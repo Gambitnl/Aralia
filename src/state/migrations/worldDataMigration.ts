@@ -1,11 +1,11 @@
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ * This file appears to be an ISOLATED UTILITY or ORPHAN.
  *
- * Last Sync: 18/06/2026, 03:23:31
- * Dependents: services/mapService.ts, services/saveLoadService.ts, utils/mapDataToWorldData.ts
- * Imports: 5 files
+ * Last Sync: 14/08/2026, 20:05:59
+ * Dependents: None (Orphan)
+ * Imports: 4 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -15,7 +15,17 @@
 // @dependencies-end
 
 /**
- * @file worldDataMigration.ts
+ * @file worldDataMigration.ts — ORPHANED (kept per expansion-first policy)
+ * 
+ * 2026-08-14 (GG-85): This one-shot migration backfilled MapData.worldData for
+ * pre-v2 saves. The 30×20 mapData grid has since been retired from the save
+ * format (Grid Retirement); saveLoadService no longer carries mapData at all.
+ * The world is now the atlas derived from worldSeed. No production path calls
+ * this function — it exists only as a reference for the migration shape if a
+ * future restore pipeline ever reintroduces a similar map-level backfill.
+ * Retained but deliberately uncalled. Do not delete without a clear migration
+ * plan for legacy v1 saves that might still carry the old grid structure.
+ * 
  * @description One-shot loader-side migration: backfills `MapData.worldData` for saves created
  * before WorldData v2 existed. Idempotent — safe to call on already-migrated saves.
  *

@@ -91,5 +91,4 @@ Sorcerer - Draconic Sorcery
 Warlock - The Predator (HWT)
 
 Capture Method: http
-Legacy Page: true
 -->

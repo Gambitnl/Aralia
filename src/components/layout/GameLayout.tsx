@@ -145,9 +145,11 @@ const GameLayout: React.FC<GameLayoutProps> = ({
                         onClick={openWorldMap}
                         disabled={disabled}
                         data-testid="open-world-map"
-                        className="min-w-0 flex-1 rounded-lg border border-amber-600/60 bg-gray-800 px-3 py-3 text-sm font-semibold text-amber-200 hover:bg-gray-700 disabled:opacity-50 sm:px-4"
+                        className="min-w-0 flex-1 rounded-lg border border-amber-600/60 bg-gray-800 px-3 py-3 text-sm font-semibold text-amber-200 hover:bg-gray-700 disabled:opacity-50 sm:px-4 flex items-center justify-center gap-2"
+                        title="Open World Map (Hotkey: M)"
                     >
-                        Open World Map
+                        <span>🗺 Open World Map</span>
+                        <kbd className="hidden sm:inline-block px-1.5 py-0.5 rounded bg-gray-900 text-amber-300 font-mono text-[10px] border border-gray-700">M</kbd>
                     </button>
                     {surfaceToggle && (
                         <div className="flex shrink-0 items-center">

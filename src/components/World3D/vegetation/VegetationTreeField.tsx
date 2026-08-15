@@ -35,9 +35,13 @@ import type {
   TreeSpecies,
 } from '@/systems/worldforge/vegetation/treeMeshGenerator';
 import { generateEzTreeVariantSet } from '@/systems/worldforge/vegetation/ezTreeMeshSource';
+import { grownTreeGeometry } from '@/systems/worldforge/vegetation/grownTreeVariants';
 import {
+  buildGrownTreeBatches,
   buildTreeBatches,
+  grownTreeBatchKey,
   treeBatchKey,
+  type GrownTreeBatch,
   type TreeBatch,
   type TreeBatchInput,
 } from '@/systems/worldforge/vegetation/treeBatching';
@@ -46,7 +50,23 @@ import {
  * variety comes from which variants land where (position-hashed) + palette. */
 const TREE_SET_SEED = 1337;
 
+/**
+ * Which tree source draws the world.
+ *
+ * GROWN is the default: geometry grown from the chunk's own biome
+ * (`grownTreeVariants`). PRESET is the ez-tree variant set, the path this
+ * replaced — still whole, still reachable with `?trees=preset`, because a
+ * look-first change needs the thing it replaced standing next to it.
+ *
+ * Read ONCE at module load. Switching source mid-session would rebuild every
+ * geometry and every batch, and the flag exists to compare sessions.
+ */
+const PRESET_TREES =
+  typeof window !== 'undefined'
+  && new URLSearchParams(window.location.search).get('trees') === 'preset';
+
 let sharedGeometries: Map<string, THREE.BufferGeometry> | null = null;
+const grownGeometries = new Map<string, THREE.BufferGeometry>();
 
 function toBufferGeometry(data: TreeGeometryData): THREE.BufferGeometry {
   const g = new THREE.BufferGeometry();
@@ -69,6 +89,23 @@ function getTreeGeometry(species: TreeSpecies, variant: number): THREE.BufferGeo
     }
   }
   return sharedGeometries.get(`${species}|${variant}`)!;
+}
+
+/**
+ * Lazy per-(biome, variant) grown geometry.
+ *
+ * Grown ON FIRST USE rather than as a whole set, because a session touches one
+ * or two biomes and growing the other nine would be work nobody sees. The
+ * growth itself is cached in `grownTreeVariants` for the process; this map only
+ * keeps the GPU buffers built from it.
+ */
+function getGrownGeometry(biome: string, variant: number): THREE.BufferGeometry {
+  const key = `${biome}|${variant}`;
+  const hit = grownGeometries.get(key);
+  if (hit) return hit;
+  const geometry = toBufferGeometry(grownTreeGeometry(biome, variant));
+  grownGeometries.set(key, geometry);
+  return geometry;
 }
 
 /*
@@ -140,9 +177,16 @@ TREE_MATERIAL.onBeforeCompile = (shader) => {
 /** Changing onBeforeCompile after a program exists needs an explicit rebuild. */
 TREE_MATERIAL.customProgramCacheKey = () => 'aralia-tree-foliage-tint-v1';
 
-const TreeBatchMesh: React.FC<{ batch: TreeBatch }> = ({ batch }) => {
+/** The instance fields both batch shapes share — everything except the axis
+ * that picks the geometry (species on the preset path, biome on the grown one). */
+type InstancedBatch = Omit<TreeBatch, 'species'>;
+
+const TreeBatchMesh: React.FC<{
+  batch: InstancedBatch;
+  geometry: THREE.BufferGeometry;
+  name: string;
+}> = ({ batch, geometry, name }) => {
   const ref = useRef<THREE.InstancedMesh>(null);
-  const geometry = getTreeGeometry(batch.species, batch.variant);
 
   useEffect(() => {
     const mesh = ref.current;
@@ -183,7 +227,7 @@ const TreeBatchMesh: React.FC<{ batch: TreeBatch }> = ({ batch }) => {
 
   return (
     <instancedMesh
-      name={`world3d:trees:${batch.species}:v${batch.variant}${batch.castShadow ? ':shadow' : ''}`}
+      name={name}
       ref={ref}
       args={[geometry, TREE_MATERIAL, batch.count]}
       castShadow={batch.castShadow}
@@ -193,6 +237,11 @@ const TreeBatchMesh: React.FC<{ batch: TreeBatch }> = ({ batch }) => {
 
 /**
  * All trees for every loaded chunk. Mount once at the scene root.
+ *
+ * Two sources, one batching contract. GROWN reads each instance's biome and
+ * grows the geometry for it; PRESET (`?trees=preset`) keeps the ez-tree variant
+ * set. Neither re-invents placement — positions, scales and rotations come from
+ * the loaders in both cases.
  */
 export const VegetationTreeField: React.FC<{ inputs: readonly TreeBatchInput[] }> = ({ inputs }) => {
   // Rebuild when the set of contributing chunks changes. The cache keys carry
@@ -202,12 +251,72 @@ export const VegetationTreeField: React.FC<{ inputs: readonly TreeBatchInput[] }
     .map((i) => `${i.scatter.cacheKey}@${i.offset.join(',')}${i.castShadow ? '+s' : ''}`)
     .join('|');
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  const batches = useMemo(() => buildTreeBatches(inputs), [signature]);
+  const presetBatches = useMemo(
+    () => (PRESET_TREES ? buildTreeBatches(inputs) : []),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [signature],
+  );
+  const grownBatches: GrownTreeBatch[] = useMemo(
+    () => (PRESET_TREES ? [] : buildGrownTreeBatches(inputs)),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [signature],
+  );
+
+  /* Dev hook, sibling to `__wf3dSetPose`: what the tree field is actually
+   * drawing right now — source, biome/species, per-batch instance and triangle
+   * counts. The in-game look gate reads it, so a capture can state the biome
+   * the geometry was grown for instead of guessing it off a screenshot. */
+  useEffect(() => {
+    // Densest 12 m cell of tree positions, so a capture rig can point the
+    // camera at a stand of trees instead of at wherever the player spawned.
+    const cells = new Map<string, { n: number; x: number; y: number; z: number }>();
+    for (const b of [...presetBatches, ...grownBatches]) {
+      for (let n = 0; n < b.count; n++) {
+        const x = b.position[n * 3];
+        const y = b.position[n * 3 + 1];
+        const z = b.position[n * 3 + 2];
+        const key = `${Math.floor(x / 12)},${Math.floor(z / 12)}`;
+        const e = cells.get(key);
+        if (e) { e.n++; e.x += x; e.y += y; e.z += z; } else cells.set(key, { n: 1, x, y, z });
+      }
+    }
+    let best: { n: number; x: number; y: number; z: number } | null = null;
+    for (const e of cells.values()) if (!best || e.n > best.n) best = e;
+    (window as unknown as { __wf3dTrees?: unknown }).__wf3dTrees = {
+      source: PRESET_TREES ? 'preset' : 'grown',
+      densest: best
+        ? { n: best.n, x: best.x / best.n, y: best.y / best.n, z: best.z / best.n }
+        : null,
+      batches: [
+        ...presetBatches.map((b) => ({
+          key: `${b.species}|v${b.variant}`, count: b.count,
+          tris: getTreeGeometry(b.species, b.variant).index!.count / 3,
+        })),
+        ...grownBatches.map((b) => ({
+          key: `${b.biome}|v${b.variant}`, count: b.count,
+          tris: getGrownGeometry(b.biome, b.variant).index!.count / 3,
+        })),
+      ],
+    };
+  }, [presetBatches, grownBatches]);
 
   return (
     <>
-      {batches.map((b) => (
-        <TreeBatchMesh key={treeBatchKey(b)} batch={b} />
+      {presetBatches.map((b) => (
+        <TreeBatchMesh
+          key={treeBatchKey(b)}
+          batch={b}
+          geometry={getTreeGeometry(b.species, b.variant)}
+          name={`world3d:trees:${b.species}:v${b.variant}${b.castShadow ? ':shadow' : ''}`}
+        />
+      ))}
+      {grownBatches.map((b) => (
+        <TreeBatchMesh
+          key={grownTreeBatchKey(b)}
+          batch={b}
+          geometry={getGrownGeometry(b.biome, b.variant)}
+          name={`world3d:trees:${b.biome}:v${b.variant}${b.castShadow ? ':shadow' : ''}`}
+        />
       ))}
     </>
   );

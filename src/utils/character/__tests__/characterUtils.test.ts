@@ -11,6 +11,9 @@ import {
   isRacialSpellLockedForPreparation,
   resolveRacialSpellLimitedUseId,
   getSpellcastingAllowance,
+  calculateCharacterCarryingCapacity,
+  getCharacterEncumbrance,
+  deriveAlternateMovementSpeeds,
 } from '../characterUtils';
 import { createMockPlayerCharacter, createMockItem } from '../../core/factories';
 import { Item, Feat, AbilityScoreName, Class } from '../../../types';
@@ -1134,6 +1137,131 @@ describe('characterUtils', () => {
 
       // Verify speed is 35.
       expect(normalizedHalfElf.speed).toBe(35);
+    });
+  });
+
+  describe('calculateCharacterCarryingCapacity / getCharacterEncumbrance (GG-6)', () => {
+    it('computes base Medium carrying capacity from Strength (STR × 15)', () => {
+      const character = createMockPlayerCharacter({
+        finalAbilityScores: { Strength: 10, Dexterity: 10, Constitution: 10, Intelligence: 10, Wisdom: 10, Charisma: 10 },
+      });
+      const result = calculateCharacterCarryingCapacity(character);
+      expect(result.carryingCapacity).toBe(150);
+      expect(result.pushDragLift).toBe(300);
+      expect(result.sizeMultiplier).toBe(1);
+      expect(result.effectiveMultiplier).toBe(1);
+      expect(result.encumbrance.light).toBe(50);
+      expect(result.encumbrance.medium).toBe(100);
+      expect(result.encumbrance.heavy).toBe(150);
+    });
+
+    it('doubles carrying capacity when Powerful Build is present', () => {
+      const character = createMockPlayerCharacter({
+        finalAbilityScores: { Strength: 16, Dexterity: 10, Constitution: 10, Intelligence: 10, Wisdom: 10, Charisma: 10 },
+        modifiers: { powerfulBuild: true, advantage: [], disadvantage: [], bonuses: [] },
+      });
+      const result = calculateCharacterCarryingCapacity(character);
+      // Without Powerful Build: 16 × 15 = 240. With it (count one size larger): 480.
+      expect(result.carryingCapacity).toBe(480);
+      expect(result.pushDragLift).toBe(960);
+      expect(result.sizeMultiplier).toBe(1);
+      expect(result.effectiveMultiplier).toBe(2);
+      expect(result.encumbrance.heavy).toBe(480);
+      expect(result.encumbrance.light).toBe(160);
+    });
+
+    it('leaves capacity unchanged when Powerful Build is absent', () => {
+      const character = createMockPlayerCharacter({
+        finalAbilityScores: { Strength: 16, Dexterity: 10, Constitution: 10, Intelligence: 10, Wisdom: 10, Charisma: 10 },
+        modifiers: { powerfulBuild: false, advantage: [], disadvantage: [], bonuses: [] },
+      });
+      const result = calculateCharacterCarryingCapacity(character);
+      expect(result.carryingCapacity).toBe(240);
+      expect(result.effectiveMultiplier).toBe(1);
+    });
+
+    it('scales with size override (Large → ×2) and Powerful Build stacks', () => {
+      const character = createMockPlayerCharacter({
+        ageSizeOverride: 'Large',
+        finalAbilityScores: { Strength: 10, Dexterity: 10, Constitution: 10, Intelligence: 10, Wisdom: 10, Charisma: 10 },
+        modifiers: { powerfulBuild: true, advantage: [], disadvantage: [], bonuses: [] },
+      });
+      const result = calculateCharacterCarryingCapacity(character);
+      expect(result.sizeMultiplier).toBe(2);
+      // Large (×2) + Powerful Build (counts one larger) = ×4
+      expect(result.effectiveMultiplier).toBe(4);
+      expect(result.carryingCapacity).toBe(600);
+    });
+
+    it('classifies encumbrance levels from carried weight', () => {
+      const character = createMockPlayerCharacter({
+        finalAbilityScores: { Strength: 10, Dexterity: 10, Constitution: 10, Intelligence: 10, Wisdom: 10, Charisma: 10 },
+      });
+      expect(getCharacterEncumbrance(character, 50).level).toBe('none'); // not > light
+      expect(getCharacterEncumbrance(character, 51).level).toBe('light');
+      expect(getCharacterEncumbrance(character, 101).level).toBe('medium');
+      expect(getCharacterEncumbrance(character, 151).level).toBe('heavy');
+    });
+
+    it('Powerful Build raises the threshold at which a character becomes encumbered', () => {
+      const strong = createMockPlayerCharacter({
+        finalAbilityScores: { Strength: 10, Dexterity: 10, Constitution: 10, Intelligence: 10, Wisdom: 10, Charisma: 10 },
+        modifiers: { powerfulBuild: true, advantage: [], disadvantage: [], bonuses: [] },
+      });
+      // STR 10 + Powerful Build → capacity 300 (heavy); 250 lbs is medium there.
+      expect(getCharacterEncumbrance(strong, 250).level).toBe('medium');
+    });
+  });
+  describe('deriveAlternateMovementSpeeds (GG-7)', () => {
+    it('extracts comma-form alternate speeds from race traits', () => {
+      const character = createMockPlayerCharacter({
+        race: { id: 'sea_elf', name: 'Sea Elf', description: '', traits: ['Speed: 30 feet, Swim 30 feet'] },
+      });
+      const speeds = deriveAlternateMovementSpeeds(character);
+      expect(speeds).toEqual({ swim: 30 });
+    });
+
+    it('extracts standalone "Swim Speed: N feet" form', () => {
+      const character = createMockPlayerCharacter({
+        race: { id: 'half_elf_aquatic', name: 'Aquatic Half-Elf', description: '', traits: ['Swim Speed: 30 feet'] },
+      });
+      const speeds = deriveAlternateMovementSpeeds(character);
+      expect(speeds).toEqual({ swim: 30 });
+    });
+
+    it('resolves "flying speed equal to your walking speed" to the walking speed', () => {
+      const character = createMockPlayerCharacter({
+        speed: 30,
+        race: {
+          id: 'aarakocra',
+          name: 'Aarakocra',
+          description: '',
+          traits: ['Speed: 30 feet', 'Flight: Because of your wings, you have a flying speed equal to your walking speed.'],
+        },
+      });
+      const speeds = deriveAlternateMovementSpeeds(character);
+      expect(speeds).toEqual({ fly: 30 });
+    });
+
+    it('resolves climb relative form (Tabaxi) to walking speed', () => {
+      const character = createMockPlayerCharacter({
+        race: {
+          id: 'tabaxi',
+          name: 'Tabaxi',
+          description: '',
+          traits: ['Speed: 30 feet', 'Cat&#39;s Claws: You also have a climbing speed equal to your walking speed.'],
+        },
+      });
+      const speeds = deriveAlternateMovementSpeeds(character);
+      expect(speeds.climb).toBe(30);
+    });
+
+    it('returns nothing for races with only walking speed', () => {
+      const character = createMockPlayerCharacter({
+        race: { id: 'human', name: 'Human', description: '', traits: ['Speed: 30 feet'] },
+      });
+      const speeds = deriveAlternateMovementSpeeds(character);
+      expect(Object.keys(speeds)).toHaveLength(0);
     });
   });
 });

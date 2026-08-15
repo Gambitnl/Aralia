@@ -4342,9 +4342,14 @@
           "status": "done",
           "decision": false,
           "status_note": "BUILT 2026-08-04. openLand carried through AdaptedTownPlan; townVegetation.ts maps parcel kind to planting. Orchard = REGULAR rows (~25ft, 1ft jitter) - the one place evenness is correct. Verified by probe: orchard 35 trees nn-dist 7.0-8.2m, paddock 2, ruin 24+22. In-game screenshot PENDING - shared tree mid-refactor of src/utils killed the dev server."
+        },
+        {
+          "title": "Environment-biased tree genome (replaces presets)",
+          "status": "done",
+          "status_note": "LIVE IN GAME 2026-08-13. Scatter carries the biome (biomeCodes+biomeTable, cache v4); ground path resolves treeBiome from the anchor atlas cell. Perf IMPROVED: 8 draws vs 40, 8.18M tris vs 12.42M, asset build 91ms vs 513ms. ez-tree still reachable at ?trees=preset. OPEN REMY CALL: grown temperate trees are 17-18 m base (12-33 m with jitter) against the preset 7 m - botanically honest at ~57 ft but the world is art-directed around 7 m. NOT scaled down; his judgement."
         }
       ],
-      "updated": "2026-08-04",
+      "updated": "2026-08-14",
       "tier": "strategic"
     },
     {
@@ -5230,7 +5235,7 @@
       "title": "Design Preview",
       "campaign": "ui",
       "status": "done",
-      "updated": "2026-07-15",
+      "updated": "2026-08-14",
       "deps": [],
       "features": [
         {
@@ -5240,6 +5245,16 @@
             "built": "2026-06-22",
             "builtApprox": false
           }
+        },
+        {
+          "title": "Side-by-side comparisons on their competing topic pages",
+          "status": "done",
+          "status_note": "Terrain + trees on ?step=land, ocean on ?step=water. Standalone ?step=sidebyside retired, aliased to land. Ocean left pane is honestly empty - Aralia ships no open-water surface."
+        },
+        {
+          "title": "Land control deck: collapsible sections + panel toolbar",
+          "status": "done",
+          "status_note": "Five collapsible sections with live-computed summary lines. Panel launchers moved to a toolbar above the viewport. Canvas gains 141 px (+58%) fully folded. Bodies stay mounted and hide via [hidden] so the terrain worker never restarts."
         }
       ],
       "tier": "component",
@@ -5972,7 +5987,7 @@
       "tier": "strategic",
       "sub": "The L1 region drilldown is blank: it carries ONE field with real detail (heightfield 250x250 @100ft) and everything else is a stub. Root cause found 2026-07-29: a region window is 25,000 ft = ~2.5 FMG pixels while one FMG cell is ~8x9 px (~79,000 x 89,000 ft), so a window covers ~1/9 the area of a single cell. Every region field except the heightfield is EXTRACTED from atlas data, which has no structure below cell resolution - so there is nothing to extract. The tier cannot inherit its detail, it has to generate it. Measured over 6 burg windows: rivers 2-3 pts over 6.6k-25.5k ft, roads 6-7 pts over ~26k ft, crossings 0 EVERYWHERE (no region bridges or fords exist), markers 0, zones 1 total, biomeSites absent or exactly 1 (no gradient to blend). Rule adopted: the atlas decides which river runs here and how big it is; the region tier decides where it bends. Build order: rivers -> crossings -> roads -> biome sites -> markers/zones.",
       "link": "docs/superpowers/specs/2026-07-29-region-tier-audit.md",
-      "updated": "2026-08-12",
+      "updated": "2026-08-14",
       "features": [
         {
           "title": "Audit: measure every region field across 6 burg windows",
@@ -6002,6 +6017,16 @@
           "title": "Region-weighted composite height field",
           "status": "done",
           "status_note": "Module built + 71 tests green. NOT wired into generateRegion.ts - wiring changes terrain in every existing world, needs Remy call. Mountain + plain looks still weak."
+        },
+        {
+          "title": "Rock hardness + atlas erosion bake",
+          "status": "active",
+          "status_note": "BUILT 2026-08-13, 83 tests green, seam still 0/125000. Brain coral GONE on mountain. Plain only partly fixed - macro noise still dominates. NOT wired into generateRegion.ts. Key finding: a window (25,000 ft) sits INSIDE one atlas cell (78,839 ft), so atlas discharge sets network development, not within-window channel width."
+        },
+        {
+          "title": "Interfluve operator: macro band derived from the flow guide",
+          "status": "active",
+          "status_note": "Plain macro band is now a MONOTONE concave map of the flow guide, so the surface and the network are one field read twice and cannot disagree. Also fixed 3 real bugs: the accumulation proxy was pinned at its floor, the S term was missing from E=K*Q^m*S^n, and a threshold cut 40x steps that rendered as round holes. HONEST LIMIT recorded in-file: convergence thresholding on this guide cannot make a dendritic network at fine scale - blobs at low thresholds, spikes at high. Needs a different generator. Valleys still read soft and smoky. Mountain flank streaks untouched."
         }
       ]
     },
@@ -6328,6 +6353,32 @@
         {
           "title": "Replace relative public asset imports with src or fetch paths",
           "status": "done"
+        }
+      ]
+    },
+    {
+      "id": "ocean-surface",
+      "title": "Open-ocean wave surface",
+      "sub": "FFT wave field for maritime travel - a ship needs a surface, not a particle solver",
+      "campaign": "travel",
+      "status": "active",
+      "updated": "2026-08-14",
+      "deps": [],
+      "features": [
+        {
+          "title": "JONSWAP FFT surface on WebGPU/TSL",
+          "status": "done",
+          "status_note": "BUILT + 3 cascades 2026-08-13. 60 tests. GPU vs CPU max abs error 1.29-2.96 um. Standalone misc/ocean.html RETIRED - lives at ?step=water&ocean=1 with camera presets, 5 debug channels, bench/hash/crossCheck probes. Still not consumed by the game: no ship-height query, no LOD, no setCenter caller."
+        },
+        {
+          "title": "Third cascade for water-level views",
+          "status": "done",
+          "status_note": "DONE 2026-08-13. 13 m ripple patch at 0.051 m texel. Energy MOVED not added - wind-sea low cutoff went 0->13 m, conserved to 2.0%, Hs held 11.96 vs 11.99 ft. Repeat period 125 km -> 1,629 km. Caught by measurement: the split stripped the wind sea of folding waves and foam fell 4.25%->0.38%; fixed by combining Jacobian deficits."
+        },
+        {
+          "title": "Ship-height query + LOD + setCenter wiring",
+          "status": "parked",
+          "status_note": "Nothing in the game consumes the ocean yet. No ship-height query, no LOD past the single patch, no setCenter caller. misc/ is gitignored so the harness page will not commit."
         }
       ]
     }

@@ -236,6 +236,117 @@ describe('createSpellZone', () => {
   })
 })
 
+describe('convertSpellEffectToProcessed', () => {
+  it('handles uppercase DAMAGE type correctly', () => {
+    const effect: SpellEffect = {
+      type: 'DAMAGE',
+      trigger: { type: 'immediate' },
+      condition: { type: 'always' },
+      damage: { dice: '2d6', type: 'Fire' }
+    }
+
+    const result = convertSpellEffectToProcessed(effect)
+    expect(result).toHaveLength(1)
+    expect(result[0].type).toBe('damage')
+    expect(result[0].dice).toBe('2d6')
+    expect(result[0].damageType).toBe('Fire')
+  })
+
+  it('handles lowercase damage type correctly (casing normalization)', () => {
+    const effect: SpellEffect = {
+      type: 'damage' as any,
+      trigger: { type: 'immediate' },
+      condition: { type: 'always' },
+      damage: { dice: '2d6', type: 'Fire' }
+    }
+
+    const result = convertSpellEffectToProcessed(effect)
+    expect(result).toHaveLength(1)
+    expect(result[0].type).toBe('damage')
+    expect(result[0].dice).toBe('2d6')
+    expect(result[0].damageType).toBe('Fire')
+  })
+
+  it('handles uppercase HEALING type correctly', () => {
+    const effect: SpellEffect = {
+      type: 'HEALING',
+      trigger: { type: 'immediate' },
+      condition: { type: 'always' },
+      healing: { dice: '2d8' }
+    }
+
+    const result = convertSpellEffectToProcessed(effect)
+    expect(result).toHaveLength(1)
+    expect(result[0].type).toBe('heal')
+    expect(result[0].dice).toBe('2d8')
+  })
+
+  it('handles lowercase healing type correctly (casing normalization)', () => {
+    const effect: SpellEffect = {
+      type: 'healing' as any,
+      trigger: { type: 'immediate' },
+      condition: { type: 'always' },
+      healing: { dice: '2d8' }
+    }
+
+    const result = convertSpellEffectToProcessed(effect)
+    expect(result).toHaveLength(1)
+    expect(result[0].type).toBe('heal')
+    expect(result[0].dice).toBe('2d8')
+  })
+
+  it('handles uppercase STATUS_CONDITION type correctly', () => {
+    const effect: SpellEffect = {
+      type: 'STATUS_CONDITION',
+      trigger: { type: 'immediate' },
+      condition: { type: 'always' },
+      statusCondition: {
+        name: 'Charmed',
+        duration: { type: 'minutes', value: 10 }
+      }
+    }
+
+    const result = convertSpellEffectToProcessed(effect)
+    expect(result).toHaveLength(1)
+    expect(result[0].type).toBe('status_condition')
+    expect(result[0].statusName).toBe('Charmed')
+  })
+
+  it('handles lowercase status_condition type correctly (casing normalization)', () => {
+    const effect: SpellEffect = {
+      type: 'status_condition' as any,
+      trigger: { type: 'immediate' },
+      condition: { type: 'always' },
+      statusCondition: {
+        name: 'Charmed',
+        duration: { type: 'minutes', value: 10 }
+      }
+    }
+
+    const result = convertSpellEffectToProcessed(effect)
+    expect(result).toHaveLength(1)
+    expect(result[0].type).toBe('status_condition')
+    expect(result[0].statusName).toBe('Charmed')
+  })
+
+  it('warns and returns empty array for unrecognized effect type', () => {
+    const effect: SpellEffect = {
+      type: 'UNKNOWN_TYPE' as any,
+      trigger: { type: 'immediate' },
+      condition: { type: 'always' }
+    }
+
+    const consoleWarnSpy = vi.spyOn(console, 'warn')
+    const result = convertSpellEffectToProcessed(effect)
+
+    expect(result).toHaveLength(0)
+    expect(consoleWarnSpy).toHaveBeenCalledWith(
+      expect.stringContaining('Unrecognized effect type')
+    )
+    consoleWarnSpy.mockRestore()
+  })
+})
+
 describe('processAreaEndTurnTriggers', () => {
   it('fires once per turn per creature when configured with first_per_turn', () => {
     const effect: SpellEffect = {

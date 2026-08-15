@@ -18,6 +18,8 @@ import {
   makeDuneOperator,
   makeTerraceOperator,
   makeErosionOperator,
+  interfluveOf,
+  shapeChannelCut,
   MASK_RADIUS_SPACINGS,
   TERRACE_STEP,
   type RegionSource,
@@ -169,6 +171,48 @@ describe('region composite height field — profiles and operators', () => {
     expect(desert.operatorWeights.dune).toBeGreaterThan(0);
     expect(wet.operatorWeights.dune).toBeUndefined();
     expect(wet.operatorWeights.erosion!).toBeGreaterThan(desert.operatorWeights.erosion!);
+  });
+
+  it('keeps the interfluve map MONOTONE, which is what stops it fighting the cut', () => {
+    // The whole point of the term: it never reorders height, so a low of the
+    // visible surface is always a low of the flow guide.
+    let previous = -Infinity;
+    for (let g = -3; g <= 3; g += 0.01) {
+      const v = interfluveOf(g);
+      expect(v).toBeGreaterThan(previous);
+      expect(v).toBeGreaterThanOrEqual(-1);
+      expect(v).toBeLessThanOrEqual(1);
+      previous = v;
+    }
+  });
+
+  it('cuts nothing where the ground has no slope', () => {
+    // `E = K*Q^m*S^n`. With S at zero there is no incision, whatever the
+    // convergence reads. This is the term that removed the round pits.
+    const strongFlow = shapeChannelCut(1.7, 1.4, 0.95, 0.5, 0.3, 1, 0);
+    expect(strongFlow).toBe(-0);
+    const sameOnSlope = shapeChannelCut(1.7, 1.4, 0.95, 0.5, 0.3, 1, 1);
+    expect(sameOnSlope).toBeLessThan(-0.05);
+  });
+
+  it('hands a shoreline lowland the OLD profile and an inland one the new', () => {
+    // The coast window's whole island stands within 0.023 of the waterline, so
+    // its macro band IS its land. Cutting that band everywhere shattered it.
+    const shore = regionProfileFor(4, 0.205);
+    const inland = regionProfileFor(4, 0.34);
+    expect(shore.bandWeights[0]).toBeGreaterThan(inland.bandWeights[0] * 3);
+    expect(shore.operatorWeights.interfluve!).toBeLessThan(
+      inland.operatorWeights.interfluve! * 0.2,
+    );
+  });
+
+  it('fades dissection out with height instead of stepping at a class edge', () => {
+    // A hard step printed atlas cell boundaries into a mountain window.
+    expect(regionProfileFor(4, 0.30).dissection).toBeCloseTo(1, 5);
+    expect(regionProfileFor(4, 0.90).dissection).toBeCloseTo(0, 5);
+    const mid = regionProfileFor(4, 0.56).dissection;
+    expect(mid).toBeGreaterThan(0);
+    expect(mid).toBeLessThan(1);
   });
 
   it('gives peaks only to high country', () => {

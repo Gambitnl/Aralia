@@ -89,5 +89,4 @@ Ranger - Fey Wanderer
 Referenced Rules:
 Friendly -> /rules-glossary/62-tooltip
 Capture Method: http
-Legacy Page: true
 -->

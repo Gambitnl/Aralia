@@ -54,11 +54,28 @@ export function gameEntryReducer(state: GameState, action: AppAction): Partial<G
                 gameEntry: gameEntryTransition(current, { type: 'UNAVAILABLE', error: action.payload }),
             };
 
-        case 'SKIP_OPENING_SITUATION':
+        case 'SKIP_OPENING_SITUATION': {
             // The generated opening is optional enrichment. If the local model
-            // is unavailable, this action dismisses only that gate and leaves
-            // the rest of the live game state untouched.
-            return { gameEntry: gameEntryTransition(current, { type: 'SKIP' }) };
+            // is unavailable or the player skips the opening scene, this action
+            // dismisses the gate and transitions smoothly into live gameplay.
+            const nextEntry = gameEntryTransition(current, { type: 'SKIP' });
+            if (!state.messages || state.messages.length === 0) {
+                const townName = state.startTownName || 'the settlement';
+                const regionName = state.startTownRegion ? `, ${state.startTownRegion}` : '';
+                return {
+                    gameEntry: nextEntry,
+                    messages: [
+                        {
+                            id: Date.now(),
+                            text: `You arrive in ${townName}${regionName}. The sounds of daily life fill the air. Your journey begins.`,
+                            sender: 'system',
+                            timestamp: state.gameTime instanceof Date ? state.gameTime : new Date(),
+                        },
+                    ],
+                };
+            }
+            return { gameEntry: nextEntry };
+        }
 
         case 'RESET_OPENING_SITUATION':
             return { gameEntry: gameEntryTransition(current, { type: 'RESET' }) };

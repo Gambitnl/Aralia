@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 01/06/2026, 00:45:15
+ * Last Sync: 15/08/2026, 00:55:11
  * Dependents: components/CharacterSheet/Overview/index.ts
  * Imports: 6 files
  *
@@ -17,7 +17,7 @@
 import React, { useState } from 'react';
 import { PlayerCharacter, AbilityScoreName } from '../../../types';
 import Tooltip from '../../ui/Tooltip';
-import { getAbilityModifierValue, getAbilityModifierString, getCharacterRaceDisplayString, buildHitPointDicePools } from '../../../utils/character';
+import { getAbilityModifierValue, getAbilityModifierString, getCharacterRaceDisplayString, buildHitPointDicePools, deriveAlternateMovementSpeeds } from '../../../utils/character';
 import { calculatePassiveScore } from '../../../utils/character';
 import { FEATS_DATA } from '../../../data/feats/featsData';
 import { classFeaturesForLevel } from '../../../data/classes/classFeatureProgression';
@@ -208,6 +208,11 @@ const CharacterOverview: React.FC<CharacterOverviewProps> = ({ character }) => {
         (character.finalAbilityScores?.Strength ?? 10) < torsoItem.strengthRequirement
     );
 
+    // Alternate movement speeds (swim/climb/fly/burrow) granted by the race
+    // (GG-7). Only always-present race modes are surfaced; conditional or
+    // level-gated abilities are intentionally left out of this overview.
+    const movementSpeeds = deriveAlternateMovementSpeeds(character);
+
     // Passive scores
     const wisdomMod = getAbilityModifierValue(character.finalAbilityScores.Wisdom);
     const intelligenceMod = getAbilityModifierValue(character.finalAbilityScores.Intelligence);
@@ -307,6 +312,15 @@ const CharacterOverview: React.FC<CharacterOverviewProps> = ({ character }) => {
                         ) : (
                             <p className="text-sm">Speed: <span className="font-semibold">{character.speed}ft</span>
                                 {character.isFlying ? <span className="text-sky-300 ml-1"> (Flying)</span> : ''}
+                            </p>
+                        )}
+                        {Object.values(movementSpeeds).length > 0 && (
+                            <p className="text-sm col-span-2">
+                                {Object.entries(movementSpeeds).map(([mode, speedFt]) => (
+                                    <span key={mode} className="mr-2 capitalize">
+                                        {mode}: <span className="font-semibold text-sky-300">{speedFt}ft</span>
+                                    </span>
+                                ))}
                             </p>
                         )}
                         <p className="text-sm">Prof. Bonus: <span className="font-semibold text-amber-300">+{profBonus}</span></p>

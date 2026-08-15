@@ -94,5 +94,4 @@ Referenced Rules:
 Bright Light -> /rules-glossary/21-tooltip
 
 Capture Method: http
-Legacy Page: true
 -->

@@ -83,5 +83,4 @@ Spell Tags:
 Healing
 Available For:
 Capture Method: http
-Legacy Page: true
 -->

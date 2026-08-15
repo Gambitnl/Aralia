@@ -62,6 +62,7 @@ import { Material } from '@/systems/worldforge/terrain/voxelVolume';
 import SceneCast, { type SceneCastMember } from './SceneCast';
 import PlayerAvatar from './PlayerAvatar';
 import GroundMovePlane from './GroundMovePlane';
+import { GroundKeyboardDriver } from './useGroundKeyboardControls';
 import type { GroundWorld } from '@/systems/worldforge/bridge/groundChunkLoader';
 import type { ChunkCoord, ChunkLoader, LoadedChunk, TerrainEdgeSkirt } from '@/systems/world3d/types';
 import { buildRoofGeometry } from '@/systems/world3d/buildingModels';
@@ -1454,6 +1455,15 @@ const World3DScene: React.FC<World3DSceneProps> = ({
             takes precedence while combat is active. */}
         {viewProfile === 'ground' && (
           <GroundMovePlane ground={groundWorld} sceneOrigin={sceneOrigin} onGroundPick={onGroundPick} />
+        )}
+        {/* Real-time keyboard WASD and Arrow key locomotion (ground mode). */}
+        {viewProfile === 'ground' && (
+          <GroundKeyboardDriver
+            groundWorld={groundWorld}
+            sceneOrigin={sceneOrigin}
+            playerGroundPos={playerGroundPos}
+            onGroundPick={onGroundPick}
+          />
         )}
         {/* Fight-in-place slice 2: the combat surface (tokens, reachable disc,
             ground-pick plane) drawn on the same streamed terrain. */}

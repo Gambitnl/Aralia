@@ -114,14 +114,53 @@ function addProxyDiagnostics(
   config: ProxyOptions,
   hint: string
 ): ProxyOptions {
+  // GG-15: while the target is down, every heartbeat/probe request used to log
+  // a full ECONNREFUSED stack (from Vite's own proxy error logger), drowning
+  // real errors in dev/Playwright logs. Strategy:
+  // 1. First refusal logs ONE diagnostic block, then marks the target down.
+  // 2. While down, `bypass` answers with the soft 502 JSON directly, so later
+  //    requests never reach http-proxy and Vite logs nothing for them.
+  // 3. Vite registers its error logger AFTER configure(), so this handler runs
+  //    first; clearing err.stack keeps even that first Vite line stack-free.
+  // 4. A successful proxied response re-arms logging for the next outage.
+  let targetDown = false;
+
+  const softRefusalJson = () =>
+    JSON.stringify({
+      error: 'LOCAL_SERVICE_UNAVAILABLE',
+      message: `Proxy target ${formatProxyTarget(config.target)} refused connection. ${hint}`,
+    });
+
+  // Node delivers localhost refusals as AggregateError [ECONNREFUSED] whose
+  // message is empty; the code lives on err.code or nested err.errors.
+  const isRefusal = (err: Error & { code?: string; errors?: Array<{ code?: string }> }) =>
+    err.code === 'ECONNREFUSED' ||
+    err.message.includes('ECONNREFUSED') ||
+    (Array.isArray(err.errors) && err.errors.some((e) => e.code === 'ECONNREFUSED'));
+
   return {
     ...config,
+    bypass: (req, res) => {
+      if (!targetDown) return undefined;
+      if (res && typeof res.writeHead === 'function' && !res.headersSent) {
+        res.writeHead(502, { 'Content-Type': 'application/json' });
+        res.end(softRefusalJson());
+      }
+      // Returning any string short-circuits the proxy attempt; since the
+      // response is already ended, Vite's middleware returns immediately.
+      return req.url ?? '/';
+    },
     configure: (proxy, _options) => {
       proxy.on('error', (err: Error, req: IncomingMessage, res: any) => {
         const target = formatProxyTarget(config.target);
-        if (err.message.includes('ECONNREFUSED')) {
-          console.error(`\n[proxy] ${route} -> ${target} connection refused.`);
-          console.error(`[proxy] Hint: ${hint}\n`);
+        if (isRefusal(err)) {
+          err.stack = '';
+          if (!targetDown) {
+            targetDown = true;
+            console.error(`\n[proxy] ${route} -> ${target} connection refused.`);
+            console.error(`[proxy] Hint: ${hint}`);
+            console.error(`[proxy] Further ${route} failures suppressed until the target recovers.\n`);
+          }
         }
 
         // Let the startup dependency check fail softly. This keeps the browser
@@ -130,12 +169,14 @@ function addProxyDiagnostics(
         // the setup modal as expected.
         if (res && typeof res.writeHead === 'function' && !res.headersSent) {
           res.writeHead(502, { 'Content-Type': 'application/json' });
-          res.end(
-            JSON.stringify({
-              error: 'LOCAL_SERVICE_UNAVAILABLE',
-              message: `Proxy target ${target} refused connection. ${hint}`,
-            })
-          );
+          res.end(softRefusalJson());
+        }
+      });
+
+      proxy.on('proxyRes', () => {
+        if (targetDown) {
+          targetDown = false;
+          console.info(`[proxy] ${route} recovered; refusal logging re-armed.`);
         }
       });
     },

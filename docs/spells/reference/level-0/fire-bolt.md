@@ -100,6 +100,5 @@ Referenced Rules:
 burning -> /rules-glossary/22-tooltip
 
 Capture Method: http
-Legacy Page: true
 -->
 

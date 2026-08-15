@@ -432,6 +432,21 @@ export interface VegetationScatter {
   /** Optional per-instance RGB (3 floats per instance) for color variety. */
   colors?: Float32Array;
   /**
+   * Per-instance BIOME, as an index into `biomeTable` (grown-tree wave).
+   *
+   * The grown-tree path grows geometry from the biome's environment, so it
+   * needs the biome itself. It used to be inferred from `colors`, which in
+   * ground mode is a three-entry green table hashed off the feature id and
+   * carries no biome at all. Codes rather than strings so the channel crosses
+   * a worker boundary as one typed array instead of one string per tree.
+   *
+   * Absent on payloads built before this channel existed; the grown path then
+   * FAILS LOUDLY rather than guessing a biome.
+   */
+  biomeCodes?: Uint8Array;
+  /** The distinct biome keys `biomeCodes` indexes (`treeEnvironment` names). */
+  biomeTable?: string[];
+  /**
    * Lean toward the ground normal, radians, one per instance (surface-gate
    * wave). Baked at scatter time from a `SurfaceProbe`; the renderer applies it
    * as a tilt about `tiltAxes`. Absent = every instance stands upright.

@@ -48,7 +48,11 @@ const S = WORLD3D_CONFIG.CHUNK_WORLD_SIZE;
 // v3: Remy's swept gate values (forest 42 deg / treeline 82, other six scaled)
 // plus the tilt-sign fix. A v2 payload carries the old gates and the backward
 // lean, so it must never be served after this change.
-const VEGETATION_SCATTER_CACHE_VERSION = 3;
+// v4: every instance now carries the BIOME it grew on (`biomeCodes` +
+// `biomeTable`). A v3 payload has no biome channel at all, so the grown-tree
+// renderer cannot read it — serving one would either throw or silently render
+// nothing, and both are worse than rebuilding the scatter.
+const VEGETATION_SCATTER_CACHE_VERSION = 4;
 const VEGETATION_SCATTER_CACHE_MAX_ENTRIES = 256;
 
 // `forest_floor` is the leaf-litter tint a forest window's `grass` ground now
@@ -235,6 +239,20 @@ function buildVegetationScatterUncached(data: ChunkData, cacheKey: string): Vege
   const rotations: number[] = [];
   const tilts: number[] = [];
   const tiltAxes: number[] = [];
+  // Per-instance biome (grown-tree wave). This grid path already knows the
+  // biome of every candidate vertex — it gates on it — so carrying it out
+  // costs one byte per tree and removes the palette-color guess downstream.
+  const biomeTable: string[] = [];
+  const biomeIndexOf = new Map<string, number>();
+  const biomeCodes: number[] = [];
+  const codeFor = (biome: string): number => {
+    const hit = biomeIndexOf.get(biome);
+    if (hit !== undefined) return hit;
+    const next = biomeTable.length;
+    biomeTable.push(biome);
+    biomeIndexOf.set(biome, next);
+    return next;
+  };
   const tally = makeSurfaceGateTally();
   // A 1x1 chunk has no gradient to read, so stage 2 cannot run on it.
   const probe = res >= 2 ? makeChunkSurfaceProbe(data) : null;
@@ -272,6 +290,7 @@ function buildVegetationScatterUncached(data: ChunkData, cacheKey: string): Vege
         rotations.push(hash01(i, j, 11) * Math.PI * 2);
         tilts.push(0);
         tiltAxes.push(1, 0);
+        biomeCodes.push(codeFor(biome));
         continue;
       }
 
@@ -291,6 +310,7 @@ function buildVegetationScatterUncached(data: ChunkData, cacheKey: string): Vege
       rotations.push(hash01(i, j, 11) * Math.PI * 2);
       tilts.push(fit.tiltRad);
       tiltAxes.push(fit.tiltAxis[0], fit.tiltAxis[1]);
+      biomeCodes.push(codeFor(biome));
     }
   }
 
@@ -303,6 +323,8 @@ function buildVegetationScatterUncached(data: ChunkData, cacheKey: string): Vege
     rotations: new Float32Array(rotations),
     tilts: new Float32Array(tilts),
     tiltAxes: new Float32Array(tiltAxes),
+    biomeCodes: new Uint8Array(biomeCodes),
+    biomeTable,
     gateStats: stats,
     cacheKey,
   };

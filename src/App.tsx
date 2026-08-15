@@ -83,6 +83,7 @@ import { initialGameState } from "./state/initialState";
 // Custom hooks - encapsulate reusable logic for audio, game actions, and initialization
 import { useAudio } from "./hooks/useAudio";
 import { useGameActions } from "./hooks/useGameActions";
+import { useGameHotkeys } from "./hooks/useGameHotkeys";
 import { useGameInitialization } from "./hooks/useGameInitialization";
 import { useOllamaLogBridge } from "./hooks/useOllamaLogBridge";
 import { useHistorySync } from "./hooks/useHistorySync";
@@ -2079,6 +2080,17 @@ const App: React.FC = () => {
     !gameState.isEconomyLedgerVisible &&
     !gameState.isCourierPouchVisible &&
     !missingChoiceModal.isOpen;
+
+  // Global exploration keyboard shortcuts (M: map, C: character, Q: quests…).
+  // MUST stay below `isUIInteractive`: called above its declaration the whole
+  // app threw "Cannot access 'isUIInteractive' before initialization" on every
+  // render and no screen ever mounted.
+  useGameHotkeys({
+    gameState,
+    dispatch,
+    onAction: processAction,
+    disabled: Boolean(gameState.isLoading || gameState.isImageLoading),
+  });
 
   const handleGoBackFromMainMenu = useCallback(() => {
     const prevPhase: GamePhase | undefined = gameState.previousPhase;

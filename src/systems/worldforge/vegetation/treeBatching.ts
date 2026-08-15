@@ -21,7 +21,8 @@
 import type { VegetationScatter } from '../../world3d/types';
 import type { TreeSpecies } from './treeMeshGenerator';
 import { SPECIES_HEIGHT_M, TREE_SPECIES, VARIANTS_PER_SPECIES } from './treeMeshGenerator';
-import { partitionTreeInstances } from './treeInstancePartition';
+import { partitionGrownTreeInstances, partitionTreeInstances } from './treeInstancePartition';
+import { GROWN_VARIANTS_PER_BIOME, grownTreeHeightM } from './grownTreeVariants';
 
 /** One chunk's contribution: its scatter plus where that chunk sits in scene space. */
 export interface TreeBatchInput {
@@ -135,3 +136,117 @@ export function buildTreeBatches(inputs: readonly TreeBatchInput[]): TreeBatch[]
 /** Stable React key for a batch. */
 export const treeBatchKey = (b: TreeBatch): string =>
   `${b.species}|${b.variant}|${b.castShadow ? 'near' : 'far'}`;
+
+// ── The grown path ──────────────────────────────────────────────────────────
+
+/** Flat, world-space instance data for one grown-tree instanced draw. */
+export interface GrownTreeBatch {
+  /** A `treeEnvironment` biome key — the geometry axis, replacing species. */
+  biome: string;
+  variant: number;
+  castShadow: boolean;
+  count: number;
+  /** 3 floats per instance, scene space (chunk-local + chunk offset). */
+  position: Float32Array;
+  /** 1 float per instance: final uniform scale, the variant's own height in. */
+  scale: Float32Array;
+  /** 1 float per instance: yaw in radians. */
+  rotation: Float32Array;
+  /** 3 floats per instance when any contributing chunk carried a palette. */
+  color?: Float32Array;
+}
+
+interface GrownAccumulator {
+  biome: string;
+  variant: number;
+  castShadow: boolean;
+  position: number[];
+  scale: number[];
+  rotation: number[];
+  color: number[];
+  sawColor: boolean;
+}
+
+/**
+ * Merge per-chunk scatters into world-space GROWN batches.
+ *
+ * HEIGHT IS PER VARIANT, NOT PER SPECIES.
+ *
+ * The preset path multiplies the instance scale by `SPECIES_HEIGHT_M[species]`,
+ * an authored table. A grown tree measures its own height as it grows, so the
+ * height comes from `grownTreeHeightM(biome, variant)` instead. This costs the
+ * batching nothing: a batch is exactly one (biome, variant, shadow tier), so
+ * the height is still one constant per batch, resolved once outside the
+ * instance loop.
+ *
+ * Batch keys are NOT pre-seeded across a fixed species list here, because the
+ * biome axis is open-ended. Insertion order is the first-seen order of
+ * (biome, variant, tier) across `inputs`, which is stable for a stable chunk
+ * list — the property the React key set needs.
+ */
+export function buildGrownTreeBatches(
+  inputs: readonly TreeBatchInput[],
+): GrownTreeBatch[] {
+  const accumulators = new Map<string, GrownAccumulator>();
+  const keyOf = (biome: string, variant: number, castShadow: boolean) =>
+    `${biome}|${variant}|${castShadow ? 'near' : 'far'}`;
+
+  for (const input of inputs) {
+    const { scatter, offset, castShadow } = input;
+    for (const bucket of partitionGrownTreeInstances(scatter)) {
+      if (bucket.instanceIndices.length === 0) continue;
+      const key = keyOf(bucket.biome, bucket.variant, castShadow);
+      let acc = accumulators.get(key);
+      if (!acc) {
+        acc = {
+          biome: bucket.biome, variant: bucket.variant, castShadow,
+          position: [], scale: [], rotation: [], color: [], sawColor: false,
+        };
+        accumulators.set(key, acc);
+      }
+      // One growth per (biome, variant) for the whole process — cached in
+      // grownTreeVariants. Never per instance, never per frame.
+      const baseH = grownTreeHeightM(bucket.biome, bucket.variant);
+      for (const i of bucket.instanceIndices) {
+        acc.position.push(
+          scatter.positions[i * 3] + offset[0],
+          scatter.positions[i * 3 + 1] + offset[1],
+          scatter.positions[i * 3 + 2] + offset[2],
+        );
+        acc.scale.push(scatter.scales[i] * baseH);
+        acc.rotation.push(scatter.rotations[i]);
+        if (scatter.colors) {
+          acc.sawColor = true;
+          acc.color.push(scatter.colors[i * 3], scatter.colors[i * 3 + 1], scatter.colors[i * 3 + 2]);
+        } else {
+          acc.color.push(0.35, 0.55, 0.3);
+        }
+      }
+    }
+  }
+
+  const batches: GrownTreeBatch[] = [];
+  for (const acc of accumulators.values()) {
+    const count = acc.scale.length;
+    if (count === 0) continue;
+    batches.push({
+      biome: acc.biome,
+      variant: acc.variant,
+      castShadow: acc.castShadow,
+      count,
+      position: new Float32Array(acc.position),
+      scale: new Float32Array(acc.scale),
+      rotation: new Float32Array(acc.rotation),
+      ...(acc.sawColor ? { color: new Float32Array(acc.color) } : {}),
+    });
+  }
+  return batches;
+}
+
+/** Stable React key for a grown batch. */
+export const grownTreeBatchKey = (b: GrownTreeBatch): string =>
+  `${b.biome}|${b.variant}|${b.castShadow ? 'near' : 'far'}`;
+
+/** Upper bound on grown batches for one biome set. */
+export const maxGrownTreeBatches = (biomeCount: number): number =>
+  biomeCount * GROWN_VARIANTS_PER_BIOME * 2;

@@ -1340,6 +1340,43 @@
         "town-3d/panel-zoom2",
         "town-3d/town-warm"
       ]
+    },
+    {
+      "at": "2026-08-14T22:40:33.556Z",
+      "piece": "region-terrain",
+      "round": 2,
+      "note": "interfluve operator: macro band derived from the flow guide; 3 plain cells, shaded relief with no color",
+      "captured": [
+        "region-terrain/plain-grey",
+        "region-terrain/plain2-grey",
+        "region-terrain/plain3-grey",
+        "region-terrain/mountain-grey",
+        "region-terrain/coast-grey"
+      ]
+    },
+    {
+      "at": "2026-08-14T22:40:33.556Z",
+      "piece": "world-scatter",
+      "round": 2,
+      "note": "grown trees LIVE in game: biome channel replaces palette-colour species classification",
+      "captured": [
+        "world-scatter/grown-far",
+        "world-scatter/grown-eye",
+        "world-scatter/desert-far",
+        "world-scatter/preset-far"
+      ]
+    },
+    {
+      "at": "2026-08-14T22:40:33.556Z",
+      "piece": "open-ocean",
+      "round": 1,
+      "note": "three cascades; 13 m ripple patch fixes the water-level read",
+      "captured": [
+        "open-ocean/water-level",
+        "open-ocean/water-level-2cascade",
+        "open-ocean/deck",
+        "open-ocean/high"
+      ]
     }
   ]
 }

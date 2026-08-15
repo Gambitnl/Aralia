@@ -16,6 +16,10 @@
 
 import '@testing-library/jest-dom';
 import { cleanup } from '@testing-library/react';
+// GG-14: jsdom has no canvas backend, so getContext('2d') throws "Not implemented".
+// vitest-canvas-mock stubs the 2d context with vi.fn() spies so canvas-painting
+// components (minimaps, atlas strips, map tiles) can assert real draw calls.
+import 'vitest-canvas-mock';
 
 // Polyfill ResizeObserver for React Measure/Three.js tests
 global.ResizeObserver = class ResizeObserver {

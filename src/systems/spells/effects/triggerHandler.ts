@@ -801,6 +801,21 @@ export function processAreaProximityTriggers(
 }
 
 /**
+ * Normalize effect type casing to handle both uppercase and lowercase inputs.
+ * This prevents silent failures when scheduled effects are created with wrong casing.
+ */
+function normalizeEffectType(type: string): string {
+    if (!type) return type;
+    // Convert to uppercase for the switch statement
+    const normalized = type.toUpperCase();
+    // Warn if the input was already uppercase (no-op) or if it's an unrecognized type
+    if (type !== normalized && !['DAMAGE', 'HEALING', 'STATUS_CONDITION', 'SUMMONING'].includes(normalized)) {
+        console.warn(`[convertSpellEffectToProcessed] Unrecognized effect type: "${type}" normalized to "${normalized}"`);
+    }
+    return normalized;
+}
+
+/**
  * Convert a SpellEffect to a ProcessedEffect for the combat system
  */
 export function convertSpellEffectToProcessed(
@@ -815,14 +830,17 @@ export function convertSpellEffectToProcessed(
     const saveEffect = recurringMechanic?.saveEffect ?? effect.condition?.saveEffect;
     const requiresSave = effect.condition?.type === 'save' || Boolean(recurringMechanic?.saveType);
 
+    // Normalize effect type to handle both uppercase and lowercase inputs
+    const normalizedType = normalizeEffectType(effect.type);
+
     // Some ongoing spells store their future damage beside a status effect
     // rather than on a second DAMAGE row. Emit that recurring payload before
     // interpreting the base row so registration through useAbilitySystem does
     // not silently lose canonical start/end-turn damage.
     if (
         recurringMechanic?.damage
-        && effect.type !== 'DAMAGE'
-        && effect.type !== 'SUMMONING'
+        && normalizedType !== 'DAMAGE'
+        && normalizedType !== 'SUMMONING'
     ) {
         processed.push({
             type: 'damage',
@@ -835,7 +853,7 @@ export function convertSpellEffectToProcessed(
         });
     }
 
-    if (recurringMechanic?.healing && effect.type !== 'HEALING') {
+    if (recurringMechanic?.healing && normalizedType !== 'HEALING') {
         processed.push({
             type: 'heal',
             dice: recurringMechanic.healing.dice,
@@ -843,7 +861,7 @@ export function convertSpellEffectToProcessed(
         });
     }
 
-    switch (effect.type) {
+    switch (normalizedType) {
         case 'DAMAGE':
             processed.push({
                 type: 'damage',
@@ -911,6 +929,10 @@ export function convertSpellEffectToProcessed(
             });
             break;
         }
+
+        default:
+            console.warn(`[convertSpellEffectToProcessed] Unrecognized effect type: "${effect.type}" (normalized: "${normalizedType}"). No processed effect generated.`);
+            break;
     }
 
     return processed;

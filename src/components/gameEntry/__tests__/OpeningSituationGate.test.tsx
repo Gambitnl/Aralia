@@ -33,11 +33,7 @@ describe('OpeningSituationGate', () => {
 
         render(<OpeningSituationGate gameState={state} dispatch={dispatch} />);
 
-        // The opening scene is not currently optional in the live main view.
-        // A Dismiss button used to clear this blocker, then the game crashed
-        // into the generic error boundary with no recovery actions.
         const blocker = screen.getByTestId('opening-situation-unavailable');
-        expect(within(blocker).queryByTestId('opening-situation-dismiss')).toBeNull();
 
         // The blocker covers the ordinary in-game menu button, so it provides a
         // direct route to the same developer menu and its prompt/log viewers.
@@ -58,7 +54,34 @@ describe('OpeningSituationGate', () => {
         const retry = within(blocker).getByTestId('opening-situation-retry');
         expect(retry).toHaveClass('min-h-11');
         fireEvent.click(retry);
-
         expect(dispatch).toHaveBeenCalledWith({ type: 'BEGIN_OPENING_SITUATION' });
+
+        // A player can also choose to continue directly into the world to play immediately.
+        const skip = within(blocker).getByTestId('opening-situation-skip');
+        expect(skip).toHaveClass('min-h-11');
+        fireEvent.click(skip);
+        expect(dispatch).toHaveBeenCalledWith({ type: 'SKIP_OPENING_SITUATION' });
+    });
+
+    it('allows skipping straight to world during opening situation generation', () => {
+        const dispatch = vi.fn<(action: AppAction) => void>();
+        const state = {
+            ...createMockGameState(),
+            gameEntry: {
+                status: 'generating' as const,
+                situation: null,
+                sceneImage: INITIAL_SCENE_IMAGE_STATE,
+                error: null,
+            },
+        };
+
+        render(<OpeningSituationGate gameState={state} dispatch={dispatch} />);
+
+        const banner = screen.getByTestId('opening-situation-generating');
+        expect(banner).toBeInTheDocument();
+
+        const skipBtn = within(banner).getByTestId('opening-situation-generating-skip');
+        fireEvent.click(skipBtn);
+        expect(dispatch).toHaveBeenCalledWith({ type: 'SKIP_OPENING_SITUATION' });
     });
 });

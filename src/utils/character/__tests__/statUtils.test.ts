@@ -449,4 +449,90 @@ describe('statUtils', () => {
             expect(calculateArmorClass(char)).toBe(12);
         });
     });
+
+    describe('attunement gating of equipped item bonuses (GG-11)', () => {
+      it('ignores statBonuses from attunement-required items that are not attuned', () => {
+        const char = createMockPlayerCharacter({
+          abilityScores: { Strength: 10, Dexterity: 10, Constitution: 10, Intelligence: 10, Wisdom: 10, Charisma: 10 },
+          finalAbilityScores: { Strength: 10, Dexterity: 10, Constitution: 10, Intelligence: 10, Wisdom: 10, Charisma: 10 },
+        });
+
+        const headband: Item = {
+          id: 'headband-of-intellect',
+          name: 'Headband of Intellect',
+          type: 'armor',
+          slot: 'Head',
+          description: '',
+          weight: 0,
+          statOverrides: { Intelligence: 19 },
+          requiresAttunement: true,
+          isAttuned: false,
+        } as Item;
+
+        const equipped: Partial<Record<string, Item>> = { Head: headband };
+        const scores = calculateFinalAbilityScores(char.abilityScores, char.race, equipped as any);
+        expect(scores.Intelligence).toBe(10);
+      });
+
+      it('applies statBonuses from attunement-required items that ARE attuned', () => {
+        const char = createMockPlayerCharacter({
+          abilityScores: { Strength: 10, Dexterity: 10, Constitution: 10, Intelligence: 10, Wisdom: 10, Charisma: 10 },
+          finalAbilityScores: { Strength: 10, Dexterity: 10, Constitution: 10, Intelligence: 10, Wisdom: 10, Charisma: 10 },
+        });
+
+        const headband: Item = {
+          id: 'headband-of-intellect',
+          name: 'Headband of Intellect',
+          type: 'armor',
+          slot: 'Head',
+          description: '',
+          weight: 0,
+          statOverrides: { Intelligence: 19 },
+          requiresAttunement: true,
+          isAttuned: true,
+        } as Item;
+
+        const equipped: Partial<Record<string, Item>> = { Head: headband };
+        const scores = calculateFinalAbilityScores(char.abilityScores, char.race, equipped as any);
+        expect(scores.Intelligence).toBe(19);
+      });
+
+      it('ignores AC bonus from an unattuned Ring of Protection', () => {
+        const char = createMockPlayerCharacter({
+          finalAbilityScores: { Strength: 10, Dexterity: 10, Constitution: 10, Intelligence: 10, Wisdom: 10, Charisma: 10 },
+        });
+        const ring: Item = {
+          id: 'ring-of-protection',
+          name: 'Ring of Protection',
+          type: 'accessory',
+          slot: 'Ring1',
+          description: '',
+          weight: 0,
+          armorClassBonus: 1,
+          requiresAttunement: true,
+          isAttuned: false,
+        } as Item;
+        char.equippedItems = { Ring1: ring } as any;
+        expect(calculateArmorClass(char)).toBe(10);
+      });
+
+      it('includes AC bonus from an attuned Ring of Protection', () => {
+        const char = createMockPlayerCharacter({
+          finalAbilityScores: { Strength: 10, Dexterity: 10, Constitution: 10, Intelligence: 10, Wisdom: 10, Charisma: 10 },
+        });
+        const ring: Item = {
+          id: 'ring-of-protection',
+          name: 'Ring of Protection',
+          type: 'accessory',
+          slot: 'Ring1',
+          description: '',
+          weight: 0,
+          armorClassBonus: 1,
+          requiresAttunement: true,
+          isAttuned: true,
+        } as Item;
+        char.equippedItems = { Ring1: ring } as any;
+        expect(calculateArmorClass(char)).toBe(11);
+      });
+    });
 });
