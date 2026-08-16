@@ -167,29 +167,67 @@ function browPair(skinMaterial: Material, x: number, y: number, z: number): Mesh
 }
 
 /**
- * round 7 (creature-anatomy): SOCKETED eyes. The assembler seats eyeballs at
- * ~(±0.36, 0.16, 0.62) head-radii; this orbit cups that exact station — a
- * skin brow hood overhanging the top of the ball, a dark lid line crossing
+ * THE planned-head eye station, in head-local units (the head form is built at
+ * unit radius and scaled by the socket radius). Both the eyeball the assembler
+ * seats and the socket art below are placed FROM this constant — the same way
+ * `skeletonBuilder` mirrors the gait driver constant-for-constant.
+ *
+ * 2026-08-15 (Remy, live eyeball on a generated gnoll: "the eyes are inside
+ * the snout"). Before this constant the two placements were computed
+ * independently and had drifted apart, and worse, in DIFFERENT FRAMES: the
+ * socket art rode the head form's own rotated local frame, while the assembler
+ * built the eyeball from a hand-made frame of (socket forward, horizontal
+ * right, WORLD up). Any head that pitches at all — every plan head does,
+ * `socket.fy` is non-zero — makes those two frames disagree. Measured on plan
+ * 19f48ed2, in the head form's local space:
+ *
+ *     socket art  (±0.360,  0.190, 0.585)
+ *     eyeball     (±0.223, −0.202, 0.364)
+ *
+ * 38% too narrow, 0.39 too low and 0.22 too deep, i.e. buried in the muzzle.
+ * Nothing caught it: both halves were internally self-consistent. The parity
+ * test in `__tests__/eyeSocketParity.test.ts` now measures the ASSEMBLED
+ * article, so the two can never drift again.
+ */
+export const PLAN_EYE_STATION = { x: 0.36, y: 0.19, z: 0.585 } as const;
+
+/**
+ * Socket-art offsets from `PLAN_EYE_STATION`, as [dy, dz] head-local.
+ *
+ * They sum to ZERO on both axes on purpose: the mean of the three pieces IS
+ * the station, so "the eyeball sits in the middle of its socket art" is an
+ * exact statement a test can assert rather than an eyeballed approximation.
+ */
+const EYE_ART_OFFSET = {
+  hood: [0.12, -0.025],
+  lid: [0.05, 0.035],
+  lower: [-0.17, -0.01],
+} as const;
+
+/**
+ * round 7 (creature-anatomy): SOCKETED eyes. The orbit cups the eye station —
+ * a skin brow hood overhanging the top of the ball, a dark lid line crossing
  * its upper edge, and a lower-lid cheek bump seating it from below — so the
  * white reads inset under the brow instead of a googly disc on the cheek.
  */
 function eyeSocketPair(skinMaterial: Material, lidMaterial: Material): Mesh[] {
   const pieces: Mesh[] = [];
+  const S = PLAN_EYE_STATION;
   for (const sgn of [-1, 1] as const) {
     const hood = new Mesh(new IcosahedronGeometry(0.3, 0), skinMaterial);
     hood.scale.set(1.15, 0.5, 0.9);
-    hood.position.set(sgn * 0.36, 0.31, 0.56);
+    hood.position.set(sgn * S.x, S.y + EYE_ART_OFFSET.hood[0], S.z + EYE_ART_OFFSET.hood[1]);
     hood.rotation.set(0.25, 0, sgn * -0.15);
     hood.name = sgn < 0 ? 'orbitHoodL' : 'orbitHoodR';
     pieces.push(hood);
     const lid = new Mesh(new BoxGeometry(0.3, 0.045, 0.14), lidMaterial);
-    lid.position.set(sgn * 0.36, 0.24, 0.62);
+    lid.position.set(sgn * S.x, S.y + EYE_ART_OFFSET.lid[0], S.z + EYE_ART_OFFSET.lid[1]);
     lid.rotation.set(0.3, 0, sgn * -0.12);
     lid.name = sgn < 0 ? 'lidLineL' : 'lidLineR';
     pieces.push(lid);
     const lower = new Mesh(new IcosahedronGeometry(0.22, 0), skinMaterial);
     lower.scale.set(1.1, 0.45, 0.8);
-    lower.position.set(sgn * 0.36, 0.03, 0.58);
+    lower.position.set(sgn * S.x, S.y + EYE_ART_OFFSET.lower[0], S.z + EYE_ART_OFFSET.lower[1]);
     lower.name = sgn < 0 ? 'lowerLidL' : 'lowerLidR';
     pieces.push(lower);
   }

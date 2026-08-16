@@ -19,6 +19,20 @@ import {
 export type EntityRenderMode = 'solid' | 'wireframe';
 
 /**
+ * Names stamped on the two raw-GLSL materials below.
+ *
+ * They exist because those two, alone among the entity materials, cannot run
+ * under a WebGPURenderer. `MeshToonMaterial` and `MeshBasicMaterial` are
+ * converted to their node twins automatically by three 0.172; a `ShaderMaterial`
+ * carrying GLSL source is not, because the WebGPU path compiles WGSL.
+ *
+ * The swap keys off these names rather than `instanceof ShaderMaterial`, so a
+ * future hand-written shader is not silently misidentified as an outline.
+ */
+export const OUTLINE_MATERIAL_NAME = 'entity-ink-outline';
+export const BLOB_SHADOW_MATERIAL_NAME = 'entity-blob-shadow';
+
+/**
  * The global default look for generated entities. Every consumer that does
  * not pass its own `renderMode` inherits this. `'solid'` (toon-shaded bodies
  * with ink outlines) is the shipping look; `'wireframe'` remains available as
@@ -85,6 +99,14 @@ export function outlineMaterial(colorHex: string, thickness = 0.02, opacity = 1,
   // "featureless sphere". Only pass true when the geometry carries `aInk`
   // (a missing attribute reads 0 ⇒ no outline at all).
   return new ShaderMaterial({
+    // Tagged so the WebGPU path can find and replace this material. Raw GLSL
+    // ShaderMaterial cannot compile under WebGPURenderer (it emits WGSL), and
+    // the ink outline is not optional — it carries the whole entity look. See
+    // three/gpu/toonNodes.ts for the TSL twin and gpuMaterialSwap.ts for the
+    // swap. The params ride in userData because a node material must be
+    // REBUILT, not patched.
+    name: OUTLINE_MATERIAL_NAME,
+    userData: { colorHex, thickness, opacity, perVertexScale },
     side: BackSide,
     transparent: translucent,
     depthWrite: !translucent,
@@ -113,6 +135,8 @@ export function outlineMaterial(colorHex: string, thickness = 0.02, opacity = 1,
 /** Soft radial ground shadow without canvas textures (headless-safe). */
 export function blobShadowMaterial(): ShaderMaterial {
   return new ShaderMaterial({
+    // Tagged for the same WebGPU swap as the outline above.
+    name: BLOB_SHADOW_MATERIAL_NAME,
     transparent: true,
     depthWrite: false,
     side: DoubleSide,

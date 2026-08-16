@@ -48,8 +48,15 @@ import { OPENING_QUEST_ID, OPENING_QUEST_OBJECTIVE_ID } from '../systems/gameEnt
 export interface UseConversationResult {
     /** Start a new conversation with a companion */
     startConversation: (companionId: string) => void;
-    /** Send a player message and get AI response */
-    sendPlayerMessage: (text: string) => Promise<void>;
+    /**
+     * Send a player message and get AI response.
+     *
+     * `mechanicalNote` carries the result of a resolved skill check ("Performance
+     * check: 17 … — success."). It is added as a narrator line BETWEEN the
+     * player's words and the reply, so it reaches the model inside the history
+     * and the NPCs answer the OUTCOME instead of only the words.
+     */
+    sendPlayerMessage: (text: string, mechanicalNote?: string) => Promise<void>;
     /** End the conversation and generate memory summary */
     endConversation: () => Promise<void>;
     /** Whether currently blocked from sending because it's not player turn or waiting for AI response */
@@ -208,8 +215,10 @@ export function useConversation(
     /**
      * Send a player message and get AI response.
      * @param text - The player's message (may contain @mention to address specific companion)
+     * @param mechanicalNote - Optional resolved-check line, narrated after the
+     *   player's words so the NPCs react to the result of what was attempted.
      */
-    const sendPlayerMessage = useCallback(async (text: string) => {
+    const sendPlayerMessage = useCallback(async (text: string, mechanicalNote?: string) => {
         const state = gameStateRef.current;
         if (!state.activeConversation || state.activeConversation.pendingResponse || !state.activeConversation.isPlayerTurn) return;
 
@@ -237,6 +246,18 @@ export function useConversation(
         };
 
         dispatch({ type: 'ADD_CONVERSATION_MESSAGE', payload: playerMessage });
+
+        // The check result is a real message in the transcript, not a UI badge:
+        // the player reads it, and the prose model reads it too because the
+        // history below is built from these same messages.
+        const note = mechanicalNote?.trim();
+        const noteMessage: ConversationMessage | null = note
+            ? { id: generateId(), speakerId: 'narrator', text: note, timestamp: Date.now() }
+            : null;
+        if (noteMessage) {
+            dispatch({ type: 'ADD_CONVERSATION_MESSAGE', payload: noteMessage });
+        }
+
         dispatch({ type: 'SET_CONVERSATION_PENDING', payload: true });
 
         // Get AI response - prioritize the addressed companion
@@ -248,7 +269,11 @@ export function useConversation(
         const context = buildContext();
 
         // Build history from conversation
-        const history = [...state.activeConversation.messages, playerMessage].map(m => ({
+        const history = [
+            ...state.activeConversation.messages,
+            playerMessage,
+            ...(noteMessage ? [noteMessage] : []),
+        ].map(m => ({
             speakerId: m.speakerId,
             text: m.text,
         }));

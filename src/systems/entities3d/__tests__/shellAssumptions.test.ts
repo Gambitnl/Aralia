@@ -13,6 +13,18 @@
  *   (mixed winding culled the front faces); the beast head you could "look
  *   inside the nose" of (jaw swung open, no gullet behind it, 2026-08-13).
  *
+ *   VARIANT C — an OPEN shell rendered single-sided. A mesh with boundary
+ *   edges (an edge used by exactly one triangle) is not a volume, it is a
+ *   sheet. Drawn FrontSide it is visible from outside and CULLED TO NOTHING
+ *   from behind, so it flickers in and out as the camera orbits. Seen as: the
+ *   junction-blend collars, whose lathe profile never touched the lathe axis
+ *   at either end — 112 triangles and 28 boundary edges each, FrontSide, on
+ *   `neck0`/`arm0L`/`arm0R`/`tail0` of plan 19f48ed2. Remy read them as
+ *   "piece-connecting sheets" that "become invisible on one side"
+ *   (2026-08-15). Fixed by closing the lathe profile into a solid ring, not by
+ *   flipping the material to DoubleSide: the campaign's `DoubleSide
+ *   both-windings` lesson is that duplicated windings z-fight.
+ *
  *   VARIANT B — ink swallows the feature. The inverse hull offsets vertices a
  *   FIXED WORLD DISTANCE (`hM * 0.011`). On geometry whose own girth is
  *   comparable, the outline stops being a line and becomes the object. Seen as:
@@ -31,7 +43,7 @@
  * with slim ears to expose both variants at once.
  */
 import { describe, it, expect } from 'vitest';
-import { Box3, Mesh, Vector3 } from 'three';
+import { Box3, CylinderGeometry, FrontSide, LatheGeometry, Mesh, MeshBasicMaterial, PlaneGeometry, SphereGeometry, Vector2, Vector3 } from 'three';
 import type { Object3D } from 'three';
 import { assembleEntity } from '../three/assembleEntity';
 import { generateEntityBlueprint } from '../generateEntityBlueprint';
@@ -131,6 +143,140 @@ function openMouthWithoutGullet(root: Object3D, subject: string): string[] {
   return offenders;
 }
 
+/**
+ * Boundary-edge count: edges used by exactly ONE triangle.
+ *
+ * Vertices are welded BY POSITION first. Three's primitives duplicate vertices
+ * at the UV seam and at sphere poles, so an index-only edge count reports every
+ * closed sphere and cylinder in the scene as open. The quantizer rounds to 1e-5
+ * m and normalises negative zero: `(-1e-17).toFixed(5)` is `"-0.00000"` while
+ * `(0).toFixed(5)` is `"0.00000"`, and that one character split every seam that
+ * lands on an axis. (This probe reported 18 "open" edges on a plain
+ * SphereGeometry before the fix, which is why the guard below asserts against a
+ * known-closed primitive as well.)
+ */
+function boundaryEdges(mesh: Mesh): number {
+  const g = mesh.geometry;
+  const pos = g.attributes.position;
+  const idx = g.index;
+  if (!pos) return 0;
+  const q = (v: number): number => {
+    const r = Math.round(v * 1e5);
+    return r === 0 ? 0 : r;
+  };
+  const weld = new Map<string, number>();
+  const wid = new Int32Array(pos.count);
+  for (let i = 0; i < pos.count; i++) {
+    const k = `${q(pos.getX(i))},${q(pos.getY(i))},${q(pos.getZ(i))}`;
+    let id = weld.get(k);
+    if (id === undefined) {
+      id = weld.size;
+      weld.set(k, id);
+    }
+    wid[i] = id;
+  }
+  const at = (i: number): number => wid[idx ? idx.getX(i) : i];
+  const count = idx ? idx.count : pos.count;
+  const uses = new Map<string, number>();
+  for (let i = 0; i + 2 < count; i += 3) {
+    const t = [at(i), at(i + 1), at(i + 2)];
+    for (let e = 0; e < 3; e++) {
+      const a = t[e];
+      const b = t[(e + 1) % 3];
+      if (a === b) continue; // degenerate edge: not a boundary, just collapsed
+      const k = a < b ? `${a}_${b}` : `${b}_${a}`;
+      uses.set(k, (uses.get(k) ?? 0) + 1);
+    }
+  }
+  let open = 0;
+  for (const n of uses.values()) if (n === 1) open++;
+  return open;
+}
+
+interface OpenShell {
+  subject: string;
+  mesh: string;
+  open: number;
+  triangles: number;
+  geometry: string;
+}
+
+/**
+ * Variant C: every mesh that is BOTH open and single-sided.
+ *
+ * FrontSide is `THREE.FrontSide` (0). A mesh that is deliberately a sheet may
+ * still ship — it just has to say so by rendering DoubleSide (2), the way the
+ * blob shadow's ground disc does. What may never ship is an open shell drawn
+ * FrontSide, because that shell simply is not there from half the orbit.
+ */
+/**
+ * KNOWN, UNPAID members of variant C, by `<geometry type>/<mesh or nearest
+ * named ancestor>`. This list may only ever SHRINK: anything not on it fails.
+ *
+ * The gate went in for the collars (2026-08-15) and immediately found these
+ * older ones, all on the sculpted humanoid head plus two plan decorations.
+ * They are left standing deliberately — closing them is its own visual pass on
+ * pieces Remy has not called out, and doing it inside a five-defect fix would
+ * change faces nobody asked to change. Each is genuinely half-buried in the
+ * surface it decorates, which is why they have gone unnoticed where an
+ * eight-inch collar sheet floating at a shoulder did not.
+ */
+const KNOWN_OPEN_SHELLS = new Set([
+  // Sculpted biped eye furniture: partial spheres (phi/theta ranges) hugging
+  // the eyeball. Their rims sit inside the socket recess.
+  'SphereGeometry/eyeLLid',
+  'SphereGeometry/eyeRLid',
+  'SphereGeometry/eyeLLowerLid',
+  'SphereGeometry/eyeRLowerLid',
+  'SphereGeometry/eyeLLash',
+  'SphereGeometry/eyeRLash',
+  // The eyeball's socket filler — a partial sphere plugging the orbit behind
+  // the white, seen only through the aperture the lids leave.
+  'SphereGeometry/eyeL',
+  'SphereGeometry/eyeR',
+  // The lip line: an open-ended swept tube laid into the mouth groove.
+  'TubeGeometry/mouthLine',
+  // Registry parts: the helmet is a hemisphere (its rim sits on the skull),
+  // and both horn parts are partial tori swept along an arc, capped at
+  // neither end. The horn rims are buried in the skull; the tips are not, and
+  // a horn seen from behind IS the standing example of why this gate exists —
+  // it is the next one to pay off.
+  'SphereGeometry/part:helmet',
+  'TorusGeometry/part:hornsRam',
+  'BufferGeometry/part:hornsCurved',
+]);
+
+/** Nearest named ancestor, for meshes the builders leave unnamed. */
+function labelOf(m: Mesh): string {
+  if (m.name) return m.name;
+  let p = m.parent;
+  while (p) {
+    if (p.name) return p.name;
+    p = p.parent;
+  }
+  return '(unnamed)';
+}
+
+function openSingleSidedShells(root: Object3D, subject: string): OpenShell[] {
+  const found: OpenShell[] = [];
+  root.traverse((o) => {
+    const m = o as Mesh;
+    if (!m.isMesh || !m.visible) return;
+    const mat = (Array.isArray(m.material) ? m.material[0] : m.material) as
+      | { side?: number }
+      | undefined;
+    if (!mat || mat.side !== FrontSide) return;
+    const open = boundaryEdges(m);
+    if (open === 0) return;
+    const g = m.geometry;
+    const label = labelOf(m);
+    if (KNOWN_OPEN_SHELLS.has(`${g.type}/${label}`)) return;
+    const tris = (g.index ? g.index.count : g.attributes.position.count) / 3;
+    found.push({ subject, mesh: label, open, triangles: tris, geometry: g.type });
+  });
+  return found;
+}
+
 /** Build one subject, hand it to the checks, and always dispose. */
 function sweep(subject: string, build: () => ReturnType<typeof assembleEntity>) {
   const handle = build();
@@ -139,6 +285,7 @@ function sweep(subject: string, build: () => ReturnType<typeof assembleEntity>) 
     return {
       ink: inkOffenders(handle.group, subject),
       mouths: openMouthWithoutGullet(handle.group, subject),
+      open: openSingleSidedShells(handle.group, subject),
     };
   } finally {
     handle.dispose();
@@ -207,5 +354,65 @@ describe('shell assumptions (the failure CLASS, not one bug)', () => {
     expect(offenders, `open jaws with no interior — you can see through the head:\n  ${offenders.join('\n  ')}`).toEqual(
       [],
     );
+  });
+
+  // The detector has to be right before its verdict means anything: a naive
+  // index-only edge count calls a plain sphere open (three duplicates the seam
+  // and pole vertices), and a naive weld splits any seam that lands on an axis
+  // over negative zero. Pin both ends — closed primitives read 0, a genuine
+  // sheet reads its whole rim — so a future "0 offenders" cannot be the
+  // detector quietly going blind.
+  it('VARIANT C: the boundary-edge probe agrees with known geometry', () => {
+    const mat = new MeshBasicMaterial();
+    expect(boundaryEdges(new Mesh(new SphereGeometry(0.4, 12, 9), mat))).toBe(0);
+    expect(boundaryEdges(new Mesh(new CylinderGeometry(0.2, 0.3, 1, 10, 1), mat))).toBe(0);
+    // an open lathe skirt — the exact shape the collars used to be
+    const skirt = new LatheGeometry([new Vector2(0.3, 0), new Vector2(0.2, 0.1)], 14);
+    expect(boundaryEdges(new Mesh(skirt, mat))).toBe(28);
+    // a closed lathe ring — the shape they are now
+    const ring = new LatheGeometry(
+      [new Vector2(0.3, 0), new Vector2(0.2, 0.1), new Vector2(0.15, 0.1), new Vector2(0.25, 0), new Vector2(0.3, 0)],
+      14,
+    );
+    expect(boundaryEdges(new Mesh(ring, mat))).toBe(0);
+    expect(boundaryEdges(new Mesh(new PlaneGeometry(1, 1), mat))).toBe(4);
+  });
+
+  it('VARIANT C: no open shell is rendered single-sided', () => {
+    const offenders: OpenShell[] = [];
+
+    for (const raceId of RACES) {
+      const r = sweep(`humanoid:${raceId}`, () =>
+        assembleEntity(generateEntityBlueprint({ kind: 'humanoid', raceId, classId: 'fighter', seed: 'shell' }), {
+          renderMode: 'solid',
+        }),
+      );
+      offenders.push(...r.open);
+    }
+
+    for (const [key, plan] of Object.entries(PLAN_FIXTURES)) {
+      const r = sweep(`fixture:${key}`, () =>
+        assembleEntity(generateEntityBlueprint({ kind: 'planned', plan, seed: 'shell' }), { renderMode: 'solid' }),
+      );
+      offenders.push(...r.open);
+    }
+
+    for (const type of Object.values(CreatureType)) {
+      const r = sweep(`archetype:${type}`, () =>
+        assembleEntity(generateEntityBlueprint({ kind: 'creature', creatureType: type, size: 'Large', seed: 'shell' }), {
+          renderMode: 'solid',
+        }),
+      );
+      offenders.push(...r.open);
+    }
+
+    expect(
+      offenders,
+      'open shells drawn FrontSide — each one vanishes when the camera orbits behind it.\n' +
+        'Close the geometry into a volume, or say it is a sheet by rendering it DoubleSide:\n' +
+        offenders
+          .map((o) => `  ${o.subject} / ${o.mesh}: ${o.geometry}, ${o.triangles} tris, ${o.open} boundary edges`)
+          .join('\n'),
+    ).toEqual([]);
   });
 });

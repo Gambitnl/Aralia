@@ -152,6 +152,11 @@ function capturePlanRest(frame: Frame, spec: PlanSpec): PlanRestPose {
     if (/^spine\.\d+$/.test(id)) return true;
     for (const cid of chainIds) {
       if (id.startsWith(cid + '.') && /^\d+$/.test(id.slice(cid.length + 1))) return true;
+      // 2026-08-15: a flesh paw draws its palm as a BLOCK — a seg from the
+      // wrist to the knuckle line — where a rocky claw mass still draws a
+      // boulder ball. Either one is the chain's hand terminal, so the rest
+      // collector has to see both shapes.
+      if (id === `${cid}.palm`) return true;
     }
     return false;
   };
@@ -280,8 +285,25 @@ function buildBoneSpecs(frame: Frame, spec: PlanSpec): {
   };
   const pushTerminal = (id: string, parent: string): void => {
     const ball = ballById.get(id);
-    if (!ball) throw new Error(`planSkeleton: driver emitted no rest ball for terminal "${id}"`);
-    pushTerminalAt(id, parent, ball.center[0], ball.center[1], ball.center[2]);
+    if (ball) {
+      pushTerminalAt(id, parent, ball.center[0], ball.center[1], ball.center[2]);
+      return;
+    }
+    // A terminal drawn as a SEG (the flesh paw's palm block) carries its own
+    // rest ORIENTATION, and the bind pose has to take it: the pose sink writes
+    // +Y-along-the-segment into this bone every frame, so a bone bound at
+    // identity would twist the whole hand off the wrist on frame one.
+    const seg = relById.get(id);
+    if (!seg) throw new Error(`planSkeleton: driver emitted no rest ball or segment for terminal "${id}"`);
+    const dir = new Vector3(seg.b[0] - seg.a[0], seg.b[1] - seg.a[1], seg.b[2] - seg.a[2]);
+    if (dir.lengthSq() < 1e-12) dir.copy(UP);
+    boneSpecs.push({
+      id,
+      kind: 'terminal',
+      parent,
+      pos: new Vector3(seg.a[0], seg.a[1], seg.a[2]),
+      quat: new Quaternion().setFromUnitVectors(UP, dir.normalize()),
+    });
   };
 
   // heads ride their neck-tip bone (or spine-front for neckless). A formed head
@@ -455,12 +477,20 @@ export function createPlanPoseSink(skeleton: BuiltPlanSkeleton, decorativeDelega
     // haunches, fore shoulders) ride the live spine like the gel lobes do —
     // decorative body-tone balls on the anchor path, no bones of their own.
     if (id.startsWith('mass.')) return true;
+    // Surface-decoration FAMILIES, addressed by id prefix rather than by
+    // chain: rocky body plates, recessed dark seams and joint valleys, moss
+    // patches and unlit glow accents. `segmentBody.styleFor` keys its
+    // materials off exactly these prefixes; none of them is ever a bone.
+    if (/^(plate|dark|moss|glow)\./.test(id)) return true;
     for (const cid of chainIds) {
       const pref = cid + '.';
       if (id.startsWith(pref)) {
         const rest = id.slice(pref.length);
         // fingers (hand tips) and toes (leg claws) are decorative pieces
         if (rest.startsWith('finger') || rest.startsWith('toe')) return true;
+        // 2026-08-15: the paw's opposed thumb joins them. `<chain>.palm` is
+        // NOT decorative — it is the hand bone, drawn as the palm block.
+        if (rest === 'thumb') return true;
       }
     }
     return false;

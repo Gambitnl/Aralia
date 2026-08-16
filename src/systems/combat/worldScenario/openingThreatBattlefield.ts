@@ -475,7 +475,16 @@ function authorOpeningScene(
       distance <= 9
     );
   });
-  if (standoffCandidates.length < drafts.length) return null;
+  if (standoffCandidates.length < drafts.length) {
+    // Name the shortfall. "Could not author every threat entity" alone gives a
+    // player standing on a water-locked spit no idea that the RING around them,
+    // not the roster or the receipt, is what refused the fight.
+    console.warn(
+      `[openingThreat] no standoff ground: ${standoffCandidates.length} walkable tile(s) `
+      + `4.5-9 from the player, ${drafts.length} needed. The ring around the player is blocked.`,
+    );
+    return null;
+  }
 
   const contactAnchor = [...standoffCandidates].sort((left, right) => {
     const leftDistance = pointDistance(

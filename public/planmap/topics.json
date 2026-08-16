@@ -904,9 +904,24 @@
         {
           "title": "Default flip + WebGL retirement decision",
           "status": "parked"
+        },
+        {
+          "title": "Entity materials cross to WebGPU (ink outline + blob shadow rebuilt as TSL nodes)",
+          "status": "done",
+          "history": {
+            "built": "2026-08-16"
+          },
+          "status_note": "The two raw-GLSL ShaderMaterials were the ACTUAL blocker behind entities showing as capsules in BattleMap3DGpuScene — not the 1,491-line CharacterActor rig its header blames. MeshToon/MeshBasic convert automatically in three 0.172. Tagged in toon.ts, rebuilt in three/gpu/toonNodes.ts, swapped by three/gpu/gpuMaterialSwap.ts. 7 tests."
+        },
+        {
+          "title": "BattleMap3DGpuScene renders EntityModel actors instead of capsule tokens",
+          "status": "active",
+          "status_note": "NEXT SLICE. The material barrier is gone; still to do = render EntityModel in the GPU scene and drive its per-frame body update from the scene manual loop (frameloop=never). drei <Html> nameplates stay deferred.",
+          "decision": false
         }
       ],
-      "tier": "strategic"
+      "tier": "strategic",
+      "updated": "2026-08-16"
     },
     {
       "id": "wf-interiors",
@@ -1410,6 +1425,101 @@
       },
       "tier": "strategic",
       "updated": "2026-07-02"
+    },
+    {
+      "id": "universal-intent-reader",
+      "title": "Universal player-intent reader",
+      "sub": "every conversation line is read for meaning: talk / skill / flee / attack / ambiguous; combat starts on a real trigger, not a scene flag",
+      "campaign": "combat",
+      "status": "done",
+      "tier": "strategic",
+      "status_note": "BUILT + PROVEN END TO END 2026-08-16. Live: a Performance check rolled in a peaceful scene and the NPC answered the OUTCOME; a plain question stayed prose with no roll; an attack launched combat and DREW A REAL WORLDFORGE BATTLEFIELD (forest theme, \"Commoner 1 -> Kaelin Darkhaven\", turn order live, no source gap). The festival organizer mapped to a real Commoner statblock, never a stub under his own name. Model proposes the DC, the game clamps per stakes. Escalation = violence, or a serious provocative attempt missed by 5+. Remy 2026-08-16: 2D must NOT grow its own battlefield source, so a 2D-started fight mounts the GroundWorld (SET_WORLD_VIEW_MODE 3d + awaitActiveGroundOpeningProvider, 20s cap). Earlier mapless launches were TERRAIN, not wiring: authorOpeningScene needs walkable tiles 4.5-9 from the player, and the spawn spit was ringed by water. That refusal now names the shortfall in the console instead of failing mutely.",
+      "updated": "2026-08-16",
+      "deps": [
+        {
+          "id": "shipped-combat-opening",
+          "kind": "hard",
+          "why": "generalizes its hostile-only intent reader and inherits every de-escalation route"
+        },
+        {
+          "id": "conversation-panel",
+          "kind": "hard",
+          "why": "the reader runs on the panel submit path for every conversation"
+        }
+      ],
+      "features": [
+        {
+          "title": "resolvePlayerIntent reads talk/skill/flee/attack/ambiguous in ANY conversation",
+          "status": "done",
+          "history": {
+            "built": "2026-08-16"
+          }
+        },
+        {
+          "title": "Model proposes DC, game clamps into a per-stakes band inside 5..25",
+          "status": "done",
+          "history": {
+            "built": "2026-08-16"
+          }
+        },
+        {
+          "title": "Resolved check narrated into history so NPCs answer the outcome, not the words",
+          "status": "done",
+          "history": {
+            "built": "2026-08-16"
+          }
+        },
+        {
+          "title": "Peaceful scene turns violent on attack or a hard provocative failure",
+          "status": "done",
+          "history": {
+            "built": "2026-08-16"
+          }
+        },
+        {
+          "title": "Built roster maps roles to REAL bestiary statblocks, never a person name",
+          "status": "done",
+          "history": {
+            "built": "2026-08-16"
+          }
+        },
+        {
+          "title": "Battlefield receipt stamped from live state so a turned scene draws real ground",
+          "status": "done",
+          "status_note": "stamped from live state; proven to reach the projector and pass its seed/cell identity check",
+          "history": {
+            "built": "2026-08-16"
+          }
+        },
+        {
+          "title": "A 2D-started fight mounts the GroundWorld rather than growing a second battlefield source",
+          "status": "done",
+          "status_note": "built + unit-tested; the live proof ran with the world already mounted",
+          "decision": false,
+          "history": {
+            "built": "2026-08-16"
+          }
+        },
+        {
+          "title": "A fight draws a real WorldForge battlefield from a peaceful conversation",
+          "status": "done",
+          "history": {
+            "built": "2026-08-16"
+          },
+          "status_note": "live-verified: forest crop, real Commoner, turn order running"
+        },
+        {
+          "title": "A blocked standoff ring names its shortfall instead of refusing mutely",
+          "status": "done",
+          "history": {
+            "built": "2026-08-16"
+          }
+        }
+      ],
+      "history": {
+        "designed": "2026-08-16",
+        "built": "2026-08-16"
+      }
     },
     {
       "id": "shipped-travel-provisioning",

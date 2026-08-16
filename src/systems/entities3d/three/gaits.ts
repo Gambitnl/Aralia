@@ -101,6 +101,21 @@ function makePose(): Pose {
 
 // Body v2: bones go straight to the sink as segments — no interpolated balls.
 
+/**
+ * PlanDriver arm joint stations (2026-08-15). Fractions of the SMALLER of the
+ * two link gauges that meet at the joint, so a joint can never end up wider
+ * than the limb it interrupts.
+ *
+ * The elbow pinch is moderate — an elbow is a narrowing, not a hinge pin. The
+ * wrist pinch is hard, and the tip taper harder still, because the palm mass
+ * that follows is 1.5x the last link gauge: the wrist has to be the narrowest
+ * point on the arm for the hand to read as a hand and not as the end of a
+ * sausage.
+ */
+const ARM_ELBOW_PINCH = 0.62;
+const ARM_WRIST_PINCH = 0.46;
+const ARM_WRIST_TIP = 0.42;
+
 const EULER = new Euler();
 /** round 25 (creature-anatomy): fore/hind mass-event stations (PlanDriver
  * quadruped withers, brisket, haunches). Two scratch vectors, never one — the
@@ -958,7 +973,23 @@ class PlanDriver extends BaseDriver {
       spec.stance === 'horizontal' && legs.length === 0 && spec.bodyLenM < spec.bodyRadM * 7;
     for (const chain of legs) {
       const stanceX = spec.bodyRadM * 1.15 * (chain.side === 0 ? 0.3 : chain.side);
-      const restZ = this.attachZ(chain.attach);
+      // 2026-08-15 (Remy, live eyeball): "all bipedal creatures seem to have
+      // this weird 'lean forward'". attachZ maps a chain's attach fraction
+      // onto the body's LENGTH axis, which is +z for a HORIZONTAL body. An
+      // upright body's length axis is Y — the spine loop below maps u to
+      // height and leaves z to the arch alone — but the leg treads still
+      // planted their rest position at attachZ(attach). A leg attached at the
+      // hips (attach 0.9 on the gnoll) therefore planted its foot
+      // (0.5 - 0.9) * bodyLenM = 0.4 body-lengths BEHIND the column, and the
+      // torso stood over its own heels: the whole creature read as about to
+      // fall forward. On plan 19f48ed2 that was a 0.19 m forward drift from
+      // hip to crown over 1.46 m of height.
+      //
+      // An upright plan now plants under its own column. The forward shape of
+      // the body stays with `spine.arch`, which bows the spine (sin(u*pi),
+      // zero at BOTH ends) instead of tipping the body — a curved back, not a
+      // tilted one.
+      const restZ = this.verticalBody ? 0 : this.attachZ(chain.attach);
       this.legTreads.set(
         chain.id,
         new TreadmillLeg(stanceX, restZ, chain.phaseOffset, { liftH: this.hM * 0.07 }),
@@ -1939,7 +1970,32 @@ class PlanDriver extends BaseDriver {
           const isTip = j === chain.links.length - 1;
           // round 4 (creature-anatomy): rigid tails/tentacles match the smooth
           // tube's pointed 0.12 tip so the crowd-bake silhouette agrees.
-          const tipF = chain.kind === 'tail' || chain.kind === 'tentacle' ? 0.12 : 0.6;
+          // 2026-08-15 (Remy, live eyeball on a generated gnoll, annotated on
+          // the arm): the plan arm chain showed its elbow and wrist as faint
+          // seams and nothing else. A joint that only exists in the topology
+          // does not exist for a viewer — the toon ramp quantizes a smooth
+          // radius step into one band, and a flush stack of same-gauge forms
+          // has no silhouette event at all (the campaign's binding render
+          // lesson). The biped arm has carried a shoulder→elbow→wrist station
+          // ladder since round 20; the plan path never got one.
+          //
+          // Plan arms now PINCH at every interior joint, so each link bulges
+          // past a valley the ink outline scallops, and the wrist pinches
+          // harder than the elbow so the palm below reads as a separate mass
+          // on the end of a narrow wrist. Same shape as the leg's kneeR rule
+          // directly above, tuned for an arm.
+          //
+          // Silhouette carries the joint on its own here; the value channel is
+          // the inverse-hull ink, which now has a real notch to sink into
+          // (that is precisely the condition the campaign's knee-crease and
+          // finger-valley note says a value step needs). Dedicated `dark.`
+          // valley balls were built and then cut: at 192 triangles each they
+          // put the centaur fixture over PLAN_TRIANGLE_BUDGET, and the
+          // silhouette event is the half that survives any ramp.
+          const tipF =
+            chain.kind === 'tail' || chain.kind === 'tentacle' ? 0.12
+            : chain.kind === 'arm' ? ARM_WRIST_TIP
+            : 0.6;
           let r0 = Math.max(0.008, chain.links[j].rM);
           let r1 = Math.max(0.008, isTip ? chain.links[j].rM * tipF : chain.links[j + 1].rM);
           // round 11 (creature-anatomy): CALF MASS — the round-10 dragon
@@ -1958,6 +2014,22 @@ class PlanDriver extends BaseDriver {
               Math.max(chain.links[jj + 1].rM, Math.min(chain.links[jj].rM * 0.45, chain.links[jj + 1].rM * 1.8));
             if (j > 0) r0 = Math.max(r0, kneeR(j - 1));
             if (!isTip) r1 = Math.max(r1, kneeR(j));
+          }
+          if (chain.kind === 'arm' && chain.links.length >= 2) {
+            // gauge AT the joint between link jj and link jj+1. On a 3+ link
+            // arm the LAST interior joint is the wrist (the palm hangs off the
+            // tip) and everything before it is an elbow; a 2-link arm's only
+            // interior joint is the elbow and its wrist is the tip taper.
+            const jointR = (jj: number): number =>
+              Math.max(
+                0.006,
+                Math.min(chain.links[jj].rM, chain.links[jj + 1].rM) *
+                  (chain.links.length >= 3 && jj === chain.links.length - 2
+                    ? ARM_WRIST_PINCH
+                    : ARM_ELBOW_PINCH),
+              );
+            if (j > 0) r0 = jointR(j - 1);
+            if (!isTip) r1 = jointR(j);
           }
           sink.seg(`${chain.id}.${j}`, a.x, a.y, a.z, b.x, b.y, b.z, r0, r1);
         }
@@ -2024,7 +2096,7 @@ class PlanDriver extends BaseDriver {
           );
         }
       }
-      // stylized hand: palm ball + three splayed fingers at the tip
+      // hand / paw at the chain tip
       if (chain.tips === 'hand') {
         const tip = pts[pts.length - 1];
         const prev = pts[pts.length - 2] ?? tip;
@@ -2037,33 +2109,42 @@ class PlanDriver extends BaseDriver {
         // the body". The palm boulder grows past the forearm gauge and three
         // thick claws rake DOWNWARD to hooked points instead of splaying as
         // level fingers.
-        const palmR = Math.max(0.02, lastR * (this.rocky ? 2.05 : 1.5));
-        sink.ball(`${chain.id}.palm`, tip.x, tip.y, tip.z, palmR);
-        // round 24 (creature-anatomy), second pass: the first rocky hand grew
-        // three PENCIL SPIKES off a ball — the opposite of the reference's
-        // "oversized claw masses, the biggest limbs on the body". Rock claws
-        // are SHORT and FAT: barely longer than the palm, near palm gauge at
-        // the root, blunt-tapered rather than needled.
-        const fingerLen = palmR * (this.rocky ? 0.95 : 1.9);
-        const fingerR = Math.max(0.006, lastR * (this.rocky ? 0.95 : 0.38));
-        for (let f = 0; f < 3; f++) {
-          V_BEND.copy(V_HAND).applyAxisAngle(V_UP, (f - 1) * 0.42);
-          if (this.rocky) {
+        // A paw keyed ONLY to the forearm gauge is a stick paw on a stick arm.
+        // The gnoll's forearm is thinner than the inverse-hull ink line
+        // (hM * 0.011), so its hand rendered as a bulb of outline with nothing
+        // inside — no palm to see, never mind digits. A flesh paw now also has
+        // a floor keyed to the creature's own height, the way the biped hand
+        // floors on skull radius (`handR = max(armR * 1.05, skullR * 0.45)`),
+        // capped against the body radius so a twelve-armed radial floater does
+        // not sprout twelve dinner plates. Rocky claw masses keep their own
+        // rule — the design language wants them oversized on purpose.
+        const palmR = this.rocky
+          ? Math.max(0.02, lastR * 2.05)
+          : Math.max(0.02, lastR * 1.5, Math.min(this.hM * 0.032, s.bodyRadM * 0.55));
+        if (this.rocky) {
+          sink.ball(`${chain.id}.palm`, tip.x, tip.y, tip.z, palmR);
+          // round 24 (creature-anatomy), second pass: the first rocky hand grew
+          // three PENCIL SPIKES off a ball — the opposite of the reference's
+          // "oversized claw masses, the biggest limbs on the body". Rock claws
+          // are SHORT and FAT: barely longer than the palm, near palm gauge at
+          // the root, blunt-tapered rather than needled.
+          const fingerLen = palmR * 0.95;
+          const fingerR = Math.max(0.006, lastR * 0.95);
+          for (let f = 0; f < 3; f++) {
+            V_BEND.copy(V_HAND).applyAxisAngle(V_UP, (f - 1) * 0.42);
             V_BEND.y -= 0.85; // claws dig toward the ground
             V_BEND.normalize();
-          }
-          sink.seg(
-            `${chain.id}.finger${f}`,
-            tip.x + V_HAND.x * palmR * 0.6,
-            tip.y + V_HAND.y * palmR * 0.6,
-            tip.z + V_HAND.z * palmR * 0.6,
-            tip.x + V_BEND.x * (palmR * 0.6 + fingerLen),
-            tip.y + V_BEND.y * (palmR * 0.6 + fingerLen),
-            tip.z + V_BEND.z * (palmR * 0.6 + fingerLen),
-            fingerR,
-            this.rocky ? Math.max(0.008, fingerR * 0.42) : fingerR * 0.7,
-          );
-          if (this.rocky) {
+            sink.seg(
+              `${chain.id}.finger${f}`,
+              tip.x + V_HAND.x * palmR * 0.6,
+              tip.y + V_HAND.y * palmR * 0.6,
+              tip.z + V_HAND.z * palmR * 0.6,
+              tip.x + V_BEND.x * (palmR * 0.6 + fingerLen),
+              tip.y + V_BEND.y * (palmR * 0.6 + fingerLen),
+              tip.z + V_BEND.z * (palmR * 0.6 + fingerLen),
+              fingerR,
+              Math.max(0.008, fingerR * 0.42),
+            );
             // one plate boulder per claw: the fist is a CLUSTER of rocks
             sink.ball(
               `plate.${chain.id}.knuck${f}`,
@@ -2073,11 +2154,112 @@ class PlanDriver extends BaseDriver {
               fingerR * 1.15,
             );
           }
-        }
-        if (this.rocky) {
           // knuckle boulder capping the claw mass — the fist reads as one
           // rock chunk, not a ball with sticks
           sink.ball(`plate.${chain.id}.knuckle`, tip.x + V_HAND.x * palmR * 0.5, tip.y + palmR * 0.45, tip.z + V_HAND.z * palmR * 0.5, palmR * 0.85);
+        } else {
+          // 2026-08-15 (Remy, live eyeball on a generated gnoll): the flesh paw
+          // was "oddly proportioned and a strange 'ball' for a palm" — one
+          // sphere with three pencils poked into it. A sphere has no front, no
+          // back and no knuckle line, so the hand read as a knob from every
+          // camera, and the pencil digits were thinner than the ink outline
+          // that drew them.
+          //
+          // The paw now follows the recipe that won the biped grip hand
+          // (smoothBipedGeometry, round 21): a palm BLOCK that widens from the
+          // wrist to a real knuckle plane, digits whose root spheres BULGE PAST
+          // the palm gauge so the outline scallops between them, and near-black
+          // VALLEY balls sunk into the gaps the silhouette already cut. Three
+          // digits plus an opposed thumb — a paw, not a mitten.
+
+          // hand frame: forward along the arm, a lateral axis across the palm,
+          // and the palm normal. Near the degenerate case (an arm hanging dead
+          // vertical, V_HAND parallel to up) the lateral axis comes off +Z
+          // instead, which is well conditioned there.
+          V_PAW_SIDE.copy(Math.abs(V_HAND.y) > 0.9 ? V_FWD_Z : V_UP).cross(V_HAND).normalize();
+          V_PAW_UP.copy(V_HAND).cross(V_PAW_SIDE).normalize();
+
+          const palmLen = palmR * 1.15;
+          // knuckle line: where the digits root and the palm is widest
+          V_PAW_KNUCKLE.copy(V_HAND).multiplyScalar(palmLen).add(tip);
+          // THE BLOCK, and it keeps the `<chain>.palm` id: this is still the
+          // skeleton's terminal hand bone, now a seg rather than a ball, and
+          // planSkeleton.pushTerminal binds it from the rest segment so the
+          // bone carries the palm's orientation instead of an identity
+          // quaternion. Emitting a buried boss ball alongside it just to
+          // satisfy the old ball-shaped contract cost 384 triangles a hand and
+          // rendered nothing.
+          //
+          // Narrow at the wrist (which the arm chain now pinches to match),
+          // widening into the knuckle plane — a wedge, never a ball.
+          sink.seg(
+            `${chain.id}.palm`,
+            tip.x, tip.y, tip.z,
+            V_PAW_KNUCKLE.x, V_PAW_KNUCKLE.y, V_PAW_KNUCKLE.z,
+            palmR * 0.66, palmR * 0.98,
+          );
+          const digitLen = palmR * 1.5;
+          const digitR = Math.max(0.006, palmR * 0.44);
+          // THREE digits, as before — but two forward fingers and an opposed
+          // thumb rather than a symmetric three-prong fork. The digit count is
+          // held at three on purpose: a fourth costs 400 triangles per hand and
+          // puts the centaur fixture over PLAN_TRIANGLE_BUDGET.
+          //
+          // Each finger roots OUTBOARD of the palm's own gauge, so its root
+          // sphere (segmentBody caps every segment end at r * 0.98) stands
+          // proud of the block as a knuckle instead of sinking into it — the
+          // "bulge past the valley radius" rule that gave the biped grip hand
+          // its scallops. They also SPLAY hard, which is what keeps the gap
+          // between them wider than the ink hull all the way down: parallel
+          // digits at this scale get inked shut into one mitten.
+          for (let f = 0; f < 2; f++) {
+            const across = (f - 0.5) * palmR * 0.86;
+            V_PAW_A.copy(V_PAW_SIDE).multiplyScalar(across).add(V_PAW_KNUCKLE);
+            // digits also curl DOWN off the knuckle plane: a straight-ahead
+            // digit profiles to nothing in the front panel (the campaign's
+            // "cock small forms so the bend profiles to at least one camera").
+            V_BEND.copy(V_HAND)
+              .addScaledVector(V_PAW_SIDE, (f - 0.5) * 0.9)
+              .addScaledVector(V_PAW_UP, -0.45)
+              .normalize();
+            V_PAW_B.copy(V_BEND).multiplyScalar(digitLen).add(V_PAW_A);
+            sink.seg(
+              `${chain.id}.finger${f}`,
+              V_PAW_A.x, V_PAW_A.y, V_PAW_A.z,
+              V_PAW_B.x, V_PAW_B.y, V_PAW_B.z,
+              digitR, digitR * 0.55,
+            );
+          }
+          // the dark VALLEY between the two fingers — the value half of the
+          // grip-hand recipe, sunk into the notch the splay already cut and
+          // sized well under the digit gauge so it darkens the gap without
+          // filling the scallop the outline draws there. `dark.` carries a
+          // darkened body tone and no ink shell of its own.
+          V_PAW_B.copy(V_PAW_KNUCKLE).addScaledVector(V_HAND, palmR * 0.18);
+          sink.ball(
+            `dark.${chain.id}.valley`,
+            V_PAW_B.x, V_PAW_B.y, V_PAW_B.z,
+            Math.max(0.005, digitR * 0.6),
+          );
+          // the thumb: opposed, rooted back along the palm on the inboard side
+          // and swinging across the front of the block. It is what stops the
+          // paw reading as a symmetric three-prong fork from every angle.
+          const thumbSide = chain.side === 0 ? 1 : -chain.side;
+          V_PAW_A.copy(V_PAW_SIDE)
+            .multiplyScalar(thumbSide * palmR * 0.62)
+            .addScaledVector(V_HAND, palmLen * 0.34)
+            .add(tip);
+          V_BEND.copy(V_HAND)
+            .addScaledVector(V_PAW_SIDE, thumbSide * 0.85)
+            .addScaledVector(V_PAW_UP, -0.3)
+            .normalize();
+          V_PAW_B.copy(V_BEND).multiplyScalar(digitLen * 0.78).add(V_PAW_A);
+          sink.seg(
+            `${chain.id}.thumb`,
+            V_PAW_A.x, V_PAW_A.y, V_PAW_A.z,
+            V_PAW_B.x, V_PAW_B.y, V_PAW_B.z,
+            digitR * 1.05, digitR * 0.62,
+          );
         }
       }
       // round 24 (creature-anatomy): ROCKY LIMBS ARE BOULDER STACKS — two
@@ -2549,6 +2731,14 @@ class PlanDriver extends BaseDriver {
 
 const V_UP = new Vector3(0, 1, 0);
 const V_FWD_Z = new Vector3(0, 0, 1);
+/** Paw scratch (PlanDriver hand tips): the palm frame's lateral and normal
+ * axes, the knuckle-line point, and two endpoint scratches. All live at the
+ * same time inside one hand, so they cannot share a vector. */
+const V_PAW_SIDE = new Vector3();
+const V_PAW_UP = new Vector3();
+const V_PAW_KNUCKLE = new Vector3();
+const V_PAW_A = new Vector3();
+const V_PAW_B = new Vector3();
 /** round 24 (creature-anatomy): per-link orthonormal frame for rocky boulder
  * plates — direction plus the two perpendiculars they ring around. */
 const V_LIMB_D = new Vector3();

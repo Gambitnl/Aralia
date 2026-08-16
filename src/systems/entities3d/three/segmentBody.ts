@@ -651,16 +651,49 @@ export function createSegmentBody(options: SegmentBodyOptions): SegmentBody {
               // (limbR + reach, y 0) up to the limb wall (slightly inside it,
               // y 0.45 reach — low profile reads as melt, tall reads as a
               // trumpet). Profile ordered bottom-up so faces wind OUTWARD.
+              //
+              // 2026-08-15 (Remy, live eyeball on a generated gnoll): that
+              // profile is an OPEN polyline — neither end touches the lathe
+              // axis — so the lathe swept a bare annular SURFACE with a
+              // boundary loop at each rim. Rendered FrontSide (the toon
+              // renderer's shell assumption) it is visible from outside and
+              // culled to NOTHING from behind: Remy read the collars as
+              // "piece-connecting sheets" that "become invisible on one side".
+              // Measured on plan 19f48ed2: 112 triangles, 28 boundary edges,
+              // material.side === FrontSide, on all four collars
+              // (neck0/arm0L/arm0R/tail0).
+              //
+              // The profile is now a CLOSED loop: the fillet curve out, then
+              // straight in to the lathe AXIS at the top and back along the
+              // base to the start. Lathed, that is a solid plug — zero
+              // boundary edges, reads from every azimuth. Closing the
+              // geometry, not flipping to DoubleSide: the campaign's
+              // `DoubleSide both-windings` lesson is that duplicated windings
+              // z-fight.
+              //
+              // Closing to the axis rather than to an inner wall is the CHEAP
+              // way to close it — two extra profile points instead of a whole
+              // mirrored curve — and the volume it adds is buried inside the
+              // limb tube the collar wraps, so it is invisible either way.
+              // 2 steps at 12 radial keeps the closed collar at 120 triangles
+              // against the open skirt's 112 — eight over, on a piece a
+              // beholder wears eleven of and the centaur four. Closing this
+              // shell cost the plan triangle budget almost nothing.
+              const steps = 2;
               const profile: Vector2[] = [];
-              const steps = 4;
               for (let i = 0; i <= steps; i++) {
                 const t = 1 - i / steps;
+                const c = Math.cos((t * Math.PI) / 2);
                 profile.push(new Vector2(
-                  Math.max(0.004, limbR * 0.98 + reach * (1 - Math.cos((t * Math.PI) / 2))),
-                  reach * 0.45 * Math.cos((t * Math.PI) / 2),
+                  Math.max(0.004, limbR * 0.98 + reach * (1 - c)),
+                  reach * 0.45 * c,
                 ));
               }
-              const geometry = new LatheGeometry(profile, 14);
+              const top = profile[profile.length - 1];
+              profile.push(new Vector2(0, top.y));   // close the top onto the axis
+              profile.push(new Vector2(0, profile[0].y)); // and down the axis to the base
+              profile.push(profile[0].clone());      // back out along the base: no free end
+              const geometry = new LatheGeometry(profile, 12);
               const group = new Group();
               group.name = `seg:${id}`;
               group.add(new Mesh(geometry, fillMaterial!));

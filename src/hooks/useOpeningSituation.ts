@@ -48,6 +48,7 @@ import {
 import { situationNpcsToRichNpcs } from '../systems/gameEntry/situationNpcToRichNpc';
 import { buildOpeningQuest } from '../systems/gameEntry/openingQuest';
 import { buildOpeningScenePrompt } from '../systems/gameEntry/openingScenePrompt';
+import { battlefieldSourceForState } from '../systems/gameEntry/battlefieldSourceForState';
 import { generateSceneUrl } from '../services/SceneService';
 import { ENV } from '../config/env';
 import type {
@@ -122,20 +123,9 @@ export function buildSituationLocation(state: GameState): OpeningSituationLocati
     // The model sees only the ordinary location fields below; this receipt is
     // copied onto a valid hostile threat after generation, preventing model
     // output from relocating combat or manufacturing its own source lineage.
-    const matchingEntryCenter = state.playerCell
-        && state.entry3DAnchor?.cellId === state.playerCell.cellId
-        ? state.entry3DAnchor.centerPx
-        : undefined;
-    const battlefieldSource: OpeningSituationLocation['battlefieldSource'] = state.playerCell
-        ? {
-            kind: 'worldforge-opening-location',
-            receiptId: `opening:${state.worldSeed}:cell:${state.playerCell.cellId}`,
-            worldSeed: state.worldSeed,
-            cellId: state.playerCell.cellId,
-            ...(matchingEntryCenter ? { centerPx: matchingEntryCenter } : {}),
-            locationLabel: placeName,
-        }
-        : undefined;
+    // Shared with the intent flow, which stamps the same receipt when a peaceful
+    // conversation turns violent.
+    const battlefieldSource = battlefieldSourceForState(state, placeName);
     return {
         name: placeName,
         biome: cellBiome ?? loc?.biomeId,

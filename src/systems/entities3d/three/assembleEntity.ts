@@ -40,6 +40,7 @@ import {
   Color,
   Group,
   Material,
+  Matrix4,
   Mesh,
   MeshBasicMaterial,
   Object3D,
@@ -59,7 +60,7 @@ import { createSkinnedBiped, createSkinnedPlan, createSkinnedSpecies } from './s
 import { isSpeciesGait } from './speciesSkeleton';
 import { createSkinnedClipPlayer, type SkinnedClipPlayer } from './skinnedClipPlayer';
 import type { AnimationClip } from 'three';
-import { buildHeadForm, buildHumanoidHead, HUMANOID_EYE } from './headForms';
+import { buildHeadForm, buildHumanoidHead, HUMANOID_EYE, PLAN_EYE_STATION } from './headForms';
 import { bipedSkullRadiusM } from './skeletonBuilder';
 import type { WingJointPose } from '../parts/wingParts';
 import {
@@ -354,6 +355,8 @@ export function assembleEntity(blueprint: EntityBlueprint, options: AssembleOpti
   // like every ball head does. In segments mode there are no bones, so the
   // head keeps the original per-frame socket placement below.
   const formHeads: Array<{ group: Group; head: number; bone: Bone | null }> = [];
+  /** head index → its sculpted form, for the eye station (see the eye loop). */
+  const formHeadByIndex = new Map<number, { group: Group; head: number; bone: Bone | null }>();
   if (blueprint.planSpec && !wireframe) {
     const toothMaterial = toonMaterial('#e8e2d4');
     blueprint.planSpec.heads.forEach((headSpec, h) => {
@@ -371,6 +374,7 @@ export function assembleEntity(blueprint: EntityBlueprint, options: AssembleOpti
       if (headBone) headBone.add(formGroup);
       else bodyRoot.add(formGroup);
       formHeads.push({ group: formGroup, head: h, bone: headBone });
+      formHeadByIndex.set(h, formHeads[formHeads.length - 1]);
     });
   }
 
@@ -645,6 +649,13 @@ export function assembleEntity(blueprint: EntityBlueprint, options: AssembleOpti
   const tmpQuatB = new Quaternion();
   const tmpVecA = new Vector3();
   const FORWARD = new Vector3(0, 0, 1);
+  // planned-eye placement scratch (see the eye loop in update()): the head
+  // form's transform expressed in bodyRoot space, and a throwaway scale sink
+  // for decompose() so the blink squash on eye.scale survives.
+  const eyeHeadMat = new Matrix4();
+  const bodyRootInv = new Matrix4();
+  const eyeScrapVec = new Vector3();
+  const eyeScrapScale = new Vector3();
   const AXIS_Z = new Vector3(0, 0, 1);
   const WING_JOINT_NAMES = ['wingArm', 'wingElbow', 'wingHand'] as const;
 
@@ -792,28 +803,46 @@ export function assembleEntity(blueprint: EntityBlueprint, options: AssembleOpti
         fh.group.quaternion.setFromUnitVectors(FORWARD, tmpVecA);
         fh.group.scale.setScalar(socket.r);
       }
+      // EYES SEAT IN THEIR SOCKETS. The eyeball is placed by the SAME
+      // transform the socket art rides, from the SAME constant
+      // (PLAN_EYE_STATION) the art is built from — see the note on that
+      // constant for what the two independent placements had drifted into.
+      //
+      // A head that has a sculpted form takes its transform from the form
+      // group itself, in whatever frame that group actually lives in (bodyRoot
+      // for segment bodies, the head<i> BONE for skinned ones); the eye is a
+      // child of bodyRoot, so the form's world matrix comes back through
+      // bodyRoot's inverse. A head with no form is a ball at the socket, and
+      // its transform is composed from the socket exactly as the assembler
+      // composes a form group's above.
+      bodyRoot.updateWorldMatrix(true, false);
+      bodyRootInv.copy(bodyRoot.matrixWorld).invert();
       for (const [i, eye] of eyes.entries()) {
-        const socket = sockets[plannedEyeHead[i]];
+        const headIndex = plannedEyeHead[i];
+        const socket = sockets[headIndex];
         if (!socket) continue;
         const K = socket.eyes.count;
         const spread = K === 1 ? 0 : plannedEyeSlot[i] / (K - 1) - 0.5;
-        // face frame: forward f, right = f × up (horizontal)
-        const rx = -socket.fz;
-        const rz = socket.fx;
-        // round 5 (creature-anatomy): spread 0.95 → 0.72 — the lofted skulls
-        // taper toward the nose, so wide-set eyes floated OFF the snout
-        // flanks as googly discs; the tighter set seats them on the brow line
-        // where the cheek station still carries width.
-        // round 7 (creature-anatomy): forward 0.72 → 0.62 — the ball now sits
-        // half-buried in the brow/snout junction (a SOCKETED eye under the
-        // headForm's new orbit hood + lid line, not a disc glued on the cheek).
-        eye.position.set(
-          socket.x + socket.fx * socket.r * 0.62 + rx * spread * socket.r * 0.72,
-          socket.y + socket.r * 0.16,
-          socket.z + socket.fz * socket.r * 0.62 + rz * spread * socket.r * 0.72,
-        );
-        tmpVecA.set(socket.fx, socket.fy, socket.fz);
-        eye.quaternion.setFromUnitVectors(FORWARD, tmpVecA);
+        const fh = formHeadByIndex.get(headIndex);
+        if (fh) {
+          fh.group.updateWorldMatrix(true, false);
+          eyeHeadMat.multiplyMatrices(bodyRootInv, fh.group.matrixWorld);
+        } else {
+          tmpVecA.set(socket.fx, socket.fy, socket.fz);
+          tmpQuat.setFromUnitVectors(FORWARD, tmpVecA);
+          eyeHeadMat.compose(
+            eyeScrapVec.set(socket.x, socket.y, socket.z),
+            tmpQuat,
+            eyeScrapScale.setScalar(socket.r),
+          );
+        }
+        // `spread` runs −0.5…+0.5 over the head's eye slots, so ±0.5 lands on
+        // ±PLAN_EYE_STATION.x — the station IS the two-eye case, and extra
+        // eyes on a many-eyed head interpolate across the same span.
+        eye.position
+          .set(spread * 2 * PLAN_EYE_STATION.x, PLAN_EYE_STATION.y, PLAN_EYE_STATION.z)
+          .applyMatrix4(eyeHeadMat);
+        eyeHeadMat.decompose(eyeScrapVec, eye.quaternion, eyeScrapScale);
       }
     } else if (humanoidHead) {
       // round 7 (humanoid-anatomy): the sculpted head rides the head bone in
