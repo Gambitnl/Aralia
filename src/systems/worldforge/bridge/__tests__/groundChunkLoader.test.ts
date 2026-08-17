@@ -1740,15 +1740,15 @@ describe("extractLocalTerrainPatch", () => {
       size: "Small",
       isWornOrCarried: false,
       isMagical: false,
+      isFixedToSurface: false,
+      weightPounds: 25,
       source: {
         sourceKind: "crate",
         worldMeters: { x: 54, z: 50 },
       },
     });
-    // Mobility and weight are intentionally absent until the prop catalog owns
-    // those facts; extraction must not guess that a crate is loose or light.
-    expect(crate?.isFixedToSurface).toBeUndefined();
-    expect(crate?.weightPounds).toBeUndefined();
+    // A loose crate publishes its mobility fact and an authored weight so
+    // movement/telekinesis spells stop treating it as unknown-conservative.
     expect(
       first.tiles.get(`${tree?.position.x}-${tree?.position.y}`)?.decoration,
     ).toBe("tree");

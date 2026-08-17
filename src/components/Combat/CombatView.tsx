@@ -33,6 +33,7 @@ import React, {
   useEffect,
   useCallback,
   useContext,
+  useMemo,
   useRef,
   lazy,
   Suspense,
@@ -83,6 +84,8 @@ import InitiativeTracker from "../BattleMap/InitiativeTracker";
 import AbilityPalette from "../BattleMap/AbilityPalette";
 import CombatLog from "../BattleMap/CombatLog";
 import ActionEconomyBar from "../BattleMap/ActionEconomyBar";
+import { CombatCommandToolbar } from "../BattleMap/CombatCommandToolbar";
+import { selectQuickAttack } from "../BattleMap/quickAttack";
 import PartyDisplay from "../BattleMap/PartyDisplay";
 import { CombatIntentPreview } from "../BattleMap/CombatIntentPreview";
 import {
@@ -818,6 +821,30 @@ const CombatView: React.FC<CombatViewProps> = ({
   // undefined value while the turn order is still being prepared.
   const currentCharacter = turnManager.getCurrentCharacter() ?? null;
 
+  // The Move / Attack commands moved from the battle map into the ACTIONS panel
+  // (Remy 2026-08-16). The panel and the map are siblings, so the mode is owned
+  // HERE and handed to the map as a controlled value. Two copies would let the
+  // buttons and the board disagree about what a click means.
+  const [actionMode, setActionMode] = useState<"move" | "ability" | null>(null);
+  const controlledActionMode = useMemo(
+    () => ({ value: actionMode, onChange: setActionMode }),
+    [actionMode],
+  );
+
+  // The shortcut must represent a REAL ready direct attack, not the first entry
+  // in an arbitrary ability array: it skips spells, movement, cooldowns, spent
+  // uses, and attacks the character cannot afford this turn.
+  const quickAttack = currentCharacter
+    ? selectQuickAttack(currentCharacter.abilities, (cost) =>
+        turnManager.canAffordAction(currentCharacter, cost),
+      )
+    : null;
+  const quickAttackIsArmed = Boolean(
+    abilitySystem.targetingMode &&
+      quickAttack &&
+      abilitySystem.selectedAbility?.id === quickAttack.id,
+  );
+
   // Objective at a glance: the win condition should not require scrolling the
   // enemy roster below the fold.
   const enemiesRemaining = characters.filter(
@@ -1085,6 +1112,7 @@ const CombatView: React.FC<CombatViewProps> = ({
                 spellMapArtifacts={spellMapArtifacts}
                 assetOverlayVisible={assetOverlayVisible}
                 cameraFocusRequest={cameraFocusRequest}
+                controlledActionMode={controlledActionMode}
                 combatState={{
                   turnManager: turnManager,
                   turnState: turnManager.turnState,
@@ -1470,6 +1498,35 @@ const CombatView: React.FC<CombatViewProps> = ({
               <ActionEconomyBar
                 character={currentCharacter}
                 onExecuteAction={turnManager.executeAction}
+                commandToolbar={
+                  currentCharacter.team === "player" &&
+                  turnManager.isCharacterTurn(currentCharacter.id) ? (
+                    <CombatCommandToolbar
+                      actionMode={actionMode}
+                      quickAttack={quickAttack}
+                      quickAttackIsArmed={quickAttackIsArmed}
+                      onMove={() => {
+                        // Returning to movement must drop any half-armed attack,
+                        // or a later enemy click still resolves as an ability
+                        // target instead of a move.
+                        abilitySystem.cancelTargeting();
+                        setActionMode("move");
+                      }}
+                      onAttack={() => {
+                        // Pressing an armed shortcut again cancels it, matching
+                        // the ability palette so both command origins agree.
+                        if (quickAttackIsArmed) {
+                          abilitySystem.cancelTargeting();
+                          setActionMode("move");
+                          return;
+                        }
+                        if (!currentCharacter || !quickAttack) return;
+                        setActionMode("ability");
+                        abilitySystem.startTargeting(quickAttack, currentCharacter);
+                      }}
+                    />
+                  ) : null
+                }
               />
             </>
           )}

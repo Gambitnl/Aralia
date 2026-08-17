@@ -3,8 +3,8 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 13/08/2026, 14:32:31
- * Dependents: commands/effects/AttackRollModifierCommand.ts, commands/effects/GrantedActionCommand.ts, commands/effects/GraspingVineCommand.ts, commands/effects/ReactiveEffectCommand.ts, commands/factory/AbilityCommandFactory.ts, commands/factory/SpellCommandFactory.ts
+ * Last Sync: 16/08/2026, 14:41:34
+ * Dependents: commands/effects/AttackRollModifierCommand.ts, commands/effects/GrantedActionCommand.ts, commands/effects/GraspingVineCommand.ts, commands/effects/ReactiveEffectCommand.ts, commands/factory/AbilityCommandFactory.ts, commands/factory/SpellCommandFactory.ts, components/DesignPreview/steps/raceDomain/leaves/halfOrcRaceLeaf.tsx
  * Imports: 19 files
  *
  * MULTI-AGENT SAFETY:
@@ -54,6 +54,22 @@ import {
 
 /** Unique key for tracking Slasher speed reduction once-per-turn usage */
 const SLASHER_SLOW_USAGE_KEY = 'slasher_slow';
+
+/**
+ * Dark One's Blessing is gated on reducing a *hostile* creature to 0 HP. The
+ * combat team model is player/enemy/neutral, so a creature counts as hostile
+ * only on the opposing player↔enemy team; same-team and neutral creatures
+ * never trigger the blessing.
+ */
+export function areTeamsHostile(
+  casterTeam: CombatCharacter['team'],
+  targetTeam: CombatCharacter['team'],
+): boolean {
+  return (
+    (casterTeam === 'player' && targetTeam === 'enemy')
+    || (casterTeam === 'enemy' && targetTeam === 'player')
+  );
+}
 
 /**
  * Flavor verbs for combat log messages, keyed by damage type.
@@ -536,6 +552,7 @@ export class DamageCommand extends BaseEffectCommand<DamageEffect> {
       if (
         caster.darkOnesBlessingTempHp &&
         caster.id !== target.id &&
+        areTeamsHostile(caster.team, target.team) &&
         targetAfterResistance.currentHP > 0 &&
         updatedTarget.currentHP === 0 &&
         !target.isSummon

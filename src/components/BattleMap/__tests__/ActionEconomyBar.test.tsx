@@ -24,6 +24,49 @@ describe('ActionEconomyBar', () => {
         }
     });
 
+    // The Move / Attack pair moved off the battle map and into this panel on
+    // 2026-08-16, so the whole turn reads in one place. These pin the placement:
+    // a slot that silently dropped its child would leave the player with no
+    // way to move or attack at all.
+    it('renders the command toolbar inside the ACTIONS panel', () => {
+        render(
+            <ActionEconomyBar
+                character={mockCharacter}
+                onExecuteAction={mockOnExecuteAction}
+                commandToolbar={<div data-testid="command-slot">Move / Attack</div>}
+            />,
+        );
+
+        const slot = screen.getByTestId('command-slot');
+        const panel = slot.closest('div.rounded-xl');
+        expect(panel).not.toBeNull();
+        expect(panel!.querySelector('h3')!.textContent).toBe('Actions');
+    });
+
+    it('places the commands ABOVE the economy they spend', () => {
+        render(
+            <ActionEconomyBar
+                character={mockCharacter}
+                onExecuteAction={mockOnExecuteAction}
+                commandToolbar={<div data-testid="command-slot">Move / Attack</div>}
+            />,
+        );
+
+        const slot = screen.getByTestId('command-slot');
+        const actionPip = screen.getByLabelText('Action');
+        // Node.compareDocumentPosition: 4 means the argument FOLLOWS the node.
+        expect(slot.compareDocumentPosition(actionPip) & 4).toBeTruthy();
+    });
+
+    it('renders the panel unchanged when no toolbar is supplied', () => {
+        // The design lab and preview scenarios mount this bar with no battle-map
+        // command state to give it.
+        render(<ActionEconomyBar character={mockCharacter} onExecuteAction={mockOnExecuteAction} />);
+
+        expect(screen.queryByTestId('command-slot')).toBeNull();
+        expect(screen.getByLabelText('Action')).toBeInTheDocument();
+    });
+
     it('renders indicators for action, bonus, and reaction', () => {
         render(<ActionEconomyBar character={mockCharacter} onExecuteAction={mockOnExecuteAction} />);
 

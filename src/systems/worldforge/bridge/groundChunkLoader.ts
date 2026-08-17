@@ -4601,10 +4601,10 @@ function projectWorldforgeTargetableObjects(
     });
   }
 
-  // Catalog props supply identity, size, mundane status, and a physical
-  // footprint. The catalog does not yet distinguish a loose crate from a fixed
-  // fence or publish weight, so those fields remain absent instead of being
-  // invented; restrictive spells treat unknown facts conservatively.
+  // Catalog props now publish their full target-fact envelope straight from the
+  // definition: mobility (loose vs fixed), an authored weight, and a real
+  // magical flag. Movement/telekinesis spells can stop treating props as
+  // unknown-conservative and apply their pound limits honestly.
   for (const prop of ground.props) {
     const definition = PROPS_BY_ID.get(prop.defId);
     if (!definition) continue;
@@ -4632,7 +4632,9 @@ function projectWorldforgeTargetableObjects(
       position,
       size: PROP_OBJECT_SIZE[definition.sizeClass],
       isWornOrCarried: false,
-      isMagical: false,
+      isMagical: definition.isMagical,
+      isFixedToSurface: definition.isFixedToSurface,
+      weightPounds: definition.weightPounds,
       source: {
         kind: "worldforge-prop",
         sourceId,

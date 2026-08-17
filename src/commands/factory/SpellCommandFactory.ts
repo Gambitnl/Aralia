@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 12/08/2026, 06:33:53
+ * Last Sync: 17/08/2026, 01:55:22
  * Dependents: commands/index.ts
  * Imports: 36 files
  *
@@ -662,15 +662,17 @@ class SpellAttackCommand implements SpellCommand {
   }
 
   private resolveBeamCount(): number {
-    const maxTargets = (this.spell.targeting.type as string) === 'multi'
-      ? (this.spell.targeting as any).maxTargets
+    // Comparing the literal `type` directly (no `as string`) keeps the
+    // discriminated union narrowing, so `maxTargets` resolves without a cast.
+    const maxTargets = this.spell.targeting.type === 'multi'
+      ? this.spell.targeting.maxTargets
       : undefined
 
     if (maxTargets) {
       return Math.max(1, resolveScalableNumber(maxTargets, this.caster.level || 1))
     }
 
-    const baseCount = (this.spell.targeting as any).instanceAllocation?.baseCount
+    const baseCount = this.spell.targeting.instanceAllocation?.baseCount
     return Math.max(1, typeof baseCount === 'number' ? baseCount : 1)
   }
 
@@ -784,7 +786,7 @@ class SpellAttackCommand implements SpellCommand {
     }
 
     const ignitionObject = damageEffect.createdObjects?.find(createdObject =>
-      (createdObject as any).ignitesTouchedObjects === true &&
+      createdObject.ignitesTouchedObjects === true &&
       createdObject.appearsIn === 'target_object'
     )
 
@@ -795,7 +797,7 @@ class SpellAttackCommand implements SpellCommand {
     const selectedObject = objectTarget.object
     const isWornOrCarried = selectedObject?.isWornOrCarried === true
 
-    if ((ignitionObject as any).excludesWornOrCarriedObjects && isWornOrCarried) {
+    if (ignitionObject.excludesWornOrCarriedObjects && isWornOrCarried) {
       return {
         ...state,
         combatLog: [
@@ -1736,7 +1738,7 @@ export class SpellCommandFactory {
       isDamageEffect(effect) &&
       effect.condition?.type === 'hit' &&
       effect.createdObjects?.some(createdObject =>
-        (createdObject as any).ignitesTouchedObjects === true &&
+        createdObject.ignitesTouchedObjects === true &&
         createdObject.appearsIn === 'target_object'
       )
     )
@@ -1806,8 +1808,11 @@ export class SpellCommandFactory {
       }
     }
 
-    if (['on_target_move', 'on_target_attack', 'on_target_cast', 'on_caster_action'].includes(effect.trigger.type)) {
-      return new ReactiveEffectCommand(effect as any, context)
+    // Narrow on the REACTIVE discriminator so the constructor receives a real
+    // ReactiveEffect instead of a cast SpellEffect. The trigger-type check is
+    // kept as a second condition so routing stays limited to reactive triggers.
+    if (effect.type === 'REACTIVE' && ['on_target_move', 'on_target_attack', 'on_target_cast', 'on_caster_action'].includes(effect.trigger.type)) {
+      return new ReactiveEffectCommand(effect, context)
     }
 
     if (effect.trigger.type === 'on_attack_hit') {
@@ -1969,7 +1974,7 @@ export class SpellCommandFactory {
       }
 
       const createdObject = effect.createdObjects?.find(object =>
-        (object as any).ignitesTouchedObjects === true &&
+        object.ignitesTouchedObjects === true &&
         object.appearsIn === 'spell_area'
       )
 

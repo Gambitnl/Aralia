@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 16/08/2026, 22:22:05
+ * Dependents: commands/factory/SpellCommandFactory.ts
+ * Imports: 6 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file src/commands/effects/RegisterRiderCommand.ts
  * Command for registering effects that trigger on future attacks ("Riders").
@@ -60,6 +76,11 @@ export class RegisterRiderCommand extends BaseEffectCommand {
         // burst riders during the same cast. Use the shared id generator rather
         // than a timestamp-only id so same-millisecond rider registration cannot
         // give both payloads the same consumption key.
+        // `SpellEffect` includes `ReactiveEffect`, whose `trigger` narrows to a
+        // sustain-style shape without `consumption`/`attackFilter`. Rider
+        // registration only ever applies to the `EffectTrigger` form, so narrow
+        // with an `in` guard instead of forcing the wider union through `as any`.
+        const trigger = this.effect.trigger;
         const rider: ActiveRider = {
             id: `rider-${this.context.spellId}-${generateId()}`,
             spellId: this.context.spellId,
@@ -67,11 +88,11 @@ export class RegisterRiderCommand extends BaseEffectCommand {
             sourceName: this.context.spellName,
             targetId: this.getSpecificTargetId(),
             effect: this.effect,
-            consumption: (this.effect.trigger as any).consumption || 'unlimited',
-            attackFilter: (this.effect.trigger as any).attackFilter || {},
+            consumption: ('consumption' in trigger ? trigger.consumption : undefined) || 'unlimited',
+            attackFilter: ('attackFilter' in trigger ? trigger.attackFilter : undefined) || {},
             usedThisTurn: false,
             duration: {
-                type: (this.context.effectDuration?.type ?? 'minutes') as any,
+                type: this.context.effectDuration?.type ?? 'minutes',
                 value: this.context.effectDuration?.value ?? 1
             }
         };

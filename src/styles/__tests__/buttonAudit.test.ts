@@ -67,6 +67,8 @@ const EXEMPT_FILES: Record<string, string> = {
     'Resize handle knobs — not action buttons',
   'components/Glossary/GlossaryResizeHandles.tsx':
     'Glossary panel resize handles — not action buttons',
+  'components/BattleMap/CombatRailResizeHandle.tsx':
+    'Combat rail resize handle — not an action button',
 
   // Specialised battle-map controls with complex state feedback
   'components/BattleMap/AbilityButton.tsx':
@@ -89,7 +91,7 @@ const EXEMPT_FILES: Record<string, string> = {
 
 // Internal review/authoring surfaces (non-gameplay UI) are intentionally exempt
 // from production button audit constraints unless they start driving product flows.
-const EXEMPT_DIR_PREFIXES = ['components/DesignPreview/'];
+const EXEMPT_DIR_PREFIXES = ['components/DesignPreview/', 'devtools/'];
 
 function getExemptReason(relPath: string): string | undefined {
   if (EXEMPT_FILES[relPath]) return EXEMPT_FILES[relPath];

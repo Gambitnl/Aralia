@@ -3,7 +3,7 @@ schema_version: 1
 gap_schema: workflow_gap_registry
 scope: "Gaps in the multi-agent WORKFLOW itself — coordination, dispatch, tooling, tracker-sync, verification. NOT game/feature gaps (those go in the owning project's docs/projects/**/GAPS.md)."
 id_prefix: WF-G
-next_free_id: WF-G64
+next_free_id: WF-G65
 allowed_statuses: [open, in_progress, blocked, needs_validation, resolved, wont_fix]
 allowed_severities: [low, medium, high, critical]
 allowed_classifications: [coordination, dispatch, daemon, client-tooling, registry, tracker-sync, verification, docs, enforcement, quota, infra]
@@ -62,6 +62,7 @@ The two planning surfaces are **distinct** — log friction against the right on
 
 | Gap ID | Status | Severity | Classification | Surface | Registered by | Suggested agent | Registrant ID | Task/thread | Date | Gap | Evidence | Why it matters | Next action | Next proof | Notes |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| WF-G64 | open | low | client-tooling | agora-client | zcode-remy-20260816 | zcode | a699f997-c8c8-4261-8ec1-b1b36ac1e96f | zcode-session-20260816-taskpickup | 2026-08-16 | `task done`/`task state` reject the short task-id prefix that `tasks` listings print and `task claim`/`task next` accept | `task next` printed `Claimed dc353bda-31f9-4c6b-8ad8-5d0b8c61020d`; `task done dc353bda --result ...` → `404: task not found`; retry with the full UUID succeeded | Agents copy the short id straight off the board; a 404 'task not found' on a task they just claimed reads as lost/duplicate work and invites re-claiming or dropped results | Resolve id prefixes in client.mjs task subcommands (or have the 404 message print the full id to retry with) | focused client test showing `task done <prefix>` matches the same task as the full UUID | Board display, `task claim`, and `task next` all work from short ids; only the state-transition verbs are strict |
 
 
 

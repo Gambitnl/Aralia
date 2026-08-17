@@ -156,14 +156,16 @@ const readProjectTrackerMetadata = (projectsDir: string, projectDirs: string[]) 
     const slug = explicitSlug || labelToSlug.get(toProjectSlug(projectName)) || toProjectSlug(projectName);
     if (!folderSet.has(slug) || trackerBySlug.has(slug)) continue;
 
+    // Column order (GG-DEVHUB-TRACKER-COLS):
+    // Project | Status | Confidence | Evidence | Gap signal | Living project protocol | Next step
     trackerBySlug.set(slug, {
       category: currentCategory,
       project: projectName,
-      status: stripMarkdownInline(cells[2]),
-      confidence: stripMarkdownInline(cells[3]),
-      evidence: stripMarkdownInline(cells[4]),
-      gapSignal: stripMarkdownInline(cells[5]),
-      protocol: stripMarkdownInline(cells[1]),
+      status: stripMarkdownInline(cells[1]),
+      confidence: stripMarkdownInline(cells[2]),
+      evidence: stripMarkdownInline(cells[3]),
+      gapSignal: stripMarkdownInline(cells[4]),
+      protocol: stripMarkdownInline(cells[5]),
       nextStep: stripMarkdownInline(cells[6]),
     });
   }

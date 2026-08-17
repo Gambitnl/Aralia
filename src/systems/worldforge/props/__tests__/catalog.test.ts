@@ -106,6 +106,22 @@ describe('FULL catalog (WAVE-1 + expanded strawman set)', () => {
     }
   });
 
+  it('every def publishes complete spell-target facts (mobility + weight + magical)', () => {
+    for (const def of PROP_CATALOG) {
+      expect(typeof def.isFixedToSurface, def.id).toBe('boolean');
+      expect(def.weightPounds, def.id).toBeGreaterThan(0);
+      expect(typeof def.isMagical, def.id).toBe('boolean');
+    }
+    // Loose objects carry a weight so telekinesis/movement spells can apply
+    // their pound limits; fixed terrain/structures publish isFixedToSurface.
+    expect(PROPS_BY_ID.get('crate')).toMatchObject({
+      isFixedToSurface: false,
+      weightPounds: 25,
+      isMagical: false,
+    });
+    expect(PROPS_BY_ID.get('fence-run')!.isFixedToSurface).toBe(true);
+  });
+
   it('referee sanity: no def is both impassable and difficult; materials are canon', () => {
     for (const def of PROP_CATALOG) {
       expect(def.referee.blocksMovement && def.referee.difficultTerrain, def.id).toBe(false);

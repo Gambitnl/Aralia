@@ -59,7 +59,7 @@ import {
   LightSource,
   Position,
 } from "../../types/combat";
-import { useBattleMap } from "../../hooks/useBattleMap";
+import { useBattleMap, type ControlledActionMode } from "../../hooks/useBattleMap";
 import { useTargetSelection } from "../../hooks/combat/useTargetSelection";
 import { useVisibility } from "../../hooks/combat/useVisibility";
 import type { useTurnManager } from "../../hooks/combat/useTurnManager";
@@ -148,6 +148,15 @@ interface BattleMapProps {
    * only the design-lab demo path opts in.
    */
   showFogToggle?: boolean;
+  /**
+   * Hands ownership of the action mode to the parent.
+   *
+   * The Move / Attack commands now live in the ACTIONS panel, a SIBLING of this
+   * map. Both surfaces must read and write ONE mode, so CombatView owns it and
+   * passes it in. Omit it and the map keeps its own mode, which is what the
+   * design lab and preview scenarios still do.
+   */
+  controlledActionMode?: ControlledActionMode;
   cameraFocusRequest?: { characterId: string; requestId: number } | null;
   objectInteraction?: {
     activeObjectId: string | null;
@@ -177,6 +186,7 @@ const BattleMap: React.FC<BattleMapProps> = ({
   showWorldOccupants = true,
   preferFullMapFit = false,
   showFogToggle = false,
+  controlledActionMode,
   cameraFocusRequest = null,
   objectInteraction,
   spellMapArtifacts,
@@ -208,6 +218,7 @@ const BattleMap: React.FC<BattleMapProps> = ({
     characters,
     turnManager,
     abilitySystem,
+    controlledActionMode,
   );
 
   // Use damage numbers from turnManager state prop if available
@@ -905,66 +916,20 @@ const BattleMap: React.FC<BattleMapProps> = ({
           {abilitySystem.targetValidationReason}
         </div>
       )}
-      {/* UI for current turn actions */}
-      {currentCharacter && isCharacterTurn(currentCharacter.id) && (
+      {/* The Move / Attack pair MOVED to the ACTIONS panel (Remy 2026-08-16) —
+          see CombatCommandToolbar, rendered by CombatView into ActionEconomyBar
+          so the whole turn reads in one place. What stays here is the fog chip:
+          a render-only dev affordance for the design lab, which belongs on the
+          map it veils and must never appear in the real-game HUD. */}
+      {currentCharacter && isCharacterTurn(currentCharacter.id) && showFogToggle && (
         /* The painted ground and tile grid are rendered later in this file.
-           Use the shared combat overlay layer explicitly so the toolbar stays
+           Use the shared combat overlay layer explicitly so the chip stays
            visible and clickable instead of existing underneath those canvases. */
         <div
-          data-testid="battle-map-command-toolbar"
+          data-testid="battle-map-fog-toolbar"
           className="absolute left-3 top-3 flex gap-2 rounded-md border border-slate-600/70 bg-slate-950/80 p-1.5 shadow-lg backdrop-blur-sm"
           style={{ zIndex: Z_INDEX.COMBAT_OVERLAY }}
         >
-          <button
-            onClick={() => {
-              // Switching back to movement should leave any half-started attack
-              // targeting state behind; otherwise a later enemy click can still
-              // behave like an ability target instead of a selection/move click.
-              abilitySystem.cancelTargeting();
-              setActionMode("move");
-            }}
-            type="button"
-            aria-pressed={actionMode === "move"}
-            aria-label="Move on the battle map"
-            className={`inline-flex h-9 items-center gap-1.5 rounded px-3 text-xs font-semibold transition-colors ${actionMode === "move" ? "bg-blue-600 text-white ring-2 ring-blue-300" : "bg-gray-600 hover:bg-gray-500"}`}
-          >
-            <Footprints size={14} aria-hidden="true" />
-            <span>Move</span>
-          </button>
-          <button
-            onClick={() => {
-              // Pressing the armed shortcut again mirrors the ability palette's
-              // cancel behavior, keeping both command origins consistent.
-              if (quickAttackIsArmed) {
-                abilitySystem.cancelTargeting();
-                setActionMode("move");
-                return;
-              }
-
-              // The shortcut disables when no honest direct attack is ready,
-              // instead of arming a movement, utility, or unavailable ability.
-              if (!currentCharacter || !quickAttack) return;
-              setActionMode("ability");
-              abilitySystem.startTargeting(quickAttack, currentCharacter);
-            }}
-            type="button"
-            disabled={!quickAttack}
-            aria-pressed={quickAttackIsArmed}
-            aria-label={
-              quickAttack
-                ? `Attack with ${quickAttack.name}`
-                : "No direct attack available"
-            }
-            title={
-              quickAttack
-                ? `Attack with ${quickAttack.name}`
-                : "No direct action attack is ready"
-            }
-            className={`inline-flex h-9 items-center gap-1.5 rounded px-3 text-xs font-semibold transition-colors ${!quickAttack ? "bg-gray-600 text-gray-400 cursor-not-allowed" : quickAttackIsArmed ? "bg-red-600 text-white ring-2 ring-red-300" : "bg-gray-600 hover:bg-gray-500"}`}
-          >
-            <Swords size={14} aria-hidden="true" />
-            <span>Attack</span>
-          </button>
           {showFogToggle && (
             <button
               onClick={() => setFogOfWarVisible((visible) => !visible)}

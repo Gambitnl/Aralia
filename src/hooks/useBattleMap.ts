@@ -48,7 +48,8 @@ interface UseBattleMapReturn {
   validMoves: Set<string>;
   activePath: BattleMapTile[];
   actionMode: 'move' | 'ability' | null;
-  setActionMode: React.Dispatch<React.SetStateAction<'move' | 'ability' | null>>;
+  /** Plain setter, never an updater function — a controlled owner cannot honor one. */
+  setActionMode: (mode: 'move' | 'ability' | null) => void;
   handleTileClick: (tile: BattleMapTile) => void;
   handleCharacterClick: (character: CombatCharacter) => void;
 }
@@ -83,14 +84,36 @@ export function inferMovementModeForAction(character: CombatCharacter): CombatAc
     : undefined;
 }
 
+/**
+ * Optional external ownership of the action mode.
+ *
+ * The Move / Attack commands moved out of the map and into the ACTIONS panel,
+ * which is a SIBLING of the map, not a child. Passing this makes the mode a
+ * controlled value so both surfaces read and write the same one. Omit it and
+ * the hook keeps its own state exactly as before — the design-lab demo and the
+ * preview scenarios still mount uncontrolled.
+ */
+export interface ControlledActionMode {
+  value: 'move' | 'ability' | null;
+  onChange: (mode: 'move' | 'ability' | null) => void;
+}
+
 export function useBattleMap(
   mapData: BattleMapData | null,
   characters: CombatCharacter[],
   turnManager: ReturnType<typeof useTurnManager>,
   abilitySystem: ReturnType<typeof useAbilitySystem>,
+  controlledActionMode?: ControlledActionMode,
 ): UseBattleMapReturn {
   const [selectedCharacterId, setSelectedCharacterId] = useState<string | null>(null);
-  const [actionMode, setActionMode] = useState<'move' | 'ability' | null>(null);
+  const [uncontrolledActionMode, setUncontrolledActionMode] =
+    useState<'move' | 'ability' | null>(null);
+  const actionMode = controlledActionMode
+    ? controlledActionMode.value
+    : uncontrolledActionMode;
+  const setActionMode = controlledActionMode
+    ? controlledActionMode.onChange
+    : setUncontrolledActionMode;
   const currentCharacterId = turnManager.turnState.currentCharacterId;
   const currentCharacter = useMemo(
     () => characters.find(c => c.id === currentCharacterId) || null,

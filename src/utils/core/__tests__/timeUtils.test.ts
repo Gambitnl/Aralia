@@ -29,6 +29,10 @@ describe('timeUtils', () => {
             expect(date.getUTCHours()).toBe(GAME_EPOCH_HOUR);
             expect(date.getUTCMinutes()).toBe(GAME_EPOCH_MINUTE);
             expect(date.getUTCSeconds()).toBe(GAME_EPOCH_SECOND);
+            // Locale-independent ISO form, folded in from the retired
+            // tests/utils/timeUtils.test.ts.bak (see GG-35) so the UTC-zeroed
+            // epoch contract stays asserted without locale-brittle exact strings.
+            expect(date.toISOString()).toMatch(/0351-01-01T00:00:00\.000Z/);
         });
 
         it('should format game time correctly', () => {

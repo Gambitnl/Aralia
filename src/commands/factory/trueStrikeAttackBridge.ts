@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 17/08/2026, 01:54:57
+ * Dependents: commands/factory/SpellCommandFactory.ts, hooks/useAbilitySystem.ts
+ * Imports: 6 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * This file turns True Strike's structured attack augment into a real weapon attack.
  *
@@ -19,7 +35,7 @@
 // ability the existing weapon attack command can execute.
 // ============================================================================
 
-import { Ability, CombatCharacter, SelectedSpellTarget } from '@/types/combat'
+import { Ability, AbilityEffect, CombatCharacter, SelectedSpellTarget } from '@/types/combat'
 import { Item } from '@/types/items'
 import { Spell, UtilityEffect } from '@/types/spells'
 import { calculateProficiencyBonus } from '@/utils/character/savingThrowUtils'
@@ -228,7 +244,7 @@ export const buildTrueStrikeAttack = (
         type: 'damage',
         value: 0,
         dice: baseDamageDice,
-        damageType: baseDamageType as any
+        damageType: baseDamageType as AbilityEffect['damageType']
       },
       ...(scalingDice
         ? [{

@@ -1,10 +1,10 @@
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 23/07/2026, 20:59:28
- * Dependents: hooks/spellEffectUtils.ts, systems/spells/effects/triggerHandler.ts, types/spells.ts
+ * Last Sync: 16/08/2026, 22:21:12
+ * Dependents: components/DesignPreview/steps/raceDomain/leaves/forestGnomeRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/halflingRaceLeaf.tsx, components/DesignPreview/steps/scenarioControls/damageOverTimeScheduledEffectsScenarioControls.ts, hooks/spellEffectUtils.ts, systems/spells/effects/triggerHandler.ts, types/spells.ts
  * Imports: 12 files
  *
  * MULTI-AGENT SAFETY:
@@ -424,6 +424,10 @@ export interface DamageEffect extends BaseEffect {
     count?: number;
     countUnit?: string;
     appearsIn?: string;
+    /** Fire-starting objects also ignite qualifying touched objects (Create Bonfire, Fire Bolt). */
+    ignitesTouchedObjects?: boolean;
+    /** Fire-starting objects that refuse worn or carried item ignition (e.g. Fire Bolt). */
+    excludesWornOrCarriedObjects?: boolean;
     affectedVolumeShape?: string;
     affectedVolumeSizeFeet?: number;
     manipulationOptions?: string[];
@@ -470,6 +474,19 @@ export interface DamageEffect extends BaseEffect {
    * of hard-coded to one spell id.
    */
   missDamageMultiplier?: number;
+  /**
+   * Weapon/ammunition-replacement rider facts for attacks like Lightning Arrow,
+   * where the attack payload becomes the spell effect instead of normal weapon
+   * damage. Kept data-driven so the attack-rider runtime can detect the
+   * replacement without hard-coding a spell id.
+   */
+  objectTransformation?: {
+    sourceObject?: string;
+    temporaryForm?: string;
+    trigger?: string;
+    returnsToNormalForm?: boolean;
+    description?: string;
+  };
 }
 
 /** Contains the details of the damage dealt. */

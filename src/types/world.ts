@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 27/06/2026, 01:55:55
- * Dependents: components/CharacterSheet/Family/FamilyTreeTab.tsx, components/World3D/DebugHUD.tsx, components/World3D/InWorldHUD.tsx, services/strongholdService.ts, state/migrations/worldDataMigration.ts, systems/economy/TradeRouteSystem.ts, systems/gameEntry/situationNpcToRichNpc.ts, systems/spells/ai/AISpellArbitrator.ts, systems/worldforge/bridge/groundChunkLoader.ts, types/index.ts, utils/mapDataToWorldData.ts, utils/world/worldGeographyAdapter.ts
- * Imports: 2 files
+ * Last Sync: 16/08/2026, 02:51:58
+ * Dependents: components/CharacterSheet/Family/FamilyTreeTab.tsx, components/World3D/DebugHUD.tsx, components/World3D/InWorldHUD.tsx, hooks/actions/handleEncounter.ts, hooks/actions/handleMerchantInteraction.ts, hooks/actions/handleNpcInteraction.ts, services/strongholdService.ts, state/migrations/worldDataMigration.ts, systems/entities3d/recipeFromCharacter.ts, systems/gameEntry/deEscalationToCombat.ts, systems/gameEntry/situationNpcToRichNpc.ts, systems/party/authoredCompanionToRichNpc.ts, systems/party/npcToPartyMember.ts, systems/party/recruitConsent.ts, systems/planar/PlanarService.ts, systems/spells/ai/AISpellArbitrator.ts, systems/worldforge/bridge/groundChunkLoader.ts, systems/worldforge/townsim/npcsForCell.ts, systems/worldforge/townsim/registerBurgMerchants.ts, types/index.ts, types/memory.ts, utils/world/chronicleNewsToRumors.ts, utils/world/dungeonRumorsToWorldRumors.ts, utils/world/memoryUtils.ts
+ * Imports: 1 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:

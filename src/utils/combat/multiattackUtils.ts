@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 13/08/2026, 05:18:19
+ * Last Sync: 16/08/2026, 12:17:27
  * Dependents: components/DesignPreview/steps/scenarioControls/multiattackRidersScenarioControls.ts
- * Imports: 7 files
+ * Imports: 9 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -29,6 +29,7 @@
  */
 
 import type {
+  Ability,
   AbilityCost,
   ActiveRider,
   CombatCharacter,
@@ -37,8 +38,10 @@ import type {
 import type { DamageType } from '../../types/spells';
 import { isDamageEffect } from '../../types/spells';
 import { AttackRiderSystem } from '../../systems/combat/AttackRiderSystem';
+import { getAbilityModifierValue } from '../character/statUtils';
+import { calculateProficiencyBonus } from '../character/savingThrowUtils';
 import { canAffordActionCost, consumeActionCost } from './actionEconomyUtils';
-import { resolveAttack, rollDamage } from './combatUtils';
+import { resolveAttack, rollDamage, rollD20 } from './combatUtils';
 import { applyDamageAndCheckDowned } from './deathSaveUtils';
 import { ResistanceCalculator } from './resistanceUtils';
 
@@ -297,6 +300,10 @@ export function resolveMultiattackSequence(
       }).filter(rider => isDamageEffect(rider.effect));
 
       for (const rider of matchingDamageRiders) {
+        // The `.filter(isDamageEffect)` upstream does not narrow `rider.effect`
+        // through the loop, so this redundant-at-runtime guard gives the type
+        // checker the same damage-effect fact the runtime already enforces.
+        if (!isDamageEffect(rider.effect)) continue;
         const rolledRiderDamage = rollDamage(
           rider.effect.damage.dice,
           attack.isCritical,
@@ -361,4 +368,182 @@ export function resolveMultiattackSequence(
     actionSpent: true,
     strikes,
   };
+}
+
+// ============================================================================
+// Authored Multiattack Expansion
+// ============================================================================
+// A monster Multiattack button names its sub-attacks (`subAttackIds`) and its
+// hit count (`multiattackCount`) while its `effects[]` stay pre-multiplied for
+// AI scoring. This expansion turns those authored references into one ordered
+// strike per hit, reading each sub-ability's own attack bonus, damage formula,
+// damage type, and attack/weapon classification. A legal authored replacement
+// (e.g. the Adult Red Dragon swapping one Rend for Scorching Ray) is honored per
+// strike; an illegal or missing sub-attack id rejects the whole expansion.
+// ============================================================================
+
+export type MultiattackExpansionFailure =
+  | 'no_authored_attacks'
+  | 'target_count_mismatch'
+  | 'missing_sub_attack'
+  | 'no_damage_effect';
+
+export interface MultiattackExpansionResult {
+  strikes: MultiattackStrikeRequest[];
+  failure?: MultiattackExpansionFailure;
+}
+
+export interface MultiattackExpansionInput {
+  attacker: CombatCharacter;
+  ability: Ability;
+  targetIds: string[];
+  replacementByIndex?: Record<number, string>;
+  rng?: () => number;
+  damageRng?: () => number;
+}
+
+function deriveAttackBonus(attacker: CombatCharacter, subAbility: Ability): number {
+  const isRanged = (subAbility.range ?? 5) > 2;
+  const abilityScore = isRanged ? attacker.stats.dexterity : attacker.stats.strength;
+  const modifier = getAbilityModifierValue(abilityScore);
+  const proficiency = subAbility.isProficient === false
+    ? 0
+    : calculateProficiencyBonus(attacker.level ?? 1);
+  return modifier + proficiency;
+}
+
+export function expandMultiattackStrikes(
+  input: MultiattackExpansionInput,
+): MultiattackExpansionResult {
+  const { attacker, ability, targetIds, replacementByIndex, rng, damageRng } = input;
+  const subAttackIds = ability.subAttackIds ?? [];
+
+  if (subAttackIds.length === 0) {
+    return { strikes: [], failure: 'no_authored_attacks' };
+  }
+
+  const count = ability.multiattackCount ?? subAttackIds.length;
+  if (targetIds.length !== count) {
+    return { strikes: [], failure: 'target_count_mismatch' };
+  }
+
+  const authoredIds = new Set(subAttackIds);
+  const primaryId = subAttackIds[0];
+  const strikes: MultiattackStrikeRequest[] = [];
+
+  for (let index = 0; index < count; index += 1) {
+    const replacementId = replacementByIndex?.[index];
+    if (replacementId !== undefined && !authoredIds.has(replacementId)) {
+      return { strikes: [], failure: 'missing_sub_attack' };
+    }
+
+    const subAbilityId = replacementId ?? primaryId;
+    const subAbility = attacker.abilities.find(candidate => candidate.id === subAbilityId);
+    if (!subAbility) {
+      return { strikes: [], failure: 'missing_sub_attack' };
+    }
+
+    const damageEffect = subAbility.effects.find(effect => effect.type === 'damage');
+    const damageFormula = damageEffect?.dice
+      ?? (typeof damageEffect?.value === 'number' ? String(damageEffect.value) : undefined);
+    if (!damageFormula) {
+      return { strikes: [], failure: 'no_damage_effect' };
+    }
+
+    const attackType: MultiattackStrikeRequest['attackType'] = subAbility.attackType
+      ?? (subAbility.type === 'spell' ? 'spell' : 'weapon');
+    const weaponType: MultiattackStrikeRequest['weaponType'] = attackType === 'unarmed'
+      ? 'unarmed'
+      : ((subAbility.range ?? 5) <= 2 ? 'melee' : 'ranged');
+
+    strikes.push({
+      id: `${ability.id}-${index}-${subAbility.id}`,
+      label: subAbility.name,
+      targetId: targetIds[index],
+      d20Roll: rollD20({ rng }),
+      attackBonus: subAbility.attackBonus ?? deriveAttackBonus(attacker, subAbility),
+      damageFormula,
+      damageType: damageEffect?.damageType ?? 'physical',
+      attackType,
+      weaponType,
+      damageRng,
+      isMagical: subAbility.isMagical ?? subAbility.type === 'spell',
+    });
+  }
+
+  return { strikes };
+}
+
+// ============================================================================
+// Production Multiattack Dispatch
+// ============================================================================
+// This is the normal-ability-execution bridge the isolated sandbox transaction
+// could not provide: expand a real monster Multiattack button, validate the
+// complete authored sequence, then resolve every ordered attack through the same
+// shared sequence resolver that spends one Action and keeps per-strike target,
+// hit/miss, and rider ownership.
+// ============================================================================
+
+export interface MultiattackDispatchRequest {
+  state: CombatState;
+  attackerId: string;
+  abilityId: string;
+  targetIds: string[];
+  replacementByIndex?: Record<number, string>;
+  rng?: () => number;
+  damageRng?: () => number;
+}
+
+export function dispatchMultiattack(
+  request: MultiattackDispatchRequest,
+): MultiattackSequenceResolution {
+  const attacker = request.state.characters.find(
+    character => character.id === request.attackerId,
+  );
+  if (!attacker) {
+    return {
+      state: request.state,
+      attempted: false,
+      actionSpent: false,
+      failure: 'attacker_missing',
+      strikes: [],
+    };
+  }
+
+  const ability = attacker.abilities.find(candidate => candidate.id === request.abilityId);
+  if (!ability) {
+    return {
+      state: request.state,
+      attempted: false,
+      actionSpent: false,
+      failure: 'no_authored_attacks',
+      strikes: [],
+    };
+  }
+
+  const expansion = expandMultiattackStrikes({
+    attacker,
+    ability,
+    targetIds: request.targetIds,
+    replacementByIndex: request.replacementByIndex,
+    rng: request.rng,
+    damageRng: request.damageRng,
+  });
+
+  if (expansion.failure || expansion.strikes.length === 0) {
+    return {
+      state: request.state,
+      attempted: false,
+      actionSpent: false,
+      failure: expansion.failure === 'target_count_mismatch' ? 'target_missing' : 'no_authored_attacks',
+      strikes: [],
+    };
+  }
+
+  return resolveMultiattackSequence({
+    state: request.state,
+    attackerId: request.attackerId,
+    strikes: expansion.strikes,
+    cost: ability.cost,
+  });
 }

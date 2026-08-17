@@ -1,10 +1,12 @@
 /**
- * This file protects the 2D battle map's compact Move / Attack toolbar.
+ * This file protects the 2D battle map's on-map command feedback.
  *
- * The toolbar is rendered inside the same stacking context as painted ground,
- * fog, and thousands of tactical tiles. These tests prove it remains on the
- * shared combat overlay layer, advertises the actual quick attack it will arm,
- * and mirrors the ability palette's second-click cancellation behavior.
+ * The Move / Attack pair MOVED into the ACTIONS panel on 2026-08-16, so its
+ * button behavior is now pinned by CombatCommandToolbar.test.tsx. What stays
+ * here is the targeting-validation notice, which is still rendered inside the
+ * same stacking context as painted ground, fog, and thousands of tactical
+ * tiles. It must remain on the shared combat overlay layer, or the player loses
+ * the reason their target was refused underneath the terrain.
  */
 import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react';
@@ -192,46 +194,27 @@ const renderCommandToolbar = ({
   return { startTargeting, cancelTargeting, setActionMode };
 };
 
-describe('BattleMap command toolbar', () => {
+describe('BattleMap command feedback', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it('stays above the painted board and arms the named direct attack', () => {
-    const { startTargeting, setActionMode } = renderCommandToolbar();
-
-    const toolbar = screen.getByTestId('battle-map-command-toolbar');
-    const move = screen.getByRole('button', { name: 'Move on the battle map' });
-    const attack = screen.getByRole('button', { name: 'Attack with Longsword' });
-
-    // A numeric registry value avoids the unresolved CSS-variable class that
-    // previously left the toolbar at z-index:auto beneath the terrain tiles.
-    expect(toolbar).toHaveStyle({ zIndex: Z_INDEX.COMBAT_OVERLAY });
-    expect(move).toHaveAttribute('aria-pressed', 'true');
-    expect(attack).toHaveAttribute('aria-pressed', 'false');
-
-    fireEvent.click(attack);
-
-    expect(setActionMode).toHaveBeenCalledWith('ability');
-    expect(startTargeting).toHaveBeenCalledWith(longsword, hero);
-  });
-
-  it('keeps validation feedback above the board and cancels an armed shortcut', () => {
+  it('keeps targeting validation feedback above the painted board', () => {
     const { cancelTargeting, setActionMode } = renderCommandToolbar({
       targetingMode: true,
       targetValidationReason: 'Longsword needs an enemy target.',
     });
 
-    const attack = screen.getByRole('button', { name: 'Attack with Longsword' });
     const validation = screen.getByRole('status');
 
-    expect(attack).toHaveAttribute('aria-pressed', 'true');
+    // A numeric registry value avoids the unresolved CSS-variable class that
+    // previously left this notice at z-index:auto beneath the terrain tiles.
     expect(validation).toHaveStyle({ zIndex: Z_INDEX.COMBAT_OVERLAY });
     expect(validation).toHaveClass('top-16');
 
-    fireEvent.click(attack);
-
-    expect(cancelTargeting).toHaveBeenCalledTimes(1);
-    expect(setActionMode).toHaveBeenCalledWith('move');
+    // The command buttons are no longer on the map at all.
+    expect(screen.queryByTestId('battle-map-command-toolbar')).toBeNull();
+    expect(cancelTargeting).not.toHaveBeenCalled();
+    expect(setActionMode).not.toHaveBeenCalled();
   });
 });

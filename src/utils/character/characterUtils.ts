@@ -1909,6 +1909,28 @@ export const performLevelUp = (
     }
   }
 
+  // Battle Master (level 3): grant the canonical four d8 Superiority Dice pool
+  // so the combat maneuver resolver reads a real, rest-restored resource instead
+  // of a preview-only button. Stored as a `limitedUses` entry (see
+  // `src/utils/combat/battleMasterUtils.ts`), so spending and Short/Long Rest
+  // reset share one source of truth.
+  if (
+    newLevel >= 3
+    && updatedCharacter.class?.id === 'fighter'
+    && updatedCharacter.subclassId === 'battle_master'
+    && !updatedCharacter.limitedUses?.superiority_dice
+  ) {
+    updatedCharacter.limitedUses = {
+      ...(updatedCharacter.limitedUses ?? {}),
+      superiority_dice: {
+        name: 'Superiority Dice',
+        current: 4,
+        max: 4,
+        resetOn: 'short_rest',
+      },
+    };
+  }
+
   // Grow the caster's spell learning capacity. Leveled prepared/known capacity
   // is derived (getMaxPreparedSpells / getSpellcastingAllowance) so it tracks
   // the new level automatically. Cantrips-known capacity also grows here; any

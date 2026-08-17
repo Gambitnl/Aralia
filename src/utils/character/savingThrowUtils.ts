@@ -3,8 +3,8 @@
  * ARCHITECTURAL ADVISORY:
  * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 11/08/2026, 20:59:05
- * Dependents: commands/effects/GrantedActionCommand.ts, commands/factory/SpellCommandFactory.ts, commands/factory/boomingBladeAttackBridge.ts, commands/factory/greenFlameBladeAttackBridge.ts, commands/factory/trueStrikeAttackBridge.ts, components/CharacterCreator/SkillSelection.tsx, components/DesignPreview/steps/scenarioControls/stealthHiddenScenarioControls.ts, systems/perception/eventDetection.ts, systems/spells/mechanics/sourceSaveModifierResolution.ts, systems/spells/socialServiceResolution.ts, systems/travel/forcedMarch.ts, utils/character/concentrationUtils.ts, utils/character/index.ts, utils/character/skillModifierUtils.ts, utils/combat/shoveUtils.ts
+ * Last Sync: 16/08/2026, 02:52:17
+ * Dependents: commands/effects/GrantedActionCommand.ts, commands/factory/SpellCommandFactory.ts, commands/factory/boomingBladeAttackBridge.ts, commands/factory/greenFlameBladeAttackBridge.ts, commands/factory/trueStrikeAttackBridge.ts, components/CharacterCreator/SkillSelection.tsx, components/DesignPreview/steps/raceDomain/leaves/autumnEladrinRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/blackDragonbornRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/blueDragonbornRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/brassDragonbornRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/bronzeDragonbornRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/copperDragonbornRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/deepGnomeRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/drowHalfElfRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/earthGenasiRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/fallenAasimarRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/firbolgRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/fireGiantGoliathRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/forestGnomeRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/frostGiantGoliathRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/giffRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/githzeraiRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/goldDragonbornRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/grayDwarfDuergarRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/greenDragonbornRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/hadozeeRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/halfElfRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/halflingRaceLeaf.tsx, components/DesignPreview/steps/scenarioControls/counterspellNestedReactionsScenarioControls.ts, components/DesignPreview/steps/scenarioControls/multiattackRidersScenarioControls.ts, components/DesignPreview/steps/scenarioControls/repeatSavesConditionExpiryScenarioControls.ts, components/DesignPreview/steps/scenarioControls/savingThrowsHalfDamageScenarioControls.ts, components/DesignPreview/steps/scenarioControls/tauntForcedTargetingScenarioControls.ts, components/DesignPreview/steps/spells/fireBoltScenario.tsx, systems/combat/reactions/companionProtectionReaction.ts, systems/perception/eventDetection.ts, systems/spells/mechanics/areaDamageSpellCastResolution.ts, systems/spells/mechanics/directDamageSpellCastResolution.ts, systems/spells/mechanics/reactiveDamageRetaliationResolution.ts, systems/spells/mechanics/sourceSaveModifierResolution.ts, systems/spells/mechanics/witchBoltOngoingResolution.ts, systems/spells/socialServiceResolution.ts, systems/travel/forcedMarch.ts, utils/character/concentrationUtils.ts, utils/character/index.ts, utils/character/skillModifierUtils.ts, utils/combat/shoveUtils.ts
  * Imports: 4 files
  *
  * MULTI-AGENT SAFETY:
@@ -27,6 +27,23 @@ import {
     SavingThrowAbility,
     SaveOutcomeOverride
 } from '../../types/spells';
+
+/**
+ * The lowercase `CharacterStats` key for each capitalized ability name.
+ * Replaces the previous `ability.toLowerCase() as keyof typeof stats` casts so
+ * the compiler validates that an ability name always resolves to a real,
+ * numeric stat key instead of trusting a string cast (see GG-24).
+ */
+type AbilityStatKey = 'strength' | 'dexterity' | 'constitution' | 'intelligence' | 'wisdom' | 'charisma';
+
+const ABILITY_STAT_KEYS: Record<SavingThrowAbility, AbilityStatKey> = {
+    Strength: 'strength',
+    Dexterity: 'dexterity',
+    Constitution: 'constitution',
+    Intelligence: 'intelligence',
+    Wisdom: 'wisdom',
+    Charisma: 'charisma',
+};
 
 /**
  * Result of a saving throw roll.
@@ -189,7 +206,7 @@ export function calculateSpellDC(caster: CombatCharacter): number {
 
     // Identify spellcasting ability from class, default to Intelligence if unknown
     const abilityName = caster.class?.spellcasting?.ability || 'Intelligence';
-    const score = (caster.stats[abilityName.toLowerCase() as keyof typeof caster.stats] || 10) as number;
+    const score = caster.stats[ABILITY_STAT_KEYS[abilityName]] ?? 10;
     const mod = getAbilityModifierValue(score);
 
     return 8 + pb + mod;
@@ -293,8 +310,8 @@ export function rollSavingThrow(
 
     // Step 2: Calculate ability modifier from the relevant stat
     // E.g., for a Dexterity save, look up target.stats.dexterity
-    const abilityKey = ability.toString().toLowerCase() as keyof typeof target.stats;
-    const score = (target.stats[abilityKey] ?? 10) as number;
+    const abilityKey = ABILITY_STAT_KEYS[ability];
+    const score = target.stats[abilityKey] ?? 10;
     let mod = getAbilityModifierValue(score);
 
     // Step 3: Check for explicit save bonus override (populated for monsters from 5eTools `save` field).

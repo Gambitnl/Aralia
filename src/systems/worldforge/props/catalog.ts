@@ -40,6 +40,18 @@
  *  Poor-quarter "broken fence", "cracked water butt", "handcart (broken)" and
  *  defile "dense thicket" / "fallen log (barricade)" reuse WAVE-1 defs
  *  (fence-run / barrel / cart / bush / fallen-log) via placement tags.
+ *
+ * ── Target facts (spell-targeting envelope) ──────────────────────────────────
+ * Every def also carries the three spell-target facts the combat referee reads:
+ *  • isFixedToSurface — true for rooted/embedded/built props (fence, wall, well,
+ *    tree, terrain mass), false for discrete movable objects (crate, cart,
+ *    sack, boat). Movement/telekinesis spells treat true as immovable and only
+ *    apply their pound limits to false objects.
+ *  • weightPounds — a plausible authored weight. The strawman did not specify
+ *    weights, so these are round, physics-plausible estimates open to Remy
+ *    refinement (not canonical strawman data).
+ *  • isMagical — false for the whole mundane catalog; a future enchanted prop
+ *    flips it true without a code change.
  */
 import type { PropDefinition } from './propSchema';
 
@@ -47,6 +59,9 @@ import type { PropDefinition } from './propSchema';
 export const WAVE1_PROPS: readonly PropDefinition[] = [
   {
     id: 'crate',
+    isFixedToSurface: false,
+    weightPounds: 25,
+    isMagical: false,
     name: 'Crate',
     sizeClass: 'S',
     referee: {
@@ -64,6 +79,9 @@ export const WAVE1_PROPS: readonly PropDefinition[] = [
   },
   {
     id: 'barrel',
+    isFixedToSurface: false,
+    weightPounds: 30,
+    isMagical: false,
     name: 'Barrel',
     sizeClass: 'S',
     referee: {
@@ -81,6 +99,9 @@ export const WAVE1_PROPS: readonly PropDefinition[] = [
   },
   {
     id: 'sack',
+    isFixedToSurface: false,
+    weightPounds: 15,
+    isMagical: false,
     name: 'Sack / grain bag',
     sizeClass: 'S',
     referee: {
@@ -98,6 +119,9 @@ export const WAVE1_PROPS: readonly PropDefinition[] = [
   },
   {
     id: 'fence-run',
+    isFixedToSurface: true,
+    weightPounds: 200,
+    isMagical: false,
     name: 'Wooden fence / rail run',
     sizeClass: 'L',
     referee: {
@@ -115,6 +139,9 @@ export const WAVE1_PROPS: readonly PropDefinition[] = [
   },
   {
     id: 'woodpile',
+    isFixedToSurface: false,
+    weightPounds: 400,
+    isMagical: false,
     name: 'Firewood / log pile',
     sizeClass: 'M',
     referee: {
@@ -132,6 +159,9 @@ export const WAVE1_PROPS: readonly PropDefinition[] = [
   },
   {
     id: 'cart',
+    isFixedToSurface: false,
+    weightPounds: 150,
+    isMagical: false,
     name: 'Cart (two-wheel handcart)',
     sizeClass: 'M',
     referee: {
@@ -149,6 +179,9 @@ export const WAVE1_PROPS: readonly PropDefinition[] = [
   },
   {
     id: 'market-stall',
+    isFixedToSurface: true,
+    weightPounds: 250,
+    isMagical: false,
     name: 'Market stall',
     sizeClass: 'M',
     referee: {
@@ -166,6 +199,9 @@ export const WAVE1_PROPS: readonly PropDefinition[] = [
   },
   {
     id: 'well',
+    isFixedToSurface: true,
+    weightPounds: 2000,
+    isMagical: false,
     name: 'Well (stone)',
     sizeClass: 'S',
     referee: {
@@ -183,6 +219,9 @@ export const WAVE1_PROPS: readonly PropDefinition[] = [
   },
   {
     id: 'boulder',
+    isFixedToSurface: true,
+    weightPounds: 400,
+    isMagical: false,
     name: 'Boulder (scatter)',
     sizeClass: 'M',
     referee: {
@@ -200,6 +239,9 @@ export const WAVE1_PROPS: readonly PropDefinition[] = [
   },
   {
     id: 'fallen-log',
+    isFixedToSurface: true,
+    weightPounds: 300,
+    isMagical: false,
     name: 'Fallen log',
     sizeClass: 'L',
     referee: {
@@ -217,6 +259,9 @@ export const WAVE1_PROPS: readonly PropDefinition[] = [
   },
   {
     id: 'bush',
+    isFixedToSurface: true,
+    weightPounds: 40,
+    isMagical: false,
     name: 'Bush / thicket clump',
     sizeClass: 'S',
     referee: {
@@ -234,6 +279,9 @@ export const WAVE1_PROPS: readonly PropDefinition[] = [
   },
   {
     id: 'haystack',
+    isFixedToSurface: false,
+    weightPounds: 200,
+    isMagical: false,
     name: 'Hay bale / haystack',
     sizeClass: 'M',
     referee: {
@@ -251,6 +299,9 @@ export const WAVE1_PROPS: readonly PropDefinition[] = [
   },
   {
     id: 'crate-stack',
+    isFixedToSurface: false,
+    weightPounds: 150,
+    isMagical: false,
     name: 'Wooden crate-stack / pallet',
     sizeClass: 'M',
     referee: {
@@ -268,6 +319,9 @@ export const WAVE1_PROPS: readonly PropDefinition[] = [
   },
   {
     id: 'water-trough',
+    isFixedToSurface: false,
+    weightPounds: 80,
+    isMagical: false,
     name: 'Water trough',
     sizeClass: 'S',
     referee: {
@@ -302,6 +356,9 @@ export const EXPANDED_PROPS: readonly PropDefinition[] = [
   // ── 1. Market square ────────────────────────────────────────────────────
   {
     id: 'produce-basket',
+    isFixedToSurface: false,
+    weightPounds: 5,
+    isMagical: false,
     name: 'Produce basket',
     sizeClass: 'S',
     referee: { cover: 'none', blocksLoS: false, blocksMovement: false, difficultTerrain: false, material: 'wood', thicknessInches: 0.3 },
@@ -312,6 +369,9 @@ export const EXPANDED_PROPS: readonly PropDefinition[] = [
   },
   {
     id: 'awning-pole',
+    isFixedToSurface: true,
+    weightPounds: 25,
+    isMagical: false,
     name: 'Awning / canopy pole',
     sizeClass: 'S',
     referee: { cover: 'none', blocksLoS: false, blocksMovement: true, difficultTerrain: false, material: 'wood', thicknessInches: 3 }, // "y (pole only)"
@@ -322,6 +382,9 @@ export const EXPANDED_PROPS: readonly PropDefinition[] = [
   },
   {
     id: 'notice-board',
+    isFixedToSurface: true,
+    weightPounds: 30,
+    isMagical: false,
     name: 'Public notice board',
     sizeClass: 'S',
     referee: { cover: 'half', blocksLoS: true, blocksMovement: true, difficultTerrain: false, material: 'wood', thicknessInches: 2 },
@@ -332,6 +395,9 @@ export const EXPANDED_PROPS: readonly PropDefinition[] = [
   },
   {
     id: 'fountain',
+    isFixedToSurface: true,
+    weightPounds: 3000,
+    isMagical: false,
     name: 'Fountain / market cross',
     sizeClass: 'L',
     referee: { cover: 'half', blocksLoS: false, blocksMovement: true, difficultTerrain: false, material: 'stone', thicknessInches: 8 }, // sight "partial" → open (well precedent)
@@ -342,6 +408,9 @@ export const EXPANDED_PROPS: readonly PropDefinition[] = [
   },
   {
     id: 'trestle-table',
+    isFixedToSurface: false,
+    weightPounds: 80,
+    isMagical: false,
     name: 'Trestle table + benches',
     sizeClass: 'M',
     referee: { cover: 'half', blocksLoS: false, blocksMovement: false, difficultTerrain: false, material: 'wood', thicknessInches: 2 }, // move "partial" → vault
@@ -353,6 +422,9 @@ export const EXPANDED_PROPS: readonly PropDefinition[] = [
   // ── 2. Docks / harbor ───────────────────────────────────────────────────
   {
     id: 'mooring-post',
+    isFixedToSurface: true,
+    weightPounds: 150,
+    isMagical: false,
     name: 'Mooring post / bollard',
     sizeClass: 'S',
     referee: { cover: 'half', blocksLoS: false, blocksMovement: true, difficultTerrain: false, material: 'wood', thicknessInches: 6 },
@@ -363,6 +435,9 @@ export const EXPANDED_PROPS: readonly PropDefinition[] = [
   },
   {
     id: 'coiled-rope',
+    isFixedToSurface: false,
+    weightPounds: 15,
+    isMagical: false,
     name: 'Coiled rope',
     sizeClass: 'S',
     referee: { cover: 'none', blocksLoS: false, blocksMovement: false, difficultTerrain: false, material: 'wood', thicknessInches: 2 }, // organic → wood
@@ -373,6 +448,9 @@ export const EXPANDED_PROPS: readonly PropDefinition[] = [
   },
   {
     id: 'fishing-net',
+    isFixedToSurface: false,
+    weightPounds: 30,
+    isMagical: false,
     name: 'Fishing net (draped)',
     sizeClass: 'M',
     referee: { cover: 'none', blocksLoS: false, blocksMovement: false, difficultTerrain: false, material: 'fabric', thicknessInches: 0.2 }, // "n (snags)" → passable
@@ -383,6 +461,9 @@ export const EXPANDED_PROPS: readonly PropDefinition[] = [
   },
   {
     id: 'net-drying-rack',
+    isFixedToSurface: true,
+    weightPounds: 60,
+    isMagical: false,
     name: 'Net-drying rack',
     sizeClass: 'L',
     referee: { cover: 'none', blocksLoS: true, blocksMovement: true, difficultTerrain: false, material: 'wood', thicknessInches: 3 }, // "y (frame)"
@@ -393,6 +474,9 @@ export const EXPANDED_PROPS: readonly PropDefinition[] = [
   },
   {
     id: 'fish-barrel',
+    isFixedToSurface: false,
+    weightPounds: 25,
+    isMagical: false,
     name: 'Fish barrel / crate (open)',
     sizeClass: 'S',
     referee: { cover: 'half', blocksLoS: false, blocksMovement: true, difficultTerrain: false, material: 'wood', thicknessInches: 1 }, // open-top → no sight block
@@ -403,6 +487,9 @@ export const EXPANDED_PROPS: readonly PropDefinition[] = [
   },
   {
     id: 'dock-crane',
+    isFixedToSurface: true,
+    weightPounds: 1500,
+    isMagical: false,
     name: 'Crane / hoist (dock)',
     sizeClass: 'L',
     referee: { cover: 'half', blocksLoS: false, blocksMovement: true, difficultTerrain: false, material: 'wood', thicknessInches: 8 }, // sight "partial" → open frame
@@ -413,6 +500,9 @@ export const EXPANDED_PROPS: readonly PropDefinition[] = [
   },
   {
     id: 'rowboat',
+    isFixedToSurface: false,
+    weightPounds: 300,
+    isMagical: false,
     name: 'Rowboat / skiff (beached)',
     sizeClass: 'L',
     referee: { cover: 'half', blocksLoS: false, blocksMovement: false, difficultTerrain: false, material: 'wood', thicknessInches: 1.5 }, // hull WALL; move "partial (hull)" → vault
@@ -423,6 +513,9 @@ export const EXPANDED_PROPS: readonly PropDefinition[] = [
   },
   {
     id: 'anchor',
+    isFixedToSurface: false,
+    weightPounds: 400,
+    isMagical: false,
     name: 'Anchor (iron)',
     sizeClass: 'S',
     referee: { cover: 'half', blocksLoS: false, blocksMovement: true, difficultTerrain: false, material: 'metal', thicknessInches: 2 },
@@ -433,6 +526,9 @@ export const EXPANDED_PROPS: readonly PropDefinition[] = [
   },
   {
     id: 'gangplank',
+    isFixedToSurface: false,
+    weightPounds: 40,
+    isMagical: false,
     name: 'Gangplank',
     sizeClass: 'M',
     referee: { cover: 'none', blocksLoS: false, blocksMovement: false, difficultTerrain: false, material: 'wood', thicknessInches: 2 },
@@ -444,6 +540,9 @@ export const EXPANDED_PROPS: readonly PropDefinition[] = [
   // ── 3. Smithy street ────────────────────────────────────────────────────
   {
     id: 'anvil',
+    isFixedToSurface: false,
+    weightPounds: 300,
+    isMagical: false,
     name: 'Anvil + stump',
     sizeClass: 'S',
     referee: { cover: 'half', blocksLoS: false, blocksMovement: true, difficultTerrain: false, material: 'metal', thicknessInches: 4 },
@@ -454,6 +553,9 @@ export const EXPANDED_PROPS: readonly PropDefinition[] = [
   },
   {
     id: 'forge',
+    isFixedToSurface: true,
+    weightPounds: 2000,
+    isMagical: false,
     name: 'Forge / furnace',
     sizeClass: 'M',
     referee: { cover: 'three-quarters', blocksLoS: true, blocksMovement: true, difficultTerrain: false, material: 'stone', thicknessInches: 10 },
@@ -464,6 +566,9 @@ export const EXPANDED_PROPS: readonly PropDefinition[] = [
   },
   {
     id: 'grindstone',
+    isFixedToSurface: false,
+    weightPounds: 250,
+    isMagical: false,
     name: 'Grindstone (foot-treadle)',
     sizeClass: 'S',
     referee: { cover: 'half', blocksLoS: false, blocksMovement: true, difficultTerrain: false, material: 'stone', thicknessInches: 4 },
@@ -474,6 +579,9 @@ export const EXPANDED_PROPS: readonly PropDefinition[] = [
   },
   {
     id: 'coal-heap',
+    isFixedToSurface: false,
+    weightPounds: 500,
+    isMagical: false,
     name: 'Coal / ore heap',
     sizeClass: 'S',
     referee: { cover: 'none', blocksLoS: false, blocksMovement: false, difficultTerrain: true, material: 'stone', thicknessInches: 12 }, // loose heap effective span
@@ -484,6 +592,9 @@ export const EXPANDED_PROPS: readonly PropDefinition[] = [
   },
   {
     id: 'tool-rack',
+    isFixedToSurface: false,
+    weightPounds: 40,
+    isMagical: false,
     name: 'Tool rack (tongs / hammers)',
     sizeClass: 'S',
     referee: { cover: 'none', blocksLoS: true, blocksMovement: true, difficultTerrain: false, material: 'wood', thicknessInches: 2 },
@@ -494,6 +605,9 @@ export const EXPANDED_PROPS: readonly PropDefinition[] = [
   },
   {
     id: 'metal-bar-stack',
+    isFixedToSurface: false,
+    weightPounds: 300,
+    isMagical: false,
     name: 'Metal-bar stack / billets',
     sizeClass: 'S',
     referee: { cover: 'half', blocksLoS: false, blocksMovement: true, difficultTerrain: false, material: 'metal', thicknessInches: 1 },
@@ -505,6 +619,9 @@ export const EXPANDED_PROPS: readonly PropDefinition[] = [
   // ── 4. Tavern surroundings ──────────────────────────────────────────────
   {
     id: 'tavern-sign',
+    isFixedToSurface: true,
+    weightPounds: 20,
+    isMagical: false,
     name: 'Hanging tavern sign',
     sizeClass: 'S',
     referee: { cover: 'none', blocksLoS: false, blocksMovement: true, difficultTerrain: false, material: 'wood', thicknessInches: 2 }, // "y (post)"
@@ -515,6 +632,9 @@ export const EXPANDED_PROPS: readonly PropDefinition[] = [
   },
   {
     id: 'lantern-post',
+    isFixedToSurface: true,
+    weightPounds: 40,
+    isMagical: false,
     name: 'Lantern post',
     sizeClass: 'S',
     referee: { cover: 'none', blocksLoS: false, blocksMovement: true, difficultTerrain: false, material: 'wood', thicknessInches: 4 }, // glass pane on top; post is the referee body
@@ -525,6 +645,9 @@ export const EXPANDED_PROPS: readonly PropDefinition[] = [
   },
   {
     id: 'slop-bucket',
+    isFixedToSurface: false,
+    weightPounds: 20,
+    isMagical: false,
     name: 'Slop bucket / washtub',
     sizeClass: 'S',
     referee: { cover: 'none', blocksLoS: false, blocksMovement: false, difficultTerrain: false, material: 'wood', thicknessInches: 1 },
@@ -535,6 +658,9 @@ export const EXPANDED_PROPS: readonly PropDefinition[] = [
   },
   {
     id: 'overturned-barrel',
+    isFixedToSurface: false,
+    weightPounds: 30,
+    isMagical: false,
     name: 'Overturned barrel (table)',
     sizeClass: 'S',
     referee: { cover: 'half', blocksLoS: false, blocksMovement: true, difficultTerrain: false, material: 'wood', thicknessInches: 1 }, // on its end as a table → below eye line
@@ -546,6 +672,9 @@ export const EXPANDED_PROPS: readonly PropDefinition[] = [
   // ── 5. Poor quarter ─────────────────────────────────────────────────────
   {
     id: 'rubbish-heap',
+    isFixedToSurface: false,
+    weightPounds: 120,
+    isMagical: false,
     name: 'Rubbish / refuse heap',
     sizeClass: 'S',
     referee: { cover: 'none', blocksLoS: false, blocksMovement: false, difficultTerrain: true, material: 'dirt', thicknessInches: 10 }, // organic/dirt refuse → dirt (decided)
@@ -556,6 +685,9 @@ export const EXPANDED_PROPS: readonly PropDefinition[] = [
   },
   {
     id: 'washing-line',
+    isFixedToSurface: false,
+    weightPounds: 10,
+    isMagical: false,
     name: 'Washing line + laundry',
     sizeClass: 'L',
     referee: { cover: 'none', blocksLoS: false, blocksMovement: false, difficultTerrain: false, material: 'fabric', thicknessInches: 0.2 },
@@ -569,6 +701,9 @@ export const EXPANDED_PROPS: readonly PropDefinition[] = [
   },
   {
     id: 'chicken-coop',
+    isFixedToSurface: false,
+    weightPounds: 40,
+    isMagical: false,
     name: 'Chicken coop / hutch',
     sizeClass: 'S',
     referee: { cover: 'half', blocksLoS: true, blocksMovement: true, difficultTerrain: false, material: 'wood', thicknessInches: 1 }, // wall thickness (hollow)
@@ -579,6 +714,9 @@ export const EXPANDED_PROPS: readonly PropDefinition[] = [
   },
   {
     id: 'crockery-scatter',
+    isFixedToSurface: false,
+    weightPounds: 15,
+    isMagical: false,
     name: 'Chamber-pot / crockery scatter',
     sizeClass: 'S',
     referee: { cover: 'none', blocksLoS: false, blocksMovement: false, difficultTerrain: false, material: 'glass', thicknessInches: 0.3 }, // glass/ceramic
@@ -590,6 +728,9 @@ export const EXPANDED_PROPS: readonly PropDefinition[] = [
   // ── 6. Wealthy quarter ──────────────────────────────────────────────────
   {
     id: 'hedge-run',
+    isFixedToSurface: true,
+    weightPounds: 200,
+    isMagical: false,
     name: 'Ornamental hedge run',
     sizeClass: 'L',
     referee: { cover: 'half', blocksLoS: true, blocksMovement: true, difficultTerrain: false, material: 'wood', thicknessInches: 12 },
@@ -602,6 +743,9 @@ export const EXPANDED_PROPS: readonly PropDefinition[] = [
   },
   {
     id: 'iron-fence',
+    isFixedToSurface: true,
+    weightPounds: 500,
+    isMagical: false,
     name: 'Wrought-iron fence + gate',
     sizeClass: 'L',
     referee: { cover: 'half', blocksLoS: false, blocksMovement: true, difficultTerrain: false, material: 'metal', thicknessInches: 1 },
@@ -612,6 +756,9 @@ export const EXPANDED_PROPS: readonly PropDefinition[] = [
   },
   {
     id: 'stone-planter',
+    isFixedToSurface: true,
+    weightPounds: 150,
+    isMagical: false,
     name: 'Stone planter / urn',
     sizeClass: 'S',
     referee: { cover: 'half', blocksLoS: false, blocksMovement: true, difficultTerrain: false, material: 'stone', thicknessInches: 4 },
@@ -622,6 +769,9 @@ export const EXPANDED_PROPS: readonly PropDefinition[] = [
   },
   {
     id: 'statue',
+    isFixedToSurface: true,
+    weightPounds: 800,
+    isMagical: false,
     name: 'Statue / plinth',
     sizeClass: 'M',
     referee: { cover: 'three-quarters', blocksLoS: true, blocksMovement: true, difficultTerrain: false, material: 'stone', thicknessInches: 12 },
@@ -632,6 +782,9 @@ export const EXPANDED_PROPS: readonly PropDefinition[] = [
   },
   {
     id: 'stone-bench',
+    isFixedToSurface: true,
+    weightPounds: 400,
+    isMagical: false,
     name: 'Stone bench',
     sizeClass: 'M',
     referee: { cover: 'half', blocksLoS: false, blocksMovement: true, difficultTerrain: false, material: 'stone', thicknessInches: 6 },
@@ -642,6 +795,9 @@ export const EXPANDED_PROPS: readonly PropDefinition[] = [
   },
   {
     id: 'carriage',
+    isFixedToSurface: false,
+    weightPounds: 1200,
+    isMagical: false,
     name: 'Carriage (four-wheel)',
     sizeClass: 'L',
     referee: { cover: 'three-quarters', blocksLoS: true, blocksMovement: true, difficultTerrain: false, material: 'wood', thicknessInches: 2 },
@@ -652,6 +808,9 @@ export const EXPANDED_PROPS: readonly PropDefinition[] = [
   },
   {
     id: 'topiary',
+    isFixedToSurface: false,
+    weightPounds: 150,
+    isMagical: false,
     name: 'Topiary / potted tree',
     sizeClass: 'S',
     referee: { cover: 'half', blocksLoS: true, blocksMovement: true, difficultTerrain: false, material: 'wood', thicknessInches: 6 },
@@ -663,6 +822,9 @@ export const EXPANDED_PROPS: readonly PropDefinition[] = [
   // ── 7. Farmstead ────────────────────────────────────────────────────────
   {
     id: 'plough',
+    isFixedToSurface: false,
+    weightPounds: 200,
+    isMagical: false,
     name: 'Plough / harrow',
     sizeClass: 'M',
     referee: { cover: 'half', blocksLoS: false, blocksMovement: false, difficultTerrain: false, material: 'wood', thicknessInches: 3 }, // move "partial" → vault
@@ -673,6 +835,9 @@ export const EXPANDED_PROPS: readonly PropDefinition[] = [
   },
   {
     id: 'pigpen',
+    isFixedToSurface: false,
+    weightPounds: 120,
+    isMagical: false,
     name: 'Pigpen / livestock hurdle',
     sizeClass: 'L',
     referee: { cover: 'half', blocksLoS: false, blocksMovement: false, difficultTerrain: false, material: 'wood', thicknessInches: 2 },
@@ -685,6 +850,9 @@ export const EXPANDED_PROPS: readonly PropDefinition[] = [
   },
   {
     id: 'scarecrow',
+    isFixedToSurface: true,
+    weightPounds: 30,
+    isMagical: false,
     name: 'Scarecrow',
     sizeClass: 'S',
     referee: { cover: 'none', blocksLoS: false, blocksMovement: true, difficultTerrain: false, material: 'wood', thicknessInches: 2 }, // "y (post)"
@@ -695,6 +863,9 @@ export const EXPANDED_PROPS: readonly PropDefinition[] = [
   },
   {
     id: 'beehive',
+    isFixedToSurface: false,
+    weightPounds: 20,
+    isMagical: false,
     name: 'Beehive skep',
     sizeClass: 'S',
     referee: { cover: 'none', blocksLoS: false, blocksMovement: true, difficultTerrain: false, material: 'wood', thicknessInches: 1 }, // coiled straw → wood; hollow wall
@@ -706,6 +877,9 @@ export const EXPANDED_PROPS: readonly PropDefinition[] = [
   // ── 8. Village lane ─────────────────────────────────────────────────────
   {
     id: 'milestone',
+    isFixedToSurface: true,
+    weightPounds: 200,
+    isMagical: false,
     name: 'Milestone / waymarker',
     sizeClass: 'S',
     referee: { cover: 'half', blocksLoS: false, blocksMovement: true, difficultTerrain: false, material: 'stone', thicknessInches: 6 },
@@ -716,6 +890,9 @@ export const EXPANDED_PROPS: readonly PropDefinition[] = [
   },
   {
     id: 'wayside-shrine',
+    isFixedToSurface: true,
+    weightPounds: 300,
+    isMagical: false,
     name: 'Wayside shrine',
     sizeClass: 'S',
     referee: { cover: 'half', blocksLoS: true, blocksMovement: true, difficultTerrain: false, material: 'stone', thicknessInches: 8 },
@@ -726,6 +903,9 @@ export const EXPANDED_PROPS: readonly PropDefinition[] = [
   },
   {
     id: 'wood-bench',
+    isFixedToSurface: false,
+    weightPounds: 40,
+    isMagical: false,
     name: 'Bench (rough wood)',
     sizeClass: 'M',
     referee: { cover: 'half', blocksLoS: false, blocksMovement: true, difficultTerrain: false, material: 'wood', thicknessInches: 2 },
@@ -736,6 +916,9 @@ export const EXPANDED_PROPS: readonly PropDefinition[] = [
   },
   {
     id: 'dung-heap',
+    isFixedToSurface: false,
+    weightPounds: 150,
+    isMagical: false,
     name: 'Dung / muck heap',
     sizeClass: 'S',
     referee: { cover: 'none', blocksLoS: false, blocksMovement: false, difficultTerrain: true, material: 'dirt', thicknessInches: 10 }, // muck → dirt, not wood (decided)
@@ -747,6 +930,9 @@ export const EXPANDED_PROPS: readonly PropDefinition[] = [
   // ── 9. Town gate / walls ────────────────────────────────────────────────
   {
     id: 'wall-merlon',
+    isFixedToSurface: true,
+    weightPounds: 1000,
+    isMagical: false,
     name: 'Wall merlon / crenellation',
     sizeClass: 'L',
     referee: { cover: 'three-quarters', blocksLoS: true, blocksMovement: true, difficultTerrain: false, material: 'stone', thicknessInches: 24 },
@@ -757,6 +943,9 @@ export const EXPANDED_PROPS: readonly PropDefinition[] = [
   },
   {
     id: 'wooden-gate',
+    isFixedToSurface: true,
+    weightPounds: 400,
+    isMagical: false,
     name: 'Wooden gate (double-leaf)',
     sizeClass: 'L',
     referee: { cover: 'full', blocksLoS: true, blocksMovement: true, difficultTerrain: false, material: 'wood', thicknessInches: 4 },
@@ -767,6 +956,9 @@ export const EXPANDED_PROPS: readonly PropDefinition[] = [
   },
   {
     id: 'portcullis',
+    isFixedToSurface: true,
+    weightPounds: 800,
+    isMagical: false,
     name: 'Portcullis',
     sizeClass: 'L',
     referee: { cover: 'three-quarters', blocksLoS: false, blocksMovement: true, difficultTerrain: false, material: 'metal', thicknessInches: 2 }, // sight "partial" → see between the bars
@@ -777,6 +969,9 @@ export const EXPANDED_PROPS: readonly PropDefinition[] = [
   },
   {
     id: 'brazier',
+    isFixedToSurface: true,
+    weightPounds: 60,
+    isMagical: false,
     name: 'Brazier / candle stand',
     sizeClass: 'S',
     referee: { cover: 'none', blocksLoS: false, blocksMovement: true, difficultTerrain: false, material: 'metal', thicknessInches: 2 },
@@ -787,6 +982,9 @@ export const EXPANDED_PROPS: readonly PropDefinition[] = [
   },
   {
     id: 'weapon-rack',
+    isFixedToSurface: false,
+    weightPounds: 60,
+    isMagical: false,
     name: 'Weapon rack (spears)',
     sizeClass: 'S',
     referee: { cover: 'half', blocksLoS: true, blocksMovement: true, difficultTerrain: false, material: 'wood', thicknessInches: 2 },
@@ -797,6 +995,9 @@ export const EXPANDED_PROPS: readonly PropDefinition[] = [
   },
   {
     id: 'sandbag-rampart',
+    isFixedToSurface: true,
+    weightPounds: 600,
+    isMagical: false,
     name: 'Sandbag / earth rampart',
     sizeClass: 'L',
     referee: { cover: 'three-quarters', blocksLoS: true, blocksMovement: true, difficultTerrain: false, material: 'dirt', thicknessInches: 12 }, // fabric/dirt → the MASS is earth (decided)
@@ -807,6 +1008,9 @@ export const EXPANDED_PROPS: readonly PropDefinition[] = [
   },
   {
     id: 'checkpoint-bar',
+    isFixedToSurface: true,
+    weightPounds: 60,
+    isMagical: false,
     name: 'Barrier / checkpoint bar',
     sizeClass: 'M',
     referee: { cover: 'half', blocksLoS: false, blocksMovement: true, difficultTerrain: false, material: 'wood', thicknessInches: 4 },
@@ -817,6 +1021,9 @@ export const EXPANDED_PROPS: readonly PropDefinition[] = [
   },
   {
     id: 'wall-ladder',
+    isFixedToSurface: true,
+    weightPounds: 40,
+    isMagical: false,
     name: 'Wall ladder',
     sizeClass: 'S',
     referee: { cover: 'none', blocksLoS: false, blocksMovement: true, difficultTerrain: false, material: 'wood', thicknessInches: 2 },
@@ -828,6 +1035,9 @@ export const EXPANDED_PROPS: readonly PropDefinition[] = [
   // ── 10. Graveyard / temple yard ─────────────────────────────────────────
   {
     id: 'gravestone',
+    isFixedToSurface: true,
+    weightPounds: 300,
+    isMagical: false,
     name: 'Gravestone / headstone',
     sizeClass: 'S',
     referee: { cover: 'half', blocksLoS: true, blocksMovement: true, difficultTerrain: false, material: 'stone', thicknessInches: 4 },
@@ -838,6 +1048,9 @@ export const EXPANDED_PROPS: readonly PropDefinition[] = [
   },
   {
     id: 'tomb',
+    isFixedToSurface: true,
+    weightPounds: 1500,
+    isMagical: false,
     name: 'Tomb / sarcophagus',
     sizeClass: 'M',
     referee: { cover: 'three-quarters', blocksLoS: true, blocksMovement: true, difficultTerrain: false, material: 'stone', thicknessInches: 10 },
@@ -848,6 +1061,9 @@ export const EXPANDED_PROPS: readonly PropDefinition[] = [
   },
   {
     id: 'stone-cross',
+    isFixedToSurface: true,
+    weightPounds: 600,
+    isMagical: false,
     name: 'Stone cross / monument',
     sizeClass: 'M',
     referee: { cover: 'three-quarters', blocksLoS: true, blocksMovement: true, difficultTerrain: false, material: 'stone', thicknessInches: 8 },
@@ -858,6 +1074,9 @@ export const EXPANDED_PROPS: readonly PropDefinition[] = [
   },
   {
     id: 'lych-gate',
+    isFixedToSurface: true,
+    weightPounds: 500,
+    isMagical: false,
     name: 'Lych-gate',
     sizeClass: 'L',
     referee: { cover: 'half', blocksLoS: true, blocksMovement: true, difficultTerrain: false, material: 'wood', thicknessInches: 4 },
@@ -868,6 +1087,9 @@ export const EXPANDED_PROPS: readonly PropDefinition[] = [
   },
   {
     id: 'boundary-wall',
+    isFixedToSurface: true,
+    weightPounds: 1500,
+    isMagical: false,
     name: 'Low boundary wall',
     sizeClass: 'L',
     referee: { cover: 'half', blocksLoS: false, blocksMovement: true, difficultTerrain: false, material: 'stone', thicknessInches: 12 },
@@ -878,6 +1100,9 @@ export const EXPANDED_PROPS: readonly PropDefinition[] = [
   },
   {
     id: 'grave-mound',
+    isFixedToSurface: true,
+    weightPounds: 300,
+    isMagical: false,
     name: 'Fresh-dug grave mound',
     sizeClass: 'S',
     referee: { cover: 'none', blocksLoS: false, blocksMovement: false, difficultTerrain: true, material: 'dirt', thicknessInches: 12 },
@@ -889,6 +1114,9 @@ export const EXPANDED_PROPS: readonly PropDefinition[] = [
   // ── 11. Forest ──────────────────────────────────────────────────────────
   {
     id: 'tree-stump',
+    isFixedToSurface: true,
+    weightPounds: 150,
+    isMagical: false,
     name: 'Tree stump',
     sizeClass: 'S',
     referee: { cover: 'half', blocksLoS: false, blocksMovement: true, difficultTerrain: false, material: 'wood', thicknessInches: 20 }, // solid
@@ -899,6 +1127,9 @@ export const EXPANDED_PROPS: readonly PropDefinition[] = [
   },
   {
     id: 'deadfall',
+    isFixedToSurface: true,
+    weightPounds: 200,
+    isMagical: false,
     name: 'Deadfall / branch tangle',
     sizeClass: 'M',
     referee: { cover: 'half', blocksLoS: true, blocksMovement: false, difficultTerrain: true, material: 'wood', thicknessInches: 6 }, // move "partial" + "difficult"
@@ -909,6 +1140,9 @@ export const EXPANDED_PROPS: readonly PropDefinition[] = [
   },
   {
     id: 'mossy-rock-cluster',
+    isFixedToSurface: true,
+    weightPounds: 800,
+    isMagical: false,
     name: 'Mossy rock cluster',
     sizeClass: 'M',
     referee: { cover: 'half', blocksLoS: true, blocksMovement: true, difficultTerrain: false, material: 'stone', thicknessInches: 24 }, // solid
@@ -919,6 +1153,9 @@ export const EXPANDED_PROPS: readonly PropDefinition[] = [
   },
   {
     id: 'bramble-patch',
+    isFixedToSurface: true,
+    weightPounds: 60,
+    isMagical: false,
     name: 'Bramble patch',
     sizeClass: 'M',
     referee: { cover: 'half', blocksLoS: true, blocksMovement: false, difficultTerrain: true, material: 'wood', thicknessInches: 6 }, // "y (difficult)"
@@ -929,6 +1166,9 @@ export const EXPANDED_PROPS: readonly PropDefinition[] = [
   },
   {
     id: 'mushroom-ring',
+    isFixedToSurface: true,
+    weightPounds: 5,
+    isMagical: false,
     name: 'Mushroom ring / fungal shelf',
     sizeClass: 'S',
     referee: { cover: 'none', blocksLoS: false, blocksMovement: false, difficultTerrain: false, material: 'wood', thicknessInches: 2 },
@@ -939,6 +1179,9 @@ export const EXPANDED_PROPS: readonly PropDefinition[] = [
   },
   {
     id: 'fern-clump',
+    isFixedToSurface: true,
+    weightPounds: 10,
+    isMagical: false,
     name: 'Fern / undergrowth clump',
     sizeClass: 'S',
     referee: { cover: 'none', blocksLoS: false, blocksMovement: false, difficultTerrain: false, material: 'wood', thicknessInches: 3 },
@@ -950,6 +1193,9 @@ export const EXPANDED_PROPS: readonly PropDefinition[] = [
   // ── 12. Rocky hills ─────────────────────────────────────────────────────
   {
     id: 'rock-outcrop',
+    isFixedToSurface: true,
+    weightPounds: 2000,
+    isMagical: false,
     name: 'Rock outcrop / crag',
     sizeClass: 'L',
     referee: { cover: 'full', blocksLoS: true, blocksMovement: true, difficultTerrain: false, material: 'stone', thicknessInches: 48 }, // solid
@@ -960,6 +1206,9 @@ export const EXPANDED_PROPS: readonly PropDefinition[] = [
   },
   {
     id: 'scree-field',
+    isFixedToSurface: true,
+    weightPounds: 1000,
+    isMagical: false,
     name: 'Scree / loose-rock field',
     sizeClass: 'L',
     referee: { cover: 'none', blocksLoS: false, blocksMovement: false, difficultTerrain: true, material: 'stone', thicknessInches: 6 }, // loose
@@ -970,6 +1219,9 @@ export const EXPANDED_PROPS: readonly PropDefinition[] = [
   },
   {
     id: 'standing-stone',
+    isFixedToSurface: true,
+    weightPounds: 800,
+    isMagical: false,
     name: 'Standing stone / menhir',
     sizeClass: 'M',
     referee: { cover: 'three-quarters', blocksLoS: true, blocksMovement: true, difficultTerrain: false, material: 'stone', thicknessInches: 18 },
@@ -980,6 +1232,9 @@ export const EXPANDED_PROPS: readonly PropDefinition[] = [
   },
   {
     id: 'cave-mouth',
+    isFixedToSurface: true,
+    weightPounds: 8000,
+    isMagical: false,
     name: 'Cave mouth / overhang',
     sizeClass: 'L',
     referee: { cover: 'full', blocksLoS: true, blocksMovement: true, difficultTerrain: false, material: 'stone', thicknessInches: 60 }, // solid cliff mass
@@ -990,6 +1245,9 @@ export const EXPANDED_PROPS: readonly PropDefinition[] = [
   },
   {
     id: 'dry-stone-wall',
+    isFixedToSurface: true,
+    weightPounds: 1500,
+    isMagical: false,
     name: 'Dry stone wall (ruined)',
     sizeClass: 'L',
     referee: { cover: 'half', blocksLoS: false, blocksMovement: true, difficultTerrain: false, material: 'stone', thicknessInches: 18 },
@@ -1000,6 +1258,9 @@ export const EXPANDED_PROPS: readonly PropDefinition[] = [
   },
   {
     id: 'gorse-shrub',
+    isFixedToSurface: true,
+    weightPounds: 30,
+    isMagical: false,
     name: 'Gorse / hardy shrub',
     sizeClass: 'S',
     referee: { cover: 'half', blocksLoS: true, blocksMovement: true, difficultTerrain: false, material: 'wood', thicknessInches: 5 },
@@ -1010,6 +1271,9 @@ export const EXPANDED_PROPS: readonly PropDefinition[] = [
   },
   {
     id: 'cairn',
+    isFixedToSurface: true,
+    weightPounds: 150,
+    isMagical: false,
     name: 'Small cairn',
     sizeClass: 'S',
     referee: { cover: 'half', blocksLoS: false, blocksMovement: true, difficultTerrain: false, material: 'stone', thicknessInches: 12 },
@@ -1021,6 +1285,9 @@ export const EXPANDED_PROPS: readonly PropDefinition[] = [
   // ── 13. Riverbank ───────────────────────────────────────────────────────
   {
     id: 'reed-bed',
+    isFixedToSurface: true,
+    weightPounds: 60,
+    isMagical: false,
     name: 'Reed / rush bed',
     sizeClass: 'M',
     referee: { cover: 'half', blocksLoS: true, blocksMovement: false, difficultTerrain: true, material: 'wood', thicknessInches: 4 }, // "y (difficult)"
@@ -1031,6 +1298,9 @@ export const EXPANDED_PROPS: readonly PropDefinition[] = [
   },
   {
     id: 'driftwood-pile',
+    isFixedToSurface: false,
+    weightPounds: 250,
+    isMagical: false,
     name: 'Driftwood pile',
     sizeClass: 'M',
     referee: { cover: 'half', blocksLoS: false, blocksMovement: false, difficultTerrain: false, material: 'wood', thicknessInches: 5 }, // move "partial" → vault
@@ -1041,6 +1311,9 @@ export const EXPANDED_PROPS: readonly PropDefinition[] = [
   },
   {
     id: 'gravel-bar',
+    isFixedToSurface: true,
+    weightPounds: 800,
+    isMagical: false,
     name: 'Gravel / shingle bar',
     sizeClass: 'L',
     referee: { cover: 'none', blocksLoS: false, blocksMovement: false, difficultTerrain: true, material: 'stone', thicknessInches: 4 },
@@ -1053,6 +1326,9 @@ export const EXPANDED_PROPS: readonly PropDefinition[] = [
   },
   {
     id: 'stepping-stones',
+    isFixedToSurface: true,
+    weightPounds: 200,
+    isMagical: false,
     name: 'Stepping stones',
     sizeClass: 'S', // strawman "S×n" — a line of S instances
     referee: { cover: 'none', blocksLoS: false, blocksMovement: false, difficultTerrain: false, material: 'stone', thicknessInches: 8 },
@@ -1063,6 +1339,9 @@ export const EXPANDED_PROPS: readonly PropDefinition[] = [
   },
   {
     id: 'muddy-flat',
+    isFixedToSurface: true,
+    weightPounds: 1500,
+    isMagical: false,
     name: 'Muddy flat',
     sizeClass: 'L',
     referee: { cover: 'none', blocksLoS: false, blocksMovement: false, difficultTerrain: true, material: 'dirt', thicknessInches: 6 }, // "y (difficult)"; dirt/mud → dirt
@@ -1073,6 +1352,9 @@ export const EXPANDED_PROPS: readonly PropDefinition[] = [
   },
   {
     id: 'jetty-post',
+    isFixedToSurface: true,
+    weightPounds: 80,
+    isMagical: false,
     name: 'Old jetty post (rotted)',
     sizeClass: 'S',
     referee: { cover: 'half', blocksLoS: false, blocksMovement: true, difficultTerrain: false, material: 'wood', thicknessInches: 6 },
@@ -1084,6 +1366,9 @@ export const EXPANDED_PROPS: readonly PropDefinition[] = [
   // ── 14. Road / trailside ────────────────────────────────────────────────
   {
     id: 'fingerpost',
+    isFixedToSurface: true,
+    weightPounds: 20,
+    isMagical: false,
     name: 'Fingerpost / signpost',
     sizeClass: 'S',
     referee: { cover: 'none', blocksLoS: false, blocksMovement: true, difficultTerrain: false, material: 'wood', thicknessInches: 3 },
@@ -1094,6 +1379,9 @@ export const EXPANDED_PROPS: readonly PropDefinition[] = [
   },
   {
     id: 'log-bridge',
+    isFixedToSurface: true,
+    weightPounds: 150,
+    isMagical: false,
     name: 'Log bridge / plank crossing',
     sizeClass: 'M',
     referee: { cover: 'none', blocksLoS: false, blocksMovement: false, difficultTerrain: false, material: 'wood', thicknessInches: 2 },
@@ -1104,6 +1392,9 @@ export const EXPANDED_PROPS: readonly PropDefinition[] = [
   },
   {
     id: 'ditch-bank',
+    isFixedToSurface: true,
+    weightPounds: 2000,
+    isMagical: false,
     name: 'Ditch / bank',
     sizeClass: 'L',
     referee: { cover: 'half', blocksLoS: false, blocksMovement: false, difficultTerrain: true, material: 'dirt', thicknessInches: 18 }, // "y (difficult)"
@@ -1114,6 +1405,9 @@ export const EXPANDED_PROPS: readonly PropDefinition[] = [
   },
   {
     id: 'firepit',
+    isFixedToSurface: true,
+    weightPounds: 150,
+    isMagical: false,
     name: 'Rest-stop firepit',
     sizeClass: 'S',
     referee: { cover: 'none', blocksLoS: false, blocksMovement: true, difficultTerrain: false, material: 'stone', thicknessInches: 4 },
@@ -1125,6 +1419,9 @@ export const EXPANDED_PROPS: readonly PropDefinition[] = [
   // ── 15. Ruin site ───────────────────────────────────────────────────────
   {
     id: 'broken-wall',
+    isFixedToSurface: true,
+    weightPounds: 2000,
+    isMagical: false,
     name: 'Broken wall segment',
     sizeClass: 'L',
     referee: { cover: 'three-quarters', blocksLoS: true, blocksMovement: true, difficultTerrain: false, material: 'stone', thicknessInches: 18 },
@@ -1135,6 +1432,9 @@ export const EXPANDED_PROPS: readonly PropDefinition[] = [
   },
   {
     id: 'toppled-column',
+    isFixedToSurface: true,
+    weightPounds: 2500,
+    isMagical: false,
     name: 'Toppled column',
     sizeClass: 'L',
     referee: { cover: 'half', blocksLoS: false, blocksMovement: false, difficultTerrain: false, material: 'stone', thicknessInches: 24 }, // solid; move "partial (vault)"
@@ -1145,6 +1445,9 @@ export const EXPANDED_PROPS: readonly PropDefinition[] = [
   },
   {
     id: 'standing-column',
+    isFixedToSurface: true,
+    weightPounds: 3000,
+    isMagical: false,
     name: 'Standing column (partial)',
     sizeClass: 'M',
     referee: { cover: 'three-quarters', blocksLoS: true, blocksMovement: true, difficultTerrain: false, material: 'stone', thicknessInches: 14 },
@@ -1155,6 +1458,9 @@ export const EXPANDED_PROPS: readonly PropDefinition[] = [
   },
   {
     id: 'rubble-pile',
+    isFixedToSurface: true,
+    weightPounds: 900,
+    isMagical: false,
     name: 'Rubble pile',
     sizeClass: 'M',
     referee: { cover: 'half', blocksLoS: false, blocksMovement: false, difficultTerrain: true, material: 'stone', thicknessInches: 8 }, // loose; "y (difficult)"
@@ -1165,6 +1471,9 @@ export const EXPANDED_PROPS: readonly PropDefinition[] = [
   },
   {
     id: 'collapsed-archway',
+    isFixedToSurface: true,
+    weightPounds: 4000,
+    isMagical: false,
     name: 'Collapsed archway',
     sizeClass: 'L',
     referee: { cover: 'half', blocksLoS: true, blocksMovement: true, difficultTerrain: false, material: 'stone', thicknessInches: 20 },
@@ -1175,6 +1484,9 @@ export const EXPANDED_PROPS: readonly PropDefinition[] = [
   },
   {
     id: 'overgrown-statue',
+    isFixedToSurface: true,
+    weightPounds: 800,
+    isMagical: false,
     name: 'Overgrown statue (broken)',
     sizeClass: 'M',
     referee: { cover: 'half', blocksLoS: true, blocksMovement: true, difficultTerrain: false, material: 'stone', thicknessInches: 10 },
@@ -1185,6 +1497,9 @@ export const EXPANDED_PROPS: readonly PropDefinition[] = [
   },
   {
     id: 'ivy-mass',
+    isFixedToSurface: true,
+    weightPounds: 40,
+    isMagical: false,
     name: 'Ivy / creeper mass',
     sizeClass: 'L',
     referee: { cover: 'half', blocksLoS: true, blocksMovement: true, difficultTerrain: false, material: 'wood', thicknessInches: 4 },
@@ -1195,6 +1510,9 @@ export const EXPANDED_PROPS: readonly PropDefinition[] = [
   },
   {
     id: 'flagstone-floor',
+    isFixedToSurface: true,
+    weightPounds: 1500,
+    isMagical: false,
     name: 'Sunken flagstone floor',
     sizeClass: 'L',
     referee: { cover: 'none', blocksLoS: false, blocksMovement: false, difficultTerrain: false, material: 'stone', thicknessInches: 4 },
@@ -1205,6 +1523,9 @@ export const EXPANDED_PROPS: readonly PropDefinition[] = [
   },
   {
     id: 'roof-beam-charred',
+    isFixedToSurface: false,
+    weightPounds: 250,
+    isMagical: false,
     name: 'Fallen roof beam (charred)',
     sizeClass: 'L',
     referee: { cover: 'half', blocksLoS: false, blocksMovement: false, difficultTerrain: false, material: 'wood', thicknessInches: 10 }, // solid beam; move "partial" → vault
@@ -1219,6 +1540,9 @@ export const EXPANDED_PROPS: readonly PropDefinition[] = [
   //  fallen-log / bush / rock-outcrop / rubble-pile via the 'defile' tag.)
   {
     id: 'dead-snag',
+    isFixedToSurface: true,
+    weightPounds: 400,
+    isMagical: false,
     name: 'Dead snag / lean tree',
     sizeClass: 'M',
     referee: { cover: 'half', blocksLoS: true, blocksMovement: true, difficultTerrain: false, material: 'wood', thicknessInches: 12 },
@@ -1229,6 +1553,9 @@ export const EXPANDED_PROPS: readonly PropDefinition[] = [
   },
   {
     id: 'sniper-ledge',
+    isFixedToSurface: true,
+    weightPounds: 1500,
+    isMagical: false,
     name: 'Sniper ledge / rock shelf',
     sizeClass: 'M',
     referee: { cover: 'three-quarters', blocksLoS: true, blocksMovement: true, difficultTerrain: false, material: 'stone', thicknessInches: 30 },

@@ -126,7 +126,7 @@ describe("WorldForge battle scenario projection", () => {
     ).toBe("pass");
   }, 180_000);
 
-  it("publishes real Legium props while exposing the catalog facts still missing for movement spells", () => {
+  it("publishes real Legium props with complete mobility, weight, and magical target facts", () => {
     const preset = WORLD_BATTLE_SCENARIO_PRESETS.find(
       (candidate) => candidate.id === "legium-town-skirmish",
     )!;
@@ -161,17 +161,28 @@ describe("WorldForge battle scenario projection", () => {
       propTargets.length,
     );
     expect(propTargets.every((object) => object.source?.sourceKind)).toBe(true);
-    expect(propTargets.every((object) => object.isFixedToSurface == null)).toBe(
+    expect(propTargets.every((object) => object.isFixedToSurface != null)).toBe(
       true,
     );
-    expect(scenario.diagnostics.tactical.incompleteTargetFacts).toBeGreaterThan(
-      0,
-    );
     expect(
-      scenario.diagnostics.parity.find(
-        (check) => check.id === "object-targeting",
-      )?.status,
-    ).toBe("warning");
+      propTargets.every(
+        (object) =>
+          object.isFixedToSurface === true ||
+          typeof object.weightPounds === "number",
+      ),
+    ).toBe(true);
+    expect(scenario.diagnostics.tactical.incompleteTargetFacts).toBe(0);
+    // GG-42: the prop catalog now publishes mobility/weight/magic, so the
+    // parity check must stop blaming the catalog. It may still warn when a
+    // subset of in-crop natural features is not individually projected as a
+    // tactical target — a separate, pre-existing projection gap unrelated to
+    // prop facts.
+    const objectTargeting = scenario.diagnostics.parity.find(
+      (check) => check.id === "object-targeting",
+    );
+    expect(objectTargeting?.detail).not.toContain(
+      "catalog props still lack",
+    );
   }, 180_000);
 
   it("frames a deterministic Legium gate encounter from real structures and live resident schedules", () => {

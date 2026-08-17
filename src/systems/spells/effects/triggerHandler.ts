@@ -26,7 +26,7 @@ import type { RepeatSave, EscapeCheck, ConditionBreakTrigger } from '../../../ty
 import type { AoEParams } from '../../../utils/combat/aoeCalculations';
 import { AoECalculator } from '../targeting/AoECalculator';
 import { getRecurringMechanics } from '../../../hooks/spellEffectUtils';
-import type { RecurringMechanic } from '../../../types/spellEffectTypes';
+import type { RecurringMechanic, DamageEffect, HealingEffect, StatusConditionEffect } from '../../../types/spellEffectTypes';
 
 /**
  * Represents an active spell zone on the battlefield (e.g., Create Bonfire)
@@ -816,6 +816,25 @@ function normalizeEffectType(type: string): string {
 }
 
 /**
+ * Discriminated-union guards for the canonical uppercase spell-effect
+ * discriminants. Spell data and the `SpellEffect` union use uppercase `type`
+ * literals; `normalizeEffectType` above tolerates legacy lowercase producers
+ * for the switch, while these guards give the compiler the narrowing it needs
+ * to validate property access without `as any` casts.
+ */
+function isDamageEffect(effect: SpellEffect): effect is DamageEffect {
+    return normalizeEffectType(effect.type) === 'DAMAGE';
+}
+
+function isHealingEffect(effect: SpellEffect): effect is HealingEffect {
+    return normalizeEffectType(effect.type) === 'HEALING';
+}
+
+function isStatusConditionEffect(effect: SpellEffect): effect is StatusConditionEffect {
+    return normalizeEffectType(effect.type) === 'STATUS_CONDITION';
+}
+
+/**
  * Convert a SpellEffect to a ProcessedEffect for the combat system
  */
 export function convertSpellEffectToProcessed(
@@ -824,8 +843,8 @@ export function convertSpellEffectToProcessed(
     recurringMechanic?: RecurringMechanic
 ): ProcessedEffect[] {
     const processed: ProcessedEffect[] = [];
-    const damage = recurringMechanic?.damage ?? (effect as { damage?: any }).damage;
-    const healing = recurringMechanic?.healing ?? (effect as { healing?: any }).healing;
+    const damage = recurringMechanic?.damage ?? (isDamageEffect(effect) ? effect.damage : undefined);
+    const healing = recurringMechanic?.healing ?? (isHealingEffect(effect) ? effect.healing : undefined);
     const saveType = recurringMechanic?.saveType ?? effect.condition?.saveType;
     const saveEffect = recurringMechanic?.saveEffect ?? effect.condition?.saveEffect;
     const requiresSave = effect.condition?.type === 'save' || Boolean(recurringMechanic?.saveType);
@@ -911,10 +930,20 @@ export function convertSpellEffectToProcessed(
                 break;
             }
 
+            // The spell-effect union narrows on the uppercase discriminant, so a
+            // STATUS_CONDITION row that reaches this branch through the normalizer
+            // but does not structurally carry a statusCondition payload is malformed
+            // data. Skip it loudly instead of emitting a condition-less packet.
+            if (!isStatusConditionEffect(effect)) {
+                console.warn(`[convertSpellEffectToProcessed] STATUS_CONDITION type without a statusCondition payload; skipped.`);
+                break;
+            }
+
+            const status = effect.statusCondition;
             processed.push({
                 type: 'status_condition',
-                statusName: effect.statusCondition?.name,
-                duration: effect.statusCondition?.duration,
+                statusName: status.name,
+                duration: status.duration,
                 requiresSave: effect.condition?.type === 'save',
                 saveType: effect.condition?.saveType,
                 saveEffect: effect.condition?.saveEffect,
@@ -922,9 +951,9 @@ export function convertSpellEffectToProcessed(
                 // shape while the spell-data migration is still in flight. Preserve
                 // all known locations so delayed effects and area triggers keep the
                 // ongoing-resolution rules that immediate status commands already use.
-                repeatSave: effect.statusCondition?.repeatSave,
-                escapeCheck: effect.statusCondition?.escapeCheck,
-                breakTriggers: effect.statusCondition?.breakTriggers,
+                repeatSave: status.repeatSave,
+                escapeCheck: status.escapeCheck,
+                breakTriggers: status.breakTriggers,
                 sourceContext
             });
             break;

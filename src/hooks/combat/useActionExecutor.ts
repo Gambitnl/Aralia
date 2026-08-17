@@ -3,8 +3,8 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 13/08/2026, 08:01:46
- * Dependents: hooks/combat/useTurnManager.ts
+ * Last Sync: 16/08/2026, 12:31:20
+ * Dependents: components/DesignPreview/steps/classes/subclasses/barbarian/WildHeartDemo.tsx, hooks/combat/useTurnManager.ts
  * Imports: 14 files
  *
  * MULTI-AGENT SAFETY:
@@ -39,7 +39,9 @@ import {
   rollDice,
   rollD20,
   getOccupiedTiles,
-  getCharacterSizeMultiplier
+  getCharacterSizeMultiplier,
+  isRaging,
+  FRENZY_ABILITY_ID
 } from '../../utils/combat';
 import { getAbilityModifierValue } from '../../utils/character';
 import { calculateSpellDC, rollSavingThrow } from '../../utils/character';
@@ -1544,6 +1546,23 @@ export const useActionExecutor = ({
           }
         }
       }
+    }
+
+    // Frenzy (Path of the Berserker) is only legal while the barbarian is
+    // actively raging. Gate it before resource payment so a bonus action is
+    // never consumed for an attack the subclass does not currently permit.
+    if (
+      action.type === 'ability'
+      && action.abilityId === FRENZY_ABILITY_ID
+      && !isRaging(startCharacter)
+    ) {
+      onLogEntry({
+        id: generateId(), timestamp: Date.now(), type: 'action',
+        message: `${startCharacter.name} cannot use Frenzy while not raging.`,
+        characterId: startCharacter.id,
+        data: { rejectedReason: 'frenzy_requires_rage' }
+      });
+      return false;
     }
 
     if (!aerialMovement && !canAfford(startCharacter, resolvedAction.cost)) {

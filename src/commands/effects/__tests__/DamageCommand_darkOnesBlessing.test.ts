@@ -172,4 +172,44 @@ describe("DamageCommand — Dark One's Blessing (Fiend warlock, level 3)", () =>
     expect(caster.tempHP ?? 0).toBe(0)
     expect(newState.combatLog.some(l => l.data?.feature === 'dark_ones_blessing')).toBe(false)
   })
+
+  it('does not fire when the reduced-to-0 creature is on the same team', async () => {
+    const ally = createMockCombatCharacter({
+      id: 'enemy-1',
+      name: 'Friendly Rogue',
+      team: 'player', // same team as the warlock
+      position: { x: 1, y: 1 },
+      currentHP: 8,
+      maxHP: 8
+    })
+    mockState = createMockCombatState({ characters: [warlock, ally], combatLog: [] })
+    context = { ...context, targets: [ally] }
+
+    const command = new DamageCommand(alwaysDamage('2d6'), context)
+    const newState = await command.execute(mockState)
+
+    const caster = newState.characters.find(c => c.id === 'warlock-1')!
+    expect(caster.tempHP ?? 0).toBe(0)
+    expect(newState.combatLog.some(l => l.data?.feature === 'dark_ones_blessing')).toBe(false)
+  })
+
+  it('does not fire when the reduced-to-0 creature is neutral', async () => {
+    const neutral = createMockCombatCharacter({
+      id: 'enemy-1',
+      name: 'Bystander',
+      team: 'neutral',
+      position: { x: 1, y: 1 },
+      currentHP: 8,
+      maxHP: 8
+    })
+    mockState = createMockCombatState({ characters: [warlock, neutral], combatLog: [] })
+    context = { ...context, targets: [neutral] }
+
+    const command = new DamageCommand(alwaysDamage('2d6'), context)
+    const newState = await command.execute(mockState)
+
+    const caster = newState.characters.find(c => c.id === 'warlock-1')!
+    expect(caster.tempHP ?? 0).toBe(0)
+    expect(newState.combatLog.some(l => l.data?.feature === 'dark_ones_blessing')).toBe(false)
+  })
 })

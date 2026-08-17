@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 12/08/2026, 21:31:27
- * Dependents: components/BattleMap/CombatCharacterInspector.tsx, components/DesignPreview/steps/PreviewCombatScenarios.tsx, components/DesignPreview/steps/scenarioControls/grappleEscapeScenarioControls.ts, utils/combat/index.ts
- * Imports: 6 files
+ * Last Sync: 16/08/2026, 12:07:30
+ * Dependents: commands/factory/AbilityCommandFactory.ts, components/BattleMap/CombatCharacterInspector.tsx, components/DesignPreview/steps/PreviewCombatScenarios.tsx, components/DesignPreview/steps/scenarioControls/grappleEscapeScenarioControls.ts, hooks/combat/useTurnManager.ts, utils/combat/index.ts
+ * Imports: 7 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -29,7 +29,9 @@
 
 import type {
   ActiveCondition,
+  BattleMapData,
   CombatCharacter,
+  Position,
   StatusEffect,
 } from '../../types/combat';
 import { rollAbilityCheck, type CheckResult } from '../character/checkUtils';
@@ -38,7 +40,8 @@ import {
   canAffordActionCost,
   consumeActionCost,
 } from './actionEconomyUtils';
-import { getCharacterDistance } from './combatUtils';
+import { getCharacterDistance, getOccupiedTiles } from './combatUtils';
+import { getTargetDistance } from './movementUtils';
 import { isIncapacitated } from './deathSaveUtils';
 import { applyRuntimeStatusCondition } from './statusConditionUtils';
 
@@ -215,6 +218,33 @@ export function removeGrappledCondition(
 }
 
 // ============================================================================
+// Attack-Roll Disadvantage
+// ============================================================================
+// The 2024 Grappled rule does more than zero Speed: the held creature has
+// disadvantage on attack rolls against every target other than its grappler.
+// The grappler identity is the `sourceCasterId` carried by both condition
+// mirrors, so attack resolution can key the penalty to the exact relationship
+// instead of a broad "any Grappled" flag that would also penalize attacking
+// the grappler itself.
+// ============================================================================
+
+export function hasGrappledAttackDisadvantage(
+  attacker: CombatCharacter,
+  targetId: string,
+): boolean {
+  const attacksSomeoneOtherThanGrappler = (fact: { name: string; sourceCasterId?: string }): boolean => (
+    fact.name === GRAPPLED_CONDITION_NAME
+    && typeof fact.sourceCasterId === 'string'
+    && fact.sourceCasterId !== targetId
+  );
+
+  return (
+    attacker.statusEffects.some(attacksSomeoneOtherThanGrappler)
+    || (attacker.conditions ?? []).some(attacksSomeoneOtherThanGrappler)
+  );
+}
+
+// ============================================================================
 // Escape Action Resolution
 // ============================================================================
 // The attempt reads its DC and grappler identity from live Grappled metadata,
@@ -334,4 +364,232 @@ export function reconcileGrappleMaintenance(
   });
 
   return { characters: reconciled, releases };
+}
+
+// ============================================================================
+// Drag / Carry Movement
+// ============================================================================
+// A grappler can spend its own movement to drag or carry the held creature
+// along. The 2024 rule charges one extra foot of movement per foot travelled
+// unless the target is Tiny or at least two sizes smaller than the grappler.
+// This resolver keeps the pair as one atomic transaction: both destinations are
+// validated before either combatant moves, and the grappler's movement is paid
+// only after the complete paired move is known to be legal. Movement executors
+// and mounted proof share this resolver instead of teleporting tokens or
+// replaying a second, scenario-only drag engine.
+// ============================================================================
+
+const DRAG_CARRY_SIZE_ORDER: NonNullable<CombatCharacter['stats']['size']>[] = [
+  'Tiny',
+  'Small',
+  'Medium',
+  'Large',
+  'Huge',
+  'Gargantuan',
+];
+
+function dragCarrySizeRank(size: string | undefined): number {
+  const index = DRAG_CARRY_SIZE_ORDER.indexOf(
+    size as NonNullable<CombatCharacter['stats']['size']>,
+  );
+  return index === -1 ? DRAG_CARRY_SIZE_ORDER.indexOf('Medium') : index;
+}
+
+export function dragCarrySizeExceptionApplies(
+  grappler: CombatCharacter,
+  target: CombatCharacter,
+): boolean {
+  const targetSize = target.stats.size ?? 'Medium';
+  return (
+    targetSize === 'Tiny'
+    || dragCarrySizeRank(target.stats.size) <= dragCarrySizeRank(grappler.stats.size) - 2
+  );
+}
+
+export type DragCarryRejectionReason =
+  | 'grappler_missing'
+  | 'target_missing'
+  | 'not_grappling'
+  | 'zero_distance'
+  | 'grappler_destination_blocked'
+  | 'target_destination_blocked'
+  | 'insufficient_movement';
+
+export interface DragCarryResolution {
+  characters: CombatCharacter[];
+  moved: boolean;
+  reason?: DragCarryRejectionReason;
+  movementCost: number;
+  baseMovementCost: number;
+  sizeExceptionApplied: boolean;
+  grappler?: CombatCharacter;
+  target?: CombatCharacter;
+}
+
+interface PairedPlacementCheck {
+  allowed: boolean;
+  reason: string;
+}
+
+function validatePairedPlacement(
+  character: CombatCharacter,
+  position: Position,
+  mapData: BattleMapData | null,
+  blockers: CombatCharacter[],
+): PairedPlacementCheck {
+  const candidate = { ...character, position: { ...position } };
+  const occupiedTiles = getOccupiedTiles(candidate);
+
+  if (mapData) {
+    const missingTile = occupiedTiles.find(tile => !mapData.tiles.has(`${tile.x}-${tile.y}`));
+    if (missingTile) {
+      return { allowed: false, reason: 'footprint leaves the battle map' };
+    }
+    const blockedTile = occupiedTiles.find(tile => (
+      mapData.tiles.get(`${tile.x}-${tile.y}`)?.blocksMovement === true
+    ));
+    if (blockedTile) {
+      return { allowed: false, reason: 'footprint is blocked by terrain' };
+    }
+  }
+
+  const occupiedKeys = new Set(occupiedTiles.map(tile => `${tile.x}-${tile.y}`));
+  const blocker = blockers.find(other => (
+    other.currentHP > 0
+    && getOccupiedTiles(other).some(tile => occupiedKeys.has(`${tile.x}-${tile.y}`))
+  ));
+  if (blocker) {
+    return { allowed: false, reason: `footprint overlaps ${blocker.name}` };
+  }
+
+  return { allowed: true, reason: 'placement is legal' };
+}
+
+export function resolveDragCarryMovement(
+  characters: CombatCharacter[],
+  request: {
+    grapplerId: string;
+    targetId: string;
+    destination: Position;
+    mapData?: BattleMapData | null;
+    pathMovementCost?: number;
+  },
+): DragCarryResolution {
+  const grappler = characters.find(character => character.id === request.grapplerId);
+  if (!grappler) {
+    return {
+      characters, moved: false, reason: 'grappler_missing',
+      movementCost: 0, baseMovementCost: 0, sizeExceptionApplied: false,
+    };
+  }
+
+  const target = characters.find(character => character.id === request.targetId);
+  if (!target) {
+    return {
+      characters, moved: false, reason: 'target_missing',
+      movementCost: 0, baseMovementCost: 0, sizeExceptionApplied: false,
+    };
+  }
+
+  const grapple = readGrappleRuntimeFact(target);
+  if (grapple?.sourceCasterId !== grappler.id) {
+    return {
+      characters, moved: false, reason: 'not_grappling',
+      movementCost: 0, baseMovementCost: 0, sizeExceptionApplied: false,
+    };
+  }
+
+  const baseMovementCost = request.pathMovementCost
+    ?? getTargetDistance(grappler.position, request.destination);
+  if (baseMovementCost <= 0) {
+    return {
+      characters, moved: false, reason: 'zero_distance',
+      movementCost: 0, baseMovementCost, sizeExceptionApplied: false,
+    };
+  }
+
+  const sizeExceptionApplied = dragCarrySizeExceptionApplies(grappler, target);
+  const movementCost = sizeExceptionApplied ? baseMovementCost : baseMovementCost * 2;
+
+  if (!canAffordActionCost(grappler, { type: 'movement-only', movementCost })) {
+    return {
+      characters, moved: false, reason: 'insufficient_movement',
+      movementCost, baseMovementCost, sizeExceptionApplied,
+    };
+  }
+
+  // The held creature is dragged by the same delta the grappler travels, so
+  // the pair stays adjacent. Validate both complete footprints before either
+  // combatant moves — a blocked held-target square rejects the whole move.
+  const delta = {
+    x: request.destination.x - grappler.position.x,
+    y: request.destination.y - grappler.position.y,
+  };
+  const targetDestination = {
+    x: target.position.x + delta.x,
+    y: target.position.y + delta.y,
+  };
+
+  const thirdParties = characters.filter(character => (
+    character.id !== grappler.id && character.id !== target.id
+  ));
+
+  const grapplerPlacement = validatePairedPlacement(
+    grappler, request.destination, request.mapData ?? null, thirdParties,
+  );
+  if (!grapplerPlacement.allowed) {
+    return {
+      characters, moved: false, reason: 'grappler_destination_blocked',
+      movementCost, baseMovementCost, sizeExceptionApplied,
+    };
+  }
+
+  const targetPlacement = validatePairedPlacement(
+    target, targetDestination, request.mapData ?? null, thirdParties,
+  );
+  if (!targetPlacement.allowed) {
+    return {
+      characters, moved: false, reason: 'target_destination_blocked',
+      movementCost, baseMovementCost, sizeExceptionApplied,
+    };
+  }
+
+  // The pair must not land on each other. Same-delta dragging preserves the
+  // original adjacency, but overlapping footprints still deserve the atomic
+  // rejection rather than a merged token.
+  const grapplerNewTiles = getOccupiedTiles({ ...grappler, position: { ...request.destination } });
+  const targetNewTiles = getOccupiedTiles({ ...target, position: { ...targetDestination } });
+  const grapplerNewKeys = new Set(grapplerNewTiles.map(tile => `${tile.x}-${tile.y}`));
+  if (targetNewTiles.some(tile => grapplerNewKeys.has(`${tile.x}-${tile.y}`))) {
+    return {
+      characters, moved: false, reason: 'target_destination_blocked',
+      movementCost, baseMovementCost, sizeExceptionApplied,
+    };
+  }
+
+  const paidGrappler = consumeActionCost(grappler, { type: 'movement-only', movementCost });
+  const movedGrappler = {
+    ...paidGrappler,
+    position: { ...request.destination },
+  };
+  const movedTarget = {
+    ...target,
+    position: { ...targetDestination },
+  };
+
+  const updatedCharacters = characters.map(character => {
+    if (character.id === grappler.id) return movedGrappler;
+    if (character.id === target.id) return movedTarget;
+    return character;
+  });
+
+  return {
+    characters: updatedCharacters,
+    moved: true,
+    movementCost,
+    baseMovementCost,
+    sizeExceptionApplied,
+    grappler: movedGrappler,
+    target: movedTarget,
+  };
 }

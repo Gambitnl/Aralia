@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 04/08/2026, 01:51:21
+ * Last Sync: 17/08/2026, 01:54:32
  * Dependents: commands/factory/AbilityCommandFactory.ts, commands/factory/SpellCommandFactory.ts
  * Imports: 7 files
  *
@@ -23,7 +23,7 @@
  * the secondary target and tiered fire damage in one narrow place.
  */
 
-import { Ability, CombatCharacter, SelectedSpellTarget } from '@/types/combat'
+import { Ability, AbilityEffect, CombatCharacter, SelectedSpellTarget } from '@/types/combat'
 import { Item } from '@/types/items'
 import { DamageEffect, isDamageEffect, Spell, SpellEffect } from '@/types/spells'
 import { calculateProficiencyBonus } from '@/utils/character/savingThrowUtils'
@@ -46,7 +46,7 @@ export interface GreenFlameBladeWeaponValidation {
 
 export interface GreenFlameBladeRuntimeAbility extends Ability {
   greenFlameBladeSecondaryTargetId?: string
-  greenFlameBladeSecondaryEffect?: SpellEffect
+  greenFlameBladeSecondaryEffect?: DamageEffect
 }
 
 // Keep the bridge narrow so only Green-Flame Blade gets the weapon-attack
@@ -326,14 +326,14 @@ export const buildGreenFlameBladeAttack = (
         type: 'damage',
         value: 0,
         dice: weaponSnapshot.damageDice ? appendFlatModifierToDice(weaponSnapshot.damageDice, strengthModifier) : String(strengthModifier),
-        damageType: (weaponSnapshot.damageType || 'slashing') as any
+        damageType: (weaponSnapshot.damageType || 'slashing') as AbilityEffect['damageType']
       },
       ...(primaryDamageEffect
         ? [{
             type: 'damage' as const,
             value: 0,
             dice: primaryDamageEffect.damage.dice,
-            damageType: primaryDamageEffect.damage.type
+            damageType: primaryDamageEffect.damage.type as AbilityEffect['damageType']
           }]
         : [])
     ],

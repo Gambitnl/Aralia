@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 13/08/2026, 12:25:33
+ * Last Sync: 16/08/2026, 22:22:30
  * Dependents: commands/factory/SpellCommandFactory.ts, commands/index.ts, components/DesignPreview/steps/spells/shieldScenario.tsx
- * Imports: 28 files
+ * Imports: 30 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -60,6 +60,7 @@ import { isBoomingBladeRuntimeAbility } from './boomingBladeAttackBridge';
 import { isGreenFlameBladeRuntimeAbility } from './greenFlameBladeAttackBridge';
 import { canAffordActionCost, consumeActionCost } from '@/utils/combat/actionEconomyUtils';
 import { breakTauntsForEvent, hasTauntAttackDisadvantage } from '@/systems/combat/tauntConstraint';
+import { hasGrappledAttackDisadvantage } from '@/utils/combat/grappleUtils';
 import {
   hasUndetectedHiddenSource,
   revealHideDerivedHiddenAfterAttack,
@@ -499,6 +500,14 @@ export class WeaponAttackCommand implements SpellCommand {
       // Passing the live roster means a downed or removed taunter cannot leave
       // one stale disadvantaged attack behind before cleanup reconciles state.
       if (hasTauntAttackDisadvantage(liveAttacker, currentTarget.id, newState.characters)) {
+        hasDisadvantage = true;
+      }
+
+      // Grappled (2024 PHB): the held creature attacks anyone other than its
+      // grappler with disadvantage. The grappler identity lives on the Grappled
+      // condition's `sourceCasterId`, so attacking the grappler itself stays a
+      // normal roll while every other target is penalized.
+      if (hasGrappledAttackDisadvantage(liveAttacker, currentTarget.id)) {
         hasDisadvantage = true;
       }
 
@@ -951,7 +960,7 @@ export class WeaponAttackCommand implements SpellCommand {
         matchingHitRiders = riderSystem.getMatchingRiders(newState, attackContext);
         attackPayloadIsReplaced = matchingHitRiders.some(rider =>
           isDamageEffect(rider.effect) &&
-          (rider.effect as any).objectTransformation?.sourceObject === 'weapon_or_ammunition_used_for_attack'
+          rider.effect.objectTransformation?.sourceObject === 'weapon_or_ammunition_used_for_attack'
         );
       }
 
@@ -1009,27 +1018,32 @@ export class WeaponAttackCommand implements SpellCommand {
           } as CombatState;
         }
 
-        if (
-          isGreenFlameBladeRuntimeAbility(this.ability) &&
-          this.ability.greenFlameBladeSecondaryEffect &&
-          this.ability.greenFlameBladeSecondaryTargetId
-        ) {
-          const secondaryTarget = newState.characters.find(character =>
-            character.id === (this.ability as any).greenFlameBladeSecondaryTargetId
-          );
+        if (isGreenFlameBladeRuntimeAbility(this.ability)) {
+          // Capture the narrowed ability so the secondary-target lookup and
+          // damage command read the same Green-Flame Blade fields without
+          // re-widening `this.ability` inside the `find` callback.
+          const gfbAbility = this.ability;
+          if (
+            gfbAbility.greenFlameBladeSecondaryEffect &&
+            gfbAbility.greenFlameBladeSecondaryTargetId
+          ) {
+            const secondaryTarget = newState.characters.find(character =>
+              character.id === gfbAbility.greenFlameBladeSecondaryTargetId
+            );
 
-          if (secondaryTarget) {
-            // The leap spends only after the weapon hit lands, and it keeps the
-            // secondary damage on the chosen adjacent creature instead of the
-            // primary weapon target.
-            const secondaryCommand = new DamageCommand(this.ability.greenFlameBladeSecondaryEffect as any, {
-              ...this.context,
-              targets: [secondaryTarget],
-              isCritical,
-              isMagical: true
-            });
+            if (secondaryTarget) {
+              // The leap spends only after the weapon hit lands, and it keeps the
+              // secondary damage on the chosen adjacent creature instead of the
+              // primary weapon target.
+              const secondaryCommand = new DamageCommand(gfbAbility.greenFlameBladeSecondaryEffect, {
+                ...this.context,
+                targets: [secondaryTarget],
+                isCritical,
+                isMagical: true
+              });
 
-            newState = await secondaryCommand.execute(newState);
+              newState = await secondaryCommand.execute(newState);
+            }
           }
         }
       } else {

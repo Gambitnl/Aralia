@@ -62,8 +62,7 @@ export default defineConfig({
         ],
         alias: {
             '@': path.resolve(__dirname, 'src'),
-        },
-        exclude: [
+        },        exclude: [
             '**/node_modules/**',
             '**/dist/**',
             '**/verification/**',
@@ -87,7 +86,31 @@ export default defineConfig({
             '**/.local/**',
             '**/vendor/**',
         ],
-    },
+        coverage: {
+            // GG-25: coverage for the shared utility lanes (savingThrowUtils,
+            // statUtils, combatUtils, etc.). v8 is the supported Vitest 4
+            // provider; c8/istanbul are legacy aliases.
+            provider: 'v8',
+            reporter: ['text', 'text-summary', 'html', 'json-summary'],
+            reportsDirectory: './coverage',
+            include: ['src/utils/**/*.ts'],
+            exclude: [
+                '**/*.test.ts',
+                '**/*.test-d.ts',
+                '**/__tests__/**',
+                '**/*.d.ts',
+            ],
+            // GG-25: floors at the measured 2026-08-16 baseline so coverage can
+            // only grow. The aspirational 80% target needs a broader test-writing
+            // pass; these numbers prevent silent regression meanwhile.
+            thresholds: {
+                lines: 70,
+                functions: 70,
+                statements: 65,
+                branches: 55,
+            },
+        },
+    },
     resolve: {
         alias: {
             '@': path.resolve(__dirname, 'src'),

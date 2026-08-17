@@ -184,12 +184,12 @@ export function PreviewCombatDomainTabs({
 
   return (
     <div
-      className={`min-w-0 overflow-hidden rounded-xl border border-slate-800/90 bg-slate-950/80 ${className}`}
+      className={`flex h-full min-h-0 min-w-0 flex-col overflow-hidden rounded-xl border border-slate-800/90 bg-slate-950/80 ${className}`}
       data-testid="preview-combat-domain-tabs"
     >
       <div
         aria-label={ariaLabel}
-        className="flex max-w-full gap-1 overflow-x-auto border-b border-slate-800/90 p-1.5 [scrollbar-width:thin]"
+        className="flex max-w-full shrink-0 gap-1 overflow-x-auto border-b border-slate-800/90 p-1.5 [scrollbar-width:thin]"
         role="tablist"
       >
         {registry.map((tab, index) => {
@@ -227,7 +227,7 @@ export function PreviewCombatDomainTabs({
         })}
       </div>
 
-      <div className="min-w-0">
+      <div className="min-h-0 min-w-0 flex-1 overflow-hidden">
         {registry.map((tab, index) => {
           const isSelected = index === selectedTabIndex;
           const tabId = `preview-combat-domain-tab-${tab.id}`;
@@ -236,7 +236,7 @@ export function PreviewCombatDomainTabs({
           return (
             <section
               aria-labelledby={tabId}
-              className="min-w-0 p-2 sm:p-3"
+              className="h-full min-w-0 overflow-y-auto p-2 sm:p-3"
               data-domain-panel={tab.id}
               hidden={!isSelected}
               id={panelId}

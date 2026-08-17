@@ -1431,7 +1431,7 @@
       "title": "Universal player-intent reader",
       "sub": "every conversation line is read for meaning: talk / skill / flee / attack / ambiguous; combat starts on a real trigger, not a scene flag",
       "campaign": "combat",
-      "status": "done",
+      "status": "active",
       "tier": "strategic",
       "status_note": "BUILT + PROVEN END TO END 2026-08-16. Live: a Performance check rolled in a peaceful scene and the NPC answered the OUTCOME; a plain question stayed prose with no roll; an attack launched combat and DREW A REAL WORLDFORGE BATTLEFIELD (forest theme, \"Commoner 1 -> Kaelin Darkhaven\", turn order live, no source gap). The festival organizer mapped to a real Commoner statblock, never a stub under his own name. Model proposes the DC, the game clamps per stakes. Escalation = violence, or a serious provocative attempt missed by 5+. Remy 2026-08-16: 2D must NOT grow its own battlefield source, so a 2D-started fight mounts the GroundWorld (SET_WORLD_VIEW_MODE 3d + awaitActiveGroundOpeningProvider, 20s cap). Earlier mapless launches were TERRAIN, not wiring: authorOpeningScene needs walkable tiles 4.5-9 from the player, and the spawn spit was ringed by water. That refusal now names the shortfall in the console instead of failing mutely.",
       "updated": "2026-08-16",
@@ -1514,6 +1514,26 @@
           "history": {
             "built": "2026-08-16"
           }
+        },
+        {
+          "title": "Battlefield viability gate refuses an unfightable crop with real numbers",
+          "status": "done",
+          "history": {
+            "built": "2026-08-16"
+          },
+          "status_note": "Flood-fills the connected walkable pocket around the player anchor; needs 40 tiles (a 30ft move is 6 tiles). Catches the measured live case: 1163 water / 37 grass out of 1200, which the standoff-ring check passed. 7 tests. NOT yet live-reproduced — the save resumed on a different party and location."
+        },
+        {
+          "title": "Water tiles carry seabed elevation instead of the water surface",
+          "status": "active",
+          "status_note": "REAL defect, not yet fixed. GroundWorld water regions carry surfaceY (sea/lake flat, river via centerlineM); extractLocalTerrainPatch uses groundSurfaceY for every tile, so a lake surface is not level.",
+          "decision": false
+        },
+        {
+          "title": "In-place combat from 2D reports it needs a live world handoff",
+          "status": "active",
+          "status_note": "Observed 2026-08-16 after the ground-mount wiring: combat launched and the board showed \"In place combat needs a live world handoff — use the 2D board toggle.\" The mount may complete too late for the handoff. Needs tracing.",
+          "decision": false
         }
       ],
       "history": {

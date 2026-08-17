@@ -43,6 +43,7 @@ import type {
   TargetableMapObject,
 } from "@/types/combat";
 import { simpleHash } from "@/utils/core/hashUtils";
+import { assessBattlefieldViability } from "./battlefieldViability";
 import type {
   OpeningThreatSceneReceipt,
   OpeningThreatSceneReceiptV2,
@@ -1468,6 +1469,19 @@ export function projectOpeningThreatBattlefield(
     return {
       status: "source-gap",
       detail: `Opening receipt ${source.receiptId} has no legal player anchor in its WorldForge crop.`,
+    };
+  }
+
+  // A legal anchor is not the same as a fightable place. The standoff-ring check
+  // further down only asks whether the ENEMIES can be seated; it passed on a
+  // crop that was 1163 water tiles to 37 grass, and the whole fight landed in
+  // one corner of an ocean (measured live 2026-08-16). Refuse the location here,
+  // with its real numbers, before any scene is authored.
+  const viability = assessBattlefieldViability(mapData, anchor);
+  if (!viability.viable) {
+    return {
+      status: "source-gap",
+      detail: `Opening receipt ${source.receiptId} is not a fightable location: ${viability.reason}`,
     };
   }
 

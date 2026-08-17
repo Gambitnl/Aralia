@@ -101,6 +101,27 @@ export interface PropDefinition {
    * anchors. Free-form but drawn from the strawman's context names.
    */
   placementTags: string[];
+  /**
+   * Mobility fact for spell targeting. `true` = the prop is rooted, embedded,
+   * or built into the ground (fence, wall, well, tree, terrain mass) and is NOT
+   * a discrete object a spell can lift; `false` = a self-contained object that
+   * merely rests on the surface (crate, cart, sack, boat) and can be moved by a
+   * strong enough effect.
+   */
+  isFixedToSurface: boolean;
+  /**
+   * Plausible weight in pounds. Authored estimate — the strawman did not
+   * specify weights, so these are round, physics-plausible values open to Remy
+   * refinement. Loose props MUST carry a weight so telekinesis/movement spells
+   * can apply their pound limits honestly instead of treating unknown facts
+   * conservatively.
+   */
+  weightPounds: number;
+  /**
+   * Real magical flag. `false` for the whole mundane scenery catalog; a future
+   * enchanted prop sets it `true` without a code change.
+   */
+  isMagical: boolean;
 }
 
 /**
@@ -178,6 +199,15 @@ export function validatePropDefinition(def: PropDefinition): string[] {
   }
   if (!def.placementTags || def.placementTags.length === 0) {
     problems.push(`${def.id}: needs at least one placement tag`);
+  }
+  if (typeof def.isFixedToSurface !== 'boolean') {
+    problems.push(`${def.id}: isFixedToSurface must be a boolean`);
+  }
+  if (!(def.weightPounds > 0)) {
+    problems.push(`${def.id}: weightPounds must be > 0 (got ${def.weightPounds})`);
+  }
+  if (typeof def.isMagical !== 'boolean') {
+    problems.push(`${def.id}: isMagical must be a boolean`);
   }
   return problems;
 }

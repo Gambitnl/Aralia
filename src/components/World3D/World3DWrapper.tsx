@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 09/08/2026, 17:24:12
+ * Last Sync: 16/08/2026, 13:50:11
  * Dependents: App.tsx
  * Imports: 57 files
  *
@@ -1123,55 +1123,15 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({
       const tile = wfGroundView?.tile;
       if (!tile) return;
 
-      // CLICK-MOVE AUTHORITY: if a click-move is in progress, the clicked
-      // destination is authoritative — a camera pan must NOT clobber the walk
-      // target. Consult the pure referee; when the avatar has arrived, the latch
-      // clears and the camera resumes writing. The avatar's real position (what
-      // PlayerAvatar glides toward) is read via a ref so arrival is measured
-      // against it, not the camera's look-at target `(x, z)`.
-      const intent = clickMoveIntent.current;
-      if (intent) {
-        // TILE-CROSSING GUARD: an intent armed on a prior tile can never be
-        // "arrived at" once the active tile differs (positions are tile-scoped),
-        // so the arrival latch would stick forever and kill camera-walk. Retire
-        // the stale intent on a crossing and let the camera resume writing.
-        if (!isIntentOnTile(intent, tile.x, tile.y)) {
-          clickMoveIntent.current = null;
-        } else {
-          const pgp = playerGroundPosRef.current;
-          const current =
-            pgp && pgp.tileX === tile.x && pgp.tileY === tile.y
-              ? { xM: pgp.xM, zM: pgp.zM }
-              : null;
-          if (hasArrivedAtIntent(intent, current)) {
-            // Arrived — release the latch so subsequent camera pans move again.
-            clickMoveIntent.current = null;
-          }
-          if (!cameraMayWriteGroundPos(intent, current)) {
-            // Camera yields the walk target this frame. Still keep the
-            // fight-in-place tracker pointed at the AUTHORITATIVE avatar position
-            // (the click target), not the roaming camera, so a test fight starts
-            // where the player actually is.
-            if (current) lastGroundXZ.current = { x: current.xM, z: current.zM };
-            return;
-          }
-        }
-      }
-
-      // The camera is allowed to author the player position on this frame. Refresh the doorway
-      // action from those same accepted coordinates before the dispatch throttle can defer state.
-      refreshNearbyDungeonEntrance(x, z);
-
-      // Fight-in-place dev entry: always track the freshest ground position,
-      // even on throttled frames, so a test fight starts exactly where we stand.
+      // Track the camera focus in scene/world space
       lastGroundXZ.current = { x, z };
-      const now = Date.now();
-      if (now - lastGroundDispatch.current < DISPATCH_INTERVAL_MS) return;
-      lastGroundDispatch.current = now;
-      dispatch({
-        type: 'SET_PLAYER_GROUND_POS',
-        payload: { position: { tileX: tile.x, tileY: tile.y, xM: x, zM: z } },
-      });
+
+      // Avatar position is authoritative for proximity checks (dungeons & discoveries)
+      const pgp = playerGroundPosRef.current;
+      const playerX = pgp && pgp.tileX === tile.x && pgp.tileY === tile.y ? pgp.xM : x;
+      const playerZ = pgp && pgp.tileX === tile.x && pgp.tileY === tile.y ? pgp.zM : z;
+
+      refreshNearbyDungeonEntrance(playerX, playerZ);
 
       // SP4 discovery: reveal any hidden place the player comes within range of
       // (off-map sites placed by makeGroundWorld; revealed by 3D proximity).
@@ -1180,7 +1140,7 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({
 
       if (gwForDiscovery?.hiddenSites?.length) {
         for (const hs of gwForDiscovery.hiddenSites) {
-          if (Math.hypot(x - hs.xM, z - hs.zM) <= hs.discoveryRadiusM) {
+          if (Math.hypot(playerX - hs.xM, playerZ - hs.zM) <= hs.discoveryRadiusM) {
             // The ground session IS this world tile's local surface, so every
             // hidden site it contains belongs to `tile` — pinning to the player's
             // current tile is correct at world-tile resolution (do NOT "fix" this
