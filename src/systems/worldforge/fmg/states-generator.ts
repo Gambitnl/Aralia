@@ -101,8 +101,24 @@ export interface StatesContext {
   COA: CoaGenerator;
 }
 
+/**
+ * States-stage pack view: earlier stages (rivers, cultures, burgs) and the
+ * states module itself have populated these fields by the time they are read.
+ * Single documented boundary cast below instead of per-field `as any`.
+ */
+type StatesStagePack = Pack & {
+  cells: Required<Pack["cells"]>;
+  states: NonNullable<Pack["states"]>;
+  cultures: NonNullable<Pack["cultures"]>;
+  burgs: NonNullable<Pack["burgs"]>;
+};
+
 export class StatesModule {
   constructor(private ctx: StatesContext) {}
+
+  private get pack(): StatesStagePack {
+    return this.ctx.pack as StatesStagePack;
+  }
 
   private createStates() {
     const { pack, sizeVariety, Names, COA } = this.ctx;
@@ -160,7 +176,7 @@ export class StatesModule {
   private getRiverCost(r: any, i: number, type: string) {
     if (type === "River") return r ? 0 : 100; // penalty for river cultures
     if (!r) return 0; // no penalty for others if there is no river
-    return minmax((this.ctx.pack.cells as any).fl[i] / 10, 20, 100); // river penalty from 20 to 100 based on flux
+    return minmax(this.pack.cells.fl[i] / 10, 20, 100); // river penalty from 20 to 100 based on flux
   }
 
   private getTypeCost(t: number, type: string) {
@@ -176,7 +192,7 @@ export class StatesModule {
   }
 
   generate() {
-    this.ctx.pack.states = this.createStates();
+    this.pack.states = this.createStates();
     this.expandStates();
     this.normalize();
     this.getPoles();
@@ -187,8 +203,8 @@ export class StatesModule {
   }
 
   expandStates() {
-    const pack = this.ctx.pack;
-    const { cells, states, cultures, burgs } = pack as any;
+    const pack = this.pack;
+    const { cells, states, cultures, burgs } = pack;
 
     cells.state = cells.state || new Uint16Array(cells.i.length);
 
@@ -209,7 +225,7 @@ export class StatesModule {
       cells.state[cellId] = 0;
     }
 
-    for (const state of states as State[]) {
+    for (const state of states) {
       if (!state.i || state.removed) continue;
 
       const capitalCell = burgs[state.capital].cell;
@@ -267,7 +283,7 @@ export class StatesModule {
       });
     }
 
-    (burgs as any[])
+    burgs
       .filter((b) => b.i && !b.removed)
       .forEach((b) => {
         b.state = cells.state[b.cell]; // assign state to burgs
@@ -275,8 +291,8 @@ export class StatesModule {
   }
 
   normalize() {
-    const pack = this.ctx.pack;
-    const { cells, burgs } = pack as any;
+    const pack = this.pack;
+    const { cells, burgs } = pack;
 
     for (const i of cells.i) {
       if (cells.h[i] < 20 || cells.burg[i]) continue; // do not overwrite burgs
@@ -303,8 +319,8 @@ export class StatesModule {
 
   // calculate pole of inaccessibility for each state
   getPoles() {
-    const pack = this.ctx.pack;
-    const getType = (cellId: number) => (pack.cells as any).state[cellId];
+    const pack = this.pack;
+    const getType = (cellId: number) => pack.cells.state[cellId];
     const poles = getPolesOfInaccessibility(pack, getType);
 
     pack.states!.forEach((s) => {
@@ -314,11 +330,11 @@ export class StatesModule {
   }
 
   findNeighbors() {
-    const { cells, states } = this.ctx.pack as any;
+    const { cells, states } = this.pack;
 
     const stateNeighbors: Set<number>[] = [];
 
-    (states as State[]).forEach((s) => {
+    states.forEach((s) => {
       if (s.removed) return;
       stateNeighbors[s.i] = new Set();
       // s.neighbors = stateNeighbors[s.i];
@@ -336,7 +352,7 @@ export class StatesModule {
     }
 
     // convert neighbors Set object into array
-    (states as State[]).forEach((s) => {
+    states.forEach((s) => {
       if (!stateNeighbors[s.i] || s.removed) return;
       s.neighbors = Array.from(stateNeighbors[s.i]);
     });
@@ -351,7 +367,7 @@ export class StatesModule {
       "#a6d854",
       "#ffd92f",
     ]; // d3.schemeSet2;
-    const states = this.ctx.pack.states!;
+    const states = this.pack.states!;
 
     // assign basic color using greedy coloring algorithm
     states.forEach((state) => {
@@ -379,9 +395,9 @@ export class StatesModule {
 
   // calculate states data like area, population etc.
   collectStatistics() {
-    const { cells, states } = this.ctx.pack as any;
+    const { cells, states } = this.pack;
 
-    (states as State[]).forEach((s) => {
+    states.forEach((s) => {
       if (s.removed) return;
       s.cells = s.area = s.burgs = s.rural = s.urban = 0;
     });
@@ -395,7 +411,7 @@ export class StatesModule {
       states[s].area! += cells.area[i];
       states[s].rural! += cells.pop[i];
       if (cells.burg[i]) {
-        states[s].urban! += this.ctx.pack.burgs![cells.burg[i]].population!;
+        states[s].urban! += this.pack.burgs![cells.burg[i]].population!;
         states[s].burgs!++;
       }
     }
@@ -429,7 +445,7 @@ export class StatesModule {
   }
 
   generateCampaigns() {
-    this.ctx.pack.states!.forEach((s) => {
+    this.pack.states!.forEach((s) => {
       if (!s.i || s.removed) return;
       s.campaigns = this.generateCampaign(s);
     });
@@ -437,12 +453,15 @@ export class StatesModule {
 
   // generate Diplomatic Relationships
   generateDiplomacy() {
-    const { pack, year } = this.ctx;
-    const { cells, states } = pack as any;
+    const pack = this.pack;
+    const { year } = this.ctx;
+    const { cells, states } = pack;
     states[0].diplomacy = [];
     // FIRST STATE IS ALWAYS NEUTRAL and contains the history of diplomacy
-    const chronicle = states[0].diplomacy;
-    const valid = (states as State[]).filter((s) => s.i && !s.removed); // will filter out neutral as i is 0 => false
+    // UPSTREAM QUIRK: the neutral state's `diplomacy` array is reused as a
+    // chronicle of war records (each a string[]), not as a relations array.
+    const chronicle = states[0].diplomacy as unknown as string[][];
+    const valid = states.filter((s) => s.i && !s.removed); // will filter out neutral as i is 0 => false
 
     const neibs = { Ally: 1, Friendly: 2, Neutral: 1, Suspicion: 10, Rival: 9 }; // relations to neighbors
     const neibsOfNeibs = { Ally: 10, Friendly: 8, Neutral: 5, Suspicion: 1 }; // relations to neighbors of neighbors
@@ -673,13 +692,13 @@ export class StatesModule {
           states[a].diplomacy![d] = states[d].diplomacy![a] = "Enemy";
         });
       });
-      chronicle.push(war as any); // add a record to diplomatical history
+      chronicle.push(war); // add a record to diplomatical history
     }
   }
 
   // select a forms for listed or all valid states
   defineStateForms(list: number[] | null = null) {
-    const pack = this.ctx.pack;
+    const pack = this.pack;
     const states = pack.states!.filter((s) => s.i && !s.removed && !s.lock);
     if (states.length < 1) return;
 
@@ -744,7 +763,7 @@ export class StatesModule {
       if (list && !list.includes(s.i)) continue;
       const tier = expTiers[s.i];
 
-      const religion = (pack.cells as any).religion[s.center];
+      const religion = pack.cells.religion[s.center];
       const isTheocracy =
         (religion && pack.religions![religion].expansion === "state") ||
         (P(0.1) &&

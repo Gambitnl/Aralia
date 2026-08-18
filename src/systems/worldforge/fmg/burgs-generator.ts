@@ -93,18 +93,33 @@ export interface BurgsContext {
   Routes: RoutesModule;
 }
 
+/**
+ * Burgs-stage pack view: rivers/cultures/rankCells have populated the cell
+ * fields, and this module builds the burgs collection itself. Single
+ * documented boundary cast below instead of per-field `as any`.
+ */
+type BurgsStagePack = Pack & {
+  cells: Required<Pack["cells"]>;
+  burgs: NonNullable<Pack["burgs"]>;
+};
+
 export class BurgsModule {
   constructor(private ctx: BurgsContext) {}
 
+  private get pack(): BurgsStagePack {
+    return this.ctx.pack as BurgsStagePack;
+  }
+
   shift() {
-    const { pack, grid } = this.ctx;
-    const { cells, features, burgs } = pack as any;
+    const { grid } = this.ctx;
+    const pack = this.pack;
+    const { cells, features, burgs } = pack;
     const temp = grid.cells.temp!;
 
     // port is a capital with any harbor OR any burg with a safe harbor
     // safe harbor is a cell having just one adjacent water cell
     const featurePortCandidates: Record<number, Burg[]> = {};
-    for (const burg of burgs as Burg[]) {
+    for (const burg of burgs) {
       if (!burg.i || burg.lock) continue;
       delete burg.port; // reset port status
       const cellId = burg.cell;
@@ -126,7 +141,7 @@ export class BurgsModule {
     }
 
     const getCloseToEdgePoint = (cell1: number, cell2: number) => {
-      const { cells, vertices } = pack as any;
+      const { cells, vertices } = pack;
 
       const [x0, y0] = cells.p[cell1];
       const commonVertices = cells.v[cell1].filter((vertex: number) =>
@@ -156,7 +171,7 @@ export class BurgsModule {
     });
 
     // shift non-port river burgs a bit
-    for (const burg of burgs as Burg[]) {
+    for (const burg of burgs) {
       if (!burg.i || burg.lock || burg.port || !cells.r[burg.cell]) continue;
       const cellId = burg.cell;
       const shift = Math.min(cells.fl[cellId] / 150, 1);
@@ -167,12 +182,13 @@ export class BurgsModule {
   }
 
   generate() {
-    const { pack, grid, graphWidth, graphHeight, Names } = this.ctx;
+    const { grid, graphWidth, graphHeight, Names } = this.ctx;
+    const pack = this.pack;
     const statesNumberInput = this.ctx.statesNumber;
     const manorsNumber = this.ctx.manorsNumber;
-    const { cells } = pack as any;
+    const { cells } = pack;
 
-    let burgs: Burg[] = [0 as any]; // burgs array
+    let burgs: Burg[] = [0 as unknown as Burg]; // burgs array
     cells.burg = new Uint16Array(cells.i.length);
 
     const populatedCells = cells.i.filter(
@@ -216,7 +232,7 @@ export class BurgsModule {
             );
           burgsQuadtree = quadtree();
           i = -1;
-          burgs = [0 as any];
+          burgs = [0 as unknown as Burg];
           spacing /= 1.2;
         }
       }
@@ -310,7 +326,7 @@ export class BurgsModule {
   }
 
   getType(cellId: number, port?: number) {
-    const { cells, features } = this.ctx.pack as any;
+    const { cells, features } = this.pack;
 
     if (port) return "Naval";
 
@@ -333,9 +349,10 @@ export class BurgsModule {
   }
 
   private definePopulation(burg: Burg) {
-    const { pack, Routes } = this.ctx;
+    const { Routes } = this.ctx;
+    const pack = this.pack;
     const cellId = burg.cell;
-    let population = (pack.cells as any).s[cellId] / 5;
+    let population = pack.cells.s[cellId] / 5;
     if (burg.capital) population *= 1.5;
     const connectivityRate = Routes.getConnectivityRate(cellId);
     if (connectivityRate) population *= connectivityRate;
@@ -367,7 +384,8 @@ export class BurgsModule {
   }
 
   private defineFeatures(burg: Burg) {
-    const { pack, Routes } = this.ctx;
+    const { Routes } = this.ctx;
+    const pack = this.pack;
     const pop = burg.population as number;
     burg.citadel = Number(
       burg.capital || (pop > 50 && P(0.75)) || (pop > 15 && P(0.5)) || P(0.1),
@@ -388,7 +406,7 @@ export class BurgsModule {
     burg.shanty = Number(
       pop > 60 || (pop > 40 && P(0.75)) || (pop > 20 && burg.walls && P(0.4)),
     );
-    const religion = (pack.cells as any).religion[burg.cell] as number;
+    const religion = pack.cells.religion[burg.cell];
     const theocracy = pack.states![burg.state as number].form === "Theocracy";
     burg.temple = Number(
       (religion && theocracy && P(0.5)) ||
@@ -510,7 +528,7 @@ export class BurgsModule {
 
       if (group.biomes) {
         const isFit = group.biomes.includes(
-          (this.ctx.pack.cells as any).biome[burg.cell],
+          this.pack.cells.biome[burg.cell],
         );
         if (!isFit) continue;
       }

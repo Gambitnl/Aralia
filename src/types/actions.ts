@@ -3,8 +3,8 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 16/07/2026, 13:27:17
- * Dependents: components/Combat/BattlefieldSourceGap.tsx, hooks/actions/actionHandlers.ts, hooks/actions/handleNpcInteraction.ts, hooks/actions/handleResourceActions.ts, systems/combat/fightInPlace/activeGroundCombatSession.ts, systems/combat/fightInPlace/authoredTownWatchSourceGap.ts, types/index.ts
+ * Last Sync: 17/08/2026, 16:22:38
+ * Dependents: components/Combat/BattlefieldSourceGap.tsx, hooks/actions/actionHandlers.ts, hooks/actions/handleNpcInteraction.ts, hooks/actions/handleResourceActions.ts, systems/combat/fightInPlace/activeGroundCombatSession.ts, systems/combat/fightInPlace/authoredTownWatchSourceGap.ts, systems/combat/unsupportedBattlefieldSources.ts, types/index.ts
  * Imports: None
  *
  * MULTI-AGENT SAFETY:
@@ -92,6 +92,7 @@ export type ActionType =
   | 'USE_LIMITED_ABILITY'
   | 'LONG_REST'
   | 'TOGGLE_LONG_REST_MODAL'
+  | 'TOGGLE_SHORT_REST_MODAL'
   | 'SHORT_REST'
   | 'TOGGLE_PREPARED_SPELL'
   | 'UPDATE_NPC_GOAL_STATUS'
@@ -158,6 +159,7 @@ export interface ActionMetadata {
 export const ACTION_METADATA: Partial<Record<ActionType, ActionMetadata>> = {
   toggle_map: { isUiToggle: true },
   TOGGLE_LONG_REST_MODAL: { isUiToggle: true },
+  TOGGLE_SHORT_REST_MODAL: { isUiToggle: true },
   toggle_three_d: { isUiToggle: true },
   toggle_auto_save: { isUiToggle: true },
   toggle_dev_menu: { isUiToggle: true },
@@ -396,6 +398,7 @@ export type Action =
   | { type: 'USE_LIMITED_ABILITY'; payload: { characterId: string; abilityId: string }; label?: string }
   | { type: 'LONG_REST'; payload?: never; label?: string }
   | { type: 'TOGGLE_LONG_REST_MODAL'; payload?: never; label?: string }
+  | { type: 'TOGGLE_SHORT_REST_MODAL'; payload?: never; label?: string }
   | { type: 'SHORT_REST'; payload?: { hitPointDiceSpend?: HitPointDiceSpendMap }; label?: string }
   | { type: 'TOGGLE_PREPARED_SPELL'; payload: { characterId: string; spellId: string }; label?: string }
   | { type: 'UPDATE_NPC_GOAL_STATUS'; payload: { npcId: string; goalId: string; status: GoalStatus }; label?: string }
@@ -412,7 +415,7 @@ export type Action =
   | { type: 'OPEN_DYNAMIC_MERCHANT'; payload: { merchantType: string; villageContext?: VillageActionContext; buildingId?: string; seedKey?: string; hire?: boolean }; label?: string }
   | { type: 'OPEN_TEMPLE'; payload: { villageContext: VillageActionContext }; label?: string }
   | { type: 'CLOSE_TEMPLE'; payload?: never; label?: string }
-  | { type: 'USE_TEMPLE_SERVICE'; payload: { templeId: string; deityId: string; cost: number; effect: unknown }; label?: string }
+  | { type: 'USE_TEMPLE_SERVICE'; payload: { templeId: string; deityId: string; serviceId?: string; cost: number; effect: unknown }; label?: string }
   | { type: 'OPEN_LOCKPICKING_MODAL'; payload: Lock; label?: string }
   | { type: 'OPEN_PUZZLE_RUNTIME'; payload: Puzzle; label?: string }
   | { type: 'HARVEST_RESOURCE'; payload: { harvestContext?: string; skillCheck?: { skill: string; dc: number } }; label?: string }

@@ -150,9 +150,12 @@ describe('buildBipedSkeleton — hierarchy and proportions', () => {
       // round 23 (humanoid-anatomy): the hunch's head-drop is added back into
       // the lift, so a hunched frame still keeps a visible neck (the orc's was
       // 0.05 skullR) — mirror of bipedRestPose/BipedDriver
+      // round 24 (humanoid-anatomy): upright big heads raise the lift floor
+      // (hunch-gated) — mirror of bipedRestPose/BipedDriver bigHead
+      const bigHead = Math.max(0, frame.headScale - 1) * Math.max(0, 1 - 1.5 * (frame.hunch ?? 0));
       const neckLift = Math.min(
         0.62,
-        Math.max(0.26, 0.36 - 0.28 * Math.max(0, frame.bulk - 1)) + 0.35 * (frame.hunch ?? 0),
+        Math.max(0.26 + 1.0 * bigHead, 0.36 - 0.28 * Math.max(0, frame.bulk - 1)) + 0.35 * (frame.hunch ?? 0),
       );
       // round 18 (humanoid-anatomy): the forward hunch settles the head down
       // into the traps (mirror of bipedRestPose headY)

@@ -104,6 +104,7 @@
  * one folded-wing tent behind the neck, never "arms raised in surrender".
  */
 import {
+  Bone,
   BufferAttribute,
   BufferGeometry,
   Color,
@@ -325,7 +326,11 @@ const wingsFeathered: PartDef = {
       ['wingL', -1],
       ['wingR', 1],
     ] as const) {
-      const wing = new Group();
+      // Skeleton pivot slice 6: the wing root is a real Bone — the assembler
+      // rotates it for the parked-bird drape and flap, and the SkeletonHelper
+      // draws it as skeleton. Parenting meshes to a Bone is plain rigid
+      // skeletal animation; no skinning is involved.
+      const wing = new Bone();
       wing.name = name;
       // wing arm axis: outboard, a little up, raked back off the shoulder.
       // round-25 eyeball fix: 0.86 → 0.5 of the span. `span()` is already a
@@ -764,7 +769,11 @@ const wingsMembrane: PartDef = {
       ['wingL', -1],
       ['wingR', 1],
     ] as const) {
-      const wing = new Group();
+      // Skeleton pivot slice 6: the wing root and its three joints are real
+      // Bones — the assembler's fold/flap slerps pose a genuine armature, and
+      // the SkeletonHelper draws it. Meshes parent to Bones rigidly; no
+      // skinning is involved.
+      const wing = new Bone();
       wing.name = name;
 
       // Mirror-aware helpers. In each joint's right-handed local frame,
@@ -793,7 +802,7 @@ const wingsMembrane: PartDef = {
       const lf = local(wf);
 
       // --- shoulder joint (the whole arm): humerus + propatagium + boss
-      const arm = new Group();
+      const arm = new Bone();
       arm.name = 'wingArm';
       arm.position.set(sgn * s * 0.09, s * 0.04, 0);
       arm.quaternion.copy(ls.arm);
@@ -807,7 +816,7 @@ const wingsMembrane: PartDef = {
       wing.add(arm);
 
       // --- elbow joint: forearm bone + web + elbow knob
-      const elbow = new Group();
+      const elbow = new Bone();
       elbow.name = 'wingElbow';
       elbow.position.set(humerus, 0, 0);
       elbow.quaternion.copy(ls.elbow);
@@ -822,7 +831,7 @@ const wingsMembrane: PartDef = {
       arm.add(elbow);
 
       // --- wrist joint: thumb spike, finger spars, draped distal membrane
-      const hand = new Group();
+      const hand = new Bone();
       hand.name = 'wingHand';
       hand.position.set(forearm, 0, 0);
       hand.quaternion.copy(ls.hand);

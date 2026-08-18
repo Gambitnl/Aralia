@@ -31,7 +31,7 @@ describe('smooth biped weights', () => {
       expect(w.getZ(v)).toBe(0);
       expect(w.getW(v)).toBe(0);
       expect(idx.getX(v)).toBeGreaterThanOrEqual(0);
-      expect(idx.getX(v)).toBeLessThan(17);
+      expect(idx.getX(v)).toBeLessThan(37); // two-link thumb update: 37 bones
     }
   });
 
@@ -140,19 +140,29 @@ describe('smooth biped weights', () => {
     }
   });
 
-  it('chain table covers torso, both arms (through the palms), thumbs, both legs, both feet', () => {
+  it('chain table covers torso, both arms (through the palms), thumbs, real fingers, both legs, both feet', () => {
     // round 2 (humanoid-anatomy): arm chains loft through the wrist into the
     // palm; thumbs are their own short capped tubes
     // round 5 (humanoid-anatomy): heel-to-toe wedge feet are their own capped
     // tubes (the terminal foot spheres are gone)
-    // round 15 (humanoid-anatomy): arm chains loft through the palm into the
-    // curled finger mass (the knuckle plane break)
+    // real-finger update: the round-15 finger mass is gone — each hand lofts
+    // four two-link finger tubes on their own bones
     expect(SMOOTH_CHAINS.map((c) => c.segIds.join('>'))).toEqual([
       'torso.pelvis>torso.chest>neck',
-      'armL.upper>armL.fore>handL.palm>handL.fingers',
-      'handL.thumb',
-      'armR.upper>armR.fore>handR.palm>handR.fingers',
-      'handR.thumb',
+      'armL.upper>armL.fore>handL.palm',
+      'handL.thenar0>handL.thenar1>handL.thenar2',
+      'handL.thumba>handL.thumbb',
+      'handL.finger0a>handL.finger0b',
+      'handL.finger1a>handL.finger1b',
+      'handL.finger2a>handL.finger2b',
+      'handL.finger3a>handL.finger3b',
+      'armR.upper>armR.fore>handR.palm',
+      'handR.thenar0>handR.thenar1>handR.thenar2',
+      'handR.thumba>handR.thumbb',
+      'handR.finger0a>handR.finger0b',
+      'handR.finger1a>handR.finger1b',
+      'handR.finger2a>handR.finger2b',
+      'handR.finger3a>handR.finger3b',
       'legL.thigh>legL.shin',
       'legR.thigh>legR.shin',
       'footL',

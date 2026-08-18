@@ -55,6 +55,17 @@ export interface ProvincesContext {
   Burgs: BurgsModule;
 }
 
+/**
+ * Provinces-stage pack view: states/burgs/provinces have populated the cell
+ * fields by the time provinces generate. Single documented boundary cast
+ * below instead of per-field `as any`.
+ */
+type ProvincesStagePack = Pack & {
+  cells: Required<Pack["cells"]>;
+  states: NonNullable<Pack["states"]>;
+  burgs: NonNullable<Pack["burgs"]>;
+};
+
 export class ProvincesModule {
   forms: Record<string, Record<string, number>> = {
     Monarchy: {
@@ -98,12 +109,17 @@ export class ProvincesModule {
 
   constructor(private ctx: ProvincesContext) {}
 
+  private get pack(): ProvincesStagePack {
+    return this.ctx.pack as ProvincesStagePack;
+  }
+
   generate(regenerate = false, regenerateLockedStates = false) {
-    const { pack, seed, Names, COA, Burgs } = this.ctx;
+    const { seed, Names, COA, Burgs } = this.ctx;
+    const pack = this.pack;
     const localSeed = regenerate ? generateSeed() : seed;
     Math.random = Alea(localSeed);
 
-    const { cells, states, burgs } = pack as any;
+    const { cells, states, burgs } = pack;
     const provinces: Province[] = [0 as unknown as Province]; // 0 index is reserved for "no province"
     const provinceIds = new Uint16Array(cells.i.length);
 
@@ -135,7 +151,7 @@ export class ProvincesModule {
         : gauss(20, 5, 5, 100) * provincesRatio ** 0.5; // max growth
 
     // generate provinces for selected burgs
-    (states as any[]).forEach((s) => {
+    states.forEach((s) => {
       s.provinces = [];
       if (!s.i || s.removed) return;
       if (provinces.length)
@@ -144,7 +160,7 @@ export class ProvincesModule {
           .map((p) => p.i); // locked provinces ids
       if (s.lock && !regenerateLockedStates) return; // don't regenerate provinces of a locked state
 
-      const stateBurgs = (burgs as any[])
+      const stateBurgs = burgs
         .filter((b) => b.state === s.i && !b.removed && !provinceIds[b.cell]) // burgs in this state without province assigned
         .sort(
           (a, b) => b.population! * gauss(1, 0.2, 0.5, 1.5, 3) - a.population!,
@@ -260,7 +276,7 @@ export class ProvincesModule {
     const noProvince = Array.from(cells.i).filter(
       (i: any) => cells.state[i] && !provinceIds[i],
     ) as number[]; // cells without province assigned
-    (states as any[]).forEach((s) => {
+    states.forEach((s) => {
       if (!s.i || s.removed) return;
       if (s.lock && !regenerateLockedStates) return;
       if (!s.provinces?.length) return;
@@ -323,7 +339,7 @@ export class ProvincesModule {
 
         // generate "wild" province name
         const c = cells.culture[center];
-        const f = pack.features[cells.f[center]] as any;
+        const f = pack.features[cells.f[center]];
         const color = getMixedColor(s.color!);
 
         const provCells = stateNoProvince.filter(
@@ -335,7 +351,7 @@ export class ProvincesModule {
         const isleGroup =
           !singleIsle &&
           !provCells.find(
-            (i) => (pack.features[cells.f[i]] as any).group !== "isle",
+            (i) => pack.features[cells.f[i]].group !== "isle",
           );
         const colony =
           !singleIsle && !isleGroup && P(0.5) && !isPassable(s.center, center);
@@ -411,8 +427,8 @@ export class ProvincesModule {
 
   // calculate pole of inaccessibility for each province
   getPoles() {
-    const pack = this.ctx.pack;
-    const getType = (cellId: number) => (pack.cells as any).province[cellId];
+    const pack = this.pack;
+    const getType = (cellId: number) => pack.cells.province[cellId];
     const poles = getPolesOfInaccessibility(pack, getType);
 
     pack.provinces!.forEach((province) => {

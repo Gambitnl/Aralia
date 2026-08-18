@@ -418,7 +418,9 @@ export class TerrainCommand extends BaseEffectCommand {
     }
 
     private getCurrentTurn(state: CombatState): number {
-        return state.turnState?.currentTurn ?? (state as any).round ?? 0
+        // `round` is a legacy fallback for old state shapes that predate
+        // turnState.currentTurn; narrow to the minimal shape instead of `any`.
+        return state.turnState?.currentTurn ?? (state as { round?: number }).round ?? 0
     }
 
     private resolveExpiryRound(duration: EffectDuration | undefined, currentTurn: number): number | undefined {

@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 18/07/2026, 18:13:07
- * Dependents: App.tsx
- * Imports: 52 files
+ * Last Sync: 17/08/2026, 14:11:21
+ * Dependents: App.tsx, components/DesignPreview/steps/PreviewEconCraft.tsx, components/DesignPreview/steps/PreviewEquipment.tsx
+ * Imports: 50 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -584,9 +584,13 @@ export function appReducer(state: GameState, action: AppAction): GameState {
             // history, and their timestamps remain exactly as the save supplied.
             for (const npcId in loadedState.npcMemory) {
                 const memory = loadedState.npcMemory[npcId];
-                if (memory.knownFacts.length > 0 && typeof memory.knownFacts[0] === 'string') {
+                // Legacy saves stored knownFacts as a plain string array before the
+                // structured KnownFact model existed. Treat the loaded field as
+                // untrusted data and migrate string entries into canonical records.
+                const rawKnownFacts: unknown = memory.knownFacts;
+                if (Array.isArray(rawKnownFacts) && rawKnownFacts.length > 0 && typeof rawKnownFacts[0] === 'string') {
                     logger.info('Migrating knownFacts for NPC', { npcId });
-                    const oldStringFacts = memory.knownFacts as unknown as string[];
+                    const oldStringFacts = rawKnownFacts.filter((fact): fact is string => typeof fact === 'string');
                     memory.knownFacts = oldStringFacts.map((factText): KnownFact => ({
                         id: generateId(),
                         text: factText,
@@ -893,10 +897,7 @@ export function appReducer(state: GameState, action: AppAction): GameState {
         }
 
         case 'START_BATTLE_MAP_ENCOUNTER': {
-            // Use 'as any' to bypass the discriminated union strictness for now, relying on runtime shape
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const payload = action.payload as any;
-            const encounterPayload = payload.startBattleMapEncounterData as import('../types').StartBattleMapEncounterPayload;
+            const encounterPayload = action.payload.startBattleMapEncounterData;
             const combatants = encounterPayload.combatants ?? [];
             return {
                 ...state,

@@ -361,8 +361,18 @@ describe('atlas authority', () => {
         // Above 0.7 the soft knee deliberately compresses, exactly as
         // generateHeightfield does, so summits stay ordered instead of
         // clipping into one co-planar mesa. The field may therefore sit BELOW
-        // the atlas mean. It must never sit above it, and never by much.
-        expect(mean).toBeLessThan(atlasMean);
+        // the atlas mean by up to 0.12.
+        //
+        // It may also sit slightly ABOVE it, bounded by the same 0.03 as the
+        // unbiased branch. The zero-mean correction is per-region and
+        // window-independent (that is the seam contract), so the window's mean
+        // is a sample of the mask-blended variation with a residual of a few
+        // thousandths of the height range; the knee's downward pull does not
+        // reliably exceed that residual once the relief spread narrows (the
+        // mountain flank-streak fix removed the band's differential relief from
+        // the massif, which narrowed the spread and exposed the residual). The
+        // 0.03 bound still catches a real upward drift of the surface.
+        expect(mean - atlasMean).toBeLessThan(0.03);
         expect(atlasMean - mean).toBeLessThan(0.12);
       }
     }

@@ -283,6 +283,9 @@ export function buildActionHandlers({
     TOGGLE_LONG_REST_MODAL: () => {
       dispatch({ type: 'TOGGLE_LONG_REST_MODAL' });
     },
+    TOGGLE_SHORT_REST_MODAL: () => {
+      dispatch({ type: 'TOGGLE_SHORT_REST_MODAL' });
+    },
     SHORT_REST: (action) => {
       // The short-rest UI supplies a spend map keyed by character id, which we pass to the handler.
       const restPayload = action.payload as { hitPointDiceSpend?: HitPointDiceSpendMap } | undefined;

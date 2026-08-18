@@ -69,8 +69,28 @@ export interface RoutesContext {
   biomesData: BiomesData;
 }
 
+/**
+ * Routes-stage pack view: by the time routes generate, the earlier stages
+ * (rankCells, cultures, burgs, reGraph) have populated these optional fields,
+ * so the stage view marks them required. Single documented boundary cast
+ * below instead of scattering `as any` at each field read.
+ */
+type RoutesStagePack = Pack & {
+  cells: Pack["cells"] & {
+    g: NonNullable<Pack["cells"]["g"]>;
+    t: NonNullable<Pack["cells"]["t"]>;
+    biome: NonNullable<Pack["cells"]["biome"]>;
+    burg: NonNullable<Pack["cells"]["burg"]>;
+  };
+  burgs: NonNullable<Pack["burgs"]>;
+};
+
 export class RoutesModule {
   constructor(private ctx: RoutesContext) {}
+
+  private get pack(): RoutesStagePack {
+    return this.ctx.pack as RoutesStagePack;
+  }
 
   buildLinks(routes: Route[]): Record<number, Record<number, number>> {
     const links: Record<number, Record<number, number>> = {};
@@ -170,8 +190,9 @@ export class RoutesModule {
     isWater: boolean;
     connections: Map<string, boolean>;
   }) {
-    const { pack, grid, biomesData } = this.ctx;
-    const cells = pack.cells as any;
+    const pack = this.pack;
+    const { grid, biomesData } = this.ctx;
+    const cells = pack.cells;
 
     function getLandPathCost(current: number, next: number) {
       if (cells.h[next] < 20) return Infinity; // ignore water cells
@@ -262,7 +283,7 @@ export class RoutesModule {
       start,
       (current) => current === exit,
       getCost,
-      this.ctx.pack,
+      this.pack,
     );
     if (!pathCells) return [];
     const segments = this.getRouteSegments(pathCells, connections);
@@ -270,7 +291,7 @@ export class RoutesModule {
   }
 
   private generateMainRoads(connections: Map<string, boolean>) {
-    const { capitalsByFeature } = this.sortBurgsByFeature(this.ctx.pack.burgs!);
+    const { capitalsByFeature } = this.sortBurgsByFeature(this.pack.burgs);
     const mainRoads: Route[] = [];
 
     for (const [key, featureCapitals] of Object.entries(capitalsByFeature)) {
@@ -317,7 +338,7 @@ export class RoutesModule {
   }
 
   private generateTrails(connections: Map<string, boolean>) {
-    const { burgsByFeature } = this.sortBurgsByFeature(this.ctx.pack.burgs!);
+    const { burgsByFeature } = this.sortBurgsByFeature(this.pack.burgs);
     const townRoads: Route[] = [];
     const villageTrails: Route[] = [];
 
@@ -362,13 +383,13 @@ export class RoutesModule {
    * by BFS, walked PATH_SPUR_MAX_DEPTH cells deeper along forest neighbors.
    */
   private generatePaths(connections: Map<string, boolean>) {
-    const cells = this.ctx.pack.cells as any;
+    const cells = this.pack.cells;
     const FOREST_IDS = new Set([5, 6, 7, 8, 9]);
     const isForest = (c: number): boolean => FOREST_IDS.has(cells.biome?.[c] ?? 0);
     const isLand = (c: number): boolean => (cells.h?.[c] ?? 0) >= 20;
     const paths: Route[] = [];
 
-    for (const burg of this.ctx.pack.burgs!) {
+    for (const burg of this.pack.burgs) {
       if (!burg.i || burg.removed || this.isTownBurg(burg)) continue; // villages only
       if (this.spurBucket(burg.i as number) >= PATH_SPUR_PERCENT) continue;
 
@@ -414,7 +435,7 @@ export class RoutesModule {
   }
 
   private generateSeaRoutes(connections: Map<string, boolean>) {
-    const { portsByFeature } = this.sortBurgsByFeature(this.ctx.pack.burgs!);
+    const { portsByFeature } = this.sortBurgsByFeature(this.pack.burgs);
     const seaRoutes: Route[] = [];
 
     for (const [featureId, featurePorts] of Object.entries(portsByFeature)) {
@@ -444,7 +465,7 @@ export class RoutesModule {
   }
 
   private preparePointsArray(): Point[] {
-    const { cells, burgs } = this.ctx.pack as any;
+    const { cells, burgs } = this.pack;
     return cells.p.map(([x, y]: Point, cellId: number) => {
       const burgId = cells.burg[cellId];
       if (burgId) return [burgs[burgId].x, burgs[burgId].y];
@@ -453,14 +474,14 @@ export class RoutesModule {
   }
 
   private getPoints(group: string, cells: number[], points: Point[]) {
-    const pack = this.ctx.pack as any;
+    const pack = this.pack;
     const data = cells.map((cellId) => [...points[cellId], cellId]);
 
     // resolve sharp angles
     if (group !== "searoutes") {
       for (let i = 1; i < cells.length - 1; i++) {
         const cellId = cells[i];
-        if (pack.cells.burg[cellId]) continue;
+        if (pack.cells.burg?.[cellId]) continue;
 
         const [prevX, prevY] = data[i - 1];
         const [currX, currY] = data[i];
@@ -552,7 +573,7 @@ export class RoutesModule {
   }
 
   generate(lockedRoutes: Route[] = []) {
-    const pack = this.ctx.pack;
+    const pack = this.pack;
     const connections = new Map<string, boolean>();
     lockedRoutes.forEach((route: Route) => {
       this.addConnections(
@@ -569,38 +590,38 @@ export class RoutesModule {
     // from the frozen golden world (same doctrine as hasRoad/isCrossroad
     // below). Gameplay consumers read pack.routes directly, so paths still
     // reach travel graphs, renderers and the region generator.
-    (pack.cells as any).routes = this.buildLinks(
-      pack.routes.filter((route) => route.group !== "paths"),
+    pack.cells.routes = this.buildLinks(
+      (pack.routes ?? []).filter((route) => route.group !== "paths"),
     );
   }
 
   // utility functions
   isConnected(cellId: number): boolean {
-    const routes = (this.ctx.pack.cells as any).routes;
-    return routes[cellId] && Object.keys(routes[cellId]).length > 0;
+    const connections = this.pack.cells.routes?.[cellId];
+    return Boolean(connections && Object.keys(connections).length > 0);
   }
 
   areConnected(from: number, to: number): boolean {
-    const routeId = (this.ctx.pack.cells as any).routes[from]?.[to];
+    const routeId = this.pack.cells.routes?.[from]?.[to];
     return routeId !== undefined;
   }
 
   getRoute(from: number, to: number): Route | null {
-    const routeId = (this.ctx.pack.cells as any).routes[from]?.[to];
+    const routeId = this.pack.cells.routes?.[from]?.[to];
     if (routeId === undefined) return null;
 
-    const route = this.ctx.pack.routes!.find((route) => route.i === routeId);
+    const route = this.pack.routes!.find((route) => route.i === routeId);
     if (!route) return null;
 
     return route;
   }
 
   hasRoad(cellId: number): boolean {
-    const connections = (this.ctx.pack.cells as any).routes[cellId];
+    const connections = this.pack.cells.routes?.[cellId];
     if (!connections) return false;
 
     return Object.values(connections).some((routeId) => {
-      const route = this.ctx.pack.routes!.find(
+      const route = this.pack.routes!.find(
         (route) => route.i === routeId,
       );
       if (!route) return false;
@@ -614,11 +635,11 @@ export class RoutesModule {
   }
 
   isCrossroad(cellId: number): boolean {
-    const connections = (this.ctx.pack.cells as any).routes[cellId];
+    const connections = this.pack.cells.routes?.[cellId];
     if (!connections) return false;
     if (Object.keys(connections).length > 3) return true;
     const roadConnections = Object.values(connections).filter((routeId) => {
-      const route = this.ctx.pack.routes!.find(
+      const route = this.pack.routes!.find(
         (route) => route.i === routeId,
       );
       // Trunk junctions: the former "roads" network is now "highways" (see
@@ -629,7 +650,7 @@ export class RoutesModule {
   }
 
   getConnectivityRate(cellId: number): number {
-    const connections = (this.ctx.pack.cells as any).routes[cellId];
+    const connections = this.pack.cells.routes?.[cellId];
     if (!connections) return 0;
 
     // Behavior-preserving rates: the pre-split world had only "roads" (0.2)
@@ -650,7 +671,7 @@ export class RoutesModule {
 
     const connectivity = (Object.values(connections) as number[]).reduce(
       (acc: number, routeId: number) => {
-        const route = this.ctx.pack.routes!.find(
+        const route = this.pack.routes!.find(
           (route) => route.i === routeId,
         );
         if (!route) return acc;

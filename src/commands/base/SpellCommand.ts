@@ -3,8 +3,8 @@
  * ARCHITECTURAL ADVISORY:
  * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 13/08/2026, 10:57:40
- * Dependents: commands/base/BaseEffectCommand.ts, commands/base/CommandExecutor.ts, commands/effects/CommandedSummonCommand.ts, commands/effects/ConcentrationCommands.ts, commands/effects/DefensiveCommand.ts, commands/effects/ElementalBaneCommand.ts, commands/effects/EnhanceAbilityCommand.ts, commands/effects/FamiliarPocketCommands.ts, commands/effects/FamiliarSharedSensesCommand.ts, commands/effects/GrantedActionCommand.ts, commands/effects/GraspingVineCommand.ts, commands/effects/MovementCommand.ts, commands/effects/NarrativeCommand.ts, commands/effects/ReactiveEffectCommand.ts, commands/effects/RegisterRiderCommand.ts, commands/effects/SummonDismissCommand.ts, commands/effects/SummonReturnHomeCommand.ts, commands/effects/SummoningCommand.ts, commands/effects/TerrainCommand.ts, commands/effects/UtilityCommand.ts, commands/factory/AbilityCommandFactory.ts, commands/factory/SpellCommandFactory.ts, commands/index.ts, components/DesignPreview/steps/scenarioControls/tauntForcedTargetingScenarioControls.ts, systems/spells/socialServiceResolution.ts, utils/combat/shoveUtils.ts, utils/core/factories.ts
+ * Last Sync: 17/08/2026, 14:09:44
+ * Dependents: commands/base/BaseEffectCommand.ts, commands/base/CommandExecutor.ts, commands/effects/CommandedSummonCommand.ts, commands/effects/ConcentrationCommands.ts, commands/effects/DefensiveCommand.ts, commands/effects/ElementalBaneCommand.ts, commands/effects/EnhanceAbilityCommand.ts, commands/effects/FamiliarPocketCommands.ts, commands/effects/FamiliarSharedSensesCommand.ts, commands/effects/GrantedActionCommand.ts, commands/effects/GraspingVineCommand.ts, commands/effects/MovementCommand.ts, commands/effects/NarrativeCommand.ts, commands/effects/ReactiveEffectCommand.ts, commands/effects/RegisterRiderCommand.ts, commands/effects/SummonDismissCommand.ts, commands/effects/SummonReturnHomeCommand.ts, commands/effects/SummoningCommand.ts, commands/effects/TerrainCommand.ts, commands/effects/UtilityCommand.ts, commands/factory/AbilityCommandFactory.ts, commands/factory/SpellCommandFactory.ts, commands/index.ts, components/DesignPreview/steps/raceDomain/leaves/halfOrcRaceLeaf.tsx, components/DesignPreview/steps/scenarioControls/tauntForcedTargetingScenarioControls.ts, systems/spells/socialServiceResolution.ts, utils/combat/shoveUtils.ts, utils/core/factories.ts
  * Imports: 4 files
  *
  * MULTI-AGENT SAFETY:
@@ -166,8 +166,12 @@ export interface CommandContext {
    * label while still keeping every possible option available in spell data.
    */
   playerInput?: string
-  /** Reference to global game state (for environmental checks, etc.) */
-  gameState: GameState
+  /**
+   * Reference to global game state (for environmental checks, etc.).
+   * Optional: callers that only have the combat map (e.g. the combat engine's
+   * teleport fallback) omit it, and no command currently reads this field.
+   */
+  gameState?: GameState
   /** Duration of the effect (if applicable) */
   effectDuration?: EffectDuration
   /** Type of attack roll (melee/ranged) if applicable */

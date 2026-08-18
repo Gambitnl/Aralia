@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 19/07/2026, 08:35:11
+ * Last Sync: 17/08/2026, 14:09:05
  * Dependents: App.tsx, components/MapPane.tsx, components/World3D/entryCellIdentity.ts, components/Worldforge/AtlasDemo.tsx, state/appState.ts, state/reducers/craftingReducer.ts, systems/adventureLog/adventureLog.ts, systems/adventureLog/oraclePrompt.ts, systems/party/recruitConsent.ts, systems/worldforge/local/gridAtlasBridge.ts, types/index.ts, types/travelMeta.ts, utils/world/sceneUtils.ts
  * Imports: None
  *
@@ -305,6 +305,8 @@ export interface GameState {
   /** Center point used by minimap consumers after map data changes. */
   minimapFocus?: { x: number; y: number };
   isMapVisible: boolean;
+  /** Legacy minimap-visibility toggle retained for older save compatibility. */
+  isMinimapVisible?: boolean;
   isThreeDVisible?: boolean;
   isPartyOverlayVisible: boolean;
   /** Whether the long rest modal is currently visible to prompt racial choices. */

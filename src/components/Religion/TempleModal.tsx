@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 17/08/2026, 14:21:41
+ * Dependents: components/layout/GameModals.tsx
+ * Imports: 9 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import React, { useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Action } from '../../types';
@@ -30,7 +46,7 @@ const TempleModal: React.FC<TempleModalProps> = ({
 
     const deity = useMemo(() => DEITIES.find(d => d.id === temple.deityId), [temple.deityId]);
     const divineFavor = state.religion?.divineFavor?.[temple.deityId] || state.divineFavor?.[temple.deityId];
-    const favorScore = divineFavor?.score ?? (divineFavor as any)?.favor ?? 0;
+    const favorScore = divineFavor?.score ?? divineFavor?.favor ?? 0;
     const standing = getDivineStanding(favorScore);
     const templeServices = useMemo(
         () => temple.services.filter((s): s is TempleService => typeof s !== 'string'),
@@ -53,7 +69,7 @@ const TempleModal: React.FC<TempleModalProps> = ({
                     serviceId: service.id,
                     cost,
                     effect: effectDescription,
-                } as any
+                }
             });
             setLastActionMessage(`Purchased ${service.name}`);
             setTimeout(() => setLastActionMessage(null), 3000);

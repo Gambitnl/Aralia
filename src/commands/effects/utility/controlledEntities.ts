@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 17/08/2026, 09:46:07
+ * Dependents: commands/effects/utility/summons.ts
+ * Imports: 4 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 // Per-spell-category slice of UtilityCommand: controlledEntities behaviors.
 // Extracted mechanically from src/commands/effects/UtilityCommand.ts (see
 // .agent/scratch/utility-split/analyze.mjs). Method bodies are byte-identical
@@ -175,12 +191,12 @@ export abstract class UtilityCommandControlledEntities extends UtilityCommandTra
             guardianTrees: {
                 maxCount: wardObject.groveGuardians?.maxTrees ?? 4,
                 guardianIds: guardianTargets.map(target => target.id),
-                statBlock: wardObject.groveGuardians?.stats ?? (effect.controlledEntity as any)?.statBlock,
+                statBlock: wardObject.groveGuardians?.stats ?? (effect.controlledEntity?.statBlock as string | undefined),
                 cannotSpeak: effect.communicationDetails?.animatedTreesSpeech?.toLowerCase().includes('cannot speak') ?? true,
                 barkMarked: effect.communicationDetails?.visibleSymbols?.toLowerCase().includes('bark') ?? true,
                 cannotLeaveWardedArea: wardObject.groveGuardians?.cannotLeaveWardedArea ?? true,
                 obeysSpokenCommandsInArea: wardObject.groveGuardians?.obeysSpokenCommandsInArea ?? true,
-                intruderResponse: (effect.controlledEntity as any)?.trigger,
+                intruderResponse: (effect.controlledEntity?.trigger as string | undefined),
                 rerootsWhenSpellEndsIfPossible: wardObject.groveGuardians?.rerootsWhenSpellEndsIfPossible ?? true
             },
             ending: {

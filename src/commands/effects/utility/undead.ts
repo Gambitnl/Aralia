@@ -427,7 +427,7 @@ export abstract class UtilityCommandUndead extends UtilityCommandSummons {
         )
 
         return [{
-            name: (attackAugment as any)?.name ?? 'Danse Macabre undead bonus',
+            name: attackAugment?.name ?? 'Danse Macabre undead bonus',
             appliesToForms: ['Skeleton', 'Zombie'],
             notes: `Attack bonus: ${attackBonus}; damage bonus: ${damageBonus}.`
         }]

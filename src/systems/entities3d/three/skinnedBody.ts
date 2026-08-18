@@ -66,6 +66,13 @@ import {
   type SpeciesGait,
   type SpeciesRestPose,
 } from './speciesSkeleton';
+import {
+  buildChainSkeleton,
+  chainRestPose,
+  createChainPoseSink,
+  type ChainPartInput,
+} from './chainSkeleton';
+import type { PartAnchors } from '../types';
 import { buildSmoothBipedGeometry } from './smoothBipedGeometry';
 import { outlineMaterial, toonMaterial } from './toon';
 
@@ -535,6 +542,128 @@ export function createSkinnedPlan(frame: Frame, spec: import('../types').PlanSpe
     boneNamed: boneLookup(built.index, built.bones),
     finishFrame: pose.finishFrame,
     triangles: () => (geometry.index!.count / 3) * 2,
+    dispose: () => {
+      geometry.dispose();
+      fillMaterial.dispose();
+      inkMaterial.dispose();
+      skeleton.dispose(); // frees the bone texture once a renderer has made one
+    },
+  };
+}
+
+export interface SkinnedChains {
+  /** Add this under the entity's bodyRoot (holds fill mesh, ink shell, bones). */
+  readonly root: Group;
+  /** Feed the per-frame chain builds here (seg calls only). */
+  readonly sink: SegmentSink;
+  /** Resolve this frame's emissions into bone transforms — call after the chain builds. */
+  finishFrame(): void;
+  /** Fill + shell triangles (2 draw calls total). */
+  triangles(): number;
+  /** Bone count including the root (tests/diagnostics). */
+  boneCount(): number;
+  dispose(): void;
+}
+
+/**
+ * Bind-pose geometry for the chain parts (slice 6): one rigid cylinder per
+ * rest link plus its two joint spheres — the segment renderer's exact shapes
+ * (CylinderGeometry(r1, r0, len, 10, 1); joint SphereGeometry(r·0.98, 8, 6)),
+ * every vertex owned 100% by its link bone. Exported for the parity tests.
+ */
+export function buildChainBindGeometry(
+  restPose: import('./chainSkeleton').ChainRestPose,
+  index: ReadonlyMap<string, number>,
+): BufferGeometry {
+  const pieces: Piece[] = [];
+  const quat = new Quaternion();
+  const dir = new Vector3();
+  const mid = new Vector3();
+  const matrix = new Matrix4();
+  const one = new Vector3(1, 1, 1);
+
+  for (const seg of restPose.segs) {
+    const bone = index.get(seg.id);
+    if (bone === undefined) throw new Error(`skinnedBody: no bone for chain rest link "${seg.id}"`);
+    dir.set(seg.b[0] - seg.a[0], seg.b[1] - seg.a[1], seg.b[2] - seg.a[2]);
+    const len = Math.max(dir.length(), 1e-4);
+    mid.set((seg.a[0] + seg.b[0]) / 2, (seg.a[1] + seg.b[1]) / 2, (seg.a[2] + seg.b[2]) / 2);
+    quat.setFromUnitVectors(UP, dir.normalize());
+    matrix.compose(mid, quat, one);
+
+    const cylinder = new CylinderGeometry(seg.r1, seg.r0, len, 10, 1);
+    cylinder.applyMatrix4(matrix);
+    pieces.push({ geometry: cylinder, bone });
+
+    for (const [end, r] of [
+      [seg.a, seg.r0],
+      [seg.b, seg.r1],
+    ] as const) {
+      const joint = new SphereGeometry(r * 0.98, 8, 6);
+      joint.translate(end[0], end[1], end[2]);
+      pieces.push({ geometry: joint, bone });
+    }
+  }
+  return mergePieces(pieces);
+}
+
+/**
+ * Slice 6: rigid-weight skinned chain parts (tails, tentacles, antennae, fin
+ * ridges) — the last flesh that still rendered boneless in skinned mode. One
+ * bind-pose BufferGeometry, one fill SkinnedMesh + one inverse-hull ink shell
+ * sharing it — 2 draw calls for ALL of an entity's chains together. The
+ * per-frame chain builds drive the bones through the chain pose sink. Link
+ * length breathes a few percent with the wag; the joint spheres cover those
+ * seams (the slice-1 trick).
+ */
+export function createSkinnedChains(
+  chains: ChainPartInput[],
+  frame: Frame,
+  restAnchors: PartAnchors,
+  options: SkinnedBodyOptions,
+): SkinnedChains | null {
+  const restPose = chainRestPose(chains, frame, restAnchors);
+  if (restPose.segs.length === 0) return null;
+  const built = buildChainSkeleton(restPose);
+  const geometry = buildChainBindGeometry(restPose, built.index);
+
+  // Skeleton inverses must be captured while the bones hold their bind pose
+  // in entity-local space, before anything reparents or animates them.
+  built.root.updateMatrixWorld(true);
+  const skeleton = new Skeleton(built.bones);
+
+  const fillMaterial = toonMaterial(options.colorHex);
+  if (options.opacity !== undefined && options.opacity < 1) {
+    fillMaterial.transparent = true;
+    fillMaterial.opacity = options.opacity;
+    fillMaterial.depthWrite = false; // translucent bodies must not self-occlude harshly
+  }
+  const inkMaterial = outlineMaterial(options.colorHex, options.outlineThickness);
+
+  const root = new Group();
+  root.name = 'skinnedChains';
+
+  const fill = new SkinnedMesh(geometry, fillMaterial);
+  fill.name = 'skinnedChainFill';
+  fill.frustumCulled = false;
+  fill.add(built.root); // bones live under the fill mesh (standard three setup)
+  fill.bind(skeleton, IDENTITY);
+
+  const shell = new SkinnedMesh(geometry, inkMaterial);
+  shell.name = 'skinnedChainOutline';
+  shell.frustumCulled = false;
+  shell.bind(skeleton, IDENTITY); // shares skeleton + geometry; no second bone tree
+
+  root.add(fill, shell);
+
+  const pose = createChainPoseSink(built);
+
+  return {
+    root,
+    sink: pose.sink,
+    finishFrame: pose.finishFrame,
+    triangles: () => (geometry.index!.count / 3) * 2,
+    boneCount: () => built.bones.length,
     dispose: () => {
       geometry.dispose();
       fillMaterial.dispose();

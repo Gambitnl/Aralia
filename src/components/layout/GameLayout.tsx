@@ -162,7 +162,6 @@ const GameLayout: React.FC<GameLayoutProps> = ({
                         currentLocation={currentLocation}
                         npcsInLocation={npcsInLocation}
                         itemsInLocation={itemsInLocation}
-                        party={party}
                         onAction={onAction}
                         disabled={disabled}
                         geminiGeneratedActions={geminiGeneratedActions || []}

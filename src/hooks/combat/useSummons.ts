@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * This file appears to be an ISOLATED UTILITY or ORPHAN.
  *
- * Last Sync: 04/08/2026, 01:56:48
+ * Last Sync: 17/08/2026, 14:10:42
  * Dependents: None (Orphan)
  * Imports: 5 files
  *
@@ -139,7 +139,22 @@ export const useSummons = ({ onSummonAdded, onSummonRemoved }: UseSummonsProps =
             statusEffects: [],
             conditions: [],
             level: 1, // Default for summons
-            class: 'Monster' as unknown as Class, // Or specific class if applicable
+            // Summons aren't player classes; a minimal pseudo-Class satisfies the
+            // required `CombatCharacter.class` contract without matching any
+            // class-gated feature (the 'monster' id matches none of the feature checks).
+            class: {
+                id: 'monster',
+                name: 'Monster',
+                description: 'Summoned creature',
+                hitDie: 10,
+                primaryAbility: ['Constitution'],
+                savingThrowProficiencies: [],
+                skillProficienciesAvailable: [],
+                numberOfSkillProficiencies: 0,
+                armorProficiencies: [],
+                weaponProficiencies: [],
+                features: []
+            },
             initiative: 0,
             actionEconomy: {
                 action: { used: false, remaining: 1 },

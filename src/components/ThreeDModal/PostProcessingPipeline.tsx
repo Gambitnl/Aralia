@@ -66,9 +66,11 @@ const PostProcessingPipeline = ({
       composer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
       // Update FXAA resolution if enabled
-      const fxaaPass = composer.passes.find(pass => pass instanceof ShaderPass && (pass as any).name === 'FXAAShader');
+      const fxaaPass = composer.passes.find(
+        (pass): pass is ShaderPass => pass instanceof ShaderPass,
+      );
       if (fxaaPass && fxaaEnabled) {
-        (fxaaPass as ShaderPass).material.uniforms['resolution'].value.set(
+        fxaaPass.material.uniforms['resolution'].value.set(
           1 / (size.width * Math.min(window.devicePixelRatio, 2)),
           1 / (size.height * Math.min(window.devicePixelRatio, 2))
         );

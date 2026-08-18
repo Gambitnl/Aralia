@@ -6117,7 +6117,7 @@
       "tier": "strategic",
       "sub": "The L1 region drilldown is blank: it carries ONE field with real detail (heightfield 250x250 @100ft) and everything else is a stub. Root cause found 2026-07-29: a region window is 25,000 ft = ~2.5 FMG pixels while one FMG cell is ~8x9 px (~79,000 x 89,000 ft), so a window covers ~1/9 the area of a single cell. Every region field except the heightfield is EXTRACTED from atlas data, which has no structure below cell resolution - so there is nothing to extract. The tier cannot inherit its detail, it has to generate it. Measured over 6 burg windows: rivers 2-3 pts over 6.6k-25.5k ft, roads 6-7 pts over ~26k ft, crossings 0 EVERYWHERE (no region bridges or fords exist), markers 0, zones 1 total, biomeSites absent or exactly 1 (no gradient to blend). Rule adopted: the atlas decides which river runs here and how big it is; the region tier decides where it bends. Build order: rivers -> crossings -> roads -> biome sites -> markers/zones.",
       "link": "docs/superpowers/specs/2026-07-29-region-tier-audit.md",
-      "updated": "2026-08-14",
+      "updated": "2026-08-18",
       "features": [
         {
           "title": "Audit: measure every region field across 6 burg windows",
@@ -6156,7 +6156,7 @@
         {
           "title": "Interfluve operator: macro band derived from the flow guide",
           "status": "active",
-          "status_note": "Plain macro band is now a MONOTONE concave map of the flow guide, so the surface and the network are one field read twice and cannot disagree. Also fixed 3 real bugs: the accumulation proxy was pinned at its floor, the S term was missing from E=K*Q^m*S^n, and a threshold cut 40x steps that rendered as round holes. HONEST LIMIT recorded in-file: convergence thresholding on this guide cannot make a dendritic network at fine scale - blobs at low thresholds, spikes at high. Needs a different generator. Valleys still read soft and smoky. Mountain flank streaks untouched."
+          "status_note": "Plain macro band is now a MONOTONE concave map of the flow guide, so the surface and the network are one field read twice and cannot disagree. Also fixed 3 real bugs: the accumulation proxy was pinned at its floor, the S term was missing from E=K*Q^m*S^n, and a threshold cut 40x steps that rendered as round holes. HONEST LIMIT recorded in-file: convergence thresholding on this guide cannot make a dendritic network at fine scale - blobs at low thresholds, spikes at high. Needs a different generator. Valleys still read soft and smoky. MOUNTAIN FLANK STREAKS FIXED 2026-08-18 (task d7b60572): the sub-cell structural band no longer acts on the terms that BUILD relief - talusScale and fineKeep read the cell's atlas hardness instead of the banded local hardness, and the differential-erosion banding fades out where the peak operator already draws the landform (aPeak >= 0.10). Measured: mountain band-scale streak anisotropy 1.37 -> 1.09 (across-strike band signal halved 0.0745 -> 0.0381); plain + coast byte-identical; mountain relief 0.478 -> 0.370 vs shipping 0.452; 150 region tests green; rendered composite pane matches. Visual eyeball of the render still pending operator/QA."
         }
       ]
     },

@@ -464,15 +464,25 @@ export function createSegmentBody(options: SegmentBodyOptions): SegmentBody {
           });
           node = makeNode(id, cry.geometry, cry.key);
         } else {
+        // real-finger update: digit links (thumb/finger chains) render coarse
+        // — a 6-column cylinder and ONE root joint sphere. Two full joint
+        // spheres per digit link cost ~4k triangles per humanoid for forms
+        // smaller than the spheres that rounded them.
+        const digit = /\.finger\d[ab]$|\.thumb[ab]$|\.thenar\d$/.test(id);
         // unit-height tapered bone; joint spheres round the ends in solid mode
-        const cyl = bodyGeometry(`c:${q(r1)}:${q(r0)}`, () => new CylinderGeometry(r1, r0, 1, 10, 1));
+        const cyl = digit
+          ? bodyGeometry(`cd:${q(r1)}:${q(r0)}`, () => new CylinderGeometry(r1, r0, 1, 6, 1))
+          : bodyGeometry(`c:${q(r1)}:${q(r0)}`, () => new CylinderGeometry(r1, r0, 1, 10, 1));
         node = makeNode(id, cyl.geometry, cyl.key);
         if (!wire) {
           for (const [endId, r] of [
             [`${id}.jointA`, r0],
             [`${id}.jointB`, r1],
           ] as const) {
-            const sph = bodyGeometry(`j:${q(r)}`, () => new SphereGeometry(r * 0.98, 8, 6));
+            if (digit && endId.endsWith('.jointB')) continue;
+            const sph = digit
+              ? bodyGeometry(`jd:${q(r)}`, () => new SphereGeometry(r * 0.98, 6, 4))
+              : bodyGeometry(`j:${q(r)}`, () => new SphereGeometry(r * 0.98, 8, 6));
             makeNode(endId, sph.geometry, sph.key);
           }
         }

@@ -543,11 +543,28 @@ export interface ReligionsContext {
   Routes: RoutesModule;
 }
 
+/**
+ * Religions-stage pack view: cultures/burgs/states have populated the cell
+ * fields by the time religions generate, and this module assigns
+ * cells.religion itself. Single documented boundary cast below instead of
+ * per-field `as any`.
+ */
+type ReligionsStagePack = Pack & {
+  cells: Required<Pack["cells"]>;
+  cultures: NonNullable<Pack["cultures"]>;
+  burgs: NonNullable<Pack["burgs"]>;
+  states: NonNullable<Pack["states"]>;
+};
+
 export class ReligionsModule {
   constructor(private ctx: ReligionsContext) {}
 
+  private get pack(): ReligionsStagePack {
+    return this.ctx.pack as ReligionsStagePack;
+  }
+
   generate() {
-    const pack = this.ctx.pack;
+    const pack = this.pack;
     const lockedReligions =
       pack.religions?.filter((r) => r.i && r.lock && !r.removed) || [];
 
@@ -569,7 +586,7 @@ export class ReligionsModule {
     const religions = this.defineOrigins(religionIds, indexedReligions);
 
     pack.religions = religions;
-    (pack.cells as any).religion = religionIds;
+    pack.cells.religion = religionIds;
 
     this.checkCenters();
   }
@@ -589,8 +606,9 @@ export class ReligionsModule {
     desiredReligionNumber: number,
     lockedReligions: Religion[],
   ): ReligionBase[] {
-    const { pack, graphWidth, graphHeight } = this.ctx;
-    const cells = pack.cells as any;
+    const { graphWidth, graphHeight } = this.ctx;
+    const pack = this.pack;
+    const cells = pack.cells;
     const lockedReligionCount =
       lockedReligions.filter(({ type }) => type !== "Folk").length || 0;
     const requiredReligionsNumber =
@@ -658,15 +676,14 @@ export class ReligionsModule {
         return validBurgs
           .sort((a, b) => b.population! - a.population!)
           .map((burg) => burg.cell);
-      return cells.i
+      return Array.from(cells.i)
         .filter((i: number) => cells.s[i] > 2)
         .sort((a: number, b: number) => cells.s[b] - cells.s[a]);
     }
   }
 
   private specifyReligions(newReligions: ReligionBase[]): NamedReligion[] {
-    const { pack } = this.ctx;
-    const { cells, cultures } = pack as any;
+    const { cells, cultures } = this.pack;
     /* eslint-disable-next-line @typescript-eslint/no-this-alias */
     const self = this;
 
@@ -875,7 +892,7 @@ export class ReligionsModule {
         const { clusterSize, maxReligions } = religionOriginsParamsMap[type];
         const fallbackOrigin = folkReligion?.i || 0;
         return this.getReligionsInRadius(
-          (this.ctx.pack.cells as any).c,
+          this.pack.cells.c,
           center,
           religionIds,
           i,
@@ -926,8 +943,9 @@ export class ReligionsModule {
 
   // growth algorithm to assign cells to religions
   private expandReligions(religions: Religion[]): Uint16Array {
-    const { pack, biomesData, Routes } = this.ctx;
-    const cells = pack.cells as any;
+    const { biomesData, Routes } = this.ctx;
+    const pack = this.pack;
+    const cells = pack.cells;
     const religionIds = this.spreadFolkReligions(religions);
 
     const queue = new FlatQueue<{
@@ -1005,7 +1023,7 @@ export class ReligionsModule {
 
   // folk religions initially get all cells of their culture, and locked religions are retained
   private spreadFolkReligions(religions: Religion[]): Uint16Array {
-    const cells = this.ctx.pack.cells as any;
+    const cells = this.pack.cells;
     const hasPrior = cells.religion && true;
     const religionIds = new Uint16Array(cells.i.length);
 
@@ -1030,8 +1048,8 @@ export class ReligionsModule {
   }
 
   private checkCenters() {
-    const pack = this.ctx.pack;
-    const cells = pack.cells as any;
+    const pack = this.pack;
+    const cells = pack.cells;
     pack.religions!.forEach((r) => {
       if (!r.i) return;
       // move religion center if it's not within religion area after expansion
@@ -1061,8 +1079,8 @@ export class ReligionsModule {
     deity: string,
     center: number,
   ): [string, string] {
-    const { pack, Names } = this.ctx;
-    const { cells, cultures, burgs, states } = pack as any;
+    const { Names } = this.ctx;
+    const { cells, cultures, burgs, states } = this.pack;
 
     const random = () => Names.getCulture(cells.culture[center]);
     const type = rw(types[form]);

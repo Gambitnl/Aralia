@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 23/07/2026, 17:36:31
+ * Last Sync: 17/08/2026, 15:43:41
  * Dependents: components/World3D/WebGPUProbe.tsx
- * Imports: 20 files
+ * Imports: 21 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -65,8 +65,9 @@
  */
 
 import React, { useMemo, useRef, useEffect, useLayoutEffect } from 'react';
-import { Canvas, extend, useFrame, useThree } from '@react-three/fiber';
+import { Canvas, extend, useFrame, useThree, type Catalogue } from '@react-three/fiber';
 import * as THREE from 'three/webgpu';
+import type { WebGLRenderer } from 'three';
 import {
   vec3,
   dot,
@@ -119,8 +120,7 @@ import {
 // Make the WebGPU THREE namespace the source for R3F JSX intrinsics. Without
 // this, <meshStandardMaterial> etc. resolve against the default WebGL namespace
 // and WebGPURenderer cannot draw them.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-extend(THREE as any);
+extend(THREE as unknown as Catalogue);
 
 // ── Baked lighting constants ─────────────────────────────────────────────────
 // Derived from the SAME sunFromTime model the live World3DLighting uses, at the
@@ -1230,8 +1230,7 @@ const WebGPUProbeScene: React.FC<Props> = ({ loader, ground, start, startSurface
           console.info(
             `[webgpuProbe] renderer backend = webgpu; visibility=${document.visibilityState}; focused=${document.hasFocus()}`,
           );
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          return renderer as any;
+          return renderer as unknown as WebGLRenderer;
         }}
       >
         <PerfProbe id="webgpu-probe" label="WebGPU Probe" />

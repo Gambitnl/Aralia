@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 09/06/2026, 06:37:00
+ * Last Sync: 17/08/2026, 14:20:41
  * Dependents: components/Religion/TempleModal.tsx, state/initialState.ts, types/index.ts, utils/world/religionUtils.ts, utils/world/templeUtils.ts
  * Imports: None
  *
@@ -21,6 +21,7 @@
  */
 import { AbilityScoreName } from './core.js';
 import { MechanicalEffect } from './effects.js';
+import { StatusEffect } from './combat.js';
 
 /**
  * Alignment represents the moral and ethical stance of a creature or deity. */
@@ -143,6 +144,8 @@ export type FavorRank = 'Heretic' | 'Shunned' | 'Neutral' | 'Initiate' | 'Devote
 
 export interface DivineFavor {
   score: number; // -100 to 100
+  /** Legacy field name for `score` in older saves. */
+  favor?: number;
   rank: FavorRank;
   consecutiveDaysPrayed: number;
   lastPrayerTimestamp?: number;
@@ -157,9 +160,10 @@ export interface Blessing {
   duration?: number;
   /**
    * The mechanical effect granted by this blessing.
-   * Can be a single effect or a list of effects.
+   * Can be a single effect or a list of effects. Blessing definitions
+   * author a `StatusEffect`, so the stored record also accepts that shape.
    */
-  effect: MechanicalEffect | MechanicalEffect[];
+  effect: MechanicalEffect | MechanicalEffect[] | StatusEffect;
 }
 
 export interface TempleServiceRequirement {

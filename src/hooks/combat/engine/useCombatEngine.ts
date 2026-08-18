@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 13/08/2026, 09:22:18
+ * Last Sync: 17/08/2026, 14:10:04
  * Dependents: hooks/combat/useTurnManager.ts
  * Imports: 14 files
  *
@@ -30,6 +30,7 @@ import {
     Position
 } from '../../../types/combat';
 import { MovementEffect } from '../../../types/spells';
+import type { ConditionName, SavingThrowAbility } from '../../../types/spells';
 import {
     ActiveSpellZone,
     ScheduledSpellEffect,
@@ -42,6 +43,7 @@ import { MovementCommand } from '../../../commands/effects/MovementCommand';
 import { generateId, rollDice, calculateDamage, rollD20, getDistance } from '../../../utils/combat';
 import { calculateSpellDC, rollSavingThrow } from '../../../utils/character';
 import { SavePenaltySystem } from '../../../systems/combat/SavePenaltySystem';
+import type { SavePenaltyExpiryState } from '../../../systems/combat/SavePenaltySystem';
 import { getAbilityModifierValue } from '../../../utils/character';
 import { hasLineOfSight } from '../../../utils/spatial/lineOfSight';
 import { findPath } from '../../../utils/spatial/pathfinding';
@@ -625,7 +627,7 @@ export const useCombatEngine = ({
                     type: 'status',
                     message: `${updatedCharacter.name}'s control ends; the demon turns hostile.`,
                     characterId: updatedCharacter.id,
-                    data: { summonControl: 'broken', spellId: updatedCharacter.summonMetadata?.spellId } as any
+                    data: { summonControl: 'broken', spellId: updatedCharacter.summonMetadata?.spellId }
                 });
             }
         }
@@ -822,7 +824,7 @@ export const useCombatEngine = ({
                     const maxTeleportTiles = Math.max(0, Math.floor((effect.distance || 0) / 5));
                     const validScheduledMoves = effect.movementType === 'teleport' && mapData
                         ? Array.from(mapData.tiles.values())
-                            .map(tile => (tile as any).coordinates || (tile as any).position)
+                            .map(tile => tile.coordinates)
                             .filter((position): position is Position => Boolean(position))
                             .filter(position => getDistance(updatedCharacter.position, position) <= maxTeleportTiles)
                             .filter(position => !occupiedTileKeys.has(`${position.x}-${position.y}`))
@@ -831,7 +833,7 @@ export const useCombatEngine = ({
                                 // just gives teleport fallback a useful candidate list when the
                                 // delayed effect does not already carry a concrete destination.
                                 const tile = mapData.tiles.get(`${position.x}-${position.y}`);
-                                return !tile || !(tile as any).blocksMovement;
+                                return !tile || !tile.blocksMovement;
                             })
                         : [];
                     const command = new MovementCommand(effect, {
@@ -839,8 +841,7 @@ export const useCombatEngine = ({
                         spellName: scheduledEffect.spellId,
                         castAtLevel: 0,
                         caster,
-                        targets: [updatedCharacter],
-                        gameState: { mapData } as any
+                        targets: [updatedCharacter]
                     });
                     const commandState: CombatState = {
                         isActive: true,
@@ -957,12 +958,12 @@ export const useCombatEngine = ({
                         // ownership is wired everywhere.
                         const caster = characters.find(candidate => candidate.id === scheduledEffect.casterId);
                         const saveDcSource = caster || updatedCharacter;
-                        const isImmune = updatedCharacter.conditionImmunities?.includes(effect.statusName as any);
+                        const isImmune = updatedCharacter.conditionImmunities?.includes(effect.statusName as ConditionName);
                         let shouldApplyCondition = true;
 
                         if (effect.requiresSave && effect.saveType) {
                             const dc = scheduledEffect.saveDC ?? calculateSpellDC(saveDcSource);
-                            const saveResult = rollSavingThrow(updatedCharacter, effect.saveType as any, dc);
+                            const saveResult = rollSavingThrow(updatedCharacter, effect.saveType as SavingThrowAbility, dc);
                             shouldApplyCondition = !saveResult.success;
 
                             onLogEntry({
@@ -1153,14 +1154,15 @@ export const useCombatEngine = ({
 
         const tileKey = `${tilePos.x}-${tilePos.y}`;
         const tile = mapData.tiles.get(tileKey);
-        const envEffect = tile ? (tile as any).environmentalEffect : null;
+        const envEffect = tile ? tile.environmentalEffect : null;
         if (!tile || !envEffect) return character;
 
         let updatedChar = { ...character };
         const env = envEffect;
+        const innerEffect = env.effect.effect;
 
-        if (env.effect.effect.type === 'damage_per_turn') {
-            const damage = env.effect.effect.value || 0;
+        if (innerEffect?.type === 'damage_per_turn') {
+            const damage = innerEffect.value || 0;
             if (damage > 0) {
                 updatedChar = handleDamage(updatedChar, damage, env.effect.name, env.type === 'fire' ? 'fire' : 'bludgeoning');
             } else {
@@ -1172,7 +1174,7 @@ export const useCombatEngine = ({
                     characterId: character.id
                 });
             }
-        } else if (env.effect.effect.type === 'condition') {
+        } else if (innerEffect?.type === 'condition') {
             // Environmental conditions share the spell status refresh policy so
             // stepping through the same hazardous tile updates both mirrors
             // instead of leaving stale duplicate condition records behind.
@@ -1479,13 +1481,13 @@ export const useCombatEngine = ({
             const newTiles = new Map(mapData.tiles);
 
             for (const [key, tile] of newTiles) {
-                const environmentalEffect = (tile as any).environmentalEffect;
+                const environmentalEffect = tile.environmentalEffect;
                 if (environmentalEffect) {
                     const newDuration = environmentalEffect.duration - 1;
 
                     if (newDuration <= 0) {
                         const newTile = { ...tile };
-                        (newTile as any).environmentalEffect = undefined;
+                        newTile.environmentalEffect = undefined;
                         if (environmentalEffect.type === 'difficult_terrain') {
                             newTile.movementCost = 1; // Assuming default 1     
                         }
@@ -1493,7 +1495,7 @@ export const useCombatEngine = ({
                         mapModified = true;
                     } else {
                         const newTile = { ...tile };
-                        (newTile as any).environmentalEffect = {
+                        newTile.environmentalEffect = {
                             ...environmentalEffect,
                             duration: newDuration
                         };
@@ -1547,10 +1549,10 @@ export const useCombatEngine = ({
         updateRoundBasedEffects,
         expireSavePenaltiesForCaster: useCallback((allCharacters: CombatCharacter[], casterId: string, currentTurn: number) => {
             const savePenaltySystem = new SavePenaltySystem();
-            const mockState = {
+            const mockState: SavePenaltyExpiryState = {
                 characters: allCharacters,
                 turnState: { currentTurn }
-            } as any;
+            };
 
             const newState = savePenaltySystem.expirePenalties(mockState, casterId);
 

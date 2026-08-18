@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 18/07/2026, 11:55:46
+ * Last Sync: 17/08/2026, 14:11:40
  * Dependents: state/appState.ts
  * Imports: 4 files
  *
@@ -67,8 +67,8 @@ export function uiReducer(state: GameState, action: AppAction): Partial<GameStat
       return { isMapVisible: !state.isMapVisible, isThreeDVisible: false, isDevMenuVisible: false, isGeminiLogViewerVisible: false, isOllamaLogViewerVisible: false, characterSheetModal: { isOpen: false, character: null }, isDiscoveryLogVisible: false, isGlossaryVisible: false, selectedGlossaryTermForModal: undefined, isPartyOverlayVisible: false, isNpcTestModalVisible: false, isLogbookVisible: false, isGameGuideVisible: false, merchantModal: { ...state.merchantModal, isOpen: false } };
 
     case 'TOGGLE_MINIMAP_VISIBILITY': {
-      const nextVisibility = !(state as unknown as { isMinimapVisible?: boolean }).isMinimapVisible;
-      return { isMinimapVisible: nextVisibility } as Partial<GameState>;
+      const nextVisibility = !state.isMinimapVisible;
+      return { isMinimapVisible: nextVisibility };
     }
 
     case 'TOGGLE_THREE_D_VISIBILITY':

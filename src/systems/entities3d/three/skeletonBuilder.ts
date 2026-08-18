@@ -48,7 +48,9 @@ import type { Frame, SegmentSink } from '../types';
 import { FT_TO_M, headRadiusM, heightM } from '../types';
 import { solveKnee } from './ik';
 
-/** The 17 biped bones, parent-first (index 0 = root). */
+/** The 37 biped bones, parent-first (index 0 = root). Real-finger update:
+ * each hand carries a two-link thumb chain and four two-link finger chains,
+ * so a held weapon gets WRAPPED by posed digits instead of a grip band. */
 export const BIPED_BONE_NAMES = [
   'root',
   'pelvis',
@@ -67,6 +69,26 @@ export const BIPED_BONE_NAMES = [
   'thighR',
   'shinR',
   'footR',
+  'thumbLa',
+  'thumbLb',
+  'fingerL0a',
+  'fingerL0b',
+  'fingerL1a',
+  'fingerL1b',
+  'fingerL2a',
+  'fingerL2b',
+  'fingerL3a',
+  'fingerL3b',
+  'thumbRa',
+  'thumbRb',
+  'fingerR0a',
+  'fingerR0b',
+  'fingerR1a',
+  'fingerR1b',
+  'fingerR2a',
+  'fingerR2b',
+  'fingerR3a',
+  'fingerR3b',
 ] as const;
 
 export type BipedBoneName = (typeof BIPED_BONE_NAMES)[number];
@@ -90,6 +112,26 @@ export const BIPED_BONE_PARENT: Readonly<Record<BipedBoneName, BipedBoneName | n
   thighR: 'pelvis',
   shinR: 'thighR',
   footR: 'shinR',
+  thumbLa: 'handL',
+  thumbLb: 'thumbLa',
+  fingerL0a: 'handL',
+  fingerL0b: 'fingerL0a',
+  fingerL1a: 'handL',
+  fingerL1b: 'fingerL1a',
+  fingerL2a: 'handL',
+  fingerL2b: 'fingerL2a',
+  fingerL3a: 'handL',
+  fingerL3b: 'fingerL3a',
+  thumbRa: 'handR',
+  thumbRb: 'thumbRa',
+  fingerR0a: 'handR',
+  fingerR0b: 'fingerR0a',
+  fingerR1a: 'handR',
+  fingerR1b: 'fingerR1a',
+  fingerR2a: 'handR',
+  fingerR2b: 'fingerR2a',
+  fingerR3a: 'handR',
+  fingerR3b: 'fingerR3a',
 };
 
 /** Which bone owns each driver segment id (tapered cylinder pieces). */
@@ -104,17 +146,43 @@ export const SEGMENT_BONE: Readonly<Record<string, BipedBoneName>> = {
   'armL.upper': 'upperArmL',
   'armL.fore': 'foreArmL',
   // round 2 (humanoid-anatomy): mitt hands — palm + thumb segments replace
-  // the hand balls; both ride the hand bone (the palm, emitted last, drives
-  // its transform)
-  // round 15 (humanoid-anatomy): a curled FINGERS mass joins them — emitted
-  // before the palm so the palm still drives the bone transform
-  'handL.thumb': 'handL',
-  'handL.fingers': 'handL',
+  // the hand balls; the palm rides (and drives) the hand bone.
+  // real-finger update: the round-15 curled FINGERS mass is gone — each hand
+  // now emits a thumb link and four two-link fingers, each on its OWN bone,
+  // so a grip pose can wrap them around a weapon haft per frame.
+  // thenar segments are ALL palm-rigid: the thumb bone's minimal-rotation
+  // transport carries a twist relative to the palm frame, and any off-axis
+  // point bound to it drifts (~2mm at walk amplitude — the parity test
+  // caught it when thenar2 rode thumbLa)
+  'handL.thenar0': 'handL',
+  'handL.thenar1': 'handL',
+  'handL.thenar2': 'handL',
+  'handL.thumba': 'thumbLa',
+  'handL.thumbb': 'thumbLb',
+  'handL.finger0a': 'fingerL0a',
+  'handL.finger0b': 'fingerL0b',
+  'handL.finger1a': 'fingerL1a',
+  'handL.finger1b': 'fingerL1b',
+  'handL.finger2a': 'fingerL2a',
+  'handL.finger2b': 'fingerL2b',
+  'handL.finger3a': 'fingerL3a',
+  'handL.finger3b': 'fingerL3b',
   'handL.palm': 'handL',
   'armR.upper': 'upperArmR',
   'armR.fore': 'foreArmR',
-  'handR.thumb': 'handR',
-  'handR.fingers': 'handR',
+  'handR.thenar0': 'handR',
+  'handR.thenar1': 'handR',
+  'handR.thenar2': 'handR',
+  'handR.thumba': 'thumbRa',
+  'handR.thumbb': 'thumbRb',
+  'handR.finger0a': 'fingerR0a',
+  'handR.finger0b': 'fingerR0b',
+  'handR.finger1a': 'fingerR1a',
+  'handR.finger1b': 'fingerR1b',
+  'handR.finger2a': 'fingerR2a',
+  'handR.finger2b': 'fingerR2b',
+  'handR.finger3a': 'fingerR3a',
+  'handR.finger3b': 'fingerR3b',
   'handR.palm': 'handR',
   'legL.thigh': 'thighL',
   'legL.shin': 'shinL',
@@ -225,6 +293,100 @@ export function bipedSkullRadiusM(frame: Frame): number {
   return headRadiusM(frame) * Math.min(0.97, 0.88 + 0.3 * Math.max(0, frame.bulk - 1));
 }
 
+/** Real-finger update: digit layout of the biped hand, in the palm bone's
+ * canonical frame (+Y along the palm, sgn·X lateral toward the thumb, −Z
+ * knuckle front). ONE source for the driver (gaits.ts BipedDriver) and the
+ * rest pose below. The link lengths MUST match between the rest pose and
+ * every posed frame — the skinned bones are rigid — so the driver's grip
+ * curl re-aims these exact links instead of inventing new lengths. */
+export interface HandDigitLayout {
+  /** Two-link thumb (ChatGPT hand-research round 2): root at the thenar
+   * crest, relaxed pose = the fist lock (tip crossing toward the index). */
+  thumb: { a: Vector3; j1: Vector3; tip: Vector3; len0: number; len1: number; r0: number; r1: number; r2: number };
+  /** Thenar wedge ring centers + lateral half-widths, palm-local, emitted as
+   * a 3-segment loft buried into the palm's lateral-front corner. */
+  thenar: Array<{ p: Vector3; r: number }>;
+  /** pinky → index. Knuckle root (rigid to the hand bone), the relaxed-curl
+   * mid joint and tip, the two link lengths, the source column (pose tables
+   * for the wave splay live there), and the three ring radii. */
+  fingers: Array<{
+    root: Vector3;
+    j1: Vector3;
+    tip: Vector3;
+    len0: number;
+    len1: number;
+    col: FingerCol;
+    r0: number;
+    r1: number;
+    r2: number;
+  }>;
+}
+
+/** Knuckle columns pinky → index (ChatGPT hand-research round, 2026-08-17).
+ * The old uniform digits totaled 121% of the palm width — the open hand was
+ * mathematically a fused paddle. The new set follows the researched bands:
+ * - lateral half-widths rx 0.19–0.225 handR (total occupancy 84%)
+ * - ANISOTROPY: digits run deeper (rz) than wide — fist volume without
+ *   eating the open-hand gaps (flatOf carries rz/rx into the loft)
+ * - a LENGTH CASCADE (pinky 0.96 → middle 1.19 palm lengths)
+ * - a KNUCKLE ARC via per-digit root y offsets (no fence-flat root line)
+ * - relaxed-fist curl STAGGER: the pinky curls deepest, the index least,
+ *   with a small convergence toward the hand's centerline.
+ * x, dy, len0, len1, rx in handR units; angles in degrees. */
+const FINGER_COLS = [
+  { x: -0.72, dy: -0.1, len0: 0.76, len1: 0.54, rx: 0.19, flexP: 69.5, flexD: 100, conv: 7, waveSplay: -14, waveFlex: 12 },
+  { x: -0.24, dy: 0.03, len0: 0.89, len1: 0.65, rx: 0.21, flexP: 64.5, flexD: 94.5, conv: 3, waveSplay: -5, waveFlex: 8 },
+  { x: 0.24, dy: 0.08, len0: 0.93, len1: 0.67, rx: 0.225, flexP: 59.5, flexD: 89.5, conv: 2, waveSplay: 1, waveFlex: 5 },
+  { x: 0.72, dy: 0.0, len0: 0.87, len1: 0.63, rx: 0.215, flexP: 55, flexD: 84.5, conv: 4, waveSplay: 8, waveFlex: 7 },
+] as const;
+export type FingerCol = (typeof FINGER_COLS)[number];
+/** Depth-to-width ratio of a digit cross-section (the anisotropy above). */
+export const FINGER_DEPTH_RATIO = 1.18;
+const DEG = Math.PI / 180;
+/** Palm-local digit direction from a flex angle (0° = along the palm +Y,
+ * 90° = toward the knuckle front −Z) plus a small centerline convergence. */
+function digitDir(sgn: 1 | -1, col: FingerCol, flexDeg: number): Vector3 {
+  const f = flexDeg * DEG;
+  return new Vector3(-Math.sign(col.x) * sgn * Math.sin(col.conv * DEG), Math.cos(f), -Math.sin(f)).normalize();
+}
+
+export function bipedHandDigits(sgn: 1 | -1, handR: number, palmLen: number, fingerLen: number): HandDigitLayout {
+  // ChatGPT hand-research round 2: the old ONE-LINK 0.62R thumb tube was "a
+  // second palm lobe" (tip 2.6× the index tip). Its mass moved into the
+  // THENAR WEDGE below; the articulated thumb is a two-link chain with
+  // digit-scale radii. Relaxed pose = the fist lock: the distal link crosses
+  // inward over the index toward the middle finger.
+  const thumb = {
+    a: new Vector3(sgn * 0.96 * handR, 0.58 * handR, -0.24 * handR),
+    j1: new Vector3(sgn * 0.8 * handR, 1.047 * handR, -0.615 * handR),
+    tip: new Vector3(sgn * 0.32 * handR, 1.24 * handR, -0.77 * handR),
+    len0: 0.62 * handR,
+    len1: 0.54 * handR,
+    r0: 0.3 * handR,
+    r1: 0.255 * handR,
+    r2: 0.205 * handR,
+  };
+  const thenar = [
+    { p: new Vector3(sgn * 0.46 * handR, 0.16 * handR, -0.08 * handR), r: 0.2 * handR },
+    { p: new Vector3(sgn * 0.66 * handR, 0.33 * handR, -0.15 * handR), r: 0.34 * handR },
+    { p: new Vector3(sgn * 0.85 * handR, 0.49 * handR, -0.21 * handR), r: 0.36 * handR },
+    { p: new Vector3(sgn * 0.96 * handR, 0.58 * handR, -0.24 * handR), r: 0.3 * handR },
+  ];
+  const fingers = FINGER_COLS.map((c) => {
+    const len0 = c.len0 * handR;
+    const len1 = c.len1 * handR;
+    // knuckle ARC: per-digit root y offset breaks the fence-flat root line
+    const root = new Vector3(sgn * c.x * handR, palmLen + c.dy * handR, -handR * 0.1);
+    // relaxed-fist curl with the researched STAGGER (pinky deepest)
+    const j1 = root.clone().addScaledVector(digitDir(sgn, c, c.flexP), len0);
+    const tip = j1.clone().addScaledVector(digitDir(sgn, c, c.flexD), len1);
+    // taper to ~0.8 of the root width — enough to read as a digit, not
+    // enough to vanish into tip wrinkles at panel distance
+    return { root, j1, tip, len0, len1, col: c, r0: c.rx * handR, r1: c.rx * handR * 0.94, r2: c.rx * handR * 0.8 };
+  });
+  return { thumb, thenar, fingers };
+}
+
 /**
  * The biped driver's rest pose, computed analytically. Every constant below
  * is a mirror of BipedDriver (three/gaits.ts) with gaitPhase 0 and speed 0,
@@ -300,7 +462,15 @@ export function bipedRestPose(frame: Frame): BipedRestPose {
   // full diagnosis on the mirror in gaits.ts (BipedDriver.advance). Visible
   // neck was 0.05 skullR on the orc against 0.35 on the human.
   const hunchForNeck = frame.hunch ?? 0;
-  const neckLift = Math.min(0.62, Math.max(0.26, 0.36 - 0.28 * Math.max(0, frame.bulk - 1)) + 0.35 * hunchForNeck);
+  // round 24 (humanoid-anatomy): UPRIGHT BIG HEADS KEEP THEIR CHIN. The dwarf
+  // (headScale 1.18, bulk 1.35+) sat on the 0.26 lift floor while its chin dug
+  // 0.59 of a LARGER skull, and the 0.47 traps-bury floor put the wedge peak
+  // ABOVE the chin — verdict: "uh? chin? neck?". The lift floor and the traps
+  // bury floor now rise with the skull excess, gated by (1 − 1.5·hunch) so the
+  // orc's seated-jaw grunt read (hunch 0.6, headScale 1.24) keeps its approved
+  // look. Mirror: BipedDriver.advance + buildBody.
+  const bigHead = Math.max(0, frame.headScale - 1) * Math.max(0, 1 - 1.5 * hunchForNeck);
+  const neckLift = Math.min(0.62, Math.max(0.26 + 1.0 * bigHead, 0.36 - 0.28 * Math.max(0, frame.bulk - 1)) + 0.35 * hunchForNeck);
   // round 18 (humanoid-anatomy): FORWARD HUNCH — per-species idle posture
   // (speciesProfiles.hunch → Frame.hunch; the orc's trapezius-dominant lean —
   // round 17: ours "stands bolt upright"). Chest top, shoulders, wrists, and
@@ -461,7 +631,10 @@ export function bipedRestPose(frame: Frame): BipedRestPose {
   const neckThickR = Math.max(skullR * 0.42, r * 0.55);
   const neckTipR = Math.min(neckThickR, skullR * 0.42);
   if (neckThickR >= skullR * 0.55) {
-    const trapsBury = Math.max(0.47, 0.95 - 1.2 * Math.max(0, frame.bulk - 1));
+    // round 24 (humanoid-anatomy): the peak stays BELOW the chin (−0.59) on
+    // upright big-headed frames — the 0.47 floor topped the dwarf's jaw. See
+    // the bigHead note at neckLift. Mirror: BipedDriver.buildBody.
+    const trapsBury = Math.max(0.47 + 1.6 * bigHead, 0.95 - 1.2 * Math.max(0, frame.bulk - 1));
     // round 21 (humanoid-anatomy): the slim trapezius narrows (0.54 → 0.46).
     // Mirror: BipedDriver.buildBody.
     const trapsR1 = Math.min(0.82, 0.46 + 0.8 * Math.max(0, frame.bulk - 1));
@@ -550,50 +723,64 @@ export function bipedRestPose(frame: Frame): BipedRestPose {
     palmDir.x += sgn * 0.22;
     palmDir.normalize();
     palmQuat.setFromUnitVectors(UP, palmDir);
-    // round 15 (humanoid-anatomy): the thumb WRAPS ACROSS the knuckle front —
-    // root at the lateral palm edge, tip crossing past the fist midline on
-    // the −Z knuckle face (local axes: +Y fingers, sgn·X lateral, −Z front).
-    // round 16: the thumb is a SILHOUETTE lobe — root pushed to the lateral
-    // face (sgn 1.0) and fattened (0.52 handR) so its root breaks the fist
-    // outline by ~0.5 handR; the round-15 lobe survived the ink hull by only
-    // ~2 px at panel distance. Mirror: BipedDriver.buildBody.
-    // round 18 (humanoid-anatomy): the thumb STILL did not read at panel
-    // distance (rounds 16 AND 17) — the lobe grows again (0.52 → 0.62 handR
-    // root, 0.36 → 0.44 tip), roots further out on the lateral-FRONT corner
-    // (z −0.3 → −0.45 handR), and its tip crosses further past the knuckle
-    // face (z −0.95 handR) so the crossing diagonal profiles to the front
-    // camera on the cocked fist. Mirror: BipedDriver.buildBody.
-    thumbPt.set(sgn * handR * 1.05, palmLen * 0.3, -handR * 0.45).applyQuaternion(palmQuat);
-    const thumbA: [number, number, number] = [hand[0] + thumbPt.x, hand[1] + thumbPt.y, hand[2] + thumbPt.z];
-    thumbPt.set(sgn * handR * 0.3, palmLen * 1.05, -handR * 0.95).applyQuaternion(palmQuat);
-    const thumbB: [number, number, number] = [hand[0] + thumbPt.x, hand[1] + thumbPt.y, hand[2] + thumbPt.z];
+    // real-finger update: the round-15 thumb lobe and curled finger mass are
+    // replaced by REAL DIGITS from the shared layout (bipedHandDigits) — a
+    // thumb link plus four two-link fingers, each on its own bone. Emission
+    // order per hand: thumb, finger0a..finger3b, palm LAST (the palm still
+    // drives the hand bone). Mirror: BipedDriver.buildBody arm loop.
+    const digits = bipedHandDigits(sgn, handR, palmLen, fingerLen);
+    const toWorld = (v: Vector3): [number, number, number] => {
+      thumbPt.copy(v).applyQuaternion(palmQuat);
+      return [hand[0] + thumbPt.x, hand[1] + thumbPt.y, hand[2] + thumbPt.z];
+    };
+    // thenar wedge: three palm-rigid segments through the four ring centers
+    for (let ti = 0; ti < 3; ti++) {
+      segments.push({
+        id: `hand${side}.thenar${ti}`,
+        bone: `hand${side}` as BipedBoneName,
+        a: toWorld(digits.thenar[ti].p),
+        b: toWorld(digits.thenar[ti + 1].p),
+        r0: digits.thenar[ti].r,
+        r1: digits.thenar[ti + 1].r,
+      });
+    }
     segments.push({
-      id: `hand${side}.thumb`,
-      bone: `hand${side}` as BipedBoneName,
-      a: thumbA,
-      b: thumbB,
-      r0: handR * 0.62,
-      r1: handR * 0.44,
+      id: `hand${side}.thumba`,
+      bone: `thumb${side}a` as BipedBoneName,
+      a: toWorld(digits.thumb.a),
+      b: toWorld(digits.thumb.j1),
+      r0: digits.thumb.r0,
+      r1: digits.thumb.r1,
     });
-    // round 15 (humanoid-anatomy): curled finger mass — continues the palm
-    // bent ~50° toward the knuckle front; the bend is the knuckle plane
-    // break the round-14 verdict demanded.
+    segments.push({
+      id: `hand${side}.thumbb`,
+      bone: `thumb${side}b` as BipedBoneName,
+      a: toWorld(digits.thumb.j1),
+      b: toWorld(digits.thumb.tip),
+      r0: digits.thumb.r1,
+      r1: digits.thumb.r2,
+    });
+    for (const [fi, f] of digits.fingers.entries()) {
+      segments.push({
+        id: `hand${side}.finger${fi}a`,
+        bone: `finger${side}${fi}a` as BipedBoneName,
+        a: toWorld(f.root),
+        b: toWorld(f.j1),
+        r0: f.r0,
+        r1: f.r1,
+      });
+      segments.push({
+        id: `hand${side}.finger${fi}b`,
+        bone: `finger${side}${fi}b` as BipedBoneName,
+        a: toWorld(f.j1),
+        b: toWorld(f.tip),
+        r0: f.r1,
+        r1: f.r2,
+      });
+    }
     const palmTip: [number, number, number] = [
       hand[0] + palmDir.x * palmLen, hand[1] + palmDir.y * palmLen, hand[2] + palmDir.z * palmLen,
     ];
-    thumbPt.set(0, fingerLen * 0.64, -fingerLen * 0.77).applyQuaternion(palmQuat);
-    // round 16 (humanoid-anatomy): knuckle SILHOUETTE step — the finger-mass
-    // root swells past the palm tip (1.12 vs 1.0 handR) so the outline
-    // creases at the knuckle line in every view; the tight knuckle blend
-    // zone keeps the step hard. Mirror: BipedDriver.buildBody.
-    segments.push({
-      id: `hand${side}.fingers`,
-      bone: `hand${side}` as BipedBoneName,
-      a: palmTip,
-      b: [palmTip[0] + thumbPt.x, palmTip[1] + thumbPt.y, palmTip[2] + thumbPt.z],
-      r0: handR * 1.12,
-      r1: handR * 0.68,
-    });
     segments.push({
       id: `hand${side}.palm`,
       bone: `hand${side}` as BipedBoneName,
@@ -683,7 +870,7 @@ export function bipedRestPose(frame: Frame): BipedRestPose {
 export interface BuiltSkeleton {
   /** The root bone (entity-local origin, identity). Parent it to the SkinnedMesh. */
   root: Bone;
-  /** All 17 bones, parent-first, in BIPED_BONE_NAMES order. */
+  /** All 35 bones, parent-first, in BIPED_BONE_NAMES order. */
   bones: Bone[];
   /** Bone index by name — skin indices and the pose sink both use this. */
   index: ReadonlyMap<BipedBoneName, number>;

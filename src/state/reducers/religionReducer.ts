@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 09/06/2026, 05:39:30
+ * Last Sync: 17/08/2026, 14:11:59
  * Dependents: state/appState.ts
- * Imports: 4 files
+ * Imports: 5 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -268,7 +268,7 @@ export function religionReducer(state: GameState, action: AppAction): Partial<Ga
                         id: blessingId,
                         name: name,
                         description: description,
-                        effect: statusEffect as any
+                        effect: statusEffect
                     };
 
                     favorUpdates[deityId] = grantBlessing(existing, blessingRecord);

@@ -3,8 +3,8 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 04/08/2026, 01:58:59
- * Dependents: commands/effects/AttackRollModifierCommand.ts, commands/effects/DamageCommand.ts, commands/effects/StatusConditionCommand.ts, commands/effects/UtilityCommand.ts, commands/factory/SpellCommandFactory.ts, hooks/combat/engine/useCombatEngine.ts, hooks/movementUtils.ts, systems/spells/socialServiceResolution.ts
+ * Last Sync: 17/08/2026, 14:09:25
+ * Dependents: commands/effects/AttackRollModifierCommand.ts, commands/effects/DamageCommand.ts, commands/effects/ElementalBaneCommand.ts, commands/effects/StatusConditionCommand.ts, commands/effects/UtilityCommand.ts, commands/factory/SpellCommandFactory.ts, hooks/combat/engine/useCombatEngine.ts, hooks/movementUtils.ts, systems/spells/socialServiceResolution.ts
  * Imports: 4 files
  *
  * MULTI-AGENT SAFETY:
@@ -27,6 +27,17 @@ import { CombatState, CombatCharacter, SavePenaltyRider } from '@/types/combat';
 import { rollDice } from '@/utils/combat';
 import { SavingThrowModifier } from '@/utils/character';
 import { generateId } from '@/utils/core/idGenerator';
+
+/**
+ * Minimal state view needed to expire caster-owned save-penalty riders.
+ * `expirePenalties` only reads characters and the current turn number, so
+ * callers that hold those two pieces (e.g. the combat engine's end-of-turn
+ * hook) can pass them without fabricating a full `CombatState`.
+ */
+export type SavePenaltyExpiryState = {
+  characters: CombatCharacter[];
+  turnState: { currentTurn: number };
+};
 
 /**
  * System for registering, consuming, and expiring save penalty riders.
@@ -204,7 +215,7 @@ export class SavePenaltySystem {
      * @param endingCharacterId The ID of the character whose turn is ending
      * @returns Updated combat state with expired riders removed
      */
-    expirePenalties(state: CombatState, endingCharacterId: string): CombatState {
+    expirePenalties(state: SavePenaltyExpiryState, endingCharacterId: string): SavePenaltyExpiryState {
         let updatedState = state;
 
         for (const character of state.characters) {

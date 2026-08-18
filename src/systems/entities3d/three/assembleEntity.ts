@@ -56,12 +56,13 @@ import { getPart } from '../registry';
 import type { GaitDriver, LocomotionState, Pose } from './gaits';
 import { createGaitDriver } from './gaits';
 import { createSegmentBody, wireframeifyPart } from './segmentBody';
-import { createSkinnedBiped, createSkinnedPlan, createSkinnedSpecies } from './skinnedBody';
+import { createSkinnedBiped, createSkinnedChains, createSkinnedPlan, createSkinnedSpecies } from './skinnedBody';
 import { isSpeciesGait } from './speciesSkeleton';
 import { createSkinnedClipPlayer, type SkinnedClipPlayer } from './skinnedClipPlayer';
 import type { AnimationClip } from 'three';
 import { buildHeadForm, buildHumanoidHead, HUMANOID_EYE, PLAN_EYE_STATION } from './headForms';
 import { bipedSkullRadiusM } from './skeletonBuilder';
+import { HAFT_WEAPON_IDS } from '../parts/gearWeapons';
 import type { WingJointPose } from '../parts/wingParts';
 import {
   blobShadowMaterial,
@@ -164,10 +165,10 @@ export function assembleEntity(blueprint: EntityBlueprint, options: AssembleOpti
   group.add(bodyRoot);
 
   const outlineThickness = Math.max(hM * 0.011, 0.006);
-  // The segment renderer stays even in skinned mode: chain parts (tails,
-  // beards) are procedural wagging chains outside the skeleton until slice 4.
-  // In skinned mode the DRIVER's emissions bypass it (they feed the bones),
-  // so it only ever draws chain-part segments there.
+  // The segment renderer stays even in skinned mode, but since slice 6 it no
+  // longer draws chain parts there (they ride their own skinned pair). In
+  // skinned mode it only ever draws the plan decorations the decorative
+  // delegate forwards (snouts, cilia, toes, fingers, rings, collars).
   const body = createSegmentBody({
     renderMode,
     colorHex: palette.skinHex,
@@ -243,7 +244,13 @@ export function assembleEntity(blueprint: EntityBlueprint, options: AssembleOpti
   // the slithering spine (the round-8 "floating teardrops" top view). The
   // driver emits the crest along its LIVE spine stations instead.
   const crested = !!blueprint.planSpec && blueprint.parts.some((p) => p.partId === 'finRidge');
-  const driver: GaitDriver = createGaitDriver(gait, frame, blueprint.planSpec, { winged, crested });
+  // real-finger update: hands that hold a HAFT weapon wrap their digits
+  // around it (biped gait only; other gaits ignore grips)
+  const grips = {
+    L: blueprint.parts.some((p) => HAFT_WEAPON_IDS.has(p.partId) && p.anchor === 'handL'),
+    R: blueprint.parts.some((p) => HAFT_WEAPON_IDS.has(p.partId) && p.anchor === 'handR'),
+  };
+  const driver: GaitDriver = createGaitDriver(gait, frame, blueprint.planSpec, { winged, crested, grips });
 
   // --- modular parts
   const partsRoot = new Group();
@@ -347,6 +354,27 @@ export function assembleEntity(blueprint: EntityBlueprint, options: AssembleOpti
     partsRoot.add(container);
     meshContainers.push({ container, anchor: instance.anchor });
   }
+
+  // --- skinned chain parts (skeleton pivot slice 6)
+  // In skinned mode the chain parts (tails, tentacles, antennae, fin ridges)
+  // get real bones and their own fill+ink SkinnedMesh pair, so no flesh is
+  // left on the segment renderer's boneless path. Rest anchors come from a
+  // FRESH driver stepped to its own rest (t = 0, dt = 0, speed = 0) — the
+  // live driver must reach its first real frame unmutated.
+  const skinnedChains = (() => {
+    if (bodyTech !== 'skinned' || chainParts.length === 0) return null;
+    const restDriver = createGaitDriver(gait, frame, blueprint.planSpec, { winged, crested, grips });
+    restDriver.update(0, 0, IDLE);
+    const restAnchors = Object.fromEntries(
+      ANCHORS.map((a) => [a, restDriver.pose.anchors[a].pos as Vec3Like]),
+    ) as PartAnchors;
+    return createSkinnedChains(chainParts, frame, restAnchors, {
+      colorHex: palette.skinHex,
+      outlineThickness,
+      opacity: blueprint.planSpec?.opacity,
+    });
+  })();
+  if (skinnedChains) bodyRoot.add(skinnedChains.root);
 
   // --- sculpted head forms (planned bodies)
   // Task 3 (skeleton pivot slice 4): in SKINNED mode each formed head is
@@ -667,8 +695,8 @@ export function assembleEntity(blueprint: EntityBlueprint, options: AssembleOpti
     bodyRoot.position.y = driver.verticalOffsetM;
 
     // skeleton + animated chain parts, transform-only after the first frame.
-    // Skinned mode: the driver's emissions drive the bones (pose adapter);
-    // chain parts still render through the segment renderer either way.
+    // Skinned mode: the driver's emissions drive the bones (pose adapter),
+    // and since slice 6 the chain builds drive their own chain bones too.
     body.beginFrame();
     if (clipPlayer && skinnedBody) {
       // clip mode: the mixer owns the bones; the driver still ran (above) for
@@ -693,11 +721,15 @@ export function assembleEntity(blueprint: EntityBlueprint, options: AssembleOpti
     } else {
       driver.buildBody(body.sink);
     }
+    // Slice 6: in skinned mode the chain builds drive their own bones; the
+    // segment renderer receives them only on the segments path.
+    const chainSink = skinnedChains ? skinnedChains.sink : body.sink;
     for (const chain of chainParts) {
       for (const s of chain.build(frame, chain.params, phase, anchorsView)) {
-        body.sink.seg(`${chain.partId}:${s.id}`, s.ax, s.ay, s.az, s.bx, s.by, s.bz, s.r0, s.r1);
+        chainSink.seg(`${chain.partId}:${s.id}`, s.ax, s.ay, s.az, s.bx, s.by, s.bz, s.r0, s.r1);
       }
     }
+    skinnedChains?.finishFrame();
     body.finishFrame();
 
     for (const { container, anchor } of meshContainers) {
@@ -891,6 +923,7 @@ export function assembleEntity(blueprint: EntityBlueprint, options: AssembleOpti
     // skinned extras: shared geometry/materials plus the skeleton's bone
     // texture; the traverse below re-hits the meshes harmlessly
     skinnedBody?.dispose();
+    skinnedChains?.dispose();
     group.traverse((o: Object3D) => {
       const m = o as Mesh;
       if (m.isMesh || (o as unknown as { isLineSegments?: boolean }).isLineSegments) {
@@ -919,11 +952,12 @@ export function assembleEntity(blueprint: EntityBlueprint, options: AssembleOpti
   }
 
   function stats(): { segments: number; triangles: number; renderMode: EntityRenderMode } {
-    // skinned mode: segment count only covers chain parts (honest — the body
-    // is not segments there); triangles add the skinned fill + shell
+    // skinned mode: chains ride their own skinned pair since slice 6, so the
+    // segment renderer only draws plan decorations there; triangles add the
+    // skinned fill + shell pairs (body and chains)
     return {
       segments: body.segmentCount(),
-      triangles: body.triangles() + (skinnedBody?.triangles() ?? 0),
+      triangles: body.triangles() + (skinnedBody?.triangles() ?? 0) + (skinnedChains?.triangles() ?? 0),
       renderMode,
     };
   }

@@ -300,7 +300,10 @@ export const GroundKeyboardDriver: React.FC<GroundKeyboardControlsProps> = ({
     camera.position.x += actualStepX;
     camera.position.z += actualStepZ;
 
-    const ctrl = controls as any;
+    const ctrl = controls as unknown as {
+      target?: { x: number; z: number };
+      update?: () => void;
+    } | null;
     if (ctrl && ctrl.target) {
       ctrl.target.x += actualStepX;
       ctrl.target.z += actualStepZ;

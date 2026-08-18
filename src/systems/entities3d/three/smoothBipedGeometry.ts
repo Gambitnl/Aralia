@@ -33,14 +33,24 @@ export interface ChainDef {
  * and each thumb is its own short capped tube rigid to the hand bone. */
 export const SMOOTH_CHAINS: readonly ChainDef[] = [
   { segIds: ['torso.pelvis', 'torso.chest', 'neck'] },
-  // round 15 (humanoid-anatomy): the arm chain lofts THROUGH the palm into a
-  // curled FINGER MASS bent toward the knuckle front — the bend puts a real
-  // knuckle plane break on the fist silhouette (the round-6/8 crest rings
-  // never survived the toon ramp at panel distance).
-  { segIds: ['armL.upper', 'armL.fore', 'handL.palm', 'handL.fingers'] },
-  { segIds: ['handL.thumb'] },
-  { segIds: ['armR.upper', 'armR.fore', 'handR.palm', 'handR.fingers'] },
-  { segIds: ['handR.thumb'] },
+  // real-finger update: the arm chain ends at the palm block; the round-15
+  // curled finger MASS is replaced by four REAL two-link finger tubes per
+  // hand, each its own capped chain on its own bones, so a grip pose can
+  // wrap them around a weapon haft (gaits.ts BipedDriver grips).
+  { segIds: ['armL.upper', 'armL.fore', 'handL.palm'] },
+  { segIds: ['handL.thenar0', 'handL.thenar1', 'handL.thenar2'] },
+  { segIds: ['handL.thumba', 'handL.thumbb'] },
+  { segIds: ['handL.finger0a', 'handL.finger0b'] },
+  { segIds: ['handL.finger1a', 'handL.finger1b'] },
+  { segIds: ['handL.finger2a', 'handL.finger2b'] },
+  { segIds: ['handL.finger3a', 'handL.finger3b'] },
+  { segIds: ['armR.upper', 'armR.fore', 'handR.palm'] },
+  { segIds: ['handR.thenar0', 'handR.thenar1', 'handR.thenar2'] },
+  { segIds: ['handR.thumba', 'handR.thumbb'] },
+  { segIds: ['handR.finger0a', 'handR.finger0b'] },
+  { segIds: ['handR.finger1a', 'handR.finger1b'] },
+  { segIds: ['handR.finger2a', 'handR.finger2b'] },
+  { segIds: ['handR.finger3a', 'handR.finger3b'] },
   { segIds: ['legL.thigh', 'legL.shin'] },
   { segIds: ['legR.thigh', 'legR.shin'] },
   // round 5 (humanoid-anatomy): heel-to-toe wedge feet — each foot is its own
@@ -81,13 +91,21 @@ const ELBOW_ZONE_FACTOR = 0.5;
 const WRIST_ZONE_FACTOR = 0.22;
 const zoneFactorFor = (downstreamSegId: string): number =>
   downstreamSegId === 'neck' ? NECK_ZONE_FACTOR
-  : downstreamSegId.endsWith('.fingers') ? KNUCKLE_ZONE_FACTOR
+  : /\.(finger\d|thumb)b$/.test(downstreamSegId) ? KNUCKLE_ZONE_FACTOR
   : downstreamSegId.endsWith('.palm') ? WRIST_ZONE_FACTOR
   : downstreamSegId.endsWith('.fore') ? ELBOW_ZONE_FACTOR
   : downstreamSegId === 'torso.chest' ? BELT_ZONE_FACTOR
   : ZONE_FACTOR;
 /** Rings across each blend zone (odd — one ring sits on the joint). */
 const ZONE_RINGS = 5;
+/** Real-finger update: digit knuckle zones ride 3 rings — a finger link is
+ * shorter than any limb bone and 5 rings there is pure triangle spend. */
+const zoneRingsFor = (downstreamSegId: string): number =>
+  /\.finger\db$/.test(downstreamSegId) ? 3 : ZONE_RINGS;
+/** Real-finger update: radial columns per chain — digits are thin tubes and
+ * carry far fewer columns than the 12-column body chains. */
+const radialFor = (firstSegId: string): number =>
+  /\.finger\d/.test(firstSegId) ? 6 : /\.(thumb[ab]|thenar\d)$/.test(firstSegId) ? 8 : RADIAL;
 
 interface Station {
   pos: Vector3;
@@ -200,8 +218,14 @@ const smoothstep = (t: number): number => t * t * (3 - 2 * t);
  * cross-section keeps the block read without regrowing the width. */
 const flatOf = (segId: string): number =>
   segId.endsWith('.palm') ? 0.62
-  : segId.endsWith('.fingers') ? 0.62
-  : segId.endsWith('.thumb') ? 0.66
+  // ChatGPT hand-research round: digit ANISOTROPY — fingers run ~1.18×
+  // deeper (binormal) than wide, so the fist keeps volume while the open
+  // hand keeps its lateral gaps (the loft radius is the lateral half-width)
+  : /\.finger\d/.test(segId) ? 1.18
+  // round 2: the two-link thumb stays near-round (1.12) — the canonical
+  // transport cannot carry axial twist, and roundness hides missing roll
+  : /\.thumb[ab]$/.test(segId) ? 1.12
+  : /\.thenar\d$/.test(segId) ? 0.8
   : segId === 'torso.chest' ? 1.18
   : segId === 'torso.pelvis' ? 1.0
   : 1;
@@ -307,8 +331,8 @@ const tintOf = (segId: string): readonly [number, number, number] =>
   segId === 'torso.pelvis' || segId.startsWith('leg') ? TROUSER_TINT
   : segId === 'torso.chest' ? TORSO_TINT
   : segId.startsWith('foot') ? BOOT_TINT
-  : segId.endsWith('.fingers') ? FINGER_TINT
-  : segId.endsWith('.thumb') ? THUMB_TINT
+  : /\.finger\d/.test(segId) ? FINGER_TINT
+  : /\.thumb[ab]$/.test(segId) ? THUMB_TINT
   : SKIN_TINT;
 
 /** The near-black leather belt band at the pelvis→chest joint ring. */
@@ -358,7 +382,13 @@ const INSEAM_DARKEN: readonly [number, number, number] = [0.62, 0.6, 0.62];
  * round-20 verdict's "legs ending in blunt stumps". A squared ring gives the
  * boot a flat top plate, flat sides and a flat sole, so the widened form
  * reads as a shoe from every azimuth instead of a sausage seen end-on. */
-const sqOf = (segId: string): number => (segId.startsWith('hand') ? 1 : segId.startsWith('foot') ? 0.6 : 0);
+const sqOf = (segId: string): number =>
+  // real-finger update: finger tubes stay lightly squared — a full square
+  // pull on a 0.25-handR tube reads as a matchstick, not a digit
+  /\.finger\d/.test(segId) ? 0.35
+  : segId.startsWith('hand') ? 1
+  : segId.startsWith('foot') ? 0.6
+  : 0;
 
 /** round 16 (humanoid-anatomy): per-vertex ink-shell weight. The uniform
  * inverse-hull thickness (hM * 0.011) is wider than the valleys between
@@ -370,7 +400,13 @@ const inkOf = (segId: string): number =>
   // fist mass at 0.45 the thumb's own hull rim is what draws the split at
   // the thumb-fist valley (the second separation channel; the tint step is
   // the first). Order matters: 'handL.thumb' also startsWith('hand').
-  segId.endsWith('.thumb') ? 0.95
+  /\.thumb[ab]$/.test(segId) ? 0.5
+  // real-finger update: each finger's own thin hull draws the digit split;
+  // anything heavier than ~a third of the hull swallows a 0.25-handR tube
+  : /\.finger\d/.test(segId) ? 0.3
+  // round 2: the thenar wedge is buried in the palm — near-zero hull, or
+  // the ink redraws the weld seam the burial exists to hide
+  : /\.thenar\d$/.test(segId) ? 0.15
   : segId.startsWith('hand') ? 0.45
   // round 17 (humanoid-anatomy): the forearm carries a lighter hull (0.75) —
   // the full-thickness ink bridged the narrow wrist throat between the
@@ -529,7 +565,12 @@ function chainStations(
   // welds the thumb into the mass ("a featureless potato with no legible
   // thumb"). The exact aInk crease rule from round 16, applied one scale up.
   const inkFor = (segId: string): number =>
-    segId.endsWith('.thumb') ? 0.65 + 0.3 * slim : inkOf(segId);
+    /\.thumb[ab]$/.test(segId) ? 0.4 + 0.2 * slim : inkOf(segId);
+  // round 24 (humanoid-anatomy): chest depth above the under-pec line tapers
+  // toward a shallow clavicle plane — see the chest-branch note. soft tracks
+  // 1/bulk, so bulky frames shed more of their (larger) absolute depth.
+  const chestFlatAt = (t: number): number =>
+    flatOf('torso.chest') - (0.3 + 0.22 * (1 - soft)) * smoothstep(Math.min(1, Math.max(0, (t - 0.68) / 0.32)));
   const stations: Station[] = [];
   const push = (
     seg: (typeof segs)[number],
@@ -732,8 +773,16 @@ function chainStations(
       push(seg, 0.5, bone, 0, 1, 0, flatOf(seg.id), rAt(0.5), 0, tintFor(seg.id), 0, inkFor(seg.id), 0, null, { lat: 0.16 });
       push(seg, 0.62, bone, 0, 1, 0, flatOf(seg.id), rAt(0.62), 0, tintFor(seg.id), 0, inkFor(seg.id), 0, null, { lat: 0.34 });
       push(seg, 0.68, bone, 0, 1, 0, flatOf(seg.id), rAt(0.68), 0, tintFor(seg.id), 0.55 * soft, inkFor(seg.id), 0, band(UNDERPEC_TINT), { lat: 0.2 });
-      push(seg, 0.78, bone, 0, 1, 0, flatOf(seg.id), rAt(0.78), 0, tintFor(seg.id), 1 * soft, inkFor(seg.id), 0.14 * soft, null, { lat: -0.14, latTint: band(LAT_GROOVE_TINT) });
-      push(seg, 0.87, bone, 0, 1, 0, flatOf(seg.id), rAt(0.87), 0, tintFor(seg.id), 0.7 * soft, inkFor(seg.id), 0, band(CLAVICLE_TINT), { lat: 0.1, yoke: 0.14 });
+      // round 24 (humanoid-anatomy): THE CLAVICLE PLANE. The chest kept its
+      // full 1.18 depth to the top ring, so the COLLAR was the deepest ring on
+      // the torso — on the dwarf (r 0.23) the collar front sat ~0.28 forward
+      // while the face front sits ~0.15, and the whole chin/beard region
+      // rendered RECESSED behind a pec shelf ("uh? chin? neck?"). A real chest
+      // is deepest at the ribcage and shallows toward the collarbone. Depth
+      // now tapers above the under-pec line; bulky frames (low soft) taper
+      // harder because their absolute depth is larger.
+      push(seg, 0.78, bone, 0, 1, 0, chestFlatAt(0.78), rAt(0.78), 0, tintFor(seg.id), 1 * soft, inkFor(seg.id), 0.14 * soft, null, { lat: -0.14, latTint: band(LAT_GROOVE_TINT) });
+      push(seg, 0.87, bone, 0, 1, 0, chestFlatAt(0.87), rAt(0.87), 0, tintFor(seg.id), 0.7 * soft, inkFor(seg.id), 0, band(CLAVICLE_TINT), { lat: 0.1, yoke: 0.14 });
     } else if (seg.id === 'torso.traps') {
       // round 23 (humanoid-anatomy): THE TRAPEZIUS YOKE — the structural half
       // of the round-22 gap ("the neck drops into a flat horizontal shoulder
@@ -758,16 +807,14 @@ function chainStations(
       // trapezius meets the acromion.
       push(seg, 0.35, bone, 0, 1, 0, flatOf(seg.id), undefined, 0, tintFor(seg.id), 0, inkFor(seg.id), 0, null, { lat: 0.45, yoke: 0.3 });
       push(seg, 0.68, bone, 0, 1, 0, flatOf(seg.id), undefined, 0, tintFor(seg.id), 0, inkFor(seg.id), 0, null, { lat: 0.62, yoke: 0.45 });
-    } else if (seg.id.endsWith('.fingers')) {
-      // round 21 (humanoid-anatomy): SCALLOPED KNUCKLE ROWS — see
-      // FINGER_VALLEY_TINT. Three bulges split by two sunk near-black valleys,
-      // so the free fist's outline steps the way the praised grip stack does.
-      const rAt = (t: number): number => seg.r0 + (seg.r1 - seg.r0) * t;
-      push(seg, 0.14, bone, 0, 1, 0, flatOf(seg.id), rAt(0.14) * 1.06);
-      push(seg, 0.31, bone, 0, 1, 0, flatOf(seg.id), rAt(0.31) * 0.8, sqOf(seg.id), FINGER_VALLEY_TINT);
-      push(seg, 0.47, bone, 0, 1, 0, flatOf(seg.id), rAt(0.47) * 1.1);
-      push(seg, 0.64, bone, 0, 1, 0, flatOf(seg.id), rAt(0.64) * 0.82, sqOf(seg.id), FINGER_VALLEY_TINT);
-      push(seg, 0.8, bone, 0, 1, 0, flatOf(seg.id), rAt(0.8) * 1.04);
+    } else if (/\.finger\da$/.test(seg.id)) {
+      // real-finger update: the proximal link carries a KNUCKLE bulge at its
+      // root — the row of four bulges is the knuckle ridge the old finger
+      // mass painted with valley rings; real gaps now do the separating.
+      push(seg, 0.15, bone, 0, 1, 0, flatOf(seg.id), (seg.r0 + (seg.r1 - seg.r0) * 0.15) * 1.18);
+    } else if (/\.finger\db$/.test(seg.id)) {
+      // distal link: one mid ring; the bevel past the tip makes the pad
+      push(seg, 0.55, bone, 0, 1, 0);
     } else if (seg.id.endsWith('.palm')) {
       // round 22 (humanoid-anatomy): THE FREE FIST, UNIFIED WITH THE GRIP HAND.
       // The critic has praised every weapon-grip hand for three rounds and
@@ -802,25 +849,22 @@ function chainStations(
       // inside the wrap) and the valleys sink further instead, which keeps the
       // 1.25 bulge:valley ratio the free fist won with while leaving the grip
       // band the only thing carrying the outline on a weapon hand.
+      // hand-research round 3: THE ACCORDION PALM DIES. The round-22 scallop
+      // ladder (two sunk near-black valley rings) was the free fist's grip
+      // recipe — real digits carry that read now, and the leftover rings were
+      // the loudest artifact on every close-up ("procedural loaf with ring
+      // seams"). The palm is now ONE broad wedge with a single soft distal
+      // crease just below the knuckle line.
       push(seg, 0.1, bone, 0, 1, 0, flatOf(seg.id), rAt(0.1), sqOf(seg.id), tintFor(seg.id), 0, 0.24);
-      push(seg, 0.34, bone, 0, 1, 0, flatOf(seg.id), rAt(0.34) * 0.84, sqOf(seg.id), FINGER_VALLEY_TINT);
-      push(seg, 0.58, bone, 0, 1, 0, flatOf(seg.id), rAt(0.58) * 1.05);
-      push(seg, 0.8, bone, 0, 1, 0, flatOf(seg.id), rAt(0.8) * 0.84, sqOf(seg.id), FINGER_VALLEY_TINT);
-    } else if (seg.id.endsWith('.thumb')) {
-      // round 21 (humanoid-anatomy): the thumb gets a KNUCKLE of its own — a
-      // bulge, a sunk dark valley, then the tip pad — so it reads as a digit
-      // with a joint rather than a smooth lobe fused to the fist.
-      const rAt = (t: number): number => seg.r0 + (seg.r1 - seg.r0) * t;
-      // round 22 (humanoid-anatomy): a near-black ring at the thumb's ROOT.
-      // Four rounds of thumb work have all been silhouette work — bigger lobe,
-      // fatter root, more ink — and the round-21 verdict still read "no legible
-      // thumb" on the orc. What the fingers finally won with was not size but
-      // the VALLEY: a sunk near-black ring in the gap the silhouette already
-      // cuts. The thumb meets the fist in exactly such a gap and never had one.
-      push(seg, 0.08, bone, 0, 1, 0, flatOf(seg.id), rAt(0.08) * 0.82, sqOf(seg.id), FINGER_VALLEY_TINT);
-      push(seg, 0.28, bone, 0, 1, 0, flatOf(seg.id), rAt(0.28) * 1.12);
-      push(seg, 0.53, bone, 0, 1, 0, flatOf(seg.id), rAt(0.53) * 0.78, sqOf(seg.id), FINGER_VALLEY_TINT);
-      push(seg, 0.78, bone, 0, 1, 0, flatOf(seg.id), rAt(0.78) * 1.14);
+      push(seg, 0.5, bone, 0, 1, 0);
+      push(seg, 0.94, bone, 0, 1, 0, flatOf(seg.id), rAt(0.94) * 0.95, sqOf(seg.id), KNUCKLE_TINT);
+    } else if (/\.thumb[ab]$/.test(seg.id)) {
+      // round 2 (hand research): the two-link thumb rides digit rules — one
+      // mid ring per link; the knuckle blend zone carries the joint crease
+      push(seg, 0.5, bone, 0, 1, 0);
+    } else if (/\.thenar\d$/.test(seg.id)) {
+      // thenar wedge: buried palm mass — a single mid ring per segment
+      push(seg, 0.5, bone, 0, 1, 0);
     } else if (seg.id.endsWith('.upper')) {
       // round 21 (humanoid-anatomy): the ink hull ramps back in across the
       // first third of the upper arm — zero at the torso overlap, full by the
@@ -928,10 +972,13 @@ function chainStations(
       // blend zone across the joint into segment k+1
       const nextSeg = segs[k + 1];
       const nextBone = boneIndex.get(nextSeg.bone)!;
-      const half = Math.floor(ZONE_RINGS / 2);
+      const zoneRings = zoneRingsFor(nextSeg.id);
+      const half = Math.floor(zoneRings / 2);
       // round 2 (humanoid-anatomy): blend the flatten factor across the zone
       // so the wrist eases from round forearm into the flattened palm
-      const flatA = flatOf(seg.id);
+      // round 24 (humanoid-anatomy): the chest exits its joint at the tapered
+      // clavicle depth, not the full ribcage depth — see chestFlatAt.
+      const flatA = seg.id === 'torso.chest' ? chestFlatAt(1) : flatOf(seg.id);
       const flatB = flatOf(nextSeg.id);
       // round 6 (humanoid-anatomy): the ring squareness blends across the
       // zone too — the wrist eases from a round forearm into the squared palm
@@ -958,9 +1005,10 @@ function chainStations(
       const tintA = tintFor(seg.id);
       const tintB = tintFor(nextSeg.id);
       const isBelt = seg.id === 'torso.pelvis' && nextSeg.id === 'torso.chest';
-      // round 15 (humanoid-anatomy): the palm→fingers joint ring darkens to
-      // the knuckle line — same value trick as the belt band.
-      const isKnuckle = seg.id.endsWith('.palm') && nextSeg.id.endsWith('.fingers');
+      // real-finger update: each finger's mid joint darkens — the knuckle
+      // crease line, one per digit (the round-15 palm→fingers ring is gone
+      // with the finger mass).
+      const isKnuckle = /\.(finger\d|thumb)a$/.test(seg.id) && /\.(finger\d|thumb)b$/.test(nextSeg.id);
       // round 20 (humanoid-anatomy): the sleeve HEM — a dark ring where the
       // tunic sleeve ends and the skin forearm begins (the belt trick at the
       // elbow). Only on sleeved (slim) frames.
@@ -978,8 +1026,8 @@ function chainStations(
         tintA[1] + (tintB[1] - tintA[1]) * t2,
         tintA[2] + (tintB[2] - tintA[2]) * t2,
       ];
-      for (let ring = 0; ring < ZONE_RINGS; ring++) {
-        const t = smoothstep(ring / (ZONE_RINGS - 1));
+      for (let ring = 0; ring < zoneRings; ring++) {
+        const t = smoothstep(ring / (zoneRings - 1));
         const flat = flatA + (flatB - flatA) * t;
         const sq = sqA + (sqB - sqA) * t;
         // the dip is deepest on the joint ring (t = 0.5) and gone at the zone
@@ -1008,12 +1056,10 @@ function chainStations(
       push(seg, 1, bone, 0, 1, 0); // chain tip ring, rigid
     }
   }
-  // round 15 (humanoid-anatomy): the round-6/8 palm-tip crest rings are GONE
-  // — the arm chain now ends in the curled finger mass, whose bend IS the
-  // knuckle plane break. The fingertips get one blunt bevel ring past the
-  // tip so the fist ends square, not in a rounded cap.
+  // real-finger update: each finger chain ends in one blunt bevel ring past
+  // the distal tip, so the digit ends in a pad instead of a rounded cap.
   const last = segs[segs.length - 1];
-  if (last.id.endsWith('.fingers')) {
+  if (/\.(finger\d|thumb)b$/.test(last.id)) {
     const lastBone = boneIndex.get(last.bone)!;
     const len = new Vector3(...last.b).distanceTo(new Vector3(...last.a));
     push(last, 1 + (last.r1 * 0.28) / len, lastBone, 0, 1, 0, flatOf(last.id), last.r1 * 0.58);
@@ -1080,6 +1126,7 @@ export function buildSmoothBipedGeometry(
   for (const def of chains) {
     const stations = chainStations(restPose, boneIndex, def, soft, slim);
     const ringStart: number[] = [];
+    const radial = radialFor(def.segIds[0]);
 
     // parallel-transport frame down the chain (bind paths are near-straight;
     // the frame stays stable through the small elbow/knee bind bends)
@@ -1103,8 +1150,8 @@ export function buildSmoothBipedGeometry(
         prevTangent.copy(st.tangent);
       }
       ringStart.push(positions.length / 3);
-      for (let j = 0; j < RADIAL; j++) {
-        const a = (j / RADIAL) * Math.PI * 2;
+      for (let j = 0; j < radial; j++) {
+        const a = (j / radial) * Math.PI * 2;
         const c = Math.cos(a);
         const s = Math.sin(a);
         // round 6 (humanoid-anatomy): squared rings — blend the unit circle
@@ -1230,8 +1277,8 @@ export function buildSmoothBipedGeometry(
     for (let i = 0; i < stations.length - 1; i++) {
       const a0 = ringStart[i];
       const b0 = ringStart[i + 1];
-      for (let j = 0; j < RADIAL; j++) {
-        const j1 = (j + 1) % RADIAL;
+      for (let j = 0; j < radial; j++) {
+        const j1 = (j + 1) % radial;
         index.push(a0 + j, a0 + j1, b0 + j, a0 + j1, b0 + j1, b0 + j);
       }
     }
@@ -1248,8 +1295,8 @@ export function buildSmoothBipedGeometry(
       colors.push(st.tint[0], st.tint[1], st.tint[2]);
       inks.push(st.ink);
       const base = ringStart[ringIdx];
-      for (let j = 0; j < RADIAL; j++) {
-        const j1 = (j + 1) % RADIAL;
+      for (let j = 0; j < radial; j++) {
+        const j1 = (j + 1) % radial;
         if (stationIdx === 0) index.push(center, base + j1, base + j);
         else index.push(center, base + j, base + j1);
       }

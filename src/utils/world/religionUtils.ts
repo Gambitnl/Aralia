@@ -3,8 +3,8 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 27/02/2026, 09:35:30
- * Dependents: religionUtils.ts, world/index.ts
+ * Last Sync: 17/08/2026, 14:21:02
+ * Dependents: utils/world/index.ts
  * Imports: 4 files
  *
  * MULTI-AGENT SAFETY:
@@ -55,7 +55,6 @@ export const calculateFavorChange = (
         ...currentFavor,
         // Maintain both "score" and the legacy "favor" for callers that expect either shape.
         score: newFavorValue,
-        // @ts-expect-error favor is a legacy/testing field we intentionally backfill.
         favor: newFavorValue,
         rank: newRank,
         history: [

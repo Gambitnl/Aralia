@@ -146,7 +146,7 @@ export class GrantedActionCommand extends BaseEffectCommand {
         grantedActionDamageType: this.options.damageType,
         grantedActionSaveType: this.options.saveType,
         grantedActionSaveEffect: this.options.saveEffect,
-        grantedActionDamageAbilityModifier: (this.options.damageAbilityModifier as any) === 'spellcasting_ability',
+        grantedActionDamageAbilityModifier: this.options.damageAbilityModifier === 'spellcasting_ability',
         grantedActionWallLengthReduction: this.options.wallLengthReduction,
         grantedActionEndsWhenLengthZero: this.options.endsWhenLengthZero,
         socialServiceRequest: this.options.socialServiceRequest,
@@ -629,7 +629,7 @@ export class GrantedActionCommand extends BaseEffectCommand {
       grantedActionDamageType: this.options.damageType,
       grantedActionSaveType: this.options.saveType,
       grantedActionSaveEffect: this.options.saveEffect,
-      grantedActionDamageAbilityModifier: (this.options.damageAbilityModifier as any) === 'spellcasting_ability',
+      grantedActionDamageAbilityModifier: this.options.damageAbilityModifier === 'spellcasting_ability',
       grantedActionWallLengthReduction: this.options.wallLengthReduction,
       grantedActionEndsWhenLengthZero: this.options.endsWhenLengthZero,
       notes: this.options.notes

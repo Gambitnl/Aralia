@@ -43,7 +43,7 @@ export abstract class UtilityCommandMinorUtility extends UtilityCommandObjects {
                 ...(liveTarget.statusEffects || []).filter(existing =>
                     existing.source !== status.source ||
                     existing.sourceCasterId !== status.sourceCasterId ||
-                    (existing as any).suppressedConditionBenefit !== status.suppressedConditionBenefit
+                    (existing as StatusEffect & { suppressedConditionBenefit?: string }).suppressedConditionBenefit !== status.suppressedConditionBenefit
                 ),
                 status
             ]
@@ -659,7 +659,7 @@ export abstract class UtilityCommandMinorUtility extends UtilityCommandObjects {
     ): CombatState {
         const liveCaster = this.getCaster(state)
         const sourceName = this.context.spellName || this.context.spellId || 'Spell'
-        const pebbleCount = Math.max(1, Math.min(3, (effect as any).targeting?.instanceAllocation?.baseCount || 3))
+        const pebbleCount = Math.max(1, Math.min(3, (effect as { targeting?: { instanceAllocation?: { baseCount?: number } } }).targeting?.instanceAllocation?.baseCount || 3))
         const expiresAtRound = this.getEffectExpiryRound(state.turnState.currentTurn)
         const attackAugment = effect.attackAugments?.[0]
         const spellcastingModifier = this.getSpellcastingAbilityModifier(liveCaster)

@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 16/08/2026, 12:31:20
+ * Last Sync: 17/08/2026, 14:10:23
  * Dependents: components/DesignPreview/steps/classes/subclasses/barbarian/WildHeartDemo.tsx, hooks/combat/useTurnManager.ts
- * Imports: 14 files
+ * Imports: 15 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -30,9 +30,12 @@ import {
   Animation,
   AbilityCost,
   ReactiveTrigger,
-  Ability
+  Ability,
+  StatusEffect
 } from '../../types/combat';
 import { Spell } from '../../types/spells';
+import type { ConditionName, SavingThrowAbility } from '../../types/spells';
+import type { CharacterStats } from '../../types/core';
 import {
   generateId,
   getActionMessage,
@@ -164,7 +167,7 @@ const applySentinelStop = (character: CombatCharacter): CombatCharacter => {
     return character;
   }
 
-  const statusEffects = needsSentinelEffect
+  const statusEffects: StatusEffect[] = needsSentinelEffect
     ? [
       ...character.statusEffects,
       {
@@ -184,7 +187,7 @@ const applySentinelStop = (character: CombatCharacter): CombatCharacter => {
 
   return {
     ...character,
-    statusEffects: statusEffects as any[],
+    statusEffects: statusEffects,
     actionEconomy: {
       ...character.actionEconomy,
       movement: {
@@ -527,7 +530,9 @@ const buildLegacyAttackResult = (
     : Math.max(2, Math.ceil((attacker.level ?? 1) / 4) + 1);
   const attackBonus = ability.attackBonus ?? (statBonus + proficiencyBonus);
   const total = d20 + attackBonus;
-  const targetAC = target.armorClass ?? (target.stats as any)?.armorClass ?? 10;
+  // `stats` never carried armorClass in the typed model; this fallback only
+  // survives for legacy saves that stashed AC on the stat block.
+  const targetAC = target.armorClass ?? (target.stats as Partial<CharacterStats> & { armorClass?: number })?.armorClass ?? 10;
 
   return {
     targetId: target.id,
@@ -672,7 +677,8 @@ export const useActionExecutor = ({
 
     for (const trigger of triggers) {
       const effect = trigger.sourceEffect;
-      const attackFilter = (effect.trigger as any)?.attackFilter;
+      const effectTrigger = effect.trigger;
+      const attackFilter = 'attackFilter' in effectTrigger ? effectTrigger.attackFilter : undefined;
       const explicitAttackResult = resolvedAttackResult ?? action.attackResults?.find(result => result.targetId === targetId);
 
       // Armor of Agathys stores its "melee attack only" rule in the trigger's
@@ -1109,7 +1115,7 @@ export const useActionExecutor = ({
                   ? characters.find(candidate => candidate.id === effect.sourceContext?.casterId)
                   : undefined;
                 const dc = effect.sourceContext?.saveDC ?? calculateSpellDC(sourceCaster || updatedCharacter);
-                const saveResult = rollSavingThrow(updatedCharacter, effect.saveType as any, dc);
+                const saveResult = rollSavingThrow(updatedCharacter, effect.saveType as SavingThrowAbility, dc);
                 onLogEntry({
                   id: generateId(), timestamp: Date.now(), type: 'status',
                   message: `${updatedCharacter.name} ${saveResult.success ? 'succeeds' : 'fails'} ${effect.saveType} save (${saveResult.total} vs DC ${dc})`,
@@ -1150,7 +1156,7 @@ export const useActionExecutor = ({
                   ? characters.find(candidate => candidate.id === effect.sourceContext?.casterId)
                   : undefined;
                 const dc = effect.sourceContext?.saveDC ?? calculateSpellDC(sourceCaster || updatedCharacter);
-                const saveResult = rollSavingThrow(updatedCharacter, effect.saveType as any, dc);
+                const saveResult = rollSavingThrow(updatedCharacter, effect.saveType as SavingThrowAbility, dc);
                 onLogEntry({
                   id: generateId(), timestamp: Date.now(), type: 'status',
                   message: `${updatedCharacter.name} ${saveResult.success ? 'succeeds' : 'fails'} ${effect.saveType} save (${saveResult.total} vs DC ${dc})`,
@@ -1169,7 +1175,7 @@ export const useActionExecutor = ({
                 appliedCondition = true;
               }
 
-              if (appliedCondition && updatedCharacter.conditionImmunities?.includes(effect.statusName as any)) {
+              if (appliedCondition && updatedCharacter.conditionImmunities?.includes(effect.statusName as ConditionName)) {
                 appliedCondition = false;
                 // Immunity prevents the condition just like a successful save,
                 // but it communicates a different rule. Use the explicit shared
@@ -1465,7 +1471,7 @@ export const useActionExecutor = ({
           type: 'action',
           message: `${startCharacter.name} cannot cross its protective blood circle.`,
           characterId: startCharacter.id,
-          data: { bloodCircle: 'movement_blocked' } as any
+          data: { bloodCircle: 'movement_blocked' }
         });
         return false;
       }
@@ -1665,7 +1671,9 @@ export const useActionExecutor = ({
       id: generateId(), timestamp: Date.now(), type: 'action',
       message: getActionMessage(resolvedAction, updatedCharacter),
       characterId: updatedCharacter.id,
-      data: resolvedAction as any
+      // Preserve the full resolved action so history readers can replay or
+      // inspect the transaction without re-deriving it from the message.
+      data: { action: resolvedAction }
     });
     followUpActionLogs.forEach(entry => onLogEntry(entry));
 

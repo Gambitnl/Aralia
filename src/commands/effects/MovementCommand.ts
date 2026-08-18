@@ -834,7 +834,7 @@ export class MovementCommand extends BaseEffectCommand {
         // so this is the central guard that prevents teleports, pushes, and
         // pulls from ending inside known wall/blocked tiles.
         const tile = state.mapData?.tiles.get(`${position.x}-${position.y}`)
-        if (tile && (tile as any).blocksMovement) {
+        if (tile && tile.blocksMovement) {
             return false
         }
 

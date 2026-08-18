@@ -63,6 +63,17 @@ type WrathOfNatureStatusMetadata = {
   }>;
 };
 
+// Awaken's charm stores its social-lifecycle facts as untyped spell-JSON data
+// (no interface owns `socialEffect` yet). Narrow the effect to just this shape
+// instead of forcing the whole SpellEffect union through `as any`.
+type AwakenCharmEffect = {
+  socialEffect?: {
+    durationDays?: number;
+    endsIfDamagedByCasterOrAllies?: boolean;
+    targetChoosesAttitudeAfterCharmedEnds?: boolean;
+  };
+};
+
 export class StatusConditionCommand extends BaseEffectCommand {
   async execute(state: CombatState): Promise<CombatState> {
     let currentState = state;
@@ -455,7 +466,7 @@ export class StatusConditionCommand extends BaseEffectCommand {
       // Chill Touch stores its "cannot regain Hit Points" rule as structured
       // hit-point metadata on the status effect. Preserve that fact on both
       // runtime mirrors so every healing path can check it without parsing text.
-      ...((this.effect as any).hitPointState ? { hitPointState: (this.effect as any).hitPointState } : {}),
+      ...('hitPointState' in this.effect && this.effect.hitPointState ? { hitPointState: this.effect.hitPointState } : {}),
       ...(this.isFriendsCharmedEffect()
         ? {
           socialLifecycle: {
@@ -483,9 +494,9 @@ export class StatusConditionCommand extends BaseEffectCommand {
         ? {
           socialLifecycle: {
             kind: 'awaken_charm',
-            durationDays: (this.effect as any).socialEffect?.durationDays ?? 30,
-            endsIfDamagedByCasterOrAllies: (this.effect as any).socialEffect?.endsIfDamagedByCasterOrAllies === true,
-            targetChoosesAttitudeOnEnd: (this.effect as any).socialEffect?.targetChoosesAttitudeAfterCharmedEnds === true
+            durationDays: (this.effect as AwakenCharmEffect).socialEffect?.durationDays ?? 30,
+            endsIfDamagedByCasterOrAllies: (this.effect as AwakenCharmEffect).socialEffect?.endsIfDamagedByCasterOrAllies === true,
+            targetChoosesAttitudeOnEnd: (this.effect as AwakenCharmEffect).socialEffect?.targetChoosesAttitudeAfterCharmedEnds === true
           }
         }
         : {})
@@ -758,7 +769,9 @@ export class StatusConditionCommand extends BaseEffectCommand {
   ): CombatState {
     if (
       this.context.spellId !== 'chill-touch' ||
-      (this.effect as any).statusCondition?.name !== 'Disadvantage on attacks vs. caster'
+      ('statusCondition' in this.effect
+        ? this.effect.statusCondition?.name !== 'Disadvantage on attacks vs. caster'
+        : true)
     ) {
       return state;
     }

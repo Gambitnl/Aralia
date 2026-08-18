@@ -114,7 +114,7 @@ const LabRocks = ({
       `${baseUrl}assets/ez-tree-lab/rock3.glb`,
     ],
     (loader) => {
-      (loader as any).setDRACOLoader(dracoLoader);
+      loader.setDRACOLoader(dracoLoader);
     }
   );
 
@@ -151,7 +151,7 @@ const LabRocks = ({
   useEffect(() => {
     if (!enabled) return;
     refs.forEach((ref, index) => {
-      const mesh = ref.current as any;
+      const mesh = ref.current;
       if (!mesh) return;
       const dummy = new Object3D();
       const placements = placementsByType[index];

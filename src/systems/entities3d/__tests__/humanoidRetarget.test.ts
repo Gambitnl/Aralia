@@ -9,12 +9,20 @@ import { BIPED_BONE_NAMES } from '../three/skeletonBuilder';
 import { HUMANOID_BONE_MAP, retargetNames, stripToInPlace } from '../anim/humanoidRetarget';
 
 describe('HUMANOID_BONE_MAP', () => {
-  it('maps every one of our 17 bones to a non-empty rig bone name', () => {
+  it('maps every core (non-digit) bone to a non-empty rig bone name', () => {
+    // real-finger update: our digit bones (thumb/finger chains) have no rig
+    // equal ON PURPOSE — during a clip they keep their driver-posed locals,
+    // so a gripping hand keeps its wrap.
+    const digit = (b: string): boolean => /^(thumb|finger)/.test(b);
     for (const bone of BIPED_BONE_NAMES) {
+      if (digit(bone)) {
+        expect(HUMANOID_BONE_MAP[bone], `${bone} must stay unmapped`).toBeUndefined();
+        continue;
+      }
       expect(HUMANOID_BONE_MAP[bone], `${bone} mapping`).toBeTruthy();
       expect(typeof HUMANOID_BONE_MAP[bone]).toBe('string');
     }
-    expect(Object.keys(HUMANOID_BONE_MAP).length).toBe(BIPED_BONE_NAMES.length);
+    expect(Object.keys(HUMANOID_BONE_MAP).length).toBe(BIPED_BONE_NAMES.filter((b) => !digit(b)).length);
   });
 
   it('only keys are real BipedBoneNames', () => {

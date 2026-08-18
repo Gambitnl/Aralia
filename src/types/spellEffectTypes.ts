@@ -52,7 +52,7 @@ export type SavingThrowAbility = "Strength" | "Dexterity" | "Constitution" | "In
 // Condition names are stored in spell JSON and creature data as plain strings.
 // Deriving the string-literal union from the enum keeps ConditionType as the single
 // canonical list without requiring serialized game data to carry enum values.
-export type ConditionName = `${ConditionType}` | "Slowed" | "Slasher Slow";
+export type ConditionName = `${ConditionType}` | "Slowed" | "Slasher Slow" | "Disadvantage on attacks vs. caster";
 
 /** Modifiers that adjust how a saving throw is made. */
 export interface SaveModifier {
@@ -1109,6 +1109,9 @@ export interface UtilityEffect extends BaseEffect {
     talisman?: string;
     earlyConcentration?: string;
     control?: string;
+    controlSave?: string;
+    controlBreak?: string;
+    concentrationBreak?: string;
     bondLimit?: string;
     recast?: string;
     dismissal?: string;
@@ -1127,6 +1130,7 @@ export interface UtilityEffect extends BaseEffect {
     controller?: string;
     maximumCR?: string;
     disposition?: string;
+    concentrationBreak?: string;
   };
   materialComponentLifecycle?: {
     component?: string;

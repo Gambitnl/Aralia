@@ -307,6 +307,22 @@ function shortId(id) {
   return id ? String(id).slice(0, 8) : '—';
 }
 
+// WF-G65: resolve a short-id prefix to the full UUID by querying the board.
+// Returns the full UUID if found, null otherwise. This allows agents to claim
+// tasks using the short IDs displayed by `tasks --ready`.
+async function resolveTaskId(prefix, baseUrl, token) {
+  // If it's already a full UUID (36 chars with hyphens), return it as-is.
+  if (prefix.length === 36 && prefix.includes('-')) return prefix;
+  const r = await api(baseUrl, 'GET', '/tasks', { token });
+  if (r.status !== 200 || !r.json || !r.json.tasks) return null;
+  const tasks = r.json.tasks;
+  // First try exact match, then prefix match.
+  const exact = tasks.find((t) => t.id === prefix);
+  if (exact) return exact.id;
+  const prefixed = tasks.find((t) => t.id.startsWith(prefix));
+  return prefixed ? prefixed.id : null;
+}
+
 // ---------------------------------------------------------------------------
 // Command authentication guidance
 // ---------------------------------------------------------------------------
@@ -1143,10 +1159,17 @@ async function cmdTask(out, parsed, env, baseUrl) {
       out.log('Usage: task claim <taskId> [--force]');
       return { code: 1 };
     }
+    // WF-G65: resolve short-id prefixes to full UUIDs before calling the API.
+    // The board displays short IDs (first 8 chars), but the server requires exact UUIDs.
+    const resolvedId = await resolveTaskId(taskId, baseUrl, token);
+    if (!resolvedId) {
+      out.log(`task claim failed: no task matching "${taskId}"`);
+      return { code: 1 };
+    }
     // WF-G55: direct claim is gated on readiness. `--force` is the creator-only
     // bypass for deliberate orchestrator hand-assignment of an unready task.
     const qs = parsed.flags.force === true ? '?force=1' : '';
-    const r = await api(baseUrl, 'POST', `/tasks/${encodeURIComponent(taskId)}/claim${qs}`, { token });
+    const r = await api(baseUrl, 'POST', `/tasks/${encodeURIComponent(resolvedId)}/claim${qs}`, { token });
     if (r.status === 200 && r.json && r.json.task) {
       out.log(`Claimed ${r.json.task.id}  [${r.json.task.state}]`);
       if (r.json.task.assignedPet) {
@@ -1191,11 +1214,17 @@ async function cmdTask(out, parsed, env, baseUrl) {
       out.log('Usage: task state <taskId> <open|claimed|in_progress|blocked|done>');
       return { code: 1 };
     }
+    // WF-G65: resolve short-id prefixes to full UUIDs.
+    const resolvedId = await resolveTaskId(taskId, baseUrl, token);
+    if (!resolvedId) {
+      out.log(`task state failed: no task matching "${taskId}"`);
+      return { code: 1 };
+    }
     const body = { state };
     if (typeof parsed.flags.result === 'string') body.result = parsed.flags.result;
     const refs = [...asArray(parsed.flags.ref), ...asArray(parsed.flags.refs)].filter((value) => typeof value === 'string');
     if (refs.length) body.refs = refs;
-    const r = await api(baseUrl, 'POST', `/tasks/${encodeURIComponent(taskId)}/state`, { token, body });
+    const r = await api(baseUrl, 'POST', `/tasks/${encodeURIComponent(resolvedId)}/state`, { token, body });
     if (r.status === 200 && r.json && r.json.task) {
       out.log(`${r.json.task.id} -> [${r.json.task.state}]`);
       return { code: 0, task: r.json.task };
@@ -1211,13 +1240,19 @@ async function cmdTask(out, parsed, env, baseUrl) {
       out.log('Usage: task handoff <taskId> <toAgentId|handle>');
       return { code: 1 };
     }
+    // WF-G65: resolve short-id prefixes to full UUIDs.
+    const resolvedId = await resolveTaskId(taskId, baseUrl, token);
+    if (!resolvedId) {
+      out.log(`task handoff failed: no task matching "${taskId}"`);
+      return { code: 1 };
+    }
     // Allow a handle to be passed; resolve to agentId if it matches.
     const map = await buildAgentMap(baseUrl);
     if (!map[toAgentId]) {
       const byHandle = Object.entries(map).find(([, h]) => h === toAgentId);
       if (byHandle) toAgentId = byHandle[0];
     }
-    const r = await api(baseUrl, 'POST', `/tasks/${encodeURIComponent(taskId)}/handoff`, { token, body: { toAgentId } });
+    const r = await api(baseUrl, 'POST', `/tasks/${encodeURIComponent(resolvedId)}/handoff`, { token, body: { toAgentId } });
     if (r.status === 200 && r.json && r.json.task) {
       out.log(`${r.json.task.id} handed off to ${handleFor(map, r.json.task.claimedBy)}`);
       return { code: 0, task: r.json.task };
@@ -1241,6 +1276,12 @@ async function cmdTask(out, parsed, env, baseUrl) {
       out.log('task checkpoint failed: checkpoint files must use comma-separated or repeated --files flags (for example --files a.ts,b.ts)');
       return { code: 1 };
     }
+    // WF-G65: resolve short-id prefixes to full UUIDs.
+    const resolvedId = await resolveTaskId(taskId, baseUrl, token);
+    if (!resolvedId) {
+      out.log(`task checkpoint failed: no task matching "${taskId}"`);
+      return { code: 1 };
+    }
     const body = {};
     if (typeof parsed.flags.did === 'string') body.did = parsed.flags.did;
     if (typeof parsed.flags.next === 'string') body.next = parsed.flags.next;
@@ -1251,10 +1292,10 @@ async function cmdTask(out, parsed, env, baseUrl) {
       .map((value) => value.trim())
       .filter(Boolean);
     if (files.length) body.files = files;
-    const r = await api(baseUrl, 'POST', `/tasks/${encodeURIComponent(taskId)}/checkpoint`, { token, body });
+    const r = await api(baseUrl, 'POST', `/tasks/${encodeURIComponent(resolvedId)}/checkpoint`, { token, body });
     if (r.status === 200 && r.json && r.json.checkpoint) {
       const cp = r.json.checkpoint;
-      out.log(`checkpoint saved on ${shortId(taskId)}`);
+      out.log(`checkpoint saved on ${shortId(resolvedId)}`);
       if (cp.did) out.log(`  did:   ${cp.did}`);
       if (cp.next) out.log(`  next:  ${cp.next}`);
       if ((cp.files || []).length) out.log(`  files: ${cp.files.join(', ')}`);
@@ -1269,9 +1310,15 @@ async function cmdTask(out, parsed, env, baseUrl) {
   if (sub === 'done' || sub === 'complete') {
     const taskId = rest[0];
     if (!taskId) { out.log('Usage: task done <taskId> [--result "what was done + proof"]'); return { code: 1 }; }
+    // WF-G65: resolve short-id prefixes to full UUIDs.
+    const resolvedId = await resolveTaskId(taskId, baseUrl, token);
+    if (!resolvedId) {
+      out.log(`task done failed: no task matching "${taskId}"`);
+      return { code: 1 };
+    }
     const body = { state: 'done' };
     if (typeof parsed.flags.result === 'string') body.result = parsed.flags.result;
-    const r = await api(baseUrl, 'POST', `/tasks/${encodeURIComponent(taskId)}/state`, { token, body });
+    const r = await api(baseUrl, 'POST', `/tasks/${encodeURIComponent(resolvedId)}/state`, { token, body });
     if (r.status === 200 && r.json && r.json.task) { out.log(`${r.json.task.id} -> [${r.json.task.state}]`); return { code: 0, task: r.json.task }; }
     out.log(`task done failed (${r.status}): ${r.json ? r.json.error : r.text}`);
     return { code: 1 };

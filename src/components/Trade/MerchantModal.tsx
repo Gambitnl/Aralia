@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 08/06/2026, 17:22:06
- * Dependents: components/Trade/index.ts, components/layout/GameModals.tsx
- * Imports: 9 files
+ * Last Sync: 17/08/2026, 14:21:21
+ * Dependents: components/DesignPreview/steps/PreviewTrade.tsx, components/Trade/index.ts, components/layout/GameModals.tsx
+ * Imports: 11 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -154,14 +154,14 @@ const MerchantModal: React.FC<MerchantModalProps> = ({
             // handleMerchantAction expects the transaction-wrapped shape; a flat
             // { item, cost } was silently ignored (payload.transaction was undefined),
             // which is why every Buy click did nothing.
-            onAction({ type: 'BUY_ITEM', label: `Buy ${item.name}`, payload: { transaction: { buy: { item, cost: finalPrice } } } as any });
+            onAction({ type: 'BUY_ITEM', label: `Buy ${item.name}`, payload: { transaction: { buy: { item, cost: finalPrice } } } });
         }
     };
 
     const handleSell = (item: Item) => {
         const { finalPrice } = calculatePrice(item, economy, 'sell', regionId, priceContext);
         if (finalPrice > 0) {
-            onAction({ type: 'SELL_ITEM', label: `Sell ${item.name}`, payload: { transaction: { sell: { itemId: item.id, value: finalPrice } } } as any });
+            onAction({ type: 'SELL_ITEM', label: `Sell ${item.name}`, payload: { transaction: { sell: { itemId: item.id, value: finalPrice } } } });
         }
     };
 
@@ -173,7 +173,7 @@ const MerchantModal: React.FC<MerchantModalProps> = ({
         onAction({
             type: 'HAGGLE_ITEM',
             label: `Haggle (${strategy})`,
-            payload: { strategy, interactorId: state.party?.[0]?.id } as any,
+            payload: { strategy, interactorId: state.party?.[0]?.id },
         });
     };
 

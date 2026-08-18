@@ -514,8 +514,8 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({
                   worldBiz.id = bizId;
                   worldBiz.name = bizName;
                   worldBiz.ownerId = npcId;
-                  (worldBiz as any).burgId = t.burgId;
-                  (worldBiz as any).plotId = p.id;
+                  worldBiz.burgId = t.burgId;
+                  worldBiz.plotId = p.id;
 
                   if (!state.generatedNpcs?.[npcId]) {
                     dispatch({ type: 'REGISTER_GENERATED_NPC', payload: { npc: richNpc } });

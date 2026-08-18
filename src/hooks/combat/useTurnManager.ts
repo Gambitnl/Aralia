@@ -3,8 +3,8 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 13/08/2026, 18:03:20
- * Dependents: components/BattleMap/BattleMap.tsx, components/BattleMap/BattleMap3D.tsx, components/BattleMap/BattleMapDemo.tsx, components/Combat/CombatView.tsx, components/DesignPreview/steps/PreviewCombatScenarios.tsx, hooks/useBattleMap.ts
+ * Last Sync: 17/08/2026, 14:11:02
+ * Dependents: components/BattleMap/BattleMap.tsx, components/BattleMap/BattleMap3D.tsx, components/BattleMap/BattleMapDemo.tsx, components/Combat/CombatView.tsx, components/DesignPreview/steps/PreviewCombatScenarios.tsx, components/DesignPreview/steps/classes/ClassBattlefieldDemo.tsx, hooks/useBattleMap.ts
  * Imports: 19 files
  *
  * MULTI-AGENT SAFETY:
@@ -887,7 +887,8 @@ export const useTurnManager = ({
       // the same round-boundary pass so combat cannot schedule a missing summon.
       characters.forEach(character => {
         const aftermathState = character.summonMetadata?.aftermathState;
-        if (!character.isSummon ||
+        const summonMetadata = character.summonMetadata;
+        if (!character.isSummon || !summonMetadata ||
             aftermathState?.kind !== 'uncontrolled_demon_grace_period') {
           return;
         }
@@ -909,12 +910,12 @@ export const useTurnManager = ({
         onCharacterUpdate({
           ...character,
           summonMetadata: {
-            ...character.summonMetadata,
+            ...summonMetadata,
             aftermathState: {
               ...aftermathState,
               remainingRounds: remainingRounds - 1
             }
-          } as any
+          }
         });
       });
 

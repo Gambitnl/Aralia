@@ -163,7 +163,8 @@ const hoodUp: PartDef = {
       ctx.material(ctx.palette.accentHex),
     );
     shell.position.y = r * 0.12;
-    shell.rotation.y = Math.PI; // opening faces forward
+    // No yaw: the sphere's phi gap is authored at +Z, so the opening already
+    // faces forward. A Math.PI flip here buried the face in the shell.
     const peak = new Mesh(new ConeGeometry(r * 0.32, r * 0.6, 8), ctx.material(ctx.palette.accentHex));
     peak.position.set(0, r * 0.75, -r * 0.35);
     peak.rotation.x = -0.7;
@@ -204,7 +205,8 @@ const capeCloak: PartDef = {
       ctx.material(ctx.palette.accentHex),
     );
     cloth.position.set(0, -h * 0.2, 0.015);
-    cloth.rotation.y = Math.PI; // drape opens forward, cloth hangs at the back
+    // No yaw: the cylinder arc is authored across the -Z back half, so the
+    // cloth already hangs at the back. A Math.PI flip swung it onto the chest.
     const clasp = new Mesh(new SphereGeometry(w * 0.06, 8, 6), ctx.material(ctx.palette.secondaryHex));
     clasp.position.set(0, h * 0.05, 0.02);
     group.add(cloth, clasp);

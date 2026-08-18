@@ -706,6 +706,22 @@ const FINE_TEXTURE_RANGE = 1.10;
  */
 const DIFFERENTIAL_RELIEF = 1.9;
 
+/**
+ * Region peak weight at which the differential-erosion band fades out.
+ *
+ * Measured 2026-08-18 on the three reference windows (seed 903674813): the
+ * band's differential-relief swing on the mountain window is aErosion *
+ * DIFFERENTIAL_RELIEF * BAND_AMPLITUDE = 0.26..0.42 * 1.9 * 0.30 = +-0.15..0.24
+ * normalized height, several times the fine crest texture (570 ft) and a fifth
+ * of the whole window's 0.478 relief. On a plain that swing IS the
+ * Valley-and-Ridge landform; on a steep flank it drew long parallel streaks
+ * down the range. Where the peak operator already draws a landform (highland /
+ * alpine, aPeak >= 0.125) the band must not double-draw it, so the fade is
+ * complete by aPeak ~= 0.10 and lowland/upland regions (aPeak 0) keep the
+ * banding untouched.
+ */
+const PEAK_BAND_FADE = 0.10;
+
 /** Hardness of the reference rock. Erodibility 1, talus scale 1. */
 const REFERENCE_HARDNESS = 0.5;
 /** How strongly hardness resists incision. */
@@ -1524,19 +1540,37 @@ export function makeCompositeHeightField(
     for (let k = 0; k < BAND_SPANS_FT.length; k++) {
       running += wBand[off + k] * bandScratch[k];
     }
-    // Local rock: the cell's atlas hardness, banded by structure.
+    // Local rock: the cell's atlas hardness, banded by structure. The band is
+    // the sub-cell bedding signal, and it is allowed to act ONLY on erosion
+    // (removal): a landscape that has already been eroded stands high on its
+    // resistant bands and low on its weak ones. It must not act on the terms
+    // that BUILD relief - see the two notes below.
     const hard = localHardnessOf(cellHardness[r], cacheStructural);
     // EFFECT TWO of hardness. Hard rock holds a steeper slope, so it stands in
     // higher relief for the same uplift; soft rock relaxes toward its mean.
     // This is the same `talusScale` the incision term uses, applied to the term
     // that builds relief rather than the one that removes it.
-    const talusScale = 1 + HARD_TALUS_STR * (hard - REFERENCE_HARDNESS);
+    //
+    // THE RELIEF TERMS READ THE CELL'S ROCK, NOT THE BAND (mountain flank
+    // streaks, task d7b60572). The band varies WITHIN a window at ~2,600 ft
+    // spacing, so a relief term driven by it drew long strike-parallel swells
+    // down every mountain flank and switched the summit's fine texture on and
+    // off in stripes (the crumpled-foil read). Bedding belongs in the erosion
+    // path below, where resistant bands are stripped out and stand in relief as
+    // a CONSEQUENCE of having been stripped - never as an added bump on the
+    // massif. Rock competence (cell scale) still shapes relief: a hard cell
+    // stands higher and keeps its fine relief everywhere, a soft one relaxes
+    // and rounds everywhere.
+    const talusScale = 1 + HARD_TALUS_STR * (cellHardness[r] - REFERENCE_HARDNESS);
     if (aPeak[r] !== 0) {
       // The massif is the massif whatever it is made of. Only the fine texture
-      // is a property of the rock, so only the fine term reads hardness.
+      // is a property of the rock, so only the fine term reads hardness - and
+      // it reads the CELL's hardness, so a competent cell keeps its fine relief
+      // uniformly instead of the band switching the octaves on and off in
+      // stripes.
       const fineKeep = Math.max(
         0,
-        Math.min(1, FINE_TEXTURE_REFERENCE + FINE_TEXTURE_RANGE * (hard - REFERENCE_HARDNESS)),
+        Math.min(1, FINE_TEXTURE_REFERENCE + FINE_TEXTURE_RANGE * (cellHardness[r] - REFERENCE_HARDNESS)),
       );
       running += aPeak[r] * (cachePeakCoarse + cachePeakFine * fineKeep) * talusScale;
     }
@@ -1556,8 +1590,19 @@ export function makeCompositeHeightField(
       // stripped out. The signal is the band's DEVIATION from the cell's own
       // hardness, so the cell mean is untouched and the atlas keeps its
       // authority over elevation.
+      //
+      // THE BAND FADES WHERE THE PEAK OPERATOR ALREADY DRAWS THE LANDFORM
+      // (flank streaks, task d7b60572). Differential erosion builds
+      // Valley-and-Ridge strike ridges on ground whose form erosion controls -
+      // plains, foothills, folded lowland. On the massif the peak operator
+      // already supplies the landform and the superimposed band read as long
+      // parallel streaks down every flank; same rule as the interfluve term
+      // ("do not double-draw a range"). The channel cut below still receives
+      // the banded rock, so bedding keeps shaping gorge-vs-valley even where it
+      // no longer raises whole ridges.
+      const bandReliefGate = 1 - smoothstep01(aPeak[r] / PEAK_BAND_FADE);
       running +=
-        aErosion[r] * DIFFERENTIAL_RELIEF * (hard - cellHardness[r]) * relief;
+        aErosion[r] * DIFFERENTIAL_RELIEF * (hard - cellHardness[r]) * relief * bandReliefGate;
       const cut = shapeChannelCut(
         drainage[0], drainage[1], drainage[2], hard, cellDischarge[r], rDissection[r],
         drainage[4],

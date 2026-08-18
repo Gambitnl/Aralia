@@ -554,8 +554,8 @@ export abstract class UtilityCommandSummons extends UtilityCommandControlledEnti
                 lifecycle: {
                     zeroHpEnding: effect.summonLifecycle?.hitPointEnding,
                     spellEnding: effect.summonLifecycle?.spellEnding,
-                    concentrationBreak: (effect.summonLifecycle as any)?.concentrationBreak
-                } as any,
+                    concentrationBreak: effect.summonLifecycle?.concentrationBreak
+                },
                 control: {
                     entityType: effect.summon?.entityType,
                     source: this.context.spellId,
@@ -574,10 +574,10 @@ export abstract class UtilityCommandSummons extends UtilityCommandControlledEnti
                     maxChallengeRating: effect.summon?.maxCR,
                     trueNameSpoken: input.trueNameSpoken === true,
                     bloodCircleUsed: input.useBloodCircle === true,
-                    controlSave: (effect.summon as any)?.controlSave,
-                    controlBreak: (effect.summon as any)?.controlBreak,
+                    controlSave: effect.summon?.controlSave,
+                    controlBreak: effect.summon?.controlBreak,
                     uncontrolledObedience: 'pursues_and_attacks_nearest_non_demons',
-                    earlyConcentrationEnding: (effect.summon as any)?.concentrationBreak,
+                    earlyConcentrationEnding: effect.summon?.concentrationBreak,
                     materialComponentConsumption: effect.materialComponentLifecycle?.conditionalConsumption
                 },
                 ...(input.useBloodCircle

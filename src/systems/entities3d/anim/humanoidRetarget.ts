@@ -16,9 +16,12 @@ import type { AnimationBlendMode, AnimationClip } from 'three';
 import { AnimationClip as ThreeAnimationClip } from 'three';
 import type { BipedBoneName } from '../three/skeletonBuilder';
 
-/** Our bone → Mesh2Motion rig bone. Their fingers, toe-balls, clavicles, and
- * spine_01/02 have no equal on our skeleton and are simply not referenced. */
-export const HUMANOID_BONE_MAP: Readonly<Record<BipedBoneName, string>> = Object.freeze({
+/** Our bone → Mesh2Motion rig bone. Their toe-balls, clavicles, and
+ * spine_01/02 have no equal on our skeleton and are simply not referenced.
+ * Partial on purpose (real-finger update): our digit bones (thumb/finger
+ * chains) have no clip tracks — during a clip they hold their driver-posed
+ * local transforms, so a gripping hand keeps its wrap. */
+export const HUMANOID_BONE_MAP: Readonly<Partial<Record<BipedBoneName, string>>> = Object.freeze({
   root: 'root',
   pelvis: 'pelvis',
   chest: 'spine_03',

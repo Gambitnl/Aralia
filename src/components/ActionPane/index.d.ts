@@ -21,12 +21,11 @@
  * and logic (useActionGeneration) from the main view.
  */
 import React from 'react';
-import { Location, Action, NPC, Item, PlayerCharacter } from '../../types';
+import { Location, Action, NPC, Item } from '../../types';
 interface ActionPaneProps {
     currentLocation: Location;
     npcsInLocation: NPC[];
     itemsInLocation: Item[];
-    party: PlayerCharacter[];
     onAction: (action: Action) => void;
     disabled: boolean;
     geminiGeneratedActions: Action[] | null;

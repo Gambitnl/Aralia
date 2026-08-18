@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 16/08/2026, 14:41:34
+ * Last Sync: 17/08/2026, 09:34:36
  * Dependents: commands/effects/AttackRollModifierCommand.ts, commands/effects/GrantedActionCommand.ts, commands/effects/GraspingVineCommand.ts, commands/effects/ReactiveEffectCommand.ts, commands/factory/AbilityCommandFactory.ts, commands/factory/SpellCommandFactory.ts, components/DesignPreview/steps/raceDomain/leaves/halfOrcRaceLeaf.tsx
  * Imports: 19 files
  *
@@ -477,12 +477,13 @@ export class DamageCommand extends BaseEffectCommand<DamageEffect> {
             school: 'Abjuration',
             classes: [],
             subClasses: [],
-            castingTime: { type: 'reaction' },
+            castingTime: { value: 1, unit: 'reaction' },
+            range: { type: 'self', distance: 0 },
             components: { v: false, s: false, m: false },
-            duration: { type: 'instantaneous' },
-            targeting: { type: 'self' },
+            duration: { type: 'instantaneous', concentration: false },
+            targeting: { type: 'self', validTargets: [] },
             effects: [ r.effect ]
-          })) as any as import('../../types/spells').Spell[];
+          }));
 
           const choice = await this.context.requestReaction(caster.id, target.id, 'on_take_damage', reactionSpells);
           if (choice) {
@@ -738,7 +739,7 @@ export class DamageCommand extends BaseEffectCommand<DamageEffect> {
           position: target.position,
           entityType: summonControl?.entityType ?? 'zombie_from_killed_target',
           timing: deathAnimation?.timing ?? 'start_of_caster_next_turn',
-          behavior: (deathAnimation?.behavior ?? this.effect.aftermathState?.behavior) as any,
+          behavior: (deathAnimation?.behavior ?? this.effect.aftermathState?.behavior) as string | undefined,
           statBlock: deathAnimation?.statBlock ?? summonControl?.statBlock
         }
       }
@@ -936,10 +937,10 @@ export class DamageCommand extends BaseEffectCommand<DamageEffect> {
         vanishWhenReached: false
       },
       elementalSpirit: {
-        origin: (this.effect.controlledEntity as any)?.origin,
+        origin: this.effect.controlledEntity?.origin,
         element,
         damageType,
-        initialDamageDice: (this.effect as any).damage?.dice ?? '0d0',
+        initialDamageDice: this.effect.damage?.dice ?? '0d0',
         repeatDamageDice: repeatDamage?.dice,
         intangible: true,
         restrainedTargetId: undefined
@@ -1676,7 +1677,7 @@ export class DamageCommand extends BaseEffectCommand<DamageEffect> {
       isHit: true,
       isCrit: isCritical,
       attackType: 'spell',
-      weaponType: (this.context.attackType as any) === 'none' ? undefined : (this.context.attackType as any)
+      weaponType: this.context.attackType === 'none' ? undefined : this.context.attackType
     });
   }
 

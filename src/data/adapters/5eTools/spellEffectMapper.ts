@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 17/08/2026, 14:22:00
+ * Dependents: data/adapters/5eTools/spellcastingAdapter.ts
+ * Imports: 3 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import { AbilityEffect, TargetingType } from '../../../types/combat';
 import { Spell, SpellEffect } from '../../../types/spells';
 import { diceAverage } from './shared';
@@ -121,7 +137,7 @@ function mapSpellEffectToAbilityEffect(effect: SpellEffect): AbilityEffect | nul
       return {
         type: 'damage',
         dice: effect.damage.dice,
-        damageType: mappedType as any,
+        damageType: mappedType as AbilityEffect['damageType'],
         value: Math.round(diceAverage(effect.damage.dice ?? '')),
       };
     }

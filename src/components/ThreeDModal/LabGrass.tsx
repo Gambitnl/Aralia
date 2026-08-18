@@ -313,7 +313,7 @@ const LabGrass = ({
 
   useEffect(() => {
     if (!grassEnabled) return;
-    const mesh = grassRef.current as any;
+    const mesh = grassRef.current;
     if (!mesh) return;
     const dummy = new Object3D();
     grassPlacements.forEach((p, index) => {
@@ -329,8 +329,8 @@ const LabGrass = ({
     if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
   }, [grassCount, grassEnabled, grassPlacements]);
 
-  const applyFlowerInstances = (ref: any, placements: typeof grassPlacements) => {
-    const mesh = ref.current as any;
+  const applyFlowerInstances = (ref: { current: InstancedMesh | null }, placements: typeof grassPlacements) => {
+    const mesh = ref.current;
     if (!mesh) return;
     const dummy = new Object3D();
     placements.forEach((p, index) => {

@@ -26,13 +26,13 @@
  * drivers only need `speed` (and expose `verticalOffsetM` for airborne body
  * lift, applied by the assembler to the body root).
  */
-import { Quaternion, Vector3, Euler } from 'three';
+import { Matrix4, Quaternion, Vector3, Euler } from 'three';
 import type { Anchor, Frame, Gait, PlanSpec, SegmentSink } from '../types';
 import { ANCHORS, FT_TO_M, headRadiusM, heightM } from '../types';
 import { smooth, solveKnee } from './ik';
 import { solveFabrikPoints } from './fabrik';
 import { BallSocketConstraint, type JointConstraint } from './jointConstraints';
-import { ARM_LINK_K, bipedShoulderOutM, bipedSkullRadiusM, bipedSlimT } from './skeletonBuilder';
+import { ARM_LINK_K, bipedHandDigits, bipedShoulderOutM, bipedSkullRadiusM, bipedSlimT } from './skeletonBuilder';
 import { TreadmillLeg } from './legs';
 import { spineRadiusAt } from '../textPlan/spineProfile';
 
@@ -41,6 +41,9 @@ export interface LocomotionState {
   heading: Vector3;
   /** Ground speed in m/s (or air speed for flyers). */
   speed: number;
+  /** Optional gesture overlay. 'wave' (biped only): the free hand rises
+   * beside the head, palm out, digits EXTENDED, and rocks side to side. */
+  gesture?: 'wave';
 }
 
 export interface PoseAnchor {
@@ -146,6 +149,45 @@ const V_FINGER_B = new Vector3();
 const UP_Y = new Vector3(0, 1, 0);
 const V_THUMB_A = new Vector3();
 const V_THUMB_B = new Vector3();
+// real-finger update: grip-anchor basis scratch.
+const M_GRIP = new Matrix4();
+
+/** Real-finger grip solve: intersect circle(p, len) with circle(c, R) in the
+ * palm's local Y–Z plane and return the solution the curl prefers ('minZ' =
+ * toward the knuckle front, 'minY' = onward toward the palm heel). A digit
+ * that cannot reach the wrap circle lands on the chord's nearest point (h
+ * clamps to 0) — a geometric clamp that keeps the link length exact. */
+function wrapIntersectYZ(
+  py: number,
+  pz: number,
+  len: number,
+  cy: number,
+  cz: number,
+  R: number,
+  prefer: 'minZ' | 'minY',
+): [number, number] {
+  let dy = cy - py;
+  let dz = cz - pz;
+  let d = Math.hypot(dy, dz);
+  if (d < 1e-9) {
+    d = 1e-9;
+    dy = 1e-9;
+    dz = 0;
+  }
+  const a = (len * len - R * R + d * d) / (2 * d);
+  const h = Math.sqrt(Math.max(0, len * len - a * a));
+  const uy = dy / d;
+  const uz = dz / d;
+  const my = py + uy * a;
+  const mz = pz + uz * a;
+  // the two solutions sit ±h along the perpendicular (rotate u by 90°)
+  const y1 = my - uz * h;
+  const z1 = mz + uy * h;
+  const y2 = my + uz * h;
+  const z2 = mz - uy * h;
+  if (prefer === 'minZ') return z1 <= z2 ? [y1, z1] : [y2, z2];
+  return y1 <= y2 ? [y1, z1] : [y2, z2];
+}
 
 abstract class BaseDriver implements GaitDriver {
   readonly pose = makePose();
@@ -156,6 +198,7 @@ abstract class BaseDriver implements GaitDriver {
   protected t = 0;
   protected speed = 0;
   protected speedFactor = 0;
+  protected gesture: LocomotionState['gesture'];
   protected readonly hM: number;
   protected readonly hr: number;
   protected readonly baseR: number;
@@ -182,6 +225,7 @@ abstract class BaseDriver implements GaitDriver {
     this.t = t;
     this.speed = Math.max(0, loco.speed);
     this.speedFactor = Math.min(this.speed / 1.2, 1);
+    this.gesture = loco.gesture;
     this.gaitPhase += this.cadence() * Math.max(dt, 0);
     this.advance(t, dt);
   }
@@ -246,7 +290,18 @@ class BipedDriver extends BaseDriver {
    * point), so the anchors can no longer double as the next IK input. */
   private readonly wrist: [Vector3, Vector3] = [new Vector3(), new Vector3()];
 
-  constructor(frame: Frame) {
+  /** The hand that performs the wave gesture: the right, unless it grips. */
+  private waveSgn(): 1 | -1 {
+    return this.grips?.R ? -1 : 1;
+  }
+
+  constructor(
+    frame: Frame,
+    /** Real-finger update: which hands hold a HAFT weapon (assembler-derived
+     * from the blueprint's gear parts). A grip hand wraps its digits around
+     * the haft and re-aims the gear anchor so the weapon runs through them. */
+    private readonly grips?: { L?: boolean; R?: boolean },
+  ) {
     super(frame);
     this.skullR = bipedSkullRadiusM(frame);
     // round 1 (humanoid-anatomy): rest stance widened to hip-width-plus so the
@@ -366,7 +421,11 @@ class BipedDriver extends BaseDriver {
     // now added back into the lift, so the hunch still leans the skull FORWARD
     // into the traps (hunchZ, untouched) without deleting the gap it leans out
     // of. Frames without a hunch are bit-identical. Mirror: bipedRestPose.
-    const neckLift = Math.min(0.62, Math.max(0.26, 0.36 - 0.28 * Math.max(0, this.frame.bulk - 1)) + 0.35 * hunch);
+    // round 24 (humanoid-anatomy): UPRIGHT BIG HEADS KEEP THEIR CHIN — the
+    // lift floor rises with the skull excess, hunch-gated. Full note:
+    // skeletonBuilder.bipedRestPose bigHead. Mirror: bipedRestPose.
+    const bigHead = Math.max(0, this.frame.headScale - 1) * Math.max(0, 1 - 1.5 * hunch);
+    const neckLift = Math.min(0.62, Math.max(0.26 + 1.0 * bigHead, 0.36 - 0.28 * Math.max(0, this.frame.bulk - 1)) + 0.35 * hunch);
     const hunchZ = this.hM * 0.09 * hunch;
     this.headY = this.chestY + this.baseR * 0.35 + this.skullR * (0.59 + neckLift) - this.skullR * 0.35 * hunch;
     // round 13 (humanoid-anatomy): bulky frames push the whole arm chain
@@ -399,13 +458,23 @@ class BipedDriver extends BaseDriver {
       const phaseOff = sgn < 0 ? 0.5 : 0;
       const swing = Math.sin((this.gaitPhase + phaseOff) * Math.PI * 2) * 0.55 * this.speedFactor;
       const hand = this.pose.anchors[sgn < 0 ? 'handL' : 'handR'];
-      hand.pos.set(
-        sgn * (shoulderX + this.baseR * 0.05),
-        handY,
-        // round 18 (humanoid-anatomy): wrists ride forward with the hunched
-        // shoulders (same hunchZ both sides keeps the hang solve exact)
-        Math.sin(swing) * this.frame.armLengthFt * FT_TO_M * 0.42 + this.hM * 0.045 + hunchZ,
-      );
+      if (this.gesture === 'wave' && sgn === this.waveSgn()) {
+        // wave gesture: the wrist rises beside the head and rocks with the
+        // beat; buildBody extends the digits and rocks the palm to match
+        hand.pos.set(
+          sgn * (shoulderX + this.baseR * 0.55) + sgn * Math.sin(this.t * 5.2) * this.hM * 0.02,
+          this.chestY + this.baseR * 0.45 + this.hM * 0.17,
+          this.hM * 0.06 + hunchZ,
+        );
+      } else {
+        hand.pos.set(
+          sgn * (shoulderX + this.baseR * 0.05),
+          handY,
+          // round 18 (humanoid-anatomy): wrists ride forward with the hunched
+          // shoulders (same hunchZ both sides keeps the hang solve exact)
+          Math.sin(swing) * this.frame.armLengthFt * FT_TO_M * 0.42 + this.hM * 0.045 + hunchZ,
+        );
+      }
       // round 6 (humanoid-anatomy): the anchor pos above is the WRIST (IK
       // target); buildBody() moves the public anchor to the fist center so
       // held gear roots inside the hand — stash the wrist for the IK solve.
@@ -495,7 +564,11 @@ class BipedDriver extends BaseDriver {
     const neckThickR = Math.max(this.skullR * 0.42, r * 0.55);
     const neckTipR = Math.min(neckThickR, this.skullR * 0.42);
     if (neckThickR >= this.skullR * 0.55) {
-      const trapsBury = Math.max(0.47, 0.95 - 1.2 * Math.max(0, this.frame.bulk - 1));
+      // round 24 (humanoid-anatomy): the peak stays BELOW the chin on upright
+      // big-headed frames — full note: skeletonBuilder.bipedRestPose bigHead.
+      // Mirror: bipedRestPose torso.traps.
+      const bigHead = Math.max(0, this.frame.headScale - 1) * Math.max(0, 1 - 1.5 * (this.frame.hunch ?? 0));
+      const trapsBury = Math.max(0.47 + 1.6 * bigHead, 0.95 - 1.2 * Math.max(0, this.frame.bulk - 1));
       // round 21 (humanoid-anatomy): the slim trapezius narrows (0.54 → 0.46) so
       // the human neck stops reading as a hood; bulky frames keep the round-10
       // wedge width. Mirror: bipedRestPose.
@@ -569,7 +642,10 @@ class BipedDriver extends BaseDriver {
       // round 14 (humanoid-anatomy): elbow tucked mostly BACKWARD — the
       // lateral bend arced the arm into a "banana bow". Mirror:
       // bipedRestPose arm loop.
-      V_BEND.set(sgn * 0.45, 0, -1).normalize();
+      const waving = this.gesture === 'wave' && sgn === this.waveSgn();
+      if (waving) V_BEND.set(sgn * 0.8, -0.55, -0.25);
+      else V_BEND.set(sgn * 0.45, 0, -1);
+      V_BEND.normalize();
       // round 17 (humanoid-anatomy): links 0.4 armLen (see ARM_LINK_K)
       solveKnee(V_SH, V_HAND.copy(hand), armLen * ARM_LINK_K, armLen * ARM_LINK_K, V_BEND, V_KNEE);
       // deltoid before the upper segment: the segment's later write drives
@@ -581,45 +657,96 @@ class BipedDriver extends BaseDriver {
       sink.ball('deltoid' + side, V_SH.x, V_SH.y, V_SH.z, armR * (1.7 + 0.5 * armBulkT + 0.5 * slimT));
       sink.seg('arm' + side + '.upper', V_SH.x, V_SH.y, V_SH.z, V_KNEE.x, V_KNEE.y, V_KNEE.z, shoulderR, elbowR);
       sink.seg('arm' + side + '.fore', V_KNEE.x, V_KNEE.y, V_KNEE.z, hand.x, hand.y, hand.z, elbowR, wristR);
-      // fingers axis: forearm direction cocked forward (+z 0.32 ≈ 18°)
-      V_PALM_DIR.copy(hand).sub(V_KNEE).normalize();
-      V_PALM_DIR.z += 0.32;
-      // round 16 (humanoid-anatomy): lateral cock (~8°) — the knuckle bend
-      // pointed dead at the front camera, zero silhouette change. Mirror:
-      // bipedRestPose arm loop.
-      // round 18 (humanoid-anatomy): cock deepened 0.14 → 0.22 — the thumb
-      // crossing must profile to the front camera (camera-aimed-bend rule).
-      // Mirror: bipedRestPose arm loop.
-      V_PALM_DIR.x += sgn * 0.22;
-      V_PALM_DIR.normalize();
+      // real-finger update: palm frame + digit emission. A GRIP hand (this
+      // side holds a haft weapon — createGaitDriver opts.grips) re-aims the
+      // palm INWARD so the canonical transport lands the knuckle row (local
+      // sgn·X) near world-up: the digits then wrap around a haft that runs
+      // along that row, and the gear anchor adopts the same axis, so the
+      // weapon passes exactly through the wrapped fingers. A free hand keeps
+      // the round-18 hanging palm and the relaxed curl from the shared
+      // layout. Mirror (free path): skeletonBuilder.bipedRestPose arm loop.
+      const grip = !!this.grips?.[side] && !waving;
+      if (waving) {
+        // wave gesture: palm out toward the viewer, fingers up, and the
+        // whole hand rocks side to side with the beat
+        V_PALM_DIR.set(sgn * 0.15 + Math.sin(this.t * 5.2) * 0.38, 1, 0.05).normalize();
+      } else if (grip) {
+        // solved numerically: this palm dir maps the knuckle row (the haft
+        // axis) to ≈(0.02, 0.86, 0.52) — a near-vertical blade with a clean
+        // forward lean and no inward cross over the chest
+        V_PALM_DIR.set(-sgn * 0.85, -0.25, 0.45).normalize();
+      } else {
+        // fingers axis: forearm direction cocked forward (+z 0.32 ≈ 18°)
+        V_PALM_DIR.copy(hand).sub(V_KNEE).normalize();
+        V_PALM_DIR.z += 0.32;
+        // round 16 (humanoid-anatomy): lateral cock (~8°); round 18: 0.22 —
+        // the thumb crossing must profile to the front camera.
+        V_PALM_DIR.x += sgn * 0.22;
+        V_PALM_DIR.normalize();
+      }
       // canonical palm frame — identical to the pose sink's hand-bone rule
       Q_PALM.setFromUnitVectors(UP_Y, V_PALM_DIR);
-      // round 15 (humanoid-anatomy): the thumb WRAPS ACROSS the knuckle
-      // front — root at the lateral palm edge, tip crossing past the fist
-      // midline on the −Z knuckle face (local axes: +Y fingers, sgn·X
-      // lateral, −Z front). round 16: silhouette lobe — root at the lateral
-      // face (sgn 1.0), fattened to 0.52 handR. Mirror: bipedRestPose.
-      // round 18 (humanoid-anatomy): thumb ENLARGED again (0.52 → 0.62 handR
-      // root, 0.36 → 0.44 tip), rooted on the lateral-FRONT corner and
-      // crossing further past the knuckle face — rounds 16 and 17 both failed
-      // to read at panel distance. Mirror: bipedRestPose arm loop.
-      V_THUMB_A.set(sgn * handR * 1.05, palmLen * 0.3, -handR * 0.45).applyQuaternion(Q_PALM).add(hand);
-      V_THUMB_B.set(sgn * handR * 0.3, palmLen * 1.05, -handR * 0.95).applyQuaternion(Q_PALM).add(hand);
-      // thumb first, fingers second, palm LAST: the pose sink's last write
-      // per bone wins, so the palm segment defines the hand bone's transform
-      sink.seg('hand' + side + '.thumb', V_THUMB_A.x, V_THUMB_A.y, V_THUMB_A.z, V_THUMB_B.x, V_THUMB_B.y, V_THUMB_B.z, handR * 0.62, handR * 0.44);
+      const digits = bipedHandDigits(sgn, handR, palmLen, fingerLen);
+      if (grip) {
+        // wrap circle: centered on the haft line (the fist-center anchor, cy
+        // cz below), radius = haft + finger flesh. Each finger stays in its
+        // own x-plane — the knuckle row runs ALONG the haft — and both links
+        // re-aim onto the circle at their exact rest lengths.
+        const cy = palmLen * 0.6;
+        const cz = -handR * 0.45;
+        const R = handR * 0.56;
+        for (const f of digits.fingers) {
+          [f.j1.y, f.j1.z] = wrapIntersectYZ(f.root.y, f.root.z, f.len0, cy, cz, R, 'minZ');
+          f.j1.x = f.root.x;
+          [f.tip.y, f.tip.z] = wrapIntersectYZ(f.j1.y, f.j1.z, f.len1, cy, cz, R, 'minY');
+          f.tip.x = f.root.x;
+        }
+        // the thumb OPPOSES around the haft: tip at ~40° around the wrap
+        // circle, elbow bent thumbward (round-2 spec — lengths preserved)
+        digits.thumb.j1.set(sgn * 0.759 * handR, 1.024 * handR, -0.624 * handR);
+        digits.thumb.tip.set(sgn * 0.3 * handR, 1.239 * handR, -0.81 * handR);
+      } else if (waving) {
+        // wave gesture: EXTENDED digits with the researched asymmetric fan
+        // (pinky −14° … index +8°, ~22° total) and a light per-digit flex —
+        // four straight parallel fingers read as a rake, not a hand
+        const D = Math.PI / 180;
+        for (const f of digits.fingers) {
+          const s = f.col.waveSplay * D;
+          const fp = f.col.waveFlex * D;
+          const fd = (f.col.waveFlex * 1.6) * D;
+          V_FINGER_B.set(sgn * Math.sin(s) * Math.cos(fp), Math.cos(s) * Math.cos(fp), -Math.sin(fp)).normalize();
+          f.j1.copy(f.root).addScaledVector(V_FINGER_B, f.len0);
+          V_FINGER_B.set(sgn * Math.sin(s) * Math.cos(fd), Math.cos(s) * Math.cos(fd), -Math.sin(fd)).normalize();
+          f.tip.copy(f.j1).addScaledVector(V_FINGER_B, f.len1);
+        }
+        // thumb opens ~53° from the finger bundle with an out-of-plane lift
+        // (round-2 spec) — a clean triangular thumb-index negative space
+        V_FINGER_B.set(sgn * 0.74, 0.56, -0.37).normalize();
+        digits.thumb.j1.copy(digits.thumb.a).addScaledVector(V_FINGER_B, digits.thumb.len0);
+        V_FINGER_B.set(sgn * 0.42, 0.8, -0.43).normalize();
+        digits.thumb.tip.copy(digits.thumb.j1).addScaledVector(V_FINGER_B, digits.thumb.len1);
+      }
+      // emission order: thenar, thumba, thumbb, finger0a..finger3b, palm
+      // LAST — the pose sink's last write per bone wins, so the palm drives
+      // the hand bone and thumba (after thenar2) drives its own bone
+      for (let ti = 0; ti < 3; ti++) {
+        V_THUMB_A.copy(digits.thenar[ti].p).applyQuaternion(Q_PALM).add(hand);
+        V_THUMB_B.copy(digits.thenar[ti + 1].p).applyQuaternion(Q_PALM).add(hand);
+        sink.seg(`hand${side}.thenar${ti}`, V_THUMB_A.x, V_THUMB_A.y, V_THUMB_A.z, V_THUMB_B.x, V_THUMB_B.y, V_THUMB_B.z, digits.thenar[ti].r, digits.thenar[ti + 1].r);
+      }
+      V_THUMB_A.copy(digits.thumb.a).applyQuaternion(Q_PALM).add(hand);
+      V_THUMB_B.copy(digits.thumb.j1).applyQuaternion(Q_PALM).add(hand);
+      sink.seg('hand' + side + '.thumba', V_THUMB_A.x, V_THUMB_A.y, V_THUMB_A.z, V_THUMB_B.x, V_THUMB_B.y, V_THUMB_B.z, digits.thumb.r0, digits.thumb.r1);
+      V_THUMB_A.copy(digits.thumb.tip).applyQuaternion(Q_PALM).add(hand);
+      sink.seg('hand' + side + '.thumbb', V_THUMB_B.x, V_THUMB_B.y, V_THUMB_B.z, V_THUMB_A.x, V_THUMB_A.y, V_THUMB_A.z, digits.thumb.r1, digits.thumb.r2);
+      for (const [fi, f] of digits.fingers.entries()) {
+        V_PALM_TIP.copy(f.root).applyQuaternion(Q_PALM).add(hand);
+        V_FINGER_B.copy(f.j1).applyQuaternion(Q_PALM).add(hand);
+        sink.seg(`hand${side}.finger${fi}a`, V_PALM_TIP.x, V_PALM_TIP.y, V_PALM_TIP.z, V_FINGER_B.x, V_FINGER_B.y, V_FINGER_B.z, f.r0, f.r1);
+        V_PALM_TIP.copy(f.tip).applyQuaternion(Q_PALM).add(hand);
+        sink.seg(`hand${side}.finger${fi}b`, V_FINGER_B.x, V_FINGER_B.y, V_FINGER_B.z, V_PALM_TIP.x, V_PALM_TIP.y, V_PALM_TIP.z, f.r1, f.r2);
+      }
       V_PALM_TIP.copy(V_PALM_DIR).multiplyScalar(palmLen).add(hand);
-      // curled finger mass — continues the palm bent ~50° toward the knuckle
-      // front; the bend IS the knuckle plane break. round 16: the root
-      // swells past the palm (1.12 handR) — a knuckle step the outline
-      // creases around in every view. Mirror: bipedRestPose.
-      V_FINGER_B.set(0, fingerLen * 0.64, -fingerLen * 0.77).applyQuaternion(Q_PALM).add(V_PALM_TIP);
-      sink.seg(
-        'hand' + side + '.fingers',
-        V_PALM_TIP.x, V_PALM_TIP.y, V_PALM_TIP.z,
-        V_FINGER_B.x, V_FINGER_B.y, V_FINGER_B.z,
-        handR * 1.12, handR * 0.68,
-      );
       sink.seg(
         'hand' + side + '.palm',
         hand.x, hand.y, hand.z,
@@ -627,13 +754,21 @@ class BipedDriver extends BaseDriver {
         handR * 0.88, handR,
       );
       // round 6 (humanoid-anatomy): grip anchor — held gear parents to the
-      // hand anchor, so aim it at the FIST CENTER. round 15: the haft rides
-      // the knuckle-front pocket under the curled fingers, thumb crossing
-      // over it.
-      this.pose.anchors[sgn < 0 ? 'handL' : 'handR'].pos
+      // hand anchor, so aim it at the FIST CENTER (the wrap-circle center).
+      const anchor = this.pose.anchors[sgn < 0 ? 'handL' : 'handR'];
+      anchor.pos
         .set(0, palmLen * 0.6, -handR * 0.45)
         .applyQuaternion(Q_PALM)
         .add(hand);
+      if (grip) {
+        // the weapon's +Y (blade axis) runs along the mapped knuckle row and
+        // its +Z faces the knuckle front — the haft threads the digit wrap
+        V_THUMB_A.set(sgn, 0, 0).applyQuaternion(Q_PALM); // blade axis
+        V_THUMB_B.set(0, 0, -1).applyQuaternion(Q_PALM); // edge facing
+        V_FINGER_B.copy(V_THUMB_A).cross(V_THUMB_B); // weapon +X = Y×Z
+        M_GRIP.makeBasis(V_FINGER_B, V_THUMB_A, V_THUMB_B);
+        anchor.quat.setFromRotationMatrix(M_GRIP);
+      }
     }
     // round 1 (humanoid-anatomy): near 2:1 thigh-to-calf taper (thigh root
     // 1.32 legR down to a 0.5 legR ankle), thighs rooted deeper and wider
@@ -2783,12 +2918,13 @@ export function createGaitDriver(
    * blueprint carries wing mesh parts (garnish) — plan drivers need this to
    * beat wings that are not chain appendages. `crested`: the blueprint
    * carries a finRidge garnish — the plan driver emits the dorsal crest
-   * along its live spine (round 9). */
-  opts?: { winged?: boolean; crested?: boolean },
+   * along its live spine (round 9). `grips`: which hands hold a HAFT weapon
+   * (real-finger update) — biped digits wrap the haft on those sides. */
+  opts?: { winged?: boolean; crested?: boolean; grips?: { L?: boolean; R?: boolean } },
 ): GaitDriver {
   switch (gait) {
     case 'biped':
-      return new BipedDriver(frame);
+      return new BipedDriver(frame, opts?.grips);
     case 'quad':
       return new MultiLegDriver(frame, false);
     case 'hexapod':

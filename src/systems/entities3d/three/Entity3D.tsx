@@ -21,8 +21,8 @@
  * just owns the handle's lifecycle and feeds it the frame clock.
  */
 import { useEffect, useMemo, useRef } from 'react';
-import { useFrame } from '@react-three/fiber';
-import { Vector3 } from 'three';
+import { useFrame, useThree } from '@react-three/fiber';
+import { SkeletonHelper, Vector3 } from 'three';
 import type { EntityBlueprint } from '../types';
 import type { LocomotionState } from './gaits';
 import { assembleEntity } from './assembleEntity';
@@ -33,6 +33,9 @@ export interface Entity3DProps {
   blueprint: EntityBlueprint;
   /** Walk in place (or along `walkCircleRadius`) instead of idling. */
   walking?: boolean;
+  /** Gesture overlay (real-finger update): 'wave' raises the free hand,
+   * extends the digits, and rocks it. Biped gaits only; others ignore it. */
+  gesture?: 'wave';
   /** Ground speed while walking, m/s. */
   speed?: number;
   /** When set, the entity strolls a circle of this radius (showcase mode). */
@@ -58,11 +61,15 @@ export interface Entity3DProps {
   /** Skinned weight style (slice 3): 'rigid' segment-look default or
    * 'smooth' one-piece blended tubes. Only read when bodyTech is 'skinned'. */
   skinnedWeights?: 'rigid' | 'smooth';
+  /** Draw a SkeletonHelper over the body. Only skinned bodies have bones;
+   * on a segment body the helper finds none and nothing is drawn. */
+  showBones?: boolean;
 }
 
 export function Entity3D({
   blueprint,
   walking = false,
+  gesture,
   speed = 1.1,
   walkCircleRadius,
   position = [0, 0, 0],
@@ -72,6 +79,7 @@ export function Entity3D({
   renderMode,
   bodyTech,
   skinnedWeights,
+  showBones = false,
 }: Entity3DProps) {
   // Keep the numeric performance settings as explicit dependencies. Callers
   // can tune a foreground hero differently from a conversational crowd
@@ -85,6 +93,25 @@ export function Entity3D({
     return () => handle.release();
   }, [handle]);
 
+  // Bone overlay: the helper's line material depth-tests off by default, so
+  // the skeleton reads through the flesh. It must ride the SCENE root — the
+  // helper adopts its root's world matrix as its own local matrix, so a spot
+  // under the entity group would apply the group transform twice.
+  const scene = useThree((s) => s.scene);
+  useEffect(() => {
+    if (!showBones) return;
+    const helper = new SkeletonHelper(handle.group);
+    if (helper.bones.length === 0) {
+      helper.dispose();
+      return;
+    }
+    scene.add(helper);
+    return () => {
+      scene.remove(helper);
+      helper.dispose();
+    };
+  }, [handle, showBones, scene]);
+
   const loco = useRef<LocomotionState>({
     position: new Vector3(),
     heading: new Vector3(0, 0, 1),
@@ -96,6 +123,7 @@ export function Entity3D({
     const t = state.clock.elapsedTime;
     const l = loco.current;
     l.speed = walking ? speed : 0;
+    l.gesture = gesture;
     if (walking && walkCircleRadius && walkCircleRadius > 0) {
       angle.current += (speed / walkCircleRadius) * dt;
       const a = angle.current;
