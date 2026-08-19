@@ -13,7 +13,7 @@
     "spine": {
       "segments": 6,
       "taper": 0.72,
-      "arch": 0.28,
+      "arch": 0.45,
       "bulge": 0.4
     },
     "appendages": [

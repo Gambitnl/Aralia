@@ -43,9 +43,10 @@
  *
  * The one documented exception is the summit knee. Above 0.7 the soft tanh
  * knee compresses, so a window over very high country reads slightly BELOW its
- * atlas mean. `generateHeightfield` does the same thing for the same reason:
- * a hard clamp turns every big peak into one co-planar mesa. Below 0.7 the
- * composite is unbiased.
+ * atlas mean. The previous region pipeline (`generateHeightfield`, removed
+ * 2026-08-18 when the composite was wired into generateRegion) did the same
+ * for the same reason: a hard clamp turns every big peak into one co-planar
+ * mesa. Below 0.7 the composite is unbiased.
  *
  * NOISE. Every band and operator reads the stateless GRADIENT noise defined at
  * the top of this file — not the region tier's `makeWorldFeetNoise`, which is
@@ -54,7 +55,7 @@
  * instances corrupt each other. This file creates no `SimplexNoise`.
  *
  * UNITS. Feet only. Heights are the atlas-normalized 0..1 scale, the same scale
- * `generateHeightfield` and `regionTerrainField` use.
+ * the region tier uses (and the old `generateHeightfield` used).
  */
 import type { Feet } from '../units';
 
@@ -1440,7 +1441,7 @@ export interface CompositeHeightField {
   meanVariation: Float64Array;
 }
 
-/** Soft knee start, matching `generateHeightfield` so summits stay ordered. */
+/** Soft knee start, matching the old region pipeline so summits stay ordered. */
 const KNEE_START = 0.7;
 const KNEE_SPAN = 1 - KNEE_START;
 

@@ -39,6 +39,7 @@ import { generateEntityBlueprint } from '@/systems/entities3d/generateEntityBlue
 import { heightM } from '@/systems/entities3d/types';
 import type { EntityRecipe } from '@/systems/entities3d/types';
 import { Entity3D } from '@/systems/entities3d/three/Entity3D';
+import { gameBodyOptions } from '@/systems/entities3d/three/assembleEntity';
 
 registerAllParts();
 
@@ -115,12 +116,14 @@ const Figure: React.FC<{
       {/* The generated body, idling in place (pointer events bubble up).
           Opening scenes can stage several figures at once, so their soft-body
           fields use a conversational-distance resolution and a gentle idle
-          refresh. Labels, clicks, gear, eyes, and facing remain full-frame. */}
+          refresh. Labels, clicks, gear, eyes, and facing remain full-frame.
+          Skinned by default (skeleton pivot flip 2026-08-18). */}
       <Entity3D
         blueprint={blueprint}
         walking={false}
         resolutionScale={0.6}
         fieldUpdateHz={6}
+        {...gameBodyOptions(blueprint)}
       />
       {/* Name label floating above the head. */}
       <Html center position={[0, labelY, 0]} distanceFactor={12}>

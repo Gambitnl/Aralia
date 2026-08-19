@@ -11,7 +11,7 @@ import React, { useEffect, useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Vector3 } from 'three';
 import type { EntityBlueprint } from '@/systems/entities3d/types';
-import { assembleEntity } from '@/systems/entities3d/three/assembleEntity';
+import { assembleEntity, gameBodyOptions } from '@/systems/entities3d/three/assembleEntity';
 import type { LocomotionState } from '@/systems/entities3d/three/gaits';
 import type { AnimationState } from './models';
 import { combatOverlayPose } from './entityOverlays';
@@ -34,8 +34,10 @@ interface EntityModelProps {
 export const EntityModel: React.FC<EntityModelProps> = ({ blueprint, animState, animTimeRef, controlPose = null }) => {
   // Tactical camera distance affords chunkier fields, and stationary tokens
   // don't need 60 Hz body rebuilds — a whole encounter must stay cheap.
+  // Skinned by default (skeleton pivot flip 2026-08-18): a whole encounter of
+  // actors at 2 draw calls per body instead of ~60 each.
   const handle = useMemo(
-    () => assembleEntity(blueprint, { resolutionScale: 0.7, fieldUpdateHz: 10 }),
+    () => assembleEntity(blueprint, { resolutionScale: 0.7, fieldUpdateHz: 10, ...gameBodyOptions(blueprint) }),
     [blueprint],
   );
   useEffect(() => {

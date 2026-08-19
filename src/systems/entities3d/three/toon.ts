@@ -4,6 +4,7 @@
  * radial blob shadow (shader-based so it works headless).
  */
 import {
+  BufferGeometry,
   Color,
   DataTexture,
   DoubleSide,
@@ -14,6 +15,7 @@ import {
   ShaderMaterial,
   BackSide,
 } from 'three';
+import { mergeVertices } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 
 /** How generated entity bodies are drawn. */
 export type EntityRenderMode = 'solid' | 'wireframe';
@@ -31,6 +33,18 @@ export type EntityRenderMode = 'solid' | 'wireframe';
  */
 export const OUTLINE_MATERIAL_NAME = 'entity-ink-outline';
 export const BLOB_SHADOW_MATERIAL_NAME = 'entity-blob-shadow';
+
+/**
+ * Ink-width ceiling as a fraction of viewport height (2026-08-18, Remy's
+ * close-up eyeball). The hull push is a WORLD size (hM * 0.011), tuned for the
+ * game camera. A zoomed-in camera magnified that same 2 cm into 30-60 px slabs
+ * — fists and armpits flooded shut, the robe read as a black-flanked bell.
+ * The vertex shader now caps the push so its projected width never exceeds
+ * this fraction of the screen. 0.012 ≈ 13 px on a 1080-row view: above every
+ * approved game-distance line (6-8 px), so far looks are untouched and only
+ * close-ups thin down.
+ */
+export const INK_MAX_SCREEN_FRACTION = 0.012;
 
 /**
  * The global default look for generated entities. Every consumer that does
@@ -114,14 +128,30 @@ export function outlineMaterial(colorHex: string, thickness = 0.02, opacity = 1,
       uC: { value: new Color(colorHex).multiplyScalar(0.22) },
       uT: { value: thickness },
       uA: { value: opacity },
+      uFMax: { value: INK_MAX_SCREEN_FRACTION },
     },
+    // Screen-space width cap (see INK_MAX_SCREEN_FRACTION): the projected
+    // height of a push `t` at view depth `w` is t * P[1][1] / w in NDC, and
+    // NDC spans 2 screen heights. Depth comes from the BIND-pose vertex — for
+    // a posed limb that is off by centimeters against meters of camera
+    // distance, invisible in a soft cap. P[3][3] is 1 only for an
+    // orthographic camera, where the depth term drops out. The modelView
+    // column length undoes the object scale (the head shell divides its
+    // thickness by skullR because its group is scaled by skullR — the cap
+    // must compare WORLD sizes).
     vertexShader: `
       uniform float uT;
+      uniform float uFMax;
       ${perVertexScale ? 'attribute float aInk;' : ''}
       #include <skinning_pars_vertex>
       void main() {
         #include <skinbase_vertex>
-        vec3 transformed = position + normalize(normal) * uT${perVertexScale ? ' * aInk' : ''};
+        vec4 inkMv = modelViewMatrix * vec4(position, 1.0);
+        float inkW = max(mix(-inkMv.z, 1.0, projectionMatrix[3][3]), 0.0);
+        float inkScale = length(modelViewMatrix[0].xyz);
+        float inkMax = 2.0 * uFMax * inkW / projectionMatrix[1][1];
+        float inkT = min(uT * inkScale, inkMax) / inkScale;
+        vec3 transformed = position + normalize(normal) * inkT${perVertexScale ? ' * aInk' : ''};
         #include <skinning_vertex>
         gl_Position = projectionMatrix * modelViewMatrix * vec4(transformed, 1.0);
       }`,
@@ -130,6 +160,27 @@ export function outlineMaterial(colorHex: string, thickness = 0.02, opacity = 1,
       uniform float uA;
       void main() { gl_FragColor = vec4(uC, uA); }`,
   });
+}
+
+/**
+ * Smooth-normal clone of a geometry, for the ink hull ONLY.
+ *
+ * Inflating flat-faceted geometry along its normals splits the hull at every
+ * hard edge — each facet pushes in its own direction and the cracks show the
+ * background through the ink (the hat-cone slivers and skirt wedges in Remy's
+ * 2026-08-18 close-ups; the head loft hit the same failure in round 8 and
+ * carries its own smooth shell). This rebuilds the surface as one welded
+ * indexed mesh with vertex-averaged normals, so the hull inflates as a single
+ * closed skin. Position-only on purpose: the hull shader reads nothing else,
+ * and dropping the split normals is what lets mergeVertices weld the seams.
+ */
+export function smoothShellGeometry(geometry: BufferGeometry): BufferGeometry {
+  const positionOnly = new BufferGeometry();
+  positionOnly.setAttribute('position', geometry.getAttribute('position'));
+  if (geometry.index) positionOnly.setIndex(geometry.index);
+  const welded = mergeVertices(positionOnly, 1e-4);
+  welded.computeVertexNormals();
+  return welded;
 }
 
 /** Soft radial ground shadow without canvas textures (headless-safe). */

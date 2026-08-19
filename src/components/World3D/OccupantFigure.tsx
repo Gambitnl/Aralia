@@ -32,7 +32,7 @@ import { Vector3 } from 'three';
 import { registerAllParts } from '@/systems/entities3d/parts';
 import { generateEntityBlueprint } from '@/systems/entities3d/generateEntityBlueprint';
 import { recipeFromOccupant } from '@/systems/entities3d/recipeFromOccupant';
-import { assembleEntity } from '@/systems/entities3d/three/assembleEntity';
+import { assembleEntity, gameBodyOptions } from '@/systems/entities3d/three/assembleEntity';
 import type { LocomotionState } from '@/systems/entities3d/three/gaits';
 
 registerAllParts();
@@ -76,8 +76,9 @@ const OccupantFigure: React.FC<OccupantFigureProps> = ({
   // across the foreground. A half-resolution field refreshed three times per
   // second keeps breathing/idle silhouettes alive while the per-frame anchors,
   // eyes, and facing remain smooth. The parent also caps how many can exist.
+  // Skinned by default (skeleton pivot flip 2026-08-18).
   const handle = useMemo(
-    () => assembleEntity(blueprint, { resolutionScale: 0.5, fieldUpdateHz: 3 }),
+    () => assembleEntity(blueprint, { resolutionScale: 0.5, fieldUpdateHz: 3, ...gameBodyOptions(blueprint) }),
     [blueprint],
   );
   useEffect(() => {

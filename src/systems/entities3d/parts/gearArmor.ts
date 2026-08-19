@@ -180,13 +180,16 @@ const hatWide: PartDef = {
   buildMesh(ctx) {
     const r = hr(ctx.frame);
     const group = new Group();
+    // Remy 2026-08-19: the whole hat rides 0.2 r higher — at 0.55 r the brim
+    // plane sliced through the dwarf's brow crown (the forehead poked out
+    // over the brim edge in the front panel).
     const brim = new Mesh(new CylinderGeometry(r * 2.0, r * 2.15, r * 0.12, 16), ctx.material(ctx.palette.accentHex));
-    brim.position.y = r * 0.55;
+    brim.position.y = r * 0.75;
     const cone = new Mesh(new ConeGeometry(r * 0.95, r * 2.1, 12), ctx.material(ctx.palette.accentHex));
-    cone.position.y = r * 1.55;
+    cone.position.y = r * 1.75;
     cone.rotation.z = 0.12; // slouch
     const band = new Mesh(new CylinderGeometry(r * 0.98, r * 1.02, r * 0.28, 12), ctx.material(ctx.palette.secondaryHex));
-    band.position.y = r * 0.75;
+    band.position.y = r * 0.95;
     group.add(brim, cone, band);
     return { object: group };
   },

@@ -41,9 +41,10 @@ export interface LocomotionState {
   heading: Vector3;
   /** Ground speed in m/s (or air speed for flyers). */
   speed: number;
-  /** Optional gesture overlay. 'wave' (biped only): the free hand rises
-   * beside the head, palm out, digits EXTENDED, and rocks side to side. */
-  gesture?: 'wave';
+  /** Optional gesture overlay (biped only). 'wave': the free hand rises
+   * beside the head, palm out, digits EXTENDED, and rocks side to side.
+   * 'wave_both': both hands wave (a held weapon rides its raised hand). */
+  gesture?: 'wave' | 'wave_both';
 }
 
 export interface PoseAnchor {
@@ -290,9 +291,12 @@ class BipedDriver extends BaseDriver {
    * point), so the anchors can no longer double as the next IK input. */
   private readonly wrist: [Vector3, Vector3] = [new Vector3(), new Vector3()];
 
-  /** The hand that performs the wave gesture: the right, unless it grips. */
-  private waveSgn(): 1 | -1 {
-    return this.grips?.R ? -1 : 1;
+  /** True when the given side performs a wave this frame: both sides for
+   * 'wave_both'; for 'wave', the right hand unless it grips a weapon. */
+  private waves(sgn: 1 | -1): boolean {
+    if (this.gesture === 'wave_both') return true;
+    if (this.gesture !== 'wave') return false;
+    return sgn === (this.grips?.R ? -1 : 1);
   }
 
   constructor(
@@ -458,12 +462,18 @@ class BipedDriver extends BaseDriver {
       const phaseOff = sgn < 0 ? 0.5 : 0;
       const swing = Math.sin((this.gaitPhase + phaseOff) * Math.PI * 2) * 0.55 * this.speedFactor;
       const hand = this.pose.anchors[sgn < 0 ? 'handL' : 'handR'];
-      if (this.gesture === 'wave' && sgn === this.waveSgn()) {
+      if (this.waves(sgn)) {
         // wave gesture: the wrist rises beside the head and rocks with the
-        // beat; buildBody extends the digits and rocks the palm to match
+        // beat; buildBody extends the digits and rocks the palm to match.
+        // A GRIP hand salutes HIGHER and FURTHER OUT — the wrapped fist and
+        // its weapon must clear the head and any hat (Remy's wizard eyeball:
+        // the staff fist parked in front of the hat brim).
+        const gripSide = !!this.grips?.[sgn < 0 ? 'L' : 'R'];
+        const outX = this.baseR * (gripSide ? 1.15 : 0.55);
+        const upY = this.hM * (gripSide ? 0.22 : 0.17);
         hand.pos.set(
-          sgn * (shoulderX + this.baseR * 0.55) + sgn * Math.sin(this.t * 5.2) * this.hM * 0.02,
-          this.chestY + this.baseR * 0.45 + this.hM * 0.17,
+          sgn * (shoulderX + outX) + sgn * Math.sin(this.t * 5.2) * this.hM * 0.02,
+          this.chestY + this.baseR * 0.45 + upY,
           this.hM * 0.06 + hunchZ,
         );
       } else {
@@ -631,18 +641,29 @@ class BipedDriver extends BaseDriver {
     // round 19 (humanoid-anatomy): fist floor 0.6 → 0.45 skullR — Remy: the
     // dwarf hand was "a giant flat slab, near head-size". Mirror:
     // bipedRestPose arm loop.
-    const handR = Math.max(armR * 1.05, this.skullR * 0.45);
-    const palmLen = handR * 1.35;
+    // hand-research round 4 (Remy: "the hands are like fat balls") — the
+    // skull-floored fist plus REAL curled digits out-massed the round-19
+    // budget: the digit curl extends the envelope ~0.5 handR past the palm,
+    // so the same handR now draws a bigger fist. Scale down: skull floor
+    // 0.45 → 0.40, arm term 1.05 → 1.0, palm 1.35 → 1.28 handR. Mirror:
+    // skeletonBuilder.bipedRestPose.
+    const handR = Math.max(armR * 1.0, this.skullR * 0.4);
+    const palmLen = handR * 1.28;
     const fingerLen = handR * 0.95;
     for (const sgn of [-1, 1] as const) {
       const side = sgn < 0 ? 'L' : 'R';
       const hand = this.wrist[sgn < 0 ? 0 : 1];
       // round 18 (humanoid-anatomy): shoulders roll forward with the hunch
+      const waving = this.waves(sgn);
       V_SH.set(sgn * shoulderX, this.chestY + r * 0.45, 0.02 + hunchZ);
+      // clavicle update: a waving shoulder RISES — the whole arm root (deltoid
+      // ball + upper-arm segment + the derived clavicle bone) lifts with the
+      // gesture instead of the hand climbing off a frozen shoulder. Rest pose
+      // never waves, so the skeletonBuilder mirror stays exact.
+      if (waving) V_SH.y += r * 0.16;
       // round 14 (humanoid-anatomy): elbow tucked mostly BACKWARD — the
       // lateral bend arced the arm into a "banana bow". Mirror:
       // bipedRestPose arm loop.
-      const waving = this.gesture === 'wave' && sgn === this.waveSgn();
       if (waving) V_BEND.set(sgn * 0.8, -0.55, -0.25);
       else V_BEND.set(sgn * 0.45, 0, -1);
       V_BEND.normalize();
@@ -665,23 +686,30 @@ class BipedDriver extends BaseDriver {
       // weapon passes exactly through the wrapped fingers. A free hand keeps
       // the round-18 hanging palm and the relaxed curl from the shared
       // layout. Mirror (free path): skeletonBuilder.bipedRestPose arm loop.
-      const grip = !!this.grips?.[side] && !waving;
-      if (waving) {
+      // a GRIP hand that waves keeps its wrap — the raised weapon salute
+      // (an open palm with a floating sword read as a dropped weapon)
+      const grip = !!this.grips?.[side];
+      if (waving && !grip) {
         // wave gesture: palm out toward the viewer, fingers up, and the
-        // whole hand rocks side to side with the beat
-        V_PALM_DIR.set(sgn * 0.15 + Math.sin(this.t * 5.2) * 0.38, 1, 0.05).normalize();
+        // whole hand rocks side to side with the beat (sgn-mirrored, so a
+        // both-hands wave rocks symmetrically)
+        V_PALM_DIR.set(sgn * (0.15 + Math.sin(this.t * 5.2) * 0.38), 1, 0.05).normalize();
       } else if (grip) {
         // solved numerically: this palm dir maps the knuckle row (the haft
         // axis) to ≈(0.02, 0.86, 0.52) — a near-vertical blade with a clean
         // forward lean and no inward cross over the chest
         V_PALM_DIR.set(-sgn * 0.85, -0.25, 0.45).normalize();
       } else {
-        // fingers axis: forearm direction cocked forward (+z 0.32 ≈ 18°)
+        // fingers axis: forearm direction with a mild forward cock. Round 4
+        // (hand research): the round-16/18 camera-aimed cocks (z 0.32,
+        // lateral sgn·0.22) existed so the PAINTED thumb faced the camera —
+        // real digits made them a twist that pointed the hanging fists
+        // inward ("the positioning of the hands don't make any sense").
+        // The hang is near-neutral now: knuckles forward, palm at the thigh.
+        // Mirror: skeletonBuilder.bipedRestPose arm loop.
         V_PALM_DIR.copy(hand).sub(V_KNEE).normalize();
-        V_PALM_DIR.z += 0.32;
-        // round 16 (humanoid-anatomy): lateral cock (~8°); round 18: 0.22 —
-        // the thumb crossing must profile to the front camera.
-        V_PALM_DIR.x += sgn * 0.22;
+        V_PALM_DIR.z += 0.24;
+        V_PALM_DIR.x += sgn * 0.08;
         V_PALM_DIR.normalize();
       }
       // canonical palm frame — identical to the pose sink's hand-bone rule
@@ -725,6 +753,17 @@ class BipedDriver extends BaseDriver {
         digits.thumb.j1.copy(digits.thumb.a).addScaledVector(V_FINGER_B, digits.thumb.len0);
         V_FINGER_B.set(sgn * 0.42, 0.8, -0.43).normalize();
         digits.thumb.tip.copy(digits.thumb.j1).addScaledVector(V_FINGER_B, digits.thumb.len1);
+        // Remy 2026-08-19: "the hand is 'backwards' when waving". With the
+        // fingers-up palm dir the canonical transport is near identity, so
+        // the KNUCKLE side (local +Z) faced the viewer. The hand bone cannot
+        // carry twist (minimal-rotation transport), but the digits ride their
+        // own bones — roll the whole digit set 180° about the finger axis
+        // (palm-local (x,z) → (−x,−z), a proper rotation, lengths exact) so
+        // the palm side with the thumb-index fan faces the viewer.
+        for (const f of digits.fingers) {
+          for (const p of [f.root, f.j1, f.tip]) { p.x = -p.x; p.z = -p.z; }
+        }
+        for (const p of [digits.thumb.a, digits.thumb.j1, digits.thumb.tip]) { p.x = -p.x; p.z = -p.z; }
       }
       // emission order: thenar, thumba, thumbb, finger0a..finger3b, palm
       // LAST — the pose sink's last write per bone wins, so the palm drives
@@ -1436,7 +1475,14 @@ class PlanDriver extends BaseDriver {
       // stiff spider leg (the ooze's persistent "translucent tick"); dropping
       // the seed direction plus the per-link sag below lays resting tentacles
       // onto the ground clamp, where they drag as melting stubs.
-      dir.set(chain.side === 0 ? 0.4 : chain.side, -0.55, 0.35);
+      // round 27 (creature-anatomy): FLOATERS CROWN their tentacles. The
+      // generated Beholder's ten eyestalks took the ooze droop + sag + ground
+      // clamp and rendered as spider legs planted on the grass — a floating
+      // tyrant read as a grounded tick. On a floating stance the stalks now
+      // leave UP-AND-OUT and arc outward per link (below); grounded bodies
+      // keep the pseudopod droop untouched.
+      const stalky = this.spec.stance === 'floating';
+      dir.set(chain.side === 0 ? 0.4 : chain.side, stalky ? 0.5 : -0.55, 0.35);
       // siblings fan around the body — six tentacles are a crown, not a comb
       const sibs = this.spec.chains.filter((c) => c.kind === 'tentacle' && c.side === chain.side);
       if (sibs.length > 1) {
@@ -1456,14 +1502,25 @@ class PlanDriver extends BaseDriver {
       // arm: down-forward hang for walkers; a gentle drape for floaters —
       // level enough to radiate when many, hanging enough to read spectral
       // when few
+      // round 26 (creature-anatomy): UPRIGHT WALKERS HANG THEIR ARMS. The
+      // (±1, −0.55, 0.5) seed is a radiate pose — right for a ghost's drape
+      // or a twelve-arm starburst, but on an upright biped plan (the gnoll)
+      // one lanky arm per side left the shoulder SIDEWAYS: the T-pose
+      // starfish read. A single upright arm now leaves mostly DOWN with a
+      // slight outward and forward lean; multi-arm frames and floaters keep
+      // the radiate seed.
       const droop = this.spec.stance === 'floating' ? -0.22 : -0.55;
-      dir.set(chain.side === 0 ? 0.5 : chain.side, droop, 0.5);
+      const armSibs = this.spec.chains.filter((c) => c.kind === 'arm' && c.side === chain.side);
+      if (this.spec.stance === 'upright' && armSibs.length <= 1 && chain.side !== 0) {
+        dir.set(chain.side * 0.38, -1, 0.18);
+      } else {
+        dir.set(chain.side === 0 ? 0.5 : chain.side, droop, 0.5);
+      }
       // siblings fan around the body — twelve radial arms are a starburst,
       // not two bundled brooms (same treatment tentacles get)
-      const sibs = this.spec.chains.filter((c) => c.kind === 'arm' && c.side === chain.side);
-      if (sibs.length > 1) {
-        const which = sibs.findIndex((c) => c.id === chain.id);
-        dir.applyAxisAngle(V_UP, (which / (sibs.length - 1) - 0.5) * 2.4 * (chain.side || 1));
+      if (armSibs.length > 1) {
+        const which = armSibs.findIndex((c) => c.id === chain.id);
+        dir.applyAxisAngle(V_UP, (which / (armSibs.length - 1) - 0.5) * 2.4 * (chain.side || 1));
       }
     }
     dir.normalize();
@@ -1522,13 +1579,22 @@ class PlanDriver extends BaseDriver {
         step.applyAxisAngle(V_UP, wag * (j + 1) * 0.35);
         step.y -= j * 0.16; // droop toward the tip
       } else if (chain.kind === 'tentacle') {
-        // round 8 (creature-anatomy): the wave rides the GROUND — lateral
-        // ripple stays (perp), but the vertical component shrank (0.22 →
-        // 0.08) and every link now sags hard (-0.28 - j*0.2, was -j*0.08).
-        // With the ground clamp below, no tentacle holds a straight line in
-        // the air at idle: they droop, touch down, and drag.
-        const wave = Math.sin(this.t * 3.1 + j * 1.15 + chain.attach * 6);
-        step.addScaledVector(perp, wave * 0.35).addScaledVector(V_UP, wave * 0.08 - 0.28 - j * 0.2);
+        if (this.spec.stance === 'floating') {
+          // round 27 (creature-anatomy): the eyestalk crown — a slow sway
+          // instead of the ground-drag ripple, and each link bends OUTWARD
+          // toward the tip so the crown opens like a fan around the orb.
+          const sway = Math.sin(this.t * 1.7 + j * 0.9 + chain.attach * 6);
+          step.addScaledVector(perp, sway * 0.1);
+          step.y += 0.22 - j * 0.42;
+        } else {
+          // round 8 (creature-anatomy): the wave rides the GROUND — lateral
+          // ripple stays (perp), but the vertical component shrank (0.22 →
+          // 0.08) and every link now sags hard (-0.28 - j*0.2, was -j*0.08).
+          // With the ground clamp below, no tentacle holds a straight line in
+          // the air at idle: they droop, touch down, and drag.
+          const wave = Math.sin(this.t * 3.1 + j * 1.15 + chain.attach * 6);
+          step.addScaledVector(perp, wave * 0.35).addScaledVector(V_UP, wave * 0.08 - 0.28 - j * 0.2);
+        }
       } else if (chain.kind === 'wing') {
         step.y += this.flap * (0.55 + j * 0.5);
       } else if (chain.kind === 'neck') {

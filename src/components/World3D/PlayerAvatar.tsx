@@ -44,7 +44,7 @@ import { registerAllParts } from '@/systems/entities3d/parts';
 import { generateEntityBlueprint } from '@/systems/entities3d/generateEntityBlueprint';
 import { recipeFromCharacter } from '@/systems/entities3d/recipeFromCharacter';
 import { heightM } from '@/systems/entities3d/types';
-import { assembleEntity } from '@/systems/entities3d/three/assembleEntity';
+import { assembleEntity, gameBodyOptions } from '@/systems/entities3d/three/assembleEntity';
 import type { LocomotionState } from '@/systems/entities3d/three/gaits';
 
 registerAllParts();
@@ -92,8 +92,10 @@ const PlayerAvatar: React.FC<PlayerAvatarProps> = ({
   // the soft body surface itself does not need to be rebuilt at monitor speed.
   // A smaller field updated ten times per second preserves the animated body
   // while leaving enough frame budget for terrain, buildings, and townsfolk.
+  // Skinned by default (skeleton pivot flip 2026-08-18): 2 draw calls per
+  // figure instead of ~60, smooth one-piece look on bipeds.
   const handle = useMemo(
-    () => (blueprint ? assembleEntity(blueprint, { resolutionScale: 0.7, fieldUpdateHz: 10 }) : null),
+    () => (blueprint ? assembleEntity(blueprint, { resolutionScale: 0.7, fieldUpdateHz: 10, ...gameBodyOptions(blueprint) }) : null),
     [blueprint],
   );
   useEffect(() => {

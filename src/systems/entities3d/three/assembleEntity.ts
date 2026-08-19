@@ -67,6 +67,7 @@ import type { WingJointPose } from '../parts/wingParts';
 import {
   blobShadowMaterial,
   outlineMaterial,
+  smoothShellGeometry,
   toonMaterial,
   ENTITY_RENDER_MODE,
   type EntityRenderMode,
@@ -127,6 +128,20 @@ const IDLE: LocomotionState = {
   heading: new Vector3(0, 0, 1),
   speed: 0,
 };
+
+/**
+ * The GAME surfaces' body options — the skeleton pivot flip (2026-08-18).
+ * Every gait carries a skeleton (slices 1/4/5) and the chain parts are boned
+ * (slice 6), so the game default is the skinned body: 2 draw calls per figure
+ * instead of ~60. Bipeds wear the slice-3 smooth one-piece look — the mapping
+ * the Entity Debug eyeball surface renders; plan and species bodies use rigid
+ * weights (smooth is deferred there by design). Debug surfaces keep passing
+ * their own explicit options; assembleEntity's own default stays 'segments'
+ * so wireframe debug looks keep working unchanged.
+ */
+export function gameBodyOptions(blueprint: EntityBlueprint): Pick<AssembleOptions, 'bodyTech' | 'skinnedWeights'> {
+  return { bodyTech: 'skinned', skinnedWeights: blueprint.gait === 'biped' ? 'smooth' : 'rigid' };
+}
 
 export function assembleEntity(blueprint: EntityBlueprint, options: AssembleOptions = {}): EntityHandle {
   const { frame, palette, gait } = blueprint;
@@ -339,7 +354,12 @@ export function assembleEntity(blueprint: EntityBlueprint, options: AssembleOpti
             const girth = Math.min(halfX, halfY, halfZ);
             if (girth > 0) ink = Math.min(ink, girth * 0.25);
           }
-          const shell = new Mesh(m.geometry, outlineMaterial('#20242c', ink));
+          // 2026-08-18 (Remy close-up eyeball): the hull inflates a SMOOTH
+          // welded clone, not the render geometry. Inflating flat facets tears
+          // the hull at every hard edge — the hat cone showed sky slivers and
+          // the robe skirt grew detached black wedges. Same cure the head
+          // loft has carried since round 8 (userData.shellGeometry).
+          const shell = new Mesh(smoothShellGeometry(m.geometry), outlineMaterial('#20242c', ink));
           shell.name = 'partOutline';
           shell.position.copy(m.position);
           shell.quaternion.copy(m.quaternion);
@@ -511,10 +531,13 @@ export function assembleEntity(blueprint: EntityBlueprint, options: AssembleOpti
       const theta = (i / MOUTH_SAMPLES) * thetaMax;
       mouthPts.push(new Vector3(Math.sin(theta) * 0.46, 0, grooveZ(theta) + 0.02));
     }
-    // buried end samples: past the corner, dive 0.06 under the cheek
+    // buried end samples: past the corner, dive under the cheek. Remy
+    // 2026-08-19: 0.06 was tuned on the human loft — on the beardless dwarf
+    // the shallower cheek let both end segments resurface as two dark fangs
+    // below the mouth corners. 0.16 buries them on every face profile.
     const endTheta = thetaMax + 0.14;
-    mouthPts.unshift(new Vector3(Math.sin(-endTheta) * 0.46, 0, grooveZ(endTheta) - 0.06));
-    mouthPts.push(new Vector3(Math.sin(endTheta) * 0.46, 0, grooveZ(endTheta) - 0.06));
+    mouthPts.unshift(new Vector3(Math.sin(-endTheta) * 0.46, 0, grooveZ(endTheta) - 0.16));
+    mouthPts.push(new Vector3(Math.sin(endTheta) * 0.46, 0, grooveZ(endTheta) - 0.16));
     const mouthCurve = new CatmullRomCurve3(mouthPts, false, 'catmullrom', 0.5);
     const mouthTube = new Mesh(new TubeGeometry(mouthCurve, 24, 0.036, 6, false), lashMaterial);
     mouthTube.scale.y = 0.55; // tube → flattened lip line

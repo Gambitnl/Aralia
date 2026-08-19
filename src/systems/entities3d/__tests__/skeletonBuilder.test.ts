@@ -238,7 +238,11 @@ describe('createBipedPoseSink — driver emissions drive the bones', () => {
           const bind = bindOf.get(seg.id)!;
           const a = boneMapped(built, boneOf[seg.id], new Vector3(...bind.a));
           const b = boneMapped(built, boneOf[seg.id], new Vector3(...bind.b));
-          expect(a.distanceTo(seg.a), `step ${step} ${seg.id} A`).toBeLessThan(1e-3);
+          // thenar2 rides the thumb root bone (the pad follows the thumb);
+          // the no-twist transport gives its off-axis points a known,
+          // BOUNDED ~2mm drift at walk amplitude — tolerated, not ignored.
+          const tolA = seg.id.includes('thenar') ? 3e-3 : 1e-3;
+          expect(a.distanceTo(seg.a), `step ${step} ${seg.id} A`).toBeLessThan(tolA);
           // Rigid bones keep the BIND length. When IK overstretches a link
           // past it (deep stride pushes a foot slightly out of reach), the
           // cylinder's far end lags by exactly that length difference — and
@@ -247,12 +251,17 @@ describe('createBipedPoseSink — driver emissions drive the bones', () => {
           // orientation must contribute nothing.
           const bindLen = new Vector3(...bind.a).distanceTo(new Vector3(...bind.b));
           const liveLen = seg.a.distanceTo(seg.b);
-          expect(b.distanceTo(seg.b), `step ${step} ${seg.id} B`).toBeLessThan(Math.abs(liveLen - bindLen) + 1e-3);
+          expect(b.distanceTo(seg.b), `step ${step} ${seg.id} B`).toBeLessThan(Math.abs(liveLen - bindLen) + tolA);
         }
         for (const ball of live.balls) {
-          const i = built.index.get(boneOf[ball.id] as BipedBoneName)!;
-          const p = new Vector3().setFromMatrixPosition(built.bones[i].matrixWorld);
-          expect(p.distanceTo(ball.center), `step ${step} ${ball.id}`).toBeLessThan(1e-6);
+          // clavicle update: the deltoid ball skins to the clavicle WITH an
+          // offset (chest top → shoulder joint), so the invariant is the
+          // segment one — the bind center mapped through the live bone tracks
+          // the emitted center. Other balls keep bone-origin == center.
+          const bindBall = built.restPose.balls.find((k) => k.id === ball.id)!;
+          const p = boneMapped(built, boneOf[ball.id], new Vector3(...bindBall.center));
+          const tol = ball.id.startsWith('deltoid') ? 1e-3 : 1e-6;
+          expect(p.distanceTo(ball.center), `step ${step} ${ball.id}`).toBeLessThan(tol);
         }
       }
     }

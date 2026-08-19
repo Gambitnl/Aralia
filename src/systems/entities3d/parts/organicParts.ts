@@ -148,13 +148,22 @@ const crest: PartDef = {
   anchor: 'crown',
   kind: 'mesh',
   buildMesh(ctx) {
-    const r = hr(ctx.frame);
+    // round 26 (creature-anatomy): the crest HONORS its authored params. The
+    // old build ignored count and scale (three fixed fins), so the gnoll's
+    // count-9 scale-1.3 "bristling mane down the neck" rendered as three
+    // crown nubs. Extra fins extend the run DOWN and BACK toward the
+    // shoulders — a mane, not a taller mohawk. Default params (count 3,
+    // scale 1) are bit-identical to the old build.
+    const r = hr(ctx.frame) * num(ctx, 'scale', 1);
+    const count = Math.max(3, Math.min(9, Math.round(num(ctx, 'count', 3))));
+    const runZ = 0.85 + (count - 3) * 0.28;
+    const dropY = 0.4 + (count - 3) * 0.16;
     const group = new Group();
-    for (let i = 0; i < 3; i++) {
-      const u = i / 2;
+    for (let i = 0; i < count; i++) {
+      const u = i / (count - 1);
       const fin = new Mesh(new ConeGeometry(r * 0.16, r * (0.55 - u * 0.18), 4), ctx.material(ctx.palette.skinHex));
       fin.scale.x = 0.35; // flatten into a fin
-      fin.position.set(0, r * (0.28 - u * 0.4), -u * r * 0.85);
+      fin.position.set(0, r * (0.28 - u * dropY), -u * r * runZ);
       fin.rotation.x = -0.35 - u * 0.4;
       group.add(fin);
     }

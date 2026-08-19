@@ -26,7 +26,11 @@ import { BackSide, Color, DoubleSide } from 'three';
 import { MeshBasicNodeMaterial } from 'three/webgpu';
 import {
     attribute,
+    cameraProjectionMatrix,
     float,
+    int,
+    mix,
+    modelViewMatrix,
     positionLocal,
     normalLocal,
     uniform,
@@ -35,6 +39,7 @@ import {
     vec4,
     smoothstep,
 } from 'three/tsl';
+import { INK_MAX_SCREEN_FRACTION } from '../toon';
 
 export interface OutlineNodeParams {
     colorHex: string;
@@ -63,11 +68,25 @@ export function outlineNodeMaterial(params: OutlineNodeParams): MeshBasicNodeMat
     material.transparent = translucent;
     material.depthWrite = !translucent;
 
+    // Screen-space width cap — the exact mirror of the GLSL vertex shader in
+    // toon.ts (see INK_MAX_SCREEN_FRACTION there for the derivation): the push
+    // is clamped so its projected width never exceeds that fraction of the
+    // viewport height. Depth uses the local (bind-pose) vertex; the node
+    // renderer applies skinning around positionNode afterward, and centimeters
+    // of pose error against meters of camera distance do not move a soft cap.
+    const mvPos = modelViewMatrix.mul(vec4(positionLocal, 1.0));
+    const orthoTerm = cameraProjectionMatrix.element(int(3)).element(int(3));
+    const inkDepth = mix(mvPos.z.negate(), float(1.0), orthoTerm).max(float(0.0));
+    const inkScale = modelViewMatrix.element(int(0)).xyz.length();
+    const p11 = cameraProjectionMatrix.element(int(1)).element(int(1));
+    const inkMax = float(2 * INK_MAX_SCREEN_FRACTION).mul(inkDepth).div(p11);
+    const clamped = float(thickness).mul(inkScale).min(inkMax).div(inkScale);
+
     // A missing `aInk` attribute reads 0, which would erase the outline
     // entirely, so per-vertex weighting is opt-in exactly as in the GLSL path.
     const push = perVertexScale
-        ? float(thickness).mul(attribute('aInk', 'float'))
-        : float(thickness);
+        ? clamped.mul(attribute('aInk', 'float'))
+        : clamped;
 
     material.positionNode = positionLocal.add(normalLocal.normalize().mul(push));
     // The 0.22 multiplier is the original's ink darkening, kept identical so

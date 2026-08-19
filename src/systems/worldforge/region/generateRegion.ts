@@ -1,11 +1,11 @@
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 15/07/2026, 01:59:56
- * Dependents: components/Worldforge/AtlasDemo.tsx, systems/worldforge/bridge/legacySubmapBridge.ts, systems/worldforge/bridge/seamProbe.ts
- * Imports: 10 files
+ * Last Sync: 19/08/2026, 01:15:34
+ * Dependents: components/DesignPreview/steps/sidebyside/sideBySideTerrainJob.ts, components/Worldforge/AtlasDemo.tsx, systems/worldforge/bridge/legacySubmapBridge.ts, systems/worldforge/bridge/seamProbe.ts, systems/worldforge/leaf3d/atlasGroundRestore.ts, systems/worldforge/region/regionTerrainField.ts
+ * Imports: 17 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -28,7 +28,17 @@
  * Why: at canonical FEET_PER_FMG_PIXEL the old member-extent bounds collapsed
  * to 0×0 (black demo canvas); at test scales they overshot the spec size.
  * Preserved: spine/artifacts.ts, seedPath.ts, units.ts consumed read-only;
- * IDW + FBM heightfield pipeline and C2 civ extraction logic unchanged.
+ * C2 civ extraction logic unchanged.
+ *
+ * 2026-08-18 (Remy call): the L1 heightfield is now the region-weighted
+ * COMPOSITE height field (`regionCompositeField.ts` — the module QA'd as
+ * `region-terrain`) instead of the IDW + FBM + ridge stack. The composite
+ * replaces the former `generateHeightfield` wholesale; the standing decision
+ * in `public/visual-quality/verdicts/region-terrain.json` ("NOT WIRED") was
+ * lifted after the mountain flank-streak artifact (task d7b60572) was fixed.
+ * The composite is fed the atlas erosion bake (rock hardness + discharge,
+ * task b25cfbde) — one bake per atlas, memoized here; the "uniform-width
+ * channel" half of the region-terrain verdict is now closed.
  *
  * ── Region membership heuristic ─────────────────────────────────────────────
  * Start from the anchor cell and expand outward via true cell adjacency
@@ -56,26 +66,23 @@
  * is now always exactly 25,000 ft per side (SPEC §4), at any feetPerPixel.
  * Rivers/roads are clipped to this window; town sites outside it are dropped.
  *
- * ── Heightfield interpolation ───────────────────────────────────────────────
- * Base surface: Inverse Distance Weighting (IDW) over pack cell heights
- * (`pack.cells.h` normalized 0..1). IDW chosen for simplicity and determinism;
- * power=2 is standard. Sample points are pack cell centers (`pack.cells.p`)
- * converted to feet. For each grid sample, compute weighted average of all
- * member cell heights, weight = 1/distance². This is O(samples × cells) but
- * the region is small enough (~250×250 grid, ~100-200 cells) to be fast.
- *
- * ── Multi-octave value noise ────────────────────────────────────────────────
- * After IDW base, add deterministic value noise to break up the smooth
- * interpolation. Amplitude scales with local relief: flat coast stays flat,
- * mountains get rugged. Noise seeded via `rngFromPath(streamPath(regionPath,
- * 'relief'))`. Three octaves, lacunarity=2, persistence=0.5, amplitude scaled
- * by local height variance.
+ * ── Heightfield: the region composite ──────────────────────────────────────
+ * `buildWindowComposite` (regionCompositeField.ts) rasters the region-weighted
+ * composite over the same window grid (~250×250 @ 100 ft). Each sample blends
+ * the geomorphic operators of the regions whose mask reaches it — peak/dune/
+ * terrace/erosion/interfluve relief over three noise bands, per-region profile
+ * chosen by atlas height class + biome. Seam-safe by construction: world-feet
+ * operators, mask kernels exactly 0 at the radius, ascending-id summation, and
+ * the window origin snapped to the global lattice (computeRegionBounds), so
+ * two adjacent regions read bit-equal values at shared world points.
  *
  * ── Water discipline ────────────────────────────────────────────────────────
- * Cells that are water in the atlas (h<20) must remain below water height in
- * the refined field. After IDW + noise, clamp all samples in water cells to
- * max 0.19 (just below the 0.2 water threshold). This prevents noise islands
- * from popping out of the sea.
+ * The composite keeps ocean low by itself (water regions get ~0.01–0.03
+ * surface; the drainage/erosion operators are gated off below the waterline).
+ * `applyRegionDiscipline` then re-applies the tier's two guarantees that the
+ * composite does not carry: the settlement dry-land floor (a per-Locale town
+ * pad, not terrain truth) and the belt-and-suspenders cap of any sub-waterline
+ * sample to 0.19.
  *
  * ── River banks ─────────────────────────────────────────────────────────────
  * For each `pack.rivers` entry passing through member cells, produce a
@@ -132,6 +139,8 @@ import { smoothRegionRiverCenterline } from './riverCenterlineSmoothing';
 import { generateRiverCourse } from './riverCourse';
 import { riverWidthFt } from './riverWidth';
 import { makeAtlasNaturalHeight } from './regionTerrainField';
+import { buildWindowComposite } from './regionCompositeField';
+import { bakeAtlasErosion, type AtlasErosionField } from '../erosion/atlasErosionBake';
 import {
   buildRiverAttractors,
   pointToSegmentDist,
@@ -141,6 +150,53 @@ import {
 
 /** Normalized waterline: FMG cell h<20 ≙ height < 0.2 in the refined field. */
 const WATER_THRESHOLD = 0.2;
+
+/**
+ * One erosion bake per atlas object.
+ *
+ * The bake (rock hardness + discharge, `erosion/atlasErosionBake.ts`) is a
+ * PURE function of the atlas and its own header says it must run ONCE per
+ * atlas — never per window. `generateRegion` is the per-window entry point, so
+ * the memo lives here, keyed on the atlas object: the first window of an atlas
+ * pays the few-tens-of-ms bake, every later window reads the same field.
+ * Seam-safe by construction: two adjacent windows share the atlas, so they
+ * read bit-identical per-cell hardness/discharge, and the composite sums those
+ * per-region constants in ascending-id order.
+ *
+ * FALLBACK: atlases that are not full FMG results (hand-built test atlases
+ * with no `t`/`b`/`area`/`g`/grid precipitation) return undefined, and the
+ * composite treats an absent field as REFERENCE rock / REFERENCE flow — the
+ * documented fallback, never a second code path.
+ */
+const erosionBakeCache = new WeakMap<FmgAtlasResult, AtlasErosionField>();
+
+function erosionBakeFor(atlas: FmgAtlasResult): AtlasErosionField | undefined {
+  const cells = atlas.pack.cells;
+  if (
+    !cells.t || !cells.b || !cells.area || !cells.g ||
+    !atlas.grid?.cells?.prec
+  ) {
+    // Not a full FMG result — hand-built synthetic test atlases. Reference
+    // rock is the documented fallback (see composite REFERENCE_HARDNESS).
+    return undefined;
+  }
+  const cached = erosionBakeCache.get(atlas);
+  if (cached) return cached;
+  const field = bakeAtlasErosion({
+    p: cells.p as ReadonlyArray<readonly [number, number]>,
+    h: cells.h,
+    t: cells.t,
+    biome: cells.biome,
+    fl: cells.fl,
+    c: cells.c as ReadonlyArray<ReadonlyArray<number>>,
+    area: cells.area,
+    b: cells.b,
+    g: cells.g,
+    gridPrecipitation: atlas.grid.cells.prec,
+  });
+  erosionBakeCache.set(atlas, field);
+  return field;
+}
 
 export interface GenerateRegionOptions {
   /** Feet per FMG pixel (Lane B's canonical converter; pass any plausible value for tests). */
@@ -210,7 +266,6 @@ export function generateRegion(
   // function of world position — so two regions agree exactly at shared
   // world points. Membership below remains the locality context for rivers,
   // civilization, and biome extraction only.
-  const idwRadiusFt = computeIdwRadiusFt(pack.cells.p, feetPerPixel);
   // Settlement dry-land guarantee (2026-07-04): a burg is placed on genuine land
   // (FMG h≥20) but a low-lying coastal one (h at/just above 20, ringed by ocean
   // cells) interpolates to a surface at/just below the 0.2 waterline — so the
@@ -227,16 +282,42 @@ export function generateRegion(
         minHeight: WATER_THRESHOLD + 0.03,
       }
     : undefined;
-  const heightfield = generateHeightfield(
+
+  // ── Heightfield: the region composite (2026-08-18, Remy call) ────────────
+  // The L1 terrain is now the region-weighted composite height field
+  // (`regionCompositeField.ts` — the module QA'd as `region-terrain`: crest
+  // lines, valleys, drainage networks, plain structure), replacing the
+  // IDW + FBM + ridge stack below. The standing decision recorded in
+  // `public/visual-quality/verdicts/region-terrain.json` ("NOT WIRED into
+  // generateRegion.ts") was lifted 2026-08-18 after the mountain flank-streak
+  // artifact (task d7b60572) was fixed in the composite.
+  //
+  // The composite is seam-safe by construction — world-feet operators, mask
+  // kernels that are exactly 0 at the radius, and ascending-id summation — so
+  // the open-region seam contract (two adjacent regions agree at shared world
+  // points) holds without any extra work here.
+  // The atlas erosion bake (rock hardness + discharge) feeds the composite's
+  // per-cell rock — the "Rock hardness + atlas erosion bake" planmap feature
+  // (task b25cfbde), wired here 2026-08-18. The bake runs once per atlas
+  // (memoized above); absent on non-full test atlases, the composite uses
+  // reference rock. The bake is a pure function of the atlas, so seam purity
+  // is preserved: shared world points read the same per-cell constants.
+  const erosion = erosionBakeFor(atlas);
+  const { heightfield } = buildWindowComposite(
     pack.cells.p,
     pack.cells.h,
-    idwRadiusFt,
+    (pack.cells as unknown as { biome?: ArrayLike<number> }).biome,
+    feetPerPixel,
+    worldSeedFromPath(worldSeedPath), // the WORLD seed — never a region seed
     bounds,
     resolutionFt,
-    feetPerPixel,
-    regionPath,
-    settlementFloor,
+    erosion,
   );
+  // Post-raster discipline the composite does not carry: the settlement
+  // dry-land floor (a per-Locale town pad, not terrain truth) and the water
+  // re-clamp (ocean must never read above the waterline). Both are pure
+  // functions of world position + the floor anchor, so seam purity holds.
+  applyRegionDiscipline(heightfield, bounds, settlementFloor);
 
   // ── Rivers: banks for rivers passing through member cells ─────────────
   const memberSet = new Set(memberCells);
@@ -321,6 +402,58 @@ export function generateRegion(
     zones,
     biomeSites,
   };
+}
+
+/**
+ * Post-raster discipline the composite field does not carry, applied after
+ * `buildWindowComposite` so the artifact's heightfield keeps the region tier's
+ * two hard guarantees:
+ *
+ * 1. Settlement dry-land floor: when entering a settlement (`windowCenterPx`),
+ *    lift the town center to `minHeight`, tapering to no lift by the window's
+ *    half-extent so genuine offshore water near the edge stays wet. The old
+ *    pipeline applied this to the IDW base before noise; here it applies to
+ *    the final composite surface — the guarantee (town center reads as land)
+ *    is identical, and the composite's local relief rides above the floor.
+ * 2. Water re-clamp: a sample that reads below the waterline is capped at
+ *    just below it (0.19). The composite keeps ocean low by construction —
+ *    water regions get ~0.01–0.03 surface and the drainage/erosion operators
+ *    are gated off below the line — but the cap is the same belt-and-suspenders
+ *    rule the old pipeline applied after its noise pass, and it costs nothing.
+ *    Genuine land valley floors are safe: the composite's erosion cut fades to
+ *    exactly 0 at the waterline (`erosionRelief`), so no land sample is pushed
+ *    across it.
+ *
+ * Both steps are pure functions of world position + the floor anchor, so the
+ * cross-region seam contract holds: two adjacent windows apply the identical
+ * transformation at a shared world point.
+ */
+function applyRegionDiscipline(
+  hf: RegionHeightfield,
+  bounds: BoundsFt,
+  settlementFloor?: { x: number; y: number; minHeight: number },
+): void {
+  const floorReachFt = Math.min(bounds.width, bounds.height) / 2;
+  const floorReachSq = floorReachFt * floorReachFt;
+  for (let i = 0; i < hf.samples.length; i++) {
+    let s = hf.samples[i];
+    if (settlementFloor) {
+      const col = i % hf.width;
+      const row = (i - col) / hf.width;
+      const fdx = bounds.x + col * hf.resolutionFt - settlementFloor.x;
+      const fdy = bounds.y + row * hf.resolutionFt - settlementFloor.y;
+      const fdSq = fdx * fdx + fdy * fdy;
+      if (fdSq < floorReachSq) {
+        const falloff = 1 - Math.sqrt(fdSq) / floorReachFt; // 1 at center → 0 at reach
+        const target = settlementFloor.minHeight * falloff;
+        if (s < target) s = target;
+      }
+    }
+    if (s < WATER_THRESHOLD) {
+      s = Math.min(s, WATER_THRESHOLD - 0.01);
+    }
+    hf.samples[i] = s;
+  }
 }
 
 /**
@@ -615,240 +748,6 @@ export function makeMountainRidgeField(
     const ridge = 1 - 2 * Math.abs(n); // ridge transform → crest lines
     return ridge * RIDGE_AMPLITUDE * boost;
   };
-}
-
-/**
- * Generate the heightfield: IDW interpolation of pack cell heights, then
- * multi-octave value noise scaled by local relief. Enforce water discipline.
- *
- * Seam purity (2026-07-02): the base surface is a pure function of world
- * position. Each sample interpolates over the cells within `idwRadiusFt` of
- * the SAMPLE point (not a per-region member set), using a Franke–Little
- * kernel ((R−d)/(R·d))² that behaves like 1/d² near cells and decays to
- * exactly 0 at the radius — so the field is continuous as cells enter/leave
- * the neighborhood, and two windows sum the identical nonzero contributions
- * in the identical (ascending cell id) order at a shared world point,
- * giving bit-equal results across region handoffs.
- */
-function generateHeightfield(
-  cellPoints: Array<[number, number]>,
-  cellHeights: Uint8Array | Uint16Array | Uint32Array,
-  idwRadiusFt: number,
-  bounds: BoundsFt,
-  resolutionFt: number,
-  feetPerPixel: number,
-  regionPath: SeedPath,
-  settlementFloor?: { x: number; y: number; minHeight: number },
-): RegionHeightfield {
-  const width = Math.ceil(bounds.width / resolutionFt);
-  const height = Math.ceil(bounds.height / resolutionFt);
-  const samples = new Float32Array(width * height);
-  // Settlement floor lift, in world feet + a per-sample falloff radius: the town
-  // center is lifted to `minHeight`, tapering to 0 by the window's half-extent so
-  // genuine offshore water near the window edge stays wet.
-  const floorReachFt = Math.min(bounds.width, bounds.height) / 2;
-  const floorReachSq = floorReachFt * floorReachFt;
-  // Track which samples are genuine water (interpolated surface below the
-  // waterline) for post-noise re-clamping — see the water-discipline note below.
-  const isWaterCell = new Uint8Array(width * height);
-
-  // Candidate cells: everything whose center can reach any sample in this
-  // window (window expanded by the radius). Ascending cell id by construction
-  // — the iteration order (and thus FP summation order of the nonzero
-  // contributions) is identical for any window containing a given point.
-  const radiusSq = idwRadiusFt * idwRadiusFt;
-  const candData: Array<{ x: number; y: number; h: number }> = [];
-  for (let id = 0; id < cellPoints.length; id++) {
-    const p = cellPoints[id];
-    if (!p) continue;
-    const x = p[0] * feetPerPixel;
-    const y = p[1] * feetPerPixel;
-    if (
-      x < bounds.x - idwRadiusFt || x > bounds.x + bounds.width + idwRadiusFt ||
-      y < bounds.y - idwRadiusFt || y > bounds.y + bounds.height + idwRadiusFt
-    ) continue;
-    candData.push({ x, y, h: cellHeights[id] / 100 }); // normalize 0..1
-  }
-
-  // Combined pass: IDW base + water check in one loop over samples.
-  // Track nearest cell per sample to enforce water discipline without a
-  // second full scan.
-  for (let row = 0; row < height; row++) {
-    const sampleY = bounds.y + row * resolutionFt;
-    for (let col = 0; col < width; col++) {
-      const sampleX = bounds.x + col * resolutionFt;
-
-      // Radius-limited IDW interpolation.
-      let weightSum = 0;
-      let valueSum = 0;
-
-      for (let mi = 0; mi < candData.length; mi++) {
-        const cell = candData[mi];
-        const dx = sampleX - cell.x;
-        const dy = sampleY - cell.y;
-        const distSq = dx * dx + dy * dy;
-        if (distSq >= radiusSq) continue; // outside the sample's neighborhood
-
-        if (distSq < 0.01) {
-          weightSum = 1;
-          valueSum = cell.h;
-          break;
-        }
-        // Franke–Little / local Shepard weight: ~1/d² near the cell, exactly
-        // 0 at the radius (continuous as cells cross the neighborhood edge).
-        const d = Math.sqrt(distSq);
-        const t = (idwRadiusFt - d) / (idwRadiusFt * d);
-        const weight = t * t;
-        weightSum += weight;
-        valueSum += weight * cell.h;
-      }
-
-      // No-fallback: the radius (4× mean spacing) guarantees a non-empty
-      // neighborhood; an empty one means the scale wiring is broken.
-      if (weightSum <= 0) {
-        throw new Error(
-          `[generateRegion] no cells within IDW radius ${idwRadiusFt} ft of sample (${sampleX}, ${sampleY})`,
-        );
-      }
-      let baseHeight = valueSum / weightSum;
-
-      // Settlement dry-land floor: lift the town center to `minHeight`, tapering
-      // to no lift by the window half-extent so genuine offshore water near the
-      // edge stays wet. Applied to the base (pre-noise) surface so the low, flat
-      // coastal town reads as land instead of a flooded blue slab, while relief
-      // shape is preserved above the floor.
-      if (settlementFloor) {
-        const fdx = sampleX - settlementFloor.x;
-        const fdy = sampleY - settlementFloor.y;
-        const fdSq = fdx * fdx + fdy * fdy;
-        if (fdSq < floorReachSq) {
-          const falloff = 1 - Math.sqrt(fdSq) / floorReachFt; // 1 at center → 0 at reach
-          const target = settlementFloor.minHeight * falloff;
-          if (baseHeight < target) baseHeight = target;
-        }
-      }
-
-      // Water discipline (2026-07-04 flood fix): a sample is water when the
-      // INTERPOLATED surface sits below the waterline — the physically correct
-      // coastline. The prior rule keyed off the single NEAREST cell, so a
-      // sample on a thin land spit (its interpolated height well above water,
-      // but with an ocean cell marginally nearer than the land cells around it)
-      // was force-clamped underwater. Coastal burgs — placed on genuine land
-      // (FMG h≥20) yet ringed by water cells — had their whole window flooded to
-      // 100% `water` biome (the "town sitting in water" report). Deciding on the
-      // interpolated height keeps genuine ocean below the line, keeps shorelines
-      // crisp (IDW crosses 0.2 at the true shore), stops flooding coastal land,
-      // and stays a pure function of world position (seam-safe).
-      if (baseHeight < WATER_THRESHOLD) {
-        isWaterCell[row * width + col] = 1;
-      }
-
-      samples[row * width + col] = baseHeight;
-    }
-  }
-
-  // Multi-octave value noise (lattice-interpolated FBM), amplitude scaled by
-  // local relief. The coarsest lattice is BASE_CELL_SIZE grid cells wide;
-  // higher octaves subdivide by LACUNARITY each step.
-  //
-  // Relief calibration (Remy, 2026-06-11 quality pass): the original
-  // 4×equal-value-noise stack read as drifting CLOUDS — no directional
-  // structure. Now: octave 0 is RIDGED (1 − 2|n| — crest lines where the
-  // lattice crosses zero) at a much larger 80-cell/8,000 ft wavelength, so
-  // each region carries a few connected ridge-and-valley landforms; octaves
-  // 1-4 add standard value-noise detail underneath. Pre-release golden
-  // regeneration recorded in the Worldforge tracker.
-  //
-  // Open-region seam continuity (2026-07-01): the field is indexed by GLOBAL
-  // WORLD FEET via `makeWorldFeetNoise` and seeded from the WORLD seed + octave
-  // — NOT by this region's own grid frame + per-region seed (which gave each
-  // region an independent relief field, so the open-world streamer showed a
-  // ~350ft cliff wherever it handed off from one region to the next). Two
-  // adjacent regions now read the SAME value at a shared world point, so the
-  // relief meets with no seam across region boundaries, by construction —
-  // exactly the fix `worldFeetNoise.ts` already applied to the Local detail.
-  const OCTAVES = 5;
-  const LACUNARITY = 2;
-  const PERSISTENCE = 0.5;
-  const BASE_AMPLITUDE = 0.18;
-  // Coarsest noise lattice cell size in heightfield grid cells.
-  // 80 cells at 100 ft resolution = 8,000 ft macro landforms (~3 per region).
-  const BASE_CELL_SIZE = 80;
-  const worldSeed = worldSeedFromPath(regionPath);
-  // Macro-landform lattice spacing in WORLD FEET (resolution-independent).
-  const BASE_SPAN_FT = BASE_CELL_SIZE * resolutionFt;
-
-  for (let octave = 0; octave < OCTAVES; octave++) {
-    const freq = Math.pow(LACUNARITY, octave);
-    const amp = BASE_AMPLITUDE * Math.pow(PERSISTENCE, octave);
-    const ridged = octave === 0; // macro octave carries the landform skeleton
-    // Per-octave world-indexed field. Mixing the octave index into the seed
-    // decorrelates octaves while keeping the field a pure function of
-    // (worldSeed, octave, worldFeet) — never the region path.
-    const octaveSeed = (worldSeed ^ Math.imul(octave + 1, 0x9e3779b1)) >>> 0;
-    const octaveNoise = makeWorldFeetNoise(octaveSeed, BASE_SPAN_FT / freq);
-
-    for (let row = 0; row < height; row++) {
-      const fy = bounds.y + row * resolutionFt;
-      for (let col = 0; col < width; col++) {
-        const fx = bounds.x + col * resolutionFt;
-        // makeWorldFeetNoise returns [0,1] (smoothstep-interpolated); map to
-        // [-1,1] to match the ridge transform's zero-crossing crests.
-        let noise = octaveNoise(fx, fy) * 2 - 1;
-
-        // Ridge transform: crests form along the lattice's zero-crossings,
-        // turning blobs into connected ridge/valley lines.
-        if (ridged) noise = 1 - 2 * Math.abs(noise);
-
-        // Scale amplitude by local relief: flat areas get less noise,
-        // mountains get more. Base height is the proxy.
-        const baseH = samples[row * width + col];
-        const reliefScale = Math.max(0.15, Math.min(1, (baseH - 0.15) / 0.55));
-        const scaledNoise = noise * amp * reliefScale;
-
-        samples[row * width + col] += scaledNoise;
-      }
-    }
-  }
-
-  // ── MOUNTAIN RIDGE synthesis (Task 11) ───────────────────────────────────
-  // After the octaves, before the clamp: add domain-warped ridged noise that
-  // grows real peaks in high country. The boost is smoothstep-gated on
-  // (baseH − RIDGE_START_N), so samples at or below RIDGE_START_N get EXACTLY 0
-  // added and stay byte-identical (lowland invariance). World-seed-keyed +
-  // world-feet-indexed like the octaves above ⇒ seam-safe across regions.
-  const ridgeField = makeMountainRidgeField(worldSeed);
-  for (let row = 0; row < height; row++) {
-    const fy = bounds.y + row * resolutionFt;
-    for (let col = 0; col < width; col++) {
-      const fx = bounds.x + col * resolutionFt;
-      const i = row * width + col;
-      samples[i] += ridgeField(fx, fy, samples[i]);
-    }
-  }
-
-  // Clamp to 0..1 and re-enforce water discipline after noise.
-  // Soft knee (2026-07-21 look pass): the hard min(1, s) clamp flattened every
-  // big peak into a co-planar mesa — around a pack-h≈86 summit the base field
-  // plus octave/ridge noise pushes MOST samples past 1, so the whole area
-  // clipped to the same value and the only visible "mountain" relief left was
-  // local micro-noise. A wide tanh knee from 0.7 keeps summits ordered and
-  // distinct (s = 1.2 → ~0.98, s = 0.86 → ~0.85) while never exceeding 1.
-  // Samples ≤ 0.7 are untouched, so lowland/town windows stay byte-identical.
-  const KNEE_START = 0.7;
-  const KNEE_SPAN = 1 - KNEE_START;
-  for (let i = 0; i < samples.length; i++) {
-    let s = samples[i];
-    if (s > KNEE_START) {
-      s = KNEE_START + KNEE_SPAN * Math.tanh((s - KNEE_START) / KNEE_SPAN);
-    }
-    samples[i] = Math.max(0, Math.min(1, s));
-    if (isWaterCell[i]) {
-      samples[i] = Math.min(samples[i], WATER_THRESHOLD - 0.01);
-    }
-  }
-
-  return { width, height, resolutionFt, samples };
 }
 
 /**

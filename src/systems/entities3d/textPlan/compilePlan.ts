@@ -1,4 +1,4 @@
-// @dependencies-start
+﻿// @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
@@ -65,6 +65,57 @@ const ROOT_COLLAR_BOOST: Partial<Record<CreaturePlan['appendages'][number]['kind
   wing: 1.25,
   tentacle: 1.7,
 };
+
+/**
+ * round 27 (creature-anatomy): NEAR-BLACK PALETTES CRUSH TO INK. The basalt
+ * beetle authored #2b2b30 body over #1c1c20 belly; under the toon ramp's
+ * shadow band the whole creature rendered as a silhouette hole with legs —
+ * the ink-swallowed failure class. Compile lifts a too-dark color's lightness
+ * to a floor that keeps a visible value step over the pure-black ink outline;
+ * hue and saturation stay the author's. Eye colors are exempt — a black pupil
+ * is a feature, not a body.
+ */
+function floorLightness(hex: string, floor = 0.36): string {
+  const n = parseInt(hex.slice(1), 16);
+  const r = ((n >> 16) & 255) / 255;
+  const g = ((n >> 8) & 255) / 255;
+  const b = (n & 255) / 255;
+  const l = (Math.max(r, g, b) + Math.min(r, g, b)) / 2;
+  if (l >= floor) return hex;
+  if (l === 0) {
+    const v = Math.round(floor * 255);
+    return `#${((v << 16) | (v << 8) | v).toString(16).padStart(6, '0')}`;
+  }
+  // Dark colors sit in the linear half of HSL lightness, so one RGB scale
+  // lands the floor exactly while keeping the hue ratios.
+  const k = floor / l;
+  const to = (c: number): number => Math.round(Math.min(1, c * k) * 255);
+  return `#${((to(r) << 16) | (to(g) << 8) | to(b)).toString(16).padStart(6, '0')}`;
+}
+
+/** HSL lightness of a hex color (0..1). */
+function lightnessOf(hex: string): number {
+  const n = parseInt(hex.slice(1), 16);
+  const r = ((n >> 16) & 255) / 255;
+  const g = ((n >> 8) & 255) / 255;
+  const b = (n & 255) / 255;
+  return (Math.max(r, g, b) + Math.min(r, g, b)) / 2;
+}
+
+/**
+ * round 27 (creature-anatomy), second rule: the ACCENT must separate from the
+ * body. The basalt beetle authored accent #4a4a52 on body #2b2b30 — six RGB
+ * units apart, so even with the lightness floor the creature has zero
+ * internal value structure and still reads as one dark mass. When the two
+ * lightnesses sit within 0.14, the accent lifts to body + 0.16: light plates
+ * on a dark body, the value ladder every readable dark creature carries.
+ */
+function separateAccent(bodyHex: string, accentHex: string): string {
+  const bl = lightnessOf(bodyHex);
+  const al = lightnessOf(accentHex);
+  if (Math.abs(al - bl) >= 0.14) return accentHex;
+  return floorLightness(accentHex, Math.min(0.85, bl + 0.16));
+}
 
 export function compilePlan(
   plan: CreaturePlan,
@@ -293,9 +344,12 @@ export function compilePlan(
     gait: 'plan',
     frame,
     palette: {
-      skinHex: plan.palette.bodyHex,
-      accentHex: plan.palette.accentHex ?? plan.palette.bodyHex,
-      secondaryHex: plan.palette.bellyHex ?? plan.palette.bodyHex,
+      skinHex: floorLightness(plan.palette.bodyHex),
+      accentHex: separateAccent(
+        floorLightness(plan.palette.bodyHex),
+        floorLightness(plan.palette.accentHex ?? plan.palette.bodyHex),
+      ),
+      secondaryHex: floorLightness(plan.palette.bellyHex ?? plan.palette.bodyHex),
       eyeHex: plan.palette.eyeHex,
     },
     parts,

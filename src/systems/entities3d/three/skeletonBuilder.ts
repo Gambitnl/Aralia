@@ -48,18 +48,24 @@ import type { Frame, SegmentSink } from '../types';
 import { FT_TO_M, headRadiusM, heightM } from '../types';
 import { solveKnee } from './ik';
 
-/** The 37 biped bones, parent-first (index 0 = root). Real-finger update:
+/** The 39 biped bones, parent-first (index 0 = root). Real-finger update:
  * each hand carries a two-link thumb chain and four two-link finger chains,
- * so a held weapon gets WRAPPED by posed digits instead of a grip band. */
+ * so a held weapon gets WRAPPED by posed digits instead of a grip band.
+ * Clavicle update (Remy: "shoulders skeleton shape looks a bit weird"): each
+ * arm hangs off a clavicle bone that runs chest top → shoulder joint, so the
+ * bones overlay draws a T instead of a belt-to-shoulder V, and Mixamo
+ * clavicle tracks have a bone to land on. No flesh binds to the clavicles. */
 export const BIPED_BONE_NAMES = [
   'root',
   'pelvis',
   'chest',
   'neck',
   'head',
+  'clavicleL',
   'upperArmL',
   'foreArmL',
   'handL',
+  'clavicleR',
   'upperArmR',
   'foreArmR',
   'handR',
@@ -100,10 +106,12 @@ export const BIPED_BONE_PARENT: Readonly<Record<BipedBoneName, BipedBoneName | n
   chest: 'pelvis',
   neck: 'chest',
   head: 'neck',
-  upperArmL: 'chest',
+  clavicleL: 'chest',
+  upperArmL: 'clavicleL',
   foreArmL: 'upperArmL',
   handL: 'foreArmL',
-  upperArmR: 'chest',
+  clavicleR: 'chest',
+  upperArmR: 'clavicleR',
   foreArmR: 'upperArmR',
   handR: 'foreArmR',
   thighL: 'pelvis',
@@ -150,13 +158,16 @@ export const SEGMENT_BONE: Readonly<Record<string, BipedBoneName>> = {
   // real-finger update: the round-15 curled FINGERS mass is gone — each hand
   // now emits a thumb link and four two-link fingers, each on its OWN bone,
   // so a grip pose can wrap them around a weapon haft per frame.
-  // thenar segments are ALL palm-rigid: the thumb bone's minimal-rotation
-  // transport carries a twist relative to the palm frame, and any off-axis
-  // point bound to it drifts (~2mm at walk amplitude — the parity test
-  // caught it when thenar2 rode thumbLa)
+  // thenar rings 0-1 are palm-rigid; the DISTAL ring (thenar2) rides the
+  // thumb root bone, so the pad follows the thumb through the grip wrap and
+  // the wave's 180° digit roll (Remy circled the pad as a thumbless lump on
+  // the waving palm). The no-twist transport gives thenar2 a known, bounded
+  // ~2mm drift at walk amplitude — the parity test carries a widened
+  // tolerance for thenar ids. The thumba emission arrives after thenar2 and
+  // overwrites the bone transform, so thumba stays the true driver.
   'handL.thenar0': 'handL',
   'handL.thenar1': 'handL',
-  'handL.thenar2': 'handL',
+  'handL.thenar2': 'thumbLa',
   'handL.thumba': 'thumbLa',
   'handL.thumbb': 'thumbLb',
   'handL.finger0a': 'fingerL0a',
@@ -172,7 +183,7 @@ export const SEGMENT_BONE: Readonly<Record<string, BipedBoneName>> = {
   'armR.fore': 'foreArmR',
   'handR.thenar0': 'handR',
   'handR.thenar1': 'handR',
-  'handR.thenar2': 'handR',
+  'handR.thenar2': 'thumbRa',
   'handR.thumba': 'thumbRa',
   'handR.thumbb': 'thumbRb',
   'handR.finger0a': 'fingerR0a',
@@ -231,6 +242,33 @@ export interface BipedRestPose {
 }
 
 const UP = new Vector3(0, 1, 0);
+
+/**
+ * Clavicle aim (shared by bindWorld and the live pose sink — one function, so
+ * bind/live parity holds by construction). The clavicle roots at the chest
+ * top and points at the shoulder joint — PLUS an elevation term: when the
+ * upper arm rises above horizontal, the aim pulls toward the elbow, so the
+ * deltoid (skinned to the clavicle) tilts with an abduction instead of the
+ * raised arm exiting sideways through a static boulder (Remy's wave back
+ * view: an ink ring around the bicep). A hanging or swinging arm keeps the
+ * elbow below the shoulder, so the term is ZERO at rest and through the walk
+ * cycle — the walk-popout fix stays exact.
+ */
+function aimClavicle(
+  chestTop: { x: number; y: number; z: number },
+  ax: number, ay: number, az: number,
+  bx: number, by: number, bz: number,
+  outDir: Vector3,
+): void {
+  const dx = bx - ax;
+  const dy = by - ay;
+  const dz = bz - az;
+  const len = Math.sqrt(dx * dx + dy * dy + dz * dz) || 1;
+  const e = Math.max(0, dy / len) * 0.45;
+  outDir.set(ax + e * dx - chestTop.x, ay + e * dy - chestTop.y, az + e * dz - chestTop.z);
+  if (outDir.lengthSq() < 1e-12) outDir.copy(UP);
+  outDir.normalize();
+}
 
 /** round 17 (humanoid-anatomy): biped arm link fraction of armLengthFt per
  * link (upper = fore). 0.52 gave ape reach (0.44 h shoulder→wrist) that the
@@ -334,10 +372,14 @@ export interface HandDigitLayout {
  *   with a small convergence toward the hand's centerline.
  * x, dy, len0, len1, rx in handR units; angles in degrees. */
 const FINGER_COLS = [
-  { x: -0.72, dy: -0.1, len0: 0.76, len1: 0.54, rx: 0.19, flexP: 69.5, flexD: 100, conv: 7, waveSplay: -14, waveFlex: 12 },
-  { x: -0.24, dy: 0.03, len0: 0.89, len1: 0.65, rx: 0.21, flexP: 64.5, flexD: 94.5, conv: 3, waveSplay: -5, waveFlex: 8 },
-  { x: 0.24, dy: 0.08, len0: 0.93, len1: 0.67, rx: 0.225, flexP: 59.5, flexD: 89.5, conv: 2, waveSplay: 1, waveFlex: 5 },
-  { x: 0.72, dy: 0.0, len0: 0.87, len1: 0.63, rx: 0.215, flexP: 55, flexD: 84.5, conv: 4, waveSplay: 8, waveFlex: 7 },
+  // round 4: relaxed flex OPENED ~10° (flexP −6, flexD −10) — the deep tuck
+  // buried every tip inside the palm envelope and the whole fist quantized
+  // into a featureless ball (Remy: "fat balls"); visible tip pads restore
+  // the hand read at panel distance.
+  { x: -0.72, dy: -0.1, len0: 0.76, len1: 0.54, rx: 0.19, flexP: 63.5, flexD: 90, conv: 7, waveSplay: -14, waveFlex: 12 },
+  { x: -0.24, dy: 0.03, len0: 0.89, len1: 0.65, rx: 0.21, flexP: 58.5, flexD: 84.5, conv: 3, waveSplay: -5, waveFlex: 8 },
+  { x: 0.24, dy: 0.08, len0: 0.93, len1: 0.67, rx: 0.225, flexP: 53.5, flexD: 79.5, conv: 2, waveSplay: 1, waveFlex: 5 },
+  { x: 0.72, dy: 0.0, len0: 0.87, len1: 0.63, rx: 0.215, flexP: 49, flexD: 74.5, conv: 4, waveSplay: 8, waveFlex: 7 },
 ] as const;
 export type FingerCol = (typeof FINGER_COLS)[number];
 /** Depth-to-width ratio of a digit cross-section (the anisotropy above). */
@@ -549,8 +591,11 @@ export function bipedRestPose(frame: Frame): BipedRestPose {
   // With palm+finger run ~2.3 handR, 0.6 skullR put total fist length at
   // ~0.87 of the head height; 0.45 lands it at ~0.65, the reference blocky
   // fist that no longer out-masses the skull. Mirror: BipedDriver.buildBody.
-  const handR = Math.max(armR * 1.05, skullR * 0.45);
-  const palmLen = handR * 1.35;
+  // hand-research round 4: fist scale-down (see the mirror note in
+  // BipedDriver.buildBody — real digits grew the envelope past the round-19
+  // budget and the dwarf fist read as a fat ball).
+  const handR = Math.max(armR * 1.0, skullR * 0.4);
+  const palmLen = handR * 1.28;
   const fingerLen = handR * 0.95;
   // round 1 (humanoid-anatomy): near 2:1 thigh-to-calf taper — mirror of the
   // BipedDriver.buildBody leg radii
@@ -689,7 +734,15 @@ export function bipedRestPose(frame: Frame): BipedRestPose {
     // BipedDriver.buildBody deltoid ball.
     // round 22 (humanoid-anatomy): + the slim floor (see bipedSlimT) — the
     // human's deltoid ball was the round-17 number with zero bulk bonus.
-    balls.push({ id: `deltoid${side}`, bone: `upperArm${side}` as BipedBoneName, center: [shoulder.x, shoulder.y, shoulder.z], r: armR * (1.7 + 0.5 * armBulkT + 0.5 * slimT) });
+    // clavicle update (Remy: "shoulder does a weird popout during walking"):
+    // the deltoid SKINS to the clavicle, not the upper arm. The round-21
+    // ellipsoid centroid sits 0.34 r inboard of the shoulder joint, so 100%
+    // upperArm weights made the whole mass ORBIT the joint with every arm
+    // swing. The clavicle holds it against the torso, lifts it on the wave
+    // shoulder raise, and receives Mixamo shoulder tracks. The pose sink's
+    // emission table (BALL_BONE) keeps upperArm — that write is position-only
+    // and the arm.upper segment overwrites it.
+    balls.push({ id: `deltoid${side}`, bone: `clavicle${side}` as BipedBoneName, center: [shoulder.x, shoulder.y, shoulder.z], r: armR * (1.7 + 0.5 * armBulkT + 0.5 * slimT) });
     segments.push({
       id: `arm${side}.upper`,
       bone: `upperArm${side}` as BipedBoneName,
@@ -710,17 +763,11 @@ export function bipedRestPose(frame: Frame): BipedRestPose {
     // bone — bindWorld picks the LAST segment per bone to match the pose
     // sink's write order)
     palmDir.set(hand[0] - joint.x, hand[1] - joint.y, hand[2] - joint.z).normalize();
-    palmDir.z += 0.32;
-    // round 16 (humanoid-anatomy): lateral cock (~8°) — the round-15 knuckle
-    // bend pointed dead at the front camera (−Z), so the 50° break produced
-    // ZERO silhouette change in the front panel. Tilting the fist outward
-    // brings part of the bend into profile in every panel. Mirror:
-    // BipedDriver.buildBody.
-    // round 18 (humanoid-anatomy): cock deepened 0.14 → 0.22 — the round-17
-    // verdict still saw "boulder mittens"; the camera-aimed-bend rule says
-    // the thumb crossing must profile to the front camera, so the whole fist
-    // rotates further outward. Mirror: BipedDriver.buildBody.
-    palmDir.x += sgn * 0.22;
+    // round 4 (hand research): near-neutral hang — the round-16/18
+    // camera-aimed cocks served the painted thumb; real digits carry their
+    // own silhouette. Mirror: BipedDriver.buildBody arm loop.
+    palmDir.z += 0.24;
+    palmDir.x += sgn * 0.08;
     palmDir.normalize();
     palmQuat.setFromUnitVectors(UP, palmDir);
     // real-finger update: the round-15 thumb lobe and curled finger mass are
@@ -733,11 +780,12 @@ export function bipedRestPose(frame: Frame): BipedRestPose {
       thumbPt.copy(v).applyQuaternion(palmQuat);
       return [hand[0] + thumbPt.x, hand[1] + thumbPt.y, hand[2] + thumbPt.z];
     };
-    // thenar wedge: three palm-rigid segments through the four ring centers
+    // thenar wedge: rings 0-1 palm-rigid, the distal ring on the thumb root
+    // (see the SEGMENT_BONE thenar note — the pad follows the thumb)
     for (let ti = 0; ti < 3; ti++) {
       segments.push({
         id: `hand${side}.thenar${ti}`,
-        bone: `hand${side}` as BipedBoneName,
+        bone: (ti === 2 ? `thumb${side}a` : `hand${side}`) as BipedBoneName,
         a: toWorld(digits.thenar[ti].p),
         b: toWorld(digits.thenar[ti + 1].p),
         r0: digits.thenar[ti].r,
@@ -870,7 +918,7 @@ export function bipedRestPose(frame: Frame): BipedRestPose {
 export interface BuiltSkeleton {
   /** The root bone (entity-local origin, identity). Parent it to the SkinnedMesh. */
   root: Bone;
-  /** All 35 bones, parent-first, in BIPED_BONE_NAMES order. */
+  /** All 39 bones, parent-first, in BIPED_BONE_NAMES order. */
   bones: Bone[];
   /** Bone index by name — skin indices and the pose sink both use this. */
   index: ReadonlyMap<BipedBoneName, number>;
@@ -889,6 +937,25 @@ function bindWorld(restPose: BipedRestPose, name: BipedBoneName, outPos: Vector3
   if (name === 'root') {
     outPos.set(0, 0, 0);
     outQuat.identity();
+    return;
+  }
+  // Clavicles have no flesh piece of their own — they DERIVE from two pieces
+  // that already exist: root at the chest top ('torso.chest' B), +Y toward
+  // the shoulder joint ('arm.upper' A). The live sink applies the identical
+  // rule, so parity is automatic.
+  if (name === 'clavicleL' || name === 'clavicleR') {
+    const chest = restPose.segments.find((s) => s.id === 'torso.chest');
+    const upper = restPose.segments.find((s) => s.id === (name === 'clavicleL' ? 'armL.upper' : 'armR.upper'));
+    if (!chest || !upper) throw new Error(`bindWorld: missing torso.chest/arm.upper for "${name}"`);
+    outPos.set(chest.b[0], chest.b[1], chest.b[2]);
+    const dir = new Vector3();
+    aimClavicle(
+      { x: chest.b[0], y: chest.b[1], z: chest.b[2] },
+      upper.a[0], upper.a[1], upper.a[2],
+      upper.b[0], upper.b[1], upper.b[2],
+      dir,
+    );
+    outQuat.setFromUnitVectors(UP, dir);
     return;
   }
   // round 2 (humanoid-anatomy): pick the LAST segment owned by the bone —
@@ -985,6 +1052,9 @@ export function createBipedPoseSink(skeleton: BuiltSkeleton): BipedPoseSink {
     return skeleton.index.get(name)!;
   };
 
+  // Clavicle derivation state: the chest top ('torso.chest' B) arrives before
+  // the arm segments in buildBody order; each 'arm.upper' A is the shoulder.
+  const chestTop = new Vector3();
   const sink: SegmentSink = {
     seg(id, ax, ay, az, bx, by, bz) {
       const i = boneFor(SEGMENT_BONE, id);
@@ -993,6 +1063,18 @@ export function createBipedPoseSink(skeleton: BuiltSkeleton): BipedPoseSink {
       if (DIR.lengthSq() < 1e-12) DIR.copy(UP);
       worldQuat[i].setFromUnitVectors(UP, DIR.normalize());
       written[i] = true;
+      // Clavicles carry no flesh, so no emission drives them directly. They
+      // derive here by the same rule bindWorld uses: root at the chest top,
+      // +Y toward the shoulder joint. Identical inputs → automatic parity.
+      if (id === 'torso.chest') {
+        chestTop.set(bx, by, bz);
+      } else if (id === 'armL.upper' || id === 'armR.upper') {
+        const c = skeleton.index.get(id === 'armL.upper' ? 'clavicleL' : 'clavicleR')!;
+        worldPos[c].copy(chestTop);
+        aimClavicle(chestTop, ax, ay, az, bx, by, bz, DIR);
+        worldQuat[c].setFromUnitVectors(UP, DIR);
+        written[c] = true;
+      }
     },
     ball(id, x, y, z) {
       const i = boneFor(BALL_BONE, id);

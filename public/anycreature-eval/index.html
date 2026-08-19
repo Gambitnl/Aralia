@@ -1,0 +1,102 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>anyCreature eval</title>
+<style>
+  body { margin: 0; overflow: hidden; font-family: system-ui; }
+  #bar { position: fixed; top: 0; left: 0; right: 0; display: flex; gap: 8px; padding: 8px 12px;
+         background: #141a20; color: #cdd6e0; z-index: 2; align-items: center; }
+  button { background: #1d242c; color: #e6edf4; border: 1px solid #333d48; border-radius: 6px;
+           padding: 4px 10px; cursor: pointer; }
+  button.on { background: #2e5e8a; }
+</style>
+</head>
+<body>
+<div id="bar">
+  <strong>anyCreature eval</strong>
+  <button data-glb="centaur.glb" class="on">Centaur (ours, 4 rounds)</button>
+  <button data-glb="wolf.glb">Wolf (their approved ref)</button>
+  <button data-anim="idle">idle</button>
+  <button data-anim="move" class="on">move</button>
+  <span id="stat" style="opacity:.7"></span>
+</div>
+<script type="importmap">
+{ "imports": {
+  "three": "https://unpkg.com/three@0.170.0/build/three.module.js",
+  "three/addons/": "https://unpkg.com/three@0.170.0/examples/jsm/"
+} }
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(innerWidth, innerHeight);
+document.body.appendChild(renderer.domElement);
+const scene = new THREE.Scene();
+scene.background = new THREE.Color('#bfe8ff');
+const camera = new THREE.PerspectiveCamera(40, innerWidth / innerHeight, 0.1, 100);
+camera.position.set(2.6, 1.7, 2.6);
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.target.set(0, 0.9, 0);
+scene.add(new THREE.HemisphereLight('#ffffff', '#7fa06a', 1.4));
+const sun = new THREE.DirectionalLight('#fff2d9', 1.8);
+sun.position.set(5, 9, 4);
+scene.add(sun);
+const ground = new THREE.Mesh(new THREE.CircleGeometry(14, 48),
+  new THREE.MeshLambertMaterial({ color: '#8fce6e' }));
+ground.rotation.x = -Math.PI / 2;
+scene.add(ground);
+
+const loader = new GLTFLoader();
+let current = null, mixer = null, clips = [], wantAnim = 'move';
+function load(file) {
+  // Cache-bust: the GLB keeps its name across rebuild rounds.
+  loader.load(`${file}?v=${Date.now()}`, (g) => {
+    if (current) scene.remove(current);
+    current = g.scene;
+    scene.add(current);
+    clips = g.animations;
+    mixer = new THREE.AnimationMixer(current);
+    play(wantAnim);
+    document.getElementById('stat').textContent =
+      `${file} — clips: ${clips.map((c) => c.name).join(', ')}`;
+  });
+}
+function play(name) {
+  wantAnim = name;
+  if (!mixer) return;
+  mixer.stopAllAction();
+  const clip = clips.find((c) => c.name.toLowerCase().includes(name)) ?? clips[0];
+  if (clip) mixer.clipAction(clip).play();
+}
+document.querySelectorAll('button[data-glb]').forEach((b) =>
+  b.addEventListener('click', () => {
+    document.querySelectorAll('button[data-glb]').forEach((x) => x.classList.remove('on'));
+    b.classList.add('on');
+    load(b.dataset.glb);
+  }));
+document.querySelectorAll('button[data-anim]').forEach((b) =>
+  b.addEventListener('click', () => {
+    document.querySelectorAll('button[data-anim]').forEach((x) => x.classList.remove('on'));
+    b.classList.add('on');
+    play(b.dataset.anim);
+  }));
+load('centaur.glb');
+
+const clock = new THREE.Clock();
+renderer.setAnimationLoop(() => {
+  if (mixer) mixer.update(clock.getDelta());
+  controls.update();
+  renderer.render(scene, camera);
+});
+addEventListener('resize', () => {
+  camera.aspect = innerWidth / innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+});
+</script>
+</body>
+</html>

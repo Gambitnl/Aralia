@@ -2,11 +2,14 @@
  * @file regionTerrainField.ts — the region's terrain as POINT SAMPLERS rather
  * than a grid.
  *
- * `generateHeightfield` rasterizes exactly this math onto a window grid. River
- * routing needs the same surface at arbitrary world points and with no window
- * at all, because a course must be generated from the FULL unclipped river and
- * only clipped afterward (seam purity — see generateRegion.ts:865). Extracting
- * the math here means the grid and the router cannot drift apart.
+ * This sampler exists for RIVER ROUTING. A course must be generated from the
+ * FULL unclipped river and only clipped afterward (seam purity — see
+ * generateRegion.ts), so routing needs the surface at arbitrary world points
+ * with no window at all. Since 2026-08-18 the region's GRID terrain is the
+ * region composite (`regionCompositeField.ts`), not the math here; this file
+ * keeps its own relief stack so river courses stay window-independent and do
+ * not drift from the composite's 8,000 ft macro wavelength (the composite's
+ * band 0 deliberately matches it — see BAND_SPANS_FT).
  *
  * Everything here is a pure function of WORLD position and the WORLD seed. The
  * settlement dry-land floor is deliberately NOT included: it is a per-window
@@ -31,12 +34,13 @@ const PERSISTENCE = 0.5;
 const BASE_AMPLITUDE = 0.18;
 
 /**
- * Macro-landform wavelength in heightfield lattice cells. `generateHeightfield`
- * uses this same 80-cell base span, so river and terrain read one field.
+ * Macro-landform wavelength in lattice cells (80 @ 100 ft = 8,000 ft), the
+ * same span as the composite's band 0, so the routing surface and the shipped
+ * terrain read one world.
  */
 const NOISE_BASE_CELLS = 80;
 
-/** Soft-knee clamp start, mirroring generateHeightfield's summit knee. */
+/** Soft-knee clamp start, mirroring the region composite's summit knee. */
 const KNEE_START = 0.7;
 const KNEE_SPAN = 1 - KNEE_START;
 
@@ -140,10 +144,9 @@ export function makeRegionBaseField(
  * relief, so flats stay flat and high country grows peaks.
  *
  * The relief scale is recomputed from the RUNNING height after each octave,
- * not from the untouched base. That is what the grid does: `generateHeightfield`
- * accumulates every octave into `samples` in place, so octave N reads a proxy
- * that already carries octaves 0..N-1. Holding the base fixed here would make
- * the sampler and the grid disagree.
+ * not from the untouched base: octave N reads a proxy that already carries
+ * octaves 0..N-1, matching the sampler's own loop (the grid no longer shares
+ * this stack since 2026-08-18 — it is the composite).
  */
 export function makeRegionReliefField(
   worldSeed: number,

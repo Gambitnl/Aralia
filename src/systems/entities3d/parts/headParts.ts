@@ -262,22 +262,31 @@ const beardMesh: PartDef = {
       const rgb = (ch((n >> 16) & 255) << 16) | (ch((n >> 8) & 255) << 8) | ch(n & 255);
       return `#${rgb.toString(16).padStart(6, '0')}`;
     };
+    // Remy 2026-08-19 (forge dwarf): the hanging beard was SWALLOWED by the
+    // barrel chest — the beard front reached z 0.25 while the torso front
+    // sat at ~0.45, so only two dark slivers peeked under the chin ("fangs").
+    // The hanging pieces (wedge, strands, fork) carry +0.5 r forward and
+    // sweep further out, so the beard drapes OVER the chest like a bib. Only
+    // dwarfs mount beardMesh and every dwarf frame is barrel-chested, so the
+    // carry cannot strand the beard off a slim chin. The mustache lobes stay
+    // on the face (no carry).
+    const carry = r * 0.5;
     const wedge = new Mesh(new ConeGeometry(r * 0.5, len, 7), ctx.material(shade(1.35)));
-    wedge.position.set(0, -len * 0.42, r * 0.16);
-    wedge.rotation.x = Math.PI - 0.25; // point down, swept slightly forward
+    wedge.position.set(0, -len * 0.42, r * 0.16 + carry);
+    wedge.rotation.x = Math.PI - 0.34; // point down, swept forward
     group.add(wedge);
     for (const sgn of [-1, 1]) {
       // side planes: darker, shorter, rolled outward so each one owns an edge
       const strand = new Mesh(new ConeGeometry(r * 0.34, len * 0.78, 6), ctx.material(shade(sgn < 0 ? 0.72 : 0.92)));
-      strand.position.set(sgn * r * 0.3, -len * 0.3, r * 0.04);
-      strand.rotation.set(Math.PI - 0.18, 0, sgn * -0.3);
+      strand.position.set(sgn * r * 0.3, -len * 0.3, r * 0.04 + carry);
+      strand.rotation.set(Math.PI - 0.26, 0, sgn * -0.3);
       group.add(strand);
     }
     // the FORK — a lighter tip mass past the centre wedge's point, so the
     // beard ends in a braided step instead of dissolving into the chest
     const forkTip = new Mesh(new ConeGeometry(r * 0.26, len * 0.5, 6), ctx.material(shade(1.6)));
-    forkTip.position.set(0, -len * 0.86, r * 0.24);
-    forkTip.rotation.x = Math.PI - 0.34;
+    forkTip.position.set(0, -len * 0.86, r * 0.24 + carry);
+    forkTip.rotation.x = Math.PI - 0.42;
     group.add(forkTip);
     // round 11 (humanoid-anatomy): mustache rides ABOVE the mouth cut. The
     // round-10 lobes sat at the mouth line and would swallow the new dark
@@ -287,7 +296,10 @@ const beardMesh: PartDef = {
     for (const sgn of [-1, 1]) {
       const lobe = new Mesh(new ConeGeometry(r * 0.15, r * 0.5, 5), ctx.material(hex));
       lobe.position.set(sgn * r * 0.26, r * 0.31, r * 0.1);
-      lobe.rotation.z = sgn * (Math.PI / 2 + 0.55);
+      // Remy 2026-08-19: the handles were FLIPPED — sgn * +(π/2+0.55) aimed
+      // each cone tip inward-down, so both tips crossed over the mouth as one
+      // dark bar. The negated roll sweeps each tip outward-down (a handlebar).
+      lobe.rotation.z = sgn * -(Math.PI / 2 + 0.55);
       group.add(lobe);
     }
     return { object: group };

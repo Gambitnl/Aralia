@@ -470,9 +470,24 @@ describe('worldforge pipeline integration', () => {
       // segment to 513 points at 55 ft. atlasCellCount is unchanged, so the
       // world structure is intact; only the carved surface and the local
       // material classification derived from it move.
+      // Re-frozen 2026-08-18 (region composite wired into generateRegion, Remy
+      // call): the L1 heightfield is now buildWindowComposite's region-weighted
+      // composite field (crest lines, valleys, drainage networks) instead of the
+      // IDW + FBM + ridge stack. atlasCellCount unchanged (world structure
+      // intact); the region heightfield AND the downstream local material
+      // classification both move. Standing decision "NOT WIRED" in
+      // public/visual-quality/verdicts/region-terrain.json lifted after the
+      // mountain flank-streak artifact (task d7b60572) was fixed.
+      // Re-frozen 2026-08-18 (atlas erosion bake wired, task b25cfbde): the
+      // composite is now fed bakeAtlasErosion's per-cell rock hardness and
+      // discharge (memoized once per atlas in generateRegion) instead of the
+      // reference rock / reference flow. Channels now vary with real flow and
+      // rock competence, closing the "uniform-width channel" half of the
+      // region-terrain verdict. atlasCellCount unchanged; region heightfield
+      // AND downstream local material classification both move.
       atlasCellCount: 6005,
-      regionHeightfieldHash: 290399338,
-      localMaterialHash: 3954859637,
+      regionHeightfieldHash: 4038907665,
+      localMaterialHash: 416382634,
     });
   }, 60_000); // world gen now includes Military/Markers/Zones (stages 33-35)
 

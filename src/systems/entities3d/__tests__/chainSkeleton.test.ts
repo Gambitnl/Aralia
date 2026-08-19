@@ -36,7 +36,7 @@ const FRAME: Frame = deriveFrame('quad', 6.5, 1.15, 1);
 function restAnchors(frame: Frame): PartAnchors {
   const driver = createGaitDriver('quad', frame);
   driver.update(0, 0, { position: new Vector3(), heading: new Vector3(0, 0, 1), speed: 0 });
-  return Object.fromEntries(ANCHORS.map((a) => [a, driver.pose.anchors[a].pos])) as PartAnchors;
+  return Object.fromEntries(ANCHORS.map((a) => [a, driver.pose.anchors[a].pos])) as unknown as PartAnchors;
 }
 
 /** The chain parts under test: a real tail, tentacles, and antennae. */

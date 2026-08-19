@@ -4322,10 +4322,16 @@
       "title": "Procedural 3D entity generator",
       "sub": "Creatures + humanoids from modular 3D parts; any race x class combo (blobfolk style industrialized); design.html?step=entityforge",
       "campaign": "rendering",
-      "status": "done",
+      "status": "active",
+      "status_note": "Re-opened 2026-08-18: anatomy critique waves resumed (see the new feature below); the generator core stays shipped.",
       "deps": [],
       "link": "docs/superpowers/specs/2026-07-11-entity-generator-3d-design.md",
       "features": [
+        {
+          "title": "Anatomy critique waves: humanoid + creature look rounds on the forge eyeball surfaces",
+          "status": "active",
+          "status_note": "Round 24 humanoid (2026-08-18): the dwarf chin/neck restored — headScale-aware neck lift + traps bury (hunch-gated so the orc keeps its seated jaw) and the clavicle-plane chest-depth taper in smoothBipedGeometry. Round 26 creature (same day): upright plan walkers hang single arms (the gnoll T-pose fix), the crest part honors count/scale so the mane reads, gnoll plan arch 0.28 to 0.45. Round 27 creature (same day, full-library sweep in .agent/scratch/libsweep): compile-time palette guards — near-black bodies lift to L 0.36 and a too-close accent separates to body+0.16 (basalt beetle ink fix); floating-stance tentacles crown up-and-out instead of the droop+sag+ground-clamp spider read (generated Beholder). Eyeball tooling: bones toggle added to Entity Debug (?bones=1, forge parity); forge Library reworked from the side-scrolling column-wrap list to a dropdown + table. Creature gate LIVE (2026-08-19, from vendor/anyCreature MIT): tools/creatureGate/ — silhouette sweep (?sil=1 forge mode) + maskmetrics floors + blind-reader recognition; first full run reproduced every hand verdict and found the Gargantuan drake renders BLANK in sil mode. Gate rig debts: top camera too far, orb creatures need an eye marker. Open from the sweep: Emberwing Dragon reads as a horned teddy (no wing mass, no bulk), Gelatinous Cube renders as a bubble pile (box spine not boxy), centaur torso arms still T-pose (horizontal stance not covered by the upright hang), wisp stick arms, tyrant-orb fixture Mickey-knob stalk heads, hyena head read, invisible upright tail, stub-mitt hands, drake blank in silhouette mode."
+        },
         {
           "title": "Swap into game scenes: player avatar, town commuters, interior occupants, combat tokens",
           "status": "done"
@@ -4359,7 +4365,7 @@
           "status": "done"
         }
       ],
-      "updated": "2026-07-23",
+      "updated": "2026-08-18",
       "tier": "strategic"
     },
     {
@@ -6146,12 +6152,12 @@
         {
           "title": "Region-weighted composite height field",
           "status": "done",
-          "status_note": "Module built + 71 tests green. NOT wired into generateRegion.ts - wiring changes terrain in every existing world, needs Remy call. Mountain + plain looks still weak."
+          "status_note": "WIRED INTO generateRegion.ts 2026-08-18 (Remy call, after the flank-streak fix d7b60572): the L1 heightfield is now buildWindowComposite, replacing the IDW + FBM + ridge stack; generateRegion applies the settlement floor + water cap via applyRegionDiscipline. 150 region tests green (seam, water discipline, river carve, determinism); pipeline chain golden re-frozen (region + local hashes shift). The composite runs on REFERENCE rock - wiring the atlas erosion bake in is the separate Rock hardness feature below. River courses still route on the regionTerrainField sampler (window-independent), not the composite - surfaced as a gap. Compare viewer (DesignPreview land step) now shows bake vs no-bake instead of old-vs-new. Perf: composite ~0.7-0.8s per window."
         },
         {
           "title": "Rock hardness + atlas erosion bake",
-          "status": "active",
-          "status_note": "BUILT 2026-08-13, 83 tests green, seam still 0/125000. Brain coral GONE on mountain. Plain only partly fixed - macro noise still dominates. NOT wired into generateRegion.ts. Key finding: a window (25,000 ft) sits INSIDE one atlas cell (78,839 ft), so atlas discharge sets network development, not within-window channel width."
+          "status": "done",
+          "status_note": "BUILT 2026-08-13, 83 tests green, seam still 0/125000. Brain coral GONE on mountain. WIRED into generateRegion.ts 2026-08-18 (task b25cfbde): bakeAtlasErosion's per-cell hardness + discharge now feed the composite via a per-atlas memo (erosionBakeFor in generateRegion.ts) - the uniform-width-channel half of the region-terrain verdict is closed. 150 region tests green; pipeline chain golden re-frozen (region + local hashes move); seam/water/river-carve invariants hold. Hand-built test atlases fall back to reference rock. Key finding stands: a window (25,000 ft) sits INSIDE one atlas cell (78,839 ft), so atlas discharge sets network development, not within-window channel width. Remaining plain-crispness work (soft swales, not incised streams) belongs to the separate dendritic-network task (3d27acc5)."
         },
         {
           "title": "Interfluve operator: macro band derived from the flow guide",
@@ -6437,7 +6443,7 @@
         {
           "title": "World pieces: terrain, scatter, placement, town",
           "status": "active",
-          "status_note": "Four world pieces added 2026-08-13 with round-1 sheets from the WorldClaw wave. All four verdicts are wowed:false. region-terrain is explicitly NOT wired into generateRegion.ts."
+          "status_note": "Four world pieces added 2026-08-13 with round-1 sheets from the WorldClaw wave. All four verdicts are wowed:false. region-terrain is wired into generateRegion.ts since 2026-08-18 (composite, then the erosion bake same day, task b25cfbde)."
         },
         {
           "title": "One judging address: merged into the Judge step",

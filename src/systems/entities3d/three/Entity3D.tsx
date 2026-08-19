@@ -34,8 +34,9 @@ export interface Entity3DProps {
   /** Walk in place (or along `walkCircleRadius`) instead of idling. */
   walking?: boolean;
   /** Gesture overlay (real-finger update): 'wave' raises the free hand,
-   * extends the digits, and rocks it. Biped gaits only; others ignore it. */
-  gesture?: 'wave';
+   * extends the digits, and rocks it; 'wave_both' raises both hands.
+   * Biped gaits only; others ignore it. */
+  gesture?: 'wave' | 'wave_both';
   /** Ground speed while walking, m/s. */
   speed?: number;
   /** When set, the entity strolls a circle of this radius (showcase mode). */
@@ -64,6 +65,11 @@ export interface Entity3DProps {
   /** Draw a SkeletonHelper over the body. Only skinned bodies have bones;
    * on a segment body the helper finds none and nothing is drawn. */
   showBones?: boolean;
+  /** PROTOTYPE (hero-style campaign slice A, 2026-08-18): hide every ink
+   * shell so the forge can A/B the outline-free reference look against the
+   * current look. Scene-level visibility only — the real outline opt-out is
+   * slice B in the assembler. */
+  heroStyle?: boolean;
 }
 
 export function Entity3D({
@@ -80,6 +86,7 @@ export function Entity3D({
   bodyTech,
   skinnedWeights,
   showBones = false,
+  heroStyle = false,
 }: Entity3DProps) {
   // Keep the numeric performance settings as explicit dependencies. Callers
   // can tune a foreground hero differently from a conversational crowd
@@ -111,6 +118,22 @@ export function Entity3D({
       helper.dispose();
     };
   }, [handle, showBones, scene]);
+
+  // Hero-style prototype: every ink shell's name ends in 'Outline'
+  // (segOutline, partOutline, headOutline, skinnedOutline, skinnedChainOutline).
+  useEffect(() => {
+    if (!heroStyle) return;
+    const hidden: import('three').Object3D[] = [];
+    handle.group.traverse((o) => {
+      if (o.name.endsWith('Outline') && o.visible) {
+        o.visible = false;
+        hidden.push(o);
+      }
+    });
+    return () => {
+      for (const o of hidden) o.visible = true;
+    };
+  }, [handle, heroStyle]);
 
   const loco = useRef<LocomotionState>({
     position: new Vector3(),

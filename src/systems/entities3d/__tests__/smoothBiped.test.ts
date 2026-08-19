@@ -31,7 +31,7 @@ describe('smooth biped weights', () => {
       expect(w.getZ(v)).toBe(0);
       expect(w.getW(v)).toBe(0);
       expect(idx.getX(v)).toBeGreaterThanOrEqual(0);
-      expect(idx.getX(v)).toBeLessThan(37); // two-link thumb update: 37 bones
+      expect(idx.getX(v)).toBeLessThan(39); // clavicle update: 39 bones
     }
   });
 
