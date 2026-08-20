@@ -1,0 +1,104 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>Centaur gauntlet — live</title>
+<style>
+  body { margin: 0; overflow: hidden; font-family: system-ui; background: #10151b; }
+  #bar { position: fixed; top: 0; left: 0; right: 0; display: flex; gap: 14px; padding: 8px 12px;
+         background: #141a20; color: #cdd6e0; z-index: 2; align-items: center; font-size: 14px; }
+  #bar b { color: #e8c86e; }
+  #sheet { position: fixed; right: 10px; bottom: 10px; max-width: 34vw; max-height: 30vh;
+           border: 1px solid #333d48; border-radius: 6px; background: #fff; display: none; z-index: 2; }
+  #wait { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
+          color: #8fa3b8; font-size: 18px; z-index: 1; }
+</style>
+</head>
+<body>
+<div id="bar">
+  <b>Centaur gauntlet</b>
+  <span id="round">round —</span>
+  <span id="stage"></span>
+  <span id="note" style="opacity:.75"></span>
+  <span id="age" style="margin-left:auto; opacity:.6"></span>
+</div>
+<div id="wait">No build dropped yet — the agent updates this page after its first shipped compile.</div>
+<img id="sheet" alt="latest silhouette sheet" />
+<script type="importmap">
+{ "imports": {
+  "three": "https://unpkg.com/three@0.170.0/build/three.module.js",
+  "three/addons/": "https://unpkg.com/three@0.170.0/examples/jsm/"
+} }
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(innerWidth, innerHeight);
+document.body.appendChild(renderer.domElement);
+const scene = new THREE.Scene();
+scene.background = new THREE.Color('#bfe8ff');
+const camera = new THREE.PerspectiveCamera(40, innerWidth / innerHeight, 0.1, 100);
+camera.position.set(2.8, 1.8, 2.8);
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.target.set(0, 1.0, 0);
+scene.add(new THREE.HemisphereLight('#ffffff', '#7fa06a', 1.4));
+const sun = new THREE.DirectionalLight('#fff2d9', 1.8);
+sun.position.set(5, 9, 4);
+scene.add(sun);
+const ground = new THREE.Mesh(new THREE.CircleGeometry(14, 48),
+  new THREE.MeshLambertMaterial({ color: '#8fce6e' }));
+ground.rotation.x = -Math.PI / 2;
+scene.add(ground);
+
+const loader = new GLTFLoader();
+let current = null, mixer = null, lastStamp = '';
+async function poll() {
+  try {
+    const res = await fetch(`live/status.json?v=${Date.now()}`);
+    if (!res.ok) return;
+    const s = await res.json();
+    document.getElementById('round').textContent = `round ${s.round ?? '—'}`;
+    document.getElementById('stage').textContent = s.stage ?? '';
+    document.getElementById('note').textContent = s.note ?? '';
+    const age = s.updated ? Math.round((Date.now() - new Date(s.updated).getTime()) / 60000) : null;
+    document.getElementById('age').textContent = age === null ? '' : `${age} min ago`;
+    if (s.updated && s.updated !== lastStamp) {
+      lastStamp = s.updated;
+      loader.load(`live/centaur-latest.glb?v=${Date.now()}`, (g) => {
+        if (current) scene.remove(current);
+        current = g.scene;
+        scene.add(current);
+        document.getElementById('wait').style.display = 'none';
+        if (g.animations.length) {
+          mixer = new THREE.AnimationMixer(current);
+          const clip = g.animations.find((c) => c.name.toLowerCase().includes('move')) ?? g.animations[0];
+          mixer.clipAction(clip).play();
+        }
+      });
+      const sheet = document.getElementById('sheet');
+      sheet.src = `live/sheet-latest.png?v=${Date.now()}`;
+      sheet.onload = () => { sheet.style.display = 'block'; };
+      sheet.onerror = () => { sheet.style.display = 'none'; };
+    }
+  } catch { /* not dropped yet */ }
+}
+setInterval(poll, 5000);
+poll();
+
+const clock = new THREE.Clock();
+renderer.setAnimationLoop(() => {
+  if (mixer) mixer.update(clock.getDelta());
+  controls.update();
+  renderer.render(scene, camera);
+});
+addEventListener('resize', () => {
+  camera.aspect = innerWidth / innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+});
+</script>
+</body>
+</html>
