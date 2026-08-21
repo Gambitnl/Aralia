@@ -371,7 +371,7 @@ export interface HandDigitLayout {
  * - relaxed-fist curl STAGGER: the pinky curls deepest, the index least,
  *   with a small convergence toward the hand's centerline.
  * x, dy, len0, len1, rx in handR units; angles in degrees. */
-const FINGER_COLS = [
+export const FINGER_COLS = [
   // round 4: relaxed flex OPENED ~10° (flexP −6, flexD −10) — the deep tuck
   // buried every tip inside the palm envelope and the whole fist quantized
   // into a featureless ball (Remy: "fat balls"); visible tip pads restore
@@ -809,10 +809,14 @@ export function bipedRestPose(frame: Frame): BipedRestPose {
       r1: digits.thumb.r2,
     });
     for (const [fi, f] of digits.fingers.entries()) {
+      // hands round 2 (part-quality campaign): the drawn digit root extends
+      // ~0.35 handR back into the palm along its own axis — the root-embed
+      // rule. Mirror of BipedDriver.buildBody finger emission.
+      const buried = f.root.clone().sub(f.j1).normalize().multiplyScalar(handR * 0.35).add(f.root);
       segments.push({
         id: `hand${side}.finger${fi}a`,
         bone: `finger${side}${fi}a` as BipedBoneName,
-        a: toWorld(f.root),
+        a: toWorld(buried),
         b: toWorld(f.j1),
         r0: f.r0,
         r1: f.r1,

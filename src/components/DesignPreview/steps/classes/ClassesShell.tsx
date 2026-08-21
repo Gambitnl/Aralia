@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 21/08/2026, 01:40:11
+ * Dependents: components/DesignPreview/steps/classes/classesDomainModule.tsx, components/DesignPreview/steps/classes/classesScenarioAdapter.tsx, components/DesignPreview/steps/classes/index.ts
+ * Imports: 3 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import React, { useMemo, useState } from 'react';
 import type { KeyboardEvent } from 'react';
 import { Button } from '../../../ui/Button';
@@ -25,7 +41,11 @@ import { getSubclassDemo } from './subclassDemoRegistry';
 export interface ClassesShellProps {
   initialClassId?: string;
   initialSubclassId?: string | null;
+  /** A host-owned selection turns this shell into a controlled selector. */
+  selection?: ClassesShellSelection;
   onSelectionChange?: (selection: ClassesShellSelection) => void;
+  /** Adapter hosts can keep canonical mechanics content outside this selector. */
+  showSubclassDemo?: boolean;
   className?: string;
 }
 
@@ -111,7 +131,9 @@ function renderTabButton(
 export const ClassesDomainShell: React.FC<ClassesShellProps> = ({
   initialClassId,
   initialSubclassId,
+  selection: controlledSelection,
   onSelectionChange,
+  showSubclassDemo = true,
   className,
 }) => {
   // Snapshot the canonical registry for this mount so every row uses one consistent order.
@@ -120,13 +142,18 @@ export const ClassesDomainShell: React.FC<ClassesShellProps> = ({
     () => createClassesShellModel(initialClassId, initialSubclassId),
     [initialClassId, initialSubclassId],
   );
-  const [selection, setSelection] = useState<ClassesShellSelection>(initialModel.selection);
+  const [uncontrolledSelection, setUncontrolledSelection] = useState<ClassesShellSelection>(initialModel.selection);
+  const selection = controlledSelection ?? uncontrolledSelection;
   const selectedClass = classes.find((characterClass) => characterClass.id === selection.classId) ?? classes[0];
 
   // Notify the future host only after a user action. Initial state remains deterministic
   // without requiring an effect that would report a selection before the host is mounted.
   const select = (nextSelection: ClassesShellSelection): void => {
-    setSelection(nextSelection);
+    // Controlled adapter mounts receive the next selection from their host; direct
+    // shell mounts retain the existing local state behaviour for older callers.
+    if (!controlledSelection) {
+      setUncontrolledSelection(nextSelection);
+    }
     onSelectionChange?.(nextSelection);
   };
 
@@ -265,7 +292,7 @@ export const ClassesDomainShell: React.FC<ClassesShellProps> = ({
             >
               Selected subclass:{' '}
               {selectedClass.subclasses.find((subclass) => subclass.id === selection.subclassId)?.name}
-              {(() => {
+              {showSubclassDemo && (() => {
                 // Resolve the selected pair against the disjoint leaf registry. A missing
                 // entry is a real implementation boundary, not permission to simulate
                 // mechanics for a subclass whose leaf has not landed yet.

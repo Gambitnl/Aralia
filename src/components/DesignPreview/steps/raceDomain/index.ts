@@ -51,6 +51,22 @@ export type {
 } from './raceDomainTypes';
 export { createRaceDomainScenarioState } from './raceDomainTypes';
 
+// The framework adapter is exported from the Race boundary so the shared host
+// can consume typed identity and lookup symbols without reaching into internals.
+export {
+  createRaceFrameworkAdapter,
+  raceFrameworkAdapter,
+  raceFrameworkAdapterRegistry,
+  raceFrameworkAdapterRegistration,
+  RaceFrameworkAdapterSurface,
+  resolveCanonicalRaceId,
+} from './raceFrameworkAdapter';
+export type {
+  RaceFrameworkAdapterOptions,
+  RaceFrameworkAdapterRegistration,
+  RaceFrameworkAdapterSurfaceProps,
+} from './raceFrameworkAdapter';
+
 // This is the stable peer-registration record the Rules orchestrator imports.
 import React from 'react';
 import { definePreviewCombatDomainTab } from '../PreviewCombatDomainTabs';

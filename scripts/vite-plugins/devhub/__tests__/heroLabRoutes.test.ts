@@ -6,6 +6,7 @@ import * as path from 'path';
 import {
   handleHeroLabRoutes,
   runJobAsync,
+  resolveHeroRunnerCommand,
   type HeroJob,
   type HeroLabDeps,
 } from '../heroLabRoutes';
@@ -88,6 +89,9 @@ function makeCtx(method: string, urlPath: string, body?: unknown): { ctx: Parame
       },
       parsedUrl: new URL(`http://localhost${urlPath}`),
       urlPath,
+      // Hero Lab does not load project source through Vite, but the shared
+      // route contract requires the server handle used by other route modules.
+      server: { ssrLoadModule: vi.fn() },
     },
     out,
   };
@@ -443,6 +447,24 @@ describe('Hero Lab public promotion and replacement protections', () => {
 // ============================================================================
 
 describe('Hero Lab token security and secret omission', () => {
+  it('selects the credential launcher that belongs to each development host', () => {
+    // Windows keeps its existing Credential Manager boundary.
+    const windows = resolveHeroRunnerCommand('win32', 'C:\\Aralia', 'job-one', 'C:\\Aralia\\.agent\\scratch');
+    expect(windows.command).toBe('powershell');
+    expect(windows.args).toContain('-EntryId');
+    expect(windows.args.some((value) => value.endsWith('run-hero-job.ps1'))).toBe(true);
+
+    // Codespaces and other Linux hosts use the Bash runner with the immutable
+    // job id and scratch root passed as ordinary, non-secret arguments.
+    const linux = resolveHeroRunnerCommand('linux', '/workspaces/Aralia', 'job-two', '/workspaces/Aralia/.agent/scratch');
+    expect(linux.command).toBe('bash');
+    expect(linux.args).toEqual([
+      '/workspaces/Aralia/tools/creatureHero/run-hero-job.sh',
+      'job-two',
+      '/workspaces/Aralia/.agent/scratch',
+    ]);
+  });
+
   it('should omit and sanitize HF_TOKEN values from error metadata', async () => {
     // Set a mock environment token.
     process.env.HF_TOKEN = 'secret-huggingface-token-1234';

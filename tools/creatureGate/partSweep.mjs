@@ -36,6 +36,15 @@ try {
       style.textContent = '*{visibility:hidden!important} canvas{visibility:visible!important}';
       document.head.appendChild(style);
     });
+    // Lab specimens hover at (0, 1, 0) and ignore the default framing — the
+    // first blind A/B ran on near-empty frames because of this. Move the
+    // camera to the proven specimen vantage for lab jobs.
+    if (params.includes('lab=')) {
+      await page.evaluate(() => {
+        const c = window.__entitydebug?.camera;
+        if (c) c.position.set(1.5, 1.45, 1.6);
+      });
+    }
     await page.waitForTimeout(400);
     await page.locator('canvas').first().screenshot({ path: `${outDir}/${label}.png` });
     console.log(`part-shot ${label}`);

@@ -779,7 +779,14 @@ class BipedDriver extends BaseDriver {
       V_THUMB_A.copy(digits.thumb.tip).applyQuaternion(Q_PALM).add(hand);
       sink.seg('hand' + side + '.thumbb', V_THUMB_B.x, V_THUMB_B.y, V_THUMB_B.z, V_THUMB_A.x, V_THUMB_A.y, V_THUMB_A.z, digits.thumb.r1, digits.thumb.r2);
       for (const [fi, f] of digits.fingers.entries()) {
-        V_PALM_TIP.copy(f.root).applyQuaternion(Q_PALM).add(hand);
+        // hands round 2 (part-quality campaign; Remy 2026-08-21: "disconnected
+        // sausages"): the digit's DRAWN root extends ~0.35 handR back into the
+        // palm block along its own axis, so the knuckle seam hides inside the
+        // mass — the root-embed rule every other limb junction already obeys.
+        // Pose math (root/j1/tip, grip solve) is untouched; only the emitted
+        // tube grows. Mirror: bipedRestPose finger emission.
+        V_THUMB_A.copy(f.root).sub(f.j1).normalize().multiplyScalar(handR * 0.35).add(f.root);
+        V_PALM_TIP.copy(V_THUMB_A).applyQuaternion(Q_PALM).add(hand);
         V_FINGER_B.copy(f.j1).applyQuaternion(Q_PALM).add(hand);
         sink.seg(`hand${side}.finger${fi}a`, V_PALM_TIP.x, V_PALM_TIP.y, V_PALM_TIP.z, V_FINGER_B.x, V_FINGER_B.y, V_FINGER_B.z, f.r0, f.r1);
         V_PALM_TIP.copy(f.tip).applyQuaternion(Q_PALM).add(hand);

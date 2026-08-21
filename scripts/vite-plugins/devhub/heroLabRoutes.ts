@@ -250,6 +250,53 @@ function runProcess(
   });
 }
 
+/** The private launcher command differs by host but executes one pipeline. */
+export interface HeroRunnerCommand {
+  command: string;
+  args: string[];
+}
+
+/**
+ * Select the secure launcher for the current development host.
+ * Windows reads WinCred inside PowerShell. Linux and Codespaces receive the
+ * GitHub development secret in the Bash runner without exposing it to Vite's
+ * browser bundle. Keeping this choice pure makes both paths testable on CI.
+ */
+export function resolveHeroRunnerCommand(
+  platform: NodeJS.Platform,
+  repoRoot: string,
+  jobId: string,
+  jobsDir: string,
+): HeroRunnerCommand {
+  // Use the target host's path rules rather than the test runner's rules. This
+  // keeps Codespaces command construction verifiable even when tests run on a
+  // Windows workstation.
+  const hostPath = platform === 'win32' ? path.win32 : path.posix;
+
+  if (platform === 'win32') {
+    return {
+      command: 'powershell',
+      args: [
+        '-NoLogo',
+        '-NoProfile',
+        '-ExecutionPolicy',
+        'Bypass',
+        '-File',
+        hostPath.resolve(repoRoot, 'tools/creatureHero/run-hero-job.ps1'),
+        '-EntryId',
+        jobId,
+        '-BaseDir',
+        jobsDir,
+      ],
+    };
+  }
+
+  return {
+    command: 'bash',
+    args: [hostPath.resolve(repoRoot, 'tools/creatureHero/run-hero-job.sh'), jobId, jobsDir],
+  };
+}
+
 /**
  * Runs the generation and optimization scripts asynchronously for a given job.
  * Updates the state metadata file at each step of the pipeline.
@@ -283,24 +330,13 @@ export async function runJobAsync(
       const current = readJob(jobsDir, jobId);
       if (!current) throw new Error('Job not found');
 
-      // The launcher reads the Hugging Face token from Windows Credential
-      // Manager inside its child process and clears it before exit. The dev
-      // server therefore never receives, stores, logs, or forwards the secret.
-      const launcher = path.resolve(process.cwd(), 'tools/creatureHero/run-hero-job.ps1');
+      // Select the credential boundary for this host. Windows reads WinCred in
+      // the child; Codespaces supplies a non-VITE_ environment secret to the
+      // Bash child. Neither route stores or returns the secret to the browser.
+      const runnerCommand = resolveHeroRunnerCommand(process.platform, process.cwd(), jobId, jobsDir);
       await runProcess(
-        'powershell',
-        [
-          '-NoLogo',
-          '-NoProfile',
-          '-ExecutionPolicy',
-          'Bypass',
-          '-File',
-          launcher,
-          '-EntryId',
-          jobId,
-          '-BaseDir',
-          jobsDir,
-        ],
+        runnerCommand.command,
+        runnerCommand.args,
         process.env,
         (output) => {
           // Only the explicit machine-readable marker can change public job

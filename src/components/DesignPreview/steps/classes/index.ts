@@ -31,3 +31,24 @@ export type {
   ClassesShellSelection,
 } from './classesDomainModel';
 export type { ClassesShellProps } from './ClassesShell';
+
+// The framework adapter is exported from the same Classes boundary so a Rules host can
+// resolve typed class scenarios without importing internal selector or fixture files.
+export {
+  CLASSES_DOMAIN,
+  CLASSES_DOMAIN_ID,
+  CLASSES_SCENARIO_ADAPTERS,
+  CLASSES_SCENARIO_ADAPTER_REGISTRY,
+  CLASSES_SCENARIO_IDS,
+  classesScenarioAdapterRegistry,
+  createClassesScenarioBoard,
+} from './classesScenarioAdapter';
+export type {
+  ClassesDomainId,
+  ClassesDomainIdentity,
+  ClassesScenarioAdapter,
+  ClassesScenarioAdapterRegistry,
+  ClassesScenarioBoard,
+  ClassesScenarioId,
+  ClassesScenarioIdentity,
+} from './classesScenarioAdapter';
