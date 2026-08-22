@@ -1,0 +1,44 @@
+[
+  {
+    "id": "lowpoly-nogender",
+    "nodes": 1,
+    "tris": 5024,
+    "sourceHeight": 1.766,
+    "bytes": 303388
+  },
+  {
+    "id": "lowpoly-female",
+    "nodes": 1,
+    "tris": 5348,
+    "sourceHeight": 1.7,
+    "bytes": 325780
+  },
+  {
+    "id": "lowpoly-male",
+    "nodes": 1,
+    "tris": 5392,
+    "sourceHeight": 1.918,
+    "bytes": 327356
+  },
+  {
+    "id": "stylized-figure-a",
+    "nodes": 39,
+    "tris": 48648,
+    "sourceHeight": 6.851,
+    "bytes": 2949984
+  },
+  {
+    "id": "stylized-figure-b",
+    "nodes": 38,
+    "tris": 47008,
+    "sourceHeight": 7.246,
+    "bytes": 2845892
+  },
+  {
+    "id": "stylized-head-kit",
+    "nodes": 12,
+    "tris": 31308,
+    "sourceHeight": 1.36,
+    "bytes": 1796296
+  }
+]

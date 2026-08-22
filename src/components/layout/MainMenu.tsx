@@ -36,6 +36,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { LoadGameModal, SaveSlotSelector } from '../SaveLoad';
 import { deleteSaveGame, getSaveSlots, SaveSlotSummary } from '../../services/saveLoadService';
 import { VersionDisplay } from '../ui/VersionDisplay';
+import { CreditsModal } from '../ui/CreditsModal';
 import { canUseDevTools } from '../../utils/core';
 import { t } from '../../utils/core';
 import { UI_ID } from '../../styles/uiIds';
@@ -138,6 +139,7 @@ const MainMenu: React.FC<MainMenuProps> = ({
 }) => {
   const [isLoadModalOpen, setIsLoadModalOpen] = useState(false);
   const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
+  const [isCreditsOpen, setIsCreditsOpen] = useState(false);
   const [saveSlots, setSaveSlots] = useState<SaveSlotSummary[]>([]);
   const [pendingConfirm, setPendingConfirm] = useState<'abandon' | 'wipe' | null>(null);
   const pendingConfirmRef = useRef<HTMLDivElement | null>(null);
@@ -361,6 +363,15 @@ const MainMenu: React.FC<MainMenuProps> = ({
           >
             {t('main_menu.glossary')}
           </button>
+          {/* Third-party asset credits. CC-BY 4.0 asks for a credit the
+              player can see, so this entry stays on the shipped menu. */}
+          <button
+            onClick={() => setIsCreditsOpen(true)}
+            className={BTN_SECONDARY}
+            aria-label={t('main_menu.credits_aria')}
+          >
+            {t('main_menu.credits')}
+          </button>
         </div>
         {/* M4: removed the player-facing "Powered by Gemini" branding line — an
             engineering/vendor detail that should not leak into the shipped menu. */}
@@ -384,6 +395,8 @@ const MainMenu: React.FC<MainMenuProps> = ({
           onClose={() => setIsLoadModalOpen(false)}
         />
       )}
+
+      <CreditsModal isOpen={isCreditsOpen} onClose={() => setIsCreditsOpen(false)} />
 
       <VersionDisplay position="main-menu" />
     </main>

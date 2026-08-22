@@ -187,6 +187,15 @@ describe('MainMenu', () => {
         expect(defaultProps.onShowCompendium).toHaveBeenCalledTimes(1);
     });
 
+    it('opens the Credits panel with the hand mesh credit line', () => {
+        // CC-BY 4.0 asks for a credit the player can see. The main menu is the
+        // shipped surface, so the Credits entry must stay on it.
+        render(<MainMenu {...defaultProps} />);
+        fireEvent.click(screen.getByRole('button', { name: /third-party asset credits/i }));
+        expect(screen.getByRole('dialog', { name: 'Credits' })).toBeInTheDocument();
+        expect(screen.getByText(/"Low Poly Hand" by ronildo\.facanha/)).toBeInTheDocument();
+    });
+
     it('shows Continue button when a save exists', () => {
         render(<MainMenu {...defaultProps} hasSaveGame={true} latestSaveTimestamp={Date.now()} />);
         // Use regex to match text that might be split across elements or have extra whitespace

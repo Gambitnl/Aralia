@@ -57,8 +57,9 @@ import {
   type Bone,
 } from 'three';
 import type { Frame, SegmentSink } from '../types';
+import { heightM } from '../types';
 import type { PlanHeadSocket } from './gaits';
-import { buildBipedSkeleton, createBipedPoseSink } from './skeletonBuilder';
+import { BIPED_BONE_NAMES, bipedRestPose, buildBipedSkeleton, createBipedPoseSink, type BipedBoneName, type BuiltSkeleton } from './skeletonBuilder';
 import { buildPlanSkeleton, createPlanPoseSink } from './planSkeleton';
 import {
   buildSpeciesSkeleton,
@@ -74,6 +75,7 @@ import {
 } from './chainSkeleton';
 import type { PartAnchors } from '../types';
 import { buildSmoothBipedGeometry } from './smoothBipedGeometry';
+import type { PartChoice } from './partVariants';
 import { outlineMaterial, toonMaterial } from './toon';
 
 export interface SkinnedBodyOptions {
@@ -85,6 +87,8 @@ export interface SkinnedBodyOptions {
   /** 'rigid' (default) = slice-1 segment-look pieces; 'smooth' = slice-3
    * one-piece chain tubes with joint-blended weights. */
   weights?: 'rigid' | 'smooth';
+  /** Part Lab slot variants — the smooth biped only; rigid + parts throws. */
+  parts?: PartChoice;
 }
 
 export interface SkinnedBody {
@@ -225,9 +229,12 @@ export function buildBipedBindGeometry(frame: Frame, skeleton: ReturnType<typeof
 
 export function createSkinnedBiped(frame: Frame, options: SkinnedBodyOptions): SkinnedBody {
   const built = buildBipedSkeleton(frame);
+  if (options.parts && options.weights !== 'smooth') {
+    throw new Error("skinnedBody: part variants apply to the smooth biped only — pass weights 'smooth'");
+  }
   const geometry =
     options.weights === 'smooth'
-      ? buildSmoothBipedGeometry(built.restPose, built.index, frame)
+      ? buildSmoothBipedGeometry(built.restPose, built.index, frame, options.parts)
       : buildBipedBindGeometry(frame, built);
 
   // Skeleton inverses must be captured while the bones hold their bind pose
@@ -673,3 +680,132 @@ export function createSkinnedChains(
   };
 }
 
+
+/**
+ * A FOREIGN rig as the biped body (Part Lab base meshes, 2026-08-21): a
+ * SkinnedMesh whose skeleton carries OUR bone names and hierarchy, bound in
+ * its own pose (T-pose from tools/blender/rig_basemesh.py), normalized to
+ * height 1. The pose sink writes the driver's absolute bone transforms, so
+ * the skin deforms from its bind straight into the driven pose — the rig's
+ * rest bones were set to the sink's own frame (+Y along the bone).
+ *
+ * Scale: the GLB is height 1; the driver emits meters for `frame`, so the
+ * geometry and the bone chain are scaled to heightM(frame) and re-bound.
+ * No fallbacks: a missing bone name throws.
+ */
+/**
+ * Re-aim every bone's REST rotation to the pose sink's convention — the
+ * minimal rotation from +Y onto the bone's direction (head → next joint) —
+ * while every joint keeps its world position. The driver writes exactly
+ * that frame each frame, so the inverse binds computed after this step
+ * deform the skin from bind to pose with no roll error. Direction rules
+ * mirror what the sink writes per bone:
+ *   - chain bones: toward the mean of their child joints
+ *   - finger and thumb tips (no child): along their own link (parent → self)
+ *   - feet (no child): the rest pose's heel → toe direction
+ *   - head (a ball: the sink writes position only) and root: identity
+ */
+function alignBindFramesToSink(bones: Bone[], index: ReadonlyMap<BipedBoneName, number>, restPose: ReturnType<typeof bipedRestPose>): void {
+  const worldPos = new Map<Bone, Vector3>();
+  for (const b of bones) worldPos.set(b, b.getWorldPosition(new Vector3()));
+  const restDir = (name: BipedBoneName): Vector3 => {
+    const seg = restPose.segments.find((sg) => sg.bone === name);
+    if (!seg) throw new Error(`alignBindFramesToSink: no rest segment for leaf bone "${name}"`);
+    return new Vector3(seg.b[0] - seg.a[0], seg.b[1] - seg.a[1], seg.b[2] - seg.a[2]);
+  };
+  const worldQuat = new Map<Bone, Quaternion>();
+  // parent-first order (BIPED_BONE_NAMES lists parents before children)
+  for (const b of bones) {
+    const name = b.name as BipedBoneName;
+    const parent = b.parent && (b.parent as Bone).isBone ? (b.parent as Bone) : null;
+    let dir: Vector3 | null = null;
+    if (name !== 'root' && name !== 'head') {
+      const kids = b.children.filter((c) => (c as Bone).isBone && index.has(c.name as BipedBoneName)) as Bone[];
+      if (kids.length) {
+        dir = new Vector3();
+        for (const k of kids) dir.add(worldPos.get(k)!);
+        dir.multiplyScalar(1 / kids.length).sub(worldPos.get(b)!);
+      } else if (/^(finger|thumb)/.test(name) && parent) {
+        dir = worldPos.get(b)!.clone().sub(worldPos.get(parent)!);
+      } else {
+        dir = restDir(name);
+      }
+    }
+    const q = new Quaternion();
+    if (dir && dir.lengthSq() > 1e-12) q.setFromUnitVectors(UP, dir.normalize());
+    worldQuat.set(b, q);
+    if (!parent) {
+      b.quaternion.copy(q);
+      continue;
+    }
+    const pq = worldQuat.get(parent)!;
+    const inv = pq.clone().invert();
+    b.quaternion.copy(inv).multiply(q);
+    b.position.copy(worldPos.get(b)!).sub(worldPos.get(parent)!).applyQuaternion(inv);
+  }
+}
+
+export function createSkinnedFromRig(frame: Frame, rig: SkinnedMesh, options: Pick<SkinnedBodyOptions, 'colorHex' | 'outlineThickness'>): SkinnedBody {
+  const byName = new Map(rig.skeleton.bones.map((b) => [b.name, b] as const));
+  const bones: Bone[] = BIPED_BONE_NAMES.map((name) => {
+    const b = byName.get(name);
+    if (!b) throw new Error(`createSkinnedFromRig: rig has no bone "${name}" (bones: ${rig.skeleton.bones.map((x) => x.name).join(', ')})`);
+    return b;
+  });
+  const index = new Map<BipedBoneName, number>(BIPED_BONE_NAMES.map((n, i) => [n, i] as const));
+  const rootBone = bones[0];
+  // our driver writes the root at the entity origin; a rig whose root bone
+  // binds elsewhere would lift the whole body by that offset every frame
+  if (rootBone.position.length() > 1e-3) {
+    throw new Error(`createSkinnedFromRig: root bone binds at (${rootBone.position.toArray().map((v) => v.toFixed(3)).join(', ')}), expected the origin — re-run tools/entities3d/rigBaseMeshes.mjs`);
+  }
+
+  // meters: scale the bind geometry and every bone's local offset uniformly
+  const s = heightM(frame);
+  const geometry = rig.geometry.clone();
+  geometry.scale(s, s, s);
+  for (const b of bones) b.position.multiplyScalar(s);
+
+  const fillMaterial = toonMaterial(options.colorHex);
+  const inkMaterial = outlineMaterial(options.colorHex, options.outlineThickness, 1, false);
+  const root = new Group();
+  root.name = 'skinnedBody';
+  const fill = new SkinnedMesh(geometry, fillMaterial);
+  fill.name = 'skinnedFill';
+  fill.frustumCulled = false;
+  rootBone.removeFromParent();
+  fill.add(rootBone);
+  fill.updateMatrixWorld(true);
+  alignBindFramesToSink(bones, index, bipedRestPose(frame));
+  fill.updateMatrixWorld(true);
+  // The geometry's skinIndex values address the GLB skin's OWN joint order —
+  // the Skeleton must keep that order. The sink addresses bones by our
+  // name order through `bones`/`index` above; the two orders are separate.
+  const skeleton = new Skeleton(rig.skeleton.bones.slice());
+  fill.bind(skeleton, IDENTITY); // inverse binds from the scaled T-pose
+  const shell = new SkinnedMesh(geometry, inkMaterial);
+  shell.name = 'skinnedOutline';
+  shell.frustumCulled = false;
+  shell.bind(skeleton, IDENTITY);
+  root.add(fill, shell);
+
+  const bindWorldPos = bones.map((b) => new Vector3().setFromMatrixPosition(b.matrixWorld));
+  const bindWorldQuat = bones.map((b) => new Quaternion().setFromRotationMatrix(b.matrixWorld));
+  const built: BuiltSkeleton = { root: rootBone, bones, index, restPose: bipedRestPose(frame), bindWorldPos, bindWorldQuat };
+  const pose = createBipedPoseSink(built);
+
+  return {
+    root,
+    skinnedMesh: fill,
+    sink: pose.sink,
+    boneNamed: boneLookup(index, bones),
+    finishFrame: pose.finishFrame,
+    triangles: () => ((geometry.index ? geometry.index.count : geometry.getAttribute('position').count) / 3) * 2,
+    dispose: () => {
+      geometry.dispose();
+      fillMaterial.dispose();
+      inkMaterial.dispose();
+      skeleton.dispose();
+    },
+  };
+}

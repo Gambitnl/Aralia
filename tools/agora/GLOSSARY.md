@@ -311,3 +311,28 @@ clump field decides where plants crowd with one, the ground grain speckles
 cut faces with one, and the curtain jitter roughens waterfalls with one.
 Layering several at different scales (octaves) gives detail that reads
 natural at every distance.
+
+## Part Lab (part-quality campaign)
+
+Terms from the Part Lab step (design.html?step=partlab) and
+src/systems/entities3d/three/partVariants.ts, 2026-08-21.
+
+**Part Lab** — the design-preview step that shows one full entity on a
+neutral studio stage and lets a reviewer swap each part slot between its
+candidate builds. It replaced the solo-part mode that sat on top of Entity
+Debug.
+
+**Part slot** — one body region the generator can build in more than one way.
+The slots are hand, head, and foot.
+
+**Part variant** — one candidate build for a slot, named by an id in the
+catalog (for example hand: lofted). The first variant in each slot is the
+shipping build.
+
+**Part choice** — one variant id per slot, passed to the assembler as
+options.parts. Only the skinned smooth biped accepts it; every other body
+throws.
+
+**Base mesh** — a licensed whole-body model the Part Lab can show in place of
+the procedural body, for a side-by-side read. Split per model into
+public/references/basemesh/ and listed in baseMeshCatalog.ts.

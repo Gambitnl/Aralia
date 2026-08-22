@@ -116,6 +116,20 @@ it happens, and where we hit it.
 - **We hit it:** both on 2026-08-21. Fixes: delete `node_modules/.vite/deps`
   and restart; reload the page for context loss.
 
+## 11. Ring shear (the plank disease)
+
+- **You see:** a tube-built limb reads as a flat plank, or a bent limb
+  collapses sideways into a melted wave — even though its skeleton points
+  the right way.
+- **Names:** ring shear · (ours) the plank disease.
+- **Why:** cross-section rings stay world-axis-aligned while the limb's
+  direction pitches or splays; each ring slides diagonally against the next
+  and the stack shears. The DIRECTIONS are right; the RING ORIENTATION is
+  wrong. Cure: build each ring perpendicular to its own segment direction.
+- **We hit it:** twice in one night (2026-08-21) — the template thumb ("a
+  flat plank") and the v3 finger bend ("melting fist"). Same cure both
+  times, in `steps/templateHand.ts` oriented rings.
+
 ---
 
 Add new entries the day a bug is named — one entry per DISTINCT cause, with

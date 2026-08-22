@@ -1,11 +1,11 @@
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
- * This file appears to be an ISOLATED UTILITY or ORPHAN.
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 13/08/2026, 11:02:24
- * Dependents: None (Orphan)
- * Imports: 4 files
+ * Last Sync: 21/08/2026, 22:42:36
+ * Dependents: components/DesignPreview/steps/PreviewCombatScenarios.tsx
+ * Imports: 5 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -55,6 +55,7 @@ export { createRaceDomainScenarioState } from './raceDomainTypes';
 // can consume typed identity and lookup symbols without reaching into internals.
 export {
   createRaceFrameworkAdapter,
+  createRaceScenarioBoard,
   raceFrameworkAdapter,
   raceFrameworkAdapterRegistry,
   raceFrameworkAdapterRegistration,
@@ -65,6 +66,7 @@ export type {
   RaceFrameworkAdapterOptions,
   RaceFrameworkAdapterRegistration,
   RaceFrameworkAdapterSurfaceProps,
+  RaceScenarioBoard,
 } from './raceFrameworkAdapter';
 
 // This is the stable peer-registration record the Rules orchestrator imports.

@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 21/08/2026, 01:42:06
+ * Last Sync: 21/08/2026, 22:53:25
  * Dependents: components/DesignPreview/steps/classes/index.ts
- * Imports: 12 files
+ * Imports: 14 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -21,9 +21,14 @@ import AbilityPalette from '../../../BattleMap/AbilityPalette';
 import ActionEconomyBar from '../../../BattleMap/ActionEconomyBar';
 import CombatLog from '../../../BattleMap/CombatLog';
 import InitiativeTracker from '../../../BattleMap/InitiativeTracker';
-import { generateProceduralSandboxBattleSetup } from '../../../../hooks/useBattleMapGeneration';
+import { Button } from '../../../ui/Button';
 import { createQuickCombatCharacter } from '../../../../utils/sandbox/quickCharacterGenerator';
-import type { BattleMapData, CombatCharacter, CombatLogEntry } from '../../../../types/combat';
+import type {
+  BattleMapData,
+  BattleMapTile,
+  CombatCharacter,
+  CombatLogEntry,
+} from '../../../../types/combat';
 import {
   PreviewCombatScenarioFramework,
   createPreviewCombatScenarioAdapterRegistry,
@@ -35,6 +40,7 @@ import {
   type PreviewCombatScenarioRenderMode,
   type PreviewCombatScenarioIdentity,
 } from '../PreviewCombatScenarioFramework';
+import PreviewCombatDomainScenarioSidebar from '../PreviewCombatDomainScenarioSidebar';
 import {
   ClassesDomainShell,
 } from './ClassesShell';
@@ -44,13 +50,14 @@ import {
   resolveClassesShellSelection,
   type ClassesShellSelection,
 } from './classesDomainModel';
+import { getSubclassDemo } from './subclassDemoRegistry';
 
 /**
  * This file adapts canonical Classes choices into the shared Tactical Sandbox framework.
- * It exists so Rules can supply one map, actor roster, and combat state while this package
- * owns only class selection, subclass content, and the typed framework slots.
+ * It exists so Classes can supply its authored map, canonical actor roster, selection,
+ * and subclass content while Rules retains the shared combat lifecycle and framework slots.
  * Called by: a Rules host that resolves the Classes adapter registry.
- * Depends on: the published framework contract, production quick-character/map helpers,
+ * Depends on: the published framework contract, the production quick-character helper,
  * the native BattleMap renderers, and the existing Classes selector.
  */
 
@@ -117,17 +124,111 @@ export const CLASSES_DOMAIN: ClassesDomainIdentity = {
 };
 
 // ============================================================================
-// Canonical board fixture
+// Authored class scenario maps
 // ============================================================================
-// Build a deterministic board from production quick-character records. The adapter does
-// not invent token stats or terrain; this helper is the host/test seam for supplying real
-// CombatCharacter and BattleMapData props to the shared framework.
+// Rules scenarios place terrain deliberately around the mechanic under review.
+// Classes follows that same contract: each class selects an explicit teaching
+// profile instead of receiving an unrelated procedural forest.
 export interface ClassesScenarioBoard {
   mapData: BattleMapData;
   characters: CombatCharacter[];
 }
 
-const CLASSES_BOARD_SEED = 31873;
+interface ClassesScenarioMapProfile {
+  seed: number;
+  obstacleColumn: number;
+  openRows: readonly number[];
+  difficultRow: number;
+  elevatedStartX: number;
+}
+
+// These compact profiles are authored scenario data. They keep the Rules board
+// grammar while relocating the obstacle lane, difficult ground, and raised
+// platform for each canonical class scenario.
+const CLASSES_SCENARIO_MAP_PROFILES: Record<ClassesScenarioId, ClassesScenarioMapProfile> = {
+  fighter: { seed: 3101, obstacleColumn: 7, openRows: [5, 6], difficultRow: 3, elevatedStartX: 11 },
+  barbarian: { seed: 3102, obstacleColumn: 6, openRows: [4, 5], difficultRow: 7, elevatedStartX: 10 },
+  bard: { seed: 3103, obstacleColumn: 8, openRows: [5, 7], difficultRow: 2, elevatedStartX: 12 },
+  cleric: { seed: 3104, obstacleColumn: 7, openRows: [4, 7], difficultRow: 8, elevatedStartX: 10 },
+  druid: { seed: 3105, obstacleColumn: 6, openRows: [5, 8], difficultRow: 6, elevatedStartX: 11 },
+  ranger: { seed: 3106, obstacleColumn: 9, openRows: [3, 6], difficultRow: 4, elevatedStartX: 12 },
+  rogue: { seed: 3107, obstacleColumn: 8, openRows: [4, 6], difficultRow: 8, elevatedStartX: 10 },
+  paladin: { seed: 3108, obstacleColumn: 7, openRows: [5, 8], difficultRow: 2, elevatedStartX: 11 },
+  monk: { seed: 3109, obstacleColumn: 6, openRows: [3, 7], difficultRow: 5, elevatedStartX: 12 },
+  sorcerer: { seed: 3110, obstacleColumn: 9, openRows: [5, 6], difficultRow: 8, elevatedStartX: 10 },
+  warlock: { seed: 3111, obstacleColumn: 8, openRows: [3, 5], difficultRow: 6, elevatedStartX: 11 },
+  wizard: { seed: 3112, obstacleColumn: 7, openRows: [4, 6], difficultRow: 3, elevatedStartX: 12 },
+  artificer: { seed: 3113, obstacleColumn: 9, openRows: [4, 7], difficultRow: 5, elevatedStartX: 10 },
+};
+
+const CLASSES_MAP_WIDTH = 16;
+const CLASSES_MAP_HEIGHT = 12;
+
+/** Build one fixed tactical teaching board for the selected class. */
+function createClassesScenarioMap(classId: ClassesScenarioId): BattleMapData {
+  const profile = CLASSES_SCENARIO_MAP_PROFILES[classId];
+  const tiles = new Map<string, BattleMapTile>();
+
+  // Every cell starts as ordinary dungeon floor so production movement, sight,
+  // cover, and elevation systems interpret the authored differences below.
+  for (let y = 0; y < CLASSES_MAP_HEIGHT; y += 1) {
+    for (let x = 0; x < CLASSES_MAP_WIDTH; x += 1) {
+      const isBoundary = x === 0 || y === 0 || x === CLASSES_MAP_WIDTH - 1 || y === CLASSES_MAP_HEIGHT - 1;
+      const tile: BattleMapTile = {
+        id: `${x}-${y}`,
+        coordinates: { x, y },
+        terrain: isBoundary ? 'wall' : 'floor',
+        elevation: 0,
+        movementCost: 5,
+        blocksLoS: isBoundary,
+        blocksMovement: isBoundary,
+        decoration: null,
+        effects: [],
+      };
+
+      // The raised platform gives ranged, movement, support, and area mechanics
+      // a visible vertical reference without changing the renderer contract.
+      if (!isBoundary && x >= profile.elevatedStartX && x <= 13 && y >= 2 && y <= 9) {
+        tile.elevation = 5;
+      }
+
+      // This horizontal strip is deliberately expensive ground. Its authored
+      // row changes by class but always uses the production terrain contract.
+      if (!isBoundary && y === profile.difficultRow && x >= 2 && x <= 13) {
+        tile.terrain = 'difficult';
+        tile.movementCost = 10;
+        tile.decoration = 'bush';
+        tile.providesCover = true;
+      }
+
+      // The obstacle lane combines half-cover brush and solid pillars. Fixed
+      // gaps preserve at least one legal route between the stable spawn cells.
+      if (
+        x === profile.obstacleColumn
+        && y >= 2
+        && y <= 9
+        && !profile.openRows.includes(y)
+      ) {
+        const isPillar = (y + profile.seed) % 2 === 0;
+        tile.decoration = isPillar ? 'pillar' : 'bush';
+        tile.providesCover = true;
+        tile.blocksMovement = isPillar;
+        tile.blocksLoS = false;
+        tile.terrain = isPillar ? 'floor' : 'difficult';
+        tile.movementCost = isPillar ? 5 : 10;
+      }
+
+      tiles.set(tile.id, tile);
+    }
+  }
+
+  return {
+    dimensions: { width: CLASSES_MAP_WIDTH, height: CLASSES_MAP_HEIGHT },
+    tiles,
+    theme: 'dungeon',
+    seed: profile.seed,
+  };
+}
 
 export function createClassesScenarioBoard(classId: ClassesScenarioId): ClassesScenarioBoard {
   const player = createQuickCombatCharacter({
@@ -151,18 +252,25 @@ export function createClassesScenarioBoard(classId: ClassesScenarioId): ClassesS
     throw new Error(`Production Classes board assembly failed for ${classId}.`);
   }
 
-  const setup = generateProceduralSandboxBattleSetup('forest', CLASSES_BOARD_SEED, [
-    player,
-    {
-      ...target,
-      id: 'classes-training-target',
-      team: 'enemy',
-    },
-  ]);
-
+  // Stable actor IDs keep the host turn state valid while class selection swaps
+  // the authored map and canonical player record together.
   return {
-    mapData: setup.mapData,
-    characters: setup.positionedCharacters,
+    mapData: createClassesScenarioMap(classId),
+    characters: [
+      {
+        ...player,
+        id: 'classes-preview-hero',
+        name: `${player.name} · ${classId} scenario`,
+        team: 'player',
+        position: { x: 3, y: 5 },
+      },
+      {
+        ...target,
+        id: 'classes-training-target',
+        team: 'enemy',
+        position: { x: 12, y: 5 },
+      },
+    ],
   };
 }
 
@@ -180,11 +288,28 @@ function ClassesScenarioAdapterView(props: PreviewCombatScenarioFrameworkProps):
   const [selection, setSelection] = useState<ClassesShellSelection>(() => (
     resolveClassesShellSelection(classes, initialClassId)
   ));
+  const [selectedBoard, setSelectedBoard] = useState<ClassesScenarioBoard>(() => (
+    createClassesScenarioBoard(initialClassId as ClassesScenarioId)
+  ));
   const [combatLog, setCombatLog] = useState<CombatLogEntry[]>([]);
+  const [query, setQuery] = useState('');
+  const [showLineOfSightCone, setShowLineOfSightCone] = useState(true);
   const selectedClass = classes.find(characterClass => characterClass.id === selection.classId) ?? classes[0];
   const selectedSubclass = selectedClass?.subclasses.find(
     subclass => subclass.id === selection.subclassId,
   );
+  const selectedDemo = selection.subclassId
+    ? getSubclassDemo(selection.classId, selection.subclassId)?.Component
+    : undefined;
+  const normalizedQuery = query.trim().toLowerCase();
+  const filteredClasses = normalizedQuery
+    ? classes.filter(characterClass => [
+      characterClass.id,
+      characterClass.name,
+      characterClass.description,
+      ...characterClass.subclasses.flatMap(subclass => [subclass.name, subclass.description]),
+    ].join(' ').toLowerCase().includes(normalizedQuery))
+    : classes;
 
   // The canonical registry guarantees a selected class, but this guard keeps a malformed
   // future data update from rendering an identity that the framework cannot explain.
@@ -192,22 +317,37 @@ function ClassesScenarioAdapterView(props: PreviewCombatScenarioFrameworkProps):
     throw new Error('Classes adapter requires at least one canonical class.');
   }
 
+  const selectedScenarioId = selectedClass.id as ClassesScenarioId;
   const selectedScenario: ClassesScenarioIdentity = {
-    scenarioId: selectedClass.id as ClassesScenarioId,
+    scenarioId: selectedScenarioId,
     scenarioLabel: selectedClass.name,
+  };
+
+  // Selection and board replacement happen in one user transaction. This
+  // avoids rebuilding character records during unrelated toolbar renders and
+  // ensures the visible label can never advance without its custom map.
+  const handleSelectionChange = (nextSelection: ClassesShellSelection): void => {
+    const nextClassId = nextSelection.classId as ClassesScenarioId;
+    setSelection(nextSelection);
+    setSelectedBoard(createClassesScenarioBoard(nextClassId));
   };
 
   // The published framework owns map mode state outside this adapter. Reset asks that host
   // to return to 2D, clears adapter-only receipts, and restores the first canonical pair.
   const handleReset = (): void => {
-    setSelection(getCanonicalDefaultSelection(classes));
+    const defaultSelection = getCanonicalDefaultSelection(classes);
+    setSelection(defaultSelection);
+    setSelectedBoard(createClassesScenarioBoard(defaultSelection.classId as ClassesScenarioId));
     setCombatLog([]);
+    setQuery('');
+    setShowLineOfSightCone(true);
     props.onRenderModeChange('2d');
     props.onReset();
   };
 
-  // The camera lifecycle remains a callback boundary. No local map, camera, turn manager,
-  // or ability system is created here, so host state remains the one source of truth.
+  // The camera lifecycle remains a callback boundary. Classes may replace the
+  // selected board data, but it never creates a second camera, turn manager, or
+  // ability system, so the host lifecycle remains the source of combat truth.
   const cameraLifecycle = useMemo(() => ({
     onModeChange: (mode: PreviewCombatScenarioRenderMode): void => {
       props.cameraLifecycle?.onModeChange?.(mode);
@@ -217,7 +357,7 @@ function ClassesScenarioAdapterView(props: PreviewCombatScenarioFrameworkProps):
     },
   }), [props.cameraLifecycle]);
 
-  const activeCharacter = props.characters.find(
+  const activeCharacter = selectedBoard.characters.find(
     character => character.id === props.combatState.turnState.currentCharacterId,
   ) ?? null;
 
@@ -230,50 +370,69 @@ function ClassesScenarioAdapterView(props: PreviewCombatScenarioFrameworkProps):
       {...props}
       domain={CLASSES_DOMAIN}
       scenario={selectedScenario}
+      mapData={selectedBoard.mapData}
+      characters={selectedBoard.characters}
       sidebar={(
-        <>
-          <ClassesDomainShell
-            selection={selection}
-            onSelectionChange={setSelection}
-            showSubclassDemo={false}
-          />
-          <section
-            aria-label="Selected canonical subclass mechanics"
-            data-testid="classes-selected-subclass-mechanics"
-            className="rounded border border-cyan-400/30 bg-slate-950/60 p-3 text-xs text-slate-200"
-          >
-            <p className="font-bold uppercase tracking-wider text-cyan-300">Canonical subclass mechanics</p>
-            <p className="mt-1 text-slate-400">{selectedSubclass?.description ?? 'No subclass selected.'}</p>
-            <ul className="mt-2 space-y-1 text-slate-300">
-              {selectedSubclass?.features.map(feature => (
-                <li key={feature.id}>
-                  <span className="font-semibold text-cyan-100">{feature.name}:</span> {feature.description}
-                </li>
-              ))}
-            </ul>
-          </section>
-        </>
+        <PreviewCombatDomainScenarioSidebar
+          domainId="classes"
+          query={query}
+          resultCount={filteredClasses.length}
+          totalCount={classes.length}
+          onQueryChange={setQuery}
+          verification={(
+            <div data-testid="classes-selected-subclass-mechanics" className="space-y-2 text-xs text-slate-300">
+              <p>{selectedClass.description}</p>
+              <p className="font-semibold text-amber-200">{selectedSubclass?.name ?? 'Base class'}</p>
+              <p className="text-slate-400">{selectedSubclass?.description ?? 'No subclass selected.'}</p>
+            </div>
+          )}
+          controls={(
+            <div className="space-y-3">
+              {/* The registered subclass demo owns the real deterministic transaction.
+                  Feature text stays below it as canonical context, not simulated proof. */}
+              {selectedDemo ? React.createElement(selectedDemo) : (
+                <p data-testid="classes-mechanic-boundary" className="rounded border border-amber-500/40 bg-amber-950/20 p-3 text-xs text-amber-100">
+                  No production-backed subclass demonstration is registered for this selection yet.
+                </p>
+              )}
+              <ul className="space-y-2 text-xs text-slate-300">
+                {(selectedSubclass?.features ?? []).map(feature => (
+                  <li key={feature.id} className="rounded border border-slate-700 bg-slate-900/70 p-2">
+                    <span className="font-semibold text-cyan-100">{feature.name}:</span> {feature.description}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          selectedLabel={`${selectedClass.name}${selectedSubclass ? ` · ${selectedSubclass.name}` : ''}`}
+          selectedSummary={selectedSubclass?.description ?? selectedClass.description}
+          selectedMeta={`${selectedBoard.characters.length} canonical actors · custom ${selectedClass.name} board`}
+          catalogueLabel="Class scenarios"
+          catalogueDescription="Choose a canonical class, then its subclass mechanic scenario."
+          catalogue={(
+            <ClassesDomainShell
+              selection={selection}
+              onSelectionChange={handleSelectionChange}
+              showSubclassDemo={false}
+              showHeader={false}
+              filterQuery={query}
+            />
+          )}
+        />
       )}
-      liveState={(
-        <section
-          aria-label="Classes live state"
-          data-testid="classes-live-state"
-          className="mb-3 rounded-xl border border-cyan-500/30 bg-slate-950/80 px-3 py-2 text-xs text-slate-200"
-        >
-          <span className="font-bold text-cyan-200">{selectedClass.name}</span>
-          <span className="mx-2 text-slate-500">·</span>
-          <span>{selectedSubclass?.name ?? 'No subclass'}</span>
-          <span className="mx-2 text-slate-500">·</span>
-          <span>{props.characters.length} canonical actors</span>
-        </section>
-      )}
+      liveState={null}
       toolbarActions={(
-        <span
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          aria-pressed={showLineOfSightCone}
           data-testid="classes-adapter-selection-receipt"
-          className="rounded border border-cyan-500/30 bg-cyan-950/30 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-cyan-200"
+          onClick={() => setShowLineOfSightCone(current => !current)}
+          className="border border-cyan-500/40 bg-cyan-950/40 text-cyan-100 hover:bg-cyan-900/50"
         >
-          {selectedClass.id}/{selectedSubclass?.id ?? 'base'}
-        </span>
+          Sight Cone {showLineOfSightCone ? 'On' : 'Off'}
+        </Button>
       )}
       renderers={{
         twoD: context => (
@@ -281,6 +440,7 @@ function ClassesScenarioAdapterView(props: PreviewCombatScenarioFrameworkProps):
             mapData={context.mapData}
             characters={context.characters}
             preferFullMapFit
+            showLineOfSightCone={showLineOfSightCone}
             combatState={context.combatState}
           />
         ),
@@ -296,7 +456,7 @@ function ClassesScenarioAdapterView(props: PreviewCombatScenarioFrameworkProps):
         turn: (
           <div data-testid="classes-right-rail-turn">
             <InitiativeTracker
-              characters={props.characters}
+              characters={selectedBoard.characters}
               turnState={props.combatState.turnState}
               onCharacterSelect={props.combatState.turnManager.skipToCharacter}
             />

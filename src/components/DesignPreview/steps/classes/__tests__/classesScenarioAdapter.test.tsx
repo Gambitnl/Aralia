@@ -17,7 +17,7 @@ import {
 
 /**
  * This test mounts the Classes adapter through the published framework contract.
- * It exists to prove the canonical selector-to-identity bridge, production board props,
+ * It exists to prove the canonical selector-to-identity bridge, authored class boards,
  * renderer handoff, Reset lifecycle, and native right-rail slots without changing Rules.
  * The map components are replaced with small observable render probes because WebGL and
  * canvas layout are outside this contract test; a browser capture remains a separate gate.
@@ -34,13 +34,14 @@ vi.mock('../../../../BattleMap/BattleMap', () => ({
     characters,
     combatState,
   }: {
-    mapData: { dimensions: { width: number; height: number } } | null;
+    mapData: { dimensions: { width: number; height: number }; seed?: number } | null;
     characters: CombatCharacter[];
     combatState: PreviewCombatScenarioCombatState;
   }) => (
     <div
       data-testid="classes-2d-renderer"
       data-map-size={mapData ? `${mapData.dimensions.width}x${mapData.dimensions.height}` : 'none'}
+      data-map-seed={mapData?.seed ?? 'none'}
       data-actor-count={characters.length}
       data-turn-owner={combatState.turnState.currentCharacterId ?? 'none'}
     >
@@ -55,13 +56,14 @@ vi.mock('../../../../BattleMap/BattleMap3D', () => ({
     characters,
     combatState,
   }: {
-    mapData: { dimensions: { width: number; height: number } } | null;
+    mapData: { dimensions: { width: number; height: number }; seed?: number } | null;
     characters: CombatCharacter[];
     combatState: PreviewCombatScenarioCombatState;
   }) => (
     <div
       data-testid="classes-3d-renderer"
       data-map-size={mapData ? `${mapData.dimensions.width}x${mapData.dimensions.height}` : 'none'}
+      data-map-seed={mapData?.seed ?? 'none'}
       data-actor-count={characters.length}
       data-turn-owner={combatState.turnState.currentCharacterId ?? 'none'}
     >
@@ -202,6 +204,30 @@ describe('Classes scenario adapter', () => {
     }
   });
 
+  it('builds a custom Rules-shaped board for every class while preserving stable actor identities', () => {
+    const boards = CLASSES_SCENARIO_IDS.map(classId => createClassesScenarioBoard(classId));
+
+    // Every class receives an authored dungeon fixture with walls, difficult
+    // ground, cover, and elevation instead of the old procedural forest.
+    for (const board of boards) {
+      const tiles = Array.from(board.mapData.tiles.values());
+      expect(board.mapData.dimensions).toEqual({ width: 16, height: 12 });
+      expect(board.mapData.theme).toBe('dungeon');
+      expect(tiles.some(tile => tile.terrain === 'wall' && tile.blocksLoS)).toBe(true);
+      expect(tiles.some(tile => tile.terrain === 'difficult' && tile.movementCost === 10)).toBe(true);
+      expect(tiles.some(tile => tile.providesCover)).toBe(true);
+      expect(tiles.some(tile => tile.elevation === 5)).toBe(true);
+      expect(board.characters.map(character => character.id)).toEqual([
+        'classes-preview-hero',
+        'classes-training-target',
+      ]);
+    }
+
+    // Distinct authored seeds prove selection changes the scenario board rather
+    // than relabeling one shared generic map.
+    expect(new Set(boards.map(board => board.mapData.seed)).size).toBe(CLASSES_SCENARIO_IDS.length);
+  });
+
   it('keeps selection, framework proof, production board props, render handoff, Reset, and slots aligned', () => {
     const state = renderClassesAdapter();
     const proof = screen.getByTestId('classes-framework-proof');
@@ -213,7 +239,10 @@ describe('Classes scenario adapter', () => {
     expect(proof).toHaveAttribute('data-actor-count', '2');
     expect(screen.getByTestId('classes-2d-renderer')).toHaveAttribute('data-actor-count', '2');
     expect(screen.getByTestId('classes-2d-renderer')).toHaveAttribute('data-turn-owner');
-    expect(screen.getByTestId('classes-selected-subclass-mechanics')).toHaveTextContent('Canonical subclass mechanics');
+    expect(screen.getByTestId('classes-2d-renderer')).toHaveAttribute('data-map-seed', '3102');
+    expect(screen.getByTestId('classes-tactical-sandbox-sidebar')).toHaveTextContent('Tactical Sandbox');
+    expect(screen.getByTestId('classes-selected-subclass-mechanics')).toHaveTextContent('Path of the Berserker');
+    expect(screen.getByTestId('berserker-progression-demo')).toBeInTheDocument();
     expect(screen.getByTestId('classes-right-rail-turn')).toBeInTheDocument();
     expect(screen.getByTestId('classes-right-rail-actions')).toBeInTheDocument();
     expect(screen.getByTestId('classes-right-rail-abilities')).toBeInTheDocument();
@@ -224,7 +253,10 @@ describe('Classes scenario adapter', () => {
 
     fireEvent.click(screen.getByRole('tab', { name: 'Bard' }));
     expect(proof).toHaveAttribute('data-scenario-id', 'bard');
-    expect(screen.getByTestId('classes-adapter-selection-receipt')).toHaveTextContent('bard/college_of_lore');
+    expect(screen.getByTestId('classes-2d-renderer')).toHaveAttribute('data-map-seed', '3103');
+    expect(screen.getByRole('heading', { name: /Bard · College of Lore/i })).toBeInTheDocument();
+    expect(screen.getByTestId('college-of-lore-progression-demo')).toBeInTheDocument();
+    expect(screen.getByTestId('classes-adapter-selection-receipt')).toHaveTextContent('Sight Cone On');
 
     fireEvent.click(screen.getByTestId('preview-combat-scenario-render-mode-toggle'));
     expect(screen.getByTestId('classes-3d-renderer')).toBeInTheDocument();
@@ -236,7 +268,9 @@ describe('Classes scenario adapter', () => {
     fireEvent.click(screen.getByRole('button', { name: /Reset Board/ }));
     expect(proof).toHaveAttribute('data-scenario-id', 'fighter');
     expect(proof).toHaveAttribute('data-render-mode', '2d');
-    expect(screen.getByTestId('classes-adapter-selection-receipt')).toHaveTextContent('fighter/champion');
+    expect(screen.getByTestId('classes-2d-renderer')).toHaveAttribute('data-map-seed', '3101');
+    expect(screen.getByRole('heading', { name: /Fighter · Champion/i })).toBeInTheDocument();
+    expect(screen.getByTestId('champion-improved-critical-demo')).toBeInTheDocument();
     expect(state.resetCount).toBe(1);
     expect(state.cameraResetCount).toBe(1);
   });

@@ -398,10 +398,17 @@ export function bipedHandDigits(sgn: 1 | -1, handR: number, palmLen: number, fin
   // THENAR WEDGE below; the articulated thumb is a two-link chain with
   // digit-scale radii. Relaxed pose = the fist lock: the distal link crosses
   // inward over the index toward the middle finger.
+  // hands campaign close (part-quality GOAL, 2026-08-21): the relaxed thumb
+  // opens. The old chain was the FIST LOCK (tip crossing inward over the
+  // index) — tuned for the lofted finger-mass fist. On the licensed
+  // reference mesh (mergeReferenceHand digit wrap) a crossed thumb collapses
+  // into a nub against the palm; a neutral thumb rides beside the index,
+  // moderately flexed toward the palm plane. Link lengths unchanged, so
+  // every driver pose (grips, wave) re-aims the same links.
   const thumb = {
     a: new Vector3(sgn * 0.96 * handR, 0.58 * handR, -0.24 * handR),
-    j1: new Vector3(sgn * 0.8 * handR, 1.047 * handR, -0.615 * handR),
-    tip: new Vector3(sgn * 0.32 * handR, 1.24 * handR, -0.77 * handR),
+    j1: new Vector3(sgn * 1.19 * handR, 1.04 * handR, -0.59 * handR),
+    tip: new Vector3(sgn * 1.16 * handR, 1.45 * handR, -0.94 * handR),
     len0: 0.62 * handR,
     len1: 0.54 * handR,
     r0: 0.3 * handR,

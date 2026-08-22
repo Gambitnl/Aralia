@@ -180,8 +180,11 @@ describe('assembleEntity bodyTech switch', () => {
         .applyMatrix4(bone.matrixWorld);
       const nodePos = new Vector3().setFromMatrixPosition(segNode.matrixWorld);
       // thenar2 rides the thumb root; the no-twist transport gives its
-      // off-axis midpoint a bounded few-mm drift (largest under a grip lock)
-      const tol = piece.id.includes('thenar') ? 4e-3 : 1e-3;
+      // off-axis midpoint a bounded few-mm drift (largest under a grip lock).
+      // hands campaign close (2026-08-21): the neutral relaxed thumb
+      // (skeletonBuilder bipedHandDigits) re-aims the thumb root and moves
+      // the bounded drift from ~4mm to ~6mm — still a buried thenar ring.
+      const tol = piece.id.includes('thenar') ? 8e-3 : 1e-3;
       expect(mapped.distanceTo(nodePos), `${piece.id} midpoint drift`).toBeLessThan(tol);
     }
     seg.dispose();

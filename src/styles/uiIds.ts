@@ -106,6 +106,8 @@ export const UI_ID = {
   SAVE_SLOT_SELECTOR: 'save-slot-selector',
   /** Generic yes/no confirmation */
   CONFIRMATION_MODAL: 'confirmation-modal',
+  /** Third-party asset credits (main menu) */
+  CREDITS_MODAL: 'credits-modal',
 
   // ── Overlays & Widgets ────────────────────────────────────────────────
   /** Toast notification container */

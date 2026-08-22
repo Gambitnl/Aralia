@@ -44,7 +44,15 @@
     "abandon_run_confirm": "Abandon your current run? The in-memory session will be cleared. Any unsaved progress will be lost.",
     "glossary": "Lore & Rules",
     "glossary_aria": "View game glossary",
-    "glossary_title": "View Game Glossary"
+    "glossary_title": "View Game Glossary",
+    "credits": "Credits",
+    "credits_aria": "View the third-party asset credits"
+  },
+  "credits": {
+    "title": "Credits",
+    "intro": "Aralia uses these third-party assets. Each line gives the credit the license asks for.",
+    "source_link": "Source page",
+    "license_note": "CC-BY 4.0 license text:"
   },
   "encounter_modal": {
     "loading": "Conjuring Monsters...",

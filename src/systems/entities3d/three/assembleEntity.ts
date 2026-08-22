@@ -56,12 +56,14 @@ import { getPart } from '../registry';
 import type { GaitDriver, LocomotionState, Pose } from './gaits';
 import { createGaitDriver } from './gaits';
 import { createSegmentBody, wireframeifyPart } from './segmentBody';
-import { createSkinnedBiped, createSkinnedChains, createSkinnedPlan, createSkinnedSpecies } from './skinnedBody';
+import { createSkinnedBiped, createSkinnedChains, createSkinnedFromRig, createSkinnedPlan, createSkinnedSpecies } from './skinnedBody';
 import { isSpeciesGait } from './speciesSkeleton';
 import { createSkinnedClipPlayer, type SkinnedClipPlayer } from './skinnedClipPlayer';
 import type { AnimationClip } from 'three';
 import { buildHeadForm, buildHumanoidHead, HUMANOID_EYE, PLAN_EYE_STATION } from './headForms';
 import { bipedSkullRadiusM } from './skeletonBuilder';
+import type { PartChoice } from './partVariants';
+import type { SkinnedMesh } from 'three';
 import { HAFT_WEAPON_IDS } from '../parts/gearWeapons';
 import type { WingJointPose } from '../parts/wingParts';
 import {
@@ -121,6 +123,15 @@ export interface AssembleOptions {
   /** Retargeted clip pack (from loadHumanoidClips) — required when
    * animSource is 'clip'. */
   clips?: Map<string, AnimationClip>;
+  /** Part Lab slot variants (partVariants.ts): swap the hand, head, or foot
+   * build on a skinned smooth BIPED. Any other body throws — a variant has
+   * no meaning there, and silently ignoring it would fake a review. */
+  parts?: PartChoice;
+  /** Part Lab base meshes: a foreign SkinnedMesh that carries OUR bone names
+   * (tools/blender/rig_basemesh.py) stands in for the procedural biped body.
+   * It brings its own head, so no humanoid head is mounted. Needs bodyTech
+   * 'skinned' on a biped gait; anything else throws. */
+  rig?: SkinnedMesh;
 }
 
 const IDLE: LocomotionState = {
@@ -172,6 +183,15 @@ export function assembleEntity(blueprint: EntityBlueprint, options: AssembleOpti
   if (animSource === 'clip' && !options.clips) {
     throw new Error("animSource 'clip' needs a loaded clip pack (options.clips) — load it with loadHumanoidClips first");
   }
+
+  if (options.parts && (bodyTech !== 'skinned' || options.skinnedWeights !== 'smooth' || gait !== 'biped' || blueprint.planSpec)) {
+    throw new Error('assembleEntity: options.parts needs a skinned smooth biped (bodyTech skinned, skinnedWeights smooth, biped gait, no plan)');
+  }
+  if (options.rig && (bodyTech !== 'skinned' || gait !== 'biped' || blueprint.planSpec || options.parts)) {
+    throw new Error('assembleEntity: options.rig needs a skinned biped without parts (the rig is the whole body)');
+  }
+  // a foreign rig brings its own head
+  const headChoice = options.rig ? 'none' : (options.parts?.head ?? 'humanoid');
 
   const group = new Group();
   group.name = `entity:${blueprint.label}`;
@@ -225,13 +245,16 @@ export function assembleEntity(blueprint: EntityBlueprint, options: AssembleOpti
               opacity: undefined,
               weights: options.skinnedWeights,
             })
-          : createSkinnedBiped(frame, {
+          : options.rig
+            ? createSkinnedFromRig(frame, options.rig, { colorHex: palette.skinHex, outlineThickness })
+            : createSkinnedBiped(frame, {
               colorHex: palette.skinHex,
               outlineThickness,
               // biped branch: this is the else of `blueprint.planSpec ?`, so
               // planSpec is absent — humanoids carry no plan opacity.
               opacity: undefined,
               weights: options.skinnedWeights,
+              parts: options.parts,
             })
       : null;
   if (skinnedBody) bodyRoot.add(skinnedBody.root);
@@ -261,9 +284,10 @@ export function assembleEntity(blueprint: EntityBlueprint, options: AssembleOpti
   const crested = !!blueprint.planSpec && blueprint.parts.some((p) => p.partId === 'finRidge');
   // real-finger update: hands that hold a HAFT weapon wrap their digits
   // around it (biped gait only; other gaits ignore grips)
+  // a foreign rig stands open-handed: the lab reads the rig, not a weapon grip
   const grips = {
-    L: blueprint.parts.some((p) => HAFT_WEAPON_IDS.has(p.partId) && p.anchor === 'handL'),
-    R: blueprint.parts.some((p) => HAFT_WEAPON_IDS.has(p.partId) && p.anchor === 'handR'),
+    L: !options.rig && blueprint.parts.some((p) => HAFT_WEAPON_IDS.has(p.partId) && p.anchor === 'handL'),
+    R: !options.rig && blueprint.parts.some((p) => HAFT_WEAPON_IDS.has(p.partId) && p.anchor === 'handR'),
   };
   const driver: GaitDriver = createGaitDriver(gait, frame, blueprint.planSpec, { winged, crested, grips });
 
@@ -437,7 +461,10 @@ export function assembleEntity(blueprint: EntityBlueprint, options: AssembleOpti
   // the head bone (the ball emission still drives it); the segment renderer
   // still builds its ball node, which is hidden below. Wireframe keeps the
   // ball — it is a segment-body debug look.
-  const headSkinMaterial = gait === 'biped' && !blueprint.planSpec && !wireframe ? toonMaterial(palette.skinHex) : null;
+  const headSkinMaterial = gait === 'biped' && !blueprint.planSpec && !wireframe && headChoice === 'humanoid' ? toonMaterial(palette.skinHex) : null;
+  // Part Lab head swap: a creature head form, or no head, on the biped's head
+  // bone. The legacy floating eye pair is suppressed below for both cases.
+  const headSwapped = gait === 'biped' && !blueprint.planSpec && !wireframe && headChoice !== 'humanoid';
   // round 11 (humanoid-anatomy): per-race face params (nose depth/width,
   // mouth width) flow into the loft — orc broad-flat, dwarf prominent.
   const humanoidHead = headSkinMaterial ? buildHumanoidHead(headSkinMaterial, face) : null;
@@ -460,6 +487,27 @@ export function assembleEntity(blueprint: EntityBlueprint, options: AssembleOpti
     const headBone = skinnedBody?.boneNamed('head');
     if (headBone) headBone.add(humanoidHead);
     else bodyRoot.add(humanoidHead);
+  }
+  if (headSwapped && headChoice !== 'none') {
+    // the creature skull loft at the biped's skull radius; eyes sit at the
+    // plan eye station in head-local space, so they ride the head bone
+    const formGroup = buildHeadForm(headChoice, toonMaterial(palette.skinHex), toonMaterial('#e8e2d4'));
+    formGroup.name = 'head:form';
+    formGroup.scale.setScalar(bipedSkullRadiusM(frame));
+    const formEyeMaterial = new MeshBasicMaterial({ color: '#f4f1e6' });
+    const formPupilMaterial = new MeshBasicMaterial({ color: palette.eyeHex });
+    for (const sgn of [-1, 1] as const) {
+      const eye = new Mesh(new SphereGeometry(0.2, 12, 10), formEyeMaterial);
+      eye.name = sgn < 0 ? 'eyeL' : 'eyeR';
+      eye.position.set(sgn * PLAN_EYE_STATION.x, PLAN_EYE_STATION.y, PLAN_EYE_STATION.z);
+      const pupil = new Mesh(new SphereGeometry(0.12, 10, 8), formPupilMaterial);
+      pupil.position.z = 0.14;
+      eye.add(pupil);
+      formGroup.add(eye);
+    }
+    const headBone = skinnedBody?.boneNamed('head');
+    if (headBone) headBone.add(formGroup);
+    else bodyRoot.add(formGroup);
   }
 
   // --- eyes (the charm organ) — solid in both render modes
@@ -668,7 +716,7 @@ export function assembleEntity(blueprint: EntityBlueprint, options: AssembleOpti
       humanoidHead.add(eye);
       eyes.push(eye);
     }
-  } else {
+  } else if (!headSwapped) {
     for (const name of ['eyeL', 'eyeR'] as const) {
       const eye = new Mesh(new SphereGeometry(hr * 0.25, 12, 10), eyeMaterial);
       eye.name = name;

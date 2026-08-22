@@ -3136,7 +3136,6 @@
       "campaign": "world",
       "subcampaign": "Interiors & Buildings",
       "status": "active",
-      "focus": true,
       "link": "docs/superpowers/specs/2026-07-07-building-generator-v2-living-buildings.md",
       "deps": [
         {
@@ -6515,6 +6514,83 @@
           "title": "Ship-height query + LOD + setCenter wiring",
           "status": "parked",
           "status_note": "Nothing in the game consumes the ocean yet. No ship-height query, no LOD past the single patch, no setCenter caller. misc/ is gitignored so the harness page will not commit."
+        }
+      ]
+    },
+    {
+      "id": "part-quality-campaign",
+      "title": "Part-quality campaign (every part earns its read alone)",
+      "sub": "Part Lab step · per-slot variant swap on the full body · part gates · licensed base meshes · Blender auto-weight skeletons",
+      "campaign": "rendering",
+      "status": "active",
+      "tier": "component",
+      "updated": "2026-08-21",
+      "focus": true,
+      "deps": [
+        {
+          "id": "entity-skeleton-pivot",
+          "kind": "hard",
+          "why": "the slot seam swaps geometry on the skinned smooth biped; hands/feet are bone-owned triangles"
+        },
+        {
+          "id": "entity-generator-3d",
+          "kind": "chosen",
+          "why": "the lab assembles the same recipes and parts registry the game surfaces use"
+        }
+      ],
+      "link": ".agent/GOAL-part-quality-campaign.md",
+      "open": 2,
+      "features": [
+        {
+          "title": "Part Lab step: own studio scene, full entity, per-slot variant swap (hand/head/foot), solo extraction",
+          "status": "done",
+          "note": "BUILT 2026-08-21: design.html?step=partlab; replaced the solo mode that sat on Entity Debug. Gear off by default. Awaiting Remy eyeball.",
+          "history": {
+            "built": "2026-08-21"
+          }
+        },
+        {
+          "title": "Slot seam: assembleEntity options.parts + partVariants catalog, gated by partVariants.test.ts",
+          "status": "done",
+          "history": {
+            "built": "2026-08-21"
+          }
+        },
+        {
+          "title": "Licensed base meshes as whole-body options (two CC-BY packs, six models, split per model)",
+          "status": "done",
+          "history": {
+            "built": "2026-08-21"
+          }
+        },
+        {
+          "title": "In-game Credits panel (main menu) for CC-BY assets: hand mesh, base meshes, Caeora pack",
+          "status": "done",
+          "note": "BUILT 2026-08-21: src/data/credits.ts + CreditsModal on ModalDialog; REFERENCE_HAND_CREDIT imported, tests lock the lines. Mirrors CREDITS.md.",
+          "history": {
+            "built": "2026-08-21"
+          }
+        },
+        {
+          "title": "Full skeleton on every base mesh: Blender automatic weights, T-pose bind, then our idle",
+          "status": "done",
+          "status_note": "BUILT 2026-08-21 (Blender 5.2 on F:): rig_basemesh.py welds, fits our 39 bones (T-pose or arms-down), binds with bone heat + nearest-bone for detached shells, exports <id>.rigged.glb; lab drives it via assembleEntity options.rig (createSkinnedFromRig re-aims bind frames to the pose-sink convention). Lowpoly male/female/no-gender stand in our idle; stylized A/B rig but their detached hand/foot shells bind to the wrong limbs (open). Awaiting Remy eyeball.",
+          "history": {
+            "built": "2026-08-21"
+          }
+        },
+        {
+          "title": "Part gates in creatureGate (blind reads + mask metrics on solo renders)",
+          "status": "done",
+          "note": "BUILT v1 2026-08-19; sweep rig now targets the Part Lab for solo jobs.",
+          "history": {
+            "built": "2026-08-19"
+          }
+        },
+        {
+          "title": "Campaigns in order: hands → heads → feet/digitigrade → neck junctions → tails",
+          "status": "active",
+          "status_note": "hands: reference mesh promoted 2026-08-21 (concurrent session); template hand variant pending that session closing."
         }
       ]
     }

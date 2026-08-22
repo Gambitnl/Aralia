@@ -21,6 +21,8 @@
 import { BufferAttribute, BufferGeometry, SphereGeometry, Uint16BufferAttribute, Vector3 } from 'three';
 import type { Frame } from '../types';
 import type { BipedBoneName, BipedRestPose } from './skeletonBuilder';
+import { appendReferenceHands } from './mergeReferenceHand';
+import { DEFAULT_PART_CHOICE, type PartChoice } from './partVariants';
 
 export interface ChainDef {
   /** Rest segment ids in root→tip order; segment k is owned by its own bone. */
@@ -33,24 +35,12 @@ export interface ChainDef {
  * and each thumb is its own short capped tube rigid to the hand bone. */
 export const SMOOTH_CHAINS: readonly ChainDef[] = [
   { segIds: ['torso.pelvis', 'torso.chest', 'neck'] },
-  // real-finger update: the arm chain ends at the palm block; the round-15
-  // curled finger MASS is replaced by four REAL two-link finger tubes per
-  // hand, each its own capped chain on its own bones, so a grip pose can
-  // wrap them around a weapon haft (gaits.ts BipedDriver grips).
-  { segIds: ['armL.upper', 'armL.fore', 'handL.palm'] },
-  { segIds: ['handL.thenar0', 'handL.thenar1', 'handL.thenar2'] },
-  { segIds: ['handL.thumba', 'handL.thumbb'] },
-  { segIds: ['handL.finger0a', 'handL.finger0b'] },
-  { segIds: ['handL.finger1a', 'handL.finger1b'] },
-  { segIds: ['handL.finger2a', 'handL.finger2b'] },
-  { segIds: ['handL.finger3a', 'handL.finger3b'] },
-  { segIds: ['armR.upper', 'armR.fore', 'handR.palm'] },
-  { segIds: ['handR.thenar0', 'handR.thenar1', 'handR.thenar2'] },
-  { segIds: ['handR.thumba', 'handR.thumbb'] },
-  { segIds: ['handR.finger0a', 'handR.finger0b'] },
-  { segIds: ['handR.finger1a', 'handR.finger1b'] },
-  { segIds: ['handR.finger2a', 'handR.finger2b'] },
-  { segIds: ['handR.finger3a', 'handR.finger3b'] },
+  // hands campaign close (part-quality GOAL, 2026-08-21): the lofted
+  // palm/thenar/thumb/finger chains are GONE — the licensed reference mesh
+  // (mergeReferenceHand.ts) is the humanoid hand. The arm chain ends at the
+  // wrist; the mesh's forearm stump buries the seam inside the forearm loft.
+  { segIds: ['armL.upper', 'armL.fore'] },
+  { segIds: ['armR.upper', 'armR.fore'] },
   { segIds: ['legL.thigh', 'legL.shin'] },
   { segIds: ['legR.thigh', 'legR.shin'] },
   // round 5 (humanoid-anatomy): heel-to-toe wedge feet — each foot is its own
@@ -59,6 +49,41 @@ export const SMOOTH_CHAINS: readonly ChainDef[] = [
   { segIds: ['footL'] },
   { segIds: ['footR'] },
 ];
+
+/** The round-15 lofted hand: the palm continues the arm chain; the thenar
+ * wedge, the thumb, and four two-link finger tubes are their own capped
+ * chains. Kept as the Part Lab's 'lofted' hand variant (partVariants.ts) so
+ * the reviewer can swap it against the reference mesh on the same body. */
+function loftedHandChains(side: 'L' | 'R'): ChainDef[] {
+  return [
+    { segIds: [`hand${side}.thenar0`, `hand${side}.thenar1`, `hand${side}.thenar2`] },
+    { segIds: [`hand${side}.thumba`, `hand${side}.thumbb`] },
+    { segIds: [`hand${side}.finger0a`, `hand${side}.finger0b`] },
+    { segIds: [`hand${side}.finger1a`, `hand${side}.finger1b`] },
+    { segIds: [`hand${side}.finger2a`, `hand${side}.finger2b`] },
+    { segIds: [`hand${side}.finger3a`, `hand${side}.finger3b`] },
+  ];
+}
+
+/** The chain table for a part choice. The shipping choice returns
+ * SMOOTH_CHAINS itself; variants rebuild the arm, hand, and foot rows. */
+export function smoothChainTable(parts: PartChoice): readonly ChainDef[] {
+  if (parts.hand === 'reference' && parts.foot === 'wedge') return SMOOTH_CHAINS;
+  const lofted = parts.hand === 'lofted';
+  const arm = (side: 'L' | 'R'): ChainDef => ({
+    segIds: lofted ? [`arm${side}.upper`, `arm${side}.fore`, `hand${side}.palm`] : [`arm${side}.upper`, `arm${side}.fore`],
+  });
+  return [
+    { segIds: ['torso.pelvis', 'torso.chest', 'neck'] },
+    arm('L'),
+    ...(lofted ? loftedHandChains('L') : []),
+    arm('R'),
+    ...(lofted ? loftedHandChains('R') : []),
+    { segIds: ['legL.thigh', 'legL.shin'] },
+    { segIds: ['legR.thigh', 'legR.shin'] },
+    ...(parts.foot === 'wedge' ? [{ segIds: ['footL'] }, { segIds: ['footR'] }] : []),
+  ];
+}
 
 const RADIAL = 12;
 /** Blend zone width as a fraction of the shorter adjacent bone length.
@@ -1088,6 +1113,8 @@ export function buildSmoothBipedGeometry(
   /** round 18 (humanoid-anatomy): optional frame — bulk softens the chest's
    * pec ladder (see chainStations). Callers without it keep full strength. */
   frame?: Frame,
+  /** Part Lab slot variants (partVariants.ts). Default = the shipping build. */
+  parts: PartChoice = DEFAULT_PART_CHOICE,
 ): BufferGeometry {
   const positions: number[] = [];
   const skinIndex: number[] = [];
@@ -1111,9 +1138,10 @@ export function buildSmoothBipedGeometry(
   // step where the neck meets the head ball — loft it as its own capped cone
   // so the smooth body keeps parity with the segment renderer. Frames without
   // it (slender necks) build the unchanged chain table.
+  const baseChains = smoothChainTable(parts);
   const chains: readonly ChainDef[] = restPose.segments.some((s) => s.id === 'torso.traps')
-    ? [...SMOOTH_CHAINS, { segIds: ['torso.traps'] }]
-    : SMOOTH_CHAINS;
+    ? [...baseChains, { segIds: ['torso.traps'] }]
+    : baseChains;
 
   // round 18 (humanoid-anatomy): pec-ladder softening — 1 at human bulk,
   // easing toward 0.45 as bulk climbs past 1 (orc ≈ 0.5, dwarf ≈ 0.45).
@@ -1370,6 +1398,14 @@ export function buildSmoothBipedGeometry(
     const sIndex = sphere.index!;
     for (let e = 0; e < sIndex.count; e++) index.push(base + sIndex.getX(e));
     sphere.dispose();
+  }
+
+  // the humanoid hands: the licensed reference mesh, digit-wrapped onto the
+  // bipedHandDigits rest layout and skinned to the finger bones
+  // Part Lab: 'lofted' already lofted its chains above; 'none' leaves the
+  // wrist open on purpose (the reviewer reads the forearm end).
+  if (parts.hand === 'reference') {
+    appendReferenceHands(restPose, boneIndex, { positions, skinIndex, skinWeight, colors, inks, index }, frame);
   }
 
   const geometry = new BufferGeometry();

@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * RE-EXPORT BRIDGE / MIDDLEMAN: Forwards exports to another file.
  *
- * Last Sync: 13/08/2026, 10:59:54
- * Dependents: None (Orphan)
- * Imports: 4 files
+ * Last Sync: 21/08/2026, 02:47:35
+ * Dependents: components/DesignPreview/steps/PreviewCombatScenarios.tsx
+ * Imports: 5 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -37,6 +37,26 @@
 
 export { default as SpellsDomainShell } from './SpellsDomainShell';
 export { SPELL_SCENARIO_REGISTRY, getSpellScenario } from './spellRegistry';
+// The Rules host uses this typed registry to mount the shared framework without
+// importing the adapter implementation or creating a second Spells shell.
+export {
+  SPELLS_DOMAIN,
+  SPELLS_DOMAIN_ID,
+  SPELLS_SCENARIO_ADAPTERS,
+  SPELLS_SCENARIO_ADAPTER_REGISTRY,
+  SPELLS_SCENARIO_IDS,
+  spellsScenarioAdapterRegistry,
+  createSpellsScenarioBoard,
+} from './spellsFrameworkAdapter';
+export type {
+  SpellsDomainId,
+  SpellsDomainIdentity,
+  SpellsScenarioAdapter,
+  SpellsScenarioAdapterRegistry,
+  SpellsScenarioBoard,
+  SpellsScenarioId,
+  SpellsScenarioIdentity,
+} from './spellsFrameworkAdapter';
 export { SPELLS_DOMAIN_TAB } from './spellsDomainTab';
 export type {
   CanonicalSpellEvidence,

@@ -140,29 +140,16 @@ describe('smooth biped weights', () => {
     }
   });
 
-  it('chain table covers torso, both arms (through the palms), thumbs, real fingers, both legs, both feet', () => {
-    // round 2 (humanoid-anatomy): arm chains loft through the wrist into the
-    // palm; thumbs are their own short capped tubes
+  it('chain table covers torso, both arms to the wrist, both legs, both feet', () => {
     // round 5 (humanoid-anatomy): heel-to-toe wedge feet are their own capped
     // tubes (the terminal foot spheres are gone)
-    // real-finger update: the round-15 finger mass is gone — each hand lofts
-    // four two-link finger tubes on their own bones
+    // hands campaign close (part-quality GOAL, 2026-08-21): the lofted hand
+    // chains are gone — mergeReferenceHand appends the licensed reference
+    // mesh, digit-wrapped onto the bipedHandDigits layout, per side.
     expect(SMOOTH_CHAINS.map((c) => c.segIds.join('>'))).toEqual([
       'torso.pelvis>torso.chest>neck',
-      'armL.upper>armL.fore>handL.palm',
-      'handL.thenar0>handL.thenar1>handL.thenar2',
-      'handL.thumba>handL.thumbb',
-      'handL.finger0a>handL.finger0b',
-      'handL.finger1a>handL.finger1b',
-      'handL.finger2a>handL.finger2b',
-      'handL.finger3a>handL.finger3b',
-      'armR.upper>armR.fore>handR.palm',
-      'handR.thenar0>handR.thenar1>handR.thenar2',
-      'handR.thumba>handR.thumbb',
-      'handR.finger0a>handR.finger0b',
-      'handR.finger1a>handR.finger1b',
-      'handR.finger2a>handR.finger2b',
-      'handR.finger3a>handR.finger3b',
+      'armL.upper>armL.fore',
+      'armR.upper>armR.fore',
       'legL.thigh>legL.shin',
       'legR.thigh>legR.shin',
       'footL',

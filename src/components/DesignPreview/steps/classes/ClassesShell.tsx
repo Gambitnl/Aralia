@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 21/08/2026, 01:40:11
+ * Last Sync: 21/08/2026, 22:10:10
  * Dependents: components/DesignPreview/steps/classes/classesDomainModule.tsx, components/DesignPreview/steps/classes/classesScenarioAdapter.tsx, components/DesignPreview/steps/classes/index.ts
  * Imports: 3 files
  *
@@ -46,6 +46,9 @@ export interface ClassesShellProps {
   onSelectionChange?: (selection: ClassesShellSelection) => void;
   /** Adapter hosts can keep canonical mechanics content outside this selector. */
   showSubclassDemo?: boolean;
+  /** Rules-shaped sidebars can supply their own heading and filter the catalogue. */
+  showHeader?: boolean;
+  filterQuery?: string;
   className?: string;
 }
 
@@ -134,6 +137,8 @@ export const ClassesDomainShell: React.FC<ClassesShellProps> = ({
   selection: controlledSelection,
   onSelectionChange,
   showSubclassDemo = true,
+  showHeader = true,
+  filterQuery = '',
   className,
 }) => {
   // Snapshot the canonical registry for this mount so every row uses one consistent order.
@@ -145,6 +150,15 @@ export const ClassesDomainShell: React.FC<ClassesShellProps> = ({
   const [uncontrolledSelection, setUncontrolledSelection] = useState<ClassesShellSelection>(initialModel.selection);
   const selection = controlledSelection ?? uncontrolledSelection;
   const selectedClass = classes.find((characterClass) => characterClass.id === selection.classId) ?? classes[0];
+  const normalizedFilter = filterQuery.trim().toLowerCase();
+  const visibleClasses = normalizedFilter
+    ? classes.filter(characterClass => [
+      characterClass.id,
+      characterClass.name,
+      characterClass.description,
+      ...characterClass.subclasses.flatMap(subclass => [subclass.name, subclass.description]),
+    ].join(' ').toLowerCase().includes(normalizedFilter))
+    : classes;
 
   // Notify the future host only after a user action. Initial state remains deterministic
   // without requiring an effect that would report a selection before the host is mounted.
@@ -200,12 +214,12 @@ export const ClassesDomainShell: React.FC<ClassesShellProps> = ({
   };
 
   // Keep the panel IDs tied to canonical IDs so an integrating host can target them safely.
-  const classTabIds = classes.map((characterClass) => characterClass.id);
+  const classTabIds = visibleClasses.map((characterClass) => characterClass.id);
   const subclassTabIds = selectedClass?.subclasses.map((subclass) => subclass.id) ?? [];
 
   return (
     <section className={className} aria-label="Tactical Sandbox classes">
-      <div className="flex items-center justify-between gap-3">
+      {showHeader && <div className="flex items-center justify-between gap-3">
         <h2 className="text-lg font-semibold text-slate-100">Classes</h2>
         <Button
           type="button"
@@ -216,7 +230,7 @@ export const ClassesDomainShell: React.FC<ClassesShellProps> = ({
         >
           Reset
         </Button>
-      </div>
+      </div>}
 
       <div
         role="tablist"
@@ -224,7 +238,7 @@ export const ClassesDomainShell: React.FC<ClassesShellProps> = ({
         aria-orientation="horizontal"
         className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4"
       >
-        {classes.map((characterClass) => {
+        {visibleClasses.map((characterClass) => {
           const tabId = `classes-tab-${characterClass.id}`;
           const panelId = `classes-panel-${characterClass.id}`;
 
@@ -244,6 +258,12 @@ export const ClassesDomainShell: React.FC<ClassesShellProps> = ({
           );
         })}
       </div>
+
+      {visibleClasses.length === 0 && (
+        <p className="mt-3 rounded border border-slate-700 bg-slate-950/50 p-3 text-xs text-slate-400">
+          No class scenarios match this search.
+        </p>
+      )}
 
       {selectedClass ? (
         <div

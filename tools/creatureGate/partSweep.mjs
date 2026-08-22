@@ -28,7 +28,11 @@ try {
   const page = await browser.newPage({ viewport: { width: 1100, height: 900 } });
   for (const job of jobs) {
     const [label, params, focus] = job.split(':');
-    const url = `http://localhost:3000/Aralia/misc/design.html?step=entitydebug&${params}&focus=${focus}&wire=0`;
+    // lab jobs (params carry solo=) capture on the Part Lab step; focus jobs
+    // stay on Entity Debug's pin-follow camera
+    const url = params.includes('solo=')
+      ? `http://localhost:3000/Aralia/misc/design.html?step=partlab&${params}`
+      : `http://localhost:3000/Aralia/misc/design.html?step=entitydebug&${params}&focus=${focus}&wire=0`;
     await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 45000 });
     await page.waitForTimeout(8000);
     await page.evaluate(() => {
@@ -39,9 +43,9 @@ try {
     // Lab specimens hover at (0, 1, 0) and ignore the default framing — the
     // first blind A/B ran on near-empty frames because of this. Move the
     // camera to the proven specimen vantage for lab jobs.
-    if (params.includes('lab=')) {
+    if (params.includes('solo=')) {
       await page.evaluate(() => {
-        const c = window.__entitydebug?.camera;
+        const c = window.__partlab?.camera;
         if (c) c.position.set(1.5, 1.45, 1.6);
       });
     }
