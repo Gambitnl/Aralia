@@ -194,13 +194,25 @@ if foot_z < 0:
 forward = 1.0
 foot_len = max(0.06 * H, (max(v.z for v in foot_band) - min(v.z for v in foot_band)) * 0.8 if foot_band else 0.1 * H)
 
+# A HEADLESS body (the lowpoly no-gender base) ends at the neck stump, so
+# its mesh height is ~0.85 of a full figure. The rest proportions are
+# fractions of a FULL height; scale them by the implied full height, or the
+# spine lands too high and the torso swells (side-by-side 22, 2026-08-22).
+# T-pose shoulders sit near 0.78 of a full figure; on a headless body the
+# same shoulders sit near 0.9 of what is left (measured 2026-08-22: 0.88-0.92
+# on the lowpoly no-gender base, 0.76 on the male).
+headless = tpose and (shoulder_y - y_min) / H > 0.85
+HR = H / 0.85 if headless else H
+if headless:
+    print(f'rig_basemesh: headless body (shoulders at {(shoulder_y - y_min) / H:.3f}h) — rest proportions on full height {HR:.3f}')
+
 def rest_len(bone):
     a, b = REST[bone]['a'], REST[bone]['b']
-    return math.dist(a, b) * H
+    return math.dist(a, b) * HR
 
 def rest_pt(bone, key):
     a = REST[bone][key]
-    return Vector((a[0] * H, a[1] * H + y_min, a[2] * H * forward))
+    return Vector((a[0] * HR, a[1] * HR + y_min, a[2] * HR * forward))
 
 # ---------------------------------------------------------------- bone layout
 # head/tail per bone in glTF space. Spine, head, legs keep the rest
@@ -212,6 +224,7 @@ J['root'] = (Vector((0, y_min, 0)), Vector((0, y_min + 0.05 * H, 0)))
 for b in ('pelvis', 'chest', 'neck', 'head'):
     J[b] = (rest_pt(b, 'a'), rest_pt(b, 'b'))
 chest_top = J['chest'][1]
+print(f'rig_basemesh: spine pelvis={(J["pelvis"][0].y - y_min) / H:.3f}h chest_top={(chest_top.y - y_min) / H:.3f}h neck_top={(J["neck"][1].y - y_min) / H:.3f}h head={(J["head"][0].y - y_min) / H:.3f}-{(J["head"][1].y - y_min) / H:.3f}h')
 for side, sgn in (('L', -1.0), ('R', 1.0)):
     up_len = rest_len('upperArm' + side)
     fore_len = rest_len('foreArm' + side)
@@ -298,6 +311,105 @@ for side, sgn in (('L', -1.0), ('R', 1.0)):
     J['thigh' + side] = (hip, knee)
     J['shin' + side] = (knee, ankle)
     J['foot' + side] = (heel, toe)
+
+# ---------------------------------------------------------------- center in the mesh
+# Remy 2026-08-23: "wire the skeleton to match the base frame — bones
+# centered inside each component". Every joint moves to the centroid of the
+# mesh slice across its limb at that station, so each bone runs down the
+# middle of its arm, leg, or torso instead of along a landmark guess. The
+# arm and leg chains share Vector objects across J, so moving a joint in
+# place moves every bone that meets there.
+def center(p, axis, sel, r, slab=0.015):
+    """Move p (in place) to the centroid of the mesh slice across `axis`
+    at p, among vertices that pass `sel` and lie within r of p in the
+    slice plane. Returns the number of vertices used."""
+    s = slab * H
+    if axis == 'x':
+        pts = [v for v in verts if abs(v.x - p.x) < s and sel(v) and math.hypot(v.y - p.y, v.z - p.z) < r]
+        if len(pts) < 6:
+            return 0
+        p.y = sum(v.y for v in pts) / len(pts)
+        p.z = sum(v.z for v in pts) / len(pts)
+    else:
+        pts = [v for v in verts if abs(v.y - p.y) < s and sel(v) and math.hypot(v.x - p.x, v.z - p.z) < r]
+        if len(pts) < 6:
+            return 0
+        p.x = sum(v.x for v in pts) / len(pts)
+        p.z = sum(v.z for v in pts) / len(pts)
+    return len(pts)
+
+centered = {}
+for _pass in range(2):
+    # spine: the torso slice at each station (x centers by symmetry, z on the
+    # body's true middle); the clavicle heads are copies of the chest top
+    # the spine stays ONE vertical line: x from symmetry, z from the pelvis
+    # slice only. Per-station z centering tilted the female's chest axis
+    # (breasts and back shift the slice centers) and the driver then stood
+    # that axis up, leaning her whole torso (2026-08-23).
+    spine_z = None
+    for b in ('pelvis', 'chest', 'neck'):
+        for p in J[b]:
+            centered[b] = center(p, 'y', lambda v: True, 0.3 * H)
+            if spine_z is None:
+                spine_z = p.z
+            p.z = spine_z
+    for side in ('L', 'R'):
+        J['clavicle' + side][0].x = J['chest'][1].x
+        J['clavicle' + side][0].z = J['chest'][1].z
+    for p in J['head']:
+        centered['head'] = center(p, 'y', lambda v: True, 0.16 * H)
+    for side, sgn in (('L', -1.0), ('R', 1.0)):
+        same_side = lambda v, sgn=sgn: sgn * v.x > 0
+        sh, el = J['upperArm' + side]
+        wr, hd = J['hand' + side]
+        if tpose:
+            # across the arm (slice perpendicular to x); the shoulder slice
+            # stays inside the deltoid, clear of the chest
+            centered['sh' + side] = center(sh, 'x', same_side, 0.09 * H)
+            centered['el' + side] = center(el, 'x', same_side, 0.07 * H)
+            centered['wr' + side] = center(wr, 'x', same_side, 0.06 * H)
+            centered['hd' + side] = center(hd, 'x', same_side, 0.06 * H)
+        else:
+            # hanging arm: slices are horizontal; the radius keeps the slice
+            # on the arm even where it hugs the torso
+            outer = lambda v, sgn=sgn: sgn * v.x > torso_half_w - 0.03 * H
+            centered['sh' + side] = center(sh, 'y', same_side, 0.07 * H)
+            centered['el' + side] = center(el, 'y', outer, 0.06 * H)
+            centered['wr' + side] = center(wr, 'y', outer, 0.055 * H)
+            centered['hd' + side] = center(hd, 'y', outer, 0.055 * H)
+        hip, knee = J['thigh' + side]
+        ankle = J['shin' + side][1]
+        below_hip = lambda v, sgn=sgn: sgn * v.x > 0 and v.y < J['pelvis'][0].y + 0.02 * H
+        centered['hip' + side] = center(hip, 'y', below_hip, 0.11 * H)
+        centered['knee' + side] = center(knee, 'y', below_hip, 0.09 * H)
+        centered['ankle' + side] = center(ankle, 'y', below_hip, 0.07 * H)
+        # the foot follows its ankle sideways
+        for p in J['foot' + side]:
+            p.x = ankle.x
+        # the fingers follow the hand
+print('rig_basemesh: centered ' + ' '.join(f'{k}={n}' for k, n in centered.items()))
+# re-anchor the digits on the moved hand (they were built from the old hd)
+for side, sgn in (('L', -1.0), ('R', 1.0)):
+    wr, hd = J['hand' + side]
+    arm_dir = Vector((sgn, 0, 0)) if tpose else Vector((0, -1, 0))
+    spread = 0.012 * H
+    for i in range(4):
+        root, j1 = J['finger%s%da' % (side, i)]
+        _j1, tip = J['finger%s%db' % (side, i)]
+        la, lb = (j1 - root).length, (tip - j1).length
+        z_off = (1.5 - i) * spread * forward
+        root.x, root.y, root.z = hd.x, hd.y, hd.z + z_off
+        j1.x, j1.y, j1.z = (root + arm_dir * la).x, (root + arm_dir * la).y, (root + arm_dir * la).z
+        tip.x, tip.y, tip.z = (j1 + arm_dir * lb).x, (j1 + arm_dir * lb).y, (j1 + arm_dir * lb).z
+    t_root, t_j1 = J['thumb' + side + 'a']
+    _t, t_tip = J['thumb' + side + 'b']
+    la, lb = t_j1 - t_root, t_tip - t_j1
+    base = wr + (hd - wr) * 0.4 + Vector((0, 0, 2.2 * spread * forward))
+    t_root.x, t_root.y, t_root.z = base.x, base.y, base.z
+    n1 = t_root + la
+    t_j1.x, t_j1.y, t_j1.z = n1.x, n1.y, n1.z
+    n2 = t_j1 + lb
+    t_tip.x, t_tip.y, t_tip.z = n2.x, n2.y, n2.z
 
 missing = [b for b in BONES if b not in J]
 if missing:

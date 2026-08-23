@@ -208,3 +208,19 @@ export function blobShadowMaterial(): ShaderMaterial {
       }`,
   });
 }
+
+/**
+ * Show or hide every painted ink outline under `root` — the inverse-hull
+ * shells the assembler names `*Outline` and paints with the outline
+ * material. A review toggle (Part Lab, Entity Debug, Entity Forge,
+ * 2026-08-22): the fill stays, the contour line goes.
+ */
+export function setOutlineVisible(root: import('three').Object3D, visible: boolean): void {
+  root.traverse((o) => {
+    const mesh = o as import('three').Mesh;
+    if (!mesh.isMesh) return;
+    const mat = mesh.material as import('three').Material | import('three').Material[];
+    const byMaterial = Array.isArray(mat) ? mat.some((m) => m.name === OUTLINE_MATERIAL_NAME) : mat?.name === OUTLINE_MATERIAL_NAME;
+    if (byMaterial || /Outline$/.test(mesh.name)) mesh.visible = visible;
+  });
+}

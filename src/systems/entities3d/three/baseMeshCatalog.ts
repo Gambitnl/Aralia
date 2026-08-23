@@ -57,8 +57,47 @@ export function baseMeshById(id: string): BaseMeshDef {
   return def;
 }
 
+/** Bump when tools/entities3d/rigBaseMeshes.mjs rewrites the rigged files:
+ * the loader caches by URL, and a page kept open across a re-rig showed the
+ * OLD bones under the new code (Remy's "huh?" screenshots, 2026-08-22). */
+export const BASE_MESH_RIG_VERSION = '2026-08-23b';
+
 export function baseMeshUrl(id: string): string {
   const def = baseMeshById(id);
   // rigged entries load the skinned file; the static split stays for the bake
-  return `${import.meta.env.BASE_URL}references/basemesh/${def.id}${def.rigged ? '.rigged' : ''}.glb`;
+  return `${import.meta.env.BASE_URL}references/basemesh/${def.id}${def.rigged ? '.rigged' : ''}.glb?v=${BASE_MESH_RIG_VERSION}`;
+}
+
+/** The UNMODIFIED pack as downloaded from Sketchfab (materials, transforms,
+ * every model in it), served for the side-by-side. The lab picks this
+ * model's nodes out of it with `originalPick`. */
+export function baseMeshOriginalPackUrl(id: string): string {
+  return `${import.meta.env.BASE_URL}references/basemesh/original/${baseMeshById(id).pack}.glb`;
+}
+
+/** Which mesh nodes of the original pack belong to this model — the same
+ * selection tools/entities3d/splitBaseMeshes.mjs used: lowpoly models by
+ * mesh name, stylized models by where they stand in the pack (figure A at
+ * x ≈ −2.3, figure B at x ≈ +2.5, the head kit at x ≈ 0). */
+export function originalPick(id: string): (meshName: string, worldCenterX: number) => boolean {
+  // three's GLTFLoader sanitizes node names (spaces and dots dropped), so
+  // both sides compare with the same reduction
+  const key = (n: string) => n.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+  const byName = (prefix: string) => (n: string) => key(n).startsWith(key(prefix));
+  switch (baseMeshById(id).id) {
+    case 'lowpoly-nogender':
+      return byName('00 AA BODY NO GENDER');
+    case 'lowpoly-female':
+      return byName('FEMALE BODY TYPE 1.001');
+    case 'lowpoly-male':
+      return byName('MALE BODY TYPE 1.003');
+    case 'stylized-figure-a':
+      return (_n, cx) => cx < -1;
+    case 'stylized-figure-b':
+      return (_n, cx) => cx > 1;
+    case 'stylized-head-kit':
+      return (_n, cx) => cx >= -1 && cx <= 1;
+    default:
+      throw new Error(`originalPick: no pick rule for "${id}"`);
+  }
 }

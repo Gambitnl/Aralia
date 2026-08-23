@@ -1049,10 +1049,66 @@ const INV = new Quaternion();
  * the hierarchy. Unknown ids throw: if a driver ever emits something new,
  * this fails loudly instead of silently dropping body parts.
  */
-export function createBipedPoseSink(skeleton: BuiltSkeleton): BipedPoseSink {
+export interface BipedPoseSinkOptions {
+  /** Forward kinematics (foreign rigs, 2026-08-22): every bone keeps its own
+   * BIND offset from its parent and takes only the driver's rotation; the
+   * pelvis alone takes the driver's position. The rig's limb lengths — its
+   * shape — never change under animation. Default false: the procedural
+   * body takes the driver's absolute joint positions (its own lengths). */
+  fk?: boolean;
+}
+
+export function createBipedPoseSink(skeleton: BuiltSkeleton, options: BipedPoseSinkOptions = {}): BipedPoseSink {
   const n = skeleton.bones.length;
   const worldPos: Vector3[] = Array.from({ length: n }, () => new Vector3());
   const worldQuat: Quaternion[] = Array.from({ length: n }, () => new Quaternion());
+  // FK (foreign rigs): a bone's frame is its BIND frame swung by the smallest
+  // rotation from its bind direction to the driver's direction. The absolute
+  // "+Y onto direction" frame adds an uncontrolled roll when a bone swings
+  // far from its bind (a T-pose arm to hanging = 90°), and the shoulder skin
+  // twisted with it (Remy's warped torso, 2026-08-23).
+  // FK (foreign rigs) = a RETARGET by local delta. The driver's absolute
+  // frames are computed as for our own body (+Y onto direction), but what
+  // reaches the rig is each bone's LOCAL rotation change from the driver's
+  // own rest pose, applied onto the rig's bind local. A straight bind stays
+  // straight in idle whatever its bone axes do (the female's centered chest
+  // axis tilted, and the earlier "swing the bind axis onto the target" rule
+  // turned that into an 18° forward lean, 2026-08-23); roll behaves as it
+  // does on our own body, because the deltas are the same ones.
+  const parentOf: number[] = skeleton.bones.map((b) => (b.parent && (b.parent as Bone).isBone ? skeleton.index.get(b.parent.name as BipedBoneName)! : -1));
+  const restQ: Quaternion[] = options.fk
+    ? skeleton.bones.map((b) => {
+        const q = new Quaternion();
+        bindWorld(skeleton.restPose, b.name as BipedBoneName, new Vector3(), q);
+        return q;
+      })
+    : [];
+  // Static alignment: each rig bone's BIND direction swung onto the driver's
+  // REST direction, once. For a T-pose arm that is the 90° frontal-plane
+  // swing onto the hanging arm (two perpendicular directions — no axis
+  // ambiguity); for spine, legs, and hanging arms it is near identity.
+  // After that the rig behaves as a body whose bind IS the driver's rest,
+  // and the driver's absolute frames move it exactly as they move our own.
+  const restInv: Quaternion[] = options.fk ? restQ.map((q) => q.clone().invert()) : [];
+  const alignedBind: Quaternion[] = options.fk
+    ? skeleton.bindWorldQuat.map((qb, i) => {
+        const bindDir = UP.clone().applyQuaternion(qb).normalize();
+        const restDir = UP.clone().applyQuaternion(restQ[i]).normalize();
+        const S = new Quaternion().setFromUnitVectors(bindDir, restDir);
+        return S.multiply(qb); // S × bind: the bind frame re-aimed onto the rest direction
+      })
+    : [];
+  const nowQ: Quaternion[] = options.fk ? restQ.map((q) => q.clone()) : [];
+  const hasDir: boolean[] = new Array(n).fill(false);
+  const DELTA = new Quaternion();
+  const aim = (i: number, dir: Vector3): void => {
+    if (options.fk) {
+      nowQ[i].setFromUnitVectors(UP, dir);
+      hasDir[i] = true;
+    } else {
+      worldQuat[i].setFromUnitVectors(UP, dir);
+    }
+  };
   // root never receives emissions; it stays at the entity-local origin
   const written: boolean[] = new Array(n).fill(false);
   written[0] = true;
@@ -1066,13 +1122,28 @@ export function createBipedPoseSink(skeleton: BuiltSkeleton): BipedPoseSink {
   // Clavicle derivation state: the chest top ('torso.chest' B) arrives before
   // the arm segments in buildBody order; each 'arm.upper' A is the shoulder.
   const chestTop = new Vector3();
+  // FK: several emissions share one bone (the trapezius wedge and the neck
+  // both own `neck`; the thenar pieces and the palm own `hand`). The rigid
+  // segment body wants the LAST piece; a foreign rig wants the bone's own
+  // limb direction, so only the primary emission aims it.
+  const FK_PRIMARY: Partial<Record<BipedBoneName, string>> = {
+    neck: 'neck',
+    handL: 'handL.palm',
+    handR: 'handR.palm',
+    thumbLa: 'handL.thumba',
+    thumbRa: 'handR.thumba',
+  };
   const sink: SegmentSink = {
     seg(id, ax, ay, az, bx, by, bz) {
       const i = boneFor(SEGMENT_BONE, id);
+      if (options.fk) {
+        const primary = FK_PRIMARY[skeleton.bones[i].name as BipedBoneName];
+        if (primary && primary !== id) return;
+      }
       worldPos[i].set(ax, ay, az);
       DIR.set(bx - ax, by - ay, bz - az);
       if (DIR.lengthSq() < 1e-12) DIR.copy(UP);
-      worldQuat[i].setFromUnitVectors(UP, DIR.normalize());
+      aim(i, DIR.normalize());
       written[i] = true;
       // Clavicles carry no flesh, so no emission drives them directly. They
       // derive here by the same rule bindWorld uses: root at the chest top,
@@ -1083,7 +1154,7 @@ export function createBipedPoseSink(skeleton: BuiltSkeleton): BipedPoseSink {
         const c = skeleton.index.get(id === 'armL.upper' ? 'clavicleL' : 'clavicleR')!;
         worldPos[c].copy(chestTop);
         aimClavicle(chestTop, ax, ay, az, bx, by, bz, DIR);
-        worldQuat[c].setFromUnitVectors(UP, DIR);
+        aim(c, DIR);
         written[c] = true;
       }
     },
@@ -1101,6 +1172,28 @@ export function createBipedPoseSink(skeleton: BuiltSkeleton): BipedPoseSink {
   };
 
   function finishFrame(): void {
+    if (options.fk) {
+      // parents first (BIPED_BONE_NAMES order); a bone without an emission
+      // this frame keeps the driver's rest frame, so its delta is identity
+      worldQuat[0].copy(skeleton.bindWorldQuat[0]);
+      for (let i = 1; i < n; i++) {
+        const p = parentOf[i];
+        if (!hasDir[i]) nowQ[i].copy(restQ[i]);
+        // world = (driver now × driver rest⁻¹) × aligned bind — the driver's
+        // absolute change from its rest, on the rig bone aligned to that rest
+        DELTA.copy(nowQ[i]).multiply(restInv[i]);
+        worldQuat[i].copy(DELTA).multiply(alignedBind[i]);
+        const pq = p < 0 ? skeleton.bindWorldQuat[0] : worldQuat[p];
+        INV.copy(pq).invert();
+        skeleton.bones[i].quaternion.copy(INV).multiply(worldQuat[i]);
+        if (skeleton.bones[i].name === 'pelvis' && written[i]) {
+          skeleton.bones[i].position.copy(worldPos[i]).applyQuaternion(INV);
+        }
+        hasDir[i] = false;
+        written[i] = false;
+      }
+      return;
+    }
     // parent-first order is guaranteed by BIPED_BONE_NAMES; bones whose id was
     // not written this frame keep their previous local transform
     for (let i = 1; i < n; i++) {
@@ -1113,7 +1206,9 @@ export function createBipedPoseSink(skeleton: BuiltSkeleton): BipedPoseSink {
       }
       const p = skeleton.index.get(parent.name as BipedBoneName)!;
       INV.copy(worldQuat[p]).invert();
-      skeleton.bones[i].position.copy(worldPos[i]).sub(worldPos[p]).applyQuaternion(INV);
+      if (!options.fk || skeleton.bones[i].name === 'pelvis') {
+        skeleton.bones[i].position.copy(worldPos[i]).sub(worldPos[p]).applyQuaternion(INV);
+      }
       skeleton.bones[i].quaternion.copy(INV).multiply(worldQuat[i]);
       written[i] = false;
     }

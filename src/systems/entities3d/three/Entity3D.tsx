@@ -70,6 +70,8 @@ export interface Entity3DProps {
    * current look. Scene-level visibility only — the real outline opt-out is
    * slice B in the assembler. */
   heroStyle?: boolean;
+  /** The painted ink outline (review toggle, 2026-08-22). Default on. */
+  showOutline?: boolean;
 }
 
 export function Entity3D({
@@ -87,6 +89,7 @@ export function Entity3D({
   skinnedWeights,
   showBones = false,
   heroStyle = false,
+  showOutline = true,
 }: Entity3DProps) {
   // Keep the numeric performance settings as explicit dependencies. Callers
   // can tune a foreground hero differently from a conversational crowd
@@ -121,8 +124,9 @@ export function Entity3D({
 
   // Hero-style prototype: every ink shell's name ends in 'Outline'
   // (segOutline, partOutline, headOutline, skinnedOutline, skinnedChainOutline).
+  // The outline toggle (2026-08-22) hides the same shells.
   useEffect(() => {
-    if (!heroStyle) return;
+    if (!heroStyle && showOutline) return;
     const hidden: import('three').Object3D[] = [];
     handle.group.traverse((o) => {
       if (o.name.endsWith('Outline') && o.visible) {
@@ -133,7 +137,7 @@ export function Entity3D({
     return () => {
       for (const o of hidden) o.visible = true;
     };
-  }, [handle, heroStyle]);
+  }, [handle, heroStyle, showOutline]);
 
   const loco = useRef<LocomotionState>({
     position: new Vector3(),

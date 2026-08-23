@@ -8,7 +8,7 @@ import { describe, it, expect } from 'vitest';
 import { Skeleton, SkinnedMesh, Vector3 } from 'three';
 import { deriveFrame, heightM } from '../types';
 import { buildBipedSkeleton } from '../three/skeletonBuilder';
-import { buildBipedBindGeometry, createSkinnedFromRig } from '../three/skinnedBody';
+import { buildBipedBindGeometry, createSkinnedFromRig, frameFromRig } from '../three/skinnedBody';
 import { assembleEntity } from '../three/assembleEntity';
 import { generateEntityBlueprint } from '../generateEntityBlueprint';
 import { registerAllParts } from '../parts';
@@ -88,6 +88,26 @@ describe('assembleEntity with options.rig', () => {
     expect(idle.distanceTo(walking)).toBeGreaterThan(0.01);
     expect(Number.isFinite(walking.x + walking.y + walking.z)).toBe(true);
     handle.dispose();
+  });
+  it('keeps the rig\'s limb lengths under a walk frame (rotations only)', () => {
+    const handle = assembleEntity(blueprint, { renderMode: 'solid', bodyTech: 'skinned', rig: syntheticRig() });
+    const len = (a: string, b: string) => handle.group.getObjectByName(a)!.getWorldPosition(new Vector3()).distanceTo(handle.group.getObjectByName(b)!.getWorldPosition(new Vector3()));
+    handle.update(0, 0);
+    handle.group.updateMatrixWorld(true);
+    const fore0 = len('foreArmL', 'handL');
+    const shin0 = len('shinR', 'footR');
+    handle.update(0.7, 0.7, { position: new Vector3(), heading: new Vector3(0, 0, 1), speed: 1.4 });
+    handle.group.updateMatrixWorld(true);
+    expect(Math.abs(len('foreArmL', 'handL') - fore0)).toBeLessThan(1e-6);
+    expect(Math.abs(len('shinR', 'footR') - shin0)).toBeLessThan(1e-6);
+    handle.dispose();
+  });
+  it('measures a frame from the rig that matches the synthetic body', () => {
+    const f = frameFromRig(syntheticRig(), frame);
+    expect(f.heightFt).toBe(frame.heightFt);
+    expect(Math.abs(f.armLengthFt / frame.armLengthFt - 1)).toBeLessThan(0.25);
+    expect(Math.abs(f.limbLengthFt / frame.limbLengthFt - 1)).toBeLessThan(0.25);
+    expect(Math.abs(f.shoulderWidthFt / frame.shoulderWidthFt - 1)).toBeLessThan(0.35);
   });
   it('rejects a rig on a segment body or with parts', () => {
     expect(() => assembleEntity(blueprint, { renderMode: 'solid', rig: syntheticRig() })).toThrow(/options.rig/);

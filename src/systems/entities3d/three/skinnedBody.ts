@@ -57,7 +57,7 @@ import {
   type Bone,
 } from 'three';
 import type { Frame, SegmentSink } from '../types';
-import { heightM } from '../types';
+import { FT_TO_M, heightM } from '../types';
 import type { PlanHeadSocket } from './gaits';
 import { BIPED_BONE_NAMES, bipedRestPose, buildBipedSkeleton, createBipedPoseSink, type BipedBoneName, type BuiltSkeleton } from './skeletonBuilder';
 import { buildPlanSkeleton, createPlanPoseSink } from './planSkeleton';
@@ -714,21 +714,40 @@ function alignBindFramesToSink(bones: Bone[], index: ReadonlyMap<BipedBoneName, 
     return new Vector3(seg.b[0] - seg.a[0], seg.b[1] - seg.a[1], seg.b[2] - seg.a[2]);
   };
   const worldQuat = new Map<Bone, Quaternion>();
+  const byName = new Map(bones.map((b) => [b.name as BipedBoneName, b] as const));
+  // the joint each bone points AT — the driver's own segment convention
+  // (torso.pelvis ends at the chest root, armL.upper at the elbow, …). The
+  // pelvis has three children, so "mean of children" pointed it down-forward
+  // and the alignment stood that axis up: a body-dependent torso lean
+  // (the female, 2026-08-23).
+  const DIRECTION_TARGET: Partial<Record<BipedBoneName, BipedBoneName>> = {
+    pelvis: 'chest', chest: 'neck', neck: 'head',
+    clavicleL: 'upperArmL', upperArmL: 'foreArmL', foreArmL: 'handL',
+    clavicleR: 'upperArmR', upperArmR: 'foreArmR', foreArmR: 'handR',
+    thighL: 'shinL', shinL: 'footL', thighR: 'shinR', shinR: 'footR',
+    thumbLa: 'thumbLb', thumbRa: 'thumbRb',
+    fingerL0a: 'fingerL0b', fingerL1a: 'fingerL1b', fingerL2a: 'fingerL2b', fingerL3a: 'fingerL3b',
+    fingerR0a: 'fingerR0b', fingerR1a: 'fingerR1b', fingerR2a: 'fingerR2b', fingerR3a: 'fingerR3b',
+  };
   // parent-first order (BIPED_BONE_NAMES lists parents before children)
   for (const b of bones) {
     const name = b.name as BipedBoneName;
     const parent = b.parent && (b.parent as Bone).isBone ? (b.parent as Bone) : null;
     let dir: Vector3 | null = null;
     if (name !== 'root' && name !== 'head') {
-      const kids = b.children.filter((c) => (c as Bone).isBone && index.has(c.name as BipedBoneName)) as Bone[];
-      if (kids.length) {
+      const target = DIRECTION_TARGET[name];
+      if (target) {
+        dir = worldPos.get(byName.get(target)!)!.clone().sub(worldPos.get(b)!);
+      } else if (name === 'handL' || name === 'handR') {
+        // the palm points at the mean finger root
+        const kids = b.children.filter((c) => (c as Bone).isBone && /^finger/.test(c.name)) as Bone[];
         dir = new Vector3();
         for (const k of kids) dir.add(worldPos.get(k)!);
-        dir.multiplyScalar(1 / kids.length).sub(worldPos.get(b)!);
+        dir.multiplyScalar(1 / Math.max(1, kids.length)).sub(worldPos.get(b)!);
       } else if (/^(finger|thumb)/.test(name) && parent) {
-        dir = worldPos.get(b)!.clone().sub(worldPos.get(parent)!);
+        dir = worldPos.get(b)!.clone().sub(worldPos.get(parent)!); // tip links: along their own link
       } else {
-        dir = restDir(name);
+        dir = restDir(name); // feet: the rest heel → toe
       }
     }
     const q = new Quaternion();
@@ -743,6 +762,44 @@ function alignBindFramesToSink(bones: Bone[], index: ReadonlyMap<BipedBoneName, 
     b.quaternion.copy(inv).multiply(q);
     b.position.copy(worldPos.get(b)!).sub(worldPos.get(parent)!).applyQuaternion(inv);
   }
+}
+
+/**
+ * A Frame measured from a foreign rig's bind skeleton (unit height), so the
+ * gait driver plans motion for THAT body's proportions: its arm and leg
+ * lengths, shoulder width, and stance. Height, bulk, and head scale come
+ * from `base` (the lab's chosen race). The inverse of the rest-pose
+ * formulas in bipedRestPose: shoulder x = width/2 + 0.35 r; stance half =
+ * (stance/2) × 1.12 × 0.85.
+ */
+export function frameFromRig(rig: SkinnedMesh, base: Frame): Frame {
+  const byName = new Map(rig.skeleton.bones.map((b) => [b.name, b] as const));
+  const need = (name: BipedBoneName): Bone => {
+    const b = byName.get(name);
+    if (!b) throw new Error(`frameFromRig: rig has no bone "${name}"`);
+    return b;
+  };
+  rig.updateMatrixWorld(true);
+  const at = (name: BipedBoneName) => need(name).getWorldPosition(new Vector3());
+  const s = heightM(base); // unit rig → meters
+  const ft = (m: number) => (m * s) / FT_TO_M;
+  const chain = (names: BipedBoneName[]) => {
+    let len = 0;
+    for (let i = 1; i < names.length; i++) len += at(names[i]).distanceTo(at(names[i - 1]));
+    return len;
+  };
+  const upper = at('upperArmL');
+  const fingertipReach = chain(['upperArmL', 'foreArmL', 'handL', 'fingerL1a', 'fingerL1b']) + at('fingerL1b').distanceTo(at('fingerL1a')) * 0.85;
+  const hip = at('thighL');
+  const heel = at('footL');
+  const r = s * 0.105 * base.bulk;
+  return {
+    ...base,
+    limbLengthFt: ft(hip.y - heel.y + 0.03),
+    armLengthFt: ft(fingertipReach),
+    shoulderWidthFt: Math.max(0.3, ft(2 * (Math.abs(upper.x) - 0.35 * r / s))),
+    stanceWidthFt: Math.max(0.2, ft((2 * Math.abs(heel.x)) / (1.12 * 0.85))),
+  };
 }
 
 export function createSkinnedFromRig(frame: Frame, rig: SkinnedMesh, options: Pick<SkinnedBodyOptions, 'colorHex' | 'outlineThickness'>): SkinnedBody {
@@ -792,7 +849,8 @@ export function createSkinnedFromRig(frame: Frame, rig: SkinnedMesh, options: Pi
   const bindWorldPos = bones.map((b) => new Vector3().setFromMatrixPosition(b.matrixWorld));
   const bindWorldQuat = bones.map((b) => new Quaternion().setFromRotationMatrix(b.matrixWorld));
   const built: BuiltSkeleton = { root: rootBone, bones, index, restPose: bipedRestPose(frame), bindWorldPos, bindWorldQuat };
-  const pose = createBipedPoseSink(built);
+  // rotations only: the rig keeps its own limb lengths — its shape
+  const pose = createBipedPoseSink(built, { fk: true });
 
   return {
     root,
