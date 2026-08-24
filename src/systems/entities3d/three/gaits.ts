@@ -290,6 +290,9 @@ class BipedDriver extends BaseDriver {
    * buildBody() re-aims the public hand anchors at the FIST center (grip
    * point), so the anchors can no longer double as the next IK input. */
   private readonly wrist: [Vector3, Vector3] = [new Vector3(), new Vector3()];
+  /** Joint-angle wave (2026-08-23): the elbow placed by angle in advance(),
+   * read back by the arm solve instead of the knee solver. */
+  private readonly waveElbow: [Vector3, Vector3] = [new Vector3(), new Vector3()];
 
   /** True when the given side performs a wave this frame: both sides for
    * 'wave_both'; for 'wave', the right hand unless it grips a weapon. */
@@ -468,14 +471,21 @@ class BipedDriver extends BaseDriver {
         // A GRIP hand salutes HIGHER and FURTHER OUT — the wrapped fist and
         // its weapon must clear the head and any hat (Remy's wizard eyeball:
         // the staff fist parked in front of the hat brim).
+        // joint-angle wave (2026-08-23): the upper arm rises to a fixed
+        // elevation and the forearm points up from the elbow, so every arm
+        // length keeps the same shape. The hand-target wave flared the elbow
+        // on a long-armed rig (stylized B) and pinned short arms to the head.
+        // The shoulder lifts with the gesture (mirrored in the arm solve).
         const gripSide = !!this.grips?.[sgn < 0 ? 'L' : 'R'];
-        const outX = this.baseR * (gripSide ? 1.15 : 0.55);
-        const upY = this.hM * (gripSide ? 0.22 : 0.17);
-        hand.pos.set(
-          sgn * (shoulderX + outX) + sgn * Math.sin(this.t * 5.2) * this.hM * 0.02,
-          this.chestY + this.baseR * 0.45 + upY,
-          this.hM * 0.06 + hunchZ,
-        );
+        const elev = gripSide ? 0.75 : 0.35; // upper arm above horizontal
+        const fwd = 0.35; // and forward of the frontal plane
+        const rock = Math.sin(this.t * 5.2) * 0.22;
+        V_SH.set(sgn * shoulderX, this.chestY + this.baseR * 0.45 + this.baseR * 0.16, 0.02 + hunchZ);
+        V_BEND.set(sgn * Math.cos(elev) * Math.cos(fwd), Math.sin(elev), Math.cos(elev) * Math.sin(fwd)).normalize();
+        const elbow = this.waveElbow[sgn < 0 ? 0 : 1].copy(V_SH).addScaledVector(V_BEND, armLink);
+        // forearm: up, leaning a little inward and forward; the rock swings it
+        V_BEND.set(-sgn * (0.25 - rock), 0.92, 0.3).normalize();
+        hand.pos.copy(elbow).addScaledVector(V_BEND, armLink);
       } else {
         hand.pos.set(
           sgn * (shoulderX + this.baseR * 0.05),
@@ -664,11 +674,12 @@ class BipedDriver extends BaseDriver {
       // round 14 (humanoid-anatomy): elbow tucked mostly BACKWARD — the
       // lateral bend arced the arm into a "banana bow". Mirror:
       // bipedRestPose arm loop.
-      if (waving) V_BEND.set(sgn * 0.8, -0.55, -0.25);
-      else V_BEND.set(sgn * 0.45, 0, -1);
+      V_BEND.set(sgn * 0.45, 0, -1);
       V_BEND.normalize();
       // round 17 (humanoid-anatomy): links 0.4 armLen (see ARM_LINK_K)
-      solveKnee(V_SH, V_HAND.copy(hand), armLen * ARM_LINK_K, armLen * ARM_LINK_K, V_BEND, V_KNEE);
+      // the joint-angle wave already placed its elbow (see the hand block)
+      if (waving) V_KNEE.copy(this.waveElbow[sgn < 0 ? 0 : 1]);
+      else solveKnee(V_SH, V_HAND.copy(hand), armLen * ARM_LINK_K, armLen * ARM_LINK_K, V_BEND, V_KNEE);
       // deltoid before the upper segment: the segment's later write drives
       // the upperArm bone; the ball only adds shoulder mass at the joint
       // round 20 (humanoid-anatomy): the deltoid ball grows with the same

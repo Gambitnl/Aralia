@@ -64,6 +64,29 @@ describe('createSkinnedFromRig', () => {
   });
 });
 
+describe('applyWorldPose (a mocap clip on a foreign rig)', () => {
+  it('leaves the rig at its bind when the reference biped stands at ITS bind', () => {
+    // The clip plays on the reference biped, whose bind frames use the
+    // bindWorld convention; the sink's rest uses the canonical limb frames.
+    // A delta taken against the wrong rest carries the roll difference and
+    // swings FK children around the bone axis (the clip pretzel,
+    // 2026-08-23). At the reference's bind the pose delta must be identity:
+    // every rig joint stays at its own bind position.
+    const body = createSkinnedFromRig(frame, syntheticRig(), { colorHex: '#c8a07a', outlineThickness: 0.01 });
+    const bones = body.skinnedMesh.skeleton.bones;
+    body.skinnedMesh.updateMatrixWorld(true);
+    const bind = bones.map((b) => b.getWorldPosition(new Vector3()));
+    const reference = buildBipedSkeleton(frame);
+    const pelvis = reference.index.get('pelvis')!;
+    body.applyWorldPose!(reference.bindWorldQuat, reference.bindWorldPos[pelvis]);
+    body.skinnedMesh.updateMatrixWorld(true);
+    for (const [i, b] of bones.entries()) {
+      expect(b.getWorldPosition(new Vector3()).distanceTo(bind[i]), b.name).toBeLessThan(1e-4);
+    }
+    body.dispose();
+  });
+});
+
 describe('assembleEntity with options.rig', () => {
   registerAllParts();
   const blueprint = generateEntityBlueprint({ kind: 'humanoid', raceId: 'human', classId: 'fighter', seed: 'rig-test' });

@@ -43,7 +43,7 @@
  *      constant in normal animation (solveKnee returns exact 0.52-limb
  *      links), and the rare IK overstretch gap hides inside joint spheres.
  */
-import { Bone, Quaternion, Vector3 } from 'three';
+import { Bone, Matrix4, Quaternion, Vector3 } from 'three';
 import type { Frame, SegmentSink } from '../types';
 import { FT_TO_M, headRadiusM, heightM } from '../types';
 import { solveKnee } from './ik';
@@ -1035,6 +1035,11 @@ export interface BipedPoseSink {
   sink: SegmentSink;
   /** Resolve the received world transforms into local bone transforms (parents first). */
   finishFrame(): void;
+  /** FK sinks only: pose the rig from a REFERENCE biped's current world
+   * frames (our own skeleton played by a mocap clip) instead of the driver.
+   * `worldQuats` follow BIPED_BONE_NAMES order; the pelvis takes
+   * `pelvisWorldPos`. Resolves the frame. Throws on a non-FK sink. */
+  applyWorldPose?(worldQuats: readonly Quaternion[], pelvisWorldPos: Vector3): void;
 }
 
 const DIR = new Vector3();
@@ -1049,6 +1054,87 @@ const INV = new Quaternion();
  * the hierarchy. Unknown ids throw: if a driver ever emits something new,
  * this fails loudly instead of silently dropping body parts.
  */
+/**
+ * Limb frame conventions for foreign rigs (2026-08-23). Emissions carry
+ * directions only, so a limb bone's twist about its own axis is undefined;
+ * the minimal rotation from +Y flips by 180° between a thigh that points a
+ * little forward and a shin that points a little back (the candy-wrapper
+ * knee). So: a POLE bone (upper arm, thigh) twists so its bend plane holds
+ * its child (forearm, shin) — the external rotation a real shoulder adds as
+ * the arm rises; every bone below is a HINGE that swings its parent's frame
+ * onto its own direction. Bind, rest, and pose all use these rules, so the
+ * deltas between them carry only real motion.
+ */
+/** A pole bone takes its +Z from a PARENT-chain frame's forward (the pelvis
+ * for thighs, the chest for upper arms) — a fixed anatomical direction, so
+ * the roll never flips with the bend (a pole taken from the child's
+ * direction flipped the thigh 180° when the knee passed through straight,
+ * 2026-08-23). */
+export const LIMB_POLE: Partial<Record<BipedBoneName, BipedBoneName>> = {
+  upperArmL: 'chest', upperArmR: 'chest', thighL: 'pelvis', thighR: 'pelvis',
+};
+const LF_FWD = new Vector3();
+const LF_UP = new Vector3();
+/** Frame for a pole bone: +Y along `dir`, +Z toward the pole parent's
+ * forward; a bone along that forward takes the parent's up instead. */
+export function limbPoleFrame(out: Quaternion, dir: Vector3, poleParentQuat: Quaternion): Quaternion {
+  LF_FWD.set(0, 0, 1).applyQuaternion(poleParentQuat);
+  LF_UP.set(0, 1, 0).applyQuaternion(poleParentQuat);
+  return poleFrame(out, dir, LF_FWD, LF_UP);
+}
+/** Frames for every bone from directions alone, parents first, by the
+ * canonical rules: minimal rotation for spine, clavicles, head; pole frames
+ * for upper arms and thighs; hinges below. `dirs[i]` may be null (root,
+ * head): identity. */
+export function limbFrames(out: Quaternion[], names: readonly BipedBoneName[], parentOf: readonly number[], index: ReadonlyMap<BipedBoneName, number>, dirs: readonly (Vector3 | null)[]): void {
+  for (let i = 0; i < names.length; i++) {
+    const dir = dirs[i];
+    const q = out[i];
+    if (!dir) {
+      q.identity();
+      continue;
+    }
+    const pole = LIMB_POLE[names[i]];
+    if (pole) {
+      limbPoleFrame(q, dir, out[index.get(pole)!]);
+    } else if (LIMB_HINGE.has(names[i]) && parentOf[i] >= 0 && dirs[parentOf[i]]) {
+      hingeFrame(q, dirs[parentOf[i]]!, out[parentOf[i]], dir);
+    } else {
+      q.setFromUnitVectors(UP, dir);
+    }
+  }
+}
+export const LIMB_HINGE: ReadonlySet<BipedBoneName> = new Set(
+  BIPED_BONE_NAMES.filter((b) => /^(foreArm|hand|shin|foot|finger|thumb)/.test(b)),
+);
+const PF_BASIS = new Matrix4();
+const PF_X = new Vector3();
+const PF_Z = new Vector3();
+/** The bend plane a straight limb falls back to: elbows bend forward (+Z),
+ * knees back (−Z) — a T-pose arm or a straight bind leg has no bend of its
+ * own to read, and the minimal rotation would hand it an arbitrary roll. */
+export function limbDefaultPlane(name: BipedBoneName): Vector3 {
+  return /^(upperArm|foreArm|hand)/.test(name) ? new Vector3(0, 0, 1) : new Vector3(0, 0, -1);
+}
+/** +Y along `dir`, +Z toward `pole` (the bend plane). A straight limb (no
+ * bend) keeps `fallbackZ`. */
+export function poleFrame(out: Quaternion, dir: Vector3, pole: Vector3, fallbackZ: Vector3): Quaternion {
+  PF_Z.copy(pole).addScaledVector(dir, -pole.dot(dir));
+  if (PF_Z.lengthSq() < 1e-4) {
+    PF_Z.copy(fallbackZ).addScaledVector(dir, -fallbackZ.dot(dir));
+  }
+  PF_Z.normalize();
+  PF_X.crossVectors(dir, PF_Z).normalize();
+  PF_BASIS.makeBasis(PF_X, dir, PF_Z);
+  return out.setFromRotationMatrix(PF_BASIS);
+}
+const HF_SWING = new Quaternion();
+/** The parent's frame swung onto this bone's direction (a hinge). */
+export function hingeFrame(out: Quaternion, parentDir: Vector3, parentQuat: Quaternion, dir: Vector3): Quaternion {
+  HF_SWING.setFromUnitVectors(parentDir, dir);
+  return out.copy(HF_SWING).multiply(parentQuat);
+}
+
 export interface BipedPoseSinkOptions {
   /** Forward kinematics (foreign rigs, 2026-08-22): every bone keeps its own
    * BIND offset from its parent and takes only the driver's rotation; the
@@ -1089,21 +1175,36 @@ export function createBipedPoseSink(skeleton: BuiltSkeleton, options: BipedPoseS
   // ambiguity); for spine, legs, and hanging arms it is near identity.
   // After that the rig behaves as a body whose bind IS the driver's rest,
   // and the driver's absolute frames move it exactly as they move our own.
-  const restInv: Quaternion[] = options.fk ? restQ.map((q) => q.clone().invert()) : [];
-  const alignedBind: Quaternion[] = options.fk
-    ? skeleton.bindWorldQuat.map((qb, i) => {
-        const bindDir = UP.clone().applyQuaternion(qb).normalize();
-        const restDir = UP.clone().applyQuaternion(restQ[i]).normalize();
-        const S = new Quaternion().setFromUnitVectors(bindDir, restDir);
-        return S.multiply(qb); // S × bind: the bind frame re-aimed onto the rest direction
-      })
+  // Canonical limb frames (limbFrames): bind (alignBindFramesToSink), rest,
+  // and every pose use the same rule set, so the rig bone's world frame at
+  // the driver's rest IS the rest frame, and deltas carry motion only.
+  const boneNames = skeleton.bones.map((b) => b.name as BipedBoneName);
+  const restDirs: (Vector3 | null)[] = options.fk
+    ? restQ.map((q, i) => (boneNames[i] === 'root' || boneNames[i] === 'head' ? null : UP.clone().applyQuaternion(q).normalize()))
     : [];
+  // Rest inverses in the reference biped's own bind convention (bindWorld,
+  // minimal rotation) — the frames a mocap clip's world quats live in.
+  // Captured BEFORE limbFrames rewrites restQ to the canonical convention.
+  const clipRestInv: Quaternion[] = options.fk ? restQ.map((q) => q.clone().invert()) : [];
+  if (options.fk) limbFrames(restQ, boneNames, parentOf, skeleton.index, restDirs);
+  const restInv: Quaternion[] = options.fk ? restQ.map((q) => q.clone().invert()) : [];
+  const alignedBind: Quaternion[] = options.fk ? restQ.map((q) => q.clone()) : [];
+  const nowDirs: (Vector3 | null)[] = options.fk ? restDirs.map((d) => (d ? d.clone() : null)) : [];
   const nowQ: Quaternion[] = options.fk ? restQ.map((q) => q.clone()) : [];
   const hasDir: boolean[] = new Array(n).fill(false);
   const DELTA = new Quaternion();
+  // Limb ROLL from the bend plane (2026-08-23): emissions carry directions
+  // only, so a limb bone's twist about its own axis is undefined. The
+  // minimal-rotation frame picks a twist that leaves a rig's deltoid facing
+  // inward when the arm rises (B's "club"). Instead the upper arm twists so
+  // its bend plane holds the forearm (a pole vector), the thigh's holds the
+  // shin, and the forearm and shin keep their parent's plane — the external
+  // rotation a real shoulder adds as the arm comes up. The rest frames use
+  // the same rule, so the delta from rest carries only the change of plane.
+  let poseIsQuats = false;
   const aim = (i: number, dir: Vector3): void => {
     if (options.fk) {
-      nowQ[i].setFromUnitVectors(UP, dir);
+      nowDirs[i]!.copy(dir);
       hasDir[i] = true;
     } else {
       worldQuat[i].setFromUnitVectors(UP, dir);
@@ -1176,13 +1277,30 @@ export function createBipedPoseSink(skeleton: BuiltSkeleton, options: BipedPoseS
       // parents first (BIPED_BONE_NAMES order); a bone without an emission
       // this frame keeps the driver's rest frame, so its delta is identity
       worldQuat[0].copy(skeleton.bindWorldQuat[0]);
+      if (!poseIsQuats) {
+        // directions → canonical frames (bones without an emission this
+        // frame keep their rest direction, so the chain still composes)
+        for (let i = 0; i < n; i++) if (!hasDir[i] && restDirs[i]) nowDirs[i]!.copy(restDirs[i]!);
+        limbFrames(nowQ, boneNames, parentOf, skeleton.index, nowDirs);
+        for (let i = 0; i < n; i++) hasDir[i] = hasDir[i] || !!restDirs[i];
+      }
+      // A quats pose (a mocap clip on the reference biped) lives in the
+      // bindWorld convention, not the canonical limb frames — its delta must
+      // come off THAT rest, or every bone carries the roll difference
+      // between the two conventions and its FK children swing around the
+      // bone axis (the clip pretzel, 2026-08-23).
+      const fromQuats = poseIsQuats;
+      poseIsQuats = false;
       for (let i = 1; i < n; i++) {
         const p = parentOf[i];
         if (!hasDir[i]) nowQ[i].copy(restQ[i]);
         // world = (driver now × driver rest⁻¹) × aligned bind — the driver's
-        // absolute change from its rest, on the rig bone aligned to that rest
-        DELTA.copy(nowQ[i]).multiply(restInv[i]);
-        worldQuat[i].copy(DELTA).multiply(alignedBind[i]);
+        // absolute change from its rest, on the rig bone aligned to that rest.
+        // A quats pose composes onto the rig's TRUE bind frames instead:
+        // alignedBind aims along rest SEGMENTS, the bones hold joint-target
+        // frames — the small aim difference is a position error under FK.
+        DELTA.copy(nowQ[i]).multiply(fromQuats ? clipRestInv[i] : restInv[i]);
+        worldQuat[i].copy(DELTA).multiply(fromQuats ? skeleton.bindWorldQuat[i] : alignedBind[i]);
         const pq = p < 0 ? skeleton.bindWorldQuat[0] : worldQuat[p];
         INV.copy(pq).invert();
         skeleton.bones[i].quaternion.copy(INV).multiply(worldQuat[i]);
@@ -1214,5 +1332,18 @@ export function createBipedPoseSink(skeleton: BuiltSkeleton, options: BipedPoseS
     }
   }
 
-  return { sink, finishFrame };
+  function applyWorldPose(worldQuats: readonly Quaternion[], pelvisWorldPos: Vector3): void {
+    if (!options.fk) throw new Error('applyWorldPose: FK sinks only (foreign rigs)');
+    for (let i = 1; i < n; i++) {
+      nowQ[i].copy(worldQuats[i]);
+      hasDir[i] = true;
+    }
+    poseIsQuats = true; // the clip's frames carry their own roll
+    const pelvis = skeleton.index.get('pelvis')!;
+    worldPos[pelvis].copy(pelvisWorldPos);
+    written[pelvis] = true;
+    finishFrame();
+  }
+
+  return { sink, finishFrame, applyWorldPose };
 }

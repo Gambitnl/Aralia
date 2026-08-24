@@ -1,0 +1,35 @@
+{
+ "pass": false,
+ "checks": [
+  {
+   "name": "root-at-origin",
+   "pass": true,
+   "detail": "root at [0.0000, 0.0000, 0.0000]"
+  },
+  {
+   "name": "joints-inside-mesh",
+   "pass": false,
+   "detail": "far: head_leaf=0.144"
+  },
+  {
+   "name": "symmetry",
+   "pass": true,
+   "detail": "all _l/_r pairs mirror within 0.025"
+  },
+  {
+   "name": "bone-lengths",
+   "pass": true,
+   "detail": "all ranged bones inside anatomical bounds"
+  },
+  {
+   "name": "weights-normalized",
+   "pass": true,
+   "detail": "0 orphans, 0 bad sums of 2994 verts"
+  },
+  {
+   "name": "torso-ownership",
+   "pass": false,
+   "detail": "0.58-0.68h owned by pelvis (want spine_01|spine_02); 0.68-0.78h owned by spine_01 (want spine_02|spine_03); 0.86-0.99h owned by spine_03 (want head|neck_01)"
+  }
+ ]
+}

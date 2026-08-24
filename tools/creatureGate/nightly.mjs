@@ -35,14 +35,22 @@ execFileSync('node', ['tools/creatureGate/gate.mjs', sweepDir], { stdio: 'inheri
 
 // 2. fixed part roster (three races, the campaign parts)
 const partDir = join(outRoot, `parts-${date}`);
+// three creatures per campaign part kind — the gate's pass bar (2026-08-24)
 const roster = [
   'dwarf-hand:race=hill_dwarf&class=fighter:handL',
-  'dwarf-face:race=hill_dwarf&class=fighter:face',
-  'dwarf-foot:race=hill_dwarf&class=fighter:foot',
   'drow-hand:race=drow&class=wizard:handL',
+  'human-hand:race=beastborn_human&class=fighter:handL',
+  'dwarf-face:race=hill_dwarf&class=fighter:face',
+  'drow-face:race=drow&class=wizard:face',
   'human-face:race=beastborn_human&class=fighter:face',
+  'dwarf-foot:race=hill_dwarf&class=fighter:foot',
+  'drow-foot:race=drow&class=wizard:foot',
+  'human-foot:race=beastborn_human&class=fighter:foot',
 ];
 execFileSync('node', ['tools/creatureGate/partSweep.mjs', partDir, ...roster], { stdio: 'inherit' });
+// part-specific floors + the blind sheet; the blind READ stays agent-driven
+// (partGate.mjs --score once a context-free reader fills blind-reads.json)
+execFileSync('node', ['tools/creatureGate/partGate.mjs', partDir], { stdio: 'inherit' });
 
 // 3. diff against the baseline
 const report = JSON.parse(readFileSync(join(sweepDir, 'report.json'), 'utf8'));

@@ -17,7 +17,7 @@
  * Outputs: public/references/basemesh/<id>.rigged.glb
  */
 import { spawnSync } from 'node:child_process';
-import { existsSync, readdirSync, statSync } from 'node:fs';
+import { existsSync, mkdirSync, readdirSync, statSync } from 'node:fs';
 import path from 'node:path';
 
 const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname.replace(/^\/(?=[A-Za-z]:)/, '')), '..', '..');
@@ -48,7 +48,18 @@ function findBlender() {
   );
 }
 
-const ids = process.argv.slice(2).length ? process.argv.slice(2) : BODY_MODELS;
+// --pack: native pack-skeleton rigs (the clip pack's own 66-joint armature
+// fitted to the mesh; clips play without retarget). Output <id>.packrig.glb.
+const argv = process.argv.slice(2);
+const PACK = argv.includes('--pack') ? path.join(ROOT, 'public', 'anim', 'humanoid', 'human-base-animations.glb') : null;
+// Arms-down bodies (the stylized figures) need a T-pose bake first: the
+// pack skeleton rests in a T. tpose_basemesh.py poses the RIGGED copy (our
+// skeleton + bone-heat weights) into a T and bakes the mesh; the baked GLB
+// then goes through the normal pack fit. Intermediate lives in scratch.
+const ARMS_DOWN = ['stylized-figure-a', 'stylized-figure-b'];
+const TPOSE_JOB = path.join(ROOT, 'tools', 'blender', 'tpose_basemesh.py');
+const SCRATCH = path.join(ROOT, '.agent', 'scratch', 'part-quality', 'blender');
+const ids = argv.filter((a) => a !== '--pack').length ? argv.filter((a) => a !== '--pack') : BODY_MODELS;
 for (const id of ids) {
   if (!BODY_MODELS.includes(id)) throw new Error(`rigBaseMeshes: "${id}" is not a body model (known: ${BODY_MODELS.join(', ')})`);
 }
@@ -58,10 +69,26 @@ console.log(`blender: ${blender}`);
 
 let failed = 0;
 for (const id of ids) {
-  const input = path.join(BASE_DIR, `${id}.glb`);
-  const output = path.join(BASE_DIR, `${id}.rigged.glb`);
+  let input = path.join(BASE_DIR, `${id}.glb`);
+  const output = path.join(BASE_DIR, `${id}.${PACK ? 'packrig' : 'rigged'}.glb`);
   if (!existsSync(input)) throw new Error(`missing ${input} — run: node tools/entities3d/splitBaseMeshes.mjs`);
-  const r = spawnSync(blender, ['-b', '--python', JOB, '--', input, output, SPEC], { encoding: 'utf8', timeout: 10 * 60 * 1000 });
+  if (PACK && ARMS_DOWN.includes(id)) {
+    const rigged = path.join(BASE_DIR, `${id}.rigged.glb`);
+    if (!existsSync(rigged)) throw new Error(`missing ${rigged} — run: node tools/entities3d/rigBaseMeshes.mjs ${id}`);
+    mkdirSync(SCRATCH, { recursive: true });
+    const tposed = path.join(SCRATCH, `${id}.tpose.glb`);
+    const t = spawnSync(blender, ['-b', '--python', TPOSE_JOB, '--', rigged, tposed], { encoding: 'utf8', timeout: 10 * 60 * 1000 });
+    const tTail = (t.stdout + '\n' + t.stderr).split('\n').filter((l) => /tpose_basemesh|Error|Traceback/.test(l)).slice(-6).join('\n');
+    if (t.status !== 0 || !existsSync(tposed)) {
+      failed++;
+      console.error(`FAIL ${id} (T-pose bake, exit ${t.status})\n${tTail}`);
+      continue;
+    }
+    console.log(tTail);
+    input = tposed;
+  }
+  const jobArgs = ['-b', '--python', JOB, '--', input, output, SPEC, ...(PACK ? ['--pack', PACK] : [])];
+  const r = spawnSync(blender, jobArgs, { encoding: 'utf8', timeout: 10 * 60 * 1000 });
   const tail = (r.stdout + '\n' + r.stderr).split('\n').filter((l) => /rig_basemesh|Error|Traceback/.test(l)).slice(-6).join('\n');
   if (r.status !== 0 || !existsSync(output)) {
     failed++;

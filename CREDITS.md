@@ -27,3 +27,8 @@ Keep that file in step with this one.
   Source: https://sketchfab.com/3d-models/free-stylized-basemesh-for-blender-sculpting-fc45334ab9fd4f24acb91eb7e17222b3
   Use: whole-body and head-kit options in the Part Lab, split into
   public/references/basemesh/stylized-*.glb by the same script. Not a game asset.
+- "Hand animation test" by GabrielNeias (Sketchfab), CC-BY 4.0.
+  Source: https://sketchfab.com/3d-models/hand-animation-test-b29e45290a8a4b4abad7c3405a371f67
+  Use: pro-rigged reference hand in the Part Lab
+  (public/references/basemesh/hand-pro.glb) and joint-placement ground truth
+  for tools/entities3d/centerlineFit.mjs. Not a game asset.

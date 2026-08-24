@@ -10,7 +10,7 @@
  * No three.js import here: the lab toolbar (eager bundle) reads this list.
  */
 
-export type BaseMeshKind = 'body' | 'head';
+export type BaseMeshKind = 'body' | 'head' | 'hand';
 
 export interface BaseMeshDef {
   id: string;
@@ -25,6 +25,10 @@ export interface BaseMeshDef {
    * skeleton with Blender bone-heat weights (tools/entities3d/rigBaseMeshes.mjs).
    * The lab drives it through the biped pose sink. */
   rigged?: boolean;
+  /** A `<id>.packrig.glb` exists: the clip pack's own 66-joint skeleton
+   * fitted to this mesh (rigBaseMeshes.mjs --pack), so the CC0 clips play
+   * on it natively by node name — fingers and toes included. */
+  packRigged?: boolean;
 }
 
 export const BASE_MESH_PACKS = {
@@ -40,15 +44,22 @@ export const BASE_MESH_PACKS = {
     license: 'CC-BY 4.0',
     source: 'https://sketchfab.com/3d-models/free-stylized-basemesh-for-blender-sculpting-fc45334ab9fd4f24acb91eb7e17222b3',
   },
+  'hand-animtest': {
+    title: 'Hand animation test',
+    author: 'GabrielNeias',
+    license: 'CC-BY 4.0',
+    source: 'https://sketchfab.com/3d-models/hand-animation-test-b29e45290a8a4b4abad7c3405a371f67',
+  },
 } as const;
 
 export const BASE_MESHES: readonly BaseMeshDef[] = [
-  { id: 'lowpoly-nogender', label: 'lowpoly: no-gender body', kind: 'body', pack: 'lowpoly-2026', tris: 5024, rigged: true, note: 'Headless low-poly body (neck stump); rigged 2026-08-21, head bone floats above the stump.' },
-  { id: 'lowpoly-female', label: 'lowpoly: female body', kind: 'body', pack: 'lowpoly-2026', tris: 5348, rigged: true, note: 'Rigged 2026-08-21 with our biped skeleton (Blender bone heat, T-pose bind).' },
-  { id: 'lowpoly-male', label: 'lowpoly: male body', kind: 'body', pack: 'lowpoly-2026', tris: 5392, rigged: true, note: 'Rigged 2026-08-21 with our biped skeleton (Blender bone heat, T-pose bind).' },
-  { id: 'stylized-figure-a', label: 'stylized: figure A', kind: 'body', pack: 'stylized-basemesh', tris: 48648, rigged: true, note: 'Sculpt basemesh, 39 separate objects. Rigged 2026-08-21 v2: bone heat on a voxel proxy, weights transferred to the shells; arms fitted from the silhouette.' },
-  { id: 'stylized-figure-b', label: 'stylized: figure B', kind: 'body', pack: 'stylized-basemesh', tris: 47008, rigged: true, note: 'Sculpt basemesh, 38 separate objects. Rigged 2026-08-21 v2: bone heat on a voxel proxy, weights transferred to the shells; arms fitted from the silhouette.' },
+  { id: 'lowpoly-nogender', label: 'lowpoly: no-gender body', kind: 'body', pack: 'lowpoly-2026', tris: 5024, rigged: true, packRigged: true, note: 'Headless low-poly body (neck stump); rigged 2026-08-21, head bone floats above the stump. Pack rig 2026-08-23.' },
+  { id: 'lowpoly-female', label: 'lowpoly: female body', kind: 'body', pack: 'lowpoly-2026', tris: 5348, rigged: true, packRigged: true, note: 'Rigged 2026-08-21 with our biped skeleton (Blender bone heat, T-pose bind). Pack rig 2026-08-23.' },
+  { id: 'lowpoly-male', label: 'lowpoly: male body', kind: 'body', pack: 'lowpoly-2026', tris: 5392, rigged: true, packRigged: true, note: 'Rigged 2026-08-21 with our biped skeleton (Blender bone heat, T-pose bind). Pack rig 2026-08-23: the clip pack skeleton fitted to this mesh.' },
+  { id: 'stylized-figure-a', label: 'stylized: figure A', kind: 'body', pack: 'stylized-basemesh', tris: 48648, rigged: true, packRigged: true, note: 'Sculpt basemesh, 39 separate objects. Rigged 2026-08-21 v2: bone heat on a voxel proxy, weights transferred to the shells; arms fitted from the silhouette. Pack rig 2026-08-23 via T-pose bake (tpose_basemesh.py).' },
+  { id: 'stylized-figure-b', label: 'stylized: figure B', kind: 'body', pack: 'stylized-basemesh', tris: 47008, rigged: true, packRigged: true, note: 'Sculpt basemesh, 38 separate objects. Rigged 2026-08-21 v2: bone heat on a voxel proxy, weights transferred to the shells; arms fitted from the silhouette. Pack rig 2026-08-23 via T-pose bake (tpose_basemesh.py).' },
   { id: 'stylized-head-kit', label: 'stylized: head kit', kind: 'head', pack: 'stylized-basemesh', tris: 31308, note: 'Skull, jaw and face, nose, teeth, eyes, lids, neck as separate objects.' },
+  { id: 'hand-pro', label: 'reference: pro hand (animated)', kind: 'hand', pack: 'hand-animtest', tris: 2248, note: 'Professionally rigged hand — 27 joints WITH metacarpals, own Anim01 clip. Ground truth for joint placement (2026-08-24): finger joints centered, knuckles dorsal.' },
 ];
 
 export function baseMeshById(id: string): BaseMeshDef {
@@ -60,12 +71,18 @@ export function baseMeshById(id: string): BaseMeshDef {
 /** Bump when tools/entities3d/rigBaseMeshes.mjs rewrites the rigged files:
  * the loader caches by URL, and a page kept open across a re-rig showed the
  * OLD bones under the new code (Remy's "huh?" screenshots, 2026-08-22). */
-export const BASE_MESH_RIG_VERSION = '2026-08-23b';
+export const BASE_MESH_RIG_VERSION = '2026-08-24d';
 
 export function baseMeshUrl(id: string): string {
   const def = baseMeshById(id);
   // rigged entries load the skinned file; the static split stays for the bake
   return `${import.meta.env.BASE_URL}references/basemesh/${def.id}${def.rigged ? '.rigged' : ''}.glb?v=${BASE_MESH_RIG_VERSION}`;
+}
+
+export function baseMeshPackRigUrl(id: string): string {
+  const def = baseMeshById(id);
+  if (!def.packRigged) throw new Error(`baseMeshCatalog: "${id}" has no pack rig — run: node tools/entities3d/rigBaseMeshes.mjs --pack ${id}`);
+  return `${import.meta.env.BASE_URL}references/basemesh/${def.id}.packrig.glb?v=${BASE_MESH_RIG_VERSION}`;
 }
 
 /** The UNMODIFIED pack as downloaded from Sketchfab (materials, transforms,

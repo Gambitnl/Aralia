@@ -43,6 +43,12 @@ function heroLabRoutesModuleUrl(): string {
   ).href;
 }
 
+function partLabRoutesModuleUrl(): string {
+  return pathToFileURL(
+    path.resolve(process.cwd(), 'scripts/vite-plugins/devhub/partLabRoutes.ts'),
+  ).href;
+}
+
 // ============================================================================
 // Vite Middleware
 // ============================================================================
@@ -114,6 +120,17 @@ export const devHubApiManager = () => ({
           handleHeroLabRoutes: (routeContext: typeof ctx) => Promise<boolean>;
         };
         if (await handleHeroLabRoutes(ctx)) return;
+      }
+
+      // Skeleton Lab: landmark saves + Blender re-rig child processes. Same
+      // opaque-URL treatment as Hero Lab — editing the module must not
+      // restart the dev server mid-drag.
+      if (urlPath.startsWith('/devhub/api/partlab/')) {
+        const moduleUrl = partLabRoutesModuleUrl();
+        const { handlePartLabRoutes } = await import(/* @vite-ignore */ moduleUrl) as {
+          handlePartLabRoutes: (routeContext: typeof ctx) => Promise<boolean>;
+        };
+        if (await handlePartLabRoutes(ctx)) return;
       }
 
       const { handleLoreSearchRoutes } = await import('./devhub/loreSearchRoutes.ts');

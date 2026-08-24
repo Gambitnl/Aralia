@@ -3,8 +3,8 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 18/07/2026, 03:53:28
- * Dependents: components/DesignPreview/steps/Town3DScene.tsx, components/DesignPreview/steps/townMesh.ts, systems/world3d/roadGeometry.ts, systems/worldforge/town/townPlanAdapter.ts
+ * Last Sync: 24/08/2026, 00:53:45
+ * Dependents: components/DesignPreview/steps/Town3DScene.tsx, components/DesignPreview/steps/townMesh.ts, components/Worldforge/TownPlanView.tsx, systems/world3d/roadGeometry.ts, systems/worldforge/bridge/groundChunkLoader.ts, systems/worldforge/town/townPlanAdapter.ts, systems/worldforge/town/townStreetNetwork.ts
  * Imports: None
  *
  * MULTI-AGENT SAFETY:

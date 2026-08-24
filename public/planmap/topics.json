@@ -1341,12 +1341,12 @@
     {
       "id": "town-streets-3d",
       "title": "Town street grid in 3D",
-      "sub": "UNIFIED + 4-tier contrast BUILT 2026-07-18 (Remy decided both): shared pure streetRibbons.ts feeds game path AND town3d schematic - plaza flagstone / edged avenue / cobble street / rutted lane, hexes disjoint from region roads. HEADLINE FIX: town streets were NEVER visible in the streamed game (down-facing winding front-culled every ribbon; heights sampled to ~0.4m under terrain) - the 2026-07-13 proof was data-only. Region roads shared the mesh builder and gained both fixes: re-eyeball roads/forests/mountains. Seed-42 census now 6 plaza/2 avenue/8 street/175 lane. Open: groundChunkLoader width-floor swap (lock-held), 2% stitch-band fringe, legacy voronoiTownAdapter third copy preserved.",
+      "sub": "UNIFIED + 4-tier contrast BUILT 2026-07-18 (Remy decided both): shared pure streetRibbons.ts feeds game path AND town3d schematic - plaza flagstone / edged avenue / cobble street / rutted lane, hexes disjoint from region roads. HEADLINE FIX: town streets were NEVER visible in the streamed game (down-facing winding front-culled every ribbon; heights sampled to ~0.4m under terrain) - the 2026-07-13 proof was data-only. Region roads shared the mesh builder and gained both fixes: re-eyeball roads/forests/mountains. Seed-42 census now 6 plaza/2 avenue/8 street/175 lane. Open: groundChunkLoader width-floor swap (lock-held), 2% stitch-band fringe, legacy voronoiTownAdapter third copy preserved. ROADS SLICE 2026-08-24: the town now GENERATES a street network (townStreetNetwork.ts -> plan.streetNetwork). Gates seat where roads cross the ring; the approach road stops at its gate and a routed spine (Dijkstra over the ward-edge graph) carries it to the market square; tier follows counted gate traffic; each street carries ONE width in plan units and the ward blocks are inset per-edge to leave exactly that gap. The 2D map now DRAWS those streets instead of the negative space between blocks. Cost: -6% buildings across 40 towns.",
       "campaign": "rendering",
-      "status": "done",
+      "status": "active",
       "history": {
         "designed": "2026-07-12",
-        "built": "2026-07-18"
+        "built": "2026-08-24"
       },
       "deps": [
         {
@@ -1379,10 +1379,50 @@
         {
           "title": "DECISION (Remy): boost tier contrast â€” plaza streets read almost identical to lanes",
           "status": "parked"
+        },
+        {
+          "title": "Generated street network shared by 2D map, 3D minimap and game ground bake (townStreetNetwork.ts)",
+          "status": "done"
+        },
+        {
+          "title": "Gatehouses seated where approach roads actually cross the wall ring",
+          "status": "done"
+        },
+        {
+          "title": "Routed high street: approach trimmed at the gate, spine Dijkstra-routed to the market square",
+          "status": "done"
+        },
+        {
+          "title": "Tier follows counted gate traffic, plus a wall-ring intervallum lane",
+          "status": "done"
+        },
+        {
+          "title": "One width: per-edge ward-block inset makes the gap equal the painted ribbon",
+          "status": "done"
+        },
+        {
+          "title": "2D town map draws real world-width tiered ribbons (was negative space only)",
+          "status": "done"
+        },
+        {
+          "title": "Ground/paving contrast pass so the network reads inside the walls (2D + 3D)",
+          "status": "done"
+        },
+        {
+          "title": "Remy eyeball: 2D map, 3D minimap and real streamed 3D town, all three sizes",
+          "status": "parked"
+        },
+        {
+          "title": "DesignPreview/steps/* is gitignored: townMesh + PreviewTown3D fixes are on disk only",
+          "status": "parked"
+        },
+        {
+          "title": "Pre-existing: a 7,975-person city packs fewer buildings than a 2,306-person town",
+          "status": "parked"
         }
       ],
       "tier": "strategic",
-      "updated": "2026-07-12"
+      "updated": "2026-08-24"
     },
     {
       "id": "shipped-living-world",
@@ -6524,7 +6564,7 @@
       "campaign": "rendering",
       "status": "active",
       "tier": "component",
-      "updated": "2026-08-22",
+      "updated": "2026-08-24",
       "focus": true,
       "deps": [
         {
@@ -6539,7 +6579,6 @@
         }
       ],
       "link": ".agent/GOAL-part-quality-campaign.md",
-      "open": 2,
       "features": [
         {
           "title": "Part Lab step: own studio scene, full entity, per-slot variant swap (hand/head/foot), solo extraction",
@@ -6582,15 +6621,136 @@
         {
           "title": "Part gates in creatureGate (blind reads + mask metrics on solo renders)",
           "status": "done",
-          "note": "BUILT v1 2026-08-19; sweep rig now targets the Part Lab for solo jobs.",
+          "note": "v2 BUILT 2026-08-24: partGate.mjs — part-specific floors (hand: <3 protrusions = no digits; face/foot: blob) + shuffled blind sheet + --score with synonym normalization; wired into nightly after partSweep; roster = 3 creatures per kind. FIRST FULL RUN PASSED: 9/9 floors clean, 9/9 blind reads correct (context-free subagent). Campaign closings still need the Remy eyeball. Strict-solo mode added 2026-08-24: ?soloSide + ?stage=mask lab params (single flat-black specimen on white); the strictest hand run passed blind 3/3 on pure silhouettes.",
           "history": {
-            "built": "2026-08-19"
+            "built": "2026-08-19",
+            "v2": "2026-08-24"
           }
         },
         {
           "title": "Campaigns in order: hands → heads → feet/digitigrade → neck junctions → tails",
           "status": "active",
           "status_note": "hands: reference mesh promoted 2026-08-21 (concurrent session); template hand variant pending that session closing."
+        },
+        {
+          "title": "Mocap on rigs: CC0 clips play on the base meshes and on our body again (retarget localOffsets repair)",
+          "status": "done",
+          "history": {
+            "built": "2026-08-23"
+          },
+          "note": "clipStore localOffsets fix (source +X/root −90° vs our +Y frames); lab pose=clip:<name>; control = Entity Debug ?clip=1."
+        },
+        {
+          "title": "Weight map view + joint-angle wave (bone→part ownership readable; wave shape independent of arm length)",
+          "status": "done",
+          "history": {
+            "built": "2026-08-23"
+          },
+          "note": "lab skin=weights; gaits.ts wave by angles; pole/hinge roll reverted (open design)."
+        },
+        {
+          "title": "Limb roll on rigs: canonical frames (pelvis/chest forward poles, hinges below) shared by bind, rest, pose",
+          "status": "done",
+          "history": {
+            "built": "2026-08-23"
+          },
+          "note": "skeletonBuilder limbFrames; no spike, no club, no crossed legs across the three rigs."
+        },
+        {
+          "title": "Native pack-skeleton rigs: base meshes on the clip pack's own 66-joint skeleton, raw CC0 clips play with fingers and toes",
+          "status": "done",
+          "history": {
+            "built": "2026-08-23"
+          },
+          "note": "rig_basemesh.py --pack; lab pose=pack:<clip>; three lowpoly bodies; arms-down bodies need a pose swap."
+        },
+        {
+          "title": "Clip drive on foreign rigs: quats poses compose onto the rig's true bind frames (the clip pretzel fix)",
+          "status": "done",
+          "history": {
+            "built": "2026-08-23"
+          },
+          "note": "applyWorldPose used alignedBind (segment-aim rest frames); the bones hold joint-target frames. Gate: rigDrive bind-in = bind-out test. Awaiting Remy eyeball."
+        },
+        {
+          "title": "Pack-rig neck refit: neck_01 roots at the neck base (0.830h), not our low chest-top landmark",
+          "status": "done",
+          "history": {
+            "built": "2026-08-23"
+          },
+          "note": "Remy's wire read: the neck bone rooted mid-chest and chest verts followed the head. Three bodies re-rigged; BASE_MESH_RIG_VERSION 2026-08-23d. Awaiting Remy eyeball."
+        },
+        {
+          "title": "Stylized pack rigs: T-pose bake (tpose_basemesh.py) unlocks the pack skeleton for the arms-down figures",
+          "status": "done",
+          "history": {
+            "built": "2026-08-23"
+          },
+          "note": "Arm chains aim by joint vectors (imported GLB tails are synthesized junk); unskinned strays dropped (figure A's Icosphere). packRigged flips for figures A/B; 13 pack entries in the lab dropdown. Awaiting Remy eyeball."
+        },
+        {
+          "title": "Lab playback controls: speed select (0 freezes) + clip scrub slider, deep-linked (?speed=, ?t=)",
+          "status": "done",
+          "history": {
+            "built": "2026-08-23"
+          },
+          "note": "Remy's ask: slow animations down or freeze a state for part review; a frozen pose is a capturable URL for the part gate."
+        }
+      ]
+    },
+    {
+      "id": "rig-bench",
+      "title": "Rig Bench (AI-native rigging pipeline)",
+      "sub": "intake normalizer · landmark studio (vision joint placement) · rig gate (measured checks) · contact sheet · donor weights parked",
+      "campaign": "rendering",
+      "status": "active",
+      "tier": "component",
+      "updated": "2026-08-23",
+      "deps": [
+        {
+          "id": "part-quality-campaign",
+          "kind": "hard",
+          "why": "born from the base-mesh skeleton track: pack rigs won; the bench industrializes import + fit + proof"
+        }
+      ],
+      "open": 0,
+      "features": [
+        {
+          "title": "Intake normalizer: any humanoid GLB -> one welded mesh, unit height, feet at origin, +Z, T-pose report",
+          "status": "done",
+          "note": "BUILT 2026-08-23 night: rigbench.mjs intake + rigbench_intake.py; proven on the stylized pack (89 shells welded) and both split bodies.",
+          "history": {
+            "built": "2026-08-23"
+          }
+        },
+        {
+          "title": "Landmark Studio: ortho renders + AI landmark file -> 3D joints -> pack-skeleton fit + overlay proof",
+          "status": "done",
+          "note": "BUILT 2026-08-23 night: ortho renders + exact px->world solve (+z override) + landmark hook in rig_basemesh.py, centering pass after; caught the fifth-finger thumb and the detached chain tails; male re-rigged from 23 annotations and published (2026-08-23f).",
+          "history": {
+            "built": "2026-08-23"
+          }
+        },
+        {
+          "title": "Rig gate: joints-in-mesh, symmetry, bone lengths, weight bands -> gate.json pass/fail",
+          "status": "done",
+          "note": "BUILT 2026-08-23 night: gate.mjs (own GLB reader, 6 checks). Clavicle midline-weight fix landed the same night: all four full bodies pass 6/6 (v2026-08-23g); only the headless nogender fails, honestly (head bones outside the stump).",
+          "history": {
+            "built": "2026-08-23"
+          }
+        },
+        {
+          "title": "Contact sheet: rest + frozen clips + weight view in one PNG per rig",
+          "status": "done",
+          "note": "BUILT 2026-08-23 night: rigbench.mjs sheet — five Part Lab captures (rest+bones, 3 frozen clips, weight map) composed into one PNG; male sheet clean.",
+          "history": {
+            "built": "2026-08-23"
+          }
+        },
+        {
+          "title": "Donor weights: canonical body, weight transfer by nearest surface",
+          "status": "parked",
+          "note": "Remy's pick: bench first, donor later."
         }
       ]
     }

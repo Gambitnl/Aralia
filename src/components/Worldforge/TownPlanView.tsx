@@ -1,11 +1,11 @@
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
- * SHARED UTILITY: Multiple systems rely on these exports.
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 17/07/2026, 21:36:50
- * Dependents: components/DesignPreview/steps/PreviewTown3D.tsx, components/DesignPreview/steps/PreviewTowns.tsx, components/MapPane.tsx, devtools/buildingIdentityLab/BuildingIdentityLab.tsx
- * Imports: 15 files
+ * Last Sync: 24/08/2026, 00:56:03
+ * Dependents: components/DesignPreview/steps/PreviewTown3D.tsx, components/MapPane.tsx, devtools/buildingIdentityLab/BuildingIdentityLab.tsx
+ * Imports: 17 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -47,6 +47,12 @@ import type {
   FacadePattern,
   WallPatina,
 } from '../../systems/worldforge/interior/blueprintTypes';
+import {
+  STREET_TIER_SPECS,
+  streetRibbonLayers,
+  type StreetTierName,
+} from '../../systems/worldforge/town/streetRibbons';
+import type { TownStreet } from '../../systems/worldforge/town/townStreetNetwork';
 import { useTownLayers, TOWN_LAYER_DEFS } from './useDrillLayers';
 import DrillLayerPanel from './DrillLayerPanel';
 
@@ -521,6 +527,55 @@ const TownPlanView: React.FC<TownPlanViewProps> = ({
   const { layers, toggle } = useTownLayers(prefsScope);
   const bounds = useMemo(() => polygonBounds(plan.footprint), [plan]);
 
+  /**
+   * THE STREETS (roads slice, 2026-08-23). The map used to draw no street at
+   * all: it drew the GAP left between inset ward blocks and trusted the reader
+   * to see a road there. Every gap was one width, so a market frontage and a
+   * back alley looked identical, and the 3D views — which did tier their
+   * ribbons — disagreed with this map about the same town.
+   *
+   * Now both draw `plan.streetNetwork`: same centerlines, same widths (they are
+   * the very gaps the generator inset the blocks to leave), same four tiers, and
+   * the same paint recipe out of `streetRibbons.ts` — the stone edging on a
+   * plaza or avenue, the worn wheel rut down a lane.
+   *
+   * Painted band-by-band and tier-by-tier, narrowest tier first, so a crossing
+   * resolves the same way it does in 3D (where `liftBiasM` stacks the tiers):
+   * the plaza ring paints over the lane that meets it, never the reverse.
+   * Round caps and joins close the junctions where streets meet.
+   */
+  const streetBands = useMemo(() => {
+    const order: StreetTierName[] = ['lane', 'street', 'avenue', 'plaza'];
+    const byTier = new Map<StreetTierName, TownStreet[]>();
+    for (const st of plan.streetNetwork ?? []) {
+      if (st.centerline.length < 2) continue;
+      const arr = byTier.get(st.tier);
+      if (arr) arr.push(st); else byTier.set(st.tier, [st]);
+    }
+    const out: Array<{ key: string; d: string; color: string; width: number; cap: 'round' | 'butt' }> = [];
+    for (const tier of order) {
+      const streets = byTier.get(tier);
+      if (!streets) continue;
+      // Bottom→top within a tier: edging under core, or core under wheel rut.
+      streetRibbonLayers(STREET_TIER_SPECS[tier]).forEach((band, bi) => {
+        streets.forEach((st, si) => {
+          out.push({
+            key: `${tier}:${bi}:${si}`,
+            d: open(st.centerline),
+            color: band.colorHex,
+            width: Math.max(0.4, st.width * band.widthScale),
+            // Round caps close the junctions where town streets meet. An
+            // APPROACH road ends at the edge of the cell, where the road carries
+            // on into open country — a round cap there draws a lollipop head in
+            // a field, so those get a flat end that reads as "continues".
+            cap: st.role === 'approach' ? 'butt' : 'round',
+          });
+        });
+      });
+    }
+    return out;
+  }, [plan.streetNetwork]);
+
   // Resolve the exact same architecture identity the artifact adapter and 3D
   // blueprint receive. Object identity is safe as the map key because the town
   // plan keeps one canonical plot object in both wards and plan.plots.
@@ -979,11 +1034,16 @@ const TownPlanView: React.FC<TownPlanViewProps> = ({
         {(plan.outskirts ?? []).map((o, i) => (
           <path key={`out${i}`} d={poly(o.polygon)} fill={OUTSKIRT_FILL[o.kind]} stroke="#6f7a52" strokeWidth={0.3} vectorEffect="non-scaling-stroke" data-testid={`town-outskirt-${o.kind}`} />
         ))}
-        {/* Organic built-up CORE filled in the STREET/ground tone: the gaps between
-            block fills (the ward insets) then read as the street network. */}
-        <path d={poly(plan.core ?? plan.footprint)} fill="#cdbf9c" stroke="#8a7a55" strokeWidth={1} vectorEffect="non-scaling-stroke" />
-        {/* Buildable blocks (ward insets) in parchment — the area between them is
-            street. Fall back to the full ward if no block (older plans). */}
+        {/* Organic built-up CORE in bare TOWN GROUND. It used to be filled in the
+            street tone so the gaps between blocks would read as roads; the roads
+            are now drawn (see `streetBands`), so this tone must sit BELOW them or
+            the whole town reads as one continuous paved surface. Slightly duller
+            and browner than the old #cdbf9c for exactly that reason. */}
+        <path d={poly(plan.core ?? plan.footprint)} fill="#bcae8b" stroke="#8a7a55" strokeWidth={1} vectorEffect="non-scaling-stroke" />
+        {/* Buildable blocks (ward insets) in parchment. Their edges are the street
+            frontages: the generator inset each block by the half-width of the
+            street on that side, so the gap between two blocks IS the ribbon
+            painted over it. Fall back to the full ward if no block (older plans). */}
         {plan.wards.map((w, i) => (
           <path key={`w${i}`} d={poly(w.block ?? w.polygon)} fill={w.civic === 'plaza' ? '#e7dcc0' : '#efe6d2'} stroke="#b7a77f" strokeWidth={0.4} vectorEffect="non-scaling-stroke"
             data-architecture-district-key={w.architectureDistrict?.key}
@@ -1041,9 +1101,22 @@ const TownPlanView: React.FC<TownPlanViewProps> = ({
             data-testid="town-water"
           />
         ))}
-        {/* Inherited main roads on top of the street grid (wider, distinct). */}
-        {layers.roads && plan.streets.map((s, i) => (
-          <path key={`st${i}`} d={open(s)} fill="none" stroke="#b8a577" strokeWidth={7} strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
+        {/* THE STREET NETWORK — the same `plan.streetNetwork` the 3D minimap and
+            the streamed game ground bake into ribbons, at the same widths and in
+            the same tier colours. Widths are REAL plan units (so they scale with
+            zoom, unlike the old fixed 7px inherited-road stroke, which drew a
+            highway the same size whatever the town or the zoom level). */}
+        {layers.roads && streetBands.map((b) => (
+          <path
+            key={b.key}
+            d={b.d}
+            fill="none"
+            stroke={b.color}
+            strokeWidth={b.width}
+            strokeLinecap={b.cap}
+            strokeLinejoin="round"
+            data-testid="town-street"
+          />
         ))}
         {layers.buildings && plan.wards.flatMap((w, wi) => w.plots.map((pl, pi) => {
           const architecture = architectureByPlot.get(pl);

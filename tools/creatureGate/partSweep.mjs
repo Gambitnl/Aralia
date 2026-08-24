@@ -40,15 +40,10 @@ try {
       style.textContent = '*{visibility:hidden!important} canvas{visibility:visible!important}';
       document.head.appendChild(style);
     });
-    // Lab specimens hover at (0, 1, 0) and ignore the default framing — the
-    // first blind A/B ran on near-empty frames because of this. Move the
-    // camera to the proven specimen vantage for lab jobs.
-    if (params.includes('solo=')) {
-      await page.evaluate(() => {
-        const c = window.__partlab?.camera;
-        if (c) c.position.set(1.5, 1.45, 1.6);
-      });
-    }
+    // Lab solo jobs trust CameraFit's specimen framing (the step frames solo
+    // at arm's length since 2026-08-21). The old fixed vantage here aimed at
+    // the modal-era hover point and left the specimens tiny in a corner
+    // (the 2026-08-24 "no digits" false flags).
     await page.waitForTimeout(400);
     await page.locator('canvas').first().screenshot({ path: `${outDir}/${label}.png` });
     console.log(`part-shot ${label}`);

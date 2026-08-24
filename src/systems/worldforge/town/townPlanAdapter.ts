@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 18/07/2026, 03:52:38
+ * Last Sync: 24/08/2026, 00:55:12
  * Dependents: components/DesignPreview/steps/townMesh.ts, components/Worldforge/TownPlanView.tsx, devtools/buildingIdentityLab/buildingIdentityLabModel.ts, systems/worldforge/bridge/groundChunkLoader.ts, systems/worldforge/town/canonicalTown.ts, systems/worldforge/townsim/buildingHistoryCompaction.ts, systems/worldforge/townsim/registerBurgMerchants.ts, systems/worldforge/townsim/townSimRegistration.ts
  * Imports: 10 files
  *
@@ -82,9 +82,13 @@ export interface AdaptedTownPlan {
  * design-preview schematic) consume — and this table is re-exported from it as
  * the adapter-facing plan-facts view (widthFt + colorHex only).
  *
- * The 2D map already draws this grid as the NEGATIVE SPACE between inset ward
- * blocks; the ward edges are the centerlines of those gaps, so a ribbon on each
- * edge lands exactly down the middle of the 2D street — the two views agree.
+ * WHAT CHANGED AGAIN (roads slice, 2026-08-23): this adapter no longer DECIDES
+ * the hierarchy. The town generator now emits a real street network
+ * (`plan.streetNetwork`, see townStreetNetwork.ts) whose tiers come from routed
+ * gate traffic and whose widths are the very gaps the ward blocks were inset to
+ * leave. The adapter's job shrank to a translation: network tier → tint, network
+ * width → widthFt. That is what lets the 2D map draw the same streets rather
+ * than an unrelated negative space.
  */
 export const STREET_TIERS = {
   plaza: { widthFt: STREET_TIER_SPECS.plaza.widthFt, colorHex: STREET_TIER_SPECS.plaza.colorHex },
@@ -107,63 +111,20 @@ const edgeKey = (a: Pt, b: Pt): string => {
   return ka < kb ? `${ka}|${kb}` : `${kb}|${ka}`;
 };
 
-/** Points along a→b (both ends included), spaced ≤ STREET_NODE_SPACING_FT. */
-function subdivideEdge(a: Pt, b: Pt): Pt[] {
-  const len = Math.hypot(b[0] - a[0], b[1] - a[1]);
-  const steps = Math.max(1, Math.ceil(len / STREET_NODE_SPACING_FT));
-  const pts: Pt[] = [];
-  for (let i = 0; i <= steps; i++) {
-    const t = i / steps;
-    pts.push([a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t]);
-  }
-  return pts;
-}
-
-/**
- * A ward's street tier: the plaza ward's frontage is the paved civic heart
- * (plaza tier); the OTHER civic wards (temple/keep/citadel/dock quarters) seat
- * the mid `street` tier; plain residential wards stay dirt lanes. Before the
- * streets-unify slice the plaza frontage was merely 'street' and no ward
- * produced a mid tier — the four-tier read requires both rules.
- */
-function tierForWard(ward: EngineTownPlan['wards'][number]): StreetTier {
-  if (ward.civic === 'plaza') return 'plaza';
-  if (ward.civic) return 'street';
-  return 'lane';
-}
-
-/** Higher rank wins a shared edge (paved frontage beats dirt). */
-const TIER_RANK: Record<StreetTier, number> = { plaza: 3, avenue: 2, street: 1, lane: 0 };
-
-/**
- * The ward-edge street network: every unique Voronoi ward edge becomes a street
- * centerline. Shared edges are emitted once; the higher-ranked bordering ward's
- * tier wins (a plaza-frontage edge shared with a temple ward reads plaza).
- */
-function wardEdgeStreets(wards: EngineTownPlan['wards']): Array<{ centerline: Pt[]; tier: StreetTier }> {
-  const tierOf = new Map<string, StreetTier>();
-  const geom = new Map<string, [Pt, Pt]>();
-  const order: string[] = [];
-  for (const ward of wards) {
-    const tier = tierForWard(ward);
-    const poly = ward.polygon;
-    for (let i = 0; i < poly.length; i++) {
-      const a = poly[i];
-      const b = poly[(i + 1) % poly.length];
-      const k = edgeKey(a, b);
-      if (!tierOf.has(k)) {
-        tierOf.set(k, tier);
-        geom.set(k, [a, b]);
-        order.push(k);
-      } else if (TIER_RANK[tier] > TIER_RANK[tierOf.get(k)!]) {
-        tierOf.set(k, tier); // the better-paved neighbouring ward upgrades a shared edge
-      }
+/** Points along a polyline (both ends included), spaced ≤ STREET_NODE_SPACING_FT. */
+function subdividePolyline(line: readonly Pt[]): Pt[] {
+  const pts: Pt[] = [[line[0][0], line[0][1]]];
+  for (let s = 0; s < line.length - 1; s++) {
+    const a = line[s];
+    const b = line[s + 1];
+    const len = Math.hypot(b[0] - a[0], b[1] - a[1]);
+    const steps = Math.max(1, Math.ceil(len / STREET_NODE_SPACING_FT));
+    for (let i = 1; i <= steps; i++) {
+      const t = i / steps;
+      pts.push([a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t]);
     }
   }
-  return order.map((k) => {
-    const [a, b] = geom.get(k)!;
-    return { centerline: subdivideEdge(a, b), tier: tierOf.get(k)! };
-  });
+  return pts;
 }
 
 /**
@@ -574,20 +535,22 @@ export function toArtifactPlan(
     });
   }
 
-  // The full walkable network: the Voronoi ward-edge grid (lanes + plaza-frontage
-  // streets) plus the inherited regional roads promoted to avenues. Before this
-  // slice only the inherited roads reached 3D — usually none — so towns rendered
-  // streetless. Ward edges are the SAME lines the 2D map shows as block gaps.
-  const tiered: Array<{ centerline: Pt[]; tier: StreetTier }> = [
-    ...wardEdgeStreets(plan.wards),
-    ...plan.streets.filter((s) => s.length >= 2).map((s) => ({ centerline: s, tier: 'avenue' as StreetTier })),
-  ];
-  const streets: ArtifactTownPlan['streets'] = tiered.map((s, i) => ({
-    id: i,
-    centerline: s.centerline.map(([x, y]) => [x, y] as [number, number]),
-    widthFt: STREET_TIERS[s.tier].widthFt,
-    colorHex: STREET_TIERS[s.tier].colorHex,
-  }));
+  // The walkable network, straight off the plan. `plan` is already in FEET here
+  // (canonicalTown transforms before adapting), so each street's `width` IS its
+  // widthFt — the gap its ward blocks were inset to leave. Taking the tier's
+  // nominal widthFt instead would re-introduce the drift this slice removed: a
+  // ribbon painted wider than the ground the generator actually cleared for it.
+  const streets: ArtifactTownPlan['streets'] = plan.streetNetwork
+    .filter((s) => s.centerline.length >= 2)
+    .map((s, i) => ({
+      id: i,
+      // Re-densify in FEET: the engine spaced nodes relative to its own span, so
+      // a large town's streets arrive with long spans that would plank over the
+      // terrain the ground bake drapes them on.
+      centerline: subdividePolyline(s.centerline).map(([x, y]) => [x, y] as [number, number]),
+      widthFt: s.width,
+      colorHex: STREET_TIERS[s.tier].colorHex,
+    }));
 
   // Shared courts are open-space receipts, not fake building plots. Carry them
   // beside plots so prop placement can dress their exact transformed center

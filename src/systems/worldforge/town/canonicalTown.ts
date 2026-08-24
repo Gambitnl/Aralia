@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 17/07/2026, 23:25:14
- * Dependents: components/MapPane.tsx, components/Worldforge/AtlasDemo.tsx, systems/worldforge/bridge/groundChunkLoader.ts, systems/worldforge/bridge/legacySubmapBridge.ts, systems/worldforge/townsim/buildingHistoryCompaction.ts, systems/worldforge/townsim/registerBurgMerchants.ts, systems/worldforge/townsim/townSimRegistration.ts
- * Imports: 8 files
+ * Last Sync: 24/08/2026, 00:55:38
+ * Dependents: components/DesignPreview/steps/PreviewTown3D.tsx, components/MapPane.tsx, components/Worldforge/AtlasDemo.tsx, systems/worldforge/bridge/groundChunkLoader.ts, systems/worldforge/bridge/legacySubmapBridge.ts, systems/worldforge/townsim/buildingHistoryCompaction.ts, systems/worldforge/townsim/registerBurgMerchants.ts, systems/worldforge/townsim/townSimRegistration.ts
+ * Imports: 10 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -237,6 +237,15 @@ export function transformTownPlan(plan: TownPlan, k: number, dx = 0, dy = 0): To
     },
     civic: plan.civic.map((c) => ({ ...c, polygon: mapPoly(c.polygon, k, dx, dy) })),
     streets: plan.streets.map((s) => mapPoly(s, k, dx, dy)),
+    // The street network rides the same affine — INCLUDING its widths, which
+    // are lengths in plan units. Scaling the centerlines but not the widths is
+    // exactly how a town ends up with 3D ribbons that do not fit the gaps its
+    // own generator left between the blocks.
+    streetNetwork: plan.streetNetwork.map((st) => ({
+      ...st,
+      centerline: mapPoly(st.centerline, k, dx, dy),
+      width: st.width * Math.abs(k),
+    })),
     // Court identity and amenity remain unchanged; only the spatial receipt is
     // transformed into the destination frame used by the artifact adapter.
     courtyards: plan.courtyards.map((court) => ({

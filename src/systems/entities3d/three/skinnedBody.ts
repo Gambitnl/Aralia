@@ -59,7 +59,7 @@ import {
 import type { Frame, SegmentSink } from '../types';
 import { FT_TO_M, heightM } from '../types';
 import type { PlanHeadSocket } from './gaits';
-import { BIPED_BONE_NAMES, bipedRestPose, buildBipedSkeleton, createBipedPoseSink, type BipedBoneName, type BuiltSkeleton } from './skeletonBuilder';
+import { BIPED_BONE_NAMES, bipedRestPose, buildBipedSkeleton, createBipedPoseSink, limbFrames, type BipedBoneName, type BuiltSkeleton } from './skeletonBuilder';
 import { buildPlanSkeleton, createPlanPoseSink } from './planSkeleton';
 import {
   buildSpeciesSkeleton,
@@ -114,6 +114,9 @@ export interface SkinnedBody {
   boneNamed(id: string): Bone | undefined;
   /** Resolve this frame's emissions into bone transforms — call after buildBody. */
   finishFrame(): void;
+  /** Foreign rigs only: pose from a reference biped's world frames (a mocap
+   * clip played on our own skeleton). See BipedPoseSink.applyWorldPose. */
+  applyWorldPose?(worldQuats: readonly Quaternion[], pelvisWorldPos: Vector3): void;
   /** Fill + shell triangles (2 draw calls total). */
   triangles(): number;
   dispose(): void;
@@ -714,6 +717,7 @@ function alignBindFramesToSink(bones: Bone[], index: ReadonlyMap<BipedBoneName, 
     return new Vector3(seg.b[0] - seg.a[0], seg.b[1] - seg.a[1], seg.b[2] - seg.a[2]);
   };
   const worldQuat = new Map<Bone, Quaternion>();
+  const dirs = new Map<Bone, Vector3 | null>();
   const byName = new Map(bones.map((b) => [b.name as BipedBoneName, b] as const));
   // the joint each bone points AT — the driver's own segment convention
   // (torso.pelvis ends at the chest root, armL.upper at the elbow, …). The
@@ -750,8 +754,17 @@ function alignBindFramesToSink(bones: Bone[], index: ReadonlyMap<BipedBoneName, 
         dir = restDir(name); // feet: the rest heel → toe
       }
     }
-    const q = new Quaternion();
-    if (dir && dir.lengthSq() > 1e-12) q.setFromUnitVectors(UP, dir.normalize());
+    dirs.set(b, dir && dir.lengthSq() > 1e-12 ? dir.normalize() : null);
+  }
+  // pass 2: the canonical limb frames (the same rule set the pose sink uses
+  // for rest and pose), then locals from them, parents first
+  const names = bones.map((b) => b.name as BipedBoneName);
+  const parentOf = bones.map((b) => (b.parent && (b.parent as Bone).isBone ? index.get(b.parent.name as BipedBoneName)! : -1));
+  const frames = bones.map(() => new Quaternion());
+  limbFrames(frames, names, parentOf, index, bones.map((b) => dirs.get(b) ?? null));
+  for (const [k, b] of bones.entries()) {
+    const parent = b.parent && (b.parent as Bone).isBone ? (b.parent as Bone) : null;
+    const q = frames[k];
     worldQuat.set(b, q);
     if (!parent) {
       b.quaternion.copy(q);
@@ -858,6 +871,7 @@ export function createSkinnedFromRig(frame: Frame, rig: SkinnedMesh, options: Pi
     sink: pose.sink,
     boneNamed: boneLookup(index, bones),
     finishFrame: pose.finishFrame,
+    applyWorldPose: pose.applyWorldPose,
     triangles: () => ((geometry.index ? geometry.index.count : geometry.getAttribute('position').count) / 3) * 2,
     dispose: () => {
       geometry.dispose();

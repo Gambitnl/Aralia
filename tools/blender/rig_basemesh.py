@@ -26,13 +26,31 @@ without a parent raises and the runner reports it.
 import bpy
 import json
 import math
+import os
 import sys
 from mathutils import Matrix, Quaternion, Vector
 
 argv = sys.argv[sys.argv.index('--') + 1:]
+def _flag(name):
+    if name in argv:
+        i = argv.index(name)
+        v = argv[i + 1]
+        del argv[i:i + 2]
+        return v
+    return None
+# --landmarks: Rig Bench stage 2b (2026-08-23). A JSON of AI-annotated 3D
+# joints (rigbench.mjs solve) overrides the silhouette heuristics below —
+# vision places joints, slices only fill what the file leaves out.
+LANDMARKS_PATH = _flag('--landmarks')
+PACK = _flag('--pack')
 if len(argv) != 3:
-    raise SystemExit('usage: blender -b --python rig_basemesh.py -- <in.glb> <out.glb> <bipedBoneSpec.json>')
-IN_GLB, OUT_GLB, SPEC_PATH = argv
+    raise SystemExit('usage: blender -b --python rig_basemesh.py -- <in.glb> <out.glb> <bipedBoneSpec.json> [--pack <clipPack.glb>] [--landmarks <landmarks.3d.json>]')
+IN_GLB, OUT_GLB, SPEC_PATH = argv[:3]
+# --pack: NATIVE pack-skeleton rig (Remy 2026-08-23). The clip pack's own
+# 66-joint armature (Mesh2Motion, T-pose rest) is imported and fitted to the
+# mesh's landmarks — heads moved, rolls kept — so the CC0 clips play on this
+# body with no retarget, fingers and toes included. T-pose bodies only: the
+# pack rests in a T, and a hanging-arm body would need a pose swap.
 
 with open(SPEC_PATH, 'r', encoding='utf-8') as f:
     SPEC = json.load(f)
@@ -296,9 +314,15 @@ for side, sgn in (('L', -1.0), ('R', 1.0)):
         J['finger%s%da' % (side, i)] = (root, j1)
         J['finger%s%db' % (side, i)] = (j1, tip)
     t_len = rest_len('thumb' + side + 'a')
+    # The thumb SPLAYS off the hand. Laid along the arm it reads as a fifth
+    # finger and its bones lie on the index — the real thumb flesh then
+    # follows the wrong bone (Remy's red-vs-blue read, 2026-08-23). Default:
+    # a forward diagonal off the arm axis; thumbRoot/thumbTip landmarks pin
+    # it exactly when annotated.
+    t_dir = (arm_dir * 0.55 + Vector((0, -0.18, 0.85 * forward))).normalized()
     t_root = wr + arm_dir * (hand_len * (k if tpose else 1.0) * 0.4) + Vector((0, 0, 2.2 * spread * forward))
-    t_j1 = t_root + arm_dir * (t_len * 0.7) + Vector((0, 0, t_len * 0.7 * forward))
-    t_tip = t_j1 + arm_dir * (t_len * 0.6) + Vector((0, 0, t_len * 0.5 * forward))
+    t_j1 = t_root + t_dir * (t_len * 0.99)
+    t_tip = t_j1 + t_dir * (t_len * 0.86)
     J['thumb' + side + 'a'] = (t_root, t_j1)
     J['thumb' + side + 'b'] = (t_j1, t_tip)
     # legs: rest proportions, this mesh's leg spread
@@ -311,6 +335,76 @@ for side, sgn in (('L', -1.0), ('R', 1.0)):
     J['thigh' + side] = (hip, knee)
     J['shin' + side] = (knee, ankle)
     J['foot' + side] = (heel, toe)
+
+# ---------------------------------------------------------------- AI landmarks
+# Rig Bench override (2026-08-23): annotated joints replace the slice
+# guesses BEFORE the centering pass below, so a rough click still snaps
+# into the middle of the flesh (Remy: "really hard to get it to sit
+# properly centered inside the model skin" — the click gives the station,
+# the mesh gives the center). The file is in intake space (unit height,
+# centered on x/z); joints here live in the centered landmark frame, so
+# each point converts by -(cx, 0, cz). Chain joints are SHARED Vector
+# objects: mutation in place moves every bone that meets there. Any subset
+# of names applies; the rest keep the heuristic. Digits re-anchor on the
+# moved hand in the pass below; a landmark-pinned thumb is exempt.
+LM_THUMB = set()
+if LANDMARKS_PATH:
+    with open(LANDMARKS_PATH, 'r', encoding='utf-8') as f:
+        LM = {k: Vector(v['pos']) - Vector((cx, 0, cz)) for k, v in json.load(f).items()}
+
+    def lm_move(p, lm_name):
+        if lm_name not in LM:
+            return None
+        d = LM[lm_name] - p
+        p.x, p.y, p.z = LM[lm_name]
+        return d
+
+    applied = []
+    for name, a_lm, b_lm in (('pelvis', 'pelvis', None), ('chest', None, 'chestTop'),
+                             ('neck', 'neckBase', None), ('head', 'headBase', 'headTop')):
+        a, b = J[name]
+        if a_lm:
+            d = lm_move(a, a_lm)
+            if d is not None:
+                applied.append(a_lm)
+                if b_lm is None:
+                    b.x, b.y, b.z = b.x + d.x, b.y + d.y, b.z + d.z  # keep the bone's direction
+        if b_lm and lm_move(b, b_lm) is not None:
+            applied.append(b_lm)
+    for side in ('L', 'R'):
+        # clavicle heads are COPIES of the chest top; keep them together
+        if 'chestTop' in LM:
+            J['clavicle' + side][0].x, J['clavicle' + side][0].y, J['clavicle' + side][0].z = LM['chestTop']
+        for joint, lm_name in ((J['upperArm' + side][0], 'shoulder' + side),
+                               (J['upperArm' + side][1], 'elbow' + side),
+                               (J['thigh' + side][0], 'hip' + side),
+                               (J['thigh' + side][1], 'knee' + side),
+                               (J['shin' + side][1], 'ankle' + side),
+                               (J['foot' + side][1], 'toe' + side)):
+            if lm_move(joint, lm_name) is not None:
+                applied.append(lm_name)
+        d = lm_move(J['foreArm' + side][1], 'wrist' + side)
+        if d is not None:
+            applied.append('wrist' + side)
+            hd = J['hand' + side][1]
+            hd.x, hd.y, hd.z = hd.x + d.x, hd.y + d.y, hd.z + d.z  # hand tip rides along
+        # the thumb pins as a PAIR: root + tip give the splay axis; the
+        # middle joint sits at the natural two-link split
+        has_tr = ('thumbRoot' + side) in LM
+        has_tt = ('thumbTip' + side) in LM
+        if has_tr != has_tt:
+            raise RuntimeError(f'rig_basemesh: thumbRoot{side} and thumbTip{side} come as a pair')
+        if has_tr:
+            root_v, tip_v = LM['thumbRoot' + side], LM['thumbTip' + side]
+            j1_v = root_v + (tip_v - root_v) * 0.53
+            a_pair = J['thumb' + side + 'a']
+            b_pair = J['thumb' + side + 'b']
+            a_pair[0].x, a_pair[0].y, a_pair[0].z = root_v
+            a_pair[1].x, a_pair[1].y, a_pair[1].z = j1_v  # shared with b_pair[0]
+            b_pair[1].x, b_pair[1].y, b_pair[1].z = tip_v
+            applied += ['thumbRoot' + side, 'thumbTip' + side]
+            LM_THUMB.add(side)
+    print('rig_basemesh: landmarks applied: ' + (' '.join(applied) if applied else 'NONE'))
 
 # ---------------------------------------------------------------- center in the mesh
 # Remy 2026-08-23: "wire the skeleton to match the base frame — bones
@@ -401,6 +495,8 @@ for side, sgn in (('L', -1.0), ('R', 1.0)):
         root.x, root.y, root.z = hd.x, hd.y, hd.z + z_off
         j1.x, j1.y, j1.z = (root + arm_dir * la).x, (root + arm_dir * la).y, (root + arm_dir * la).z
         tip.x, tip.y, tip.z = (j1 + arm_dir * lb).x, (j1 + arm_dir * lb).y, (j1 + arm_dir * lb).z
+    if side in LM_THUMB:
+        continue  # a landmark-pinned thumb keeps its annotated axis
     t_root, t_j1 = J['thumb' + side + 'a']
     _t, t_tip = J['thumb' + side + 'b']
     la, lb = t_j1 - t_root, t_tip - t_j1
@@ -416,6 +512,7 @@ if missing:
     raise RuntimeError('rig_basemesh: no layout for bones: ' + ', '.join(missing))
 # back from centered landmark space into the mesh's own frame
 J = {k: (a + Vector((cx, 0, cz)), b + Vector((cx, 0, cz))) for k, (a, b) in J.items()}
+
 
 # ---------------------------------------------------------------- armature
 UP = Vector((0.0, 1.0, 0.0))
@@ -436,32 +533,227 @@ def sink_quat(direction):
     q.normalize()
     return q
 
-arm_data = bpy.data.armatures.new('BipedRig')
-rig = bpy.data.objects.new('BipedRig', arm_data)
-bpy.context.scene.collection.objects.link(rig)
-bpy.context.view_layer.objects.active = rig
-bpy.ops.object.mode_set(mode='EDIT')
-edit = {}
-for name in BONES:
-    head, tail = J[name]
-    length = max((tail - head).length, 0.004 * H)
-    eb = arm_data.edit_bones.new(name)
-    eb.head = (0.0, 0.0, 0.0)
-    eb.tail = (0.0, length, 0.0)
-    # rest frame = the sink's minimal rotation from +Y, converted to Blender space
-    q = sink_quat(tail - head)
-    m_gltf = q.to_matrix().to_4x4()
-    m_gltf.translation = head
-    C = Matrix(((1, 0, 0, 0), (0, 0, -1, 0), (0, 1, 0, 0), (0, 0, 0, 1)))  # glTF -> Blender
-    eb.matrix = C @ m_gltf @ C.inverted()
-    p = PARENT.get(name)
-    if p:
-        if p not in edit:
-            raise RuntimeError(f'rig_basemesh: parent {p} of {name} not built yet')
-        eb.parent = edit[p]
-        eb.use_connect = False
-    edit[name] = eb
-bpy.ops.object.mode_set(mode='OBJECT')
+if PACK:
+    if not tpose:
+        raise RuntimeError('rig_basemesh --pack: the pack rests in a T-pose; this body hangs its arms (pose swap not built)')
+    before = set(o.name for o in bpy.context.scene.objects)
+    bpy.ops.import_scene.gltf(filepath=PACK)
+    new_objs = [o for o in bpy.context.scene.objects if o.name not in before]
+    pack_arms = [o for o in new_objs if o.type == 'ARMATURE']
+    if len(pack_arms) != 1:
+        raise RuntimeError(f'rig_basemesh --pack: expected one armature in {PACK}, found {len(pack_arms)}')
+    rig = pack_arms[0]
+    rig.animation_data_clear()
+    for o in new_objs:
+        if o is not rig:
+            bpy.data.objects.remove(o, do_unlink=True)
+    rig.name = 'PackRig'
+    # pack joint → landmark (glTF space). Pack "_l" is +X; our "L" side is
+    # −X, so pack _l takes our R joints and _r our L.
+    def lerp(a, b, t):
+        return a + (b - a) * t
+    heads = {b.name: (rig.matrix_world @ b.head_local) for b in rig.data.bones}
+    pz = lambda n: to_gltf(heads[n]).y
+    spine_f = lambda n: (pz(n) - pz('pelvis')) / max(pz('neck_01') - pz('pelvis'), 1e-6)
+    pelvis_a = J['pelvis'][0]
+    # The pack's neck_01 sits at the BASE OF THE NECK — not at our low
+    # chest-top landmark. Pinned to the chest top it grew a long neck bone
+    # rooted mid-chest, and the upper chest followed head motion (Remy's
+    # wire read, 2026-08-23). Root it at our neck segment's TAIL (the head
+    # bone starts above it); the spine spreads over the taller span. An
+    # annotated neckBase landmark beats both guesses.
+    if LANDMARKS_PATH and 'neckBase' in LM:
+        # the annotated neck root, after the centering pass, in the mesh frame
+        neck_a = Vector(J['neck'][0])
+    else:
+        neck_a = Vector((0.0, max(J['neck'][1].y, shoulder_y), J['neck'][1].z))
+    target = {
+        'root': Vector((0.0, y_min, 0.0)),
+        'pelvis': pelvis_a,
+        'spine_01': lerp(pelvis_a, neck_a, spine_f('spine_01')),
+        'spine_02': lerp(pelvis_a, neck_a, spine_f('spine_02')),
+        'spine_03': lerp(pelvis_a, neck_a, spine_f('spine_03')),
+        'neck_01': neck_a,
+        'head': J['head'][0],
+        'head_leaf': J['head'][1],
+    }
+    for pside, ours in (('l', 'R'), ('r', 'L')):
+        sh, el = J['upperArm' + ours]
+        wr, hd = J['hand' + ours]
+        # each clavicle roots a sternum-edge width OFF the midline toward its
+        # own shoulder — stacked midline roots read as "no collar bones" and
+        # their editor balls overlap (Remy 2026-08-23). Pack _l is +X.
+        cl = Vector(J['clavicle' + ours][0])
+        cl.x = (0.018 * H) * (1.0 if pside == 'l' else -1.0)
+        target['clavicle_' + pside] = cl
+        target['upperarm_' + pside] = sh
+        target['lowerarm_' + pside] = el
+        target['hand_' + pside] = wr
+        for pfinger, idx in (('index', 0), ('middle', 1), ('ring', 2), ('pinky', 3)):
+            root, j1 = J['finger%s%da' % (ours, idx)]
+            _j1, tip = J['finger%s%db' % (ours, idx)]
+            target[f'{pfinger}_01_{pside}'] = root
+            target[f'{pfinger}_02_{pside}'] = j1
+            target[f'{pfinger}_03_{pside}'] = lerp(j1, tip, 0.55)
+            target[f'{pfinger}_04_leaf_{pside}'] = tip
+        t_root, t_j1 = J['thumb' + ours + 'a']
+        _t, t_tip = J['thumb' + ours + 'b']
+        target[f'thumb_01_{pside}'] = t_root
+        target[f'thumb_02_{pside}'] = t_j1
+        target[f'thumb_03_{pside}'] = lerp(t_j1, t_tip, 0.55)
+        target[f'thumb_04_leaf_{pside}'] = t_tip
+        hip, knee = J['thigh' + ours]
+        ankle = J['shin' + ours][1]
+        heel, toe = J['foot' + ours]
+        target['thigh_' + pside] = hip
+        target['calf_' + pside] = knee
+        target['foot_' + pside] = ankle
+        target['ball_' + pside] = lerp(heel, toe, 0.75)
+        target['ball_leaf_' + pside] = toe
+    missing = [b.name for b in rig.data.bones if b.name not in target]
+    if missing:
+        raise RuntimeError('rig_basemesh --pack: no landmark for pack bones: ' + ', '.join(missing))
+    # Skeleton Lab overrides (Remy 2026-08-23): <mesh>.landmarks.json beside
+    # the input GLB pins joints where the reviewer dragged them (glTF space,
+    # unit height). A joint without its own override INHERITS the delta of
+    # its nearest overridden ancestor, so a dragged wrist carries its hand
+    # and fingers. Unknown joint names raise — no silent drops.
+    lm_file = (IN_GLB[:-4] if IN_GLB.lower().endswith('.glb') else IN_GLB) + '.landmarks.json'
+    if os.path.exists(lm_file):
+        with open(lm_file, 'r', encoding='utf-8') as f:
+            lm_joints = (json.load(f).get('joints') or {})
+        unknown = [k for k in lm_joints if k not in target]
+        if unknown:
+            raise RuntimeError('rig_basemesh --pack: landmarks name unknown pack joints: ' + ', '.join(unknown))
+        overrides = {k: Vector((v[0], v[1], v[2])) for k, v in lm_joints.items()}
+        deltas = {k: overrides[k] - target[k] for k in overrides}
+        parent_of = {b.name: (b.parent.name if b.parent else None) for b in rig.data.bones}
+        def inherited_delta(name):
+            p = parent_of.get(name)
+            while p:
+                if p in deltas:
+                    return deltas[p]
+                p = parent_of.get(p)
+            return None
+        inherited = 0
+        for name in list(target.keys()):
+            if name in overrides:
+                target[name] = Vector(overrides[name])
+            else:
+                d = inherited_delta(name)
+                if d is not None:
+                    target[name] = target[name] + d
+                    inherited += 1
+        print(f'rig_basemesh --pack: landmark overrides {sorted(overrides.keys())} + {inherited} inherited from {os.path.basename(lm_file)}')
+    # METACARPALS (Remy 2026-08-24, after the pro reference rig "Hand
+    # animation test"): the pack skeleton has no palm bones — hand_X parents
+    # every digit root directly, so bone heat splits palm flesh between the
+    # wrist and the knuckles and the skeleton reads as a palm-less fan.
+    # Synthesize one metacarpal per finger: head 35% along wrist->knuckle,
+    # tail AT the knuckle, parented to the hand; the digit root reparents
+    # onto it. Clips stay safe by construction: tracks bind by NAME, the new
+    # bones carry no tracks and hold their rest locals, and the knuckle
+    # landmarks do not move. The thumb already has its metacarpal
+    # (thumb_01). Derived AFTER overrides, so lab drags on wrist or
+    # knuckles carry the metacarpals with them.
+    META = []
+    for pside in ('l', 'r'):
+        for fng in ('index', 'middle', 'ring', 'pinky'):
+            mname = f'metacarp_{fng}_{pside}'
+            target[mname] = lerp(target[f'hand_{pside}'], target[f'{fng}_01_{pside}'], 0.35)
+            META.append((mname, f'hand_{pside}', f'{fng}_01_{pside}'))
+    # The tail of a bone is the head of its chain child; leaves keep their
+    # own direction at the mesh's scale. A bone with exactly ONE child chains
+    # to it, whatever its name — the old name-prefix rule missed every
+    # cross-name link (clavicle->upperarm, thigh->calf, calf->foot,
+    # foot->ball, upperarm->lowerarm, lowerarm->hand), so those tails kept
+    # the pack's scaled direction: stepped joints in the fit overlay and
+    # bone-heat weights along wrong segments (Rig Bench find, 2026-08-23).
+    # Multi-child bones pick the explicit chain: pelvis->spine, spine_03->
+    # neck (never a clavicle), hand->middle finger.
+    CHAIN_PICK = {
+        'pelvis': 'spine_01',
+        'spine_03': 'neck_01',
+        'hand_l': 'middle_01_l',
+        'hand_r': 'middle_01_r',
+    }
+    chain_child = {}
+    for b in rig.data.bones:
+        if b.name == 'root':
+            continue  # the root keeps the pack's own direction: the clips' root track is authored against it
+        if b.name in CHAIN_PICK:
+            chain_child[b.name] = CHAIN_PICK[b.name]
+        elif len(b.children) == 1:
+            chain_child[b.name] = b.children[0].name
+        elif len(b.children) > 1:
+            raise RuntimeError(f'rig_basemesh --pack: bone {b.name} has {len(b.children)} children and no CHAIN_PICK entry')
+    pack_h = max(to_gltf(rig.matrix_world @ b.tail_local).y for b in rig.data.bones)
+    s_pack = H / max(pack_h, 1e-6)
+    bpy.ops.object.select_all(action='DESELECT')
+    rig.select_set(True)
+    bpy.context.view_layer.objects.active = rig
+    bpy.ops.object.mode_set(mode='EDIT')
+    ebs = rig.data.edit_bones
+    for mname, hand_name, digit_name in META:
+        chain_child[mname] = digit_name
+        nb = ebs.new(mname)
+        nb.head = to_blender(target[mname])
+        nb.tail = to_blender(target[digit_name])
+        nb.parent = ebs[hand_name]
+        ebs[digit_name].parent = nb
+    for eb in ebs:
+        old_dir = (eb.tail - eb.head).normalized()
+        old_len = (eb.tail - eb.head).length
+        roll = eb.roll
+        head = to_blender(target[eb.name])
+        child = chain_child.get(eb.name)
+        if child and child in target:
+            tail = to_blender(target[child])
+            if (tail - head).length < 0.004 * H:
+                tail = head + old_dir * max(old_len * s_pack, 0.004 * H)
+        else:
+            # a leaf: keep its direction, cap its reach — the pack's long
+            # head_leaf drew a spike above the crown and fed bone heat a
+            # segment outside the mesh
+            tail = head + old_dir * min(max(old_len * s_pack, 0.004 * H), 0.06 * H)
+        eb.head = head
+        eb.tail = tail
+        eb.roll = roll
+    bpy.ops.object.mode_set(mode='OBJECT')
+    print(f'rig_basemesh --pack: fitted {len(rig.data.bones)} pack bones (scale {s_pack:.3f}) armature matrix={[round(v, 3) for v in rig.matrix_world.to_translation()]} rot={[round(v, 2) for v in rig.matrix_world.to_euler()]}')
+else:
+    arm_data = bpy.data.armatures.new('BipedRig')
+    rig = bpy.data.objects.new('BipedRig', arm_data)
+    bpy.context.scene.collection.objects.link(rig)
+    bpy.context.view_layer.objects.active = rig
+    bpy.ops.object.mode_set(mode='EDIT')
+    edit = {}
+    for name in BONES:
+        head, tail = J[name]
+        length = max((tail - head).length, 0.004 * H)
+        eb = arm_data.edit_bones.new(name)
+        eb.head = (0.0, 0.0, 0.0)
+        eb.tail = (0.0, length, 0.0)
+        # rest frame = the sink's minimal rotation from +Y, converted to Blender space
+        q = sink_quat(tail - head)
+        m_gltf = q.to_matrix().to_4x4()
+        m_gltf.translation = head
+        C = Matrix(((1, 0, 0, 0), (0, 0, -1, 0), (0, 1, 0, 0), (0, 0, 0, 1)))  # glTF -> Blender
+        eb.matrix = C @ m_gltf @ C.inverted()
+        p = PARENT.get(name)
+        if p:
+            if p not in edit:
+                raise RuntimeError(f'rig_basemesh: parent {p} of {name} not built yet')
+            eb.parent = edit[p]
+            eb.use_connect = False
+        edit[name] = eb
+    bpy.ops.object.mode_set(mode='OBJECT')
+
+# rods for the orphan step and the proof: every bone's head → tail, Blender space
+def bone_rods():
+    if PACK:
+        return [(b.name, rig.matrix_world @ b.head_local, rig.matrix_world @ b.tail_local) for b in rig.data.bones]
+    return [(name, to_blender(J[name][0]), to_blender(J[name][1])) for name in BONES]
 
 # ---------------------------------------------------------------- bone heat
 heat_target = proxy if proxy else body
@@ -505,10 +797,7 @@ if unweighted:
     # nearest bone segment — a named, counted step, not a silent default.
     if len(unweighted) > 0.4 * len(body.data.vertices):
         raise RuntimeError(f'rig_basemesh: bone heat left {len(unweighted)} of {len(body.data.vertices)} vertices unweighted — the solve failed, not a few shells')
-    segs = []
-    for name in BONES:
-        a, b = J[name]
-        segs.append((name, to_blender(a), to_blender(b)))
+    segs = bone_rods()
 
     def seg_dist(p, a, b):
         ab = b - a
@@ -524,6 +813,32 @@ if unweighted:
         groups[name].add([v.index], 1.0, 'REPLACE')
     print(f'rig_basemesh: {len(unweighted)} orphan vertices bound to their nearest bone')
 
+if PACK:
+    # Midline chest flesh must never follow a clavicle. Bone heat lets the
+    # chest-top -> shoulder clavicle grab near-midline vertices (the Rig
+    # Bench gate's torso-ownership failures on stylized A and B), and a
+    # shoulder shrug then drags the sternum. Move clavicle weight into
+    # spine_03 near the midline; the outer chest keeps its clavicle share.
+    spine3 = body.vertex_groups.get('spine_03')
+    if spine3 is None:
+        raise RuntimeError('rig_basemesh --pack: no spine_03 vertex group')
+    clav_groups = [body.vertex_groups[n] for n in ('clavicle_l', 'clavicle_r') if n in body.vertex_groups]
+    clav_idx = {g.index for g in clav_groups}
+    moved = 0
+    for v in body.data.vertices:
+        g = to_gltf(v.co)
+        yf = (g.y - y_min) / H
+        if yf < 0.56 or yf > 0.88 or abs(g.x - cx) > 0.15 * H:
+            continue
+        w = sum(e.weight for e in v.groups if e.group in clav_idx)
+        if w <= 0.0:
+            continue
+        spine3.add([v.index], w, 'ADD')
+        for cg in clav_groups:
+            cg.remove([v.index])
+        moved += 1
+    print(f'rig_basemesh --pack: moved clavicle weight to spine_03 on {moved} midline chest vertices')
+
 # ---------------------------------------------------------------- proof for Remy
 # 1. the .blend, so the rig can be opened in Blender and inspected by hand
 # 2. a Workbench render: body at half alpha, every bone as a red rod
@@ -537,9 +852,7 @@ bpy.ops.wm.save_as_mainfile(filepath=os.path.join(DIAG, f'{model_id}.blend'))
 
 rig.hide_render = False
 proof = []
-for name in BONES:
-    head, tail = J[name]
-    hb, tb = to_blender(head), to_blender(tail)
+for name, hb, tb in bone_rods():
     length = max((tb - hb).length, 0.004 * H)
     bpy.ops.mesh.primitive_cylinder_add(vertices=6, radius=0.006 * H, depth=length)
     rod = bpy.context.active_object
@@ -590,4 +903,4 @@ bpy.ops.export_scene.gltf(
     export_animations=False,
     export_materials='NONE',
 )
-print(f'rig_basemesh: wrote {OUT_GLB} bones={len(BONES)} verts={len(body.data.vertices)} reach={reach_x / H:.3f}h shoulderY={(shoulder_y - y_min) / H:.3f}h forward={forward:+.0f}')
+print(f'rig_basemesh: wrote {OUT_GLB} bones={len(rig.data.bones)} verts={len(body.data.vertices)} reach={reach_x / H:.3f}h shoulderY={(shoulder_y - y_min) / H:.3f}h forward={forward:+.0f}')

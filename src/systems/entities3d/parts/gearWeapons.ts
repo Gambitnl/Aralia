@@ -63,17 +63,22 @@ const swordMain: PartDef = {
     // (~0.8 handR above the anchor) and clipped the index finger — the guard
     // now clears the wrapped fist
     guard.position.y = u * 0.26;
-    // round 7 (humanoid-anatomy): the grip runs long enough to emerge below
-    // the wrapped fist (fist radius ≈ 0.12 u around the origin), and the
-    // pommel is SUNK ONTO its lower end — the round-6 verdict saw the old
-    // 0.34-length grip end inside the fist, leaving the accent-colored pommel
-    // as a detached fragment floating below the hand.
-    const grip = new Mesh(new CylinderGeometry(u * 0.06, u * 0.06, u * 0.52, 8), ctx.material(GRIP));
-    grip.position.y = -u * 0.05;
-    // steel, not accent: the dark grip disappears against dark tunics, and an
-    // accent-colored sphere past it read as a detached red drip (round 6)
-    const pommel = new Mesh(new SphereGeometry(u * 0.09, 8, 6), ctx.material(STEEL));
-    pommel.position.y = -u * 0.27; // overlaps the grip's lower end — one connected hilt
+    // part-quality re-fit (2026-08-23, hands campaign close-out): the round-7
+    // hilt was sized for the loft fist. Over the REFERENCE hand (fist bottom
+    // ≈ 0.18 u below the anchor) the r-0.09 light-STEEL sphere at -0.27 u
+    // read as a detached PALE BALL with its own ink ring — its radius was
+    // ~75% of the fist half-width, a second fist in the silhouette. The
+    // pommel is now a wheel: r 0.055 u, squashed flat, DARK_STEEL (the axe
+    // cheek tone — round 6 still holds: never accent, and dark leather alone
+    // vanishes against dark tunics), and its top edge SEATS INTO the fist
+    // heel, so it terminates the hilt instead of orbiting below it.
+    // The grip stops where the pommel seats — the round-7 0.52 length would
+    // run a bare stub past the raised pommel.
+    const grip = new Mesh(new CylinderGeometry(u * 0.06, u * 0.06, u * 0.41, 8), ctx.material(GRIP));
+    grip.position.y = u * 0.005;
+    const pommel = new Mesh(new SphereGeometry(u * 0.055, 8, 6), ctx.material(DARK_STEEL));
+    pommel.scale.y = 0.75; // wheel pommel, not a ball
+    pommel.position.y = -u * 0.2;
     group.add(blade, guard, grip, pommel);
     return { object: group };
   },
