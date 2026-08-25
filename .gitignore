@@ -166,6 +166,14 @@ src/components/DesignPreview/steps/*
 # Design Preview default above.
 !src/components/DesignPreview/steps/PreviewCombatDomainTabs.tsx
 !src/components/DesignPreview/steps/PreviewCombatDomainTabs.test.tsx
+# waterSheet.ts holds no preview UI. It is pure water-sheet geometry math with
+# zero imports, and shipping code depends on it:
+# src/components/BattleMap/terrain/VolumeArenaWater.tsx imports wetQuadIndices,
+# DRY_M, TUCK_M and RELIEF_PER_CELL from it. While it stayed ignored, CI could
+# not build index.html and every Pages deploy failed from 2026-08-15 onward.
+# Its test stays local: `steps/*` excludes the __tests__ directory itself, and
+# git cannot re-include a file whose parent directory is excluded.
+!src/components/DesignPreview/steps/waterSheet.ts
 # These three folders are the durable, self-contained domain panels registered
 # by the shared Tactical Sandbox shell. Their internals stay owned by the peer
 # domain lanes while the central host imports only each folder's public export.
