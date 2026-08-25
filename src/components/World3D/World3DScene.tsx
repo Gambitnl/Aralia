@@ -168,6 +168,24 @@ interface World3DSceneProps {
    * fight can frame its own combat area on initiative start).
    */
   cameraFrameRequest?: CameraFrameRequest | null;
+  /**
+   * Town-on-LAND mode (town3d's Land pane, Remy 2026-08-24): false hides the
+   * streamed terrain SKIN — the sheet meshes, their frontier skirts, and the
+   * far shells — so the volume bubble is the only visible ground. Chunk
+   * heights still stream: buildings, streets, walls, water, and physics all
+   * read them. Default true = the normal streamed world.
+   */
+  terrainSkin?: boolean;
+  /** Volume bubble width override, meters (ground profile only). The Land
+   * pane asks for a bubble that holds the whole burg; extent / cell must stay
+   * within the worker's 256-cells-per-edge ceiling. */
+  volumeBubbleExtentM?: number;
+  /** Volume bubble cell override, meters. */
+  volumeBubbleCellM?: number;
+  /** Draw the water sheets in this flat OPAQUE color (LAND pane debug, Remy
+   * 2026-08-24: see exactly where water sits on the volume ground). Absent =
+   * the normal shared ripple material. */
+  waterFlatColorHex?: string;
 }
 
 const SHADOWS = WORLD3D_CONFIG.STREAMED_WORLD_SHADOWS;
@@ -530,7 +548,19 @@ const TerrainPiece: React.FC<{
   );
 };
 
-const WaterPiece: React.FC<{ chunk: LoadedChunk; origin: SceneOrigin }> = ({ chunk, origin }) => {
+/** Flat OPAQUE water materials for the LAND pane's debug look, one per color.
+ * Shared across chunks — a per-chunk material would defeat batching and leak. */
+const flatWaterMaterials = new Map<string, THREE.MeshStandardMaterial>();
+function flatWaterMaterialFor(colorHex: string): THREE.MeshStandardMaterial {
+  let m = flatWaterMaterials.get(colorHex);
+  if (!m) {
+    m = new THREE.MeshStandardMaterial({ color: colorHex, roughness: 0.6, metalness: 0 });
+    flatWaterMaterials.set(colorHex, m);
+  }
+  return m;
+}
+
+const WaterPiece: React.FC<{ chunk: LoadedChunk; origin: SceneOrigin; flatColorHex?: string }> = ({ chunk, origin, flatColorHex }) => {
   const water = chunk.bundle.water;
   // Hooks must run unconditionally: build geometry from water or a tiny empty stand-in.
   const geometry = useDisposableGeometry(
@@ -555,7 +585,12 @@ const WaterPiece: React.FC<{ chunk: LoadedChunk; origin: SceneOrigin }> = ({ chu
 
   if (!water) return null;
   return (
-    <mesh name="world3d:water" geometry={geometry} position={scenePos} material={getWaterSurfaceMaterial()} />
+    <mesh
+      name="world3d:water"
+      geometry={geometry}
+      position={scenePos}
+      material={flatColorHex ? flatWaterMaterialFor(flatColorHex) : getWaterSurfaceMaterial()}
+    />
   );
 };
 
@@ -1022,10 +1057,15 @@ const ChunkPieces: React.FC<{
   detailAnchor: ChunkCoord;
   detailCenter: { x: number; z: number };
   loadedKeys: Set<string>;
-}> = ({ chunk, origin, anchor, detailAnchor, detailCenter, loadedKeys }) => (
+  /** false = town-on-LAND mode: no sheet, no skirts; everything else stays. */
+  terrainSkin?: boolean;
+  waterFlatColorHex?: string;
+}> = ({ chunk, origin, anchor, detailAnchor, detailCenter, loadedKeys, terrainSkin = true, waterFlatColorHex }) => (
   <>
-    <TerrainPiece chunk={chunk} origin={origin} anchor={anchor} loadedKeys={loadedKeys} />
-    <WaterPiece chunk={chunk} origin={origin} />
+    {terrainSkin && (
+      <TerrainPiece chunk={chunk} origin={origin} anchor={anchor} loadedKeys={loadedKeys} />
+    )}
+    <WaterPiece chunk={chunk} origin={origin} flatColorHex={waterFlatColorHex} />
     <RoadPiece chunk={chunk} origin={origin} />
     <WallPiece chunk={chunk} origin={origin} />
     <GatePiece chunk={chunk} origin={origin} />
@@ -1156,6 +1196,10 @@ const World3DScene: React.FC<World3DSceneProps> = ({
   timeOfDayHours,
   combatLayer,
   cameraFrameRequest = null,
+  terrainSkin = true,
+  volumeBubbleExtentM,
+  volumeBubbleCellM,
+  waterFlatColorHex,
 }) => {
   const { loaded, update } = useChunkStreaming(loader);
 
@@ -1365,6 +1409,8 @@ const World3DScene: React.FC<World3DSceneProps> = ({
               detailAnchor={detailAnchor}
               detailCenter={detailCenter}
               loadedKeys={loadedKeys}
+              terrainSkin={terrainSkin}
+              waterFlatColorHex={waterFlatColorHex}
             />
           ))}
         </InteriorHourProvider>
@@ -1422,9 +1468,11 @@ const World3DScene: React.FC<World3DSceneProps> = ({
             ground={groundWorld}
             sceneOrigin={sceneOrigin}
             playerGroundPos={playerGroundPos}
+            extentM={volumeBubbleExtentM}
+            cellM={volumeBubbleCellM}
           />
         )}
-        {viewProfile === 'ground' && (
+        {viewProfile === 'ground' && terrainSkin && (
           <FarShells ground={groundWorld} sceneOrigin={sceneOrigin} />
         )}
         {viewProfile === 'ground' && (

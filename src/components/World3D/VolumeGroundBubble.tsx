@@ -96,14 +96,11 @@ function tintOf(v: BubbleVolume): (xM: number, zM: number) => readonly [number, 
 export const BUBBLE_EXTENT_M = 64;
 export const BUBBLE_CELL_M = 0.25;
 
-/**
- * How far the player may walk before the bubble is rebuilt around them.
- *
- * A quarter of the extent. Smaller rebuilds constantly for no visible gain;
- * larger lets the player reach the rim, where the ground is a metre under the
- * heightfield and the substance stops.
- */
-const REBUILD_STEP_M = BUBBLE_EXTENT_M / 4;
+/* How far the player may walk before the bubble is rebuilt around them: a
+ * quarter of the extent (inline where the distance is tested — the extent is
+ * a prop now). Smaller rebuilds constantly for no visible gain; larger lets
+ * the player reach the rim, where the ground is a metre under the heightfield
+ * and the substance stops. */
 
 /** How often committed slabs are shown, ms. See the file header. */
 const COMMIT_INTERVAL_MS = 120;
@@ -142,6 +139,12 @@ export interface VolumeGroundBubbleProps {
   sceneOrigin: SceneOrigin;
   /** Where the player is, world meters. Null keeps the bubble at the origin. */
   playerGroundPos: { xM: number; zM: number } | null;
+  /** Bubble width override, meters. Default = ADR 0002's 64 m. The town-on-
+   * LAND pane (town3d) asks for a bubble that holds the whole burg; extent
+   * over cell must stay within the 256-cells-per-edge worker ceiling. */
+  extentM?: number;
+  /** Cell size override, meters. Default = ADR 0002's 0.25 m. */
+  cellM?: number;
   /**
    * Called once per build with the voxels. The next slice's carve runs against
    * this object on the main thread; nothing else may own a second copy.
@@ -248,6 +251,8 @@ const VolumeGroundBubble: React.FC<VolumeGroundBubbleProps> = ({
   ground,
   sceneOrigin,
   playerGroundPos,
+  extentM = BUBBLE_EXTENT_M,
+  cellM = BUBBLE_CELL_M,
   onVolume,
   onStats,
 }) => {
@@ -442,7 +447,7 @@ const VolumeGroundBubble: React.FC<VolumeGroundBubbleProps> = ({
     const client = clientRef.current;
     if (!ground || !client) return undefined;
     const at = centerRef.current;
-    if (at && !rigCut && Math.hypot(px - at.x, pz - at.z) < REBUILD_STEP_M) return undefined;
+    if (at && !rigCut && Math.hypot(px - at.x, pz - at.z) < extentM / 4) return undefined;
     centerRef.current = { x: px, z: pz };
 
     const t0 = performance.now();
@@ -467,8 +472,8 @@ const VolumeGroundBubble: React.FC<VolumeGroundBubbleProps> = ({
     client.build({
       centerXM: px,
       centerZM: pz,
-      extentM: BUBBLE_EXTENT_M,
-      cellM: BUBBLE_CELL_M,
+      extentM,
+      cellM,
       preCut: rigCut,
       onFill: (v) => {
         fillMs = v.fillMs;
@@ -534,7 +539,7 @@ const VolumeGroundBubble: React.FC<VolumeGroundBubbleProps> = ({
     };
     // `onVolume` and `onStats` are stable for the component's life.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ground, px, pz, rigCut]);
+  }, [ground, px, pz, rigCut, extentM, cellM]);
 
   // Retire the geometries of a superseded build. Held until React has stopped
   // rendering them — disposing a geometry that then draws again re-uploads it.

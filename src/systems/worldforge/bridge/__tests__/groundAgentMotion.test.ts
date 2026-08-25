@@ -86,6 +86,32 @@ describe('allGroundAgentsAt', () => {
     expect(agents.filter((a) => a.burgId === 9)).toHaveLength(1);
   });
 
+  it('reuses the static street graph while a town plan object is unchanged', () => {
+    let streetReads = 0;
+    const cachedPlan = {
+      burgId: 12,
+      plots: plan.plots,
+      // Counting access proves the expensive graph builder does not revisit
+      // the plan on the next 3D motion tick.
+      get streets() {
+        streetReads += 1;
+        return [];
+      },
+    } as unknown as TownPlan;
+    const cachedGround = {
+      rosters: [{ burgId: 12, occupants: [] }],
+      townPlans: [{ burgId: 12, plan: cachedPlan }],
+      boundsFeet: bounds,
+    } as unknown as Parameters<typeof allGroundAgentsAt>[0];
+
+    allGroundAgentsAt(cachedGround, 3.0);
+    const readsAfterFirstTick = streetReads;
+    allGroundAgentsAt(cachedGround, 3.3);
+
+    expect(readsAfterFirstTick).toBeGreaterThan(0);
+    expect(streetReads).toBe(readsAfterFirstTick);
+  });
+
   it('returns [] when the ground world lacks agent-motion inputs', () => {
     expect(allGroundAgentsAt({ rosters: [] } as unknown as Parameters<typeof allGroundAgentsAt>[0], 12)).toEqual([]);
   });

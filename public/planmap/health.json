@@ -1,10 +1,10 @@
 {
-  "generatedAt": "2026-08-23T22:10:07.443Z",
-  "lastGoodRun": "2026-08-23T22:10:07.443Z",
+  "generatedAt": "2026-08-24T00:49:08.804Z",
+  "lastGoodRun": "2026-08-24T00:49:08.804Z",
   "stepErrors": [],
   "surfaces": {
     "chronicleDaysSilent": 50,
-    "atlasDaysSilent": 1
+    "atlasDaysSilent": 0
   },
   "coverage": {
     "domainDocs": {
@@ -288,7 +288,7 @@
       "ageDays": 53
     },
     "town-streets-3d": {
-      "ageDays": 43
+      "ageDays": 0
     },
     "shipped-living-world": {
       "ageDays": 52

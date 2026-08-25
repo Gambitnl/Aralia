@@ -35,7 +35,14 @@ const BASE_DIR = path.join(ROOT, 'public', 'references', 'basemesh');
 
 const argv = process.argv.slice(2);
 const DRY = argv.includes('--dry');
-const ids = argv.filter((a) => a !== '--dry');
+// --fingers: the tip-inward finger trace. PARKED 2026-08-24: it places
+// chains beautifully at REST (each inside its own splayed finger) but the
+// pack clips are authored for PARALLEL fingers — splayed flexion axes
+// scissor the curls into each other under Walk/Idle. Until chains are
+// STRAIGHTENED (parallel flexion axes, the pro convention), the heuristic
+// finger landmarks stay the motion-good default.
+const FINGERS = argv.includes('--fingers');
+const ids = argv.filter((a) => a !== '--dry' && a !== '--fingers');
 if (!ids.length) throw new Error('usage: node tools/entities3d/centerlineFit.mjs <id> [...] [--dry]');
 
 // ---------------------------------------------------------------- glb parse
@@ -320,7 +327,7 @@ for (const id of ids) {
   // merge is the knuckle. Joints then sit at anatomical arc-length
   // fractions of the finger's OWN traced centerline (proximal 45%, middle
   // 30%, distal 25%), knuckle dorsal-biased per the pro reference.
-  for (const side of ['l', 'r']) {
+  for (const side of FINGERS ? ['l', 'r'] : []) {
     const handJ = out[`hand_${side}`] ?? joints.get(`hand_${side}`);
     if (!handJ) continue;
     const sgn = handJ[0] >= 0 ? 1 : -1;
@@ -376,42 +383,70 @@ for (const id of ids) {
     // descending. The thumb itself never reaches the tip band.
     const fingerNames = ['index', 'middle', 'ring', 'pinky'];
     tips.sort((a, b) => b[2] - a[2]);
-    const claim = new Map(fingerNames.map((f, i) => [f, { tip: tips[i] }]));
-    for (const f of fingerNames) {
-      const claimed = claim.get(f);
-      if (!claimed) {
-        report.push(`  ${f}_${side}: kept (no tip cluster claimed it)`);
-        continue;
+    // SLICE-WALK from the tips inward (Remy's "...what?!" 2026-08-24: a
+    // plain search ball spans the 2mm inter-finger gap, centroids drift
+    // into the crack, chains cross). Per x-slice, cluster at the SAME gap
+    // that separated the tips; each finger follows its own cluster by
+    // continuity; a cluster claimed by two fingers is the WEB — those
+    // fingers end there, and the knuckle sits a little INSIDE the palm
+    // from the web (the pro rig's MCP placement).
+    // These fingers TOUCH below the outer 1.5cm (sub-2mm gaps close fully;
+    // measured 2026-08-24) — no clustering separates them. But they are
+    // PARALLEL tubes, so a VORONOI partition per slice works at zero gap:
+    // every point joins the nearest finger's running center, each finger's
+    // radius comes from ITS OWN partition, and a radius jump (the palm
+    // spreading beyond the finger tube) ends that finger at its knuckle.
+    const SLICE = 0.006 * H;
+    const fingers = fingerNames.map((name, i) => ({ name, line: [tips[i].slice()], radii: [], done: false }));
+    for (let x1 = tipX - 0.015 * H; x1 > wristX + 0.005 * H; x1 -= SLICE) {
+      const slice = handPts.filter((p) => p[0] >= x1 - SLICE && p[0] < x1);
+      if (slice.length < 3) continue; // sparse slice: hold continuity
+      const active = fingers.filter((f) => !f.done);
+      if (!active.length) break;
+      const parts = new Map(active.map((f) => [f, []]));
+      for (const p of slice) {
+        let best = null;
+        let bd = 0.013 * H;
+        for (const f of active) {
+          const tail = f.line[f.line.length - 1];
+          const d = Math.hypot(p[1] - tail[1], p[2] - tail[2]);
+          if (d < bd) {
+            bd = d;
+            best = f;
+          }
+        }
+        if (best) parts.get(best).push(p);
       }
-      // walk inward: local ball centroid re-aims each step; the knuckle is
-      // where the tube radius jumps (palm merge) or the walk hits the palm
-      const line = [claimed.tip.slice()];
-      let dir = [-1, 0, 0]; // inward; re-aimed after the first step
-      const STEP = 0.008 * H;
-      const RB = 0.009 * H;
-      const radii = [];
-      for (let step = 0; step < 40; step++) {
-        const guess = line[line.length - 1].map((v, k) => v + dir[k] * STEP);
-        const local = handPts.filter((p) => Math.hypot(p[0] - guess[0], p[1] - guess[1], p[2] - guess[2]) < RB);
-        if (local.length < 4) break;
-        const c = [0, 1, 2].map((k) => local.reduce((s, p) => s + p[k], 0) / local.length);
-        const r = local.reduce((s, p) => s + Math.hypot(p[1] - c[1], p[2] - c[2]), 0) / local.length;
-        const med = radii.length >= 4 ? [...radii].sort((a, b) => a - b)[Math.floor(radii.length / 2)] : null;
-        if (med && r > 1.75 * med) break; // palm merge: the knuckle is behind us
-        radii.push(r);
-        const last = line[line.length - 1];
-        const to = [c[0] - last[0], c[1] - last[1], c[2] - last[2]];
-        const tl = Math.hypot(...to) || 1;
-        const next = [last[0] + (to[0] / tl) * STEP, last[1] + (to[1] / tl) * STEP, last[2] + (to[2] / tl) * STEP];
-        dir = [(next[0] - last[0]) / STEP, (next[1] - last[1]) / STEP, (next[2] - last[2]) / STEP];
-        line.push(next);
-        if (next[0] < handJ[0] * sgn + 0.01 * H) break; // reached the palm
+      for (const f of active) {
+        const g = parts.get(f);
+        if (g.length < 3) continue; // hold this slice
+        const c = [0, 1, 2].map((k) => g.reduce((s, p) => s + p[k], 0) / g.length);
+        const r = g.reduce((s, p) => s + Math.hypot(p[1] - c[1], p[2] - c[2]), 0) / g.length;
+        const med = f.radii.length >= 4 ? [...f.radii].sort((a, b) => a - b)[Math.floor(f.radii.length / 2)] : null;
+        if (med && r > 1.55 * med) {
+          f.done = true; // the palm spreads past the finger tube: knuckle
+          continue;
+        }
+        f.line.push(c);
+        f.radii.push(r);
       }
+    }
+    for (const f of fingers) {
+      const line = f.line;
       if (line.length < 6) {
-        report.push(`  ${f}_${side}: kept (trace only ${line.length} steps)`);
+        report.push(`  ${f.name}_${side}: kept (trace only ${line.length} slices)`);
         continue;
       }
-      // arc-length stations tip -> knuckle; joints at knuckle 0 / 45 / 75 / tip
+      // the true knuckle (MCP) sits a bit INSIDE the palm from the web:
+      // extend the last direction by one slice-and-a-half
+      const tail = line[line.length - 1];
+      const prev = line[Math.max(0, line.length - 4)];
+      let inDir = [tail[0] - prev[0], tail[1] - prev[1], tail[2] - prev[2]];
+      const il = Math.hypot(...inDir) || 1;
+      inDir = inDir.map((v) => v / il);
+      const knuckle = tail.map((v, k) => v + inDir[k] * 1.5 * SLICE);
+      line.push(knuckle);
+      // arc-length stations tip -> knuckle; joints at knuckle 0/45/75/97%
       const arc = [0];
       for (let i = 1; i < line.length; i++) arc.push(arc[i - 1] + Math.hypot(line[i][0] - line[i - 1][0], line[i][1] - line[i - 1][1], line[i][2] - line[i - 1][2]));
       const L = arc[arc.length - 1];
@@ -422,14 +457,13 @@ for (const id of ids) {
         const t = (want - arc[i]) / Math.max(arc[i + 1] - arc[i], 1e-9);
         return line[i].map((v, k) => v + (line[Math.min(i + 1, line.length - 1)][k] - v) * t);
       };
-      const knuckle = line[line.length - 1];
-      const meanR = radii.reduce((a, b) => a + b, 0) / radii.length;
+      const meanR = f.radii.reduce((a, b) => a + b, 0) / f.radii.length;
       const back = (p) => [p[0] * sgn, p[1], p[2]];
       // dorsal bias at the knuckle only (+y, palms-down T-pose)
-      move(`${f}_01_${side}`, back([knuckle[0], knuckle[1] + 0.33 * meanR, knuckle[2]]), 'finger trace knuckle, dorsal-biased');
-      move(`${f}_02_${side}`, back(at(0.45)), 'finger trace 45%');
-      move(`${f}_03_${side}`, back(at(0.75)), 'finger trace 75%');
-      move(`${f}_04_leaf_${side}`, back(at(1 - 0.03)), 'finger trace tip');
+      move(`${f.name}_01_${side}`, back([knuckle[0], knuckle[1] + 0.33 * meanR, knuckle[2]]), 'finger trace knuckle, dorsal-biased');
+      move(`${f.name}_02_${side}`, back(at(0.45)), 'finger trace 45%');
+      move(`${f.name}_03_${side}`, back(at(0.75)), 'finger trace 75%');
+      move(`${f.name}_04_leaf_${side}`, back(at(1 - 0.03)), 'finger trace tip');
     }
   }
 

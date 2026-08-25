@@ -11,6 +11,7 @@
 // reader then names the part from these crops — a hand must read "hand".
 import { chromium } from 'playwright';
 import { mkdirSync } from 'fs';
+import { captureCanvas } from './captureCanvas.mjs';
 
 const [outDir, ...jobs] = process.argv.slice(2);
 if (!outDir || jobs.length === 0) {
@@ -45,7 +46,7 @@ try {
     // the modal-era hover point and left the specimens tiny in a corner
     // (the 2026-08-24 "no digits" false flags).
     await page.waitForTimeout(400);
-    await page.locator('canvas').first().screenshot({ path: `${outDir}/${label}.png` });
+    await captureCanvas(page, `${outDir}/${label}.png`);
     console.log(`part-shot ${label}`);
   }
 } finally {

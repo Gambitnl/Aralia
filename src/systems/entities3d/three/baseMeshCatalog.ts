@@ -71,7 +71,7 @@ export function baseMeshById(id: string): BaseMeshDef {
 /** Bump when tools/entities3d/rigBaseMeshes.mjs rewrites the rigged files:
  * the loader caches by URL, and a page kept open across a re-rig showed the
  * OLD bones under the new code (Remy's "huh?" screenshots, 2026-08-22). */
-export const BASE_MESH_RIG_VERSION = '2026-08-24d';
+export const BASE_MESH_RIG_VERSION = '2026-08-24f';
 
 export function baseMeshUrl(id: string): string {
   const def = baseMeshById(id);

@@ -27,7 +27,7 @@ const ALL: Material[] = [
   Material.Topsoil, Material.Subsoil, Material.Clay, Material.Silt,
   Material.Sand, Material.Gravel, Material.Hardpan, Material.Permafrost,
   Material.Limestone, Material.Sandstone, Material.Granite,
-  Material.Ice, Material.Snow, Material.Water,
+  Material.Ice, Material.Snow, Material.Water, Material.TestPan,
 ];
 
 describe('the registry does not drift from the enum', () => {

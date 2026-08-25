@@ -704,6 +704,7 @@ if PACK:
     for eb in ebs:
         old_dir = (eb.tail - eb.head).normalized()
         old_len = (eb.tail - eb.head).length
+        old_z = eb.matrix.to_3x3().col[2].copy()
         roll = eb.roll
         head = to_blender(target[eb.name])
         child = chain_child.get(eb.name)
@@ -719,6 +720,11 @@ if PACK:
         eb.head = head
         eb.tail = tail
         eb.roll = roll
+        # NOTE 2026-08-24: a swing-aligned roll (rotate the original frame
+        # onto the new direction) was tried here to fix scissored curls on
+        # traced splayed digits — it broke the WHOLE hand orientation.
+        # Rolls stay KEPT; the digit-axis problem is parked with the finger
+        # trace (centerlineFit --fingers).
     bpy.ops.object.mode_set(mode='OBJECT')
     print(f'rig_basemesh --pack: fitted {len(rig.data.bones)} pack bones (scale {s_pack:.3f}) armature matrix={[round(v, 3) for v in rig.matrix_world.to_translation()]} rot={[round(v, 2) for v in rig.matrix_world.to_euler()]}')
 else:

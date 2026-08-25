@@ -185,6 +185,17 @@ export const SUBSTANCES: Readonly<Record<Material, Substance>> = {
     densityKgM3: 1000, hardness: 0, permeabilityMS: 1, angleOfReposeDeg: 0,
     friction: 0.02, state: 'liquid',
   },
+
+  /* The sandbox test pan. A painted bench substance for the land page's soak
+   * experiments: the page overrides its permeability per session, and the value
+   * here is only the starting point. The color is a fired brick red no natural
+   * stack contains, so a painted patch reads as an instrument, not as terrain.
+   * Physically it behaves like hardpan: firm, standing walls, slow to dig. */
+  [Material.TestPan]: {
+    id: Material.TestPan, label: 'test pan', rgb: [0.240, 0.085, 0.055],
+    densityKgM3: 1900, hardness: 0.40, permeabilityMS: 1e-6, angleOfReposeDeg: 70,
+    friction: 0.65, state: 'solid',
+  },
 };
 
 /**

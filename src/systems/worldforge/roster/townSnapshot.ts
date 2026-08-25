@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 18/07/2026, 19:32:31
+ * Last Sync: 24/08/2026, 09:21:17
  * Dependents: components/Worldforge/TownAgentSnapshotView.tsx, systems/worldforge/bridge/groundAgentMotion.ts
  * Imports: 4 files
  *
@@ -114,6 +114,34 @@ export interface MovingAgentSnapshot extends AgentSnapshot {
  */
 const COMMUTE_FRAC = 0.5;
 
+// A generated graph and its plot doors are immutable. Scheduled commuters ask
+// for the same directed plot-to-plot paths on every motion tick, so retain those
+// polylines with the graph that owns them. Callers only sample these arrays;
+// none mutate them, and WeakMap ownership lets retired towns be collected.
+const scheduledRoutesByGraph = new WeakMap<StreetGraph, Map<string, Point[]>>();
+
+function scheduledRoute(
+  graph: StreetGraph,
+  fromPlotId: number,
+  toPlotId: number,
+  from: Point,
+  to: Point,
+): Point[] {
+  let routes = scheduledRoutesByGraph.get(graph);
+  if (!routes) {
+    routes = new Map();
+    scheduledRoutesByGraph.set(graph, routes);
+  }
+
+  const key = `${fromPlotId}>${toPlotId}`;
+  const cached = routes.get(key);
+  if (cached) return cached;
+
+  const route = routeAlongStreets(graph, from, to);
+  routes.set(key, route);
+  return route;
+}
+
 /** Keep a known building endpoint at its door; legacy/no-street plans retain their centroid. */
 function settledPointForPlot(
   graph: StreetGraph,
@@ -159,7 +187,7 @@ export function townMotionSnapshotAt(
     if (from && frac < COMMUTE_FRAC) {
       // Both route ends are already canonical doors. This prevents the first
       // frame from popping centroid-to-door before the street walk begins.
-      const route = routeAlongStreets(graph, from as Point, dest as Point);
+      const route = scheduledRoute(graph, prev.plotId, cur.plotId, from as Point, dest as Point);
       const [x, y] = positionAlongPath(route, frac / COMMUTE_FRAC);
       out.push({ occupantId: occ.id, name: occ.name, activity: cur.activity, plotId: cur.plotId, x, y, moving: true });
     } else {

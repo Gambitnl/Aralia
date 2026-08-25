@@ -142,6 +142,63 @@ describe('hill', () => {
   });
 });
 
+describe('paint', () => {
+  it('rewrites the surface material without moving the surface', () => {
+    /* The whole contract: paint changes what the ground IS, never where it is.
+     * A paint that adds or removes a single cell has become a dig or a raise,
+     * and the water bed under a pond would shift with it. */
+    const t = flat();
+    const c = 24;
+    const before = topSolidCell(t.volume, c, c);
+    const r = applyBrush(t, [midM(c), midM(before), midM(c)], {
+      shape: 'sphere', mode: 'paint', radiusM: 1, material: Material.Clay,
+    });
+    expect(r.changed).toBeGreaterThan(0);
+    expect(topSolidCell(t.volume, c, c)).toBe(before);
+    expect(t.volume.get(c, before, c)).toBe(Material.Clay);
+  });
+
+  it('caps at the paint depth and keeps the strata below', () => {
+    const t = flat();
+    const c = 24;
+    const top = topSolidCell(t.volume, c, c);
+    applyBrush(t, [midM(c), midM(top), midM(c)], {
+      shape: 'sphere', mode: 'paint', radiusM: 1,
+      material: Material.Clay, paintDepthM: 0.5,
+    });
+    const deep = Math.round(0.5 / CELL);
+    expect(t.volume.get(c, top - deep + 1, c)).toBe(Material.Clay);
+    expect(t.volume.get(c, top - deep - 1, c)).toBe(Material.Granite);
+  });
+
+  it('paints a circle, not a square', () => {
+    const t = flat();
+    const c = 24;
+    const top = topSolidCell(t.volume, c, c);
+    applyBrush(t, [midM(c), midM(top), midM(c)], {
+      shape: 'sphere', mode: 'paint', radiusM: 1, material: Material.Sand,
+    });
+    const r = Math.round(1 / CELL);
+    // The corner of the bounding square is outside the circle.
+    expect(t.volume.get(c + r, top, c + r)).toBe(Material.Granite);
+  });
+
+  it('refuses to paint without a material, and cannot paint air', () => {
+    const t = flat();
+    const c = 24;
+    const top = topSolidCell(t.volume, c, c);
+    const none = applyBrush(t, [midM(c), midM(top), midM(c)], {
+      shape: 'sphere', mode: 'paint', radiusM: 1,
+    });
+    expect(none.changed).toBe(0);
+    const air = applyBrush(t, [midM(c), midM(top), midM(c)], {
+      shape: 'sphere', mode: 'paint', radiusM: 1, material: Material.Air,
+    });
+    expect(air.changed).toBe(0);
+    expect(topSolidCell(t.volume, c, c)).toBe(top);
+  });
+});
+
 describe('safety', () => {
   it('reports nothing when the brush misses the volume entirely', () => {
     const t = flat();

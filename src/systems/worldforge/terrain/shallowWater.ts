@@ -95,6 +95,16 @@ export class ShallowWaterField {
    */
   boundaryLedgerM3 = 0;
 
+  /**
+   * How freely this liquid flows, as a scale on the pipe acceleration.
+   *
+   * 1 is water. Mud sits near 0.2, lava near 0.05. This is a LIQUID property,
+   * not a tuning knob: everything else in the scheme — the caps, the limiter,
+   * conservation — is untouched, so a thick liquid levels out the same way
+   * water does, only slower.
+   */
+  flowScale = 1;
+
   constructor(n: number, cellM: number, bed?: Float32Array) {
     this.n = n;
     this.cellM = cellM;
@@ -163,7 +173,7 @@ export class ShallowWaterField {
     const cell = this.cellM;
     const area = cell * cell;
     // Acceleration of flow per unit of surface difference, from the pipe model.
-    const accel = (dt * G * PIPE_AREA) / cell;
+    const accel = (dt * G * PIPE_AREA * this.flowScale) / cell;
 
     let outflow = 0;
 

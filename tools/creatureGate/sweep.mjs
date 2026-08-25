@@ -14,6 +14,7 @@
 // browsers cannot install on this box (playwright-browsers-eloop).
 import { chromium } from 'playwright';
 import { mkdirSync } from 'fs';
+import { captureCanvas } from './captureCanvas.mjs';
 
 const [outDir, ...ids] = process.argv.slice(2);
 if (!outDir || ids.length === 0) {
@@ -60,8 +61,9 @@ try {
         c.position.set(ax * r, Math.min(r * elev, r * 3.2), az * r);
       }, [view.az[0], view.az[1], view.elev]);
       await page.waitForTimeout(350);
-      // Clip to the canvas: the dark page toolbar would read as mask pixels.
-      await page.locator('canvas').first().screenshot({ path: `${dir}/${view.name}.png` });
+      // Clip INSIDE the canvas: the page toolbar AND the canvas container's
+      // own dark rounded border both read as mask pixels (see captureCanvas.mjs).
+      await captureCanvas(page, `${dir}/${view.name}.png`);
     }
     console.log(`swept ${id}`);
   }

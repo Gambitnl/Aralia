@@ -402,6 +402,11 @@ export default defineConfig(async ({ mode, command }) => {
     // `import.meta.env.VITE_GEMINI_API_KEY` (set locally via .env for dev); the public
     // build ships no key and simply gates AI features off. See src/config/env.ts getApiKey().
     resolve: {
+      // Preserve symlinks so junctioned directories under src/ (e.g. src/data/spells -> public/data/spells)
+      // are treated as module paths in src/ and not canonicalized into public/.
+      // Without this, importing '@/data/spells/*.json' resolves to the realpath in public/ and triggers Vite's
+      // "Assets in public directory cannot be imported from JavaScript" warning spam during dev and build.
+      preserveSymlinks: true,
       dedupe: ['three', '@react-three/fiber', '@react-three/drei'],
       alias: {
         '@': path.resolve(__dirname, 'src'),

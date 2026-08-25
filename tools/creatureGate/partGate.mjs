@@ -26,7 +26,11 @@
 // every read names it and no capture carries a floor flag.
 import { execFileSync, spawnSync } from 'child_process';
 import { existsSync, readdirSync, readFileSync, writeFileSync } from 'fs';
-import { join } from 'path';
+import { dirname, join } from 'path';
+import { fileURLToPath } from 'url';
+
+/** This script's own directory — helper paths must not depend on the caller's cwd. */
+const HERE = dirname(fileURLToPath(import.meta.url));
 
 const [partDir, mode] = process.argv.slice(2);
 if (!partDir) {
@@ -75,7 +79,13 @@ if (mode === '--score') {
 }
 
 // ---------------------------------------------------------------- measure
-const shots = readdirSync(partDir).filter((n) => n.endsWith('.png') && !n.startsWith('blind-'));
+// Specimens only. The gate WRITES into the same directory it reads — the blind
+// sheet, and maskmetrics' own `_thumb24`/`_thumb48` crops — so a second run over
+// a directory measured its own leavings as if they were creatures, and the names
+// compounded (`sheet_thumb24_thumb24`) each time. Derived artifacts are named,
+// so exclude them by name rather than hoping nobody re-runs the gate.
+const DERIVED = /^blind-|^sheet[._]|_thumb\d+/;
+const shots = readdirSync(partDir).filter((n) => n.endsWith('.png') && !DERIVED.test(n));
 if (shots.length === 0) throw new Error(`partGate: no captures in ${partDir} — run partSweep.mjs first`);
 execFileSync('python', ['vendor/anyCreature/harness/maskmetrics.py', partDir, ...shots.map((s) => join(partDir, s))], {
   stdio: ['ignore', 'pipe', 'inherit'],
@@ -98,6 +108,57 @@ for (const shot of shots) {
   report[label] = { kind, flags, metrics: m };
   console.log(`${label.padEnd(14)} ${flags.length ? 'FLAG  ' + flags.join(' | ') : 'clean'}`);
 }
+// -------------------------------------------------------- specimen distinctness
+// WHY (2026-08-24): "metrics hold on three creatures" is the campaign's rule
+// because three specimens average out pose and proportion luck. A hands re-gate
+// that day passed 3/3 while TWO of its three specimens were the same mesh at the
+// same scale — drow and human hands disagreed by only 4.5% of silhouette pixels,
+// against 34-36% for the dwarf. A trio containing a duplicate pair is really two
+// samples, and nothing in the gate said so. It does now.
+//
+// Compared per KIND, on the mask silhouettes the reader actually sees: two
+// specimens that agree this closely are one specimen wearing two labels.
+const NEAR_DUPLICATE = 0.10; // disagreeing share of the union below which a pair is a duplicate
+
+// Resolved against THIS file, not the cwd. A cwd-relative path made the check
+// skip silently — printing "unavailable" — whenever the gate was run from
+// anywhere but the repo root, which is the same silent-skip the check exists to
+// stop. Missing python is still reported rather than guessed around.
+const DIFF_PY = join(HERE, 'silhouetteDiff.py');
+if (!existsSync(DIFF_PY)) {
+  console.log(`distinctness: ${DIFF_PY} not found; specimens NOT checked`);
+}
+// Pass the SPECIMEN list explicitly. Globbing the directory also swept up
+// maskmetrics' own intermediate crops (label_thumb24, and then
+// label_thumb24_thumb24 as they compounded across runs), so the check reported
+// duplicate pairs for the tool's scratch files instead of for the creatures.
+// The caller knows which captures are specimens; the helper should not guess.
+const distinct = spawnSync('python', [DIFF_PY, partDir, ...shots], {
+  encoding: 'utf8',
+});
+if (distinct.status === 0 && distinct.stdout.trim()) {
+  try {
+    const pairs = JSON.parse(distinct.stdout);
+    report.__distinctness = { threshold: NEAR_DUPLICATE, pairs };
+    const dupes = pairs.filter((p) => p.disagreement < NEAR_DUPLICATE);
+    for (const d of dupes) {
+      console.log(`DUPLICATE PAIR  ${d.a} vs ${d.b}: silhouettes disagree by only ${(d.disagreement * 100).toFixed(1)}%`);
+    }
+    if (dupes.length) {
+      console.log(
+        'WEAK TRIO: the three-creature rule averages out pose and proportion luck; '
+        + 'near-identical specimens do not. Pick creatures that differ in proportion.',
+      );
+      report.__distinctness.weak = true;
+    }
+  } catch {
+    // The helper printed something unparseable — say so rather than pass silently.
+    console.log('distinctness: could not parse silhouetteDiff output; specimens NOT checked');
+  }
+} else {
+  console.log('distinctness: silhouetteDiff.py unavailable; specimens NOT checked');
+}
+
 writeFileSync(reportPath, JSON.stringify(report, null, 1));
 
 // ---------------------------------------------------------------- blind sheet

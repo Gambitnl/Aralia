@@ -217,3 +217,26 @@ describe('cost', () => {
     expect(per).toBeLessThan(16);
   });
 });
+
+describe('flowScale', () => {
+  it('a thick liquid levels slower than water, and still conserves', () => {
+    const make = () => {
+      const f = new ShallowWaterField(24, 1);
+      // A column of liquid in the middle of a flat pan.
+      for (let z = 10; z < 14; z++) for (let x = 10; x < 14; x++) f.add(x, z, 2);
+      return f;
+    };
+    const water = make();
+    const mud = make();
+    mud.flowScale = 0.2;
+    const before = mud.volume();
+    for (let s = 0; s < 120; s++) {
+      water.step(1 / 60);
+      mud.step(1 / 60);
+    }
+    // The mud column is still taller than the water column.
+    expect(mud.depth[mud.idx(12, 12)]).toBeGreaterThan(water.depth[water.idx(12, 12)] + 0.1);
+    // And not a drop was made or lost by the scale.
+    expect(mud.volume() + mud.boundaryLedgerM3).toBeCloseTo(before, 4);
+  });
+});

@@ -19,7 +19,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { MagicInitiateSource } from '../../types';
-import { GlossaryIcon, GlossaryIconName } from '../Glossary/IconRegistry';
+import { ClassIcon } from '../../utils/classIcons';
 
 /**
  * Display metadata for each supported spellcasting class.
@@ -58,16 +58,6 @@ const SOURCE_INFO: Record<
     ability: 'Intelligence',
     flavour: 'Scholarly mastery of arcane formulae, honed through rigorous study.',
   },
-};
-
-/** Canonical icon per class — sourced from CLASS_ICONS in the design preview. */
-const SOURCE_ICON: Record<MagicInitiateSource, GlossaryIconName> = {
-  bard:     'music',
-  cleric:   'fa_hands_praying',
-  druid:    'leaf',
-  sorcerer: 'magic_staff',
-  warlock:  'fa_skull',
-  wizard:   'fa_hat_wizard',
 };
 
 /** Accent colours per class to distinguish them visually. */
@@ -147,7 +137,7 @@ const SpellSourceSelector: React.FC<SpellSourceSelectorProps> = ({
                     ${sigilBg} ${accentText}
                   `}
                 >
-                  <GlossaryIcon name={SOURCE_ICON[sourceId]} className="w-5 h-5" />
+                  <ClassIcon name={info.name} className="w-5 h-5" />
                 </div>
 
                 <div className="flex-1 min-w-0">

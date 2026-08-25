@@ -18,8 +18,7 @@
 import React from 'react';
 import { Class as CharClass } from '../../../types';
 import { BTN_PRIMARY } from '../../../styles/buttonStyles';
-import { GlossaryIcon } from '../../Glossary/IconRegistry';
-import { getClassIcon } from '../../../utils/classIcons';
+import { ClassIcon } from '../../../utils/classIcons';
 
 interface ClassDetailPaneProps {
   charClass: CharClass;
@@ -32,18 +31,9 @@ export const ClassDetailPane: React.FC<ClassDetailPaneProps> = ({ charClass, onS
       {/* Header */}
       <div className="flex justify-between items-start mb-4 border-b border-gray-700 pb-2">
         <div className="flex items-center gap-3">
-          {(() => {
-            // WHAT CHANGED: Added automated class icon resolution.
-            // WHY IT CHANGED: To improve visual scanability. Using the 
-            // centralized `getClassIcon` utility ensures that icons match 
-            // across the entire application (sidebar, review, and detail).
-            const iconName = getClassIcon(charClass.name);
-            return iconName ? (
-              <span className="text-amber-400/60">
-                <GlossaryIcon name={iconName} className="w-8 h-8" />
-              </span>
-            ) : null;
-          })()}
+          <span className="text-amber-400/80">
+            <ClassIcon name={charClass.name} className="w-8 h-8" />
+          </span>
           <h2 className="text-3xl font-bold text-amber-400 font-cinzel">
             {charClass.name}
           </h2>

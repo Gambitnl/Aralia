@@ -46,6 +46,27 @@ export interface FarShellGrid {
   heightsM: Float32Array;
   /** Linear RGB per sample (3 floats). */
   colors: Float32Array;
+  /**
+   * Window-relative metre rect the shell must NOT cover, or null for a shell
+   * that is drawn whole (the horizon ring).
+   *
+   * WHY A HOLE (2026-08-24, Remy: "what's all that GREEN bleeding through"):
+   * the region shell used to be a full ground surface drawn UNDER the streamed
+   * window as well as beyond it, tucked only `TUCK_M` = 0.7 m below the
+   * window's own terrain. Its samples are `REGION_STRIDE` apart — about 61 m —
+   * so between two of them the shell is a flat plane while the real ground
+   * undulates. A town FLATTENS its ground into building pads and terraces, and
+   * every dip deeper than 0.7 m below that coarse plane let the shell cut up
+   * through the detail terrain. It rendered as flat green polygons scattered
+   * over the town, and it covered the street ribbons it poked through, so the
+   * road network appeared to break up. (The same surface is what an earlier
+   * measurement wrote up as "the cut has no floor".)
+   *
+   * The window already has real terrain, so the shell has no business there.
+   * The renderer drops every quad that lies wholly inside this rect; quads that
+   * straddle the border are kept so the seam still closes.
+   */
+  holeM: { minX: number; minZ: number; maxX: number; maxZ: number } | null;
 }
 
 export interface FarShells {
@@ -221,7 +242,15 @@ export function buildRegionShell(
       bakeColor(colors, idx, riverMask[idx] ? WATER_N - 0.01 : n, elevFt, snowLineFt);
     }
   }
-  return { cols, rows, originXM, originZM, spacingM, heightsM, colors };
+  // The streamed window is the hole. Inset by one sample spacing so the quads
+  // that straddle the border survive and the seam still closes.
+  const holeM = {
+    minX: spacingM,
+    minZ: spacingM,
+    maxX: extentXM - spacingM,
+    maxZ: extentZM - spacingM,
+  };
+  return { cols, rows, originXM, originZM, spacingM, heightsM, colors, holeM };
 }
 
 /**
@@ -316,7 +345,7 @@ export function buildHorizonShell(
       bakeColor(colors, idx, n, elevFt, snowLineFt);
     }
   }
-  return { cols, rows, originXM, originZM, spacingM, heightsM, colors };
+  return { cols, rows, originXM, originZM, spacingM, heightsM, colors, holeM: null };
 }
 
 /** Assemble both shells. Pure; every input is plain data. */

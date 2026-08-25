@@ -71,6 +71,13 @@ export const enum Material {
   Ice = 15,
   Snow = 16,
   Water = 17,
+  /**
+   * The sandbox test pan. A painted bench substance whose soak rate the land
+   * page overrides at run time, so a person can dial "how fast does the ground
+   * drink" without pretending a real soil does it. Never placed by a biome
+   * stack.
+   */
+  TestPan = 18,
 }
 
 /** Cells per brick edge. 8 gives 512 cells, which fits a cache line run. */

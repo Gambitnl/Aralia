@@ -52,8 +52,7 @@ import { CreationStepLayout } from './ui/CreationStepLayout';
 import { SplitPaneLayout } from '../ui/SplitPaneLayout';
 import { Shield, Zap, BookOpen } from 'lucide-react';
 import { Button } from '../ui/Button';
-import { GlossaryIcon } from '../Glossary/IconRegistry';
-import { getClassIcon } from '../../utils/classIcons';
+import { ClassIcon } from '../../utils/classIcons';
 import { getAgeAdjustmentSummary } from './hooks/useCharacterAssembly';
 import type { PortraitGenerationStatus } from './state/characterCreatorState';
 
@@ -114,12 +113,9 @@ const NameAndReview: React.FC<NameAndReviewProps> = ({
     feats
   } = characterPreview;
 
-  const classIconName = getClassIcon(charClass.name);
-  // WHAT CHANGED: Integrated class icons into the review header.
-  // WHY IT CHANGED: To provide visual consistency across the UI. 
-  // Displaying the class icon next to the Level/Race/Class string 
-  // helps ground the character identity and aligns with the design 
-  // language used in the rest of the app.
+  // WHAT CHANGED: Integrated TW-D&D vector class icons into the review header.
+  // WHY IT CHANGED: Provides visual consistency across the Character Creator
+  // by displaying the canonical vector class silhouette next to the character summary.
 
   const allSpells = useContext(SpellContext);
   const isGeneratingPortrait = portrait.status === 'requesting' || portrait.status === 'polling';
@@ -258,11 +254,11 @@ const NameAndReview: React.FC<NameAndReviewProps> = ({
                     />
                   ) : (
                     <span
-                      className="text-4xl text-gray-400 group-hover:text-amber-500/50 transition-colors"
+                      className="text-gray-400 group-hover:text-amber-500/80 transition-colors flex items-center justify-center"
                       role="img"
                       aria-label={`${charClass.name} icon`}
                     >
-                      {fallbackPortraitGlyph}
+                      <ClassIcon name={charClass.name} className="w-12 h-12 text-amber-400/80 group-hover:text-amber-300 transition-colors" />
                     </span>
                   )}
 
@@ -393,7 +389,7 @@ const NameAndReview: React.FC<NameAndReviewProps> = ({
                   <h2 className="text-3xl font-bold text-amber-400 font-cinzel">{name || 'Unnamed Hero'}</h2>
                   <p className="text-gray-400 font-medium flex items-center gap-1.5">
                     Level 1 {getCharacterRaceDisplayString(characterPreview)}
-                    {classIconName && <GlossaryIcon name={classIconName} className="w-3.5 h-3.5 flex-shrink-0" />}
+                    <ClassIcon name={charClass.name} className="w-4 h-4 flex-shrink-0 text-amber-400" />
                     {charClass.name}
                   </p>
                 </div>

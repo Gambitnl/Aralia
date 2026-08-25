@@ -41,8 +41,7 @@ import { SplitPaneLayout } from '../../ui/SplitPaneLayout';
 import { ClassDetailPane } from './ClassDetailPane';
 import { SelectionListItem } from '../../ui/SelectionList';
 import { Button } from '../../ui/Button';
-import { GlossaryIcon } from '../../Glossary/IconRegistry';
-import { getClassIcon } from '../../../utils/classIcons';
+import { ClassIcon } from '../../../utils/classIcons';
 
 interface ClassSelectionProps {
   classes: CharClass[];
@@ -83,18 +82,16 @@ const ClassSelection: React.FC<ClassSelectionProps> = ({
         controls={
           <div className="space-y-2">
             {sortedClasses.map((charClass) => {
-              // WHAT CHANGED: Added icon resolution to the list mapper.
-              // WHY IT CHANGED: To provide immediate visual context in 
-              // the selection list, aligning with the design goal of 
-              // making class identities feel distinct through iconography.
-              const iconName = getClassIcon(charClass.name);
+              // WHAT CHANGED: Integrated TW-D&D vector class icons.
+              // WHY IT CHANGED: Vector SVG silhouettes provide crisp, high-detail
+              // thematic recognition for each class in the selection list.
               return (
                 <SelectionListItem
                   key={charClass.id}
                   label={charClass.name}
                   selected={effectiveClassId === charClass.id}
                   onClick={() => setSelectedClassId(charClass.id)}
-                  icon={iconName ? <GlossaryIcon name={iconName} className="w-4 h-4" /> : undefined}
+                  icon={<ClassIcon name={charClass.name} className="w-4 h-4 text-amber-400/80 group-hover:text-amber-300" />}
                 />
               );
             })}

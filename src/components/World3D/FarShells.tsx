@@ -29,10 +29,28 @@ function buildShellGeometry(
       positions[idx * 3 + 2] = grid.originZM + row * spacingM - origin.z;
     }
   }
+  // HOLE (2026-08-24): drop every quad that lies wholly inside the streamed
+  // window. The window has real terrain there, and the shell's samples are ~61 m
+  // apart, so under a town — whose ground is flattened into pads — the coarse
+  // shell plane cut UP through the detail terrain and rendered as flat green
+  // patches over the streets. Quads that straddle the border are kept, so the
+  // seam still closes and no gap opens at the window edge.
+  const hole = grid.holeM;
+  const insideHole = (col: number, row: number): boolean => {
+    if (!hole) return false;
+    const x = grid.originXM + col * spacingM;
+    const z = grid.originZM + row * spacingM;
+    return x >= hole.minX && x <= hole.maxX && z >= hole.minZ && z <= hole.maxZ;
+  };
+
   const indices = new Uint32Array((cols - 1) * (rows - 1) * 6);
   let w = 0;
   for (let row = 0; row < rows - 1; row++) {
     for (let col = 0; col < cols - 1; col++) {
+      if (
+        insideHole(col, row) && insideHole(col + 1, row)
+        && insideHole(col, row + 1) && insideHole(col + 1, row + 1)
+      ) continue;
       const a = row * cols + col;
       const b = a + 1;
       const c = a + cols;
@@ -45,7 +63,8 @@ function buildShellGeometry(
   const geometry = new THREE.BufferGeometry();
   geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
   geometry.setAttribute('color', new THREE.BufferAttribute(new Float32Array(colors), 3));
-  geometry.setIndex(new THREE.BufferAttribute(indices, 1));
+  // `w` is the USED index count; the buffer was sized for a full grid.
+  geometry.setIndex(new THREE.BufferAttribute(indices.subarray(0, w), 1));
   geometry.computeVertexNormals();
   return geometry;
 }

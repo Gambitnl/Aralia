@@ -23,7 +23,7 @@ import { Material, VoxelVolume } from './voxelVolume';
 import { GroundBand, DEFAULT_STACK, substanceAtDepth } from './materials';
 
 export type BrushShape = 'sphere' | 'box' | 'ditch' | 'hill';
-export type BrushMode = 'dig' | 'raise';
+export type BrushMode = 'dig' | 'raise' | 'paint';
 
 export interface Brush {
   shape: BrushShape;
@@ -36,6 +36,10 @@ export interface Brush {
   lengthM?: number;
   /** Which way a ditch runs. */
   axis?: 'x' | 'z';
+  /** What `paint` writes. Required for paint; ignored by dig and raise. */
+  material?: Material;
+  /** How deep below the surface `paint` rewrites, meters. Default 1.5. */
+  paintDepthM?: number;
 }
 
 export interface BrushTarget {
@@ -120,6 +124,43 @@ export function applyBrush(
   // substance for that depth. Writing the final material here is impossible,
   // because a column's new top is not known until its last cell is placed.
   const FILL = Material.Subsoil;
+
+  if (brush.mode === 'paint') {
+    /* PAINT: change what the ground IS, not where it is.
+     *
+     * Surface-relative, like the ditch: a circular footprint, and each column
+     * rewrites its own top few cells to the chosen substance. No cell changes
+     * between solid and air, so the terrain SHAPE is untouched — the caller's
+     * remesh recolors the window and the water bed re-reads its soak rate, and
+     * that is the whole edit. Air columns are skipped: paint cannot conjure
+     * ground where there is none.
+     *
+     * The cap is thin on purpose. A dig through a painted patch should meet
+     * the true strata a cell or two down, so the paint reads as a surface
+     * treatment rather than a bottomless material swap. */
+    const mat = brush.material;
+    if (mat === undefined || mat === Material.Air) {
+      return { changed: 0, min: [0, 0, 0], max: [-1, -1, -1] };
+    }
+    const deep = Math.max(1, Math.round((brush.paintDepthM ?? 1.5) / cellHM));
+    for (let z = cz - r; z <= cz + r; z++) {
+      for (let x = cx - r; x <= cx + r; x++) {
+        if (x < 0 || z < 0 || x >= n || z >= n) continue;
+        const dx = (x - cx) / (r + 0.5);
+        const dz = (z - cz) / (r + 0.5);
+        if (dx * dx + dz * dz > 1) continue;
+        const top = topSolidCell(volume, x, z);
+        if (top < 0) continue;
+        for (let y = top; y > Math.max(-1, top - deep); y--) {
+          write(x, y, z, mat);
+        }
+      }
+    }
+    // Painted cells are the final material; the layered second pass below
+    // would overwrite them with the biome stack, so return before it.
+    if (changed === 0) return { changed: 0, min: [0, 0, 0], max: [-1, -1, -1] };
+    return { changed, min, max };
+  }
 
   if (brush.shape === 'sphere' || brush.shape === 'box') {
     for (let y = cy - rY; y <= cy + rY; y++) {

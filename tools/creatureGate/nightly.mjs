@@ -36,16 +36,30 @@ execFileSync('node', ['tools/creatureGate/gate.mjs', sweepDir], { stdio: 'inheri
 // 2. fixed part roster (three races, the campaign parts)
 const partDir = join(outRoot, `parts-${date}`);
 // three creatures per campaign part kind — the gate's pass bar (2026-08-24)
+// PART LAB SOLO, not Entity Debug focus (2026-08-24). A job carrying `solo=`
+// routes partSweep to the Part Lab, which renders the part ALONE and framed;
+// without it the job goes to Entity Debug's pin-follow camera, which keeps the
+// whole body in shot. The two disagree badly: on the same geometry the same
+// day, the dwarf hand read 2 protrusions through Entity Debug (flagged "no
+// digits", which by this loop's rule reopened the hands campaign) and 6 through
+// the Part Lab (clean). The campaign gates parts on solo renders, so the
+// regression loop must measure the same thing or it manufactures regressions.
+// POSE PINNED (`speed=0`). The procedural driver advances on a live clock
+// (`t.current += dt * speed`), so a capture fires at whatever animation phase
+// the page happened to reach. The same dwarf hand read 6 protrusions, then 2,
+// then 1, then 0 across runs — pure phase luck, not geometry, and it flagged
+// "no digits" often enough to reopen a closed campaign. speed=0 holds t at 0,
+// so the gate measures ONE reproducible pose.
 const roster = [
-  'dwarf-hand:race=hill_dwarf&class=fighter:handL',
-  'drow-hand:race=drow&class=wizard:handL',
-  'human-hand:race=beastborn_human&class=fighter:handL',
-  'dwarf-face:race=hill_dwarf&class=fighter:face',
-  'drow-face:race=drow&class=wizard:face',
-  'human-face:race=beastborn_human&class=fighter:face',
-  'dwarf-foot:race=hill_dwarf&class=fighter:foot',
-  'drow-foot:race=drow&class=wizard:foot',
-  'human-foot:race=beastborn_human&class=fighter:foot',
+  'dwarf-hand:race=hill_dwarf&class=fighter&solo=hand&soloSide=R&stage=mask&speed=0:handR',
+  'drow-hand:race=drow&class=wizard&solo=hand&soloSide=R&stage=mask&speed=0:handR',
+  'human-hand:race=beastborn_human&class=fighter&solo=hand&soloSide=R&stage=mask&speed=0:handR',
+  'dwarf-face:race=hill_dwarf&class=fighter&solo=head&stage=mask&speed=0:head',
+  'drow-face:race=drow&class=wizard&solo=head&stage=mask&speed=0:head',
+  'human-face:race=beastborn_human&class=fighter&solo=head&stage=mask&speed=0:head',
+  'dwarf-foot:race=hill_dwarf&class=fighter&solo=foot&soloSide=R&stage=mask&speed=0:footR',
+  'drow-foot:race=drow&class=wizard&solo=foot&soloSide=R&stage=mask&speed=0:footR',
+  'human-foot:race=beastborn_human&class=fighter&solo=foot&soloSide=R&stage=mask&speed=0:footR',
 ];
 execFileSync('node', ['tools/creatureGate/partSweep.mjs', partDir, ...roster], { stdio: 'inherit' });
 // part-specific floors + the blind sheet; the blind READ stays agent-driven

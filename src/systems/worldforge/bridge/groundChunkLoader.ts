@@ -3594,6 +3594,24 @@ export function buildGroundVegetation(
 const EDGE_FALL_M = 256;
 const EDGE_DROP_H = 14;
 
+/**
+ * Trodden town earth. Warm, desaturated, and clearly browner than any grass
+ * biome, so the pale street ribbons laid over it read as PAVING rather than as
+ * lighter grass. Deliberately NOT the street tint — ground and paving must
+ * separate, which is the same rule the 2D map and the 3D minimap follow.
+ */
+const TOWN_FLOOR_RGB: [number, number, number] = [0.42, 0.36, 0.27];
+
+/** How far past the town ring the bare ground fades back to wild biome. */
+const TOWN_FLOOR_FEATHER_M = 26;
+
+/**
+ * How completely the town overrides its biome. Below 1 so a town on moor,
+ * marsh or red desert keeps a trace of where it stands instead of every
+ * settlement in the world sharing one identical brown.
+ */
+const TOWN_FLOOR_STRENGTH = 0.88;
+
 function edgeFalloffT(
   worldX: number,
   worldZ: number,
@@ -3669,6 +3687,9 @@ export function sampleGroundChunk(
   const h = (xx: number, yy: number) => H[yy * cols + xx] ?? 0;
 
   const HAZE_RGB: [number, number, number] = [0.64, 0.67, 0.64];
+  // The town's own rings, reused as the bare-ground mask (see the town-floor
+  // blend in pass 2). Empty for a window with no settlement in it.
+  const townFloors = ground.townKeepOuts ?? [];
   const extentX = cols * GROUND_METERS_PER_CELL;
   const extentZ = rows * GROUND_METERS_PER_CELL;
 
@@ -3748,6 +3769,37 @@ export function sampleGroundChunk(
         r += (SNOW_RGB[0] - r) * t;
         g += (SNOW_RGB[1] - g) * t;
         b += (SNOW_RGB[2] - b) * t;
+      }
+
+      // TOWN FLOOR (2026-08-24, Remy: "what's all that GREEN bleeding through").
+      //
+      // A town's ground was whatever biome it stood on — pasture. Measured on
+      // Hafting, 49.4% of the floor inside the built radius had NOTHING painted
+      // on it: street ribbons covered 30%, buildings 21%, and the rest rendered
+      // as bright meadow grass between the houses. That is not only wrong in
+      // itself; it is why the streets stopped reading. Every one of them was
+      // present in the bake (0 of 89 dropped), but a pale ribbon with vivid
+      // grass on both sides has nothing to separate it from its surroundings,
+      // so the network broke into disconnected strips.
+      //
+      // Feet wear ground bare. Inside the town the biome tint blends toward
+      // trodden earth, feathering out over TOWN_FLOOR_FEATHER_M so the town does
+      // not end on a hard contour. `townClearance` returns 0 inside the ring and
+      // ramps to 1 across the margin, so `1 - clearance` is the town mask — the
+      // same ring the vegetation keep-out already uses, so bare ground and
+      // cleared trees can never disagree about where the town is.
+      if (townFloors.length > 0) {
+        const tz2 = resolution === 1 ? 0 : j / (resolution - 1);
+        const tx2 = resolution === 1 ? 0 : i / (resolution - 1);
+        const wx = (cx + tx2) * S;
+        const wz = (cy + tz2) * S;
+        const townT = 1 - townClearance(wx, wz, townFloors, TOWN_FLOOR_FEATHER_M);
+        if (townT > 0) {
+          const t = townT * TOWN_FLOOR_STRENGTH;
+          r += (TOWN_FLOOR_RGB[0] - r) * t;
+          g += (TOWN_FLOOR_RGB[1] - g) * t;
+          b += (TOWN_FLOOR_RGB[2] - b) * t;
+        }
       }
 
       // Window edge → haze (atmospheric fade of the falling-away horizon).
