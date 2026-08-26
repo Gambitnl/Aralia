@@ -8,6 +8,8 @@ import React, { useEffect, useRef } from 'react';
 import { PlayerCharacter, Skill as SkillType } from '../../../types';
 import { SKILLS_DATA } from '../../../data/skills';
 import { getAbilityModifierValue } from '../../../utils/character';
+import { SkillIcon } from '../../../utils/skillIcons';
+import { ProficiencyIcon } from '../../../utils/proficiencyIcons';
 import { Z_INDEX } from '../../../styles/zIndex';
 import Tooltip from '../../ui/Tooltip';
 // Inline glossary tooltips live under the Glossary folder
@@ -126,14 +128,24 @@ const SkillDetailDisplay: React.FC<SkillDetailDisplayProps> = ({ isOpen, onClose
                 return (
                   <tr key={skill.id} className={alternatingRowClass}>
                     <td className={`${tableCellClass} font-medium text-amber-200`}>
-                      {skill.name} <span className="text-xs text-gray-400">({skill.ability.substring(0, 3)})</span>
+                      <span className="inline-flex items-center gap-1.5">
+                        <SkillIcon name={skill.id} className="w-4 h-4 text-amber-300 shrink-0" />
+                        <span>{skill.name}</span>
+                        <span className="text-xs text-gray-400">({skill.ability.substring(0, 3)})</span>
+                      </span>
                     </td>
                     <td className={`${tableCellClass} text-center`}>{abilityModifier >= 0 ? '+' : ''}{abilityModifier}</td>
                     <td className={`${tableCellClass} text-center`}>
-                      {isProficient ? <span className="text-green-400">+{PROFICIENCY_BONUS_VALUE}</span> : <span className="text-gray-400">N/A</span>}
+                      <span className="inline-flex items-center justify-center gap-1.5">
+                        <ProficiencyIcon level={isProficient ? 'proficient' : 'unskilled'} className={`w-3.5 h-3.5 ${isProficient ? 'text-green-400' : 'text-gray-600'}`} />
+                        {isProficient ? <span className="text-green-400">+{PROFICIENCY_BONUS_VALUE}</span> : <span className="text-gray-400">N/A</span>}
+                      </span>
                     </td>
                     <td className={`${tableCellClass} text-center text-gray-400`}>
-                      {expertiseBonus > 0 ? <span className="text-green-400">+{expertiseBonus}</span> : 'N/A'}
+                      <span className="inline-flex items-center justify-center gap-1.5">
+                        <ProficiencyIcon level={expertiseBonus > 0 ? 'expertise' : 'unskilled'} className={`w-3.5 h-3.5 ${expertiseBonus > 0 ? 'text-green-400' : 'text-gray-600'}`} />
+                        {expertiseBonus > 0 ? <span className="text-green-400">+{expertiseBonus}</span> : 'N/A'}
+                      </span>
                     </td>
                     <td className={`${tableCellClass} text-center font-bold ${totalBonus >= 0 ? 'text-green-300' : 'text-red-300'}`}>
                       {totalBonus >= 0 ? '+' : ''}{totalBonus}

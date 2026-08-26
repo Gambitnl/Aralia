@@ -1,6 +1,7 @@
 import React from 'react';
 import { AbilityScores, Race, AbilityScoreName, Class as CharClass } from '../../types';
 import { ABILITY_SCORE_NAMES } from '../../constants';
+import { AbilityScoreIcon } from '../../utils/abilityIcons';
 
 interface CharacterStatBlockProps {
   baseScores: AbilityScores;
@@ -42,9 +43,12 @@ const CharacterStatBlock: React.FC<CharacterStatBlockProps> = ({
                 {ability.charAt(0)}
               </span>
 
-              <h3 className={`font-cinzel font-bold text-lg mb-1 z-[var(--z-index-content-overlay-low)] ${isPrimary ? 'text-amber-400' : 'text-gray-400'}`}>
-                {ability.toUpperCase()}
-              </h3>
+              <div className="flex items-center gap-2 mb-1 z-[var(--z-index-content-overlay-low)]">
+                <AbilityScoreIcon name={ability} className={`w-5 h-5 ${isPrimary ? 'text-amber-400' : 'text-gray-400'}`} />
+                <h3 className={`font-cinzel font-bold text-lg ${isPrimary ? 'text-amber-400' : 'text-gray-400'}`}>
+                  {ability.toUpperCase()}
+                </h3>
+              </div>
               
               <div className="text-4xl font-black text-white z-[var(--z-index-content-overlay-low)] mb-1">
                 {final}

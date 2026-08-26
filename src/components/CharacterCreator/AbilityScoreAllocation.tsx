@@ -33,6 +33,7 @@ import { Button } from '../ui/Button';
 import { CreationStepLayout } from './ui/CreationStepLayout';
 import { SplitPaneLayout } from '../ui/SplitPaneLayout';
 import CharacterStatBlock from './CharacterStatBlock';
+import { AbilityScoreIcon } from '../../utils/abilityIcons';
 
 interface AbilityScoreAllocationProps {
   race: Race;
@@ -190,9 +191,12 @@ const AbilityScoreAllocation: React.FC<AbilityScoreAllocationProps> = ({
                       className={`p-3 bg-gray-800 rounded-lg border ${isFeedbackTarget ? 'border-amber-500 ring-1 ring-amber-500' : 'border-gray-700'}`}
                     >
                       <div className="flex justify-between items-center mb-2">
-                        <span className={`font-semibold ${isSpellcastingAbility ? 'text-purple-300' : 'text-gray-300'}`}>
-                          {abilityName}
-                        </span>
+                        <div className="flex items-center gap-2">
+                          <AbilityScoreIcon name={abilityName} className={`w-5 h-5 ${isSpellcastingAbility ? 'text-purple-300' : 'text-amber-400'}`} />
+                          <span className={`font-semibold ${isSpellcastingAbility ? 'text-purple-300' : 'text-gray-300'}`}>
+                            {abilityName}
+                          </span>
+                        </div>
                         <span className="text-xs text-gray-500 font-mono">
                           {ABILITY_SCORE_COST[currentBaseScore]} pts
                         </span>

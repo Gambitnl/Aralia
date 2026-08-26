@@ -23,6 +23,8 @@ import React from 'react';
 import { PlayerCharacter, Skill as SkillType } from '../../../types';
 import { SKILLS_DATA } from '../../../data/skills';
 import { getAbilityModifierValue } from '../../../utils/character';
+import { SkillIcon } from '../../../utils/skillIcons';
+import { ProficiencyIcon } from '../../../utils/proficiencyIcons';
 import Tooltip from '../../ui/Tooltip';
 import GlossaryTooltip from '../../Glossary/GlossaryTooltip';
 
@@ -85,7 +87,8 @@ const SkillsTab: React.FC<SkillsTabProps> = ({ character, onNavigateToGlossary }
                         <div key={skill.id} className="rounded-lg border border-gray-700 bg-gray-800/80 p-3">
                             <div className="mb-2 flex items-start justify-between gap-3">
                                 <div>
-                                    <p className="text-sm font-semibold text-amber-200">
+                                    <p className="text-sm font-semibold text-amber-200 flex items-center gap-1.5">
+                                        <SkillIcon name={skill.id} className="w-4 h-4 text-amber-300 shrink-0" />
                                         {skill.name} <span className="text-xs text-gray-400">({skill.ability.substring(0, 3)})</span>
                                     </p>
                                     {advantageTooltip ? (
@@ -111,7 +114,8 @@ const SkillsTab: React.FC<SkillsTabProps> = ({ character, onNavigateToGlossary }
                                     <GlossaryTooltip termId="proficiency_bonus" onNavigateToGlossary={onNavigateToGlossary}>
                                         <span className="block text-gray-400 underline decoration-dotted cursor-help">Prof.</span>
                                     </GlossaryTooltip>
-                                    <span className={isProficient ? 'font-semibold text-green-400' : 'text-gray-400'}>
+                                    <span className={`inline-flex items-center gap-1 ${isProficient ? 'font-semibold text-green-400' : 'text-gray-400'}`}>
+                                        <ProficiencyIcon level={isProficient ? 'proficient' : 'unskilled'} className={`w-3 h-3 ${isProficient ? 'text-green-400' : 'text-gray-600'}`} />
                                         {isProficient ? `+${profBonus}` : '-'}
                                     </span>
                                 </div>
@@ -119,7 +123,8 @@ const SkillsTab: React.FC<SkillsTabProps> = ({ character, onNavigateToGlossary }
                                     <GlossaryTooltip termId="expertise" onNavigateToGlossary={onNavigateToGlossary}>
                                         <span className="block text-gray-400 underline decoration-dotted cursor-help">Expert</span>
                                     </GlossaryTooltip>
-                                    <span className={expertiseBonus > 0 ? 'font-semibold text-green-400' : 'text-gray-400'}>
+                                    <span className={`inline-flex items-center gap-1 ${expertiseBonus > 0 ? 'font-semibold text-green-400' : 'text-gray-400'}`}>
+                                        <ProficiencyIcon level={expertiseBonus > 0 ? 'expertise' : 'unskilled'} className={`w-3 h-3 ${expertiseBonus > 0 ? 'text-green-400' : 'text-gray-600'}`} />
                                         {expertiseBonus > 0 ? `+${expertiseBonus}` : '-'}
                                     </span>
                                 </div>
@@ -152,22 +157,32 @@ const SkillsTab: React.FC<SkillsTabProps> = ({ character, onNavigateToGlossary }
                             {skillRows.map(({ skill, abilityModifier, isProficient, expertiseBonus, totalBonus, advantageNotes, advantageTooltip }) => (
                                 <tr key={skill.id} className={alternatingRowClass}>
                                     <td className={`${tableCellClass} font-medium text-amber-200`}>
-                                        {skill.name} <span className="text-xs text-gray-400">({skill.ability.substring(0, 3)})</span>
+                                        <span className="inline-flex items-center gap-1.5">
+                                            <SkillIcon name={skill.id} className="w-4 h-4 text-amber-300 shrink-0" />
+                                            <span>{skill.name}</span>
+                                            <span className="text-xs text-gray-400">({skill.ability.substring(0, 3)})</span>
+                                        </span>
                                     </td>
                                     <td className={`${tableCellClass} text-center`}>
                                         {abilityModifier >= 0 ? '+' : ''}{abilityModifier}
                                     </td>
                                     <td className={`${tableCellClass} text-center`}>
-                                        {isProficient ? (
-                                            <span className="text-green-400">+{profBonus}</span>
-                                        ) : (
-                                            <span className="text-gray-400">-</span>
-                                        )}
+                                        <span className="inline-flex items-center justify-center gap-1.5">
+                                            <ProficiencyIcon level={isProficient ? 'proficient' : 'unskilled'} className={`w-3.5 h-3.5 ${isProficient ? 'text-green-400' : 'text-gray-600'}`} />
+                                            {isProficient ? (
+                                                <span className="text-green-400">+{profBonus}</span>
+                                            ) : (
+                                                <span className="text-gray-400">-</span>
+                                            )}
+                                        </span>
                                     </td>
                                     <td className={`${tableCellClass} text-center text-gray-500`}>
-                                        {expertiseBonus > 0 ? (
-                                            <span className="text-green-400">+{expertiseBonus}</span>
-                                        ) : '-'}
+                                        <span className="inline-flex items-center justify-center gap-1.5">
+                                            <ProficiencyIcon level={expertiseBonus > 0 ? 'expertise' : 'unskilled'} className={`w-3.5 h-3.5 ${expertiseBonus > 0 ? 'text-green-400' : 'text-gray-600'}`} />
+                                            {expertiseBonus > 0 ? (
+                                                <span className="text-green-400">+{expertiseBonus}</span>
+                                            ) : '-'}
+                                        </span>
                                     </td>
                                     <td className={`${tableCellClass} text-center font-bold ${totalBonus >= 0 ? 'text-green-300' : 'text-red-300'}`}>
                                         {totalBonus >= 0 ? '+' : ''}{totalBonus}

@@ -7,6 +7,7 @@ import React, { useState } from 'react';
 import { AbilityScores } from '../../../types'; 
 import { SKILLS_DATA } from '../../../data/skills';
 import { CreationStepLayout } from '../ui/CreationStepLayout';
+import { SkillIcon } from '../../../utils/skillIcons';
 
 interface HumanSkillSelectionProps {
   abilityScores: AbilityScores; 
@@ -54,13 +55,16 @@ const HumanSkillSelection: React.FC<HumanSkillSelectionProps> = ({ abilityScores
             }`}
             aria-pressed={selectedSkillId === skill.id}
           >
-            <div className="flex flex-col">
-              <span className="font-bold text-gray-100">{skill.name}</span>
-              <div className="flex justify-between items-center mt-1">
-                <span className="text-[10px] text-gray-500 uppercase font-bold tracking-tighter">{skill.ability}</span>
-                <span className={`text-xs font-bold ${getAbilityModifier(abilityScores[skill.ability]) >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                  {getAbilityModifier(abilityScores[skill.ability]) >= 0 ? '+' : ''}{getAbilityModifier(abilityScores[skill.ability])}
-                </span>
+            <div className="flex items-center gap-3">
+              <SkillIcon name={skill.id} className="w-6 h-6 text-sky-400 shrink-0" />
+              <div className="flex flex-col flex-1 min-w-0">
+                <span className="font-bold text-gray-100">{skill.name}</span>
+                <div className="flex justify-between items-center mt-1">
+                  <span className="text-[10px] text-gray-500 uppercase font-bold tracking-tighter">{skill.ability}</span>
+                  <span className={`text-xs font-bold ${getAbilityModifier(abilityScores[skill.ability]) >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                    {getAbilityModifier(abilityScores[skill.ability]) >= 0 ? '+' : ''}{getAbilityModifier(abilityScores[skill.ability])}
+                  </span>
+                </div>
               </div>
             </div>
           </button>

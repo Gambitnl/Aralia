@@ -6778,7 +6778,7 @@
    "campaign": "world",
    "status": "active",
    "tier": "component",
-   "updated": "2026-08-25",
+   "updated": "2026-08-26",
    "deps": [],
    "open": 1,
    "features": [
@@ -6840,13 +6840,143 @@
      }
     },
     {
-     "title": "Brush cursor ring: draped 64-point circle at the pointer, sized to the brush, substance-tinted for paint",
+     "title": "Brush cursor ring: draped circle at the pointer + paint-depth skirt (1.5 m X-ray band with a hem line)",
      "status": "done",
      "history": {
       "built": "2026-08-25"
      }
+    },
+    {
+     "title": "Controls deck behind a cog, as an overlay window: opening it floats over the ground and never shrinks the canvas",
+     "status": "done",
+     "history": {
+      "built": "2026-08-25"
+     }
+    },
+    {
+     "title": "Reset button: rebuild the scene from its default start (clears the survival blob)",
+     "status": "done",
+     "history": {
+      "built": "2026-08-25"
+     }
+    },
+    {
+     "title": "True tool footprints on the cursor: square for boxes, the 8:1 ellipse for hill and ditches",
+     "status": "done",
+     "history": {
+      "built": "2026-08-25"
+     }
+    },
+    {
+     "title": "Pick ground + temporary substance swap: eyedropper, masked swap across the volume, exact Revert",
+     "status": "done",
+     "history": {
+      "built": "2026-08-25"
+     }
+    },
+    {
+     "title": "Land thickness slider (16 m to the cell-budget ceiling), committed on release",
+     "status": "done",
+     "history": {
+      "built": "2026-08-25"
+     }
+    },
+    {
+     "title": "Camera ground anchor: orbit target re-lands on the terrain after each gesture (fixes the crawling zoom)",
+     "status": "done",
+     "note": "Built from the mechanism; needs Remy hand-feel confirmation.",
+     "history": {
+      "built": "2026-08-25"
+     }
+    },
+    {
+     "title": "Spring spawns west of the crater + X-ray twin marker visible through water",
+     "status": "done",
+     "history": {
+      "built": "2026-08-25"
+     }
+    },
+    {
+     "title": "World3D layer toggles: per-layer visibility (trees, bushes, grass, understory, water, buildings, roads, walls, props, agents) + chip strip on the town3d LAND pane",
+     "status": "done",
+     "note": "visible-flag groups, instant, no rebuild; World3DScene accepts layers on every surface.",
+     "history": {
+      "built": "2026-08-25"
+     }
+    },
+    {
+     "title": "PreviewVolumeGround modularized: 6,937 -> 3,320 lines + 14 modules under steps/land/ (Opus agent; zero lines lost, live proof green)",
+     "status": "done",
+     "history": {
+      "built": "2026-08-25"
+     }
+    },
+    {
+     "title": "Ocean-skin blocky-shore fix: sheen and foam fade to zero at the fringe (wEdge depth ramp), shores dissolve again",
+     "status": "done",
+     "note": "Remy caught hard cell-block pond edges under the new ocean default; the sheen alpha floor had defeated the shoreline fade.",
+     "history": {
+      "built": "2026-08-25"
+     }
+    },
+    {
+     "title": "Depth read never reaches the screen: 37.2 m of water draws the same pale cyan as a 10 cm film, so a filled hole reads as a skin",
+     "status": "planned",
+     "note": "Remy 2026-08-25. The sheet IS rendered (__waterDebug: compiled, 114,456 indices, surface 36.5 m above ground top) — his \"not rendered\" hypothesis was disproved. Shader math is right: 1-exp(-37*1.1) saturates, so it must resolve to deep #194654. Switching the preset to sea darkens it immediately, proving the color tracks the SHALLOW endpoint. Two depth-blind suspects named, not isolated: constant emissive (waterLook.ts:123, intensity 0.22) and a hemisphere light at 5.0 (PreviewVolumeGround.tsx:3052). The Daylight slider separates them — emissive survives darkness, scene light does not. NOTE the page opens on ocean skin + pond, not sandbox.",
+     "decision": true
     }
    ]
+  },
+  {
+   "id": "water-modes-catalog",
+   "title": "Water modes catalog",
+   "sub": "BUILT 2026-08-26: one page indexing ALL 32 water modes in the repo — how each works, which files hold it, a capture, and a link that opens it live. Reached from the \"All water modes\" button on ?step=water, or ?step=water&modes=1",
+   "campaign": "tooling",
+   "status": "done",
+   "tier": "component",
+   "updated": "2026-08-26",
+   "deps": [],
+   "features": [
+    {
+     "title": "The record: 32 modes across five families (processor 6, graphics card 4, drawn in 3D 11, 2D map 6, data-only 5) — 21 live, 7 parked, 4 retired",
+     "status": "done",
+     "note": "Every file path confirmed to exist before it was written down. Statuses derived from real importers plus each file header’s own claim.",
+     "history": {
+      "built": "2026-08-26"
+     }
+    },
+    {
+     "title": "Overlay page: grouped index, family and status filters, one card per mode",
+     "status": "done",
+     "history": {
+      "built": "2026-08-26"
+     }
+    },
+    {
+     "title": "No-fallback rule on both axes: a card with no capture says so and never shows a stand-in; a card with no reachable surface gets a disabled control and a reason",
+     "status": "done",
+     "note": "The live viewer opens the REAL design step in a new tab. No second renderer, because a copy drifts and then the catalog is confidently wrong.",
+     "history": {
+      "built": "2026-08-26"
+     }
+    },
+    {
+     "title": "Re-runnable capture rig (tools/waterShots/shoot.mjs) writing public/water-modes/",
+     "status": "done",
+     "note": "Two traps fixed, both of which produced a convincing WRONG picture rather than an error: the design page keeps other step windows mounted, so the biggest canvas was a stale atlas; and a loose \"Start\" match hit the Start Point nav button. Both fixed by scoping to #window-design-preview-window-<step>.",
+     "history": {
+      "built": "2026-08-26"
+     }
+    },
+    {
+     "title": "Captures for the remaining modes: coastal/river town for world water, a dungeon with liquid cells, and the three WebGPU modes",
+     "status": "planned",
+     "note": "The rig reaches every step; the scenes it landed on had no water in frame. Needs seed or burg selection per recipe."
+    }
+   ],
+   "history": {
+    "built": "2026-08-26"
+   }
   }
  ]
 }

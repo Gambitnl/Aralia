@@ -1,6 +1,6 @@
 # UI Modals Domain
 
-Verified: 2026-08-17
+Verified: 2026-08-26
 
 ## Purpose
 
@@ -75,5 +75,15 @@ extraction is now simpler:
 
 GG-116 is done (2026-08-17): the dead `ThreeDModal` lazy import was removed
 from `GameModals.tsx` and the orphaned `ThreeDModal.tsx` module (plus its `.d.ts`
-sibling) was deleted after confirming zero references. `Scene3D` and the other
-`ThreeDModal/` components remain — `Scene3D` feeds the Battle Map 3D surface.
+sibling) was deleted after confirming zero references.
+
+Re-verified 2026-08-26: nothing in `src/` imports `ThreeDModal/Scene3D` or any
+remaining `ThreeDModal/` component. The earlier claim that "`Scene3D` feeds the
+Battle Map 3D surface" was stale — the Battle Map 3D surface is fed by
+`src/components/BattleMap/BattleMap3D.tsx` and its own `OpeningThreatScene3D`,
+not by `ThreeDModal/`. The clock-capable sky pieces (`TakramSkySystem` +
+`lighting.ts`) were extracted to `src/components/World3D/sky/` so the
+stars/moon/volumetric-cloud capability survives for a future World3D night-sky
+port; `Scene3D` imports them from the new home. The remainder of
+`src/components/ThreeDModal/` (Scene3D included) is orphaned pending a
+keep-or-delete decision.

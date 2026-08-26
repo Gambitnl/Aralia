@@ -9,6 +9,7 @@ import { motion, MotionProps } from 'framer-motion';
 import { AbilityScoreName, AbilityScores, Class as CharClass } from '../../../types';
 import { RELEVANT_SPELLCASTING_ABILITIES } from '../../../constants';
 import { getAbilityModifierString } from '../../../utils/character';
+import { AbilityScoreIcon } from '../../../utils/abilityIcons';
 
 export interface RacialSpellAbilitySelectionProps {
   // The name of the race for display purposes (e.g., "Aarakocra")
@@ -73,7 +74,7 @@ const RacialSpellAbilitySelection: React.FC<RacialSpellAbilitySelectionProps> = 
               <button
                 key={ability}
                 onClick={() => setSelectedAbility(ability)}
-                className={`px-4 py-2 rounded-lg transition-colors border-2 shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-opacity-75 min-w-[140px] relative text-center ${
+                className={`p-4 rounded-lg transition-colors border-2 shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-opacity-75 min-w-[140px] relative flex flex-col items-center justify-center text-center ${
                   selectedAbility === ability
                     ? 'bg-sky-700 border-sky-500 ring-sky-500 text-white'
                     : 'bg-gray-700 hover:bg-gray-600 border-gray-600 hover:border-sky-600 text-gray-300 ring-transparent'
@@ -81,6 +82,7 @@ const RacialSpellAbilitySelection: React.FC<RacialSpellAbilitySelectionProps> = 
                 aria-pressed={selectedAbility === ability}
                 aria-label={`Select ${ability} as spellcasting ability`}
               >
+                <AbilityScoreIcon name={ability} className="w-7 h-7 mb-1.5" />
                 <span className="text-lg font-semibold">{ability}</span>
                 <span className="block text-xs text-gray-400">({score} / {modifier})</span>
                  {isRecommended && (

@@ -186,6 +186,29 @@ interface World3DSceneProps {
    * 2026-08-24: see exactly where water sits on the volume ground). Absent =
    * the normal shared ripple material. */
   waterFlatColorHex?: string;
+  /**
+   * Per-layer visibility (LAND pane debug, Remy 2026-08-25): turn scene
+   * components on and off one by one — trees, water, buildings — to see what
+   * each contributes and what each costs. Absent key = visible. Implemented
+   * as `visible` flags on wrapper groups, never as unmounts, so a toggle is
+   * instant and no GPU state is rebuilt.
+   */
+  layers?: World3DLayerVisibility;
+}
+
+/** The scene's toggleable layers. Every key defaults to visible. */
+export interface World3DLayerVisibility {
+  trees?: boolean;
+  bushes?: boolean;
+  grass?: boolean;
+  understory?: boolean;
+  water?: boolean;
+  buildings?: boolean;
+  roads?: boolean;
+  walls?: boolean;
+  props?: boolean;
+  agents?: boolean;
+  farShells?: boolean;
 }
 
 const SHADOWS = WORLD3D_CONFIG.STREAMED_WORLD_SHADOWS;
@@ -1060,28 +1083,45 @@ const ChunkPieces: React.FC<{
   /** false = town-on-LAND mode: no sheet, no skirts; everything else stays. */
   terrainSkin?: boolean;
   waterFlatColorHex?: string;
-}> = ({ chunk, origin, anchor, detailAnchor, detailCenter, loadedKeys, terrainSkin = true, waterFlatColorHex }) => (
+  /** Per-layer visibility. Absent key = visible. See `World3DLayerVisibility`. */
+  layers?: World3DLayerVisibility;
+}> = ({ chunk, origin, anchor, detailAnchor, detailCenter, loadedKeys, terrainSkin = true, waterFlatColorHex, layers }) => {
+  const on = (k: keyof World3DLayerVisibility): boolean => layers?.[k] !== false;
+  return (
   <>
     {terrainSkin && (
       <TerrainPiece chunk={chunk} origin={origin} anchor={anchor} loadedKeys={loadedKeys} />
     )}
-    <WaterPiece chunk={chunk} origin={origin} flatColorHex={waterFlatColorHex} />
-    <RoadPiece chunk={chunk} origin={origin} />
-    <WallPiece chunk={chunk} origin={origin} />
-    <GatePiece chunk={chunk} origin={origin} />
-    <DeckPiece chunk={chunk} origin={origin} />
-    <SitePieces
-      chunk={chunk}
-      origin={origin}
-      detailAnchor={detailAnchor}
-      detailCenter={detailCenter}
-    />
-    <VegetationPiece chunk={chunk} origin={origin} anchor={detailAnchor} />
+    <group visible={on('water')}>
+      <WaterPiece chunk={chunk} origin={origin} flatColorHex={waterFlatColorHex} />
+    </group>
+    <group visible={on('roads')}>
+      <RoadPiece chunk={chunk} origin={origin} />
+    </group>
+    <group visible={on('walls')}>
+      <WallPiece chunk={chunk} origin={origin} />
+      <GatePiece chunk={chunk} origin={origin} />
+    </group>
+    <group visible={on('buildings')}>
+      <DeckPiece chunk={chunk} origin={origin} />
+      <SitePieces
+        chunk={chunk}
+        origin={origin}
+        detailAnchor={detailAnchor}
+        detailCenter={detailCenter}
+      />
+    </group>
+    <group visible={on('bushes')}>
+      <VegetationPiece chunk={chunk} origin={origin} anchor={detailAnchor} />
+    </group>
     {/* Near-camera instanced grass (vegetation lift): only chunks near the
         anchor mount a grass mesh — cheap distance falloff. */}
-    <GrassLayer chunk={chunk} anchor={anchor} position={chunkScenePos(chunk.cx, chunk.cy, origin)} />
+    <group visible={on('grass')}>
+      <GrassLayer chunk={chunk} anchor={anchor} position={chunkScenePos(chunk.cx, chunk.cy, origin)} />
+    </group>
   </>
-);
+  );
+};
 
 /** Exp-damp rate for the canopy transition: ~95% converged after ~2 s. */
 const CANOPY_DAMP_LAMBDA = 1.5;
@@ -1200,7 +1240,10 @@ const World3DScene: React.FC<World3DSceneProps> = ({
   volumeBubbleExtentM,
   volumeBubbleCellM,
   waterFlatColorHex,
+  layers,
 }) => {
+  /** Layer visibility: an absent key is VISIBLE. */
+  const layerOn = (k: keyof World3DLayerVisibility): boolean => layers?.[k] !== false;
   const { loaded, update } = useChunkStreaming(loader);
 
   // Lift the camera + its look-at target to the spawn ground elevation. With vertical
@@ -1411,6 +1454,7 @@ const World3DScene: React.FC<World3DSceneProps> = ({
               loadedKeys={loadedKeys}
               terrainSkin={terrainSkin}
               waterFlatColorHex={waterFlatColorHex}
+              layers={layers}
             />
           ))}
         </InteriorHourProvider>
@@ -1418,6 +1462,7 @@ const World3DScene: React.FC<World3DSceneProps> = ({
         {/* Every chunk's trees in one batch set (2026-07-27). Sits outside the
             per-chunk groups because its instance positions are already scene
             space — see treeBatching.ts for why per-chunk meshes were dropped. */}
+        <group visible={layerOn('trees')}>
         <VegetationTreeField
           inputs={loaded.flatMap((c) => {
             const veg = c.bundle.vegetation;
@@ -1430,9 +1475,11 @@ const World3DScene: React.FC<World3DSceneProps> = ({
             }];
           })}
         />
+        </group>
         {/* The forest floor — ferns, fallen logs and saplings (2026-08-04).
             Batched across chunks like the trees above, and for the same reason:
             it is the most numerous thing in the world. */}
+        <group visible={layerOn('understory')}>
         <UnderstoryField
           chunks={loaded.flatMap((c) => {
             const u = c.bundle.understory;
@@ -1445,12 +1492,15 @@ const World3DScene: React.FC<World3DSceneProps> = ({
             return [{ understory: u, offset: chunkScenePos(c.cx, c.cy, sceneOrigin) }];
           })}
         />
+        </group>
+        <group visible={layerOn('agents')}>
         <GroundAgents
           ground={groundWorld}
           loaded={loaded}
           clock={agentClock}
           sceneOrigin={sceneOrigin}
         />
+        </group>
         {/* Far-distance terrain shells (2026-07-21): the region ring + atlas
             horizon that replace the old visible world edge. Static, built once
             per window; fog dissolves their outer rim into the sky. */}
@@ -1473,10 +1523,14 @@ const World3DScene: React.FC<World3DSceneProps> = ({
           />
         )}
         {viewProfile === 'ground' && terrainSkin && (
-          <FarShells ground={groundWorld} sceneOrigin={sceneOrigin} />
+          <group visible={layerOn('farShells')}>
+            <FarShells ground={groundWorld} sceneOrigin={sceneOrigin} />
+          </group>
         )}
         {viewProfile === 'ground' && (
-          <GroundProps ground={groundWorld} sceneOrigin={sceneOrigin} />
+          <group visible={layerOn('props')}>
+            <GroundProps ground={groundWorld} sceneOrigin={sceneOrigin} />
+          </group>
         )}
         {/* Pillar 2: world-grown dungeon entrances (sealed doors) as readable
             markers the player can walk up to and discover. */}

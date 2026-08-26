@@ -1,7 +1,9 @@
 /**
  * TakramSkySystem — physically-based sky + volumetric clouds + stars via @takram/three-atmosphere.
  *
- * Replaces EnhancedSkyDome + LabClouds when skyMode='takram' is active in Scene3D.
+ * Extracted 2026-08-26 from ThreeDModal/ (whose Scene3D consumer is orphaned) so the
+ * stars/moon/volumetric-cloud capability survives for a future World3D night-sky port.
+ * Still consumed by the legacy ThreeDModal/Scene3D via skyMode='takram'.
  *
  * Key integration notes:
  * - Atmosphere loads pre-baked Bruneton LUT textures from public/data/takram-atmosphere/
@@ -23,7 +25,7 @@
  * - Render order inside EffectComposer: Clouds → ToneMapping.
  */
 import { useMemo, useRef } from 'react';
-import { ENV } from '../../config/env';
+import { ENV } from '../../../config/env';
 import { useFrame } from '@react-three/fiber';
 import type { Vector3 } from 'three';
 import {

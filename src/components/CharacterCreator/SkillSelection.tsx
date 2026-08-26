@@ -33,6 +33,8 @@ import Tooltip from '../ui/Tooltip';
 import { Button } from '../ui/Button';
 import { CreationStepLayout } from './ui/CreationStepLayout';
 import { SplitPaneLayout } from '../ui/SplitPaneLayout';
+import { SkillIcon } from '../../utils/skillIcons';
+import { ProficiencyIcon } from '../../utils/proficiencyIcons';
 import { BTN_PRIMARY } from '../../styles/buttonStyles';
 import { getAbilityModifierValue } from '../../utils/character/statUtils';
 import { calculateProficiencyBonus } from '../../utils/character/savingThrowUtils';
@@ -364,6 +366,7 @@ const SkillSelection: React.FC<SkillSelectionProps> = ({
                             </svg>
                           )}
                         </div>
+                        <SkillIcon name={skill.id} className={`w-4 h-4 shrink-0 ${isSelected || isAutoGranted ? 'text-sky-300' : 'text-gray-400'}`} />
                         <span className={isSelected || isAutoGranted ? 'text-sky-300 font-medium' : ''}>
                           {skill.name}
                         </span>
@@ -416,6 +419,7 @@ const SkillSelection: React.FC<SkillSelectionProps> = ({
                         <div className={`w-3 h-3 rounded-full border flex items-center justify-center ${
                           selectedKeenSensesSkillId === skill.id ? 'border-amber-500 bg-amber-500' : 'border-gray-500'
                         }`} />
+                        <SkillIcon name={skill.id} className={`w-4 h-4 shrink-0 ${selectedKeenSensesSkillId === skill.id ? 'text-amber-300' : 'text-gray-400'}`} />
                         <span>{skill.name}</span>
                       </button>
                     ))}
@@ -436,11 +440,14 @@ const SkillSelection: React.FC<SkillSelectionProps> = ({
               >
                 {/* Skill header with selection controls */}
                 <div className="flex justify-between items-start mb-6 border-b border-gray-700 pb-4">
-                  <div>
-                    <h2 className="text-3xl font-bold text-sky-400 font-cinzel mb-1">{viewedSkill.name}</h2>
-                    <span className="text-sm text-gray-400 uppercase tracking-wider font-semibold">
-                      {viewedSkill.ability} Ability Check
-                    </span>
+                  <div className="flex items-center gap-3">
+                    <SkillIcon name={viewedSkill.id} className="w-8 h-8 text-sky-400 shrink-0" />
+                    <div>
+                      <h2 className="text-3xl font-bold text-sky-400 font-cinzel mb-1">{viewedSkill.name}</h2>
+                      <span className="text-sm text-gray-400 uppercase tracking-wider font-semibold">
+                        {viewedSkill.ability} Ability Check
+                      </span>
+                    </div>
                   </div>
                   
                   {/* Selection toggle button (hidden for automatically granted skills) */}
@@ -483,7 +490,10 @@ const SkillSelection: React.FC<SkillSelectionProps> = ({
                   {/* Helps players understand the additional bonus they'll get on skill checks */}
                   {(isViewedSelected || isViewedAutoGranted) && (
                     <div className="flex items-center justify-between p-3 bg-blue-900/20 border border-blue-700/50 rounded-lg">
-                      <span className="text-blue-200">Proficiency Bonus:</span>
+                      <div className="flex items-center gap-2">
+                        <ProficiencyIcon level="proficient" className="w-5 h-5 text-sky-400 shrink-0" />
+                        <span className="text-blue-200">Proficiency Bonus:</span>
+                      </div>
                       <span className="text-blue-400 font-bold">+{calculateProficiencyBonus(assumedCharacterLevel)}</span>
                     </div>
                   )}
