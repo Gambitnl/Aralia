@@ -221,7 +221,7 @@ describe('MovementCommand - atomic physical forced movement', () => {
         spellId: 'blocked-entry-zone',
         casterId: caster.id,
         position: { x: 2, y: 0 },
-        areaOfEffect: { shape: 'cube', size: 5 },
+        areaOfEffect: { shape: 'cube', size: 5 }, direction: { x: 1, y: 0 },
         effects: [{
           type: 'DAMAGE',
           damage: { dice: '1d1', type: 'Force' },
@@ -249,10 +249,11 @@ describe('MovementCommand - atomic physical forced movement', () => {
     expect(blockedResult.characters.find(character => character.id === target.id)?.position).toEqual({ x: 1, y: 0 });
   });
 
-  it('rejects occupied pull, off-board push, and zero-length vectors atomically', () => {
+  it('rejects immediately blocked pull, off-board push, and zero-length vectors atomically', () => {
+    // When an occupant is directly in front of the target, pull cannot take even a single step
     const pullCaster = createMockCombatCharacter({ id: 'pull-caster', position: { x: 0, y: 0 } });
     const pullTarget = createMockCombatCharacter({ id: 'pull-target', position: { x: 3, y: 0 } });
-    const pullOccupant = createMockCombatCharacter({ id: 'pull-occupant', position: { x: 1, y: 0 } });
+    const pullOccupant = createMockCombatCharacter({ id: 'pull-occupant', position: { x: 2, y: 0 } });
     const pullState = createMockCombatState({
       characters: [pullCaster, pullTarget, pullOccupant],
       mapData: createLinearMap(6),
@@ -260,6 +261,16 @@ describe('MovementCommand - atomic physical forced movement', () => {
     });
     expect(executePhysicalMove('pull', 10, pullCaster, pullTarget, pullState)
       .characters.find(character => character.id === pullTarget.id)?.position).toEqual({ x: 3, y: 0 });
+
+    // When an occupant is further ahead, pull steps incrementally and stops before the obstruction
+    const partialOccupant = createMockCombatCharacter({ id: 'partial-occupant', position: { x: 1, y: 0 } });
+    const partialState = createMockCombatState({
+      characters: [pullCaster, pullTarget, partialOccupant],
+      mapData: createLinearMap(6),
+      combatLog: [],
+    });
+    expect(executePhysicalMove('pull', 10, pullCaster, pullTarget, partialState)
+      .characters.find(character => character.id === pullTarget.id)?.position).toEqual({ x: 2, y: 0 });
 
     const edgeCaster = createMockCombatCharacter({ id: 'edge-caster', position: { x: 0, y: 0 } });
     const edgeTarget = createMockCombatCharacter({ id: 'edge-target', position: { x: 2, y: 0 } });
@@ -299,12 +310,12 @@ describe('MovementCommand - atomic physical forced movement', () => {
       spellZones: [
         {
           id: 'exit-zone', spellId: 'exit-zone', casterId: caster.id,
-          position: { x: 1, y: 0 }, areaOfEffect: { shape: 'cube', size: 5 },
+          position: { x: 1, y: 0 }, areaOfEffect: { shape: 'cube', size: 5 }, direction: { x: 1, y: 0 },
           effects: [boundaryEffect('on_exit_area')], triggeredThisTurn: new Set(), triggeredEver: new Set(),
         },
         {
           id: 'entry-zone', spellId: 'entry-zone', casterId: caster.id,
-          position: { x: 3, y: 0 }, areaOfEffect: { shape: 'cube', size: 5 },
+          position: { x: 3, y: 0 }, areaOfEffect: { shape: 'cube', size: 5 }, direction: { x: 1, y: 0 },
           effects: [boundaryEffect('on_enter_area')], triggeredThisTurn: new Set(), triggeredEver: new Set(),
         },
       ],
@@ -402,7 +413,7 @@ describe('MovementCommand - spell-zone forced movement triggers', () => {
         spellId: 'spike-growth-style',
         casterId: 'zone-caster',
         position: { x: 8, y: 0 },
-        areaOfEffect: { shape: 'cube', size: 30 },
+        areaOfEffect: { shape: 'cube', size: 30 }, direction: { x: 1, y: 0 },
         effects: [zoneEffect],
         triggeredThisTurn: new Set(),
         triggeredEver: new Set()
@@ -460,7 +471,7 @@ describe('MovementCommand - spell-zone forced movement triggers', () => {
         spellId: 'healing-zone',
         casterId: 'zone-caster',
         position: { x: 8, y: 0 },
-        areaOfEffect: { shape: 'cube', size: 30 },
+        areaOfEffect: { shape: 'cube', size: 30 }, direction: { x: 1, y: 0 },
         effects: [zoneEffect],
         triggeredThisTurn: new Set(),
         triggeredEver: new Set()
@@ -517,7 +528,7 @@ describe('MovementCommand - spell-zone forced movement triggers', () => {
         spellId: 'status-zone',
         casterId: 'zone-caster',
         position: { x: 8, y: 0 },
-        areaOfEffect: { shape: 'cube', size: 30 },
+        areaOfEffect: { shape: 'cube', size: 30 }, direction: { x: 1, y: 0 },
         effects: [zoneEffect],
         triggeredThisTurn: new Set(),
         triggeredEver: new Set()

@@ -14,6 +14,7 @@ This document provides a high-level map of the Aralia codebase, organized by pro
 |--------|-------------|-------------|
 | [Glossary](./architecture/domains/glossary.md) | In-game reference system for rules, spells, items | `Glossary.tsx` |
 | [World Map](./architecture/domains/world-map.md) | Region-level navigation and exploration | `MapPane.tsx` |
+| [Overland Travel](./architecture/domains/overland-travel.md) | Route planning, ferries and fares, getting lost, forced marches | `systems/travel` |
 | [Submap](./architecture/domains/submap.md) | Tile-based exploration within regions | `SubmapPane.tsx` |
 | [Town Map](./architecture/domains/town-map.md) | Village/town interior navigation | `TownCanvas.tsx` |
 | [Battle Map](./architecture/domains/battle-map.md) | Tactical combat grid and tokens | `BattleMap.tsx` |

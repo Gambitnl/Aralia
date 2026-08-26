@@ -6,15 +6,28 @@ import { createMockCombatCharacter, createMockCombatState, createMockGameState }
 import { Ability, SelectedSpellTarget } from '@/types/combat'
 import type { Spell } from '@/types/spells'
 import type { PlayerCharacter } from '@/types/character'
-import * as combatUtils from '@/utils/combat'
+import * as diceRollers from '@/systems/dice/rollers'
 import produceFlame from '@/data/spells/level-0/produce-flame.json'
+
+// agora-f821.4 retired the combatUtils roller family; the modules under
+// test roll through systems/dice/rollers now. One hoisted set of mocks
+// stands in for BOTH specifiers, so one vi.mocked(...) pins every die.
+const diceMocks = vi.hoisted(() => ({
+    rollD20: vi.fn()
+}))
+
+
+vi.mock('@/systems/dice/rollers', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/systems/dice/rollers')>()
+  return { ...actual, ...diceMocks }
+})
 
 vi.mock('@/utils/combat', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/utils/combat')>()
   return {
     ...actual,
-    rollD20: vi.fn()
-  }
+    ...diceMocks,
+}
 })
 
 /**
@@ -100,7 +113,7 @@ describe('Produce Flame bridge', () => {
   }
 
   beforeEach(() => {
-    vi.mocked(combatUtils.rollD20).mockReset()
+    vi.mocked(diceRollers.rollD20).mockReset()
   })
 
   it('keeps Produce Flame attached to the caster when it is cast and preserves the self-cast light payload', async () => {
@@ -141,7 +154,7 @@ describe('Produce Flame bridge', () => {
 
     const attackCommand = commands[0] as GrantedActionCommand
 
-    vi.mocked(combatUtils.rollD20).mockReturnValueOnce(12)
+    vi.mocked(diceRollers.rollD20).mockReturnValueOnce(12)
     const hitState = await attackCommand.execute(createMockCombatState({
       characters: [caster, creatureTarget],
       combatLog: []
@@ -159,7 +172,7 @@ describe('Produce Flame bridge', () => {
     })
     expect(hitState.combatLog.some(entry => entry.type === 'damage' && entry.message.includes('Hurl Flame'))).toBe(true)
 
-    vi.mocked(combatUtils.rollD20).mockReturnValueOnce(1)
+    vi.mocked(diceRollers.rollD20).mockReturnValueOnce(1)
     const missState = await attackCommand.execute(createMockCombatState({
       characters: [caster, creatureTarget],
       combatLog: []
@@ -190,7 +203,7 @@ describe('Produce Flame bridge', () => {
     expect(commands).toHaveLength(1)
     expect(commands[0]).toBeInstanceOf(GrantedActionCommand)
 
-    vi.mocked(combatUtils.rollD20).mockReturnValueOnce(12)
+    vi.mocked(diceRollers.rollD20).mockReturnValueOnce(12)
     const resultState = await commands[0].execute(createMockCombatState({
       characters: [caster],
       combatLog: []

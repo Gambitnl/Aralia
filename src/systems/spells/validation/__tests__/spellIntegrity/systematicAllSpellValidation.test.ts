@@ -1,5 +1,10 @@
 import { describe, it, expect } from 'vitest';
-import { SpellIntegrityValidator } from '../../SpellIntegrityValidator';
+import {
+  RESTRICTED_FILTER_KEYS,
+  SpellIntegrityValidator,
+  normalizeFilterValues,
+  sameFilterValues,
+} from '../../SpellIntegrityValidator';
 import { SpellValidator } from '../../spellValidator';
 import { Spell } from '../../../../../types/spells';
 import tinyServant from '@/data/spells/level-3/tiny-servant.json';
@@ -82,42 +87,13 @@ describe('SpellIntegrityValidator', () => {
 
     it('hard-fails unclassified restricted-filter mismatches', () => {
       const restrictedFilterMismatchKeys: string[] = [];
-      const restrictedFilterKeys = ['creatureTypes', 'excludeCreatureTypes', 'sizes', 'alignments'] as const;
       const classifiedRestrictedFilterMismatches = new Set(
         SpellIntegrityValidator.getClassifiedRestrictedFilterMismatchKeys()
       );
 
-      const normalizeFilterValues = (value: unknown, key?: typeof restrictedFilterKeys[number]): string[] => {
-        if (!Array.isArray(value)) {
-          return [];
-        }
-
-        const expandedValues = value.flatMap(item => {
-          if (
-            key === 'sizes'
-            && typeof item === 'string'
-            && item.toLowerCase().startsWith('huge or smaller')
-          ) {
-            return ['Huge', 'Large', 'Medium', 'Small', 'Tiny'];
-          }
-
-          return item;
-        });
-
-        return expandedValues.filter(item => item !== 'not_applicable').map(String).sort();
-      };
-
-      const sameFilterValues = (left: unknown, right: unknown, key?: typeof restrictedFilterKeys[number]): boolean => {
-        const normalizedLeft = normalizeFilterValues(left, key);
-        const normalizedRight = normalizeFilterValues(right, key);
-
-        return normalizedLeft.length === normalizedRight.length
-          && normalizedLeft.every((value, index) => value === normalizedRight[index]);
-      };
-
       allSpells.forEach(spell => {
         const spellFilter = spell.targeting.filter;
-        const restrictedKeys = restrictedFilterKeys.filter(key =>
+        const restrictedKeys = RESTRICTED_FILTER_KEYS.filter(key =>
           normalizeFilterValues(spellFilter?.[key], key).length > 0
         );
 
@@ -2391,16 +2367,14 @@ describe('SpellIntegrityValidator', () => {
         'wall-of-ice'
       ]);
 
-      // DEBT: The current ModeChoice type only models one global choice.
-      // Commune with Nature needs choose-three-of-five semantics.
-      // Conjure Celestial modeChoice validation was resolved, leaving only
-      // commune-with-nature in the unreviewed mode-choice failures expectation array.
+      // Multi-select menu semantics (Agora task agora-ff91) now treat a
+      // choose_multiple optionCount as a selection budget rather than a menu
+      // size, so Commune with Nature choosing 3 of its 5 information
+      // categories is a valid menu. Every authored mode menu is now clean.
       expect(
         modeChoiceFailureIds.sort(),
         `Unreviewed mode-choice failures:\n${modeChoiceFailures.join('\n')}`
-      ).toEqual([
-        'commune-with-nature'
-      ]);
+      ).toEqual([]);
     });
 
     it('hard-fails unclassified malformed action-cost metadata across all spells', () => {
@@ -2417,31 +2391,18 @@ describe('SpellIntegrityValidator', () => {
         }
       });
 
-      // DEBT: These records mix legacy actionType/name fields with domain
-      // actions such as free commands, questions, and Magic actions. Their
-      // canonical mapping is a dashboard decision. This exact list prevents
-      // new malformed records while also failing when a migrated record leaves
-      // stale debt behind.
+      // The canonical action-cost mapping (Agora task agora-e6f3) now lives in
+      // CANONICAL_ACTION_COSTS and normalizeGrantedAction, so legacy
+      // actionType/name rows and domain costs such as free commands,
+      // questions, and Magic actions all resolve to a canonical cost.
+      // animate-dead was the last real data gap. Its 'Mentally Command
+      // Animated Undead' row now carries frequency 'each_turn', the same
+      // cadence spelling that the sibling spell create-undead uses, so no
+      // spell states a granted-action cadence in prose only.
       expect(
         actionCostFailureIds.sort(),
         `Unreviewed action-cost failures:\n${actionCostFailures.join('\n')}`
-      ).toEqual([
-        'animate-dead',
-        'contact-other-plane',
-        'dispel-evil-and-good',
-        'dominate-person',
-        'dream',
-        'enervation',
-        'giant-insect',
-        'infernal-calling',
-        'magic-jar',
-        'soul-cage',
-        'summon-greater-demon',
-        'telekinesis',
-        'tensers-transformation',
-        'whirlwind',
-        'wrath-of-nature'
-      ]);
+      ).toEqual([]);
     });
 
     it('hard-fails malformed light metadata across all spells', () => {
@@ -2465,6 +2426,93 @@ describe('SpellIntegrityValidator', () => {
 
       expect(lightMetadataFailures).toHaveLength(0);
     });
+    it('hard-fails unconstrained Enchantment targeting across all spells', () => {
+      const enchantmentGapFailures: string[] = [];
+
+      allSpells.forEach(spell => {
+        const relevantErrors = SpellIntegrityValidator
+          .validate(spell)
+          .filter(error => error.startsWith('Enchantment Gap'));
+
+        if (relevantErrors.length > 0) {
+          enchantmentGapFailures.push(`${spell.id || spell.name}: ${relevantErrors.join(', ')}`);
+        }
+      });
+
+      // A single-target Enchantment spell that names nobody would let the
+      // engine charm or dominate anything, including the Constructs and Undead
+      // the rules make immune. All 20 corpus rows are repaired: 18 by data, and
+      // hex and power-word-heal by the reviewed exemption list in the
+      // validator. This gate keeps the next unconstrained row from entering
+      // silently.
+      if (enchantmentGapFailures.length > 0) {
+        console.warn(`Enchantment Gap Failures (${enchantmentGapFailures.length}):\n${enchantmentGapFailures.join('\n')}`);
+      }
+
+      expect(enchantmentGapFailures).toHaveLength(0);
+    });
+
+    it('hard-fails missing upcast scaling across all spells', () => {
+      const upcastGapFailures: string[] = [];
+
+      allSpells.forEach(spell => {
+        const relevantErrors = SpellIntegrityValidator
+          .validate(spell)
+          .filter(error => error.startsWith('Upcast Gap'));
+
+        if (relevantErrors.length > 0) {
+          upcastGapFailures.push(`${spell.id || spell.name}: ${relevantErrors.join(', ')}`);
+        }
+      });
+
+      // A spell that describes an upcast benefit in prose but carries no
+      // machine-readable scaling forces the engine to read English at cast
+      // time, which is the failure this rule exists to stop. All 22 corpus
+      // rows are repaired from each spell's own 'At Higher Levels' text:
+      // linear steps as bonusPerLevel, breakpoint tables as scalingTiers.
+      // This gate keeps the next prose-only upcast from entering silently.
+      if (upcastGapFailures.length > 0) {
+        console.warn(`Upcast Gap Failures (${upcastGapFailures.length}):\n${upcastGapFailures.join('\n')}`);
+      }
+
+      expect(upcastGapFailures).toHaveLength(0);
+    });
+
+    it('hard-fails stale Enchantment targeting exemptions across all spells', () => {
+      const staleExemptionFailures: string[] = [];
+
+      allSpells.forEach(spell => {
+        const relevantErrors = SpellIntegrityValidator
+          .validate(spell)
+          .filter(error => error.startsWith('Stale Exemption'));
+
+        if (relevantErrors.length > 0) {
+          staleExemptionFailures.push(`${spell.id || spell.name}: ${relevantErrors.join(', ')}`);
+        }
+      });
+
+      // The exemption list states that these spells carry no creature-type
+      // restriction. If a later data pass gives one of them a real filter, the
+      // statement is false and the entry must go, so the list cannot rot into
+      // an invisible permanent allowlist.
+      expect(
+        staleExemptionFailures,
+        `Reviewed Enchantment exemptions no longer match the data:\n${staleExemptionFailures.join('\n')}`
+      ).toHaveLength(0);
+    });
+
+    it('keeps every reviewed Enchantment exemption pointed at a real corpus spell', () => {
+      const corpusIds = new Set(allSpells.map(spell => spell.id));
+      const orphanedExemptions = SpellIntegrityValidator
+        .getEnchantmentTargetingExemptions()
+        .filter(entry => !corpusIds.has(entry.spellId))
+        .map(entry => entry.spellId);
+
+      // A renamed or removed spell would leave a dead exemption behind, which
+      // reads as reviewed coverage the validator is no longer applying.
+      expect(orphanedExemptions).toHaveLength(0);
+    });
+
     it('hard-fails monolithic spell effects across all spells', () => {
       const monolithicFailures: string[] = [];
 

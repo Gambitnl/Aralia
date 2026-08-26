@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { ritualReducer } from '../ritualReducer';
 import { GameState } from '../../../types';
-import { RitualState } from '../../../types/ritual';
+import { RitualState } from '../../../types/rituals';
 import * as RitualManager from '../../../systems/rituals/RitualManager';
 import { AppAction } from '../../actionTypes';
 

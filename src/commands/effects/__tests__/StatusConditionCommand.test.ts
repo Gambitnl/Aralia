@@ -17,6 +17,8 @@ import friends from '@/data/spells/level-0/friends.json';
 import sleep from '@/data/spells/level-1/sleep.json';
 import enemiesAbound from '@/data/spells/level-3/enemies-abound.json';
 import type { ActiveSpellZone } from '@/systems/spells/effects';
+import { resolveEventClass } from '@/utils/combat/combatLogToMessageAdapter';
+import { CombatEventClass } from '@/types/combatMessages';
 
 // We mock saving throws so we don't have to deal with RNG in tests
 vi.mock('@/utils/character/savingThrowUtils', async importOriginal => {
@@ -803,6 +805,55 @@ describe('StatusConditionCommand', () => {
 
       expect(savingThrowUtils.rollSavingThrow).not.toHaveBeenCalled();
       expect(result.characters.find(character => character.id === target.id)?.conditions).toEqual([]);
+    });
+  });
+  // ==========================================================================
+  // eventClass stamping (agora-db71.10)
+  // ==========================================================================
+  describe('eventClass stamping', () => {
+    const poisoned: StatusConditionEffect = {
+      type: 'STATUS_CONDITION',
+      statusCondition: {
+        name: 'Poisoned',
+        duration: { type: 'rounds', value: 1 },
+        level: 0
+      },
+      condition: { type: 'hit' } as any,
+      trigger: { type: 'immediate' } as any
+    };
+
+    const findAppliedEntry = (newState: CombatState) =>
+      newState.combatLog.find(entry => entry.message.includes('is now Poisoned'));
+
+    it('stamps DEBUFF on the record that says the condition was applied', async () => {
+      const command = new StatusConditionCommand(poisoned, context);
+      const newState = await command.execute(state);
+
+      const entry = findAppliedEntry(newState);
+      expect(entry).toBeDefined();
+      expect(entry!.eventClass).toBe(CombatEventClass.DEBUFF);
+    });
+
+    it('keeps the class when the adapter cannot find the effect on the character', async () => {
+      const command = new StatusConditionCommand(poisoned, context);
+      const newState = await command.execute(state);
+      const entry = findAppliedEntry(newState)!;
+
+      // An empty roster is exactly the case the adapter's live lookup cannot
+      // serve: the effect has expired or the creature is gone. The stamp holds.
+      expect(resolveEventClass(entry, [])).toBe(CombatEventClass.DEBUFF);
+    });
+
+    it('falls back to STATUS_CHANGE for the same record without the stamp', async () => {
+      const command = new StatusConditionCommand(poisoned, context);
+      const newState = await command.execute(state);
+      const entry = findAppliedEntry(newState)!;
+
+      const unstamped = { ...entry };
+      delete unstamped.eventClass;
+
+      // This is the behavior the stamp replaces, proving the stamp is load-bearing.
+      expect(resolveEventClass(unstamped, [])).toBe(CombatEventClass.STATUS_CHANGE);
     });
   });
 });

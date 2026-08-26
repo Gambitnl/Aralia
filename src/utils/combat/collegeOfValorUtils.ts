@@ -28,7 +28,7 @@
 import type { ActiveCondition, CombatCharacter, StatusEffect } from '../../types/combat';
 import { applyRuntimeStatusCondition } from './statusConditionUtils';
 import { BARDIC_INSPIRATION_KEY } from './collegeOfLoreUtils';
-import { rollDice } from './combatUtils';
+import { rollDice } from '../../systems/dice/rollers';
 
 export const COMBAT_INSPIRATION_STATUS_ID = 'combat_inspiration';
 export const COMBAT_INSPIRATION_DIE = '1d6';

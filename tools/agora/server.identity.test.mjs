@@ -97,3 +97,26 @@ test('POST /agents/retire without a token -> 401', async () => {
   const r = await request('POST', '/agents/retire', {});
   assert.equal(r.status, 401);
 });
+
+// WF-G61 follow-up (agora-9ff4): task creation shares the same `withAuth`
+// wrapper as every other write route (see the guard at server.mjs's
+// `withAuth`, applied to POST /tasks). This pins that guard directly at the
+// server layer — no token and an invalid token must both 401 and must not
+// create a task — instead of relying only on the client-level regression in
+// client.test.mjs's "task new directs missing and rejected identities..."
+// case, which never reaches the server without a stored identity.
+test('POST /tasks without a valid bearer token -> 401 and creates no task', async () => {
+  const before = await request('GET', '/tasks');
+  const beforeCount = before.json.tasks.length;
+
+  const missing = await request('POST', '/tasks', { body: { title: 'unauthenticated probe' } });
+  assert.equal(missing.status, 401);
+  assert.match(missing.json.error, /unauthorized/);
+
+  const invalid = await request('POST', '/tasks', { token: 'not-a-real-token', body: { title: 'invalid-token probe' } });
+  assert.equal(invalid.status, 401);
+  assert.match(invalid.json.error, /unauthorized/);
+
+  const after = await request('GET', '/tasks');
+  assert.equal(after.json.tasks.length, beforeCount);
+});

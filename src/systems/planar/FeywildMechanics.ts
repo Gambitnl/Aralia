@@ -16,7 +16,8 @@
 
 import { PlayerCharacter, GameState } from '../../types/index';
 import { rollSavingThrow } from '../../utils/character';
-import { createPlayerCombatCharacter, rollDice } from '../../utils/combat'; // Using standard factory
+import { createPlayerCombatCharacter } from '../../utils/combat';
+import { rollDice } from '../dice/rollers'; // Using standard factory
 import { logger } from '../../utils/core';
 import { generateId } from '../../utils/core';
 import { formatDuration } from '../../utils/core';

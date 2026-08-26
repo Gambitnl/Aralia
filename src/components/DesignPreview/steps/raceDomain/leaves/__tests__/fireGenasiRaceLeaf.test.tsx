@@ -136,7 +136,7 @@ describe('Fire Genasi Race domain leaf', () => {
 
     expect(screen.getByTestId('fire-genasi-resistance-packet')).toHaveTextContent('Raw 15; Final not resolved');
     expect(screen.getByTestId('fire-genasi-resistance-actor')).toHaveTextContent(/HP \d+\/\d+/);
-    expect(screen.getByTestId('fire-genasi-assembly-boundary')).toHaveTextContent('materialized into CombatCharacter.resistances');
+    expect(screen.getByTestId('fire-genasi-assembly-boundary')).toHaveTextContent('projected by the shared racial parser');
     expect(screen.getByTestId('fire-genasi-spell-boundary')).toHaveTextContent('does not claim');
     expect(screen.getByTestId('fire-genasi-spell-boundary')).toHaveTextContent('spell-slot or rest-resource projection');
   });

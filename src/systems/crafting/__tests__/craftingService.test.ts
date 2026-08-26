@@ -1,8 +1,10 @@
 import { describe, it, expect, vi } from 'vitest';
-import { attemptCraft, checkMaterials } from '../craftingService';
+import { attemptCraft, checkMaterials, calculateCraftingExperience, getCraftingCheckAbility, getCraftingTier } from '../craftingService';
 import { Recipe } from '../types';
 import { PlayerCharacter } from '../../../types/character';
 import { Item, ItemType, InventoryEntry } from '../../../types/items';
+import { BLESSING_EFFECTS } from '../../../data/religion/blessings';
+import { XP_REWARDS } from '../crafterProgression';
 
 // Mocks
 const mockIronBar: Item = {
@@ -61,24 +63,30 @@ const mockRecipe: Recipe = {
   } as unknown as Recipe['skillCheck']
 };
 
-const mockCrafter = {
+const createCrafter = (overrides: Partial<PlayerCharacter> = {}): PlayerCharacter => ({
   skills: [],
-  abilityScores: { strength: 16, dexterity: 10, constitution: 14, intelligence: 10, wisdom: 10, charisma: 10 },
-  proficiencyBonus: 2
-} as unknown as PlayerCharacter;
+  statusEffects: [],
+  finalAbilityScores: { Strength: 20, Dexterity: 10, Constitution: 14, Intelligence: 10, Wisdom: 10, Charisma: 10 },
+  level: 1,
+  proficiencyBonus: 2,
+  modifiers: { advantage: [], disadvantage: [], bonuses: [] },
+  ...overrides
+} as unknown as PlayerCharacter);
 
-vi.mock('../../../utils/character/statUtils', () => ({
-  // NOTE: craftingService aliases getAbilityModifierValue as getSkillModifierValue.
-  // Provide both exports so tests survive alias changes without mutating production logic.
-  getAbilityModifierValue: () => 5,
-  getSkillModifierValue: () => 5
-}));
+const mockCrafter = createCrafter();
 
-vi.mock('../../../utils/combat', () => ({
+// attemptCraft now rolls through the shared ability-check resolver, which uses the
+// combat dice engine. Mock that one module so the d20 stays deterministic.
+vi.mock('../../dice/rollers', () => ({
   rollDice: vi.fn()
 }));
 
-import { rollDice } from '../../../utils/combat';
+import { rollDice } from '../../dice/rollers';
+
+const fullInventory = (): InventoryEntry[] => [
+  { ...mockIronBar, quantity: 2 },
+  { ...mockWood, quantity: 1 }
+];
 
 describe('Crafting System', () => {
 
@@ -146,15 +154,10 @@ describe('Crafting System', () => {
     });
 
     it('should succeed on good roll', () => {
-      const inventory: InventoryEntry[] = [
-        { ...mockIronBar, quantity: 2 },
-        { ...mockWood, quantity: 1 }
-      ];
+      // DC 15. Strength 20 gives +5 and the crafter is not proficient. Roll 12 -> 17.
+      vi.mocked(rollDice).mockReturnValue(12);
 
-      // DC 15. Modifier +5. Roll needs to be 10+.
-      vi.mocked(rollDice).mockReturnValue(12); // Total 17
-
-      const result = attemptCraft(mockCrafter, mockRecipe, inventory);
+      const result = attemptCraft(mockCrafter, mockRecipe, fullInventory());
 
       expect(result.success).toBe(true);
       const outputs = result.outputs;
@@ -164,15 +167,10 @@ describe('Crafting System', () => {
     });
 
     it('should fail on bad roll', () => {
-      const inventory: InventoryEntry[] = [
-        { ...mockIronBar, quantity: 2 },
-        { ...mockWood, quantity: 1 }
-      ];
+      // DC 15. Modifier +5. Roll 2 -> 7.
+      vi.mocked(rollDice).mockReturnValue(2);
 
-      // DC 15. Modifier +5. Roll needs to be 10+.
-      vi.mocked(rollDice).mockReturnValue(2); // Total 7
-
-      const result = attemptCraft(mockCrafter, mockRecipe, inventory);
+      const result = attemptCraft(mockCrafter, mockRecipe, fullInventory());
 
       expect(result.success).toBe(false);
       expect(result.message).toContain('Crafting failed');
@@ -182,20 +180,105 @@ describe('Crafting System', () => {
     });
 
     it('should crit on high roll', () => {
-      const inventory: InventoryEntry[] = [
-        { ...mockIronBar, quantity: 2 },
-        { ...mockWood, quantity: 1 }
-      ];
-
-      // DC 15. Modifier +5. Crit needs +10 over DC (25+). Roll 20 + 5 = 25.
+      // DC 15. Crit needs DC+10 (25+). Roll 20 + 5 = 25.
       vi.mocked(rollDice).mockReturnValue(20);
 
-      const result = attemptCraft(mockCrafter, mockRecipe, inventory);
+      const result = attemptCraft(mockCrafter, mockRecipe, fullInventory());
 
       expect(result.success).toBe(true);
       expect(result.message).toContain('Critical success');
       // CraftingService bumps crit quality to masterwork on DC+10.
       expect(result.quality).toBe('masterwork');
+    });
+  });
+
+  // agora-0a28: a blessing must reach the craft roll, not merely sit on the sheet.
+  describe('divine blessings on craft checks', () => {
+    it("adds Artisan's Touch to the craft total, turning a one-point miss into a success", () => {
+      // DC 15, Strength +5, roll 9 -> 14 without the blessing, 16 with it.
+      vi.mocked(rollDice).mockReturnValue(9);
+
+      const unblessed = attemptCraft(createCrafter(), mockRecipe, fullInventory());
+      expect(unblessed.success).toBe(false);
+
+      const blessed = createCrafter({
+        statusEffects: [BLESSING_EFFECTS['blessing_artisans_touch'].effect] as unknown as PlayerCharacter['statusEffects']
+      });
+      const result = attemptCraft(blessed, mockRecipe, fullInventory());
+
+      expect(result.success).toBe(true);
+    });
+
+    it('does not let an unrelated blessing touch the craft total', () => {
+      vi.mocked(rollDice).mockReturnValue(9);
+
+      const blessed = createCrafter({
+        statusEffects: [BLESSING_EFFECTS['blessing_minor'].effect] as unknown as PlayerCharacter['statusEffects']
+      });
+
+      expect(attemptCraft(blessed, mockRecipe, fullInventory()).success).toBe(false);
+    });
+  });
+
+  // agora-b7a9: XP comes from the tier the DC names, not from elapsed minutes.
+  describe('crafting experience', () => {
+    it('reads the tier from the DC ladder the recipe corpus uses', () => {
+      expect(getCraftingTier(10)).toBe('common');
+      expect(getCraftingTier(15)).toBe('uncommon');
+      expect(getCraftingTier(20)).toBe('rare');
+      expect(getCraftingTier(25)).toBe('very_rare');
+    });
+
+    it('awards the tier base, a masterwork bonus, and failure XP', () => {
+      expect(calculateCraftingExperience({ dc: 10, success: true, quality: 'standard' }))
+        .toBe(XP_REWARDS.common_success);
+      expect(calculateCraftingExperience({ dc: 20, success: true, quality: 'standard' }))
+        .toBe(XP_REWARDS.rare_success);
+      expect(calculateCraftingExperience({ dc: 20, success: true, quality: 'masterwork' }))
+        .toBe(XP_REWARDS.rare_success + XP_REWARDS.masterwork_bonus);
+      expect(calculateCraftingExperience({ dc: 25, success: false, quality: 'poor' }))
+        .toBe(XP_REWARDS.failure);
+    });
+
+    it('no longer scales XP with recipe time', () => {
+      vi.mocked(rollDice).mockReturnValue(12);
+
+      const quick = attemptCraft(mockCrafter, { ...mockRecipe, timeMinutes: 5 }, fullInventory());
+      const slow = attemptCraft(mockCrafter, { ...mockRecipe, timeMinutes: 600 }, fullInventory());
+
+      expect(quick.experienceGained).toBe(slow.experienceGained);
+      expect(quick.experienceGained).toBe(XP_REWARDS.uncommon_success);
+    });
+
+    it('still awards learning XP on a failed craft', () => {
+      vi.mocked(rollDice).mockReturnValue(2);
+
+      const result = attemptCraft(mockCrafter, mockRecipe, fullInventory());
+      expect(result.success).toBe(false);
+      expect(result.experienceGained).toBe(XP_REWARDS.failure);
+    });
+  });
+
+  describe('check ability resolution', () => {
+    it('uses the named skill ability when the recipe names a real skill', () => {
+      expect(getCraftingCheckAbility(mockRecipe)).toBe('Strength');
+      expect(getCraftingCheckAbility({
+        ...mockRecipe,
+        skillCheck: { skill: 'Arcana', dc: 15 }
+      })).toBe('Intelligence');
+    });
+
+    it("uses the station's ability when the recipe names a tool kit", () => {
+      expect(getCraftingCheckAbility({
+        ...mockRecipe,
+        station: 'alchemy_bench',
+        skillCheck: { skill: "Alchemist's Supplies", dc: 15 }
+      })).toBe('Intelligence');
+      expect(getCraftingCheckAbility({
+        ...mockRecipe,
+        station: 'loom',
+        skillCheck: { skill: "Weaver's Tools", dc: 12 }
+      })).toBe('Dexterity');
     });
   });
 });

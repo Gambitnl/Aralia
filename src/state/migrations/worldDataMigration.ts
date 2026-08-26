@@ -62,10 +62,20 @@ export function migrateMapDataToWorldDataV2(mapData: MapData, worldSeed: number)
   }
 
   const { rows, cols } = mapData.gridSize;
+  // Grid retirement (agora-608b): `MapData.tiles` is now OPTIONAL and deprecated.
+  // This is the one remaining honest consumer and it CANNOT migrate to the
+  // cell-native atlas: for a pre-v2 save the grid is the only surviving record of
+  // that world's biomes, and the atlas derived from `worldSeed` may not reproduce
+  // it. So the grid is still read when present. When it is absent (a save written
+  // after the grid left the save format, or a hand-built MapData) the loop falls
+  // back to 'plains' exactly as it always did for a hole in the grid — no crash,
+  // and `heightFromBiomes`/`climateFromBiomes` still produce a playable world.
+  // See docs/adr/0003-mapdata-tiles-grid-retirement.md.
+  const legacyTiles = mapData.tiles;
   const biomeIds: string[] = [];
   for (let y = 0; y < rows; y++) {
     for (let x = 0; x < cols; x++) {
-      biomeIds.push(mapData.tiles[y]?.[x]?.biomeId ?? 'plains');
+      biomeIds.push(legacyTiles?.[y]?.[x]?.biomeId ?? 'plains');
     }
   }
 

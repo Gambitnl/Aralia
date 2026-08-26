@@ -7,36 +7,18 @@
 import React, { useMemo } from 'react';
 import { Html } from '@react-three/drei';
 import { CombatCharacter } from '../../../../types/combat';
+import { resolveConditionVisual } from '../../../../utils/visuals/conditionPalette';
 
 // ---------------------------------------------------------------------------
 // Condition badge row (task 76, GOAL #19) — buff/debuff/condition chips
 // ---------------------------------------------------------------------------
 
 /**
- * Visual map for 5e conditions: 2-letter chip + tone color. Unknown/custom
- * condition strings fall back to their first two letters in neutral slate so
- * homebrew conditions still surface instead of silently disappearing.
+ * The chip label and color now come from the shared condition palette
+ * (`src/utils/visuals/conditionPalette.ts`), which the 2D token, the 3D body
+ * tint and the status registry all read. The 18-row table that used to live
+ * here was one of three disagreeing color tables; it is gone, not copied.
  */
-const CONDITION_BADGES: Record<string, { label: string; color: string }> = {
-  Blinded: { label: 'BL', color: '#94a3b8' },
-  Charmed: { label: 'CH', color: '#f472b6' },
-  Deafened: { label: 'DF', color: '#a8a29e' },
-  Exhaustion: { label: 'EX', color: '#b45309' },
-  Frightened: { label: 'FR', color: '#a78bfa' },
-  Grappled: { label: 'GR', color: '#fb923c' },
-  Incapacitated: { label: 'IN', color: '#f87171' },
-  Invisible: { label: 'IV', color: '#bae6fd' },
-  Paralyzed: { label: 'PA', color: '#22d3ee' },
-  Petrified: { label: 'PE', color: '#9ca3af' },
-  Poisoned: { label: 'PO', color: '#4ade80' },
-  Prone: { label: 'PR', color: '#d6a05a' },
-  Restrained: { label: 'RE', color: '#fbbf24' },
-  Stunned: { label: 'ST', color: '#fde047' },
-  Unconscious: { label: 'UN', color: '#cbd5e1' },
-  Ignited: { label: 'IG', color: '#fb7185' },
-  Slowed: { label: 'SL', color: '#7dd3fc' },
-  'Slasher Slow': { label: 'SL', color: '#7dd3fc' },
-};
 
 /**
  * The 3D counterpart of the 2D token's condition indicators (GOAL #19 — the
@@ -53,14 +35,13 @@ export const ConditionBadgeRow: React.FC<{ character: CombatCharacter }> = ({ ch
       const name = String(cond.name);
       if (seen.has(name)) continue;
       seen.add(name);
-      const visual = CONDITION_BADGES[name] ?? {
-        label: name.slice(0, 2).toUpperCase(),
-        color: '#e2e8f0',
-      };
+      // Unknown/homebrew names still surface: the resolver hands back their
+      // first two letters on the neutral default rather than dropping them.
+      const visual = resolveConditionVisual(name);
       out.push({
         name,
-        label: visual.label,
-        color: visual.color,
+        label: visual.chipLabel,
+        color: visual.chipColor,
         tooltip: cond.source ? `${name} (${cond.source})` : name,
       });
     }

@@ -25,8 +25,10 @@ import {
   calculateDamage,
   canTakeReaction,
   createPlayerCombatCharacter,
-  rollDice,
 } from '../../../../../utils/combat/combatUtils';
+import {
+  rollDice,
+} from '../../../../../systems/dice/rollers';
 import {
   canAffordActionCost,
   consumeActionCost,

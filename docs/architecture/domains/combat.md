@@ -1,6 +1,6 @@
 # Combat
 
-Verified: 2026-08-13
+Verified: 2026-09-11
 
 ## Purpose
 
@@ -89,6 +89,7 @@ Tracked gaps in the current implementation belong on the planmap topic `world-re
 - weapon ability creation reads `range:N` weapon properties for ranged weapons.
 - the combat palette includes Barbarian Rage, Monk Flurry of Blows, Bardic Inspiration, Divine Smite, Pact Magic, Fighter Second Wind, and Rogue Cunning Dash.
 - `ResistanceCalculator` reads temporary resistance from `statusEffects[].modifiers.resistance`.
+- `ResistanceCalculator.applyResistances` applies resistance and vulnerability in sequence (2024 rules: halve, then double) rather than cancelling them; see `docs/adr/0004-resistance-then-vulnerability-order.md`.
 - `AbilityCommandFactory` contains Sneak Attack trigger logic.
 - `docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md` records `docs/superpowers/plans/2026-05-12-equip-premade-characters.md` as retired/executed, with premade martial equipment proof.
 
@@ -99,6 +100,41 @@ Treat the live combat project docs, tests, and source files as authoritative bef
 Death-saving throws, unconscious recovery, and concentration drop on 0 HP are implemented in `src/utils/combat/deathSaveUtils.ts`, `src/hooks/combat/useTurnManager.ts`, and `src/commands/effects/DamageCommand.ts`. Downed player characters initialize death-save tracking when they hit 0 HP, take failure increments when damaged while downed, revive through healing, and roll at the start of their turn until they stabilize or die. Stable characters stay in the turn loop so round-based cleanup and repeat-save processing can continue, but the old note that the system was absent is stale.
 
 ---
+
+## Combat Invariants And Modularization Split Plan
+
+This plan records the safe seam for the claimed CMA-G18/G30 work. It is intentionally documentation-first: preserve the current public hook contracts and move one responsibility at a time only after the regression boundaries below are green.
+
+### Invariants to preserve
+
+- `useAbilitySystem` remains the UI-facing composite boundary. Targeting, validation, reaction prompts, concentration cleanup, and ability execution retain their existing return shapes and callback behavior.
+- `useCombatEngine` remains the simulation boundary. Turn-phase processing must preserve ordering: scheduled effects, movement/area triggers, damage/healing resolution, repeat saves, downed/death-save state, and log emission.
+- Every character update is based on the latest character snapshot; a multi-effect action must not overwrite an earlier HP/status/position mutation with stale state.
+- Damage flows through the shared damage calculator so resistance, vulnerability, immunity, temporary HP, source metadata, and on-damage riders remain consistent for immediate and delayed packets.
+- Reactions are requested at the established trigger boundary and are idempotent by event identity; replaying a post-damage event must not apply damage or a reaction twice.
+- Scheduled effects are claimed by `(effect, round, phase)` before resolution, expire at their exclusive round boundary, and are removed when their target leaves combat.
+- Repeat saves consume eligible save penalties, update progression counters atomically, and remove all linked status/condition mirrors only when the configured success or failure outcome is reached.
+- Initiative/group sequencing belongs to turn management; action execution and effect resolution must not silently assume singleton turns or mutate turn order.
+
+### Proposed ownership seams
+
+1. **Pure combat resolution helpers**: extract stateless functions for damage packet resolution, repeat-save progression, scheduled-effect eligibility/claim keys, and linked-effect cleanup. Inputs/outputs should be explicit and independently testable.
+2. **Scheduled-effect processor**: move turn-start/turn-end scheduled payload orchestration behind a narrow engine-local service. Keep React state setters and phase-claim storage at the hook boundary until behavior is proven.
+3. **Reaction/effect bridges**: keep reaction prompting and spell/ability materialization separate from generic damage and turn processing; preserve the existing `useReactionSystem` and `useAbilityExecution` seams rather than creating a second executor.
+4. **Composite hook facade**: after helper extraction, retain `useAbilitySystem` as a compatibility facade and re-export existing utility types/functions. Do not move targeting UI state or change callback signatures in the same pass.
+
+### Regression-test boundaries
+
+- `src/hooks/__tests__/useAbilitySystem.*`: targeting, self/multi-target teleports, object refs, AI/per-target input, reactions, concentration, and selected-target propagation.
+- `src/hooks/combat/__tests__/useTurnOrder.familiarPocket.test.ts` plus turn-manager suites: shared initiative, skipped/off-map actors, group completion, and phase ordering.
+- `src/hooks/combat/__tests__/useActionExecutor.test.ts`: attack-result delivery, reactive effects, Armor of Agathys, and opportunity-attack hit/miss behavior.
+- `src/commands/effects/__tests__/DamageCommand.test.ts` and `src/utils/combat/__tests__/combatUtils_damage*.test.ts`: resistance/vulnerability/immunity, temporary HP, downed state, and save-penalty consumption.
+- `src/systems/spells/effects/__tests__/triggerHandler.test.ts`: movement-trigger timing, forced-movement suppression, and source context.
+- Add focused pure-helper tests beside each extracted module before changing hook wiring. Required cases are success/failure progression, duplicate scheduled phase calls, expiry cleanup, stale-snapshot protection, reaction replay idempotency, and linked-status cleanup.
+
+### Sequencing and stop conditions
+
+Extract pure helpers first, then scheduled processing, then facade cleanup. Each step must preserve the existing focused suites and pass typechecking for touched modules. Stop and revert the split at any point where logs, callback counts, target IDs, HP/status mirrors, or phase order differ; do not compensate with broad type casts or unrelated cleanup.
 
 ## Open Follow-Through Questions
 

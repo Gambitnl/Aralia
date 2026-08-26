@@ -1,9 +1,10 @@
 /**
  * The shared performance display.
  *
- * Mount this ONCE per page. It finds every measured surface through the
- * registry, so a step with two canvases gets two tabs and a step with none
- * says so plainly instead of showing a frozen zero.
+ * Mount `<PerfOverlay />` from `./PerfOverlayHost` ONCE per page; that wrapper
+ * puts this view in a React root of its own. It finds every measured surface
+ * through the registry, so a step with two canvases gets two tabs and a step
+ * with none says so plainly instead of showing a frozen zero.
  *
  * What it shows, and why each number earns its place:
  *
@@ -207,7 +208,15 @@ const StallRow: React.FC<{ rec: StallRecord }> = ({ rec }) => {
   );
 };
 
-export const PerfOverlay: React.FC = () => {
+/**
+ * The display itself.
+ *
+ * Mount it through `PerfOverlayHost`, never straight into a page tree. The
+ * host gives it a React root of its own, which stops its refresh timer from
+ * restarting the page's own render work. `PerfOverlayHost.tsx` records what
+ * that cost when the two shared a root.
+ */
+export const PerfOverlayView: React.FC = () => {
   const [mode, setMode] = useState<HudMode>(() => readMode());
   const [snapshots, setSnapshots] = useState<PerfSnapshot[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -680,4 +689,4 @@ export const PerfOverlay: React.FC = () => {
   );
 };
 
-export default PerfOverlay;
+export default PerfOverlayView;

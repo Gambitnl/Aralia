@@ -1,7 +1,7 @@
-# Entity body v3: real skeletons (SkinnedMesh pivot) — design
+# Entity body v3: real skeletons (SkinnedMesh pivot) - design
 
 **Date:** 2026-07-17
-**Status:** Direction approved by Remy (two calls, this session): (1) skinned bodies **replace** the segment renderer once proven — the metaball precedent, no zombie modes; (2) the first payoff after the substrate is **Mixamo clip playback**, before smooth bodies. Body v2's own spec named imported rigged models the north star and the segment skeleton its foundation — this pivot schedules that north star.
+**Status:** Direction approved by Remy (two calls, this session): (1) skinned bodies **replace** the segment renderer once proven - the metaball precedent, no zombie modes; (2) the first payoff after the substrate is **Mixamo clip playback**, before smooth bodies. Body v2's own spec named imported rigged models the north star and the segment skeleton its foundation - this pivot schedules that north star.
 
 ## The problem
 
@@ -16,13 +16,13 @@ Entity bodies are rigid tapered segments re-posed every frame (body v2). Nothing
 A real `THREE.Bone` hierarchy and a skinned one-piece body for every generated entity, with the existing procedural gait math kept as one of two animation sources.
 
 - **Skeleton builder** (`three/skeletonBuilder.ts`): `Frame` or compiled `PlanSpec` in, bone hierarchy out. Bipeds use the exact proportions `BipedDriver` hardcodes today. Plan creatures map one-to-one: every chain link becomes a bone, so tentacles, tails, necks, and tauric torsos all ride skeletons. This pivot is not humanoid-only.
-- **Skinned body** (`three/skinnedBody.ts`): bind-pose geometry with skin indices and weights. Rigid weights first (each vertex owned by one bone — looks identical to segments, de-risks the chain). Smooth joint weights second (the one-piece creased body). Bind geometry is shared per species; each instance gets its own skeleton.
+- **Skinned body** (`three/skinnedBody.ts`): bind-pose geometry with skin indices and weights. Rigid weights first (each vertex owned by one bone - looks identical to segments, de-risks the chain). Smooth joint weights second (the one-piece creased body). Bind geometry is shared per species; each instance gets its own skeleton.
 - **Drivers become bone-writers** through one adapter that converts their joint positions into local bone rotations (`setFromUnitVectors` along each link, times the parent inverse). `TreadmillLeg` and `solveKnee` survive untouched. All 7 gaits keep their math.
 - **Clips play natively**: `AnimationMixer` plus a retargeted Mixamo set (idle, walk, run, attack, hit, death, cast). In-place root handling; playback rate synced to actual move speed the same way `cadence()` works now. Per-entity bone ownership: clips own humanoids, procedural drivers own creatures; additive layering can come later.
 - **Parts parent to bones**: gear, organic parts, and heads attach to bones and inherit transforms for free, replacing per-frame anchor copying. The `Pose` anchors stay as a read view for compatibility.
-- **The outline learns skinning**: `outlineMaterial` in `toon.ts` is a raw `ShaderMaterial` with no bone matrices — without the three.js skinning chunks the ink shell stays frozen in bind pose. Known, concrete fix.
-- **Crowds keep the bake**: sample the skeleton at each walk phase, bake deformed vertices with `applyBoneTransform`, and merge — same output as today's snapshots.
-- **End state — segments die.** Once skinned wins the eyeball on every surface, delete the segment renderer the way metaballs died. Wireframe needs its own answer first (see Open).
+- **The outline learns skinning**: `outlineMaterial` in `toon.ts` is a raw `ShaderMaterial` with no bone matrices - without the three.js skinning chunks the ink shell stays frozen in bind pose. Known, concrete fix.
+- **Crowds keep the bake**: sample the skeleton at each walk phase, bake deformed vertices with `applyBoneTransform`, and merge - same output as today's snapshots.
+- **End state - segments die.** Once skinned wins the eyeball on every surface, delete the segment renderer the way metaballs died. Wireframe needs its own answer first (see Open).
 
 ## Slices (priority order)
 
@@ -38,7 +38,7 @@ All pure data (races, kits, creature table, blueprints, recipes, plans), gait an
 
 ## Out of scope
 
-Imported rigged hero meshes (the Meshy slice — this pivot builds the skeleton standard they will later bind to), texture and material richness, ragdoll or physics, and instanced GPU skinning for crowds (the bake path covers them).
+Imported rigged hero meshes (the Meshy slice - this pivot builds the skeleton standard they will later bind to), texture and material richness, ragdoll or physics, and instanced GPU skinning for crowds (the bake path covers them).
 
 ## Open
 

@@ -1,4 +1,4 @@
-# MOVED — SSO Audit / Proof Log
+# MOVED - SSO Audit / Proof Log
 
 Moved 2026-07-01 to `docs/archive/spell-system/SSO-AUDIT-OR-PROOF.md` (historical evidence log, last substantive entry 2026-06-01; stub left because other docs still reference the old path).
 

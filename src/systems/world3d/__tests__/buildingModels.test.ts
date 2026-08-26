@@ -171,11 +171,13 @@ describe('buildBuildingMeshData', () => {
   // borrowed collinear run (Task 12 review fixes, 2026-07-06).
 
   it('builds the workshop whose door consumes a whole one-cell run (was: throw)', () => {
-    // Reviewer repro: door at (15, 2.5) axis 'y' with ZERO wall runs on x=15.
+    // Same reviewer repro: door at (15, 2.5), axis 'y', with ZERO wall runs
+    // on x=15. The larger character-scale footprints move this exact case
+    // from seed 3 to seed 430; every opening/frame assertion below is retained.
     const p = generateBuilding({
       buildingId: 3,
       type: 'workshop',
-      seedPath: childSeedPath(rootSeedPath(3), 'interior:3'),
+      seedPath: childSeedPath(rootSeedPath(430), 'interior:3'),
       storeys: 1,
       maxWidthFt: 60,
       maxDepthFt: 60,
@@ -456,6 +458,41 @@ describe('buildRoofMeshData', () => {
     towerCaps: [{ x: 24, y: 22, w: 6, d: 6, apexFt: 10, form: 'pyramid' }],
     pitchRiseFt: 6,
     eaveOverhangFt: 1,
+  });
+
+  it('closes both gable ends without adding a vertical face along the shared ridge', () => {
+    const plan = roof();
+    plan.towerCaps = [];
+    const { positions, normals } = buildRoofMeshData(plan, WALL_TOP).tris;
+    const endXs = new Set<number>();
+    for (let i = 0; i < positions.length; i += 3) {
+      if (Math.abs(normals[i + 1]) > 0.01) continue;
+      expect(Math.abs(normals[i])).toBeCloseTo(1);
+      endXs.add(Math.round(positions[i]));
+    }
+    expect([...endXs].sort((a, b) => a - b)).toEqual([0, 30]);
+  });
+
+  it('seals a gable clipped above the eaves by another roof section', () => {
+    const plan = roof();
+    plan.towerCaps = [];
+    // The lower half is trimmed away at a compound-roof intersection.
+    // Its exposed edge is three feet above the wall, rather than at zero.
+    plan.planes = [
+      { pts: [[0, 7.5, 3], [30, 7.5, 3], [30, 15, 6], [0, 15, 6]] },
+      plan.planes[1],
+    ];
+    const { positions, normals } = buildRoofMeshData(plan, WALL_TOP).tris;
+    let sealedArea = 0;
+    for (let i = 0; i < positions.length; i += 9) {
+      if (Math.abs(normals[i]) < 0.99 || Math.abs(positions[i]) > 0.001) continue;
+      const y0 = positions[i + 1], z0 = positions[i + 2];
+      const y1 = positions[i + 4], z1 = positions[i + 5];
+      const y2 = positions[i + 7], z2 = positions[i + 8];
+      sealedArea += Math.abs((y1 - y0) * (z2 - z0) - (y2 - y0) * (z1 - z0)) / 2;
+    }
+    // 7.5-foot raised trapezoid plus the untouched 15-foot triangle.
+    expect(sealedArea).toBeCloseTo(7.5 * (3 + 6) / 2 + 15 * 6 / 2);
   });
 
   it('emits at least one triangle per plane, well-formed', () => {

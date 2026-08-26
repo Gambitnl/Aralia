@@ -8,6 +8,7 @@ import type { Pt } from '../../../systems/worldforge/submap/submapEngine';
 import { STYLE_FAMILIES } from '../../../systems/worldforge/town/architectureStyle';
 import { toArtifactPlan } from '../../../systems/worldforge/town/townPlanAdapter';
 import { transformTownPlan } from '../../../systems/worldforge/town/canonicalTown';
+import { villageIntegrationProfiles } from '../../../data/villagePersonalityProfiles';
 
 const footprint: Pt[] = [[0, 0], [120, 0], [140, 90], [70, 140], [0, 100]];
 
@@ -34,6 +35,25 @@ describe('TownPlanView', () => {
     // One channel path per polyline — the dock/bridge civic anatomy the
     // generator seats against the water is finally visibly IN water.
     expect(container.querySelectorAll('[data-testid="town-water"]').length).toBe(1);
+  });
+
+  it('captions the map with the settlement personality when one is passed', () => {
+    const plan = generateTownPlan(footprint, rootSeedPath(42), { population: 4000 });
+    const profile = villageIntegrationProfiles.stoic_poor_tundra;
+    const { getByTestId } = render(
+      <TownPlanView plan={plan} width={600} height={400} personality={profile} />,
+    );
+    // The authored flavor reaches a player-visible surface for the first time.
+    expect(getByTestId('town-personality-tagline').textContent).toBe(profile.tagline);
+    expect(getByTestId('town-personality-signature').textContent).toBe(profile.culturalSignature);
+    expect(getByTestId('town-personality').getAttribute('data-personality-profile-id'))
+      .toBe('stoic_poor_tundra');
+  });
+
+  it('draws no personality caption when no profile is passed', () => {
+    const plan = generateTownPlan(footprint, rootSeedPath(42), { population: 4000 });
+    const { container } = render(<TownPlanView plan={plan} width={600} height={400} />);
+    expect(container.querySelectorAll('[data-testid="town-personality"]').length).toBe(0);
   });
 
   it('draws no water when the plan has none', () => {

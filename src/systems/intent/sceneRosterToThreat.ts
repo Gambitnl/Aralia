@@ -12,7 +12,8 @@
  *
  * NO FALLBACK, and this is the reason the module exists rather than a one-line
  * map: `createEnemyFromMonster` looks each name up in the bestiary and, on a
- * miss, logs a warning and spawns a generic 10-HP stub with a 4-damage punch.
+ * miss, logs a warning and spawns a generic 10-HP stub with a 4-damage punch
+ * (scaling heuristics tracked in Agora task agora-271b).
  * Emitting "Finnley Swiftfoot" as a monster name would hit that stub every time.
  * So every archetype below is a REAL statblock key, verified present in
  * `src/data/monsters.generated.ts`, and the person's own name is carried in the

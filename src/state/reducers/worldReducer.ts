@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 19/07/2026, 08:32:04
+ * Last Sync: 30/08/2026, 01:51:16
  * Dependents: state/appState.ts
- * Imports: 28 files
+ * Imports: 29 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -34,6 +34,7 @@ import {
   buildTownSimStateForBurg,
   buildingEvolutionForBurg,
 } from "../../systems/worldforge/townsim/townSimRegistration";
+import { resolveTownSituation } from "../../systems/worldforge/townsim/townSituation";
 import { processWorldEvents } from "../../systems/world/WorldEventManager";
 import { UnderdarkMechanics } from "../../systems/underdark/UnderdarkMechanics";
 import { DEFAULT_WEATHER } from "../../systems/environment/EnvironmentSystem";
@@ -469,6 +470,41 @@ export function worldReducer(
       return { townSim: { ...registry, [burgId]: townState } };
     }
 
+    case "RESOLVE_TOWN_SITUATION": {
+      // The chronicle is the canonical write boundary. Gold and prosperity are
+      // returned by the same pure transaction, so an invalid or replayed action
+      // cannot charge the player without also recording the town outcome.
+      const registry = state.townSim ?? {};
+      const town = registry[action.payload.burgId];
+      if (!town) return {};
+
+      const result = resolveTownSituation(town, {
+        sourceEventId: action.payload.sourceEventId,
+        resolutionId: action.payload.resolutionId,
+        currentDay: getGameDay(state.gameTime),
+        currentGold: state.gold,
+        actorName: state.party[0]?.name?.trim() || "The adventurer",
+      });
+      if (result.status !== "resolved" || !result.outcome) return {};
+
+      return {
+        townSim: {
+          ...registry,
+          [action.payload.burgId]: result.town,
+        },
+        gold: result.gold,
+        messages: [
+          ...state.messages,
+          {
+            id: state.gameTime.getTime() + state.messages.length + 1,
+            text: result.outcome.summary,
+            sender: "system",
+            timestamp: new Date(state.gameTime),
+          },
+        ],
+      };
+    }
+
     case "ADVANCE_TIME": {
       // RALPH: The Chronos Loop.
       // Advancing time isn't just updating a clock; it triggers a chain reaction:
@@ -835,6 +871,27 @@ export function worldReducer(
       delete newResidues[locationId];
       return {
         locationResidues: newResidues,
+      };
+    }
+
+    case "LINK_NPC_TO_LOCATION": {
+      // AI-created NPCs (Linker path) need a home: put the new id on the
+      // location's roster. Dynamic locations are edited in place; a static
+      // location gets a dynamicLocations override seeded from its authored
+      // shape, which is what `{...LOCATIONS, ...dynamicLocations}` consumers
+      // (e.g. fact propagation) already read.
+      const { locationId, npcId } = action.payload;
+      const existing = state.dynamicLocations?.[locationId] ?? LOCATIONS[locationId];
+      if (!existing) return {};
+      if (existing.npcIds?.includes(npcId)) return {};
+      return {
+        dynamicLocations: {
+          ...(state.dynamicLocations ?? {}),
+          [locationId]: {
+            ...existing,
+            npcIds: [...(existing.npcIds ?? []), npcId],
+          },
+        },
       };
     }
 

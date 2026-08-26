@@ -1,7 +1,4 @@
 import React, { useState } from 'react';
-import { CLASSES_DATA } from '../../../../../data/classes';
-import { buildRacialTraitLibrary, getRacialModifierBucketsFromTraitText } from '../../../../../data/races/racialTraits';
-import { SKILLS_DATA } from '../../../../../data/skills';
 import { applyRacialSpellGrantsByLevel, resolveRacialResourceId } from '../../../../../utils/character/characterUtils';
 import { rollAbilityCheck, type CheckResult } from '../../../../../utils/character/checkUtils';
 import { calculateProficiencyBonus } from '../../../../../utils/character/savingThrowUtils';
@@ -160,49 +157,19 @@ export function createDeepGnomeGnomishCamouflageScenario(race: Race): DeepGnomeS
     );
   }
 
-  let quickCharacter = createQuickCharacter(DEEP_GNOME_ACTOR_CONFIG);
-  if (!quickCharacter) {
-    // DEBT: When the preview module graph cannot resolve even the proven
-    // generic quick-character pair, this typed adapter keeps the transaction
-    // inspectable with production character fields. The canonical racial parser
-    // still supplies every Deep Gnome modifier and resource; this adapter does
-    // not claim to replace the campaign character factory.
-    const dexterity = 16;
-    const adapterClass = CLASSES_DATA.fighter;
-    if (!adapterClass) {
-      return unavailableScenario(
-        'assembly_unavailable',
-        'Gnomish Camouflage unavailable: the production quick-character assembly rejected deep_gnome and the Fighter fixture baseline is missing.',
-      );
-    }
-    quickCharacter = {
-      id: 'deep-gnome-adapter-actor',
-      name: 'Deep Gnome Gnomish Camouflage Tester',
-      level: DEEP_GNOME_SCENARIO_LEVEL,
-      proficiencyBonus: calculateProficiencyBonus(DEEP_GNOME_SCENARIO_LEVEL),
-      race,
-      class: adapterClass,
-      classLevels: { fighter: DEEP_GNOME_SCENARIO_LEVEL },
-      abilityScores: { Strength: 10, Dexterity: dexterity, Constitution: 12, Intelligence: 10, Wisdom: 10, Charisma: 10 },
-      finalAbilityScores: { Strength: 10, Dexterity: dexterity, Constitution: 12, Intelligence: 10, Wisdom: 10, Charisma: 10 },
-      skills: [SKILLS_DATA.stealth],
-      savingThrowProficiencies: adapterClass.savingThrowProficiencies,
-      hp: 40,
-      maxHp: 40,
-      armorClass: 13,
-      speed: 30,
-      darkvisionRange: 0,
-      transportMode: 'foot',
-      equippedItems: {},
-      spellbook: { cantrips: [], knownSpells: [], preparedSpells: [] },
-      statusEffects: [],
-      modifiers: { advantage: [], disadvantage: [], bonuses: [], skillProficiencies: ['Stealth'], weaponProficiencies: [], armorProficiencies: [] },
-    };
-  }
+  // Production character assembly resolves every selectable race directly.
+  // ALL_RACES_DATA is glob-built from src/data/races, so deep_gnome is present
+  // and createQuickCharacter returns a real PlayerCharacter (agora-c582). The
+  // hand-built adapter actor and the canonical modifier/resource merge that
+  // used to sit here are gone: the shared racial parser already projects
+  // Dexterity (Stealth) advantage and the PB-scaled Camouflage resource. If
+  // assembly ever fails, this scenario reports unavailable rather than
+  // substituting a preview-only body.
+  const quickCharacter = createQuickCharacter(DEEP_GNOME_ACTOR_CONFIG);
   if (!quickCharacter) {
     return unavailableScenario(
       'assembly_unavailable',
-      'Gnomish Camouflage unavailable: the production quick-character assembly rejected deep_gnome and the narrow canonical-race fixture adapter could not be created.',
+      'Gnomish Camouflage unavailable: the production quick-character assembly rejected deep_gnome.',
     );
   }
 
@@ -212,57 +179,10 @@ export function createDeepGnomeGnomishCamouflageScenario(race: Race): DeepGnomeS
     quickCharacter,
     DEEP_GNOME_SCENARIO_LEVEL,
   );
-  const canonicalTraitLibrary = buildRacialTraitLibrary({ [race.id]: race });
-  const canonicalCamouflage = canonicalTraitLibrary.byRaceId[race.id]?.find(trait => (
-    trait.type !== 'spell' && trait.traitName === DEEP_GNOME_GNOMISH_CAMOUFLAGE_TRAIT
-  ));
-  const canonicalModifierBuckets = getRacialModifierBucketsFromTraitText(
-    getCanonicalGnomishCamouflageTrait(race) ?? '',
-  );
-  const canonicalStealthAdvantage = /advantage/i.test(getCanonicalGnomishCamouflageTrait(race) ?? '')
-    && /Dexterity/i.test(getCanonicalGnomishCamouflageTrait(race) ?? '')
-    && /Stealth/i.test(getCanonicalGnomishCamouflageTrait(race) ?? '')
-    ? ['Dexterity (Stealth) checks']
-    : [];
-  const canonicalResource = canonicalCamouflage?.type !== 'spell'
-    ? canonicalCamouflage.resources?.find(resource => resource.id.endsWith('__gnomish_camouflage__resource'))
-    : undefined;
-  const canonicalResourceKey = canonicalResource
-    ? resolveRacialResourceId('feature', canonicalResource.id)
-    : DEEP_GNOME_GNOMISH_CAMOUFLAGE_RESOURCE_ID;
-  const canonicalResourceMax = canonicalResource?.maxUses === 'proficiency_bonus'
-    ? calculateProficiencyBonus(DEEP_GNOME_SCENARIO_LEVEL)
-    : canonicalResource?.maxUses ?? calculateProficiencyBonus(DEEP_GNOME_SCENARIO_LEVEL);
   const actor: PlayerCharacter = {
     ...assembledCharacter,
     id: DEEP_GNOME_ACTOR_ID,
     name: `${race.name} · Gnomish Camouflage Tester`,
-    // DEBT: The production library projection can omit a newly selectable race
-    // in a preview module graph. Merge only the canonical parsed Camouflage
-    // modifier/resource when absent; the shared check helper remains the sole
-    // resolver and the resource remains derived from the canonical trait text.
-    modifiers: {
-      advantage: Array.from(new Set([
-        ...(assembledCharacter.modifiers?.advantage ?? []),
-        ...canonicalModifierBuckets.advantage,
-        ...canonicalStealthAdvantage,
-      ])),
-      disadvantage: [...(assembledCharacter.modifiers?.disadvantage ?? [])],
-      bonuses: [...(assembledCharacter.modifiers?.bonuses ?? [])],
-      skillProficiencies: [...(assembledCharacter.modifiers?.skillProficiencies ?? [])],
-      weaponProficiencies: [...(assembledCharacter.modifiers?.weaponProficiencies ?? [])],
-      armorProficiencies: [...(assembledCharacter.modifiers?.armorProficiencies ?? [])],
-    },
-    limitedUses: {
-      ...(assembledCharacter.limitedUses ?? {}),
-      [canonicalResourceKey]: {
-        ...(assembledCharacter.limitedUses?.[canonicalResourceKey] ?? {}),
-        name: `${race.name}: ${DEEP_GNOME_GNOMISH_CAMOUFLAGE_TRAIT}`,
-        current: assembledCharacter.limitedUses?.[canonicalResourceKey]?.current ?? canonicalResourceMax,
-        max: canonicalResource?.maxUses ?? 'proficiency_bonus',
-        resetOn: canonicalResource?.resetOn ?? 'long_rest',
-      },
-    },
   };
   const resource = getDeepGnomeCamouflageResource(actor);
 
@@ -434,7 +354,7 @@ function DeepGnomeRaceLeafContent({
       </div>
 
       <p data-testid="deep-gnome-assembly-boundary">
-        Assembly boundary: production quick-character assembly is attempted first but currently rejects deep_gnome in this preview graph; the typed fixture adapter supplies only actor fields, while canonical parsing plus applyRacialSpellGrantsByLevel, the native check helper, and shared dice remain authoritative for this transaction. The leaf carries no parallel campaign actor authority.
+        Assembly boundary: production quick-character assembly resolves deep_gnome directly, so this leaf holds no fixture adapter and no local modifier or resource merge. Canonical parsing plus applyRacialSpellGrantsByLevel, the native check helper, and shared dice remain authoritative for this transaction, and the leaf carries no parallel campaign actor authority.
       </p>
       <p data-testid="deep-gnome-unsupported-boundary">
         Unsupported boundary: Darkvision sensing/visibility and Disguise Self or Nondetection spell resolution require the mounted map/spell systems; this leaf reports canonical facts and the tested Camouflage check only. No 2D/3D render proof is claimed.

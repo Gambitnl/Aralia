@@ -1,4 +1,4 @@
-﻿# Target Filters And Eligibility
+# Target Filters And Eligibility
 
 Bucket id: `target_filter_or_eligibility`
 Total findings: 132

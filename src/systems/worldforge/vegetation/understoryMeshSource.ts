@@ -351,7 +351,7 @@ function buildFern(rng: () => number): TreeGeometryData {
  *
  * Built lying along +x with a slight bow, because a trunk that fell is not
  * straight and a perfectly straight cylinder on the ground reads as a pipe. It
- * tapers toward one end and carries a broken stub or two, which is what makes
+ * tapers toward one end and carries a broken limb spur or two, which is what makes
  * it read as having come off a tree rather than having been delivered.
  */
 function buildLog(rng: () => number): TreeGeometryData {
@@ -425,7 +425,7 @@ function buildLog(rng: () => number): TreeGeometryData {
     const sr = r0 * 0.5;
     const bx = at - 0.5;
     const by = r0 + Math.sin(at * Math.PI) * bow;
-    // Spurs point up and out; a stub aimed down is buried in the ground.
+    // Spurs point up and out; a branch spur aimed down is buried in the ground.
     const dy = 0.35 + Math.abs(Math.sin(yaw)) * 0.55;
     const dirX = Math.cos(yaw) * 0.5;
     const dirZ = Math.sin(yaw);

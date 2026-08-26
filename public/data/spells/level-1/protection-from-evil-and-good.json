@@ -431,7 +431,7 @@
                       "prompt":  "Ask the caster to choose the willing touched creature; apply attack Disadvantage from Aberrations, Celestials, Elementals, Fey, Fiends, and Undead, and Advantage on new saves against existing possession, Charmed, or Frightened effects from those creatures.",
                       "playerInputRequired":  true
                   },
-    "description":  "Until the spell ends, one willing creature you touch is protected against creatures that are Aberrations, Celestials, Elementals, Fey, Fiends, or Undead. The protection grants several benefits. Creatures of those types have Disadvantage on attack rolls against the target. The target also can\u0027t be possessed by or gain the Charmed or Frightened conditions from them. If the target is already possessed, Charmed, or Frightened by such a creature, the target has Advantage on any new saving throw against the relevant effect.",
+    "description":  "Until the spell ends, one willing creature you touch is protected against creatures that are Aberrations, Celestials, Elementals, Fey, Fiends, or Undead. The protection grants several benefits. Creatures of those types have Disadvantage on attack rolls against the target. The target also can't be possessed by or gain the Charmed or Frightened conditions from them. If the target is already possessed, Charmed, or Frightened by such a creature, the target has Advantage on any new saving throw against the relevant effect.",
     "higherLevels":  "",
     "tags":  [
                  "defense",

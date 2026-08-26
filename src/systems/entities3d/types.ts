@@ -99,7 +99,24 @@ export interface Palette {
   /** Secondary accent (cloth lining, hat band). */
   secondaryHex: string;
   eyeHex: string;
+  /** Hair color (biped heads, beards, crests). Derived from species tones;
+   * falls back to skinHex when absent. */
+  hairHex?: string;
+  /** Leather / belt / strap color. Derived from class kit;
+   * falls back to a warm shade of accentHex when absent. */
+  leatherHex?: string;
+  /** Metallic surfaces (helmet ridges, weapon fittings, studs).
+   * Derived from class kit; falls back to a lighter accentHex when absent. */
+  metalHex?: string;
 }
+
+/** Material surface type hint — lets `PartMeshCtx.material()` choose
+ * the right shading treatment beyond flat toon color. */
+export type MaterialSurface =
+  | 'default'   // plain toon color
+  | 'metallic'  // brighter specular, tighter toon ramp response
+  | 'emissive'  // glows slightly (mana effects, runes)
+  | 'soft';     // subsurface-like warmth (skin, cloth)
 
 /** One resolved modular component on an entity. */
 export interface PartInstance {
@@ -313,7 +330,10 @@ export interface PartMeshCtx {
   frame: Frame;
   palette: Palette;
   params: Record<string, number | string>;
-  material(colorHex: string): import('three').Material;
+  /** Create a toon-shaded material. The optional second arg selects a surface
+   * treatment: 'metallic' brightens and tightens, 'emissive' adds a glow,
+   * 'soft' warms the toon response (skin, cloth). Falls back to plain toon. */
+  material(colorHex: string, surface?: MaterialSurface): import('three').Material;
 }
 
 /** One modular component definition (body v2).

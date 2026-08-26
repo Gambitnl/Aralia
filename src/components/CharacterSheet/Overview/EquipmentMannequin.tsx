@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 10/08/2026, 13:56:23
+ * Last Sync: 26/08/2026, 16:41:52
  * Dependents: components/CharacterSheet/Overview/index.ts
  * Imports: 17 files
  *
@@ -40,6 +40,7 @@
 // details of the 13 slots mapped to the paper doll silhouette grid.
 // ============================================================================
 import React from 'react';
+import { AlertTriangle } from 'lucide-react';
 import { PlayerCharacter, EquipmentSlotType, Item, ArmorCategory } from '../../../types';
 import Tooltip from '../../ui/Tooltip';
 
@@ -77,6 +78,12 @@ interface SlotDisplayInfo {
   gridArea: string;
   isArmorSlot?: boolean;
   isShieldSlot?: boolean;
+  /**
+   * Slots that hold a wielded weapon. Added alongside the existing armor/shield
+   * flags so the paper doll stays the single source of truth for which item
+   * kinds a slot accepts (see `slotAcceptsItem` below).
+   */
+  isWeaponSlot?: boolean;
 }
 
 const equipmentSlots: SlotDisplayInfo[] = [
@@ -85,8 +92,8 @@ const equipmentSlots: SlotDisplayInfo[] = [
   { id: 'Torso', label: 'Torso', defaultIcon: <TorsoIcon />, gridArea: 'torso', isArmorSlot: true },
   { id: 'Cloak', label: 'Cloak', defaultIcon: <CloakIcon />, gridArea: 'cloak' },
   { id: 'Belt', label: 'Belt', defaultIcon: <BeltIcon />, gridArea: 'belt' },
-  { id: 'MainHand', label: 'Main Hand', defaultIcon: <MainHandIcon />, gridArea: 'mainhand' },
-  { id: 'OffHand', label: 'Off Hand', defaultIcon: <OffHandIcon />, gridArea: 'offhand', isShieldSlot: true },
+  { id: 'MainHand', label: 'Main Hand', defaultIcon: <MainHandIcon />, gridArea: 'mainhand', isWeaponSlot: true },
+  { id: 'OffHand', label: 'Off Hand', defaultIcon: <OffHandIcon />, gridArea: 'offhand', isShieldSlot: true, isWeaponSlot: true },
   { id: 'Wrists', label: 'Wrists', defaultIcon: <WristsIcon />, gridArea: 'wrists', isArmorSlot: true },
   { id: 'Legs', label: 'Legs', defaultIcon: <LegsIcon />, gridArea: 'legs', isArmorSlot: true },
   { id: 'Hands', label: 'Hands', defaultIcon: <HandsIcon />, gridArea: 'hands', isArmorSlot: true },
@@ -94,6 +101,67 @@ const equipmentSlots: SlotDisplayInfo[] = [
   { id: 'Ring2', label: 'Ring 2', defaultIcon: <RingIcon />, gridArea: 'ring2' },
   { id: 'Feet', label: 'Feet', defaultIcon: <FeetIcon />, gridArea: 'feet', isArmorSlot: true },
 ];
+
+// ============================================================================
+// Slot Compatibility Rules (weapon vs armor)
+// ============================================================================
+// The paper doll above already knows which slots wear armor, hold a shield, and
+// wield a weapon. Those flags are exported here as a shared rule so the backpack
+// (InventoryList) and any future equip surface agree with the mannequin instead
+// of each re-deriving slot semantics. Only the weapon/armor distinction is
+// enforced: accessories (wondrous items) legitimately occupy hands, head, cloak,
+// rings and belt, so they stay permissive and keep their future feature space.
+// ============================================================================
+
+/** Slots that can hold a wielded weapon. */
+export const WEAPON_SLOTS: readonly EquipmentSlotType[] =
+  equipmentSlots.filter(s => s.isWeaponSlot).map(s => s.id);
+
+/** Slots that wear body armor (helm, breastplate, greaves, ...). */
+export const ARMOR_SLOTS: readonly EquipmentSlotType[] =
+  equipmentSlots.filter(s => s.isArmorSlot).map(s => s.id);
+
+/** Slots that can strap a shield. */
+export const SHIELD_SLOTS: readonly EquipmentSlotType[] =
+  equipmentSlots.filter(s => s.isShieldSlot).map(s => s.id);
+
+/**
+ * Whether `item` is allowed to occupy `slot` under the weapon/armor rules.
+ *
+ * Why this exists: `canEquipItem` (utils/character/defense.ts) validates
+ * proficiency, level and ability requirements but never checks that the item
+ * kind matches the slot kind, so data-authored gear with a mismatched `slot`
+ * (a greatsword slotted to `Torso`, a breastplate slotted to `MainHand`) used to
+ * pass straight through to the reducer and land on the wrong body part.
+ *
+ * Preserved: non-weapon, non-armor kinds (accessories, wondrous items, anything
+ * added later) return `true` here. This guard deliberately does not attempt to
+ * police accessory placement, which has no settled rule yet.
+ */
+export const slotAcceptsItem = (slot: EquipmentSlotType, item: Item): boolean => {
+  if (item.type === 'weapon') return WEAPON_SLOTS.includes(slot);
+  if (item.type === 'armor') {
+    // A shield is armor by type but is strapped, not worn: it belongs in the
+    // off hand rather than in any of the body-armor slots.
+    return item.armorCategory === 'Shield'
+      ? SHIELD_SLOTS.includes(slot)
+      : ARMOR_SLOTS.includes(slot);
+  }
+  return true;
+};
+
+/**
+ * Human-readable reason a slot rejects an item, or `undefined` when it accepts.
+ * Used for the disabled Equip button's tooltip so a player sees why a piece of
+ * gear cannot go where its data claims.
+ */
+export const slotRejectionReason = (slot: EquipmentSlotType, item: Item): string | undefined => {
+  if (slotAcceptsItem(slot, item)) return undefined;
+  const label = equipmentSlots.find(s => s.id === slot)?.label ?? slot;
+  if (item.type === 'weapon') return `Weapons cannot be equipped in the ${label} slot.`;
+  if (item.armorCategory === 'Shield') return `A shield cannot be equipped in the ${label} slot.`;
+  return `Armor cannot be equipped in the ${label} slot.`;
+};
 
 /**
  * A subtle SVG silhouette to go behind the slots, giving context to the "empty" spaces.
@@ -263,26 +331,17 @@ const EquipmentMannequin: React.FC<EquipmentMannequinProps> = ({ character, onSl
                 }
 
                 // Check weapon proficiency
-                // REVIEW Q10: This correctly uses the isWeaponMartial helper now (after fix).
-                // However, the error message says "Cannot add proficiency bonus to attack rolls or use weapon mastery."
-                // Is this mechanically accurate for 2024 D&D? Need to verify the actual penalties.
-                // ANSWER: Yes, per 2024 PHB: Non-proficient = no prof bonus to attack, no mastery properties.
+                // Per 2024 PHB / 5e rules: Non-proficient = no proficiency bonus to attack rolls, no weapon mastery properties.
                 const isProficient = isWeaponProficient(character, equippedItem);
                 if (!isProficient) {
                   proficiencyMismatch = true;
                   // Use helper to determine type for display
-                  // REVIEW Q11: Error message is duplicated from characterUtils.ts canEquipItem.
-                  // Should we centralize this message in one place to avoid drift?
-                  // ANSWER: Good observation. Consider a constant or helper function for message consistency.
                   const weaponType = isWeaponMartial(equippedItem) ? 'Martial weapons' : 'Simple weapons';
-                  mismatchReason = `Not proficient with ${weaponType}. Cannot add proficiency bonus to attack rolls or use weapon mastery.`;
+                  mismatchReason = `Not Proficient — No Proficiency Bonus to Attacks. Not proficient with ${weaponType}. Cannot add proficiency bonus to attack rolls or use weapon mastery.`;
                 }
               }
 
-              // REVIEW Q12: The red styling is applied even if proficiencyMismatch is true from a non-weapon source.
-              // Currently only weapons set proficiencyMismatch, but if armor proficiency mismatch is added later,
-              // would this styling still be appropriate?
-              // ANSWER: Yes, the styling is generic enough for any "equipment mismatch" warning.
+              // Apply warning red styling if character is not proficient with the equipped weapon
               if (proficiencyMismatch) {
                 slotStyle = "bg-red-900/20 border-red-500 ring-1 ring-red-500";
               }
@@ -334,6 +393,16 @@ const EquipmentMannequin: React.FC<EquipmentMannequinProps> = ({ character, onSl
                   {!equippedItem && (
                     <span className="absolute bottom-1 right-1 text-[9px] text-gray-600 uppercase font-bold tracking-wider pointer-events-none">
                       {slotInfo.label}
+                    </span>
+                  )}
+
+                  {/* Proficiency Mismatch Warning Badge (Top-Right) */}
+                  {proficiencyMismatch && (
+                    <span
+                      className="absolute -top-1.5 -right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-600 border border-red-400 text-white shadow-sm z-10"
+                      aria-label="Not Proficient"
+                    >
+                      <AlertTriangle size={10} />
                     </span>
                   )}
 

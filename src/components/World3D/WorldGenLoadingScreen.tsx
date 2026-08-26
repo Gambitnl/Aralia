@@ -2,7 +2,7 @@
  * @file WorldGenLoadingScreen.tsx
  * @description The loading view shown while the 3D world assembles off the main
  * thread (staged 3D world entry). Replaces the old error-looking "World data is
- * not ready" placeholder with honest, advancing stage text over a progress bar.
+ * not ready" fallback screen with honest, advancing stage text over a progress bar.
  *
  * The stages map to real work in the world-gen pipeline:
  *   land    — resolving the region (getWorldforgeLocalForCell)

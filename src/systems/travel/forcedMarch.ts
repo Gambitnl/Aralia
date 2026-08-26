@@ -18,6 +18,7 @@
 import type { PlayerCharacter } from '../../types/character';
 import { getAbilityModifierValue } from '../../utils/character/statUtils';
 import { calculateProficiencyBonus } from '../../utils/character/savingThrowUtils';
+import { calculateExhaustionEffects } from '../../utils/combat/physicsUtils';
 
 /** One member's forced-march Constitution save outcome. */
 export interface ForcedMarchSaveResult {
@@ -78,4 +79,57 @@ export function resolveForcedMarch(
   });
   const failedNames = results.filter((r) => r.failed).map((r) => r.name);
   return { results, failedNames, anyFailed: failedNames.length > 0 };
+}
+// ── Exhaustion's travel cost (travel G1, second half) ───────────────────────
+// Failing the march was already wired: App sets the party-wide 'exhaustion'
+// condition. What was missing is the OTHER half the rule asks for — an exhausted
+// party moves slower. The 5e exhaustion penalty (−5 ft of speed per level) already
+// lives in `calculateExhaustionEffects`; these two helpers translate it into the
+// overland mph the route planner speaks, so the toll shows up as longer trips
+// instead of a cosmetic chip. Nothing about the condition mechanism changes.
+
+/** Overland mph per foot of speed (D&D: 30 ft ≈ 3 mph, so 10 ft ≈ 1 mph). */
+const MPH_PER_SPEED_FOOT = 1 / 10;
+
+/** Slowest a worn-out party can still be said to travel, so time stays finite. */
+const MIN_EXHAUSTED_MPH = 0.5;
+
+/** The condition string App applies party-wide when a forced march bites. */
+export const EXHAUSTION_CONDITION = 'exhaustion';
+
+/**
+ * Exhaustion level carried by the party, as travel reads it: the WORST member's
+ * level, since the group moves at its slowest member's pace.
+ *
+ * Today the party-wide condition is a flat string, so a party either carries
+ * exhaustion (level 1) or does not. Numbered forms ('exhaustion_2') are read
+ * when present so a future stacking implementation needs no change here —
+ * see docs/projects/GLOBAL_GAPS.md for the open stacking gap.
+ */
+export function partyExhaustionLevel(party: readonly { conditions?: string[] }[]): number {
+  let worst = 0;
+  for (const pc of party) {
+    for (const raw of pc.conditions ?? []) {
+      const c = String(raw).toLowerCase();
+      if (c === EXHAUSTION_CONDITION) worst = Math.max(worst, 1);
+      const numbered = /^exhaustion[_ -]?(\d)$/.exec(c);
+      if (numbered) worst = Math.max(worst, Number(numbered[1]));
+    }
+  }
+  return worst;
+}
+
+/**
+ * Overland speed (mph) after exhaustion. Level 0 returns the input untouched, so
+ * a rested party is never penalized and every existing call site is unaffected
+ * until a caller opts in by passing a level.
+ *
+ * Level 6 means death in the combat rules, and `calculateExhaustionEffects`
+ * stops reporting a speed penalty there; for travel we clamp to level 5 so a
+ * doomed party is still the slowest party rather than accidentally the fastest.
+ */
+export function exhaustedSpeedMph(baseMph: number, level: number): number {
+  if (!(level > 0)) return baseMph;
+  const { speedPenalty } = calculateExhaustionEffects(Math.min(level, 5));
+  return Math.max(MIN_EXHAUSTED_MPH, baseMph - speedPenalty * MPH_PER_SPEED_FOOT);
 }

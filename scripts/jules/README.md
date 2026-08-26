@@ -81,11 +81,9 @@ It reads the session's output branch from the API, `git fetch`es it, and extract
 only `public/assets/icons/spells/**` from `FETCH_HEAD` into the working tree. You
 stay on your current branch the whole time. Review with `git status`.
 
-> NOTE: the exact API field carrying the output branch name (when no PR is created)
-> is not fully pinned down in the alpha docs. `fetch-icons.mjs` searches the session
-> `outputs`, then activities, for a branch-like field, and falls back to printing
-> the raw JSON so you can read the branch and pass `--branch <name>`. See the TODO
-> comment in that file.
+> NOTE: Jules sessions carry the patch inline via `session.outputs[0].changeSet.gitPatch`
+> (confirmed live 2026-07-14), so `fetch-icons.mjs` applies the unidiff patch directly
+> without switching branches or git fetching.
 
 ## Files
 

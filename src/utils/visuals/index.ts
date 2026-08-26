@@ -22,3 +22,4 @@
 export * from './spellVisuals';
 export * from './visualUtils';
 export * from './glossaryUtils';
+export * from './conditionPalette';

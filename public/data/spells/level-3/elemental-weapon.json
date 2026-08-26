@@ -201,8 +201,13 @@
                         "scaling":  {
                                         "type":  "slot_level",
                                         "bonusPerLevel":  "",
-                                        "customFormula":  ""
-                                    },
+                                        "customFormula":  "",
+                                        "scalingTiers":  {
+                                                        "3":  "+1 to attack rolls, 1d4 extra damage",
+                                                        "5":  "+2 to attack rolls, 2d4 extra damage",
+                                                        "7":  "+3 to attack rolls, 3d4 extra damage"
+                                        }
+                        },
                         "description":  "The touched weapon deals an extra 1d4 damage of the chosen Acid, Cold, Fire, Lightning, or Thunder type when it hits.",
                         "conditionalEndings":  [
 

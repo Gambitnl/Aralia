@@ -1,19 +1,3 @@
-// @dependencies-start
-/**
- * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
- *
- * Last Sync: 10/07/2026, 13:09:49
- * Dependents: components/BattleMap/BattleMap3D.tsx
- * Imports: 5 files
- *
- * MULTI-AGENT SAFETY:
- * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
- * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
- */
-// @dependencies-end
-
 /**
  * @file BattleMap3DGpuScene.tsx
  * @description EXPERIMENTAL WebGPU render path for the 3D tactical battle map
@@ -54,11 +38,22 @@
  *   3. Grid + movement/path/AoE overlay — TSL translation of GridOverlay's
  *      tile-state shader (`gpu/gridOverlayNodes.ts`), terrain-conforming,
  *      fade-lerped like the WebGL overlay.
- *   4. Character/enemy actors — lit tokens with team color, HP fade, selection +
- *      active-turn rings. (The full 1,491-line animated `CharacterActor` rig —
- *      drei `<Html>` nameplates, AnimationMixer state machine, fresnel rim — is
- *      a documented deferral: its drei/`useFrame`/MeshStandard stack does not
- *      translate 1:1 and would balloon this slice. Listed on-screen as MISSING.)
+ *   4. Character/enemy actors — REAL generated bodies. `EntityModel` (the same
+ *      component the WebGL `CharacterActor` mounts) renders each combatant's
+ *      procedural humanoid/creature, with team-color ground rings, an HP-driven
+ *      ring fade, a death desaturation, and selection + active-turn rings.
+ *      (Previously lit capsules: the deferral blamed the whole 1,491-line
+ *      CharacterActor rig, but the body itself needed only two things — the
+ *      raw-GLSL ink/blob materials rebuilt as nodes, and the LIT toon material
+ *      rebuilt as a baked unlit one, since this scene has no lights. Both live
+ *      in `systems/entities3d/three/gpu/`.)
+ *   4b. Actor CHROME — nameplate, HP pip, defeat + temporary-HP markers,
+ *      defense and condition chips, and the fresnel rim (agora-a2b8). The
+ *      `<Html>` pieces are the SAME components the WebGL actor mounts
+ *      (`characters/characterActor/actorChromeHtml`) — a drei `<Html>` is a
+ *      DOM overlay, not a shader, so it crosses unchanged. Only the lit HP
+ *      pip is rebuilt unlit (`gpu/GpuActorChrome`), and the rim is rebuilt
+ *      as TSL in `three/gpu/toonNodes.ts`.
  *   5. Post-processing — three's node `PostProcessing` bloom + a TSL vignette
  *      (matches the WebGL EffectComposer look), driven manually with a
  *      `frameloop="never"` render loop.
@@ -66,13 +61,34 @@
  * EXPLICIT MISSING (shown on-screen, honest — NO faking, NO silent fallback):
  *   - Real-time shadows: baked colorNode lighting has no `LightsNode` to consume
  *     a shadow map on the node path (three 0.170).
- *   - Animated CharacterActor rig + drei nameplates (see rung 4).
+ *   - Condition TINT and desaturation on the body (`useFresnelRim`'s G10
+ *     stage): live per-character uniforms driven by conditions, carried by a
+ *     GLSL patch the material swap drops. Defeat is covered (the baked
+ *     material's death-fade uniform), the condition hues are not. The rest of
+ *     the chrome — nameplates, pip, badges, rim — is no longer missing; see
+ *     rungs 4 and 4b.
  *   - GPU wind sway on grass (WebGL animates blades in the vertex shader; here
  *     the blades are static — the meadow reads, the sway does not).
  */
 
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Canvas, extend, useFrame, useThree } from '@react-three/fiber';
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 09/09/2026, 13:18:57
+ * Dependents: components/BattleMap/BattleMap3D.tsx
+ * Imports: 12 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Canvas, extend, useFrame, useThree, type Catalogue, type ThreeEvent } from '@react-three/fiber';
 import * as THREE from 'three/webgpu';
 import {
   vec3,
@@ -88,6 +104,7 @@ import {
   smoothstep,
   normalize as tslNormalize,
 } from 'three/tsl';
+import type { WebGLRenderer } from 'three';
 import type { BattleMapData, BattleMapTile, CombatCharacter } from '../../types/combat';
 import { CameraController } from './camera';
 import { makeTerrainHeightSampler } from './terrain/TerrainMesh';
@@ -97,14 +114,42 @@ import {
 } from './gpu/terrainColorNode';
 import { buildGridColorNode, buildGridOpacityNode } from './gpu/gridOverlayNodes';
 import { PerfProbe } from '../../devtools/perf';
+import { EntityModel } from './characters/characterActor/EntityModel';
+import type { AnimationState } from './characters/characterActor/models';
+import { TEAM_COLORS } from './characters/characterActor/actorTheme';
+import { actorHpColor } from './characters/characterActor/actorChromeHtml';
+import { GpuActorChrome } from './gpu/GpuActorChrome';
+import { getDistance } from '../../utils/combat/combatUtils';
+import { heightM } from '@/systems/entities3d/types';
+import { registerAllParts } from '@/systems/entities3d/parts';
+import { generateEntityBlueprint } from '@/systems/entities3d/generateEntityBlueprint';
+import { recipeFromCombatant } from '@/systems/entities3d/recipeFromCombatant';
+import {
+  setEntityConditionTint,
+  setEntityDeathFade,
+  swapEntityMaterialsForGpu,
+} from '@/systems/entities3d/three/gpu/gpuMaterialSwap';
+import { resolveDominantCondition } from '@/utils/visuals/conditionPalette';
 
 // WebGPU R3F requires the JSX intrinsics (<mesh>, <group>, ...) to resolve
 // against the `three/webgpu` namespace, or WebGPURenderer cannot draw them.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-extend(THREE as any);
+// `Catalogue` is R3F's own JSX-intrinsic registry type. The two-step cast is
+// needed because the three/webgpu namespace is a module object rather than a
+// Catalogue-shaped record; naming the target type keeps a wrong argument here
+// a type error, which the previous untyped cast did not.
+extend(THREE as unknown as Catalogue);
+
+// Part registry for the generated-entity builder. The WebGL CharacterActor
+// calls this at module scope too; it is idempotent, and this scene can mount
+// without CharacterActor ever being imported.
+registerAllParts();
 
 const TILE_WORLD_SIZE = 1.0;
 const SUBDIVISIONS_PER_TILE = 4;
+/** Mirrors CharacterActor: 1 tile = 5 ft = 1 unit, plus its ~1.25x readability
+ *  oversize, so a body is the same size on both render paths. */
+const UNITS_PER_M = 1 / 1.524;
+const MODEL_SCALE = UNITS_PER_M * 1.25;
 /** Must match TerrainMesh's ELEVATION_SCALE so tokens sit on the surface. */
 
 // ---------------------------------------------------------------------------
@@ -116,6 +161,11 @@ const SUBDIVISIONS_PER_TILE = 4;
 // Warm key + cool-sky/warm-ground hemisphere — mirrors World3DLighting /
 // BattleMap3D's warm-key + cool-fill split so the WebGPU path lights the same
 // way the WebGL battle map does.
+//
+// MIRRORED: `BATTLE_MAP_BAKED_LIGHT` in
+// systems/entities3d/three/gpu/toonNodes.ts bakes actor bodies against these
+// same numbers (src/systems must not import src/components). Retune both or the
+// actors read as lit from a different sun than the ground under them.
 const SUN_DIRECTION: [number, number, number] = [12, 16, 12];
 const SUN_TSL = tslNormalize(vec3(SUN_DIRECTION[0], SUN_DIRECTION[1], SUN_DIRECTION[2]));
 const SKY_COLOR = vec3(0.737, 0.839, 1.0); // #bcd6ff hemisphere sky
@@ -125,6 +175,13 @@ const AMBIENT = 0.2;
 const SUN_INTENSITY = 1.2;
 const HEMI_INTENSITY = 0.55;
 
+/* TSL node graphs chain operators (`.mul`, `.add`, `.mix`, swizzles) that
+ * @types/three 0.172 does not model: it ships no `ShaderNodeObject` and
+ * declares builders like `pass()` as returning the bare node class, so the
+ * published types cannot express a chained graph. This alias is therefore an
+ * upstream typing gap, not a shortcut, and it matches the same alias in
+ * gpu/terrainColorNode.ts, gpu/gridOverlayNodes.ts and WebGPUProbeScene.tsx.
+ * Revisit when @types/three exports the node-object type. */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 type TSLNode = any;
 
@@ -496,8 +553,25 @@ const GridOverlayPiece: React.FC<{
 };
 
 // ---------------------------------------------------------------------------
-// Rung 4: character/enemy actors — lit tokens with team color, HP fade,
-// selection + active-turn rings. (Full animated CharacterActor rig deferred.)
+// Rung 4: character/enemy actors — the REAL generated bodies.
+//
+// These used to be lit capsules, and the scene header blamed the whole
+// 1,491-line CharacterActor rig. The body was never the hard part: the same
+// <EntityModel> the WebGL actor mounts renders here unchanged, once its
+// materials are adapted for the node path (see adaptEntityForWebGpu below).
+// The rig's CHROME now crosses too (agora-a2b8): <GpuActorChrome> mounts the
+// very same <Html> nameplate / defeat / temp-HP components the WebGL actor
+// uses, plus the defense and condition chips, and rebuilds only the one lit
+// piece (the HP pip) as an unlit node material.
+//
+// The token affordances survive the swap rather than being dropped:
+//   team color -> a team-hued ground ring under every actor (a generated body
+//                 carries its own palette, so the team read has to live in the
+//                 chrome, exactly as the WebGL map does it),
+//   HP fade    -> that ring's opacity tracks the HP fraction, and a downed
+//                 combatant's body desaturates through the baked material's
+//                 death uniform instead of turning into a grey capsule,
+//   rings      -> unchanged.
 // ---------------------------------------------------------------------------
 
 function ringGeometry(inner: number, outer: number): THREE.RingGeometry {
@@ -506,49 +580,237 @@ function ringGeometry(inner: number, outer: number): THREE.RingGeometry {
   return g;
 }
 
+/**
+ * Rebuild an assembled body's materials for the node path.
+ *
+ * Module-level so the identity is stable — EntityModel rebuilds the whole body
+ * when this callback changes. Failures are reported, never papered over: a
+ * material the swap cannot rebuild is left in place to fail loudly at draw
+ * time, per the no-silent-fallback rule this scene is built on.
+ */
+function adaptEntityForWebGpu(root: THREE.Object3D): void {
+  const result = swapEntityMaterialsForGpu(root);
+  if (result.skipped.length > 0) {
+    // eslint-disable-next-line no-console
+    console.error('[bm3d-webgpu] entity material swap left materials unconverted:', result.skipped);
+  }
+}
+
+/** Flat unlit material for the ground rings (they are chrome, not lit surfaces). */
+function ringMaterial(hex: string, opacity: number): THREE.MeshBasicNodeMaterial {
+  const c = new THREE.Color(hex);
+  const m = new THREE.MeshBasicNodeMaterial();
+  m.colorNode = vec3(c.r, c.g, c.b);
+  m.transparent = true;
+  m.opacity = opacity;
+  m.side = THREE.DoubleSide;
+  m.depthWrite = false;
+  return m;
+}
+
+const HIT_REACT_SECONDS = 0.5;
+
 const CharacterToken: React.FC<{
   character: CombatCharacter;
+  allCharacters: CombatCharacter[];
   groundY: number;
   isActive: boolean;
   isSelected: boolean;
-}> = ({ character, groundY, isActive, isSelected }) => {
+  activeCharacterId: string | null;
+}> = ({ character, allCharacters, groundY, isActive, isSelected, activeCharacterId }) => {
   const alive = character.currentHP > 0;
   const team = character.team === 'player' ? 'player' : character.team === 'enemy' ? 'enemy' : 'neutral';
-  const bodyHex = team === 'player' ? '#4ea1ff' : team === 'enemy' ? '#e05a4a' : '#eab308';
+  const teamHex = team === 'player' ? '#4ea1ff' : team === 'enemy' ? '#e05a4a' : '#eab308';
   const ringHex = team === 'player' ? '#fbbf24' : team === 'enemy' ? '#ff2020' : '#fbbf24';
-  const bodyMat = useMemo(() => litSolidMaterial(alive ? bodyHex : '#5a5a5a'), [bodyHex, alive]);
-  const selMat = useMemo(() => {
-    const c = new THREE.Color(ringHex);
-    const m = new THREE.MeshBasicNodeMaterial();
-    m.colorNode = vec3(c.r, c.g, c.b);
-    m.transparent = true;
-    m.opacity = 0.85;
-    m.side = THREE.DoubleSide;
-    m.depthWrite = false;
-    return m;
-  }, [ringHex]);
+
+  // The generated body. Identity fields only — HP and position must not rebuild
+  // a skeleton mid-encounter (same dependency list as the WebGL CharacterActor).
+  const blueprint = useMemo(
+    () => generateEntityBlueprint(recipeFromCombatant(character)),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [character.id, character.name, character.class?.id, character.creatureTypes, character.stats?.size],
+  );
+
+  const teamMat = useMemo(() => ringMaterial(teamHex, 0.85), [teamHex]);
+  const selMat = useMemo(() => ringMaterial(ringHex, 0.85), [ringHex]);
+  const teamRing = useMemo(() => ringGeometry(0.3, 0.38), []);
   const selRing = useMemo(() => ringGeometry(0.36, 0.46), []);
   const activeRing = useMemo(() => ringGeometry(0.5, 0.62), []);
+  useEffect(
+    () => () => { teamMat.dispose(); selMat.dispose(); teamRing.dispose(); selRing.dispose(); activeRing.dispose(); },
+    [teamMat, selMat, teamRing, selRing, activeRing],
+  );
+
+  // HP fade — the ring dims as the combatant is worn down and goes nearly out
+  // at zero. Mutated in an effect, not in render, so a re-render never touches
+  // a live material mid-frame.
+  const maxHP = Math.max(1, character.maxHP ?? character.currentHP ?? 1);
+  const hpFraction = Math.max(0, Math.min(1, character.currentHP / maxHP));
+  useEffect(() => {
+    teamMat.opacity = 0.2 + 0.65 * hpFraction;
+  }, [teamMat, hpFraction]);
+
+  // The assembled body root, captured by the material adapter so the death
+  // fade can be driven on it later. EntityModel owns the group; this is the
+  // only handle on it.
+  // Condition body tint (GG-227). The dominant condition and its hue both come
+  // from the shared palette, the same call the WebGL body makes, so the two
+  // renderers cannot disagree about which condition wins or what color it is.
+  // A defeated combatant is left untinted: the death fade already owns that
+  // body, and a corpse glowing poison green reads as alive.
+  const conditionNames = useMemo(() => {
+    const names: string[] = [];
+    for (const c of character.conditions ?? []) names.push(String(c.name));
+    for (const e of character.statusEffects ?? []) names.push(String(e.name));
+    return names;
+  }, [character.conditions, character.statusEffects]);
+  const dominantCondition = useMemo(
+    () => (alive ? resolveDominantCondition(conditionNames) : null),
+    [alive, conditionNames],
+  );
+
+  // The assembled body root, captured by the material adapter so the death
+  // fade and the condition tint can be driven on it. EntityModel owns the
+  // group; this is the only handle on it.
+  const bodyRootRef = useRef<THREE.Object3D | null>(null);
+
+  // WHY A REF AND NOT THE VALUES THEMSELVES: `adaptMaterials` must keep a
+  // stable identity, because EntityModel re-assembles the body whenever the
+  // callback changes. Reading the live cue values out of a ref lets the
+  // adapter apply them without becoming a new function every render.
+  const bodyCuesRef = useRef({ alive, dominant: dominantCondition });
+  bodyCuesRef.current = { alive, dominant: dominantCondition };
+
+  // MEASURED, not assumed (agora-f821.35): driving the cues from an effect
+  // ALONE leaves the body untinted. The swap replaces every material with a
+  // fresh one whose uniforms start at zero, and that happens after the effect
+  // has already run for this character — with `blueprint` unchanged, nothing
+  // re-runs it, so the tint was written to materials that no longer render.
+  // A forced full-strength magenta proved it: the uniforms read back as driven
+  // while the body stayed its own color. Applying the cues HERE, on the root
+  // that was just swapped, is what makes them reach the screen.
+  const adaptMaterials = useCallback((root: THREE.Object3D) => {
+    bodyRootRef.current = root;
+    adaptEntityForWebGpu(root);
+    const { alive: isAlive, dominant } = bodyCuesRef.current;
+    setEntityDeathFade(root, isAlive ? 0 : 1);
+    setEntityConditionTint(root, dominant?.tintColor ?? null, dominant?.tintStrength ?? 0);
+  }, []);
+
+  // And these keep the cues current when the character changes WITHOUT the
+  // body being rebuilt — taking damage, catching fire, dropping to 0 HP.
+  useEffect(() => {
+    if (bodyRootRef.current) setEntityDeathFade(bodyRootRef.current, alive ? 0 : 1);
+  }, [alive, blueprint]);
+  useEffect(() => {
+    if (!bodyRootRef.current) return;
+    setEntityConditionTint(
+      bodyRootRef.current,
+      dominantCondition?.tintColor ?? null,
+      dominantCondition?.tintStrength ?? 0,
+    );
+  }, [alive, blueprint, dominantCondition]);
+
+  // Combat-driven animation state. The scene is handed resolved data, not
+  // combat events, so this reads what IS observable: a drop in HP is a hit, no
+  // HP is a death, anything else is idle. Attack/cast states stay on the WebGL
+  // actor, which sees the action events.
+  const [animState, setAnimState] = useState<AnimationState>(alive ? 'idle' : 'death');
+  const animTimeRef = useRef(0);
+  const prevHPRef = useRef(character.currentHP);
+  useEffect(() => {
+    if (character.currentHP <= 0) {
+      setAnimState('death');
+      animTimeRef.current = 0;
+    } else if (character.currentHP < prevHPRef.current) {
+      setAnimState('hit_react');
+      animTimeRef.current = 0;
+    }
+    prevHPRef.current = character.currentHP;
+  }, [character.currentHP]);
+
+  // Face the nearest living opponent, like the WebGL actor. R3F Z+ is forward.
+  const facing = useMemo(() => {
+    let nearest: CombatCharacter | null = null;
+    let best = Infinity;
+    for (const other of allCharacters) {
+      if (other.id === character.id || other.team === character.team || other.currentHP <= 0) continue;
+      const d = Math.hypot(other.position.x - character.position.x, other.position.y - character.position.y);
+      if (d < best) { best = d; nearest = other; }
+    }
+    if (!nearest) return 0;
+    return Math.atan2(nearest.position.x - character.position.x, nearest.position.y - character.position.y);
+  }, [character.id, character.team, character.position.x, character.position.y, allCharacters]);
+
+  // ---- chrome (agora-a2b8) --------------------------------------------
+  // Every value below is derived exactly as CharacterActor derives it, so
+  // the two paths cannot report different numbers for the same combatant.
+  const [hovered, setHovered] = useState(false);
+  const teamColors = TEAM_COLORS[team];
+  /** Pips and nameplates ride above the generated body's real head. */
+  const pipY = Math.max(1.85, heightM(blueprint.frame) * MODEL_SCALE + 0.45);
+  const hpPercent = Math.max(0, character.currentHP / Math.max(1, character.maxHP));
+  const hpColor = actorHpColor(hpPercent);
+  // Range readout: only while hovering an enemy, and only against the active
+  // player character — the same narrow rule the WebGL actor applies.
+  const distanceToActive = useMemo(() => {
+    if (!hovered || !activeCharacterId || activeCharacterId === character.id) return null;
+    const active = allCharacters.find((c) => c.id === activeCharacterId);
+    if (!active || active.team !== 'player' || character.team !== 'enemy') return null;
+    return getDistance(character.position, active.position) * 5; // 5 ft per tile
+  }, [hovered, activeCharacterId, allCharacters, character.id, character.team, character.position]);
+
   const groupRef = useRef<THREE.Group>(null);
-  // Gentle idle sway + active-turn ring pulse (the one animation we keep).
-  useFrame((s) => {
+  // Animation clock + the gentle idle sway the tokens had. PostFx drives the
+  // render (useFrame priority 1), so every useFrame in this scene — including
+  // EntityModel's own body update — ticks from the one R3F loop. No second RAF.
+  useFrame((s, delta) => {
+    animTimeRef.current += delta;
+    if (animState === 'hit_react' && animTimeRef.current > HIT_REACT_SECONDS) {
+      setAnimState('idle');
+      animTimeRef.current = 0;
+    }
     if (!groupRef.current) return;
-    groupRef.current.rotation.y = Math.sin(s.clock.elapsedTime * 0.8 + character.position.x) * 0.05;
+    groupRef.current.rotation.y = facing + (alive ? Math.sin(s.clock.elapsedTime * 0.8 + character.position.x) * 0.05 : 0);
   });
-  useEffect(() => () => { bodyMat.dispose(); selMat.dispose(); selRing.dispose(); activeRing.dispose(); }, [bodyMat, selMat, selRing, activeRing]);
 
   const x = character.position.x + 0.5;
   const z = character.position.y + 0.5;
   return (
-    <group position={[x, groundY, z]}>
+    <group
+      position={[x, groundY, z]}
+      onPointerEnter={(e: ThreeEvent<PointerEvent>) => { e.stopPropagation(); setHovered(true); }}
+      onPointerLeave={() => setHovered(false)}
+    >
+      {/* Team ring — always on, so team and HP read at a glance now that the
+          body carries its own palette instead of a team color. */}
+      <mesh geometry={teamRing} material={teamMat} position={[0, 0.02, 0]} />
       {(isSelected || isActive) && (
         <mesh geometry={isActive ? activeRing : selRing} material={selMat} position={[0, 0.03, 0]} />
       )}
-      <group ref={groupRef} position={[0, 0.5, 0]}>
-        <mesh material={bodyMat}>
-          <capsuleGeometry args={[0.28, 0.5, 6, 12]} />
-        </mesh>
+      <group ref={groupRef}>
+        <group scale={MODEL_SCALE}>
+          <EntityModel
+            blueprint={blueprint}
+            animState={alive ? animState : 'death'}
+            animTimeRef={animTimeRef}
+            adaptMaterials={adaptMaterials}
+          />
+        </group>
       </group>
+      {/* Nameplate, HP pip, defeat + temp-HP markers, defense/condition chips. */}
+      <GpuActorChrome
+        character={character}
+        teamColors={teamColors}
+        pipY={pipY}
+        isAlive={alive}
+        isSelected={isSelected}
+        isTurn={isActive}
+        hovered={hovered}
+        hpPercent={hpPercent}
+        hpColor={hpColor}
+        distanceToActive={distanceToActive}
+      />
     </group>
   );
 };
@@ -582,8 +844,10 @@ const PostFx: React.FC<{ onMissing: (label: string) => void }> = ({ onMissing })
         if (cancelled) return;
         const post = new THREE.PostProcessing(renderer);
         // pass() → scene color; bloom on bright areas; then a soft vignette.
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const scenePass: TSLNode = (pass as any)(scene, camera);
+        // `pass` is declared (scene, camera) => PassNode; the node object it
+        // returns carries the chained TSL operators, so it widens to TSLNode
+        // without a cast and the two arguments are now checked.
+        const scenePass: TSLNode = pass(scene, camera);
         const bloomPass = bloom(scenePass, 0.42, 0.4, 0.85);
         const d = uv().sub(0.5).length();
         const vignette = smoothstep(0.85, 0.35, d);
@@ -606,11 +870,13 @@ const PostFx: React.FC<{ onMissing: (label: string) => void }> = ({ onMissing })
     const post = postRef.current;
     if (post) {
       // Post owns the render when present.
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (post as any).renderAsync?.();
+      // `renderAsync` is declared on THREE.PostProcessing, so no cast is
+      // needed. The promise is deliberately not awaited (useFrame is sync),
+      // preserving the previous fire-and-forget behavior.
+      void post.renderAsync();
     } else {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (gl as any).render?.(scene, camera);
+      // WebGPURenderer and WebGLRenderer both declare render(scene, camera).
+      gl.render(scene, camera);
     }
   }, 1);
 
@@ -690,7 +956,7 @@ const BattleMap3DGpuScene: React.FC<Props> = ({
     () =>
       [
         'Real-time shadows (baked colorNode has no LightsNode → no shadow map, three 0.170)',
-        'Animated CharacterActor rig + drei nameplates (tokens are lit capsules + rings)',
+        'Condition DESATURATION on the body (the condition tint itself now renders; the greyscale stage of the WebGL patch does not cross yet)',
         'GPU wind sway on grass (blades are static)',
         postMissing,
       ].filter(Boolean) as string[],
@@ -853,8 +1119,10 @@ const BattleMap3DGpuScene: React.FC<Props> = ({
           w.__bm3dGpuReady = true;
           // eslint-disable-next-line no-console
           console.info('[bm3d-webgpu] renderer backend = webgpu');
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          return renderer as any;
+          // R3F types the `gl` factory's return as WebGLRenderer; WebGPURenderer
+          // is the sibling implementation R3F drives through the same surface,
+          // so narrow to that named type instead of erasing it with `any`.
+          return renderer as unknown as WebGLRenderer;
         }}
       >
         <PerfProbe id="battlemap-gpu" label="Battle Map (GPU)" />
@@ -884,9 +1152,11 @@ const BattleMap3DGpuScene: React.FC<Props> = ({
           <CharacterToken
             key={c.id}
             character={c}
+            allCharacters={characters}
             groundY={groundSampler(c.position.x + 0.5, c.position.y + 0.5)}
             isActive={activeCharacter?.id === c.id}
             isSelected={selectedCharacter?.id === c.id}
+            activeCharacterId={activeCharacter?.id ?? null}
           />
         ))}
         <PostFx onMissing={setPostMissing} />

@@ -1,3 +1,5 @@
+import * as fs from 'fs';
+import * as path from 'path';
 import { describe, it, expect } from 'vitest';
 import { convertEntryToItem, inferAccessorySlot } from '../generateItemRegistry';
 
@@ -294,5 +296,105 @@ describe('inferAccessorySlot', () => {
       { id: 'gauntlets_of_ogre_power', title: 'Gauntlets of Ogre Power' },
     ));
     expect(out!.item.slot).toBe('Hands');
+  });
+});
+
+/**
+ * Acceptance coverage for the actual generation run (agora-5024.3): does the
+ * registry the script would emit today (a) match the expected Item shape for
+ * every entry, and (b) contain no duplicate ids?
+ *
+ * This walks the live source directories with the same file-collection logic
+ * as generateItemRegistry.ts's `main()` and feeds every entry through the
+ * real `convertEntryToItem` seam, so it is exercising the same conversion the
+ * generator uses rather than re-deriving expectations by hand. It reads
+ * source JSON only; it never writes src/data/items/generatedGlossaryItems.ts,
+ * so it can't go stale relative to a checked-in snapshot and can't race other
+ * agents writing that file.
+ */
+describe('generated registry — acceptance (shape + duplicate ids)', () => {
+  const ENTRIES_BASE = path.join(process.cwd(), 'public/data/glossary/entries');
+  // Mirrors generateItemRegistry.ts's EQUIPMENT_DIR / MAGIC_ITEMS_DIR. As of
+  // 2026-09-09 magic_items/ no longer exists on disk (its contents live
+  // under equipment/ now); getAllFiles tolerates a missing dir, so this list
+  // stays accurate for both layouts without failing when one is absent.
+  const SOURCE_DIRS = ['equipment', 'magic_items'].map((d) => path.join(ENTRIES_BASE, d));
+
+  const ALLOWED_TYPES = new Set([
+    'weapon', 'armor', 'accessory', 'clothing', 'consumable', 'potion',
+    'food_drink', 'poison_toxin', 'tool', 'light_source', 'ammunition',
+    'trap', 'note', 'book', 'map', 'scroll', 'key', 'spell_component',
+    'reagent', 'crafting_material', 'treasure',
+  ]);
+
+  function getAllJsonFiles(dirPath: string, out: string[] = []): string[] {
+    if (!fs.existsSync(dirPath)) return out;
+    for (const file of fs.readdirSync(dirPath)) {
+      const full = path.join(dirPath, file);
+      if (fs.statSync(full).isDirectory()) {
+        getAllJsonFiles(full, out);
+      } else if (file.endsWith('.json')) {
+        out.push(full);
+      }
+    }
+    return out;
+  }
+
+  const sourceFiles = SOURCE_DIRS.flatMap((dir) => getAllJsonFiles(dir));
+
+  // Same accumulation the generator does: convert every source file, skip
+  // entries with no itemMetadata, key by id. Also keep the raw id sequence
+  // (including any repeats) separately, since keying by id in a plain object
+  // can never itself show a collision — a second entry with the same id
+  // just silently clobbers the first.
+  const registry: Record<string, any> = {};
+  const idSequence: string[] = [];
+  for (const file of sourceFiles) {
+    const data = JSON.parse(fs.readFileSync(file, 'utf8'));
+    const converted = convertEntryToItem(data);
+    if (!converted) continue;
+    idSequence.push(converted.id);
+    registry[converted.id] = converted.item;
+  }
+
+  it('produces a non-trivial registry from the live glossary source', () => {
+    // Sanity guard: if source layout changes again and both dirs come up
+    // empty, the shape/duplicate checks below would pass vacuously.
+    expect(sourceFiles.length).toBeGreaterThan(100);
+    expect(idSequence.length).toBeGreaterThan(100);
+  });
+
+  it('every converted item matches the expected registry Item shape', () => {
+    for (const [id, item] of Object.entries(registry)) {
+      expect(item.id, `${id}: item.id must equal its registry key`).toBe(id);
+      expect(typeof item.name, `${id}: name must be a string`).toBe('string');
+      expect((item.name as string).length, `${id}: name must be non-empty`).toBeGreaterThan(0);
+      expect(typeof item.description, `${id}: description must be a string`).toBe('string');
+      expect(ALLOWED_TYPES.has(item.type), `${id}: unexpected type "${item.type}"`).toBe(true);
+      expect(typeof item.icon, `${id}: icon must be a string`).toBe('string');
+      if (item.weight !== undefined) {
+        expect(typeof item.weight, `${id}: weight must be a number when present`).toBe('number');
+      }
+      if (item.cost !== undefined) {
+        // costInGp can be fractional (e.g. a copper-priced ale mug is "0.04
+        // GP"), so match any numeric token rather than assuming an integer.
+        expect(item.cost, `${id}: cost must be formatted "<n> GP"`).toMatch(/^\d+(\.\d+)? GP$/);
+        expect(typeof item.costInGp, `${id}: costInGp must accompany cost`).toBe('number');
+      }
+      if (item.slot !== undefined) {
+        expect(typeof item.slot, `${id}: slot must be a string when present`).toBe('string');
+      }
+    }
+  });
+
+  it('contains no duplicate ids across the source glossary entries', () => {
+    const counts = new Map<string, number>();
+    for (const id of idSequence) counts.set(id, (counts.get(id) || 0) + 1);
+    const duplicates = [...counts.entries()].filter(([, count]) => count > 1).map(([id]) => id);
+    expect(duplicates, `duplicate source ids collide in the registry: ${duplicates.join(', ')}`).toEqual([]);
+    // And the registry's own key count should equal the number of converted
+    // entries — if it doesn't, something clobbered a key despite no
+    // duplicate ids being found above (a bug in this test, not the data).
+    expect(Object.keys(registry).length).toBe(idSequence.length);
   });
 });

@@ -20,7 +20,8 @@ import { CombatState, LightSource, Position, SelectedSpellTarget, SpellObjectImp
 import type { CommonCombatLogData } from '../../types/combat'
 import type { DamageEffect, DamageType, UtilityEffect } from '../../types/spells'
 import { generateId } from '../../utils/core'
-import { rollD20, resolveAttack } from '../../utils/combat'
+import { resolveAttack } from '../../utils/combat';
+import { rollD20 } from '../../systems/dice/rollers';
 import { getAbilityModifierValue } from '../../utils/character/statUtils'
 import { calculateProficiencyBonus } from '../../utils/character/savingThrowUtils'
 import { DamageCommand } from './DamageCommand'

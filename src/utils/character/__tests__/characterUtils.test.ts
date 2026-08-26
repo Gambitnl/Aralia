@@ -1,4 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
+import { ItemType } from '../../../types';
 import {
   canEquipItem,
   performLevelUp,
@@ -101,7 +102,7 @@ describe('characterUtils', () => {
       });
 
       const heavyArmor: Item = createMockItem({
-        type: 'armor',
+        type: ItemType.Armor,
         armorCategory: 'Heavy'
       });
 
@@ -128,7 +129,7 @@ describe('characterUtils', () => {
       });
 
       const heavyArmor: Item = createMockItem({
-        type: 'armor',
+        type: ItemType.Armor,
         armorCategory: 'Heavy'
       });
 
@@ -154,7 +155,7 @@ describe('characterUtils', () => {
       });
 
       const shield: Item = createMockItem({
-        type: 'armor',
+        type: ItemType.Armor,
         armorCategory: 'Shield'
       });
 
@@ -182,7 +183,7 @@ describe('characterUtils', () => {
 
       // Greatsword is martial, wizard not proficient
       const greatsword = createMockItem({
-        type: 'weapon',
+        type: ItemType.Weapon,
         id: 'greatsword',
         category: 'Martial Weapon'
       });

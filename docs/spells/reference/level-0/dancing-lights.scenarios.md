@@ -1,4 +1,4 @@
-﻿# Dancing Lights Scenarios
+# Dancing Lights Scenarios
 
 Source references:
 - `docs/spells/reference/level-0/dancing-lights.md`

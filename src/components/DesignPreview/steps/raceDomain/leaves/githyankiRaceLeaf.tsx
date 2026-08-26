@@ -83,7 +83,7 @@ export interface GithyankiPsychicScenarioState {
   resolutionCount: number;
   eventLog: readonly string[];
   outcome: string;
-  defenseBridge: 'production racial parser' | 'narrow canonical defense adapter';
+  defenseBridge: 'production racial parser';
 }
 
 const getTraitStartingWith = (race: Race, prefix: string): string | null => (
@@ -122,8 +122,9 @@ export function hasCanonicalGithyankiFacts(race: Race): boolean {
 // ============================================================================
 // The actor starts as a normal PlayerCharacter, receives the same racial
 // feature parser used by character progression, and then crosses the usual
-// persistent-to-combat adapter. A tiny fallback is retained only for the case
-// where that bridge fails to project the already-parsed psychic defense.
+// persistent-to-combat adapter. That adapter now carries the Psychic
+// Resistance the shared racial parser reads out of the canonical trait row, so
+// this is the only path: a missing defense is reported, never re-added here.
 // ============================================================================
 
 function createGithyankiActor(race: Race): {
@@ -155,30 +156,17 @@ function createGithyankiActor(race: Race): {
     damageType => damageType.toLowerCase() === PSYCHIC_DAMAGE.toLowerCase(),
   ) ?? false;
 
-  if (hasPsychicResistance) {
-    return {
-      actor: {
-        ...productionActor,
-        id: GITHYANKI_PSYCHIC_RESILIENCE_ACTOR_ID,
-        position: { x: 2, y: 2 },
-      },
-      defenseBridge: 'production racial parser',
-    };
-  }
+  // A missing defense means the shared parser or the combat bridge regressed.
+  // Report it instead of pasting the resistance back on and hiding the break.
+  if (!hasPsychicResistance) return null;
 
-  // DEBT: The production bridge currently has a fallback for missing racial
-  // defense projection. The correct long-term fix is to make the shared bridge
-  // preserve every parsed defense bucket; this leaf keeps the gap visible while
-  // proving the canonical Psychic resistance and never inventing a new rule.
-  const canonicalResistances = productionActor.resistances ?? [];
   return {
     actor: {
       ...productionActor,
       id: GITHYANKI_PSYCHIC_RESILIENCE_ACTOR_ID,
       position: { x: 2, y: 2 },
-      resistances: [...canonicalResistances, PSYCHIC_DAMAGE],
     },
-    defenseBridge: 'narrow canonical defense adapter',
+    defenseBridge: 'production racial parser',
   };
 }
 
@@ -257,7 +245,8 @@ export function resolveGithyankiPsychicResilience(
 // Rendered Githyanki Leaf
 // ============================================================================
 // The UI exposes only the supported transaction and canonical fact surfaces.
-// It deliberately labels the unimplemented rest-choice and spell-casting
+// Racial spell choice and rest-choice lifecycle tracking are tracked in Agora tasks agora-2da3 and agora-0ad6.
+// It deliberately labels the unsupported rest-choice and spell-casting
 // boundaries instead of turning static race data into fake runtime state.
 // ============================================================================
 
@@ -285,7 +274,7 @@ const GithyankiRaceLeafContent: React.FC<RaceDomainLeafProps> = ({ race, onScena
       <div data-testid="githyanki-actor-facts">
         <p>Actor: <strong>{scenario.actor.name}</strong> · Level {scenario.actor.level} · Resistance {scenario.actor.resistances?.join(', ') ?? 'none'}</p>
         <p data-testid="githyanki-hp">HP: <strong>{scenario.actor.currentHP}</strong> / {scenario.actor.maxHP}</p>
-        <p data-testid="githyanki-defense-boundary">Defense bridge: {scenario.defenseBridge}; production racial parser is authoritative, with a narrow fallback only when the bridge misses Psychic.</p>
+        <p data-testid="githyanki-defense-boundary">Defense bridge: {scenario.defenseBridge}; the production racial parser is the only source of this Psychic Resistance.</p>
       </div>
 
       <div aria-label="Githyanki deterministic controls">

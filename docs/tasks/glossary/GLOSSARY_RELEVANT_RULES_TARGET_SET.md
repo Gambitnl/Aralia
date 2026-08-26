@@ -88,26 +88,26 @@ placeholder. That backlog is executed. All 19 terms were re-verified on
 entry with substantive rule text (no "Canonical rule text has not been
 captured yet" placeholders remain; grep-verified):
 
-- `Cone` → `cone_area.json`
-- `Cube` → `cube_area.json`
-- `curse` → `curse.json`
-- `Cylinder` → `cylinder_area.json`
-- `Difficult Terrain` → `difficult_terrain.json` (real XPHB text; the old
+- `Cone` -> `cone_area.json`
+- `Cube` -> `cube_area.json`
+- `curse` -> `curse.json`
+- `Cylinder` -> `cylinder_area.json`
+- `Difficult Terrain` -> `difficult_terrain.json` (real XPHB text; the old
   placeholder path under `rules/spells/referenced/` no longer exists)
-- `Emanation` → `emanation_area.json`
-- `Friendly` → `friendly_attitude.json`
-- `Half Cover` → `half_cover.json`
-- `Heavily Obscured` → `heavily_obscured.json`
-- `Hostile` → `hostile_attitude.json`
-- `Indifferent` → `indifferent_attitude.json`
-- `Lightly Obscured` → `lightly_obscured.json`
-- `Line` → `line_area.json`
-- `Passive Perception` → `passive_perception.json`
-- `possessed` → `possessed.json` (plus parent `possession.json`)
-- `Shape-Shifting` → `shape_shifting.json`
-- `Stable` → `stable.json`
-- `Three-Quarters Cover` → `three_quarters_cover.json`
-- `Total Cover` → `total_cover.json`
+- `Emanation` -> `emanation_area.json`
+- `Friendly` -> `friendly_attitude.json`
+- `Half Cover` -> `half_cover.json`
+- `Heavily Obscured` -> `heavily_obscured.json`
+- `Hostile` -> `hostile_attitude.json`
+- `Indifferent` -> `indifferent_attitude.json`
+- `Lightly Obscured` -> `lightly_obscured.json`
+- `Line` -> `line_area.json`
+- `Passive Perception` -> `passive_perception.json`
+- `possessed` -> `possessed.json` (plus parent `possession.json`)
+- `Shape-Shifting` -> `shape_shifting.json`
+- `Stable` -> `stable.json`
+- `Three-Quarters Cover` -> `three_quarters_cover.json`
+- `Total Cover` -> `total_cover.json`
 
 No terms from that list remain genuinely missing. The AoE-shape entries now
 live as top-level `rules/` files; only `sphere_area.json` remains under

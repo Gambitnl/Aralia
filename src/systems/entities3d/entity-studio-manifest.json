@@ -1,0 +1,206 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "manifestName": "Entity Studio Standalone Carve-out Manifest",
+  "version": "1.0.0",
+  "verifiedDate": "2026-08-29",
+  "purpose": "Provides a machine-readable blueprint mapping the exact boundaries of Entity Studio for extraction to a standalone complete-copy repository, while preserving the existing Aralia gameplay integration.",
+  
+  "copiedSourceFiles": [
+    "src/components/DesignPreview/steps/PreviewEntityForge.tsx",
+    "src/components/DesignPreview/steps/EntityForgeScene.tsx",
+    "src/components/DesignPreview/steps/PreviewEntityDebug.tsx",
+    "src/components/DesignPreview/steps/EntityDebugScene.tsx",
+    "src/components/DesignPreview/steps/PreviewPartLab.tsx",
+    "src/components/DesignPreview/steps/PartLabScene.tsx",
+    "src/components/DesignPreview/steps/PreviewHeroLab.tsx",
+    "src/components/DesignPreview/steps/partSpecimen.tsx",
+    "src/components/DesignPreview/steps/entityDebugFocus.ts",
+    "src/components/DesignPreview/steps/EarthGolemImg2ThreeScene.tsx",
+    "src/systems/entities3d/anim/clipStore.ts",
+    "src/systems/entities3d/anim/humanoidRetarget.ts",
+    "src/systems/entities3d/library/heroStore.ts",
+    "src/systems/entities3d/parts/celestialParts.ts",
+    "src/systems/entities3d/parts/chainParts.ts",
+    "src/systems/entities3d/parts/gearArmor.ts",
+    "src/systems/entities3d/parts/gearWeapons.ts",
+    "src/systems/entities3d/parts/headParts.ts",
+    "src/systems/entities3d/parts/index.ts",
+    "src/systems/entities3d/parts/organicParts.ts",
+    "src/systems/entities3d/parts/wingParts.ts",
+    "src/systems/entities3d/textPlan/budgets.ts",
+    "src/systems/entities3d/textPlan/compilePlan.ts",
+    "src/systems/entities3d/textPlan/fixtures.ts",
+    "src/systems/entities3d/textPlan/heroImagePrompt.ts",
+    "src/systems/entities3d/textPlan/planSchema.ts",
+    "src/systems/entities3d/textPlan/planSize.ts",
+    "src/systems/entities3d/textPlan/spineProfile.ts",
+    "src/systems/entities3d/three/Entity3D.d.ts",
+    "src/systems/entities3d/three/Entity3D.tsx",
+    "src/systems/entities3d/three/assembleEntity.ts",
+    "src/systems/entities3d/three/baseMeshCatalog.ts",
+    "src/systems/entities3d/three/chainSkeleton.ts",
+    "src/systems/entities3d/three/crowdBake.ts",
+    "src/systems/entities3d/three/crystalGeometry.ts",
+    "src/systems/entities3d/three/fabrik.ts",
+    "src/systems/entities3d/three/gaits.ts",
+    "src/systems/entities3d/three/gpu/gpuMaterialSwap.ts",
+    "src/systems/entities3d/three/gpu/toonNodes.ts",
+    "src/systems/entities3d/three/headForms.ts",
+    "src/systems/entities3d/three/ik.ts",
+    "src/systems/entities3d/three/jointConstraints.ts",
+    "src/systems/entities3d/three/legs.ts",
+    "src/systems/entities3d/three/mergeReferenceHand.ts",
+    "src/systems/entities3d/three/partVariants.ts",
+    "src/systems/entities3d/three/planSkeleton.ts",
+    "src/systems/entities3d/three/referenceHandMesh.ts",
+    "src/systems/entities3d/three/segmentBody.ts",
+    "src/systems/entities3d/three/skeletonBuilder.ts",
+    "src/systems/entities3d/three/skinnedBody.ts",
+    "src/systems/entities3d/three/skinnedClipPlayer.ts",
+    "src/systems/entities3d/three/smoothBipedGeometry.ts",
+    "src/systems/entities3d/three/speciesSkeleton.ts",
+    "src/systems/entities3d/three/sweptTube.ts",
+    "src/systems/entities3d/three/toon.ts",
+    "src/systems/entities3d/vendor/img2threejs/createEarthGolemModel.ts",
+    "src/systems/entities3d/classKits.ts",
+    "src/systems/entities3d/creaturePlans.ts",
+    "src/systems/entities3d/creatureProfiles.ts",
+    "src/systems/entities3d/generateEntityBlueprint.ts",
+    "src/systems/entities3d/raceMap.ts",
+    "src/systems/entities3d/registry.ts",
+    "src/systems/entities3d/speciesProfiles.ts",
+    "src/systems/entities3d/types.ts",
+    "src/utils/random/seededRandom.ts"
+  ],
+  
+  "copiedAssets": [
+    "public/references/basemesh/lowpoly-female.glb",
+    "public/references/basemesh/lowpoly-male.glb",
+    "public/references/basemesh/lowpoly-nogender.glb",
+    "public/references/basemesh/stylized-figure-a.glb",
+    "public/references/basemesh/stylized-figure-b.glb",
+    "public/references/basemesh/stylized-head-kit.glb",
+    "public/references/basemesh/hand-pro.glb",
+    "public/references/basemesh/lowpoly-female.rigged.glb",
+    "public/references/basemesh/lowpoly-male.rigged.glb",
+    "public/references/basemesh/lowpoly-nogender.rigged.glb",
+    "public/references/basemesh/stylized-figure-a.rigged.glb",
+    "public/references/basemesh/stylized-figure-b.rigged.glb",
+    "public/references/basemesh/stylized-head-kit.rigged.glb",
+    "public/references/basemesh/hand-pro.rigged.glb",
+    "public/references/basemesh/lowpoly-female.packrig.glb",
+    "public/references/basemesh/lowpoly-male.packrig.glb",
+    "public/references/basemesh/lowpoly-nogender.packrig.glb",
+    "public/references/basemesh/stylized-figure-a.packrig.glb",
+    "public/references/basemesh/stylized-figure-b.packrig.glb",
+    "public/references/basemesh/stylized-head-kit.packrig.glb",
+    "public/references/basemesh/hand-pro.packrig.glb",
+    "public/references/basemesh/lowpoly-female.landmarks.json",
+    "public/references/basemesh/lowpoly-male.landmarks.json",
+    "public/references/basemesh/lowpoly-nogender.landmarks.json",
+    "public/references/basemesh/stylized-figure-a.landmarks.json",
+    "public/references/basemesh/stylized-figure-b.landmarks.json",
+    "public/references/basemesh/stylized-head-kit.landmarks.json",
+    "public/references/basemesh/hand-pro.landmarks.json",
+    "public/img2threejs-earth/material-evidence/body-rock-albedo.jpg",
+    "public/img2threejs-earth/material-evidence/body-rock-ao.jpg",
+    "public/img2threejs-earth/material-evidence/body-rock-height.jpg",
+    "public/img2threejs-earth/material-evidence/body-rock-normal.jpg",
+    "public/img2threejs-earth/material-evidence/body-rock-roughness.jpg",
+    "public/anim/humanoid/human-base-animations.glb"
+  ],
+  
+  "copiedDevTools": [
+    "tools/entities3d/splitBaseMeshes.mjs",
+    "tools/entities3d/rigBaseMeshes.mjs",
+    "tools/entities3d/bakeReferenceHand.mjs",
+    "tools/entities3d/centerlineFit.mjs",
+    "tools/blender/rig_basemesh.py",
+    "tools/blender/tpose_basemesh.py",
+    "tools/creatureHero/convert.py",
+    "tools/creatureHero/convert.mjs",
+    "tools/creatureHero/optimize.mjs"
+  ],
+  
+  "copiedDevServices": [
+    "scripts/vite-plugins/devhub/creaturePlanRoutes.ts",
+    "scripts/vite-plugins/devhub/heroLabRoutes.ts",
+    "scripts/vite-plugins/devhub/partLabRoutes.ts"
+  ],
+  
+  "packageDependencies": {
+    "dependencies": {
+      "@react-three/drei": "^10.7.7",
+      "@react-three/fiber": "^9.0.0",
+      "@react-three/postprocessing": "^3.0.4",
+      "alea": "^1.0.1",
+      "lucide-react": "^0.561.0",
+      "react": "^19.2.3",
+      "react-dom": "^19.2.4",
+      "three": "^0.172.0",
+      "zod": "^4.1.13"
+    },
+    "devDependencies": {
+      "@gltf-transform/core": "^4.4.1",
+      "@gltf-transform/functions": "^4.4.1",
+      "@gradio/client": "^2.3.1",
+      "@playwright/test": "^1.57.0",
+      "playwright": "^1.57.0",
+      "tsx": "^4.20.6",
+      "typescript": "~5.9.3",
+      "vite": "^7.3.3",
+      "vitest": "^4.0.16"
+    }
+  },
+  
+  "thirdPartyLicenses": [
+    {
+      "asset": "Low Poly Hand",
+      "author": "ronildo.facanha (Sketchfab)",
+      "license": "CC-BY 4.0",
+      "use": "Baked into referenceHandMesh.ts using bakeReferenceHand.mjs"
+    },
+    {
+      "asset": "Lowpoly Basemeshes - 2026 - FBX",
+      "author": "Peter_Seifert (Sketchfab)",
+      "license": "CC-BY 4.0",
+      "use": "Split and rigged under public/references/basemesh/"
+    },
+    {
+      "asset": "Free Stylized Basemesh for Blender Sculpting",
+      "author": "dacancino (Sketchfab)",
+      "license": "CC-BY 4.0",
+      "use": "Split and rigged under public/references/basemesh/"
+    },
+    {
+      "asset": "Hand animation test",
+      "author": "GabrielNeias (Sketchfab)",
+      "license": "CC-BY 4.0",
+      "use": "Served as hand-pro.glb for rigging verification"
+    },
+    {
+      "asset": "Earth Golem, Crystal Crown",
+      "author": "mohamedachrefelouafi (img2threejs)",
+      "license": "Apache 2.0",
+      "use": "Procedural rock geometry and material assets inside createEarthGolemModel.ts"
+    }
+  ],
+  
+  "excludedGameAdapters": [
+    "src/systems/entities3d/library/acceptedEntities.ts",
+    "src/systems/entities3d/recipeFromCharacter.ts",
+    "src/systems/entities3d/recipeFromCombatant.ts",
+    "src/systems/entities3d/recipeFromOccupant.ts",
+    "src/components/BattleMap/characters/characterActor/CharacterActor.tsx",
+    "src/components/BattleMap/characters/characterActor/EntityModel.tsx",
+    "src/components/World3D/PlayerAvatar.tsx",
+    "src/components/World3D/OccupantFigure.tsx",
+    "src/components/World3D/SceneCast.tsx"
+  ],
+  
+  "compatibilityFixtures": {
+    "file": "src/systems/entities3d/compatibilityFixtures.ts",
+    "testFile": "src/systems/entities3d/__tests__/compatibilityFixtures.test.ts",
+    "purpose": "Retains contracts and mock data showing how Aralia adapters and game consumers integrate with the core procedural entities3d engine without exposing gameplay-only concepts inside the standalone library."
+  }
+}

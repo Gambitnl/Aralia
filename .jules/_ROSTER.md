@@ -273,7 +273,7 @@ python .agent_tools/uplink.py --message "DONE: <YourPersona> — <summary of cha
 | `docs/ARCHITECTURE.md` | Domain boundaries, file ownership |
 | `docs/architecture/domains/` | Per-domain documentation |
 | `docs/architecture/_generated/` | Auto-generated dependency data |
-| `docs/FEATURES_TODO.md` | Active development roadmap |
+| `public/planmap/index.html` | Active development roadmap (plan-map, served at `/Aralia/planmap/index.html`) |
 | `public/data/spells/` | Spell JSON data |
 | `src/utils/spellValidator.ts` | Spell validation |
 

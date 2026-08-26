@@ -123,6 +123,11 @@ jobs:
       - name: Run ESLint
         run: npm run lint
 
+      # Data validation: charset, class spell lists, spell/race/character
+      # schema. Ruled on the combat question sheet (q9, 2026-09-20).
+      - name: Validate data
+        run: npm run validate
+
   # Job 4: Advisory quality scan. It surfaces grouped quality-debt counts for
   # Symphony/Codex/Jules review and does not block merges on the existing
   # backlog. The JSON artifact gives foreman tools a stable parse target.

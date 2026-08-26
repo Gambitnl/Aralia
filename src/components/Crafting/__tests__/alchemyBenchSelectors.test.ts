@@ -286,7 +286,7 @@ describe('alchemyBenchSelectors', () => {
         };
         const inventory = [
             {
-                id: 'rowan-berry',
+                id: 'rowan_berry',
                 name: 'Rowan Berry',
                 description: 'Stacked row used to prove quantity-aware batch previews.',
                 quantity: 4,

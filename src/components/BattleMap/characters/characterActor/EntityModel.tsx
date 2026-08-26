@@ -9,7 +9,7 @@
  */
 import React, { useEffect, useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { Vector3 } from 'three';
+import { Vector3, type Object3D } from 'three';
 import type { EntityBlueprint } from '@/systems/entities3d/types';
 import { assembleEntity, gameBodyOptions } from '@/systems/entities3d/three/assembleEntity';
 import type { LocomotionState } from '@/systems/entities3d/three/gaits';
@@ -29,16 +29,43 @@ interface EntityModelProps {
   /** G7 shared contract: sustained control-option pose (grovel/halt/…), eased
    * on per frame and eased back off when the directive expires. Null = base. */
   controlPose?: ControlPose | null;
+  /**
+   * Render-backend hook: called ONCE with the freshly assembled root, before
+   * it is mounted, so a caller can rebuild materials the backend cannot draw.
+   *
+   * This exists for the WebGPU battle scene, whose renderer cannot compile the
+   * body's raw-GLSL ink outline and blob shadow and whose lightless scene would
+   * draw the lit toon body black (see
+   * `systems/entities3d/three/gpu/gpuMaterialSwap.ts`). It is a CALLBACK rather
+   * than a `gpu` boolean on purpose: a boolean would force this file to import
+   * `three/webgpu`, dragging the whole node renderer into the WebGL bundle that
+   * every normal battle map loads.
+   *
+   * Must be referentially stable (module constant or `useCallback`) — a new
+   * function identity rebuilds the body.
+   */
+  adaptMaterials?: (root: Object3D) => void;
 }
 
-export const EntityModel: React.FC<EntityModelProps> = ({ blueprint, animState, animTimeRef, controlPose = null }) => {
+export const EntityModel: React.FC<EntityModelProps> = ({ blueprint, animState, animTimeRef, controlPose = null, adaptMaterials }) => {
   // Tactical camera distance affords chunkier fields, and stationary tokens
   // don't need 60 Hz body rebuilds — a whole encounter must stay cheap.
   // Skinned by default (skeleton pivot flip 2026-08-18): a whole encounter of
   // actors at 2 draw calls per body instead of ~60 each.
   const handle = useMemo(
-    () => assembleEntity(blueprint, { resolutionScale: 0.7, fieldUpdateHz: 10, ...gameBodyOptions(blueprint) }),
-    [blueprint],
+    () => {
+      const assembled = assembleEntity(blueprint, {
+        resolutionScale: 0.7,
+        fieldUpdateHz: 10,
+        ...gameBodyOptions(blueprint),
+      });
+      // Backend adaptation happens here, not in an effect: the group is handed
+      // to the renderer on this same commit, and a one-frame black body would
+      // be visible on every actor spawn.
+      adaptMaterials?.(assembled.group);
+      return assembled;
+    },
+    [blueprint, adaptMaterials],
   );
   useEffect(() => {
     handle.retain();

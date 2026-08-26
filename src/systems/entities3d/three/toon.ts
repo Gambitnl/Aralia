@@ -16,6 +16,7 @@ import {
   BackSide,
 } from 'three';
 import { mergeVertices } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import type { MaterialSurface } from '../types';
 
 /** How generated entity bodies are drawn. */
 export type EntityRenderMode = 'solid' | 'wireframe';
@@ -58,23 +59,93 @@ export const ENTITY_RENDER_MODE: EntityRenderMode = 'solid';
 
 let gradient: DataTexture | null = null;
 
-/** The 3-step toon ramp all entity materials share. */
+/** The 6-step toon ramp all entity materials share. */
 export function toonGradient(): DataTexture {
   if (!gradient) {
-    gradient = new DataTexture(new Uint8Array([90, 180, 255]), 3, 1, RedFormat);
+    // 6 bands give twice the value resolution of the old 3-step ramp —
+    // every surface shows more dimensional response to light, and small
+    // geometric detail that was invisible at 3 bands now produces a
+    // readable value step. The spacing is roughly equal (≈35–50 per step)
+    // with a slightly deeper shadow floor and a bright highlight cap.
+    gradient = new DataTexture(new Uint8Array([40, 90, 140, 185, 220, 255]), 6, 1, RedFormat);
     gradient.minFilter = gradient.magFilter = NearestFilter;
     gradient.needsUpdate = true;
   }
   return gradient;
 }
 
-export function toonMaterial(colorHex: string): MeshToonMaterial {
+/**
+ * Rim-light strength — kept as a module-level constant so every entity gets
+ * the same rim without per-material uniform overhead. Subtle enough to add
+ * dimensionality at grazing angles without overwhelming the toon look.
+ * BG3 uses rim lighting as a primary readability tool; this is the
+ * lightweight toon-friendly version.
+ */
+const RIM_STRENGTH = 0.12;
+const RIM_POWER = 2.8;
+
+export function toonMaterial(colorHex: string, surface: MaterialSurface = 'default'): MeshToonMaterial {
   // flatShading: the Dragon Forge trick — low-poly facets read as sculpted
   // form under lighting, for free (set post-construction: the 0.172 typings
   // omit it from the toon constructor props)
   const material = new MeshToonMaterial({ color: colorHex, gradientMap: toonGradient() });
   // runtime-supported on every lit material; this repo's 0.172 typings omit it
   (material as unknown as { flatShading: boolean }).flatShading = true;
+
+  // Surface-specific tinting: each type shifts the base color slightly before
+  // the toon ramp quantizes it, so the final result reads as a different
+  // material without needing a second pass or custom shader.
+  if (surface === 'metallic') {
+    // Metals are lighter and cooler — push toward white/blue-grey.
+    material.color.lerp(new Color('#c8d0e0'), 0.25);
+    material.emissive = new Color('#000000');
+  } else if (surface === 'emissive') {
+    // Emissive surfaces glow softly — add a faint self-illumination tint.
+    material.emissive = new Color(colorHex).multiplyScalar(0.25);
+    material.emissiveIntensity = 0.35;
+  } else if (surface === 'soft') {
+    // Soft surfaces (skin, cloth) are warmer — shift toward the red/yellow axis.
+    material.color.lerp(new Color('#e8c8a0'), 0.12);
+  }
+
+  // Rim uniforms shared between the material surface (for debugger access) and
+  // the compiled shader (via onBeforeCompile). Same object references so that
+  // changing `material.uniforms.uRimStrength.value` at runtime also changes the
+  // value the fragment shader reads.
+  const rimStrength = { value: RIM_STRENGTH };
+  const rimPower = { value: RIM_POWER };
+  (material as unknown as { uniforms: Record<string, { value: number }> }).uniforms = {
+    uRimStrength: rimStrength,
+    uRimPower: rimPower,
+  };
+  // Rim lighting: a Fresnel term added to the final color gives dimensionality
+  // at grazing angles — every surface picks up a subtle bright edge where it
+  // turns away from the camera. This replaces the deleted inverse-hull rim
+  // shell (round 22, which drew a "sticker-edge halo") with a view-dependent
+  // effect that scales with surface curvature instead of uniform width.
+  material.onBeforeCompile = (shader) => {
+    // Share the same uniform objects so runtime tweaks propagate to the shader.
+    shader.uniforms.uRimStrength = rimStrength;
+    shader.uniforms.uRimPower = rimPower;
+    // Fragment only: inject uniforms at global scope, then rim math before
+    // dithering. The `normal` varying (from <normal_fragment>) and
+    // `vViewPosition` are already available in MeshToonMaterial's fragment
+    // shader — no vertex injection needed.
+    shader.fragmentShader = shader.fragmentShader.replace(
+      '#include <common>',
+      '#include <common>\nuniform float uRimStrength;\nuniform float uRimPower;',
+    );
+    shader.fragmentShader = shader.fragmentShader.replace(
+      '#include <dithering_fragment>',
+      `{
+        vec3 _rimN = normalize(normal);
+        vec3 _rimV = normalize(vViewPosition);
+        float _rim = 1.0 - max(dot(_rimV, _rimN), 0.0);
+        gl_FragColor.rgb += pow(_rim, uRimPower) * uRimStrength;
+      }
+      #include <dithering_fragment>`,
+    );
+  };
   return material;
 }
 
@@ -89,7 +160,7 @@ export function wireframeMaterial(colorHex: string): MeshBasicMaterial {
 }
 
 /** The material factory for a render mode: toon-shaded solid, or wireframe. */
-export function entityMaterial(mode: EntityRenderMode): (colorHex: string) => MeshToonMaterial | MeshBasicMaterial {
+export function entityMaterial(mode: EntityRenderMode): (colorHex: string, surface?: MaterialSurface) => MeshToonMaterial | MeshBasicMaterial {
   return mode === 'wireframe' ? wireframeMaterial : toonMaterial;
 }
 

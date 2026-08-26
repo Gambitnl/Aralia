@@ -32,8 +32,10 @@ import {
 import {
   calculateDamage,
   createPlayerCombatCharacter,
-  rollDice,
 } from '../../../../../utils/combat/combatUtils';
+import {
+  rollDice,
+} from '../../../../../systems/dice/rollers';
 import {
   canAffordActionCost,
   consumeActionCost,
@@ -319,9 +321,9 @@ function createGoldDragonbornActor(race: Race): {
     };
   }
 
-  // DEBT: One shared assembly cache path still reads linked-text Race rows.
-  // This leaf carries forward only Gold facts already proven by the parser;
-  // the durable normalization fix belongs outside this delegated leaf.
+  // Normalizing display links before caching in shared racial trait library is tracked in Agora task agora-1525.
+  // One shared assembly cache path reads linked-text Race rows; this leaf carries forward proven Gold facts
+  // into the assembled character while the native combat bridge and resolvers remain authoritative.
   const resourceMax = typeof resourceDefinition.maxUses === 'number'
     ? resourceDefinition.maxUses
     : parserAssembledCharacter.proficiencyBonus ?? 2;

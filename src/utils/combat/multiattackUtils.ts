@@ -41,7 +41,8 @@ import { AttackRiderSystem } from '../../systems/combat/AttackRiderSystem';
 import { getAbilityModifierValue } from '../character/statUtils';
 import { calculateProficiencyBonus } from '../character/savingThrowUtils';
 import { canAffordActionCost, consumeActionCost } from './actionEconomyUtils';
-import { resolveAttack, rollDamage, rollD20 } from './combatUtils';
+import { resolveAttack } from './combatUtils';
+import { rollDamage, rollD20 } from '../../systems/dice/rollers';
 import { applyDamageAndCheckDowned } from './deathSaveUtils';
 import { ResistanceCalculator } from './resistanceUtils';
 

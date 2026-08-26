@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 20/09/2026, 21:00:39
+ * Dependents: data/adapters/5eToolsAdapter.ts
+ * Imports: 9 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 // Orchestrator: converts a raw 5eTools monster JSON object into Aralia's MonsterData.
 // Delegates to per-concern submodules for each action category.
 
@@ -22,7 +38,8 @@ import {
 import { parse5eToolsAction } from './actionsAdapter';
 import { parseReactions } from './reactionsAdapter';
 import { parseLegendaryActions } from './legendaryAdapter';
-import { parseSpellcasting } from './spellcastingAdapter';
+import { parseSpellcasting, parseMonsterSpellSlots } from './spellcastingAdapter';
+import type { FiveEToolsMonster, FiveEToolsNamedEntry, FiveEToolsCrObject } from './types';
 
 // Word-to-number map for multiattack count parsing.
 const WORD_TO_NUM: Record<string, number> = {
@@ -221,13 +238,18 @@ function crToProficiencyBonus(crStr: string): number {
   return 9;
 }
 
-// DEBT: parameter is `any` because 5etools has no published TypeScript definitions.
+/**
+ * Converts one raw 5eTools monster stat block into Aralia's MonsterData.
+ * The input schema lives in ./types.ts — see that file before widening it.
+ */
 export function convert5eToolsMonster(
-  monsterData: any,
+  monsterData: FiveEToolsMonster,
   spellLookup?: (name: string) => Spell | undefined
 ): MonsterData {
   const extraMovement = parseExtraMovementSpeedsFeet(monsterData.speed);
-  const crStr = monsterData.cr?.cr || (typeof monsterData.cr === 'string' ? monsterData.cr : '0');
+  const crObject: FiveEToolsCrObject | undefined =
+    monsterData.cr !== null && typeof monsterData.cr === 'object' ? monsterData.cr : undefined;
+  const crStr = crObject?.cr || (typeof monsterData.cr === 'string' ? monsterData.cr : '0');
   const profBonus = crToProficiencyBonus(crStr);
   // The combat engine formula is: d20 + dexModifier + baseInitiative
   // (dexModifier is always added by the engine from character.stats.dexterity)
@@ -256,8 +278,8 @@ export function convert5eToolsMonster(
       truesight: parseSense(monsterData.senses, 'truesight'),
     },
     cr: crStr,
-    ...(monsterData.cr?.lair && { crLair: String(monsterData.cr.lair) }),
-    ...(monsterData.cr?.xpLair && { xpLair: Number(monsterData.cr.xpLair) }),
+    ...(crObject?.lair && { crLair: String(crObject.lair) }),
+    ...(crObject?.xpLair && { xpLair: Number(crObject.xpLair) }),
     size: parseSize(monsterData.size),
     legendaryActionsPerRound: monsterData.legendaryActions || (monsterData.legendary ? 3 : 0),
   };
@@ -265,14 +287,14 @@ export function convert5eToolsMonster(
   const abilities: Ability[] = [];
 
   if (monsterData.action) {
-    monsterData.action.forEach((action: any) => {
+    monsterData.action.forEach((action: FiveEToolsNamedEntry) => {
       const ability = parse5eToolsAction(action);
       if (ability) abilities.push(ability);
     });
   }
 
   if (monsterData.bonus) {
-    monsterData.bonus.forEach((bonus: any) => {
+    monsterData.bonus.forEach((bonus: FiveEToolsNamedEntry) => {
       const ability = parse5eToolsAction(bonus, 'bonus');
       if (ability) abilities.push(ability);
     });
@@ -289,7 +311,7 @@ export function convert5eToolsMonster(
   enrichLegendaryDelegations(abilities);
 
   if (monsterData.trait) {
-    monsterData.trait.forEach((trait: any) => {
+    monsterData.trait.forEach((trait: FiveEToolsNamedEntry) => {
       const traitText = extractEntryText(trait.entries);
       const traitName: string = trait.name;
       
@@ -317,14 +339,31 @@ export function convert5eToolsMonster(
   let creatureTypes: string[] = [];
   if (typeof monsterData.type === 'string') {
     creatureTypes = [capitalize(monsterData.type)];
-  } else if (monsterData.type?.type) {
-    creatureTypes = [capitalize(monsterData.type.type)];
-    if (monsterData.type.tags) creatureTypes.push(...monsterData.type.tags.map(capitalize));
+  } else if (monsterData.type && typeof monsterData.type === 'object' && monsterData.type.type) {
+    const typeObject = monsterData.type;
+    // XMM's two Empyreans print their type as "Celestial or Fiend" via
+    // { choose: [...] }. Take the first listed type: it is the one 5eTools
+    // renders first, and a creature is only ever one of them at a time, so
+    // carrying both would hand it the union of two creature-type immunity sets.
+    const primaryType = typeof typeObject.type === 'string'
+      ? typeObject.type
+      : typeObject.type.choose[0];
+    creatureTypes = [capitalize(primaryType)];
+    // A tag is either a bare string or a { tag, prefix } display wrapper.
+    if (typeObject.tags) {
+      creatureTypes.push(
+        ...typeObject.tags.map(tag => capitalize(typeof tag === 'string' ? tag : tag.tag))
+      );
+    }
   }
 
   let alignment = 'Neutral';
   if (monsterData.alignment) {
-    alignment = monsterData.alignment.map((a: string) => {
+    // Weighted entries such as { alignment: ["C","E"], chance: 75 } contribute their codes.
+    const alignmentCodes = monsterData.alignment.flatMap(a =>
+      typeof a === 'string' ? [a] : (a.alignment ?? [])
+    );
+    alignment = alignmentCodes.map(a => {
       switch (a) {
         case 'L': return 'Lawful';
         case 'N': return 'Neutral';
@@ -358,6 +397,7 @@ export function convert5eToolsMonster(
   const nonMagicalResistances = parseNonMagicalDefenses(monsterData.resist);
   const nonMagicalImmunities = parseNonMagicalDefenses(monsterData.immune);
   const conditionImmunities = parseConditionImmunities(monsterData.conditionImmune);
+  const spellSlots = parseMonsterSpellSlots(monsterData.spellcasting);
 
   return {
     id: monsterData.name.toLowerCase().replace(/[^a-z0-9]/g, '_'),
@@ -375,5 +415,6 @@ export function convert5eToolsMonster(
     ...(nonMagicalResistances.length > 0 && { nonMagicalResistances }),
     ...(nonMagicalImmunities.length > 0 && { nonMagicalImmunities }),
     ...(conditionImmunities.length > 0 && { conditionImmunities }),
+    ...(spellSlots && { spellSlots }),
   };
 }

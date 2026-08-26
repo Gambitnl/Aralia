@@ -13,6 +13,9 @@ const BUILDING_TYPES: BuildingType[] = [
   'cottage', 'townhouse', 'tenement', 'farmstead',
   'shop', 'smithy', 'workshop', 'inn', 'tavern', 'storehouse',
   'manor', 'temple', 'keep', 'civic',
+  // named landmarks (town/population.ts caps how many a town may hold)
+  'library', 'guildhall', 'granary', 'windmill', 'lumbermill',
+  'school', 'shrine', 'barracks', 'bakery',
 ];
 
 describe('building motif programs', () => {

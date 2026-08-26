@@ -4,7 +4,7 @@
  * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
  * Last Sync: 09/06/2026, 03:06:22
- * Dependents: components/Naval/ShipPane.tsx, data/dev/mockShips.ts, data/naval/crewTraits.ts, data/naval/voyageEvents.ts, data/naval/voyageEvents/index.ts, data/shipModifications.ts, data/ships.ts, state/initialState.ts, systems/naval/CrewManager.ts, systems/naval/NavalCombatSystem.ts, systems/naval/NavalLogic.ts, systems/naval/VoyageManager.ts, types/index.ts, utils/naval/navalCombatUtils.ts, utils/naval/navalUtils.ts
+ * Dependents: components/Naval/ShipPane.tsx, data/dev/mockShips.ts, data/naval/crewTraits.ts, data/naval/voyageEvents.ts, data/shipModifications.ts, data/ships.ts, state/initialState.ts, systems/naval/CrewManager.ts, systems/naval/NavalCombatSystem.ts, systems/naval/NavalLogic.ts, systems/naval/VoyageManager.ts, types/index.ts, utils/naval/navalCombatUtils.ts, utils/naval/navalUtils.ts
  * Imports: None
  *
  * MULTI-AGENT SAFETY:
@@ -65,6 +65,14 @@ export interface Ship {
   flags: Record<string, boolean>; // e.g., { 'isPirate': true }
   /** FMG burg id of the port where this ship is currently docked (its embarkation point); undefined if never docked. */
   dockedPortBurgId?: number;
+  /**
+   * Faction whose flag this hull sails under. Bad standing with it adds an
+   * unrest surcharge to the daily mutiny check (see CrewManager).
+   * Optional on the type because saves written before the field existed do not
+   * carry it; `resolveShipFactionId` in systems/naval/shipFaction.ts supplies
+   * the default for those hulls.
+   */
+  factionId?: string;
 }
 
 export type ModifierOperation = 'add' | 'multiply';
@@ -213,7 +221,7 @@ export interface VoyageEvent {
 export interface PendingSeaEncounter {
   /** Table outcome id (e.g. 'pirates', 'sea_beast') — for logging/dedup. */
   id: string;
-  /** Combat foes, in the shared TravelEncounterMonster stub shape. */
+  /** Combat foes, in the shared TravelEncounterMonster descriptor shape. */
   monsters: { name: string; quantity: number; cr: string; description: string }[];
   /** The one-line summary already shown in the voyage/adventure log. */
   summary: string;

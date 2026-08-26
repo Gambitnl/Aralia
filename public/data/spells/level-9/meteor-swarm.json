@@ -429,7 +429,7 @@
                       "prompt":  "Ask the caster to choose four different visible points within 1 mile; apply only one damage instance to any creature in overlapping spheres.",
                       "playerInputRequired":  true
                   },
-    "description":  "Blazing orbs of fire plummet to the ground at four different points you can see within range. Each creature in a 40-foot-radius Sphere centered on each of those points makes a Dexterity saving throw. A creature takes 20d6 Fire damage and 20d6 Bludgeoning damage on a failed save or half as much damage on a successful one. A creature in the area of more than one fiery Sphere is affected only once. A nonmagical object that isn\u0027t being worn or carried also takes the damage if it\u0027s in the spell\u0027s area, and the object starts burning if it\u0027s flammable.",
+    "description":  "Blazing orbs of fire plummet to the ground at four different points you can see within range. Each creature in a 40-foot-radius Sphere centered on each of those points makes a Dexterity saving throw. A creature takes 20d6 Fire damage and 20d6 Bludgeoning damage on a failed save or half as much damage on a successful one. A creature in the area of more than one fiery Sphere is affected only once. A nonmagical object that isn't being worn or carried also takes the damage if it's in the spell's area, and the object starts burning if it's flammable.",
     "higherLevels":  "",
     "tags":  [
 

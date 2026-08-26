@@ -6,16 +6,16 @@ Backlog retirement rechecked the current tree and found this progress note is st
 
 The remaining work is now owned by `docs/projects/ui-primitives/GAPS.md` G3 and `docs/projects/ui-primitives/TRACKER.md` T1. Treat the older "100%" sections below as historical migration context, not current completion evidence.
 
-## Completed Migrations ✅
+## Completed Migrations PASSED
 
 ### High Priority Components
-- **Tooltip.tsx**: `z-[9999]` → `Z_INDEX.TOOLTIP`
-- **ConfirmationModal.tsx**: `z-[60]` → `Z_INDEX.MODAL_BACKGROUND`
-- **GameGuideModal.tsx**: `z-[70]` → `Z_INDEX.MODAL_CONTENT`
-- **WindowFrame.tsx**: `z-[100]` → `Z_INDEX.WINDOW_FRAME`
-- **ResizeHandles.tsx**: `z-[110]` → `Z_INDEX.RESIZE_HANDLES_HORIZONTAL`, `z-[120]` → `Z_INDEX.RESIZE_HANDLES_CORNERS`
+- **Tooltip.tsx**: `z-[9999]` -> `Z_INDEX.TOOLTIP`
+- **ConfirmationModal.tsx**: `z-[60]` -> `Z_INDEX.MODAL_BACKGROUND`
+- **GameGuideModal.tsx**: `z-[70]` -> `Z_INDEX.MODAL_CONTENT`
+- **WindowFrame.tsx**: `z-[100]` -> `Z_INDEX.WINDOW_FRAME`
+- **ResizeHandles.tsx**: `z-[110]` -> `Z_INDEX.RESIZE_HANDLES_HORIZONTAL`, `z-[120]` -> `Z_INDEX.RESIZE_HANDLES_CORNERS`
 
-### TypeScript Validation ✅
+### TypeScript Validation PASSED
 - All migrated components pass TypeScript compilation
 - No type errors introduced by registry usage
 - Template literal syntax working correctly with Tailwind CSS
@@ -30,7 +30,7 @@ The remaining work is now owned by `docs/projects/ui-primitives/GAPS.md` G3 and 
 - **Remaining migrations**: 0 instances (0%)
 - **Components migrated**: 19/19 (100%)
 
-## Migration Completed ✅
+## Migration Completed PASSED
 
 ### All Components Migrated:
 - **Modal System**: 11 components (ConfirmationModal, GameGuideModal, RestModal, LevelUpModal, ImageModal, MissingChoiceModal, OllamaDependencyModal, FenceInterface, SpellbookOverlay, ThreeDModal, DevMenu)
@@ -40,10 +40,10 @@ The remaining work is now owned by `docs/projects/ui-primitives/GAPS.md` G3 and 
 - **Always-on-top**: 1 component (Tooltip)
 
 ### Migration Quality:
-- ✅ **TypeScript Validation**: All components compile without z-index related errors
-- ✅ **Registry Coverage**: All 42 hardcoded values replaced with named constants
-- ✅ **Consistent Naming**: Logical hierarchy with clear layer separation
-- ✅ **Template Literal Safety**: All z-index values properly interpolated
+- PASSED **TypeScript Validation**: All components compile without z-index related errors
+- PASSED **Registry Coverage**: All 42 hardcoded values replaced with named constants
+- PASSED **Consistent Naming**: Logical hierarchy with clear layer separation
+- PASSED **Template Literal Safety**: All z-index values properly interpolated
 
 ## Quality Assurance
 - [x] TypeScript compilation passes
@@ -58,9 +58,9 @@ The remaining work is now owned by `docs/projects/ui-primitives/GAPS.md` G3 and 
 - **High Risk**: Complex modal interactions may have edge cases
 
 ## Success Criteria
-- ✅ 100% migration of hardcoded z-index values
-- ✅ Consistent layering across all UI components
-- ✅ Improved developer experience with named constants
-- ✅ No visual regressions in production
+- PASSED 100% migration of hardcoded z-index values
+- PASSED Consistent layering across all UI components
+- PASSED Improved developer experience with named constants
+- PASSED No visual regressions in production
 
 <!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"z-index-migration-progress.md","sha256WithoutMarker":"e918e4bb3cde81c9c746138c5b54ef66f3bcd5fe91a1299ebe48c34f5269fe47","markedAtUtc":"2026-06-26T00:40:14.570Z"} -->

@@ -23,7 +23,8 @@ export interface CharacterVisualConfig {
     gender: CharacterGender;
     skinColor: number; // 1-5
     hairStyle: string; // "Hair1", "Hair2", etc.
-    hairColor: string; // TBD if colorable or separate files
+    // Hair color selection (dynamic tinting vs separate sprite assets) is tracked in Agora task agora-7f04.
+    hairColor: string;
     clothing: string;  // "Clothing1", etc.
 }
 

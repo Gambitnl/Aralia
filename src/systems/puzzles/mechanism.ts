@@ -7,6 +7,22 @@
  * that are distinct from Locks (barriers) and Puzzles (intellectual challenges).
  */
 
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * This file appears to be an ISOLATED UTILITY or ORPHAN.
+ *
+ * Last Sync: 09/09/2026, 15:02:05
+ * Dependents: None (Orphan)
+ * Imports: 4 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import { PlayerCharacter } from '../../types/character';
 import { Item } from '../../types/items';
 import { rollAbilityCheck } from '../../utils/character/checkUtils';
@@ -103,7 +119,13 @@ export function operateMechanism(
     message = `You activate the ${mechanism.name}.`;
   }
 
-  // TODO #896(Lockpick): Connect this mechanism system to the Submap tile interaction layer so players can click levers in the dungeon.
+  // #896 (2026-09-09): not wired, and deliberately so. There is no submap tile
+  // interaction layer to connect to - the submap renderer exposes only a
+  // drill-down cell pick, and the 3D world renders props with no click handling
+  // at all. The one interaction model that exists is proximity-based, inside the
+  // dungeon gameplay kernel, and that kernel states it does not own opening or
+  // lockpicking rules. Tracked as GG-198 in docs/projects/GLOBAL_GAPS.md;
+  // operateMechanism is already caller-ready and needs no change for it.
 
   return {
     success: true,

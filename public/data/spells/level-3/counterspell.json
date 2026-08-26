@@ -103,7 +103,7 @@
     "requiredCost": "reaction",
     "targetBinding": "triggering_spell_caster",
     "maxRangeFeet": 60,
-    "notes": "Routes Counterspell through the shared pre-command spell-interruption gate so the original spell can be stopped before its effects execute."
+    "notes": "Routes Counterspell through the shared pre-command spell-interruption gate so the original spell can be stopped before its effects execute. Empty-effects contract: Counterspell deliberately carries no rows in `effects`; its whole mechanic is the interruption described in `interruptionState`, which the reaction gate executes. The spell-to-ability factory therefore builds an ability with an empty effect list for it, and the corpus test in src/utils/character/__tests__/spellAbilityFactory.test.ts allows an empty list only for spells that declare `interruptionState`."
   },
   "interruptionState": {
     "event": "visible_creature_casts_spell",

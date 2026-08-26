@@ -25,14 +25,6 @@ declare module 'three' {
 }
 */
 
-declare module 'three/examples/jsm/controls/OrbitControls.js' {
-  export class OrbitControls { [key: string]: any; constructor(...args: any[]); }
-}
-
-declare module 'three/examples/jsm/objects/Sky.js' {
-  export class Sky { [key: string]: any; constructor(...args: any[]); }
-}
-
 declare module 'three/examples/jsm/loaders/GLTFLoader.js' {
   export class GLTFLoader { [key: string]: any; constructor(...args: any[]); loadAsync(...args: any[]): Promise<any>; }
 }

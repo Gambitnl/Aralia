@@ -204,7 +204,7 @@
                                                                    ]
                                       },
                         "utilityType":  "light",
-                        "description":  "Seven star-like motes orbit the caster\u0027s head. Motes are expended whether their attacks hit or miss; the spell ends early when the last mote is expended. Mote count also determines light radius.",
+                        "description":  "Seven star-like motes orbit the caster's head. Motes are expended whether their attacks hit or miss; the spell ends early when the last mote is expended. Mote count also determines light radius.",
                         "scaling":  {
                                         "type":  "slot_level",
                                         "bonusPerLevel":  "+2 motes",
@@ -225,7 +225,7 @@
                         "controlOptions":  [
                                                {
                                                    "name":  "Seven Motes",
-                                                   "effect":  "Seven star-like motes appear and orbit the caster\u0027s head until the spell ends."
+                                                   "effect":  "Seven star-like motes appear and orbit the caster's head until the spell ends."
                                                },
                                                {
                                                    "name":  "Bonus Action Fire Mote",
@@ -281,7 +281,7 @@
                                                    {
                                                        "trigger":  "all_target_instances_expended",
                                                        "scope":  "spell",
-                                                       "description":  "The spell\u0027s orbiting mote and light effects end early when the caster expends the last star-like mote."
+                                                       "description":  "The spell's orbiting mote and light effects end early when the caster expends the last star-like mote."
                                                    }
                                                ],
                         "visionLightSound":  {

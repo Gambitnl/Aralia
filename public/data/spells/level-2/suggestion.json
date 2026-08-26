@@ -216,7 +216,7 @@
                                                    {
                                                        "trigger":  "caster_or_ally_damages_target",
                                                        "scope":  "effect",
-                                                       "description":  "The spell ends for the target if the caster or the caster\u0027s allies deal damage to that target."
+                                                       "description":  "The spell ends for the target if the caster or the caster's allies deal damage to that target."
                                                    },
                                                    {
                                                        "trigger":  "suggested_activity_completed",
@@ -262,12 +262,12 @@
                                                                  "value":  480
                                                              }
                                             },
-                        "description":  "A failed Wisdom save applies the Charmed condition for the spell\u0027s duration or until the spell ends early.",
+                        "description":  "A failed Wisdom save applies the Charmed condition for the spell's duration or until the spell ends early.",
                         "conditionalEndings":  [
                                                    {
                                                        "trigger":  "caster_or_ally_damages_target",
                                                        "scope":  "effect",
-                                                       "description":  "Damage dealt to the target by the caster or the caster\u0027s allies ends the spell for that target."
+                                                       "description":  "Damage dealt to the target by the caster or the caster's allies ends the spell for that target."
                                                    },
                                                    {
                                                        "trigger":  "suggested_activity_completed",
@@ -293,10 +293,10 @@
                 ],
     "arbitrationType":  "ai_dm",
     "aiContext":  {
-                      "prompt":  "The player is casting Suggestion. Adjudicate the requested command. The suggestion must sound reasonable, be achievable within 8 hours, and not involve anything that would obviously deal damage to the target or its allies. For example, \u0027drop your weapons and flee\u0027 is okay, \u0027stab yourself\u0027 is not. Evaluate if the command meets these criteria. If valid, approve it and optionally define narrative mechanical effects. If invalid, reject it.",
+                      "prompt":  "The player is casting Suggestion. Adjudicate the requested command. The suggestion must sound reasonable, be achievable within 8 hours, and not involve anything that would obviously deal damage to the target or its allies. For example, 'drop your weapons and flee' is okay, 'stab yourself' is not. Evaluate if the command meets these criteria. If valid, approve it and optionally define narrative mechanical effects. If invalid, reject it.",
                       "playerInputRequired":  true
                   },
-    "description":  "You suggest a course of activity-described in no more than 25 words-to one creature you can see within range that can hear and understand you. The suggestion must sound achievable and not involve anything that would obviously deal damage to the target or its allies. For example, you could say, \"Fetch the key to the cult\u0027s treasure vault, and give the key to me.\" Or you could say, \"Stop fighting, leave this library peacefully, and don\u0027t return.\" The target must succeed on a Wisdom saving throw or have the Charmed condition for the duration or until you or your allies deal damage to the target. The Charmed target pursues the suggestion to the best of its ability. The suggested activity can continue for the entire duration, but if the suggested activity can be completed in a shorter time, the spell ends for the target upon completing it.",
+    "description":  "You suggest a course of activity-described in no more than 25 words-to one creature you can see within range that can hear and understand you. The suggestion must sound achievable and not involve anything that would obviously deal damage to the target or its allies. For example, you could say, \"Fetch the key to the cult's treasure vault, and give the key to me.\" Or you could say, \"Stop fighting, leave this library peacefully, and don't return.\" The target must succeed on a Wisdom saving throw or have the Charmed condition for the duration or until you or your allies deal damage to the target. The Charmed target pursues the suggestion to the best of its ability. The suggested activity can continue for the entire duration, but if the suggested activity can be completed in a shorter time, the spell ends for the target upon completing it.",
     "higherLevels":  "",
     "tags":  [
                  "enchantment",

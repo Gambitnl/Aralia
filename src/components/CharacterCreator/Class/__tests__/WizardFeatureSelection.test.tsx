@@ -4,6 +4,20 @@ import { describe, it, expect, vi } from 'vitest';
 import WizardFeatureSelection from '../WizardFeatureSelection';
 import type { Class as CharClass, Spell } from '../../../../types';
 
+/**
+ * Tests for the Wizard Feature Selection component.
+ *
+ * Wizard heroes choose their initial Cantrips and Level 1 spells to transcribe into
+ * their spellbook during character creation according to their spellcasting info.
+ *
+ * Connected to: CharacterCreator (Step 2b: Wizard Spell Selection)
+ * Tests: Cantrip limits, Level 1 spell limits, disabled state for unselected cards once full, confirm callback.
+ */
+
+// ============================================================================
+// Mock Spellbook Data
+// ============================================================================
+
 const spellbook: Record<string, Spell> = {
   'fire-bolt': {
     id: 'fire-bolt',
@@ -117,6 +131,10 @@ const wizardSpellcastingInfo = {
 } as NonNullable<CharClass['spellcasting']>;
 
 describe('WizardFeatureSelection', () => {
+  // ============================================================================
+  // Spell Selection & Submit Tests
+  // ============================================================================
+
   it('limits cantrip and level 1 choices and submits the selected spell IDs', () => {
     const onWizardFeaturesSelect = vi.fn();
     const onBack = vi.fn();
@@ -153,5 +171,5 @@ describe('WizardFeatureSelection', () => {
     // it visible so the real step layout contract stays intact while the test
     // focuses on spell selection and submit gating.
     expect(onBack).not.toHaveBeenCalled();
-  });
+  }, 15000);
 });

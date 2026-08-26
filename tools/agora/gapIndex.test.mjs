@@ -14,6 +14,7 @@ import {
   indexGaps,
   OPEN_STATUSES,
   validateWorkflowGapRows,
+  readAllowedVocabularies,
 } from './gapIndex.mjs';
 
 const SAMPLE = `---
@@ -35,6 +36,13 @@ Some prose the parser must ignore.
 | - | - | - | - |
 | x | y | z | w |
 `;
+
+test('WF-G259 pending_restart is an open, declared workflow status', () => {
+  assert.equal(OPEN_STATUSES.has('pending_restart'), true);
+  const workflowFile = path.join(path.dirname(fileURLToPath(import.meta.url)), 'WORKFLOW_GAPS.md');
+  const vocab = readAllowedVocabularies(fs.readFileSync(workflowFile, 'utf8'));
+  assert.equal(vocab.status.has('pending_restart'), true);
+});
 
 function tmpTree() {
   const root = path.join(os.tmpdir(), 'gapindex-test', crypto.randomUUID());
@@ -118,4 +126,117 @@ test('indexGaps walks GAPS.md files, tags project paths, and filters open-only',
   assert.deepEqual(open.map((g) => g.id).sort(), ['G1', 'G12', 'G14']); // G10 resolved
   assert.ok(open.every((g) => OPEN_STATUSES.has(g.status)));
   fs.rmSync(root, { recursive: true, force: true });
+});
+
+// WF-G87: the registry declares four closed vocabularies in its own frontmatter
+// and NOTHING read them. Only Suggested agent was validated, against
+// agents.json, so row WF-G80 carried an invented Classification and an invented
+// Surface for two days and was found by eye rather than by tooling.
+test('WF-G87: allowed_* vocabularies are read from the frontmatter', () => {
+  const vocab = readAllowedVocabularies([
+    '---',
+    'id_prefix: WF-G',
+    'allowed_statuses: [open, resolved, wont_fix]',
+    'allowed_severities: [low, high]',
+    'allowed_classifications: [daemon, docs]',
+    'allowed_surfaces: [agora-daemon, gap-index]',
+    'unrelated: value',
+    '---',
+    '# body',
+  ].join('\n'));
+
+  assert.deepEqual([...vocab.status], ['open', 'resolved', 'wont_fix']);
+  assert.deepEqual([...vocab.severity], ['low', 'high']);
+  assert.deepEqual([...vocab.classification], ['daemon', 'docs']);
+  assert.deepEqual([...vocab.surface], ['agora-daemon', 'gap-index']);
+
+  // A file with no frontmatter declares nothing, and is therefore not checked.
+  assert.deepEqual(readAllowedVocabularies('# just a heading'), {});
+  // A frontmatter with no lists likewise yields no vocabulary.
+  assert.deepEqual(readAllowedVocabularies('---\nid_prefix: G\n---\nbody'), {});
+});
+
+test('WF-G87: a value outside a declared vocabulary is refused, and a valid row passes', () => {
+  const vocab = {
+    status: new Set(['open', 'resolved']),
+    severity: new Set(['low', 'high']),
+    classification: new Set(['daemon', 'client-tooling']),
+    surface: new Set(['agora-daemon', 'agora-client']),
+  };
+  const provenance = {
+    suggestedAgent: 'claude',
+    registeredBy: 'builder-fa2989',
+    registrantAgentId: '4b2f171c-3113-4e6d-a593-d657caa1990c',
+    registrantTaskId: 'session-1',
+  };
+
+  // The exact shape WF-G80 carried before its repair: two invented values.
+  const bad = validateWorkflowGapRows([{
+    id: 'WF-G80',
+    status: 'open',
+    severity: 'low',
+    classification: 'agent-tooling',
+    surface: 'crlf-editing',
+    ...provenance,
+  }], { allowedAgentIds: ['claude'], vocab });
+
+  assert.equal(bad.length, 2, 'both invented values are reported, not just the first');
+  assert.match(bad.join('\n'), /Classification "agent-tooling" is not one of/);
+  assert.match(bad.join('\n'), /Surface "crlf-editing" is not one of/);
+
+  // A legal row passes.
+  assert.deepEqual(validateWorkflowGapRows([{
+    id: 'WF-G99',
+    status: 'open',
+    severity: 'high',
+    classification: 'daemon',
+    surface: 'agora-daemon',
+    ...provenance,
+  }], { allowedAgentIds: ['claude'], vocab }), []);
+
+  // An empty closed column is refused rather than skipped.
+  const missing = validateWorkflowGapRows([{
+    id: 'WF-G98',
+    status: 'open',
+    severity: '',
+    classification: 'daemon',
+    surface: 'agora-daemon',
+    ...provenance,
+  }], { allowedAgentIds: ['claude'], vocab });
+  assert.deepEqual(missing, ['WF-G98: Severity is required']);
+
+  // With NO declared vocabulary, nothing is checked — project GAPS.md files
+  // keep their looser schema.
+  assert.deepEqual(validateWorkflowGapRows([{
+    id: 'WF-G97',
+    status: 'whatever',
+    severity: 'enormous',
+    classification: 'invented',
+    surface: 'nowhere',
+    ...provenance,
+  }], { allowedAgentIds: ['claude'] }), []);
+});
+
+test('WF-G87: the Surface column is parsed, not merely displayed', () => {
+  const rows = parseGapsMarkdown([
+    '| Gap ID | Status | Severity | Classification | Surface | Gap |',
+    '|---|---|---|---|---|---|',
+    '| WF-G1 | open | low | daemon | agora-daemon | something broke |',
+  ].join('\n'));
+  assert.equal(rows.length, 1);
+  assert.equal(rows[0].surface, 'agora-daemon');
+  assert.equal(rows[0].classification, 'daemon');
+});
+
+test('WF-G84: a blank line inside the registry table bridges the rows and warns', async () => {
+  const { parseGapsMarkdownWithWarnings } = await import('./gapIndex.mjs');
+  const split = SAMPLE.replace('| G12 |', '\n\n| G12 |');
+  const parsed = parseGapsMarkdownWithWarnings(split);
+  assert.deepEqual(parsed.rows.map((r) => r.id), ['G10', 'G12', 'G14'], 'rows after the gap are still indexed');
+  assert.equal(parsed.warnings.length, 1);
+  assert.match(parsed.warnings[0], /split by 2 blank line/);
+  // A genuinely separate table (new header) is still ignored, with no warning.
+  const clean = parseGapsMarkdownWithWarnings(SAMPLE);
+  assert.equal(clean.warnings.length, 0);
+  assert.equal(clean.rows.length, 3);
 });

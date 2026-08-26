@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 18/07/2026, 19:30:19
+ * Last Sync: 07/09/2026, 23:25:23
  * Dependents: components/World3D/InteriorHourContext.tsx, systems/world3d/buildingSceneModel.ts, systems/world3d/types.ts, systems/worldforge/bridge/buildingHistoryParts.ts, systems/worldforge/bridge/groundChunkLoader.ts, systems/worldforge/bridge/sitePartTransform.ts
  * Imports: 13 files
  *
@@ -48,6 +48,8 @@ import type {
   BlueprintRoom,
   FacadePattern,
   WallRun,
+  WallMaterial,
+  RoofCovering,
 } from '../interior/blueprintTypes';
 import { blueprintSiteOrigin, EXTERIOR } from '../interior/blueprintTypes';
 import { HEARTH_KINDS } from '../interior/occupancy';
@@ -117,6 +119,8 @@ export interface SitePart {
    * (chimney flues, dormer masses) so consumers/tests can separate roof parts
    * from the wall/floor structure without a color sniff (BGv2 Task 5). */
   tag?: string;
+  /** Resolved construction travels with exterior walls to every renderer. */
+  wallMaterial?: WallMaterial;
   /** Exact exterior motif represented by this additive part. */
   motifKind?: BuildingMotif;
   /** Exact permanent-history fact represented by this additive part. */
@@ -146,6 +150,7 @@ export const FACADE_PART_TAG = 'facade';
  *  `parts` because roof planes are arbitrary triangles, not axis-aligned boxes
  *  (BGv2 Task 5). Absent when the plan carries no solved roof. */
 export interface RoofPartGroup {
+  roofCovering?: RoofCovering;
   positions: Float32Array;
   indices: Uint32Array;
   normals: Float32Array;
@@ -500,16 +505,23 @@ function facadeDetails(
   storeyHeightM: number,
 ): SitePart[] {
   const style = blueprint.styleResolved;
-  if (!style || style.facadePattern === 'plain') return [];
+  if (!style) return [];
+  const plainTimberFrame = style.facadePattern === 'plain'
+    && style.construction.wallMaterial === 'timber-plaster';
+  if (style.facadePattern === 'plain' && !plainTimberFrame) return [];
 
-  const pattern: FacadePattern = style.facadePattern;
+  // Plain plaster houses still need their visible timber construction. This
+  // uses the existing opening-aware frame grammar without changing the style
+  // receipt, floorplan, or the richer decorative patterns chosen by districts.
+  const pattern: FacadePattern = plainTimberFrame ? 'half-timber' : style.facadePattern;
   const origin = blueprintSiteOrigin(blueprint);
   const storeyHeightFt = storeyHeightM / FT;
   // Facade grammar renders in the same contrast-derived trim tone as the
   // material courses (town-look-slice1): the raw family tint sat nearly on the
   // wall color, so belt courses and half-timber bays never read in 3D. The
   // resolved style receipt itself is untouched — this is a render tone only.
-  const facadeTone = dressingContrastTone(style.trimColor, style.wallColor);
+  const facadeTone = dressingContrastTone(style.trimColor,
+    style.construction.wallMaterial === 'timber-plaster' ? '#eadcbd' : style.wallColor);
   const parts: SitePart[] = [];
 
   // Each floor owns its own wall runs, so details follow upper-storey shells as
@@ -589,6 +601,15 @@ function facadeDetails(
             lo + postWidthFt / 2,
             Math.min(hi - postWidthFt / 2, proposedFt),
           );
+          const crossesWindow = floor.windows.some(window => {
+            if (window.axis !== run.axis) return false;
+            const fixed = run.axis === 'x' ? window.y : window.x;
+            const runFixed = run.axis === 'x' ? run.y1 : run.x1;
+            const along = run.axis === 'x' ? window.x : window.y;
+            return Math.abs(fixed - runFixed) < 0.01
+              && Math.abs(centerFt - along) < 1.7 + postWidthFt / 2;
+          });
+          if (crossesWindow) continue;
           parts.push(
             facadePartOnRun(
               run,
@@ -680,6 +701,9 @@ function blueprintStructureParts(
         d: b.d * FT,
         h: b.h * FT,
         colorHex: colorFor(b),
+        // Exterior walls retain their real openings at town-view distance.
+        // This label lets the renderer batch the facade without mounting rooms.
+        ...(b.wallKind === 'outer' ? { tag: 'exterior', wallMaterial: bp.styleResolved?.construction.wallMaterial } : {}),
         ...(tacticalOnly ? { renderRole: 'tactical-only' as const } : {}),
         ...(b.z0 !== 0 ? { baseY: b.z0 * FT } : {}),
         // Window panes are ALWAYS tagged 'window' (bake-hour independent); the
@@ -739,6 +763,81 @@ export function buildBlueprintParts(
  * solved roof, so roofless plans stay byte-identical. Shared by
  * buildBlueprintParts and buildInterior so both raise the SAME roof.
  */
+/**
+ * Seat the roof's eave ring on the OUTER wall face, in PLAN FEET.
+ *
+ * The roof solver sets the eave `eaveOverhangFt` (1 ft temperate) beyond the
+ * footprint grid line, but the OUTER walls grow OUTWARD `OUTER_THICKNESS_FT`
+ * (1.5 ft) beyond that same line. A bare eave therefore lands INSIDE the outer
+ * wall face and leaves the wall top exposed as a rim — on tall buildings that
+ * rim reads as an open-topped box.
+ *
+ * Push the EAVE ring (the roof's lowest vertices) outward from the footprint
+ * center so it clears the outer wall face by EAVE_CLEAR_FT. Only the eave ring
+ * moves; ridge and apex vertices sit higher and are untouched, so the pitch
+ * profile above the eave is unchanged.
+ *
+ * ONE SOURCE. Both draw paths call this: the production bridge below, and the
+ * Building Identity Lab through `buildingSceneModel`. Before 2026-08-28 only
+ * the bridge applied it, so the lab showed a hole the game did not have. Do not
+ * inline this logic again in either caller.
+ *
+ * Returns a NEW array in the same plan-feet frame as the input. Input is not
+ * modified. A plan with no solved roof is copied through unchanged.
+ */
+export function seatRoofEaveOnWalls(
+  src: ArrayLike<number>,
+  bp: BlueprintPlan,
+): Float32Array {
+  const out = new Float32Array(src.length);
+  for (let i = 0; i < src.length; i += 1) out[i] = src[i];
+  if (!bp.roof || src.length === 0 || bp.masses.length === 0) return out;
+
+  // Feet to push the eave outward past its solved position so it reaches the
+  // outer wall face plus a small visible overhang.
+  const pushFt =
+    Math.max(0, OUTER_THICKNESS_FT - bp.roof.eaveOverhangFt) + EAVE_CLEAR_FT;
+
+  // Eave = the roof's lowest plane vertices (plan feet, Y is index 1).
+  let eaveYFt = Infinity;
+  for (let i = 1; i < src.length; i += 3) eaveYFt = Math.min(eaveYFt, src[i]);
+
+  const envelopeCenterX = bp.widthFt / 2;
+  const envelopeCenterY = bp.depthFt / 2;
+  const partyWalls = bp.ensemble?.partyWallOwner
+    ? { left: bp.ensemble.partyWallLeft, right: bp.ensemble.partyWallRight }
+    : { left: false, right: false };
+  const footprintMinXFt = Math.min(...bp.masses.map((m) => m.x * CELL_FT));
+  const footprintMaxXFt = Math.max(...bp.masses.map((m) => (m.x + m.w) * CELL_FT));
+
+  for (let i = 0; i < src.length; i += 3) {
+    let x = src[i];
+    let z = src[i + 2];
+    // Push only eave-level vertices outward, away from center on each axis.
+    if (pushFt > 0 && Math.abs(src[i + 1] - eaveYFt) < 1e-3) {
+      const envelopeX = src[i] - envelopeCenterX;
+      const envelopeZ = src[i + 2] - envelopeCenterY;
+      const sitsOnLeftPartyWall =
+        partyWalls.left && Math.abs(src[i] - footprintMinXFt) < 1e-4;
+      const sitsOnRightPartyWall =
+        partyWalls.right && Math.abs(src[i] - footprintMaxXFt) < 1e-4;
+      if (envelopeX !== 0 && !sitsOnLeftPartyWall && !sitsOnRightPartyWall) {
+        x += Math.sign(envelopeX) * pushFt;
+      }
+      if (envelopeZ !== 0) z += Math.sign(envelopeZ) * pushFt;
+    }
+    // History tessellation and hip corners can add eave-level vertices close to
+    // a clipped seam. The generic clearance shift must not push those fresh
+    // vertices back through the canonical party-wall half-space.
+    if (partyWalls.left) x = Math.max(x, footprintMinXFt);
+    if (partyWalls.right) x = Math.min(x, footprintMaxXFt);
+    out[i] = x;
+    out[i + 1] = src[i + 1];
+    out[i + 2] = z;
+  }
+  return out;
+}
+
 function blueprintRoof(
   bp: BlueprintPlan,
   storeyHeightM: number,
@@ -759,65 +858,19 @@ function blueprintRoof(
   // MeshBox-frame (x, Y, z) point maps to the site frame the same way the box
   // parts do — anchor on the stable site origin and scale by FT; Y is the
   // world-up baseY offset the renderer applies. Positions are [x, Y, z] triples.
-  //
-  // Eave-overhang fix (BGv2 Phase 1B): the solver sets the eave `eaveOverhangFt`
-  // (1 ft temperate) beyond the footprint grid line, but the OUTER walls grow
-  // OUTWARD `OUTER_THICKNESS_FT` (1.5 ft) beyond that same line — so a bare eave
-  // lands INSIDE the outer wall face, leaving the wall top exposed as a rim (on
-  // tall buildings that rim reads as an open-topped box). Push the EAVE ring
-  // (the roof's lowest vertices) OUTWARD from the footprint center so it clears
-  // the outer wall face by EAVE_CLEAR_FT. Only the eave ring moves — ridge/apex
-  // (higher Y) are untouched, so the pitch profile above the eave is unchanged.
-  const src = rm.tris.positions;
-  // Eave = the roof's lowest plane vertices (in plan feet, before the FT scale).
-  let eaveZFt = Infinity;
-  for (let i = 1; i < src.length; i += 3) eaveZFt = Math.min(eaveZFt, src[i]);
-  const eaveOverhangFt = bp.roof.eaveOverhangFt;
-  // Feet to push the eave outward past its solved position so it reaches the
-  // outer wall face plus a small visible overhang.
-  const pushFt =
-    Math.max(0, OUTER_THICKNESS_FT - eaveOverhangFt) + EAVE_CLEAR_FT;
-  const roofPartyWalls = bp.ensemble?.partyWallOwner
-    ? {
-        left: bp.ensemble.partyWallLeft,
-        right: bp.ensemble.partyWallRight,
-      }
-    : { left: false, right: false };
-  const footprintMinXFt = Math.min(
-    ...bp.masses.map((mass) => mass.x * CELL_FT),
-  );
-  const footprintMaxXFt = Math.max(
-    ...bp.masses.map((mass) => (mass.x + mass.w) * CELL_FT),
-  );
+  // The eave clearance is applied by the SHARED helper, so the Building
+  // Identity Lab draws the same roof this does.
+  const src = seatRoofEaveOnWalls(rm.tris.positions, bp);
   const positions = new Float32Array(src.length);
   for (let i = 0; i < src.length; i += 3) {
-    let cx = src[i] - origin.x; // site-local plan feet (x)
-    let cz = src[i + 2] - origin.y; // site-local plan feet (z)
-    // Push only eave-level vertices outward, away from center on each axis.
-    if (pushFt > 0 && Math.abs(src[i + 1] - eaveZFt) < 1e-3) {
-      const envelopeX = src[i] - envelopeCenterX;
-      const envelopeZ = src[i + 2] - envelopeCenterY;
-      const sitsOnLeftPartyWall =
-        roofPartyWalls.left && Math.abs(src[i] - footprintMinXFt) < 1e-4;
-      const sitsOnRightPartyWall =
-        roofPartyWalls.right && Math.abs(src[i] - footprintMaxXFt) < 1e-4;
-      if (envelopeX !== 0 && !sitsOnLeftPartyWall && !sitsOnRightPartyWall) {
-        cx += Math.sign(envelopeX) * pushFt;
-      }
-      if (envelopeZ !== 0) cz += Math.sign(envelopeZ) * pushFt;
-    }
-    // History tessellation and hip corners can add eave-level vertices close
-    // to a clipped seam. The generic clearance shift must not push those fresh
-    // vertices back through the canonical party-wall half-space.
-    if (roofPartyWalls.left) cx = Math.max(cx, footprintMinXFt - origin.x);
-    if (roofPartyWalls.right) cx = Math.min(cx, footprintMaxXFt - origin.x);
-    positions[i] = cx * FT; // x, centered (+ eave overhang)
+    positions[i] = (src[i] - origin.x) * FT; // x, centered (+ eave overhang)
     positions[i + 1] = src[i + 1] * FT; // Y (already includes wallTopFt)
-    positions[i + 2] = cz * FT; // z, centered (+ eave overhang)
+    positions[i + 2] = (src[i + 2] - origin.y) * FT; // z, centered
   }
   const roofColor = bp.styleResolved?.roofColor ?? perimeterColor;
   const trimColor = bp.styleResolved?.trimColor ?? perimeterColor;
   const roof: RoofPartGroup = {
+    roofCovering: bp.styleResolved?.construction.roofCovering,
     positions,
     indices: rm.tris.indices,
     normals: rm.tris.normals,

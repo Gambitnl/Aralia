@@ -9,6 +9,7 @@ import {
   mockConsumeAction,
   mockProcessTileEffects,
   mockCharacter,
+  mockTurnState,
   resetActionExecutorMocks
 } from './useActionExecutor.fixtures';
 
@@ -53,7 +54,10 @@ describe('useActionExecutor Conjure Animals relocation', () => {
       ...defaultProps,
       characters: [{ ...movedPack, position: { x: 0, y: 0 } }],
       spellZones: [zone],
-      setSpellZones
+      setSpellZones,
+      // executeAction refuses a move for anyone but the turn owner, so the pack
+      // has to hold the turn for its own relocation to run at all.
+      turnState: { ...mockTurnState, currentCharacterId: movedPack.id }
     }));
 
     const action: CombatAction = {

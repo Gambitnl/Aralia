@@ -35,25 +35,25 @@ describe('DiceRoller', () => {
   })
 
   describe('roll', () => {
+    // Since agora-f821.4 these rolls go through the audited contract, so a
+    // Math.random pin no longer reaches them. The supported way to make a roll
+    // deterministic is the injected source the wrapper already forwards.
     it('should roll simple dice formula (e.g., 3d6)', () => {
-      // Mock Math.random to always return 0.5 (which maps to floor(0.5 * 6) + 1 = 4)
-      const originalRandom = Math.random
-      Math.random = () => 0.5
-
-      const result = DiceRoller.roll('3d6')
+      const result = DiceRoller.roll('3d6', () => 0.5) // each d6 -> 4
       expect(result).toBe(12) // 4 + 4 + 4
-
-      Math.random = originalRandom
     })
 
     it('should handle formula with bonus (e.g., 1d8+2)', () => {
-      const originalRandom = Math.random
-      Math.random = () => 0.5 // 1d8 -> 5
-
-      const result = DiceRoller.roll('1d8+2')
+      const result = DiceRoller.roll('1d8+2', () => 0.5) // 1d8 -> 5
       expect(result).toBe(7) // 5 + 2
+    })
 
-      Math.random = originalRandom
+    it('keeps an unpinned roll inside the formula range', () => {
+      for (let i = 0; i < 50; i++) {
+        const result = DiceRoller.roll('3d6')
+        expect(result).toBeGreaterThanOrEqual(3)
+        expect(result).toBeLessThanOrEqual(18)
+      }
     })
 
     it('should handle flat numbers', () => {

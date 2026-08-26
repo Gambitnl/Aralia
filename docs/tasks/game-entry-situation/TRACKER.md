@@ -50,7 +50,7 @@ Hostile openings can now resolve into tactical combat through a free-text reply 
 | Clarification UI | `src/components/gameEntry/SkillClarificationPane.tsx` | Lets the player confirm/clarify which skill their free-text approach uses before the dice roll. |
 | Scene-image state | `SceneImageStatus` in `src/systems/gameEntry/types.ts` | Tracks the opening scene image lifecycle (`idle`/`generating`/`ready`/`error`). |
 
-Proof: 51 tests green as of 2026-06-29 (code-complete). Outstanding: live in-browser eyeball of a hostile opening resolving into combat, and the castable-buff-offer wiring — both tracked as the widened G1 in `GAPS.md`.
+Proof: 51 tests green as of 2026-06-29 (code-complete). Outstanding: live in-browser eyeball of a hostile opening resolving into combat, and the castable-buff-offer wiring - both tracked as the widened G1 in `GAPS.md`.
 
 ## Gaps / Follow-Ups
 

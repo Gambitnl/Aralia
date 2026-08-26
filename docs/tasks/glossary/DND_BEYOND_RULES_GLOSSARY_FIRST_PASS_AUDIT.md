@@ -29,7 +29,7 @@ judgment history is preserved as-is, so read it with these corrections:
   eleven terms in that list (`Cone`, `Cube`, `Cylinder`, `Difficult Terrain`,
   `Emanation`, `Half Cover`, `Heavily Obscured`, `Lightly Obscured`, `Line`,
   `Three-Quarters Cover`, `Total Cover`) now have glossary entries with real
-  rule text — e.g. `difficult_terrain.json`, `half_cover.json`,
+  rule text - e.g. `difficult_terrain.json`, `half_cover.json`,
   `three_quarters_cover.json`, `total_cover.json`, `heavily_obscured.json`,
   `lightly_obscured.json` all carry substantive XPHB-sourced text, and the five
   shape entries carry substantive geometry text. No placeholder

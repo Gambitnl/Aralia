@@ -1,4 +1,7 @@
 import { describe, it, expect } from 'vitest';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { createAbilityFromSpell } from '../spellAbilityFactory';
 import { Spell } from '@/types/spells';
 import { PlayerCharacter } from '@/types/index';
@@ -264,5 +267,280 @@ describe('spellAbilityFactory', () => {
             expect(levelElevenAbility.range).toBe(12);
             expect(levelSeventeenAbility.range).toBe(24);
         });
+
+        it('writes DEFENSIVE AC effects as Armor Class, not as a Dexterity placeholder', () => {
+            const acSpell = {
+                ...baseSpell,
+                id: 'ac-buff-spell',
+                name: 'AC Buff Spell',
+                effects: [
+                    {
+                        type: 'DEFENSIVE',
+                        defenseType: 'ac_bonus',
+                        acBonus: 2,
+                        // Every DEFENSIVE row carries these zero-filled siblings even
+                        // when the spell does not use them. They must not leak into
+                        // the status as a base AC of 0 or an AC floor of 0.
+                        value: 0,
+                        acMinimum: 0,
+                        baseACFormula: '',
+                        duration: { type: 'minutes', value: 10 }
+                    }
+                ]
+            } as unknown as Spell;
+
+            const status = createAbilityFromSpell(acSpell, baseCaster).effects[0]?.statusEffect;
+
+            expect(status?.modifiers).toEqual({ acBonus: 2 });
+            expect(status?.effect).toBeUndefined();
+            // 10 minutes is 100 rounds at 6 seconds per round.
+            expect(status?.duration).toBe(100);
+        });
+
+        it('maps DEFENSIVE resistance onto the status resistance list', () => {
+            const resistanceSpell = {
+                ...baseSpell,
+                id: 'resist-spell',
+                name: 'Resist Spell',
+                effects: [
+                    {
+                        type: 'DEFENSIVE',
+                        defenseType: 'resistance',
+                        damageType: ['fire'],
+                        duration: { type: 'rounds', value: 3 }
+                    }
+                ]
+            } as unknown as Spell;
+
+            const status = createAbilityFromSpell(resistanceSpell, baseCaster).effects[0]?.statusEffect;
+
+            expect(status?.modifiers?.resistance).toEqual(['fire']);
+            expect(status?.duration).toBe(3);
+        });
+
+        it('reads an outgoing attack penalty as a debuff and fills the holder modifier lists', () => {
+            const outgoingPenaltySpell = {
+                ...baseSpell,
+                id: 'outgoing-penalty',
+                name: 'Outgoing Penalty',
+                effects: [
+                    {
+                        type: 'ATTACK_ROLL_MODIFIER',
+                        attackRollModifier: {
+                            modifier: 'disadvantage',
+                            direction: 'outgoing',
+                            attackKind: 'weapon',
+                            consumption: 'next_attack',
+                            duration: { type: 'rounds', value: 2 }
+                        },
+                        statusCondition: { name: 'Hobbled Aim' }
+                    }
+                ]
+            } as unknown as Spell;
+
+            const status = createAbilityFromSpell(outgoingPenaltySpell, baseCaster).effects[0]?.statusEffect;
+
+            expect(status?.type).toBe('debuff');
+            expect(status?.name).toBe('Hobbled Aim');
+            expect(status?.attackRollRider?.attackKind).toBe('weapon');
+            expect(status?.attackRollRider?.consumption).toBe('next_attack');
+            expect(status?.modifiers?.disadvantage).toEqual(['attack']);
+        });
+
+        it('emits both a terrain status and a damage effect for damaging terrain', () => {
+            const spikeTerrainSpell = {
+                ...baseSpell,
+                id: 'spike-terrain',
+                name: 'Spike Terrain',
+                effects: [
+                    {
+                        type: 'TERRAIN',
+                        terrainType: 'damaging',
+                        areaOfEffect: { shape: 'Sphere', size: 20 },
+                        duration: { type: 'minutes', value: 1 },
+                        damage: { dice: '2d4', type: 'Piercing' }
+                    }
+                ]
+            } as unknown as Spell;
+
+            const effects = createAbilityFromSpell(spikeTerrainSpell, baseCaster).effects;
+
+            // Damaging terrain has to read as damage too. combatAI scores an
+            // ability from this list, so a zone that is only a status scores as
+            // dealing nothing.
+            expect(effects.map(effect => effect.type)).toEqual(['status', 'damage']);
+            expect(effects[0].statusEffect?.type).toBe('debuff');
+            expect(effects[0].statusEffect?.terrain?.damage).toEqual({ dice: '2d4', type: 'Piercing' });
+            expect(effects[1].dice).toBe('2d4');
+            expect(effects[1].damageType).toBe('piercing');
+        });
+
+        it('turns a MOVEMENT speed change into a timed status instead of immediate movement', () => {
+            const slowSpell = {
+                ...baseSpell,
+                id: 'slow-step',
+                name: 'Slow Step',
+                effects: [
+                    {
+                        type: 'MOVEMENT',
+                        movementType: 'speed_change',
+                        speedChange: { stat: 'speed', value: -10, unit: 'feet' },
+                        duration: { type: 'rounds', value: 4 }
+                    }
+                ]
+            } as unknown as Spell;
+
+            const status = createAbilityFromSpell(slowSpell, baseCaster).effects[0]?.statusEffect;
+
+            expect(status?.type).toBe('debuff');
+            expect(status?.modifiers?.movementSpeed).toBe(-10);
+            expect(status?.duration).toBe(4);
+        });
+
+        it('translates a MOVEMENT push into a movement effect carrying its distance', () => {
+            const pushSpell = {
+                ...baseSpell,
+                id: 'push-spell',
+                name: 'Push Spell',
+                effects: [
+                    {
+                        type: 'MOVEMENT',
+                        movementType: 'push',
+                        distance: 15,
+                        duration: { type: 'instantaneous' }
+                    }
+                ]
+            } as unknown as Spell;
+
+            const effects = createAbilityFromSpell(pushSpell, baseCaster).effects;
+
+            expect(effects).toEqual([{ type: 'movement', value: 15 }]);
+        });
+    });
+});
+
+/**
+ * Corpus coverage (agora-f821.46 / agora-f821.47).
+ *
+ * The factory reads structured spell data only, so an ability with no effects
+ * means the JSON row for that spell is not translated anywhere. These tests walk
+ * the real files under public/data/spells rather than fixtures, which is the
+ * only way a newly added spell with an untranslated effect type gets caught.
+ */
+describe('spellAbilityFactory spell corpus', () => {
+    const SPELL_ROOT = path.resolve(
+        path.dirname(fileURLToPath(import.meta.url)),
+        '../../../../public/data/spells'
+    );
+
+    const collectSpellFiles = (dir: string): string[] => {
+        return fs.readdirSync(dir, { withFileTypes: true }).flatMap(entry => {
+            const full = path.join(dir, entry.name);
+            if (entry.isDirectory()) return collectSpellFiles(full);
+            return entry.name.endsWith('.json') ? [full] : [];
+        });
+    };
+
+    const loadSpell = (file: string): Spell =>
+        JSON.parse(fs.readFileSync(file, 'utf-8')) as Spell;
+
+    const corpusCaster = createMockPlayerCharacter({
+        spellcastingAbility: 'intelligence',
+        finalAbilityScores: {
+            Strength: 10,
+            Dexterity: 10,
+            Constitution: 10,
+            Intelligence: 16,
+            Wisdom: 10,
+            Charisma: 10
+        }
+    });
+
+    const spellFiles = collectSpellFiles(SPELL_ROOT);
+
+    it('reads the whole spell corpus off disk', () => {
+        expect(spellFiles.length).toBeGreaterThan(400);
+    });
+
+    it('builds at least one ability effect for every spell that is not an interrupt', () => {
+        const emptyEffectSpells = spellFiles
+            .filter(file => {
+                const spell = loadSpell(file);
+                // Interrupt spells declare their whole mechanic in
+                // `interruptionState` and are run by the reaction gate, so an
+                // empty ability effect list is their real contract.
+                if (spell.interruptionState) return false;
+                return createAbilityFromSpell(spell, corpusCaster).effects.length === 0;
+            })
+            .map(file => path.basename(file));
+
+        expect(emptyEffectSpells).toEqual([]);
+    });
+
+    it('keeps Counterspell on the declared empty-effects contract', () => {
+        const counterspell = loadSpell(path.join(SPELL_ROOT, 'level-3', 'counterspell.json'));
+
+        expect(counterspell.effects).toEqual([]);
+        expect(counterspell.interruptionState?.event).toBe('visible_creature_casts_spell');
+        expect(createAbilityFromSpell(counterspell, corpusCaster).effects).toEqual([]);
+    });
+
+    it('is the only spell in the corpus allowed an empty effects array', () => {
+        const declaredEmpty = spellFiles
+            .filter(file => (loadSpell(file).effects ?? []).length === 0)
+            .map(file => path.basename(file));
+
+        expect(declaredEmpty).toEqual(['counterspell.json']);
+    });
+
+    it('translates every SUMMONING row into a summon_creature effect', () => {
+        const summoningSpells = spellFiles
+            .map(loadSpell)
+            .filter(spell => (spell.effects ?? []).some(effect => effect?.type === 'SUMMONING'));
+
+        expect(summoningSpells.length).toBeGreaterThan(0);
+
+        for (const spell of summoningSpells) {
+            const ability = createAbilityFromSpell(spell, corpusCaster);
+            expect(
+                ability.effects.some(effect => effect.type === 'summon_creature'),
+                `${spell.id} lost its summon`
+            ).toBe(true);
+        }
+    });
+
+    it('carries the summon entity kind and count through to the ability', () => {
+        const findFamiliar = loadSpell(path.join(SPELL_ROOT, 'level-1', 'find-familiar.json'));
+        const summonEffect = createAbilityFromSpell(findFamiliar, corpusCaster).effects
+            .find(effect => effect.type === 'summon_creature');
+
+        expect(summonEffect?.summonEntityType).toBe('familiar');
+        expect(summonEffect?.summonPersistent).toBe(true);
+
+        const disk = loadSpell(path.join(SPELL_ROOT, 'level-1', 'tensers-floating-disk.json'));
+        const diskEffect = createAbilityFromSpell(disk, corpusCaster).effects
+            .find(effect => effect.type === 'summon_creature');
+
+        expect(diskEffect?.summonEntityType).toBe('object');
+        expect(diskEffect?.summonCount).toBe(1);
+    });
+
+    it('gives every spell named on agora-f821.46 a non-empty effect list', () => {
+        const namedOnTask = [
+            'blade-ward', 'frostbite', 'mold-earth', 'bane', 'bless', 'find-familiar',
+            'fog-cloud', 'tensers-floating-disk', 'blur', 'find-steed', 'levitate',
+            'misty-step', 'summon-beast', 'conjure-animals', 'phantom-steed', 'summon-fey',
+            'summon-undead', 'summon-aberration', 'summon-construct', 'summon-elemental',
+            'summon-celestial', 'summon-dragon', 'summon-fiend'
+        ];
+
+        const byId = new Map(spellFiles.map(file => loadSpell(file)).map(spell => [spell.id, spell]));
+        const stillEmpty = namedOnTask.filter(id => {
+            const spell = byId.get(id);
+            if (!spell) return true;
+            return createAbilityFromSpell(spell, corpusCaster).effects.length === 0;
+        });
+
+        expect(stillEmpty).toEqual([]);
     });
 });

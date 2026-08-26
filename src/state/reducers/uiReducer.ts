@@ -260,6 +260,31 @@ export function uiReducer(state: GameState, action: AppAction): Partial<GameStat
         characterSheetModal: { isOpen: false, character: null }, isDiscoveryLogVisible: false, isPartyOverlayVisible: false, isNpcTestModalVisible: false, isLogbookVisible: false, isGlossaryVisible: false, merchantModal: { ...state.merchantModal, isOpen: false }, isGameGuideVisible: false, isThievesGuildVisible: false, isNavalDashboardVisible: false
       };
 
+    case 'TOGGLE_SALVAGE_MODAL':
+      return {
+        isSalvageModalVisible: !state.isSalvageModalVisible,
+      };
+
+    case 'TOGGLE_BANK_MODAL':
+      return {
+        isBankModalVisible: !state.isBankModalVisible,
+      };
+
+    case 'TOGGLE_REAL_ESTATE_MODAL':
+      return {
+        isRealEstateModalVisible: !state.isRealEstateModalVisible,
+      };
+
+    case 'TOGGLE_SHOP_MODAL':
+      return {
+        isShopModalVisible: !state.isShopModalVisible,
+      };
+
+    case 'TOGGLE_TRADE_ROUTE_MODAL':
+      return {
+        isTradeRouteModalVisible: !state.isTradeRouteModalVisible,
+      };
+
     case 'TOGGLE_LOCKPICKING_MODAL':
       return {
         isLockpickingModalVisible: !state.isLockpickingModalVisible,
@@ -315,6 +340,9 @@ export function uiReducer(state: GameState, action: AppAction): Partial<GameStat
       return {
         merchantModal: {
           isOpen: true,
+          // Preserved through the modal state so MerchantModal can price and
+          // haggle against the same NPC the handlers read (UI-3, 2026-09-09).
+          merchantId: action.payload.merchantId,
           merchantName: action.payload.merchantName,
           merchantInventory: action.payload.inventory,
           economy: (action.payload as { economy?: GameState['economy'] }).economy // Persist economy state
@@ -328,6 +356,7 @@ export function uiReducer(state: GameState, action: AppAction): Partial<GameStat
       return {
         merchantModal: {
           isOpen: false,
+          merchantId: undefined,
           merchantName: '',
           merchantInventory: [],
           economy: undefined

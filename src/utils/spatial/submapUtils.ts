@@ -4,7 +4,7 @@
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
  * Last Sync: 27/02/2026, 09:34:15
- * Dependents: ThreeDModal.tsx, contextUtils.ts, spatial/index.ts, submapUtils.ts
+ * Dependents: contextUtils.ts, spatial/index.ts, submapUtils.ts
  * Imports: 5 files
  *
  * MULTI-AGENT SAFETY:

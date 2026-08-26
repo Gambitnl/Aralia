@@ -21,7 +21,8 @@
 import { CraftingRecipe } from './alchemyRecipes';
 import { Item, PlayerCharacter } from '../../types';
 import { checkRecipeCraftability, RecipeCraftability } from './craftingEngine';
-import { rollDice } from '../../utils/combat';
+import { rollDice } from '../dice/rollers';
+import type { CraftingBenchAction } from '../../state/actionTypes';
 import { rollAbilityCheck } from '../../utils/character/checkUtils';
 import { determineCraftingQuality, CraftingQuality, QualityResult } from './crafterProgression';
 
@@ -224,8 +225,8 @@ export function attemptBatchCraft(
 export function generateBatchCraftActions(
     recipe: CraftingRecipe,
     result: BatchCraftResult
-): { type: string; payload: unknown }[] {
-    const actions: { type: string; payload: unknown }[] = [];
+): CraftingBenchAction[] {
+    const actions: CraftingBenchAction[] = [];
 
     // Remove ingredients for ALL attempted crafts (even failures)
     for (const ing of recipe.ingredients) {

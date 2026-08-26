@@ -1,7 +1,7 @@
 # Backlog Retirement Ledger
 
 Status: active
-Last updated: 2026-06-26
+Last updated: 2026-09-20
 
 This ledger is the control surface for the markdown backlog-retirement pass. It
 answers "which `.md` files have already been walked?" without relying on memory,
@@ -23,6 +23,29 @@ deleted-file diffs, or scattered provenance notes.
 
 Do not mark a file `done` just because it was read. A row needs a destination,
 evidence, and the next proof state.
+
+## Routed-Target Sweep (2026-09-20)
+
+Repairing the village row (`docs/improvements/12_expand_village_system.md`) exposed a
+ledger-wide fault, so every row was swept. Method: for each data row, resolve every
+backticked repo-relative path cited in the **routed to** and **evidence** columns.
+Column 1 is excluded by design - that file's absence is what the row records.
+
+Result over 818 data rows: **173 dead citations across 119 rows**. 164 sit in the
+routed-to column and 9 in evidence. 149 of the 173 point under `docs/projects/`,
+at 57 distinct targets that no longer exist: `docs/projects/` now holds only
+`agent-matrix`, `character-atelier`, `combat`, `entity-generator`, `idea-board`,
+`planmap` and `spells` plus loose `.md` files, so the per-project
+`GAPS.md`/`TRACKER.md`/`NORTH_STAR.md` registry this ledger routes to is largely gone.
+Heaviest targets: `docs/projects/roadmap-maintenance/TRACKER.md` (15 rows),
+`docs/projects/spells/subprojects/spell-completeness-audit/GAPS.md` (10),
+`docs/projects/roadmap-maintenance/GAPS.md` (9),
+`docs/projects/world3d/GAPS.md` and `docs/projects/worldforge/TRACKER.md` (6 each).
+
+Only the village row was re-routed in this pass; the other 118 rows each need a
+per-row judgement about where their work actually lives now, which is not a
+mechanical rewrite. Until they are re-routed, a reader following any of those rows
+lands on nothing.
 
 ## Walk Snapshot
 
@@ -91,7 +114,7 @@ same file contents.
 | `docs/plans/refactors/PROPOSED_TIME_REFACTOR.md` | retired, migrated | `docs/projects/time/GAPS.md` G5 | Time refactor note, `src/utils/core/timeUtils.ts`, current time utility consumers, and social-context raw Date hour derivations | Documentation-only routing; no prompt/time behavior change claimed | Shared time utilities exist. The valid remaining work is an owner-reviewed day-part/UTC policy for dialogue and banter context, not a casual cleanup. |
 | `docs/plans/refactors/ARCH_TYPES_REFACTOR.md` | retired, migrated | `docs/projects/code-modularization-audit/GAPS.md` CMA-G20 | Type architecture note, `src/types/core.ts`, `src/types/items.ts`, `src/types/character.ts`, `src/types/combat.ts`, and current type file inventory | Documentation-only routing; no type movement claimed | The type lane is already modularized beyond the old proposal. Remaining import-graph/barrel pressure now lives as a code-modularization scoring signal. |
 | `docs/plans/refactors/TYPES_REFACTOR_PLAN.md` | retired, migrated | `docs/projects/code-modularization-audit/GAPS.md` CMA-G20 | Circular-dependency plan, current `src/types` inventory, and code-modularization audit routing docs | Documentation-only routing; no type movement claimed | The old monolithic-type assumption is stale. Current work should be based on present imports from the barrel and domain files. |
-| `docs/improvements/12_expand_village_system.md` | retired, migrated | `docs/projects/town/GAPS.md` G3; `docs/projects/town-description-system/GAPS.md` G6 | Village improvement note, Town/Town Description gaps, `TownCanvas.tsx`, `VillageScene.tsx`, `villageGenerator.ts`, and `settlementGeneration.ts` | Documentation-only routing; no town runtime change claimed | Basic village/town generation exists. Remaining depth, persistence, and settlement-profile consume-path work now lives in the owning project gaps. |
+| `docs/improvements/12_expand_village_system.md` | retired, migrated | Plan-Map topic `town-description-system` (`public/planmap/topics.json`); `docs/deepdives/village-generator-vs-worldforge-town.md` | Village improvement note, the Plan-Map town topics, `src/systems/worldforge/town/townEngine.ts` (the live settlement generator), and `src/components/Worldforge/TownPlanView.tsx` (the live 2D settlement view) | Documentation-only routing; no town runtime change claimed | Basic village/town generation exists, and Worldforge now owns it. Re-routed 2026-09-20: the old route pointed at `docs/projects/town/GAPS.md` G3 and `docs/projects/town-description-system/GAPS.md` G6, neither of which exists, and cited `TownCanvas.tsx` and `VillageScene.tsx` as current evidence although the 2026-07-01 grid-retirement program deleted both. Remaining depth, persistence, and settlement-profile consume-path work is tracked on the Plan Map and in the deepdive. |
 | `docs/improvements/CREATURE-TYPE-ENUM-AND-REQUIREMENT.md` | retired, migrated | `docs/projects/spells/GAPS.md` G17 | Creature-type improvement note, `src/types/creatures.ts`, `src/types/combat.ts`, spell targeting and validation surfaces | Documentation-only routing; no type migration claimed | The note's strongest claim is stale because `CreatureType` already exists. Remaining work is adoption/filter parity and visible rejection feedback across spell/combat targeting. |
 | `docs/improvements/MALLEABLE_WORLD_DEV_NOTES.md` | retired, migrated | `docs/projects/world3d/GAPS.md` W3D-G28 | Malleable-world note and `src/components/ThreeDModal/Experimental/*` deformation/overlay prototype files | Documentation-only routing; no rendered 3D proof claimed | Prototype terrain deformation exists, but its production rendering owner and gameplay bridge are still open. |
 | `docs/improvements/SPRITE-POSE-CONTROL-VARIANTS.md` | retired, migrated | `docs/projects/battle-map/GAPS.md` G7 | Sprite-variant feature note, `UtilityCommand.ts`, control-option tests, `useAbilitySystem.ts`, and battle-map presentation surfaces | Documentation-only routing; no visual variant implementation claimed | Control-option gameplay is implemented; optional visual pose/variant feedback now has a non-blocking presentation gap. |

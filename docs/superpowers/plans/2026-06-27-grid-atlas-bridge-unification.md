@@ -4,11 +4,11 @@
 
 **Goal:** Make the atlas cell id the anchor authority for 3D entry so "click a cell, enter that exact cell" holds, routing every cell↔tile conversion through one module.
 
-**Architecture:** The clicked Worldforge atlas cell is carried intact (via a new `entry3DAnchorCell` GameState field) from `MapPane` → `App` → `World3DWrapper` → a new cell-first generator entrypoint `getWorldforgeLocalForCell`. The grid tile becomes a value *derived* from the cell (legacy bookkeeping only). The duplicated/forked coordinate functions collapse into `gridAtlasBridge.ts` with one land rule.
+**Architecture:** The clicked Worldforge atlas cell is carried intact (via a new `entry3DAnchorCell` GameState field) from `MapPane` -> `App` -> `World3DWrapper` -> a new cell-first generator entrypoint `getWorldforgeLocalForCell`. The grid tile becomes a value *derived* from the cell (legacy bookkeeping only). The duplicated/forked coordinate functions collapse into `gridAtlasBridge.ts` with one land rule.
 
 **Tech Stack:** TypeScript, React, Vitest, React Three Fiber. Tests run with `npx vitest run <file>`. Typecheck: `npm run typecheck`. Lint: `npm run lint`.
 
-> **Project note (overrides skill default):** This repo auto-commits a daily snapshot at 2am; the user's standing directive is *never commit manually — leave work in the tree*. Each task therefore ends with a **verification checkpoint** (run tests/typecheck) instead of a `git commit`. Do not run `git commit`.
+> **Project note (overrides skill default):** This repo auto-commits a daily snapshot at 2am; the user's standing directive is *never commit manually - leave work in the tree*. Each task therefore ends with a **verification checkpoint** (run tests/typecheck) instead of a `git commit`. Do not run `git commit`.
 
 ---
 
@@ -29,7 +29,7 @@
 | `src/components/MapPane.tsx` | Pass exact anchor cell; use shared helpers; drop burg-snap hack | Modify |
 | `src/App.tsx` | Dispatch anchor cell on Enter-3D | Modify |
 | `src/hooks/useWorldViewMode.ts` | Clear anchor cell on 3D exit | Modify |
-| `src/components/World3D/World3DWrapper.tsx` | Branch on anchor cell → cell-first entrypoint | Modify |
+| `src/components/World3D/World3DWrapper.tsx` | Branch on anchor cell -> cell-first entrypoint | Modify |
 
 ---
 
@@ -59,16 +59,16 @@ it('snapToLandCell returns the cell unchanged when it is already land', () => {
 });
 
 it('snapToLandCell snaps a water cell to the nearest land cell by site distance', () => {
-  // cell 1 site (75,25) → nearest land site is cell 3 (60,40): d=15²+15²=450,
+  // cell 1 site (75,25) -> nearest land site is cell 3 (60,40): d=15²+15²=450,
   // beats cell 0 (25,25): d=50²=2500.
   expect(snapToLandCell(landAtlas, 1)).toBe(3);
 });
 
 it('legacyGridToLandAtlasCell resolves a grid cell to the nearest LAND atlas cell', () => {
-  // grid cell {1,0} projects to graph point (75,25) → nearest cell is water cell 1,
+  // grid cell {1,0} projects to graph point (75,25) -> nearest cell is water cell 1,
   // but the land-aware lookup must return the nearest LAND cell (3).
   expect(legacyGridToLandAtlasCell(landAtlas, { x: 1, y: 0 }, gridSize)).toBe(3);
-  // grid cell {0,0} → (25,25) is land cell 0 already.
+  // grid cell {0,0} -> (25,25) is land cell 0 already.
   expect(legacyGridToLandAtlasCell(landAtlas, { x: 0, y: 0 }, gridSize)).toBe(0);
 });
 ```
@@ -76,7 +76,7 @@ it('legacyGridToLandAtlasCell resolves a grid cell to the nearest LAND atlas cel
 - [ ] **Step 2: Run the tests to verify they fail**
 
 Run: `npx vitest run src/systems/worldforge/local/__tests__/gridAtlasBridge.test.ts`
-Expected: FAIL — `snapToLandCell is not exported` / `legacyGridToLandAtlasCell is not exported`.
+Expected: FAIL - `snapToLandCell is not exported` / `legacyGridToLandAtlasCell is not exported`.
 
 - [ ] **Step 3: Implement the helpers**
 
@@ -126,7 +126,7 @@ export function snapToLandCell(atlas: FmgAtlasResult, cellId: number): number {
 }
 
 /**
- * Map a legacy grid cell → the nearest LAND atlas cell to its proportional
+ * Map a legacy grid cell -> the nearest LAND atlas cell to its proportional
  * graph point. This is the reverse mapping the 3D generator uses (it needs
  * walkable ground), as opposed to legacyGridToAtlasCell which takes the nearest
  * of ALL cells (used by the player marker).
@@ -208,7 +208,7 @@ describe('getWorldforgeLocalForCell (cell-first 3D entry)', () => {
 - [ ] **Step 2: Run the test to verify it fails**
 
 Run: `npx vitest run src/systems/worldforge/bridge/__tests__/cellEntry.test.ts`
-Expected: FAIL — `getWorldforgeLocalForCell is not exported`.
+Expected: FAIL - `getWorldforgeLocalForCell is not exported`.
 
 - [ ] **Step 3: Refactor `legacyTileToAtlasCell` to delegate**
 
@@ -238,7 +238,7 @@ export function legacyTileToAtlasCell(
 }
 ```
 
-> Note: `legacyGridToLandAtlasCell` uses `atlas.graphWidth` (= `FMG_WIDTH` = 960 for the bridge atlas), so this is behavior-identical to the old inline `FMG_WIDTH` projection. Confirm the type of `atlas` parameter matches — if the signature uses `FmgWorldResult`, keep it; `FmgWorldResult` carries `graphWidth`/`graphHeight`/`pack`.
+> Note: `legacyGridToLandAtlasCell` uses `atlas.graphWidth` (= `FMG_WIDTH` = 960 for the bridge atlas), so this is behavior-identical to the old inline `FMG_WIDTH` projection. Confirm the type of `atlas` parameter matches - if the signature uses `FmgWorldResult`, keep it; `FmgWorldResult` carries `graphWidth`/`graphHeight`/`pack`.
 
 - [ ] **Step 4: Extract `getWorldforgeLocalForCell`**
 
@@ -247,8 +247,8 @@ In the same file, replace `getWorldforgeLocalForLocation` (lines 188-227) with t
 ```ts
 /**
  * Cell-first bridge entrypoint: deterministic L2 LocalArtifact anchored on an
- * EXACT atlas cell. This is the authoritative 3D-entry path — the clicked cell
- * is honored without a lossy tile round-trip. Same inputs → byte-identical
+ * EXACT atlas cell. This is the authoritative 3D-entry path - the clicked cell
+ * is honored without a lossy tile round-trip. Same inputs -> byte-identical
  * terrain, every call, every session.
  */
 export function getWorldforgeLocalForCell(
@@ -309,7 +309,7 @@ export function getWorldforgeLocalForLocation(
 - [ ] **Step 5: Run the tests to verify they pass**
 
 Run: `npx vitest run src/systems/worldforge/bridge/__tests__/cellEntry.test.ts src/systems/worldforge/bridge/__tests__/townTiles.test.ts`
-Expected: PASS — new cell-entry tests pass AND the existing `townTiles` tests still pass (proving the delegation preserved behavior).
+Expected: PASS - new cell-entry tests pass AND the existing `townTiles` tests still pass (proving the delegation preserved behavior).
 
 - [ ] **Step 6: Verification checkpoint (no commit)**
 
@@ -370,7 +370,7 @@ describe('entry3DAnchorCell', () => {
 - [ ] **Step 2: Run the test to verify it fails**
 
 Run: `npx vitest run src/state/__tests__/entry3DAnchorCell.test.ts`
-Expected: FAIL — action type not assignable / reducer returns unchanged state.
+Expected: FAIL - action type not assignable / reducer returns unchanged state.
 
 - [ ] **Step 3: Add the type field**
 
@@ -420,7 +420,7 @@ Expected: no errors (all GameState constructors now supply the field).
 
 ---
 
-## Task 4: MapPane — pass the exact anchor cell, drop the burg-snap hack
+## Task 4: MapPane - pass the exact anchor cell, drop the burg-snap hack
 
 **Files:**
 - Modify: `src/components/MapPane.tsx:58, 538-603`
@@ -453,7 +453,7 @@ In `src/components/MapPane.tsx`, replace the enter3d block (lines 545-568) with 
 
 ```ts
     if (interactionMode === 'enter3d' && allow3DEntry && onEnter3DAtCell) {
-      // The clicked cell is the anchor authority. Land-snap it once (water → nearest
+      // The clicked cell is the anchor authority. Land-snap it once (water -> nearest
       // land, so 3D always opens on walkable ground), then derive the legacy grid
       // tile from that exact cell via the shared forward mapping. No proportional
       // re-projection, no burg-snap hack: getWorldforgeLocalForCell honors the cell
@@ -501,7 +501,7 @@ Expected: no type errors; no unused-import errors.
 
 ---
 
-## Task 5: App — dispatch the anchor cell; clear it on 3D exit
+## Task 5: App - dispatch the anchor cell; clear it on 3D exit
 
 **Files:**
 - Modify: `src/App.tsx:761-790, 1468`
@@ -524,7 +524,7 @@ Then, immediately after the existing `SET_PLAYER_WORLD_POS` dispatch (lines 781-
 - [ ] **Step 2: Verify the prop wiring already matches**
 
 Run: `grep -n "onEnter3DAtCell={handleEnter3DAtCell}" src/App.tsx`
-Expected: line ~1468 unchanged — the handler reference is passed straight through, and the widened signature is compatible.
+Expected: line ~1468 unchanged - the handler reference is passed straight through, and the widened signature is compatible.
 
 - [ ] **Step 3: Clear the anchor cell when leaving 3D**
 
@@ -546,7 +546,7 @@ Expected: type on line ~99 is structurally compatible; if TypeScript flags the n
 
 ---
 
-## Task 6: World3DWrapper — anchor on the exact cell when present
+## Task 6: World3DWrapper - anchor on the exact cell when present
 
 **Files:**
 - Modify: `src/components/World3D/World3DWrapper.tsx:214-251`
@@ -588,7 +588,7 @@ At the top of `src/components/World3D/World3DWrapper.tsx`, add a static import (
 import { atlasCellToLegacyGrid as adapterAtlasCellToTile } from '../../systems/worldforge/local/gridAtlasBridge';
 ```
 
-> Aliased to `adapterAtlasCellToTile` to avoid any name collision and signal intent (cell → bookkeeping tile). It takes `(atlas, cellId, { cols, rows })` and returns `{ x, y } | null`. Adjust the call in Step 1 to pass `{ cols, rows }`:
+> Aliased to `adapterAtlasCellToTile` to avoid any name collision and signal intent (cell -> bookkeeping tile). It takes `(atlas, cellId, { cols, rows })` and returns `{ x, y } | null`. Adjust the call in Step 1 to pass `{ cols, rows }`:
 > `adapterAtlasCellToTile(atlas, anchorCellId, { cols, rows })`.
 
 (Correct the Step 1 call accordingly: `coords = adapterAtlasCellToTile(atlas, anchorCellId, { cols, rows }) ?? coords;`)
@@ -628,27 +628,27 @@ Expected: all PASS.
 Run: `npm run typecheck && npm run lint`
 Expected: no new errors introduced by this change.
 
-- [ ] **Step 3: Visual inspection (Remy's standing rule — render and eyeball, goldens are not enough)**
+- [ ] **Step 3: Visual inspection (Remy's standing rule - render and eyeball, goldens are not enough)**
 
 Start the dev server and verify the end-to-end behavior in the browser:
 1. `preview_start` the app, load a game into the World Map (atlas) view.
-2. In **Enter-3D** mode, click a **burg cell** → confirm the player spawns ON the town (walls/buildings around them), not in adjacent wilderness.
-3. Click a **non-burg inland land cell** → confirm 3D opens on that cell's terrain (not a neighbour). Cross-check by reading the `[wf]`/entry console line if present, or by comparing the 2D drill terrain of that cell to the 3D ground.
-4. Click a **coastal/water-adjacent cell** → confirm it snaps to land and opens on ground (no ocean spawn).
-5. Exit to atlas, re-enter a different cell → confirm the new cell is honored (anchor cleared on exit).
+2. In **Enter-3D** mode, click a **burg cell** -> confirm the player spawns ON the town (walls/buildings around them), not in adjacent wilderness.
+3. Click a **non-burg inland land cell** -> confirm 3D opens on that cell's terrain (not a neighbour). Cross-check by reading the `[wf]`/entry console line if present, or by comparing the 2D drill terrain of that cell to the 3D ground.
+4. Click a **coastal/water-adjacent cell** -> confirm it snaps to land and opens on ground (no ocean spawn).
+5. Exit to atlas, re-enter a different cell -> confirm the new cell is honored (anchor cleared on exit).
 
 Capture a screenshot of cases 2 and 3 to `.agent/scratch/` (gitignored) as proof.
 
 - [ ] **Step 4: Update memory**
 
-Update the `worldforge-canonical-town` / coordinate-bridge memory notes to record that the click→3D bridge is now cell-authoritative (the `entry3DAnchorCell` transport), the burg-snap hack is removed, and `gridAtlasBridge.ts` is the single grid↔atlas mapping module with `snapToLandCell` / `legacyGridToLandAtlasCell`.
+Update the `worldforge-canonical-town` / coordinate-bridge memory notes to record that the click->3D bridge is now cell-authoritative (the `entry3DAnchorCell` transport), the burg-snap hack is removed, and `gridAtlasBridge.ts` is the single grid↔atlas mapping module with `snapToLandCell` / `legacyGridToLandAtlasCell`.
 
 ---
 
 ## Self-Review Notes
 
 - **Spec coverage:** Task 1 (snapToLandCell + land-aware reverse) ✓; Task 2 (cell-first entrypoint + delegation, kills the forked land rule) ✓; Task 3 (entry3DAnchorCell transport) ✓; Task 4 (MapPane exact anchor + drop burg-snap + dedupe inline projection) ✓; Task 5 (App dispatch + clear on exit) ✓; Task 6 (World3DWrapper exact branch) ✓; Testing section ✓.
-- **Type consistency:** `getWorldforgeLocalForCell(worldSeed, anchorCellId)`, `snapToLandCell(atlas, cellId)`, `legacyGridToLandAtlasCell(atlas, cell, gridSize)`, `atlasCellToLegacyGrid(atlas, cellId, gridSize)`, `onEnter3DAtCell(x, y, tile, anchorCellId)`, action `SET_ENTRY_3D_ANCHOR_CELL` payload `number | null`, field `entry3DAnchorCell: number | null` — used consistently across tasks.
-- **Known verification dependency:** Task 6 assumes the bridge atlas exposes `graphWidth === FMG_WIDTH (960)` so `atlasCellToLegacyGrid` matches the bridge's projection convention — confirmed against `generateAtlas.ts:196` / bridge `FMG_WIDTH = 960`.
+- **Type consistency:** `getWorldforgeLocalForCell(worldSeed, anchorCellId)`, `snapToLandCell(atlas, cellId)`, `legacyGridToLandAtlasCell(atlas, cell, gridSize)`, `atlasCellToLegacyGrid(atlas, cellId, gridSize)`, `onEnter3DAtCell(x, y, tile, anchorCellId)`, action `SET_ENTRY_3D_ANCHOR_CELL` payload `number | null`, field `entry3DAnchorCell: number | null` - used consistently across tasks.
+- **Known verification dependency:** Task 6 assumes the bridge atlas exposes `graphWidth === FMG_WIDTH (960)` so `atlasCellToLegacyGrid` matches the bridge's projection convention - confirmed against `generateAtlas.ts:196` / bridge `FMG_WIDTH = 960`.
 
 <!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/plans/2026-06-27-grid-atlas-bridge-unification.md","sha256WithoutMarker":"13c2822c08a3207f99d8d6ee3057ed2695dbab9d1f622acb2d62a96aa1f359b4","markedAtUtc":"2026-08-09T20:22:07.604Z"} -->

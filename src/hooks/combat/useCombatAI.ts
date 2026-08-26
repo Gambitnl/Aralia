@@ -23,15 +23,24 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { CombatCharacter, CombatAction, BattleMapData } from '../../types/combat';
-import { evaluateCombatTurn } from '../../utils/combat/combatAI';
-// TODO: Move 'AI_THINKING_DELAY_MS' into a dynamic 'AIConfigContext' to support per-monster personalities and user overrides.
-import { AI_THINKING_DELAY_MS } from '../../config/combatConfig';
+import { evaluateCombatTurn, type CombatTurnOptions } from '../../utils/combat/combatAI';
+import type { CombatDifficulty } from '../../config/combatConfig';
+import { useAIConfig, resolveThinkingDelayMs } from '../../context/AIConfigContext';
+import { useOptionalGameState } from '../../state/GameContext';
+import { getGameDay } from '../../utils/core';
 
 const MAX_AI_ACTIONS_PER_TURN = 3;
 
+/**
+ * Generated monsters may carry the id of the template they were built from.
+ * The field is optional, so read it without widening CombatCharacter.
+ */
+const readTemplateId = (character: CombatCharacter): string | undefined =>
+    (character as CombatCharacter & { templateId?: string }).templateId;
+
 interface UseCombatAIProps {
     /** The difficulty setting that determines AI thinking speed */
-    difficulty: keyof typeof AI_THINKING_DELAY_MS;
+    difficulty: CombatDifficulty;
     /** Current state of all characters in combat */
     characters: CombatCharacter[];
     /** The map data for pathfinding and positioning */
@@ -74,6 +83,48 @@ export const useCombatAI = ({
     // done: AI has finished its actions for the turn
     const [aiState, setAiState] = useState<'idle' | 'thinking' | 'acting' | 'done'>('idle');
 
+    // Pacing comes from context, so a host can retune the per-difficulty delays
+    // or give one creature its own pace. With no provider mounted the context
+    // default reproduces the table this hook used to import directly.
+    const aiConfig = useAIConfig();
+
+    // Witness memory -> combat stance (agora-db71.17, PK-18 / WF-G255).
+    //
+    // `resolveEncounterStance` has existed in combatAI.ts since agora-f58b and had
+    // no production caller, because `evaluateCombatTurn` only runs it when the
+    // caller supplies `options.stance` and this hook supplied none. A creature that
+    // watched the player cut down three guards therefore fought exactly as hard as
+    // one that had never seen them.
+    //
+    // The memory lives on GameState, which this hook did not previously read. It is
+    // taken from the context rather than a new prop because the prop would have to
+    // be threaded from CombatView, and CombatView already reads the same context two
+    // hundred lines above this call. `useOptionalGameState` (not `useGameState`) is
+    // the accessor the codebase provides for hooks that are also mounted standalone
+    // in unit tests: in play the provider is always mounted, so `null` means "no
+    // provider", never "no memory".
+    const gameContext = useOptionalGameState();
+    const npcMemory = gameContext?.state.npcMemory;
+    const gameTime = gameContext?.state.gameTime;
+
+    /**
+     * Per-turn planner options for one combatant. Returns `{}` when this creature
+     * holds no memory of the player, which is the exact input `evaluateCombatTurn`
+     * treats as "behave as before".
+     */
+    const turnOptionsFor = (character: CombatCharacter): CombatTurnOptions => {
+        const memory = npcMemory?.[character.id];
+        if (!memory || !gameTime) return {};
+        return { stance: { memory, gameDay: getGameDay(gameTime) } };
+    };
+
+    const thinkingDelayFor = (character: CombatCharacter): number => resolveThinkingDelayMs(
+        aiConfig,
+        difficulty,
+        character.id,
+        readTemplateId(character)
+    );
+
     // Track actions to prevent infinite loops while still allowing a full
     // move/action sequence to resolve within the current turn.
     const [aiActionsPerformed, setAiActionsPerformed] = useState(0);
@@ -101,7 +152,7 @@ export const useCombatAI = ({
             // It is an AI turn. 
             // We introduce a delay to allow the UI to update and creating a natural pacing.
             // This transitions the state to 'thinking' only if we are idle (turn just started).
-            const delay = AI_THINKING_DELAY_MS[difficulty];
+            const delay = thinkingDelayFor(character);
             const timer = setTimeout(() => {
                 setAiState(prev => prev === 'idle' ? 'thinking' : prev);
             }, delay);
@@ -111,7 +162,7 @@ export const useCombatAI = ({
             // Human turn, ensure AI is idle
             setTimeout(() => setAiState('idle'), 0);
         }
-    }, [currentCharacterId, characters, autoCharacters, difficulty]);
+    }, [currentCharacterId, characters, autoCharacters, difficulty, aiConfig]);
 
 
     /**
@@ -158,7 +209,7 @@ export const useCombatAI = ({
             // 4. Evaluate Best Move
             // evaluateCombatTurn (in combatAI.ts) analyzes the board and returns the optimal CombatAction.
             // We pass the fresh 'characters' list to ensure decision is based on latest HP/positions.
-            const action = evaluateCombatTurn(character, characters, mapData);
+            const action = evaluateCombatTurn(character, characters, mapData, turnOptionsFor(character));
 
             if (action.type === 'end_turn') {
                 // AI decided it has nothing productive left to do
@@ -175,7 +226,7 @@ export const useCombatAI = ({
                     );
                     aiActionsPerformedRef.current += 1;
                     setAiActionsPerformed(aiActionsPerformedRef.current);
-                    setTimeout(() => setAiState('thinking'), AI_THINKING_DELAY_MS[difficulty]);
+                    setTimeout(() => setAiState('thinking'), thinkingDelayFor(character));
                 } else {
                     console.warn(`AI Action failed: Ability ${action.abilityId} not found.`);
                     setTimeout(() => setAiState('done'), 0);
@@ -197,7 +248,7 @@ export const useCombatAI = ({
                     // This allows the AI to make a *sequence* of moves (e.g., Move then Attack).
                     // We apply the delay again for pacing between individual actions.
                     // This delay is also configurable via the difficulty setting.
-                    setTimeout(() => setAiState('thinking'), AI_THINKING_DELAY_MS[difficulty]);
+                    setTimeout(() => setAiState('thinking'), thinkingDelayFor(character));
                 } else {
                     // Action failed (e.g., resource exhaustion not caught by planner).
                     // Fallback to ending turn to prevent getting stuck in 'acting' state.
@@ -224,7 +275,12 @@ export const useCombatAI = ({
         executeAbility,
         endTurn,
         difficulty,
-        autoCharacters
+        autoCharacters,
+        aiConfig,
+        // Witness memory is read inside the loop, so a stance that changes mid-fight
+        // (a fresh act recorded by a bystander) reaches the next evaluation.
+        npcMemory,
+        gameTime
     ]);
 
     // Return the state mostly for debug/visualization purposes if needed

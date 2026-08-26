@@ -8,7 +8,7 @@ Legacy name / folder slug: Spell System Overhaul (`docs/tasks/spell-system-overh
 > **THIS FOLDER IS A MERGED-REFERENCE ARCHIVE.** Per `docs/projects/PROJECT_TRACKER.md`,
 > this task folder is routed under `docs/projects/spells/subprojects/structured-spell-execution/`
 > as historical evidence. **Live work starts from `docs/projects/spells/SUBPROJECTS.md`** and the
-> relevant child `GAPS.md` files — not from this folder. The content below is preserved for
+> relevant child `GAPS.md` files - not from this folder. The content below is preserved for
 > architecture anchors and evidence trail, with counts refreshed 2026-07-01.
 
 ## Why This Project Exists
@@ -60,7 +60,7 @@ Keep the project actionable by separating **what is currently implemented** from
 | Task | Move the protocol-complete project surface into first implementation follow-through by tracking the current status, expanding source-backed gaps, and selecting the next bounded engine slice. |
 | Allowed scope | This refresh is docs/tracker only: `NORTH_STAR.md`, `TRACKER.md`, `TASK_SLICE.md`, and `GAPS.md`. The next slice may touch runtime/schema/source files only after the selected gap row is accepted. |
 | Current owner | Worker D (historical) |
-| Next action | ~~Start with `SSO-ONMOVEINAREA-001`~~ — **DONE 2026-06-25** (see `TRACKER.md`). No next action is dispatched from this folder; pick up live work from `docs/projects/spells/SUBPROJECTS.md` and the child `GAPS.md` files. |
+| Next action | ~~Start with `SSO-ONMOVEINAREA-001`~~ - **DONE 2026-06-25** (see `TRACKER.md`). No next action is dispatched from this folder; pick up live work from `docs/projects/spells/SUBPROJECTS.md` and the child `GAPS.md` files. |
 | Verification done | Documentation evidence and bounded TODO/source marker search only; no runtime code or validation command was changed or executed in this pass. |
 
 ## Scope Boundaries
@@ -101,7 +101,7 @@ Keep the project actionable by separating **what is currently implemented** from
 
 ## Resume Path For A Cold Agent
 
-1. Start from `docs/projects/spells/SUBPROJECTS.md` and the relevant child `GAPS.md` file — that is the live priority surface.
+1. Start from `docs/projects/spells/SUBPROJECTS.md` and the relevant child `GAPS.md` file - that is the live priority surface.
 2. Read this file and `TRACKER.md` only for historical anchors. The old evidence log is archived at `docs/archive/spell-system/SSO-GAPS-EVIDENCE-LOG.md`; `TASK_SLICE.md` and `AUDIT_OR_PROOF.md` are archived under `docs/archive/spell-system/`.
 3. Confirm current code anchors in:
    - `src/systems/spells/validation/spellValidator.ts`
@@ -114,14 +114,14 @@ Keep the project actionable by separating **what is currently implemented** from
 
 ## Supporting Protocol Files
 
-- `TRACKER.md` — historical queue + gap log (slice-log tail archived at `docs/archive/spell-system/SSO-TRACKER-SLICE-LOG.md`).
-- `docs/archive/spell-system/SSO-TASK-SLICE.md` — archived slice log (formerly `TASK_SLICE.md`).
-- `docs/archive/spell-system/SSO-GAPS-EVIDENCE-LOG.md` — archived evidence log (formerly `GAPS.md`); open rows re-homed to child lane `GAPS.md` files.
-- `DECISIONS.md` — key project-level choices and alternatives.
-- `docs/archive/spell-system/SSO-AUDIT-OR-PROOF.md` — archived verification log (formerly `AUDIT_OR_PROOF.md`).
-- `RUNBOOK.md` — historical operator workflow (pre-flight now starts from `docs/projects/spells/SUBPROJECTS.md`).
-- `docs/projects/spells/subprojects/structured-spell-execution/ARCHITECTURE_NOTE.md` — architecture map for ownership seams (relocated 2026-07-01).
-- `docs/projects/PROJECT_TRACKER.md` — registry row and cross-project routing.
+- `TRACKER.md` - historical queue + gap log (slice-log tail archived at `docs/archive/spell-system/SSO-TRACKER-SLICE-LOG.md`).
+- `docs/archive/spell-system/SSO-TASK-SLICE.md` - archived slice log (formerly `TASK_SLICE.md`).
+- `docs/archive/spell-system/SSO-GAPS-EVIDENCE-LOG.md` - archived evidence log (formerly `GAPS.md`); open rows re-homed to child lane `GAPS.md` files.
+- `DECISIONS.md` - key project-level choices and alternatives.
+- `docs/archive/spell-system/SSO-AUDIT-OR-PROOF.md` - archived verification log (formerly `AUDIT_OR_PROOF.md`).
+- `RUNBOOK.md` - historical operator workflow (pre-flight now starts from `docs/projects/spells/SUBPROJECTS.md`).
+- `docs/projects/spells/subprojects/structured-spell-execution/ARCHITECTURE_NOTE.md` - architecture map for ownership seams (relocated 2026-07-01).
+- `docs/projects/PROJECT_TRACKER.md` - registry row and cross-project routing.
 
 ## Uncertainties (Open, to verify before next engineering changes)
 

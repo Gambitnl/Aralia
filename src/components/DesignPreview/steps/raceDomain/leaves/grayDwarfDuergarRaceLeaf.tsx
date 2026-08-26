@@ -275,9 +275,8 @@ export function createGrayDwarfDuergarScenario(race: Race): GrayDwarfDuergarScen
     };
   }
 
-  // DEBT: The shared combat bridge can miss a parsed racial defense in some
-  // snapshots. This leaf keeps the canonical resistance visible as a narrow
-  // adapter; the durable bridge repair belongs in shared combat code.
+  // Projecting trait-text racial damage defenses automatically in createPlayerCombatCharacter bridge is tracked in Agora task agora-ddb7.
+  // Keeps the canonical Poison resistance visible as a narrow adapter until the combat bridge projects it natively.
   const fallbackActor: CombatCharacter = {
     ...actor,
     resistances: [...(actor.resistances ?? []), POISON_DAMAGE],

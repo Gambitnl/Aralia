@@ -100,8 +100,9 @@ export function getThiefFeatures(character: PlayerCharacter) {
 // The subclass grants are real, but the searched runtime has no complete,
 // subclass-aware Fast Hands or Second-Story Work transaction. Generic Cunning Dash,
 // free-action counters, and physics helpers do not prove the Thief feature contract.
+// Runtime implementation is tracked in Agora task agora-8d97.
 export const THIEF_RUNTIME_BOUNDARY =
-  "Unsupported boundary: canonical Fast Hands (fast_hands) and Second-Story Work (second_story_work) are present, but no subclass-aware production path was found to use a Cunning Action bonus action for Sleight of Hand, thieves' tools, or Use an Object, nor to make climbing cost no extra movement or extend the Thief's jump distance. Generic Rogue Cunning Dash, free-action economy, and physics jump/climbing helpers prove only generic runtime behavior. This demo does not simulate an object target, tool result, Sleight of Hand check, climbing route, jump distance, movement payment, resource, or combat log outcome.";
+  "Unsupported boundary: canonical Fast Hands (fast_hands) and Second-Story Work (second_story_work) are present, but no subclass-aware production path was found to use a Cunning Action bonus action for Sleight of Hand, thieves' tools, or Use an Object, nor to make climbing cost no extra movement or extend the Thief's jump distance. Runtime implementation is tracked in Agora task agora-8d97. Generic Rogue Cunning Dash, free-action economy, and physics jump/climbing helpers prove only generic runtime behavior. This demo does not simulate an object target, tool result, Sleight of Hand check, climbing route, jump distance, movement payment, resource, or combat log outcome.";
 
 // ============================================================================
 // Thief demonstration surface

@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+import { ItemType } from '../../../types';
 import { characterReducer } from '../characterReducer';
 import { GameState, AbilityScoreName, Class, Item } from '../../../types';
 import { AppAction } from '../../actionTypes';
@@ -400,7 +401,7 @@ describe('characterReducer', () => {
             id: 'health_potion',
             name: 'Health Potion',
             description: 'A basic healing potion.',
-            type: 'consumable',
+            type: ItemType.Consumable,
             effect: 'heal_5',
         };
 
@@ -437,14 +438,14 @@ describe('characterReducer', () => {
             id: 'steel_sword',
             name: 'Steel Sword',
             description: 'A reliable weapon.',
-            type: 'weapon',
+            type: ItemType.Weapon,
             slot: 'MainHand',
         };
         const driedMeat: Item = {
             id: 'dried_meat',
             name: 'Dried Meat',
             description: 'Food with no special effects.',
-            type: 'food_drink',
+            type: ItemType.FoodDrink,
         };
 
         const state = {
@@ -497,7 +498,7 @@ describe('characterReducer', () => {
             id: 'diamond_300gp',
             name: 'Diamond (300 gp)',
             description: 'A brilliant gem.',
-            type: 'spell_component',
+            type: ItemType.SpellComponent,
             costInGp: 300
         };
 
@@ -564,10 +565,10 @@ describe('characterReducer', () => {
             id: 'attune-char',
             equippedItems: {},
         });
-        const ring1: Item = { id: 'ring_1', name: 'Ring of Protection', description: 'Magic Ring', type: 'accessory', requiresAttunement: true };
-        const ring2: Item = { id: 'ring_2', name: 'Ring of Evasion', description: 'Magic Ring', type: 'accessory', requiresAttunement: true };
-        const ring3: Item = { id: 'ring_3', name: 'Ring of Regeneration', description: 'Magic Ring', type: 'accessory', requiresAttunement: true };
-        const ring4: Item = { id: 'ring_4', name: 'Ring of Power', description: 'Magic Ring', type: 'accessory', requiresAttunement: true };
+        const ring1: Item = { id: 'ring_1', name: 'Ring of Protection', description: 'Magic Ring', type: ItemType.Accessory, requiresAttunement: true };
+        const ring2: Item = { id: 'ring_2', name: 'Ring of Evasion', description: 'Magic Ring', type: ItemType.Accessory, requiresAttunement: true };
+        const ring3: Item = { id: 'ring_3', name: 'Ring of Regeneration', description: 'Magic Ring', type: ItemType.Accessory, requiresAttunement: true };
+        const ring4: Item = { id: 'ring_4', name: 'Ring of Power', description: 'Magic Ring', type: ItemType.Accessory, requiresAttunement: true };
 
         let state = {
             ...initialState,
@@ -608,7 +609,7 @@ describe('characterReducer', () => {
             id: 'plate_armor',
             name: 'Plate Armor',
             description: '',
-            type: 'armor',
+            type: ItemType.Armor,
             slot: 'Torso',
             armorCategory: 'Heavy',
             strengthRequirement: 15,

@@ -1,19 +1,3 @@
-// @dependencies-start
-/**
- * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
- *
- * Last Sync: 27/02/2026, 09:31:23
- * Dependents: aoeCalculations.ts, combat/index.ts, targetingUtils.ts
- * Imports: 2 files
- *
- * MULTI-AGENT SAFETY:
- * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
- * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
- */
-// @dependencies-end
-
 /**
  * @file src/utils/aoeCalculations.ts
  * Utility module for calculating Area of Effect (AoE) tiles for various spell shapes.
@@ -40,8 +24,26 @@
  * CompassAngle = MathAngle + 90°
  */
 
-import { Position } from '../../types/combat';
-import { compassToMathAngle, degreesToRadians, getAngleBetweenPositions } from '../spatial/geometry';
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
+ *
+ * Last Sync: 20/09/2026, 21:00:39
+ * Dependents: commands/effects/TerrainCommand.ts, components/BattleMap/GridlessAoEOutline.tsx, components/DesignPreview/steps/scenarioControls/areaEffectScenarioControls.ts, hooks/ability/targetSelection.ts, hooks/ability/useAbilityExecution.ts, hooks/actionUtils.ts, hooks/combat/useTargeting.ts, systems/spells/effects/trigger/zoneLifecycle.ts, systems/spells/mechanics/areaDamageSpellCastResolution.ts, systems/spells/targeting/AoECalculator.ts, utils/combat/index.ts, utils/spatial/targetingUtils.ts
+ * Imports: 3 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
+import type { Direction, Position } from '../../types/combat';
+import type { ConductivityRule } from '../../types/elemental';
+import { StateTag } from '../../types/elemental';
+import { compassToMathAngle, degreesToRadians, facingToVector, getAngleBetweenPositions } from '../spatial/geometry';
 
 export type AoEShape = "Sphere" | "Cone" | "Cube" | "Line" | "Cylinder";
 
@@ -49,10 +51,96 @@ export interface AoEParams {
     shape: AoEShape;
     origin: Position;
     size: number; // in feet. For Line, this is length.
-    direction?: number; // for cone/line (in degrees, 0=North, 90=East)
+    direction?: number; // for cone/line/cube (in degrees, 0=North, 90=East)
     targetPoint?: Position; // alternative to direction for line endpoint
     width?: number; // Optional width for line, defaults to 5
     gridSize?: number; // Grid size in feet (default 5)
+    /**
+     * Cube only (ruling Q4, 2026-09-22): the caster tile. The cube extends away
+     * from this tile. See resolveCubeAxis for the full order of sources.
+     */
+    casterPosition?: Position;
+    /** Cube only: the caster facing. Used when the origin is the caster tile. */
+    casterFacing?: Direction;
+    /** Cube only: names for the error message when no direction is found. */
+    spellName?: string;
+    casterName?: string;
+}
+
+/**
+ * The source data that gives a cube its direction. It is a subset of AoEParams,
+ * so a caller can pass AoEParams directly.
+ */
+export type CubeAnchorInput = Pick<AoEParams, 'casterPosition' | 'casterFacing' | 'direction' | 'spellName' | 'casterName'>;
+
+/** A unit step along one grid axis: the direction in which a cube extends. */
+export interface CubeAxis {
+    x: -1 | 0 | 1;
+    y: -1 | 0 | 1;
+}
+
+/**
+ * Reduce a vector to one grid axis: the axis with the larger absolute value.
+ * When both values are equal (a true diagonal), use the horizontal axis.
+ * Returns null for a zero vector.
+ */
+function dominantAxis(dx: number, dy: number): CubeAxis | null {
+    if (dx === 0 && dy === 0) return null;
+    if (Math.abs(dx) >= Math.abs(dy)) return { x: dx > 0 ? 1 : -1, y: 0 };
+    return { x: 0, y: dy > 0 ? 1 : -1 };
+}
+
+/**
+ * Find the grid axis along which a cube extends away from the caster.
+ *
+ * RULING Q4 (Remy, 2026-09-22): "Anchor on a face (rules)". The 5e rule puts
+ * the point of origin on one face of the cube, and the cube extends away from
+ * the caster. This is the ONE cube anchor in the repo. The centered cube in
+ * gridAlgorithms/cube.ts is deleted (GG-202).
+ *
+ * Order of sources:
+ * 1. casterPosition, when it is not the origin tile: the dominant axis of the
+ *    vector caster -> origin. On a tie (a true diagonal), use the horizontal axis.
+ * 2. direction (compass degrees): the dominant axis of that heading. A persistent
+ *    zone keeps only this value, so a zone replays the same cube.
+ * 3. casterFacing, when the origin is the caster tile (or no caster tile is given).
+ * 4. None of these: throw. There is no default direction (no-fallback directive).
+ */
+export function resolveCubeAxis(origin: Position, anchor: CubeAnchorInput): CubeAxis {
+    const caster = anchor.casterPosition;
+    if (caster) {
+        const fromCaster = dominantAxis(origin.x - caster.x, origin.y - caster.y);
+        if (fromCaster) return fromCaster;
+    }
+
+    if (anchor.direction !== undefined) {
+        const radians = degreesToRadians(compassToMathAngle(anchor.direction));
+        // Round away float noise so that 90 degrees gives exactly (1, 0).
+        const dx = Math.round(Math.cos(radians) * 1e9) / 1e9;
+        const dy = Math.round(Math.sin(radians) * 1e9) / 1e9;
+        const fromDirection = dominantAxis(dx, dy);
+        if (fromDirection) return fromDirection;
+    }
+
+    if (anchor.casterFacing) {
+        const facing = facingToVector(anchor.casterFacing);
+        const fromFacing = dominantAxis(facing.x, facing.y);
+        if (fromFacing) return fromFacing;
+    }
+
+    throw new Error(
+        `Cube area needs a direction: spell "${anchor.spellName ?? 'unknown spell'}" by caster ` +
+        `"${anchor.casterName ?? 'unknown caster'}" at origin ${origin.x},${origin.y} has no caster ` +
+        `position away from the origin, no direction, and no caster facing.`
+    );
+}
+
+/** Compass degrees (0 = North, 90 = East) of a cube axis. Used to store the axis on a zone. */
+export function cubeAxisToCompassDegrees(axis: CubeAxis): number {
+    if (axis.y === -1) return 0;
+    if (axis.x === 1) return 90;
+    if (axis.y === 1) return 180;
+    return 270;
 }
 
 const TILE_SIZE = 5; // feet
@@ -114,8 +202,119 @@ const TILE_SIZE = 5; // feet
  *   direction: 90
  * });
  */
+/**
+ * A gridless area of effect: a closed polygon in MAP UNITS (tiles, fractional),
+ * plus the exact circle for round shapes so a renderer can draw a true arc
+ * instead of the 32-gon. Euclidean geometry throughout; nothing here snaps to
+ * tiles. Sibling of calculateAffectedTiles (RESOLVED 2026-09-09 note, GG-211).
+ */
+export interface AoEPolygon {
+    shape: AoEShape;
+    /** Closed polygon, map units (1 = one tile = TILE_SIZE feet). First vertex is not repeated. */
+    vertices: Position[];
+    /** Present for Sphere/Cylinder: the exact circle the polygon approximates. */
+    circle?: { center: Position; radius: number };
+}
+
+const CIRCLE_SEGMENTS = 32;
+/** 5e cone: width at the far end equals the length, so the half angle is atan(0.5). */
+const CONE_HALF_ANGLE_RAD = Math.atan(0.5);
+
+/**
+ * Gridless (Euclidean) sibling of calculateAffectedTiles for boards without
+ * tiles: the 3D battle map highlight and any future free-move surface.
+ * Same AoEParams, same compass convention (0 = North, 90 = East), same
+ * face-anchored cube; returns a polygon instead of a tile list.
+ *
+ * - Sphere/Cylinder: circle of radius size/5 tiles around the origin.
+ * - Cone: origin plus an arc of length size/5 tiles spanning 2*atan(0.5).
+ * - Cube: face-anchored square. The near face goes through the origin and the
+ *   square extends size/5 tiles away from the caster (resolveCubeAxis).
+ * - Line: rectangle of length size (or to targetPoint) and width (default 5 ft).
+ */
+export function calculateAffectedArea(params: AoEParams): AoEPolygon {
+    const { origin } = params;
+    const sizeTiles = params.size / TILE_SIZE;
+    switch (params.shape) {
+        case 'Sphere':
+        case 'Cylinder': {
+            const vertices: Position[] = [];
+            for (let i = 0; i < CIRCLE_SEGMENTS; i++) {
+                const a = (i / CIRCLE_SEGMENTS) * Math.PI * 2;
+                vertices.push({ x: origin.x + Math.cos(a) * sizeTiles, y: origin.y + Math.sin(a) * sizeTiles });
+            }
+            return { shape: params.shape, vertices, circle: { center: { ...origin }, radius: sizeTiles } };
+        }
+        case 'Cone': {
+            const mathAngle = degreesToRadians(compassToMathAngle(params.direction ?? 0));
+            const vertices: Position[] = [{ ...origin }];
+            const arcSegments = 12;
+            for (let i = 0; i <= arcSegments; i++) {
+                const a = mathAngle - CONE_HALF_ANGLE_RAD + (i / arcSegments) * (2 * CONE_HALF_ANGLE_RAD);
+                vertices.push({ x: origin.x + Math.cos(a) * sizeTiles, y: origin.y + Math.sin(a) * sizeTiles });
+            }
+            return { shape: 'Cone', vertices };
+        }
+        case 'Cube': {
+            // Face anchor (ruling Q4, 2026-09-22). The near face goes through the
+            // exact origin point and is sizeTiles wide, centered on it. The cube
+            // extends sizeTiles away from the caster. Euclidean, no snap.
+            const axis = resolveCubeAxis(origin, params);
+            const perp = { x: axis.y === 0 ? 0 : 1, y: axis.x === 0 ? 0 : 1 };
+            const half = sizeTiles / 2;
+            const nearLeft = { x: origin.x - perp.x * half, y: origin.y - perp.y * half };
+            const nearRight = { x: origin.x + perp.x * half, y: origin.y + perp.y * half };
+            return {
+                shape: 'Cube',
+                vertices: [
+                    nearLeft,
+                    nearRight,
+                    { x: nearRight.x + axis.x * sizeTiles, y: nearRight.y + axis.y * sizeTiles },
+                    { x: nearLeft.x + axis.x * sizeTiles, y: nearLeft.y + axis.y * sizeTiles },
+                ],
+            };
+        }
+        case 'Line': {
+            const target = params.targetPoint ?? projectPoint(origin, params.direction ?? 0, params.size);
+            const dx = target.x - origin.x;
+            const dy = target.y - origin.y;
+            const len = Math.hypot(dx, dy);
+            const halfWidth = (params.width ?? 5) / TILE_SIZE / 2;
+            const px = len === 0 ? 0 : (-dy / len) * halfWidth;
+            const py = len === 0 ? 0 : (dx / len) * halfWidth;
+            return {
+                shape: 'Line',
+                vertices: [
+                    { x: origin.x + px, y: origin.y + py },
+                    { x: target.x + px, y: target.y + py },
+                    { x: target.x - px, y: target.y - py },
+                    { x: origin.x - px, y: origin.y - py },
+                ],
+            };
+        }
+        default:
+            console.warn(`Unknown AoE shape: ${params.shape}`);
+            return { shape: params.shape, vertices: [] };
+    }
+}
+
+/** Point-in-polygon (even-odd) in map units; used by tests and gridless hit checks. */
+export function polygonContains(poly: AoEPolygon, point: Position): boolean {
+    if (poly.circle) return Math.hypot(point.x - poly.circle.center.x, point.y - poly.circle.center.y) <= poly.circle.radius + 1e-9;
+    const v = poly.vertices;
+    let inside = false;
+    for (let i = 0, j = v.length - 1; i < v.length; j = i++) {
+        const intersect = (v[i].y > point.y) !== (v[j].y > point.y)
+            && point.x < ((v[j].x - v[i].x) * (point.y - v[i].y)) / (v[j].y - v[i].y) + v[i].x;
+        if (intersect) inside = !inside;
+    }
+    return inside;
+}
+
 export function calculateAffectedTiles(params: AoEParams): Position[] {
-    // TODO #1306: Future: Support gridless (Euclidean) AoE for non-tile maps by returning a polygon instead of tile list.
+    // RESOLVED 2026-09-13 (was TODO #1306 / GG-211): the gridless (Euclidean) sibling is
+    // calculateAffectedArea above; it returns a polygon and this function keeps its
+    // tile-list contract for every current consumer.
     switch (params.shape) {
         case 'Sphere':
         case 'Cylinder': // 2D projection of Cylinder is a Circle/Sphere
@@ -123,7 +322,7 @@ export function calculateAffectedTiles(params: AoEParams): Position[] {
         case 'Cone':
             return getConeAoE(params.origin, params.direction ?? 0, params.size);
         case 'Cube':
-            return getCubeAoE(params.origin, params.size);
+            return getCubeAoE(params.origin, params.size, params);
         case 'Line': {
             const target = params.targetPoint ?? projectPoint(params.origin, params.direction ?? 0, params.size);
             return getLineAoE(params.origin, target, params.width ?? 5);
@@ -231,19 +430,46 @@ function getConeAoE(origin: Position, direction: number, length: number): Positi
 }
 
 /**
- * Calculates tiles within a Cube.
+ * Calculates tiles within a face-anchored Cube (ruling Q4, 2026-09-22).
  *
- * @param origin - The top-left corner (north-west) of the cube area
+ * CHANGED 2026-09-23: this function used to put the origin at the north-west
+ * corner and always extend east and south, whatever the caster did. Now the
+ * near face contains the origin tile and the cube extends away from the caster
+ * (resolveCubeAxis gives the axis). This is the only cube in the repo.
+ *
+ * - Depth: `size / 5` tiles along the axis. The origin tile is the first row.
+ * - Width: `size / 5` tiles across the axis, centered on the origin tile.
+ *   For an even width (10 ft, 20 ft) exact centering is not possible on a grid;
+ *   the extra tile goes to the east (+x) or south (+y) side.
+ *
+ * Example: a 15 ft cube, caster at (0,5), origin (2,5): axis east, tiles
+ * x = 2..4, y = 4..6.
+ *
+ * OPEN (recorded in GLOBAL_GAPS): 5e says the point of origin is not in the
+ * cube unless the caster decides otherwise. Here the origin tile is in the
+ * near row, as the brief for this change says. When the origin is the caster
+ * tile (a self cube such as Thunderwave), the caster tile is thus in the area.
+ *
+ * @param origin - The point of origin tile, on the near face of the cube
  * @param size - The length of one side of the cube in feet
+ * @param anchor - Caster position, direction, or caster facing (see resolveCubeAxis)
  * @returns Array of affected grid positions
+ * @throws Error when no direction can be found (no-fallback directive)
  */
-function getCubeAoE(origin: Position, size: number): Position[] {
-    const tiles = size / TILE_SIZE;
+export function getCubeAoE(origin: Position, size: number, anchor: CubeAnchorInput): Position[] {
+    const tiles = Math.floor(size / TILE_SIZE);
+    const axis = resolveCubeAxis(origin, anchor);
+    // The perpendicular unit points to +x or +y, so an even width puts its extra tile east or south.
+    const perp = { x: axis.y === 0 ? 0 : 1, y: axis.x === 0 ? 0 : 1 };
+    const widthStart = -Math.floor((tiles - 1) / 2);
     const affected: Position[] = [];
 
-    for (let x = origin.x; x < origin.x + tiles; x++) {
-        for (let y = origin.y; y < origin.y + tiles; y++) {
-            affected.push({ x, y });
+    for (let depth = 0; depth < tiles; depth++) {
+        for (let across = widthStart; across < widthStart + tiles; across++) {
+            affected.push({
+                x: origin.x + axis.x * depth + perp.x * across,
+                y: origin.y + axis.y * depth + perp.y * across,
+            });
         }
     }
     return affected;
@@ -369,4 +595,131 @@ function projectPoint(origin: Position, directionDegrees: number, distanceFeet: 
         x: origin.x + dx * scale,
         y: origin.y + dy * scale
     };
+}
+
+// =============================================================================
+// CONDUCTIVITY PROPAGATION (agora-2fb1)
+// =============================================================================
+
+/**
+ * ConductiveNode — the minimum a propagation needs to know about a creature.
+ *
+ * Deliberately NOT CombatCharacter. This module is geometry, and taking the full character
+ * model would drag the combat state graph into a file that ten other systems import. A caller
+ * maps its characters down to this shape in one line.
+ */
+export interface ConductiveNode {
+    id: string;
+    position: Position;
+    /** The elemental states currently on this creature. */
+    stateTags?: StateTag[];
+}
+
+/**
+ * ConductivityHit — one creature the charge reached, and how hard it arrived.
+ */
+export interface ConductivityHit {
+    id: string;
+    position: Position;
+    /** How many steps from the strike this creature is. Always 1 or more. */
+    hop: number;
+    /**
+     * Share of the strike's damage this creature takes. The caller multiplies its own rolled
+     * damage by this rather than being handed a number, so resistances, saves and criticals
+     * stay where they already live.
+     */
+    damageFraction: number;
+    /** The state the charge applies here, copied from the rule so the caller need not re-read it. */
+    appliedState: StateTag;
+}
+
+export interface ConductivityParams {
+    /** Where the strike landed. */
+    origin: Position;
+    /** Every creature that could be reached. Non-conductors are ignored, not filtered by the caller. */
+    nodes: ConductiveNode[];
+    /** The medium and its knobs, from types/elemental CONDUCTIVITY_RULES. */
+    rule: ConductivityRule;
+    /**
+     * Creatures the strike already damaged directly. They still CONDUCT — a soaked creature
+     * taking a lightning bolt is exactly how the charge gets into the puddle — but they never
+     * appear in the result, because the direct hit already charged them for it.
+     */
+    alreadyDamagedIds?: string[];
+}
+
+/**
+ * resolveConductivityPropagation — spreads a charge outward through a conducting medium.
+ *
+ * THE MECHANIC: the strike lands. Every creature carrying the conducting state within one hop
+ * of the strike point takes a share of the damage and becomes a relay. Every conductor within
+ * one hop of THOSE takes a smaller share, and so on until the rule runs out of hops. A dry
+ * creature standing between two wet ones is not a relay and the charge does not pass through
+ * it; conduction is a property of the medium, not of the line of sight.
+ *
+ * WHY BREADTH-FIRST: a creature reachable by two paths takes the damage of the SHORTER one,
+ * once. Breadth-first search gives that for free, and it means the result never depends on the
+ * order the caller happened to list its characters in.
+ *
+ * DETERMINISM: there is no randomness here at all. The same strike over the same puddle
+ * produces the same hits in the same order every time, so a replay and a test agree.
+ *
+ * DISTANCE: Chebyshev, in feet, matching every other shape in this module (the 5-5-5 rule).
+ *
+ * @param params - Strike point, candidate creatures, the conductivity rule, and who was already hit.
+ * @returns The reached creatures, ordered by hop and then by their order in `nodes`.
+ */
+export function resolveConductivityPropagation(params: ConductivityParams): ConductivityHit[] {
+    const { origin, nodes, rule, alreadyDamagedIds = [] } = params;
+
+    if (rule.maxHops < 1) return [];
+
+    // Creatures the strike already damaged are marked as reached before the search starts, so
+    // they cannot be billed twice, and their positions seed the frontier so they still relay.
+    const reached = new Set<string>(alreadyDamagedIds);
+    let frontier: Position[] = [origin];
+    for (const node of nodes) {
+        if (reached.has(node.id)) frontier.push(node.position);
+    }
+
+    const hits: ConductivityHit[] = [];
+
+    for (let hop = 1; hop <= rule.maxHops; hop++) {
+        const damageFraction = Math.pow(rule.damageFractionPerHop, hop);
+        const nextFrontier: Position[] = [];
+
+        // `nodes` is walked in its own order, so the result is stable regardless of how the
+        // previous hop happened to fill the frontier.
+        for (const node of nodes) {
+            if (reached.has(node.id)) continue;
+            if (!node.stateTags?.includes(rule.conductor)) continue;
+            if (!frontier.some(from => chebyshevFeet(from, node.position) <= rule.hopRangeFeet)) continue;
+
+            reached.add(node.id);
+            nextFrontier.push(node.position);
+            hits.push({
+                id: node.id,
+                position: node.position,
+                hop,
+                damageFraction,
+                appliedState: rule.charge,
+            });
+        }
+
+        // The charge died out before it ran out of hops. Nothing further can be reached.
+        if (nextFrontier.length === 0) break;
+        frontier = nextFrontier;
+    }
+
+    return hits;
+}
+
+/**
+ * Chebyshev distance between two grid positions, in feet.
+ *
+ * Shares the 5-5-5 convention with getSphereAoE above: a diagonal step costs the same as a
+ * cardinal one, so a puddle conducts to all eight neighbours of a square evenly.
+ */
+function chebyshevFeet(from: Position, to: Position): number {
+    return Math.max(Math.abs(to.x - from.x), Math.abs(to.y - from.y)) * TILE_SIZE;
 }

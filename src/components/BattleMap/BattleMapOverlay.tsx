@@ -20,6 +20,7 @@ import DamageNumberOverlay from './DamageNumberOverlay';
 import { TILE_SIZE_PX } from '../../config/mapConfig';
 import { hasLineOfSight } from '../../utils/spatial/lineOfSight';
 import { Z_INDEX } from '../../styles/zIndex';
+import { resolveStatusGlyph } from '../../utils/visuals/conditionPalette';
 import { UI_ID } from '../../styles/uiIds';
 import { buildSpellMapArtifactMarkers, type SpellMapArtifacts } from './spellMapArtifacts';
 import {
@@ -93,21 +94,10 @@ const getZoneVisualFamily = (zone: ActiveSpellZone): ZoneVisualFamily => {
   return 'fog';
 };
 
-const getOverlayStatusEffectIcon = (effect: CombatCharacter['statusEffects'][number]): string => {
-  if (effect.icon) return effect.icon;
-  switch (effect.type) {
-    case 'buff':
-      return '+';
-    case 'debuff':
-      return '!';
-    case 'dot':
-      return 'DOT';
-    case 'hot':
-      return 'HOT';
-    default:
-      return '?';
-  }
-};
+// The overlay's ASCII status glyphs used to live here as a byte-identical
+// twin of getStatusEffectIcon in utils/combat/combatUtils.ts. Both now read
+// the one table in utils/visuals/conditionPalette.ts; the overlay asks for
+// the ascii alphabet because its chips are 12 px wide.
 
 interface BattleMapOverlayProps {
   mapData: BattleMapData;
@@ -670,7 +660,7 @@ const BattleMapOverlay: React.FC<BattleMapOverlayProps> = ({
                 transition: 'transform 150ms ease-out, opacity 150ms ease-out',
               }}
             >
-              {getOverlayStatusEffectIcon(effect)}
+              {resolveStatusGlyph(effect, 'ascii')}
             </span>
           ))}
         </div>

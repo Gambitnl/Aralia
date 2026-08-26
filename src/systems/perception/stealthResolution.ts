@@ -25,9 +25,11 @@ import {
 } from '../../utils/combat/actionEconomyUtils';
 import {
   getDistance,
-  rollD20,
   validateCharacterPlacement,
 } from '../../utils/combat';
+import {
+  rollD20,
+} from '../dice/rollers';
 import { SeededRandom } from '../../utils/random/seededRandom';
 import { VisibilitySystem, type VisibilityTier } from '../visibility';
 import { resolveEventDetection, type DetectionMode } from './eventDetection';

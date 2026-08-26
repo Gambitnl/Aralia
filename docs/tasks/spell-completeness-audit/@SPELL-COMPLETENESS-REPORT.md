@@ -74,8 +74,8 @@ Last Updated: 2025-12-04 16:35 UTC
 - Counterspell (`counterspell`)
 - Leomund's Tiny Hut (`leomunds-tiny-hut`)
 - Phantom Steed (`phantom-steed`)
-- ~~Summon Fey (`summon-fey`)~~ — ADDED 2026-06-28 (`public/data/spells/level-3/summon-fey.json`)
-- ~~Summon Undead (`summon-undead`)~~ — ADDED 2026-06-28 (`public/data/spells/level-3/summon-undead.json`)
+- ~~Summon Fey (`summon-fey`)~~ - ADDED 2026-06-28 (`public/data/spells/level-3/summon-fey.json`)
+- ~~Summon Undead (`summon-undead`)~~ - ADDED 2026-06-28 (`public/data/spells/level-3/summon-undead.json`)
 
 **Extra (in local, not in PHB 2024):**
 - Catnap (`catnap`)
@@ -91,11 +91,11 @@ Last Updated: 2025-12-04 16:35 UTC
 
 **Missing (in PHB 2024, not in local):**
 - Evard's Black Tentacles (`evards-black-tentacles`)
-- ~~Fount of Moonlight (`fount-of-moonlight`)~~ — ADDED 2026-06-28 (`public/data/spells/level-4/fount-of-moonlight.json`)
+- ~~Fount of Moonlight (`fount-of-moonlight`)~~ - ADDED 2026-06-28 (`public/data/spells/level-4/fount-of-moonlight.json`)
 - Leomund's Secret Chest (`leomunds-secret-chest`)
-- ~~Summon Aberration (`summon-aberration`)~~ — ADDED 2026-06-28 (`public/data/spells/level-4/summon-aberration.json`)
-- ~~Summon Construct (`summon-construct`)~~ — ADDED 2026-06-28 (`public/data/spells/level-4/summon-construct.json`)
-- ~~Summon Elemental (`summon-elemental`)~~ — ADDED 2026-06-28 (`public/data/spells/level-4/summon-elemental.json`)
+- ~~Summon Aberration (`summon-aberration`)~~ - ADDED 2026-06-28 (`public/data/spells/level-4/summon-aberration.json`)
+- ~~Summon Construct (`summon-construct`)~~ - ADDED 2026-06-28 (`public/data/spells/level-4/summon-construct.json`)
+- ~~Summon Elemental (`summon-elemental`)~~ - ADDED 2026-06-28 (`public/data/spells/level-4/summon-elemental.json`)
 - Vitriolic Sphere (`vitriolic-sphere`)
 
 **Extra (in local, not in PHB 2024):**
@@ -109,10 +109,10 @@ Last Updated: 2025-12-04 16:35 UTC
 
 **Missing (in PHB 2024, not in local):**
 - Banishing Smite (`banishing-smite`)
-- ~~Jallarzi's Storm of Radiance (`jallarzis-storm-of-radiance`)~~ — ADDED 2026-06-28 (`public/data/spells/level-5/jallarzis-storm-of-radiance.json`)
-- ~~Summon Celestial (`summon-celestial`)~~ — ADDED 2026-06-28 (`public/data/spells/level-5/summon-celestial.json`)
-- ~~Summon Dragon (`summon-dragon`)~~ — ADDED 2026-06-28 (`public/data/spells/level-5/summon-dragon.json`)
-- ~~Yolande's Regal Presence (`yolandes-regal-presence`)~~ — ADDED 2026-06-28 (`public/data/spells/level-5/yolandes-regal-presence.json`)
+- ~~Jallarzi's Storm of Radiance (`jallarzis-storm-of-radiance`)~~ - ADDED 2026-06-28 (`public/data/spells/level-5/jallarzis-storm-of-radiance.json`)
+- ~~Summon Celestial (`summon-celestial`)~~ - ADDED 2026-06-28 (`public/data/spells/level-5/summon-celestial.json`)
+- ~~Summon Dragon (`summon-dragon`)~~ - ADDED 2026-06-28 (`public/data/spells/level-5/summon-dragon.json`)
+- ~~Yolande's Regal Presence (`yolandes-regal-presence`)~~ - ADDED 2026-06-28 (`public/data/spells/level-5/yolandes-regal-presence.json`)
 
 **Extra (in local, not in PHB 2024):**
 - Shining Smite (`shining-smite`)
@@ -127,8 +127,8 @@ Last Updated: 2025-12-04 16:35 UTC
 **Missing (in PHB 2024, not in local):**
 - Arcane Gate (`arcane-gate`)
 - Drawmij's Instant Summons (`drawmijs-instant-summons`)
-- ~~Summon Fiend (`summon-fiend`)~~ — ADDED 2026-06-28 (`public/data/spells/level-6/summon-fiend.json`)
-- ~~Tasha's Bubbling Cauldron (`tashas-bubbling-cauldron`)~~ — ADDED 2026-06-28 (`public/data/spells/level-6/tashas-bubbling-cauldron.json`)
+- ~~Summon Fiend (`summon-fiend`)~~ - ADDED 2026-06-28 (`public/data/spells/level-6/summon-fiend.json`)
+- ~~Tasha's Bubbling Cauldron (`tashas-bubbling-cauldron`)~~ - ADDED 2026-06-28 (`public/data/spells/level-6/tashas-bubbling-cauldron.json`)
 
 **Extra (in local, not in PHB 2024):**
 - None
@@ -140,7 +140,7 @@ Last Updated: 2025-12-04 16:35 UTC
 - ❓ Extra: 0
 
 **Missing (in PHB 2024, not in local):**
-- ~~Power Word Fortify (`power-word-fortify`)~~ — ADDED 2026-06-28 (`public/data/spells/level-7/power-word-fortify.json`)
+- ~~Power Word Fortify (`power-word-fortify`)~~ - ADDED 2026-06-28 (`public/data/spells/level-7/power-word-fortify.json`)
 
 **Note (Mordenkainen's Sword):** In PHB 2024 this spell is renamed "Arcane Sword". It already exists locally at `public/data/spells/level-7/arcane-sword.json` (id `arcane-sword`, with "Mordenkainen's Sword" preserved in `aliases`), so it was NOT re-created as a separate `mordenkainens-sword.json`.
 
@@ -154,7 +154,7 @@ Last Updated: 2025-12-04 16:35 UTC
 - ❓ Extra: 0
 
 **Missing (in PHB 2024, not in local):**
-- ~~Befuddlement (`befuddlement`)~~ — ADDED 2026-06-28 (`public/data/spells/level-8/befuddlement.json`)
+- ~~Befuddlement (`befuddlement`)~~ - ADDED 2026-06-28 (`public/data/spells/level-8/befuddlement.json`)
 - Telepathy (`telepathy`)
 
 **Extra (in local, not in PHB 2024):**

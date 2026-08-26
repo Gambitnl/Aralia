@@ -5,7 +5,7 @@ import { createMockCombatCharacter, createMockCombatState, createMockGameState, 
 import { ItemType } from '@/types/items'
 import type { CombatCharacter, SelectedSpellTarget } from '@/types/combat'
 import type { Spell } from '@/types/spells'
-import * as combatUtils from '@/utils/combat'
+import * as diceRollers from '@/systems/dice/rollers'
 import greenFlameBlade from '@/data/spells/level-0/green-flame-blade.json'
 
 /**
@@ -17,12 +17,25 @@ import greenFlameBlade from '@/data/spells/level-0/green-flame-blade.json'
  * exercising the production command path.
  */
 
+// agora-f821.4 retired the combatUtils roller family; the modules under
+// test roll through systems/dice/rollers now. One hoisted set of mocks
+// stands in for BOTH specifiers, so one vi.mocked(...) pins every die.
+const diceMocks = vi.hoisted(() => ({
+    rollD20: vi.fn()
+}))
+
+
+vi.mock('@/systems/dice/rollers', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/systems/dice/rollers')>()
+  return { ...actual, ...diceMocks }
+})
+
 vi.mock('@/utils/combat', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/utils/combat')>()
   return {
     ...actual,
-    rollD20: vi.fn()
-  }
+    ...diceMocks,
+}
 })
 
 const spell = greenFlameBlade as unknown as Spell
@@ -59,7 +72,7 @@ const createGreenFlameBladeCaster = (overrides: Partial<ReturnType<typeof create
         description: 'A melee weapon worth enough to satisfy the spell material.',
         category: 'Martial Weapon',
         damageDice: '1d8',
-        damageType: 'slashing',
+        damageType: 'Slashing',
         costInGp: 1,
         properties: []
       })
@@ -92,11 +105,11 @@ const createSelectedTargets = (primaryTargetId: string, secondaryTargetId?: stri
 
 describe('Green-Flame Blade bridge', () => {
   beforeEach(() => {
-    vi.mocked(combatUtils.rollD20).mockReset()
+    vi.mocked(diceRollers.rollD20).mockReset()
   })
 
   it('turns the cast into a real weapon attack and applies the hit-gated fire leap with live scaling', async () => {
-    vi.mocked(combatUtils.rollD20).mockReturnValue(18)
+    vi.mocked(diceRollers.rollD20).mockReturnValue(18)
     const caster = createGreenFlameBladeCaster()
     const primaryTarget = createGreenFlameBladeTarget('gfb-primary', 'Primary Target', 1, 0)
     const secondaryTarget = createGreenFlameBladeTarget('gfb-secondary', 'Secondary Target', 2, 0)
@@ -127,7 +140,7 @@ describe('Green-Flame Blade bridge', () => {
     expect(attackCommand.ability.effects[0]).toEqual(
       expect.objectContaining({
         dice: '1d8+3',
-        damageType: 'slashing'
+        damageType: 'Slashing'
       })
     )
     expect(attackCommand.ability.effects[1]).toEqual(
@@ -166,7 +179,7 @@ describe('Green-Flame Blade bridge', () => {
   })
 
   it('does not apply the primary fire rider or the leap when the melee weapon attack misses', async () => {
-    vi.mocked(combatUtils.rollD20).mockReturnValue(1)
+    vi.mocked(diceRollers.rollD20).mockReturnValue(1)
     const caster = createGreenFlameBladeCaster()
     const primaryTarget = createGreenFlameBladeTarget('gfb-primary', 'Primary Target', 1, 0)
     const secondaryTarget = createGreenFlameBladeTarget('gfb-secondary', 'Secondary Target', 2, 0)
@@ -203,7 +216,7 @@ describe('Green-Flame Blade bridge', () => {
   })
 
   it('keeps the cast valid when no secondary target is selected', async () => {
-    vi.mocked(combatUtils.rollD20).mockReturnValue(18)
+    vi.mocked(diceRollers.rollD20).mockReturnValue(18)
     const caster = createGreenFlameBladeCaster()
     const primaryTarget = createGreenFlameBladeTarget('gfb-primary', 'Primary Target', 1, 0)
     const bystander = createGreenFlameBladeTarget('gfb-bystander', 'Bystander', 2, 0)
@@ -230,7 +243,7 @@ describe('Green-Flame Blade bridge', () => {
   })
 
   it('rejects a same-target secondary selection instead of leaping back onto the primary target', async () => {
-    vi.mocked(combatUtils.rollD20).mockReturnValue(18)
+    vi.mocked(diceRollers.rollD20).mockReturnValue(18)
     const caster = createGreenFlameBladeCaster()
     const primaryTarget = createGreenFlameBladeTarget('gfb-primary', 'Primary Target', 1, 0)
     const bystander = createGreenFlameBladeTarget('gfb-bystander', 'Bystander', 2, 0)
@@ -257,7 +270,7 @@ describe('Green-Flame Blade bridge', () => {
   })
 
   it('rejects a secondary target beyond the 5-foot leap range', async () => {
-    vi.mocked(combatUtils.rollD20).mockReturnValue(18)
+    vi.mocked(diceRollers.rollD20).mockReturnValue(18)
     const caster = createGreenFlameBladeCaster()
     const primaryTarget = createGreenFlameBladeTarget('gfb-primary', 'Primary Target', 1, 0)
     const farTarget = createGreenFlameBladeTarget('gfb-far', 'Far Target', 3, 0)

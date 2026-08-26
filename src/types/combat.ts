@@ -1,10 +1,16 @@
+/**
+ * @file src/types/combat.ts
+ * This file contains all combat-related TypeScript type definitions and interfaces
+ * used throughout the Aralia RPG application's battle map feature.
+ */
+
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
  * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 17/08/2026, 14:08:18
- * Dependents: App.tsx, commands/base/BaseEffectCommand.ts, commands/base/CommandExecutor.ts, commands/base/SpellCommand.ts, commands/effects/AttackRollModifierCommand.ts, commands/effects/CommandedSummonCommand.ts, commands/effects/ConcentrationCommands.ts, commands/effects/DamageCommand.ts, commands/effects/DefensiveCommand.ts, commands/effects/ElementalBaneCommand.ts, commands/effects/EnhanceAbilityCommand.ts, commands/effects/FamiliarPocketCommands.ts, commands/effects/FamiliarSharedSensesCommand.ts, commands/effects/GrantedActionCommand.ts, commands/effects/GraspingVineCommand.ts, commands/effects/HealingCommand.ts, commands/effects/MovementCommand.ts, commands/effects/NarrativeCommand.ts, commands/effects/ReactiveEffectCommand.ts, commands/effects/RegisterRiderCommand.ts, commands/effects/StatusConditionCommand.ts, commands/effects/SummonDismissCommand.ts, commands/effects/SummonReturnHomeCommand.ts, commands/effects/SummoningCommand.ts, commands/effects/TerrainCommand.ts, commands/effects/UtilityCommand.ts, commands/effects/commandAreaMovementEffects.ts, commands/effects/utility/combatSupport.ts, commands/effects/utility/controlledEntities.ts, commands/effects/utility/core.ts, commands/effects/utility/minorUtility.ts, commands/effects/utility/moduleFunctions.ts, commands/effects/utility/objects.ts, commands/effects/utility/senses.ts, commands/effects/utility/summons.ts, commands/effects/utility/transformation.ts, commands/effects/utility/undead.ts, commands/factory/AbilityCommandFactory.ts, commands/factory/AbilityEffectMapper.ts, commands/factory/SpellCommandFactory.ts, commands/factory/boomingBladeAttackBridge.ts, commands/factory/greenFlameBladeAttackBridge.ts, commands/factory/trueStrikeAttackBridge.ts, components/BattleMap/AbilityButton.tsx, components/BattleMap/AbilityPalette.tsx, components/BattleMap/ActionEconomyBar.tsx, components/BattleMap/BattleMap.tsx, components/BattleMap/BattleMap3D.tsx, components/BattleMap/BattleMap3DGpuScene.tsx, components/BattleMap/BattleMapDemo.tsx, components/BattleMap/BattleMapFogCanvas.tsx, components/BattleMap/BattleMapGroundCanvas.tsx, components/BattleMap/BattleMapOverlay.tsx, components/BattleMap/BattleMapTile.tsx, components/BattleMap/CharacterToken.tsx, components/BattleMap/CombatCharacterInspector.tsx, components/BattleMap/CombatCommandToolbar.tsx, components/BattleMap/CombatIntentPreview.tsx, components/BattleMap/CombatLog.tsx, components/BattleMap/CompactTurnStrip.tsx, components/BattleMap/DamageNumberOverlay.tsx, components/BattleMap/InitiativeTracker.tsx, components/BattleMap/OpeningThreatScene3D.tsx, components/BattleMap/PartyDisplay.tsx, components/BattleMap/camera/CameraController.tsx, components/BattleMap/characters/characterActor/CharacterActor.tsx, components/BattleMap/characters/characterActor/conditionBadges.tsx, components/BattleMap/characters/characterActor/defenseBadges.tsx, components/BattleMap/elevationPresentation.ts, components/BattleMap/fogModel.ts, components/BattleMap/groundPainter/paintPipeline.ts, components/BattleMap/groundPainter/textures.ts, components/BattleMap/pixi/PixiBattleBoard.tsx, components/BattleMap/pixi/PixiBoardPrototype.tsx, components/BattleMap/pixi/tokenViewModel.ts, components/BattleMap/quickAttack.ts, components/BattleMap/spellMapArtifacts.ts, components/BattleMap/spritePacks.ts, components/BattleMap/terrain/DecorationProps.tsx, components/BattleMap/terrain/EzTreeLayer.tsx, components/BattleMap/terrain/FordStones.tsx, components/BattleMap/terrain/GrassLayer.tsx, components/BattleMap/terrain/GridOverlay.tsx, components/BattleMap/terrain/GroundMist.tsx, components/BattleMap/terrain/GroundScatter.tsx, components/BattleMap/terrain/TerrainApron.tsx, components/BattleMap/terrain/TerrainMesh.tsx, components/BattleMap/terrain/VolumeArenaGround.tsx, components/BattleMap/terrain/VolumeArenaWater.tsx, components/BattleMap/terrain/WaterSystem.tsx, components/BattleMap/terrain/apronField.ts, components/BattleMap/terrain/arenaVolume.ts, components/BattleMap/terrain/terrainHeightSampler.ts, components/BattleMap/terrain/terrainSurfaceMaterial.ts, components/BattleMap/vfx/LivingWorld.tsx, components/BattleMap/vfx/VFXSystem.tsx, components/BattleMap/visibilityObserverPolicy.ts, components/Combat/CombatView.tsx, components/Combat/InPlaceCombatScene.tsx, components/Combat/ReactionPrompt.tsx, components/DesignPreview/steps/PreviewBattleMapScenarioLab.tsx, components/DesignPreview/steps/PreviewCombatScenarioLights.ts, components/DesignPreview/steps/PreviewCombatScenarioObjects.ts, components/DesignPreview/steps/PreviewCombatScenarios.tsx, components/DesignPreview/steps/classes/ClassBattlefieldDemo.tsx, components/DesignPreview/steps/classes/subclasses/barbarian/WildHeartDemo.tsx, components/DesignPreview/steps/classes/subclasses/monk/WarriorOfTheOpenHandDemo.tsx, components/DesignPreview/steps/classes/subclasses/paladin/OathOfVengeanceDemo.tsx, components/DesignPreview/steps/raceDomain/leaves/aarakocraRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/abyssalTieflingRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/airGenasiRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/aquaticHalfElfRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/astralElfRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/autumnEladrinRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/beastbornHumanRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/beasthideShifterRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/blackDragonbornRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/blueDragonbornRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/brassDragonbornRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/bronzeDragonbornRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/bugbearRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/centaurRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/changelingRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/cloudGiantGoliathRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/copperDragonbornRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/draconbloodDragonbornRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/drowHalfElfRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/earthGenasiRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/fairyRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/fallenAasimarRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/firbolgRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/fireGenasiRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/fireGiantGoliathRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/forestGnomeRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/frostGiantGoliathRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/giffRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/githyankiRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/githzeraiRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/goblinRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/goldDragonbornRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/grayDwarfDuergarRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/greenDragonbornRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/hadozeeRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/halfElfRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/halfOrcRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/halflingRaceLeaf.tsx, components/DesignPreview/steps/scenarioControls/PreviewCombatScenarioControlTypes.ts, components/DesignPreview/steps/scenarioControls/areaEffectScenarioControls.ts, components/DesignPreview/steps/scenarioControls/companionReactionsScenarioControls.ts, components/DesignPreview/steps/scenarioControls/concentrationScenarioControls.ts, components/DesignPreview/steps/scenarioControls/conditionsScenarioControls.ts, components/DesignPreview/steps/scenarioControls/counterspellNestedReactionsScenarioControls.ts, components/DesignPreview/steps/scenarioControls/coverScenarioControls.ts, components/DesignPreview/steps/scenarioControls/criticalHitsScenarioControls.ts, components/DesignPreview/steps/scenarioControls/damageOverTimeScheduledEffectsScenarioControls.ts, components/DesignPreview/steps/scenarioControls/darkvisionScenarioControls.ts, components/DesignPreview/steps/scenarioControls/deathSavesScenarioControls.ts, components/DesignPreview/steps/scenarioControls/dispelMagicCleanupScenarioControls.ts, components/DesignPreview/steps/scenarioControls/elevationRangeScenarioControls.ts, components/DesignPreview/steps/scenarioControls/fallingGroundImpactScenarioControls.ts, components/DesignPreview/steps/scenarioControls/flyingAerialMovementScenarioControls.ts, components/DesignPreview/steps/scenarioControls/forcedMovementScenarioControls.ts, components/DesignPreview/steps/scenarioControls/grappleEscapeScenarioControls.ts, components/DesignPreview/steps/scenarioControls/hazardsZonesScenarioControls.ts, components/DesignPreview/steps/scenarioControls/healingTempHpScenarioControls.ts, components/DesignPreview/steps/scenarioControls/initiativeTiesSharedTurnsScenarioControls.ts, components/DesignPreview/steps/scenarioControls/lineOfSightScenarioControls.ts, components/DesignPreview/steps/scenarioControls/multiattackRidersScenarioControls.ts, components/DesignPreview/steps/scenarioControls/objectInteractionScenarioControls.ts, components/DesignPreview/steps/scenarioControls/reachCreatureSizeScenarioControls.ts, components/DesignPreview/steps/scenarioControls/reactionScenarioControls.ts, components/DesignPreview/steps/scenarioControls/reactiveDamageRetaliationScenarioControls.ts, components/DesignPreview/steps/scenarioControls/repeatSavesConditionExpiryScenarioControls.ts, components/DesignPreview/steps/scenarioControls/resistanceScenarioControls.ts, components/DesignPreview/steps/scenarioControls/savingThrowsHalfDamageScenarioControls.ts, components/DesignPreview/steps/scenarioControls/shoveProneScenarioControls.ts, components/DesignPreview/steps/scenarioControls/spellSlotsUpcastingScenarioControls.ts, components/DesignPreview/steps/scenarioControls/spellTargetRestrictionsScenarioControls.ts, components/DesignPreview/steps/scenarioControls/stealthHiddenScenarioControls.ts, components/DesignPreview/steps/scenarioControls/summonsControlledScenarioControls.ts, components/DesignPreview/steps/scenarioControls/sustainActionsOngoingControlScenarioControls.ts, components/DesignPreview/steps/scenarioControls/tauntForcedTargetingScenarioControls.ts, components/DesignPreview/steps/scenarioControls/teleportationOccupiedSpacesScenarioControls.ts, components/DesignPreview/steps/scenarioControls/terrainScenarioControls.ts, components/DesignPreview/steps/spells/cureWoundsScenario.tsx, components/DesignPreview/steps/spells/fireBoltScenario.tsx, components/DesignPreview/steps/spells/shieldScenario.tsx, components/DesignPreview/steps/spells/thunderwaveScenario.tsx, components/World3D/World3DWrapper.tsx, components/demo/CombatMessagingDemo.tsx, data/adapters/5eTools/actionsAdapter.ts, data/adapters/5eTools/index.ts, data/adapters/5eTools/legendaryAdapter.ts, data/adapters/5eTools/reactionsAdapter.ts, data/adapters/5eTools/shared.ts, data/adapters/5eTools/spellEffectMapper.ts, data/adapters/5eTools/spellcastingAdapter.ts, data/religion/blessings.ts, hooks/actionUtils.ts, hooks/combat/engine/useCombatEngine.ts, hooks/combat/useActionEconomy.ts, hooks/combat/useActionExecutor.ts, hooks/combat/useCombatAI.ts, hooks/combat/useCombatLog.ts, hooks/combat/useCombatOutcome.ts, hooks/combat/useCombatValidation.ts, hooks/combat/useCombatVisuals.ts, hooks/combat/useGridMovement.ts, hooks/combat/useSummons.ts, hooks/combat/useTargetSelection.ts, hooks/combat/useTargetValidator.ts, hooks/combat/useTargeting.ts, hooks/combat/useTurnManager.ts, hooks/combat/useTurnOrder.ts, hooks/combat/useVisibility.ts, hooks/movementUtils.ts, hooks/perTargetChoiceUtils.ts, hooks/teleportUtils.ts, hooks/useAbilitySystem.ts, hooks/useBattleMap.ts, hooks/useBattleMapGeneration.ts, services/battleMapGenerator.ts, systems/combat/AttackRiderSystem.ts, systems/combat/MovementEventEmitter.ts, systems/combat/SavePenaltySystem.ts, systems/combat/SustainActionSystem.ts, systems/combat/actionEconomyResolution.ts, systems/combat/fallingGroundImpactResolution.ts, systems/combat/fightInPlace/activeGroundCombatSession.ts, systems/combat/fightInPlace/inSceneMovement.ts, systems/combat/objectInteractionResolution.ts, systems/combat/reactions/OpportunityAttackSystem.ts, systems/combat/reactions/alliedProtectionReaction.ts, systems/combat/reactions/companionProtectionReaction.ts, systems/combat/reactions/postDamageReactionQueue.ts, systems/combat/summonControlledResolution.ts, systems/combat/tauntConstraint.ts, systems/combat/worldScenario/battlefieldViability.ts, systems/combat/worldScenario/liveSettlementEncounter.ts, systems/combat/worldScenario/openingThreatBattlefield.ts, systems/combat/worldScenario/openingThreatOutcome.ts, systems/combat/worldScenario/settlementDefenderProjection.ts, systems/combat/worldScenario/settlementEncounterHostility.ts, systems/combat/worldScenario/travelAmbushBattlefield.ts, systems/combat/worldScenario/worldBattleScenario.ts, systems/combat/worldScenario/worldEncounterCombatants.ts, systems/combat/worldScenario/worldforgeEncounterReceipt.ts, systems/entities3d/recipeFromCombatant.ts, systems/environment/EnvironmentSystem.ts, systems/environment/hazards.ts, systems/events/CombatEvents.ts, systems/logic/ConditionEvaluator.ts, systems/perception/stealthResolution.ts, systems/puzzles/puzzleRuntime.ts, systems/puzzles/puzzleSystem.ts, systems/religion/CombatReligionAdapter.ts, systems/rituals/RitualManager.ts, systems/spells/ai/AISpellArbitrator.ts, systems/spells/effects/AreaEffectTracker.ts, systems/spells/effects/onDamageSpellEffects.ts, systems/spells/effects/triggerHandler.ts, systems/spells/mechanics/ConcentrationTracker.ts, systems/spells/mechanics/areaDamageSpellCastResolution.ts, systems/spells/mechanics/directDamageSpellCastResolution.ts, systems/spells/mechanics/dispelMagicResolution.ts, systems/spells/mechanics/healingTemporaryHitPointResolution.ts, systems/spells/mechanics/reactiveDamageRetaliationResolution.ts, systems/spells/mechanics/sourceSaveModifierResolution.ts, systems/spells/mechanics/teleportationResolution.ts, systems/spells/mechanics/witchBoltOngoingResolution.ts, systems/spells/socialServiceResolution.ts, systems/spells/targeting/ObjectTargetRegistry.ts, systems/spells/targeting/SpellTargetSelectionValidator.ts, systems/spells/targeting/TargetAllocator.ts, systems/spells/targeting/TargetValidationUtils.ts, systems/spells/targeting/selectedSpellTargets.ts, systems/visibility/VisibilitySystem.ts, systems/worldforge/bridge/groundChunkLoader.ts, systems/worldforge/bridge/groundProps.ts, types/index.ts, types/infernal.ts, utils/character/checkUtils.ts, utils/character/concentrationUtils.ts, utils/character/savingThrowUtils.ts, utils/character/spellAbilityFactory.ts, utils/combat/abjurerUtils.ts, utils/combat/actionEconomyUtils.ts, utils/combat/aerialMovementUtils.ts, utils/combat/alchemistUtils.ts, utils/combat/aoeCalculations.ts, utils/combat/archfeyUtils.ts, utils/combat/armorerUtils.ts, utils/combat/assassinUtils.ts, utils/combat/battleEndActions.ts, utils/combat/battleMasterUtils.ts, utils/combat/beastMasterUtils.ts, utils/combat/berserkerUtils.ts, utils/combat/circleOfTheLandUtils.ts, utils/combat/circleOfTheMoonUtils.ts, utils/combat/collegeOfLoreUtils.ts, utils/combat/collegeOfValorUtils.ts, utils/combat/combatAI.ts, utils/combat/combatLogToMessageAdapter.ts, utils/combat/combatUtils.ts, utils/combat/createEnemyFromMonster.ts, utils/combat/deathSaveUtils.ts, utils/combat/draconicSorceryUtils.ts, utils/combat/evokerUtils.ts, utils/combat/grappleUtils.ts, utils/combat/groupTurnUtils.ts, utils/combat/hunterUtils.ts, utils/combat/initiativeUtils.ts, utils/combat/lifeDomainUtils.ts, utils/combat/lightDomainUtils.ts, utils/combat/movementUtils.ts, utils/combat/multiattackUtils.ts, utils/combat/oathOfDevotionUtils.ts, utils/combat/oathOfVengeanceUtils.ts, utils/combat/openHandUtils.ts, utils/combat/physicsUtils.ts, utils/combat/repeatSaveUtils.ts, utils/combat/shadowMonkUtils.ts, utils/combat/shoveUtils.ts, utils/combat/statusConditionUtils.ts, utils/combat/thiefUtils.ts, utils/combat/wildMagicUtils.ts, utils/core/factories.ts, utils/planar/planarTargeting.ts, utils/sandbox/quickCharacterGenerator.ts, utils/spatial/elevationGeometry.ts, utils/spatial/geometry.ts, utils/spatial/lineOfSight.ts, utils/spatial/pathfinding.ts, utils/spatial/targetingUtils.ts, utils/visuals/combatIconVisuals.ts, utils/world/religionUtils.ts
+ * Last Sync: 20/09/2026, 21:00:39
+ * Dependents: App.tsx, commands/base/BaseEffectCommand.ts, commands/base/CommandExecutor.ts, commands/base/SpellCommand.ts, commands/effects/AttackRollModifierCommand.ts, commands/effects/CommandedSummonCommand.ts, commands/effects/ConcentrationCommands.ts, commands/effects/DamageCommand.ts, commands/effects/DefensiveCommand.ts, commands/effects/ElementalBaneCommand.ts, commands/effects/EnhanceAbilityCommand.ts, commands/effects/FamiliarPocketCommands.ts, commands/effects/FamiliarSharedSensesCommand.ts, commands/effects/GrantedActionCommand.ts, commands/effects/GraspingVineCommand.ts, commands/effects/HealingCommand.ts, commands/effects/MovementCommand.ts, commands/effects/NarrativeCommand.ts, commands/effects/ReactiveEffectCommand.ts, commands/effects/RegisterRiderCommand.ts, commands/effects/StatusConditionCommand.ts, commands/effects/SummonDismissCommand.ts, commands/effects/SummonReturnHomeCommand.ts, commands/effects/SummoningCommand.ts, commands/effects/TerrainCommand.ts, commands/effects/UtilityCommand.ts, commands/effects/commandAreaMovementEffects.ts, commands/effects/damage/guardianSummonHelpers.ts, commands/effects/utility/combatSupport.ts, commands/effects/utility/controlledEntities.ts, commands/effects/utility/core.ts, commands/effects/utility/minorUtility.ts, commands/effects/utility/moduleFunctions.ts, commands/effects/utility/objects.ts, commands/effects/utility/senses.ts, commands/effects/utility/summons.ts, commands/effects/utility/transformation.ts, commands/effects/utility/undead.ts, commands/factory/AbilityCommandFactory.ts, commands/factory/AbilityEffectMapper.ts, commands/factory/SpellCommandFactory.ts, commands/factory/boomingBladeAttackBridge.ts, commands/factory/greenFlameBladeAttackBridge.ts, commands/factory/trueStrikeAttackBridge.ts, components/BattleMap/AbilityButton.tsx, components/BattleMap/AbilityPalette.tsx, components/BattleMap/ActionEconomyBar.tsx, components/BattleMap/BattleMap.tsx, components/BattleMap/BattleMap3D.tsx, components/BattleMap/BattleMap3DGpuScene.tsx, components/BattleMap/BattleMapDemo.tsx, components/BattleMap/BattleMapFogCanvas.tsx, components/BattleMap/BattleMapGroundCanvas.tsx, components/BattleMap/BattleMapHUD.tsx, components/BattleMap/BattleMapOverlay.tsx, components/BattleMap/BattleMapOverlays.tsx, components/BattleMap/BattleMapTile.tsx, components/BattleMap/BattleMapTokens.tsx, components/BattleMap/CharacterToken.tsx, components/BattleMap/CombatCharacterInspector.tsx, components/BattleMap/CombatCommandToolbar.tsx, components/BattleMap/CombatIntentPreview.tsx, components/BattleMap/CompactTurnStrip.tsx, components/BattleMap/DamageNumberOverlay.tsx, components/BattleMap/GridlessAoEOutline.tsx, components/BattleMap/InitiativeTracker.tsx, components/BattleMap/OpeningThreatScene3D.tsx, components/BattleMap/PartyDisplay.tsx, components/BattleMap/RitualProgressPanel.tsx, components/BattleMap/camera/CameraController.tsx, components/BattleMap/characters/actorStatusShading.ts, components/BattleMap/characters/characterActor/CharacterActor.tsx, components/BattleMap/characters/characterActor/CharacterStatusBadges.tsx, components/BattleMap/characters/characterActor/conditionBadges.tsx, components/BattleMap/characters/characterActor/defenseBadges.tsx, components/BattleMap/elevationPresentation.ts, components/BattleMap/fogModel.ts, components/BattleMap/groundPainter/paintPipeline.ts, components/BattleMap/groundPainter/textures.ts, components/BattleMap/hooks/useBattleMapDerivedState.ts, components/BattleMap/hooks/useBattleMapPointer.ts, components/BattleMap/layers/BattleMapMarkerLayer.tsx, components/BattleMap/layers/BattleMapTileLayer.tsx, components/BattleMap/pixi/PixiBattleBoard.tsx, components/BattleMap/pixi/PixiBoardPrototype.tsx, components/BattleMap/pixi/tokenViewModel.ts, components/BattleMap/quickAttack.ts, components/BattleMap/spellMapArtifacts.ts, components/BattleMap/spritePacks.ts, components/BattleMap/terrain/DecorationProps.tsx, components/BattleMap/terrain/EzTreeLayer.tsx, components/BattleMap/terrain/FordStones.tsx, components/BattleMap/terrain/GrassLayer.tsx, components/BattleMap/terrain/GridOverlay.tsx, components/BattleMap/terrain/GroundMist.tsx, components/BattleMap/terrain/GroundScatter.tsx, components/BattleMap/terrain/TerrainApron.tsx, components/BattleMap/terrain/TerrainMesh.tsx, components/BattleMap/terrain/VolumeArenaGround.tsx, components/BattleMap/terrain/VolumeArenaWater.tsx, components/BattleMap/terrain/WaterSystem.tsx, components/BattleMap/terrain/apronField.ts, components/BattleMap/terrain/arenaVolume.ts, components/BattleMap/terrain/terrainGeometry.ts, components/BattleMap/terrain/terrainHeightSampler.ts, components/BattleMap/terrain/terrainPointer.ts, components/BattleMap/terrain/terrainSurfaceMaterial.ts, components/BattleMap/vfx/LivingWorld.tsx, components/BattleMap/vfx/VFXSystem.tsx, components/BattleMap/vfx/combatFeedback.tsx, components/BattleMap/vfx/environmentEffects.tsx, components/BattleMap/vfx/spellEffects.tsx, components/BattleMap/visibilityObserverPolicy.ts, components/Combat/CombatLog.tsx, components/Combat/CombatView.tsx, components/Combat/InPlaceCombatScene.tsx, components/Combat/ReactionPrompt.tsx, components/DesignPreview/steps/PreviewBattleMap.tsx, components/DesignPreview/steps/PreviewBattleMapScenarioLab.tsx, components/DesignPreview/steps/PreviewCombatScenarioFramework.tsx, components/DesignPreview/steps/PreviewCombatScenarioLights.ts, components/DesignPreview/steps/PreviewCombatScenarioObjects.ts, components/DesignPreview/steps/PreviewCombatScenarios.tsx, components/DesignPreview/steps/classes/ClassBattlefieldDemo.tsx, components/DesignPreview/steps/classes/classesScenarioAdapter.tsx, components/DesignPreview/steps/classes/subclasses/barbarian/WildHeartDemo.tsx, components/DesignPreview/steps/classes/subclasses/monk/WarriorOfTheOpenHandDemo.tsx, components/DesignPreview/steps/classes/subclasses/paladin/OathOfVengeanceDemo.tsx, components/DesignPreview/steps/raceDomain/leaves/aarakocraRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/abyssalTieflingRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/airGenasiRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/aquaticHalfElfRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/astralElfRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/autumnEladrinRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/beastbornHumanRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/beasthideShifterRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/blackDragonbornRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/blueDragonbornRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/brassDragonbornRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/bronzeDragonbornRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/bugbearRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/centaurRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/changelingRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/cloudGiantGoliathRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/copperDragonbornRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/draconbloodDragonbornRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/drowHalfElfRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/earthGenasiRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/fairyRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/fallenAasimarRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/firbolgRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/fireGenasiRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/fireGiantGoliathRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/forestGnomeRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/frostGiantGoliathRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/giffRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/githyankiRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/githzeraiRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/goblinRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/goldDragonbornRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/grayDwarfDuergarRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/greenDragonbornRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/hadozeeRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/halfElfRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/halfOrcRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/halflingRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/raceFrameworkAdapter.tsx, components/DesignPreview/steps/scenarioControls/PreviewCombatScenarioControlTypes.ts, components/DesignPreview/steps/scenarioControls/areaEffectScenarioControls.ts, components/DesignPreview/steps/scenarioControls/companionReactionsScenarioControls.ts, components/DesignPreview/steps/scenarioControls/concentrationScenarioControls.ts, components/DesignPreview/steps/scenarioControls/conditionsScenarioControls.ts, components/DesignPreview/steps/scenarioControls/counterspellNestedReactionsScenarioControls.ts, components/DesignPreview/steps/scenarioControls/coverScenarioControls.ts, components/DesignPreview/steps/scenarioControls/criticalHitsScenarioControls.ts, components/DesignPreview/steps/scenarioControls/damageOverTimeScheduledEffectsScenarioControls.ts, components/DesignPreview/steps/scenarioControls/darkvisionScenarioControls.ts, components/DesignPreview/steps/scenarioControls/deathSavesScenarioControls.ts, components/DesignPreview/steps/scenarioControls/dispelMagicCleanupScenarioControls.ts, components/DesignPreview/steps/scenarioControls/elevationRangeScenarioControls.ts, components/DesignPreview/steps/scenarioControls/fallingGroundImpactScenarioControls.ts, components/DesignPreview/steps/scenarioControls/flyingAerialMovementScenarioControls.ts, components/DesignPreview/steps/scenarioControls/forcedMovementScenarioControls.ts, components/DesignPreview/steps/scenarioControls/grappleEscapeScenarioControls.ts, components/DesignPreview/steps/scenarioControls/hazardsZonesScenarioControls.ts, components/DesignPreview/steps/scenarioControls/healingTempHpScenarioControls.ts, components/DesignPreview/steps/scenarioControls/initiativeTiesSharedTurnsScenarioControls.ts, components/DesignPreview/steps/scenarioControls/lineOfSightScenarioControls.ts, components/DesignPreview/steps/scenarioControls/multiattackRidersScenarioControls.ts, components/DesignPreview/steps/scenarioControls/objectInteractionScenarioControls.ts, components/DesignPreview/steps/scenarioControls/reachCreatureSizeScenarioControls.ts, components/DesignPreview/steps/scenarioControls/reactionScenarioControls.ts, components/DesignPreview/steps/scenarioControls/reactiveDamageRetaliationScenarioControls.ts, components/DesignPreview/steps/scenarioControls/repeatSavesConditionExpiryScenarioControls.ts, components/DesignPreview/steps/scenarioControls/resistanceScenarioControls.ts, components/DesignPreview/steps/scenarioControls/savingThrowsHalfDamageScenarioControls.ts, components/DesignPreview/steps/scenarioControls/shoveProneScenarioControls.ts, components/DesignPreview/steps/scenarioControls/spellSlotsUpcastingScenarioControls.ts, components/DesignPreview/steps/scenarioControls/spellTargetRestrictionsScenarioControls.ts, components/DesignPreview/steps/scenarioControls/stealthHiddenScenarioControls.ts, components/DesignPreview/steps/scenarioControls/summonsControlledScenarioControls.ts, components/DesignPreview/steps/scenarioControls/sustainActionsOngoingControlScenarioControls.ts, components/DesignPreview/steps/scenarioControls/tauntForcedTargetingScenarioControls.ts, components/DesignPreview/steps/scenarioControls/teleportationOccupiedSpacesScenarioControls.ts, components/DesignPreview/steps/scenarioControls/terrainScenarioControls.ts, components/DesignPreview/steps/spells/cureWoundsScenario.tsx, components/DesignPreview/steps/spells/fireBoltScenario.tsx, components/DesignPreview/steps/spells/shieldScenario.tsx, components/DesignPreview/steps/spells/spellsFrameworkAdapter.tsx, components/DesignPreview/steps/spells/thunderwaveScenario.tsx, components/World3D/hooks/useInPlaceCombatTransition.ts, components/demo/CombatMessagingDemo.tsx, components/screens/BattleScreen.tsx, data/adapters/5eTools/actionsAdapter.ts, data/adapters/5eTools/index.ts, data/adapters/5eTools/legendaryAdapter.ts, data/adapters/5eTools/reactionsAdapter.ts, data/adapters/5eTools/shared.ts, data/adapters/5eTools/spellEffectMapper.ts, data/adapters/5eTools/spellcastingAdapter.ts, data/religion/blessings.ts, hooks/ability/targetSelection.ts, hooks/ability/useAbilityExecution.ts, hooks/ability/useActionEconomy.ts, hooks/ability/useConcentration.ts, hooks/ability/useReactionSystem.ts, hooks/actionUtils.ts, hooks/combat/engine/useCombatEngine.ts, hooks/combat/turnManager/useCombatEscape.ts, hooks/combat/turnManager/useTurnLifecycle.ts, hooks/combat/useActionEconomy.ts, hooks/combat/useActionExecutor.ts, hooks/combat/useCombatAI.ts, hooks/combat/useCombatLog.ts, hooks/combat/useCombatOutcome.ts, hooks/combat/useCombatValidation.ts, hooks/combat/useCombatVisuals.ts, hooks/combat/useGridMovement.ts, hooks/combat/useSummons.ts, hooks/combat/useTargetSelection.ts, hooks/combat/useTargetValidator.ts, hooks/combat/useTargeting.ts, hooks/combat/useTurnManager.ts, hooks/combat/useTurnOrder.ts, hooks/combat/useVisibility.ts, hooks/movementUtils.ts, hooks/perTargetChoiceUtils.ts, hooks/teleportUtils.ts, hooks/useAbilitySystem.ts, hooks/useBattleMap.ts, hooks/useBattleMapGeneration.ts, hooks/useUnderdarkLighting.ts, services/battleMapGenerator.ts, services/combatLogService.ts, systems/actions/ActionOutcomeLogger.ts, systems/actions/ActionValidator.ts, systems/combat/AttackRiderSystem.ts, systems/combat/CameraFocusEventEmitter.ts, systems/combat/MovementEventEmitter.ts, systems/combat/SavePenaltySystem.ts, systems/combat/SustainActionSystem.ts, systems/combat/actionEconomyResolution.ts, systems/combat/fallingGroundImpactResolution.ts, systems/combat/fightInPlace/activeGroundCombatSession.ts, systems/combat/fightInPlace/battlefieldEscape.ts, systems/combat/fightInPlace/explorationBattlefieldContext.ts, systems/combat/fightInPlace/inSceneMovement.ts, systems/combat/objectInteractionResolution.ts, systems/combat/reactions/OpportunityAttackSystem.ts, systems/combat/reactions/alliedProtectionReaction.ts, systems/combat/reactions/companionProtectionReaction.ts, systems/combat/reactions/postDamageReactionQueue.ts, systems/combat/summonControlledResolution.ts, systems/combat/tauntConstraint.ts, systems/combat/worldScenario/battlefieldViability.ts, systems/combat/worldScenario/liveSettlementEncounter.ts, systems/combat/worldScenario/openingThreatBattlefield.ts, systems/combat/worldScenario/openingThreatOutcome.ts, systems/combat/worldScenario/settlementDefenderProjection.ts, systems/combat/worldScenario/settlementEncounterHostility.ts, systems/combat/worldScenario/travelAmbushBattlefield.ts, systems/combat/worldScenario/worldBattleScenario.ts, systems/combat/worldScenario/worldEncounterCombatants.ts, systems/combat/worldScenario/worldforgeEncounterReceipt.ts, systems/entities3d/recipeFromCombatant.ts, systems/environment/EnvironmentSystem.ts, systems/environment/hazards.ts, systems/events/CombatEvents.ts, systems/logic/ConditionEvaluator.ts, systems/perception/stealthResolution.ts, systems/puzzles/arcaneGlyphSystem.ts, systems/puzzles/battleMapBridge.ts, systems/puzzles/puzzleRuntime.ts, systems/puzzles/puzzleSystem.ts, systems/religion/CombatReligionAdapter.ts, systems/rituals/RitualManager.ts, systems/spells/ai/AISpellArbitrator.ts, systems/spells/effects/AreaEffectTracker.ts, systems/spells/effects/onDamageSpellEffects.ts, systems/spells/effects/trigger/areaTriggerProcessing.ts, systems/spells/effects/trigger/types.ts, systems/spells/effects/trigger/zoneLifecycle.ts, systems/spells/mechanics/ConcentrationTracker.ts, systems/spells/mechanics/areaDamageSpellCastResolution.ts, systems/spells/mechanics/directDamageSpellCastResolution.ts, systems/spells/mechanics/dispelMagicResolution.ts, systems/spells/mechanics/healingTemporaryHitPointResolution.ts, systems/spells/mechanics/reactiveDamageRetaliationResolution.ts, systems/spells/mechanics/sourceSaveModifierResolution.ts, systems/spells/mechanics/teleportationResolution.ts, systems/spells/mechanics/witchBoltOngoingResolution.ts, systems/spells/socialServiceResolution.ts, systems/spells/targeting/ObjectTargetRegistry.ts, systems/spells/targeting/SpellTargetSelectionValidator.ts, systems/spells/targeting/TargetAllocator.ts, systems/spells/targeting/TargetValidationUtils.ts, systems/spells/targeting/selectedSpellTargets.ts, systems/visibility/VisibilitySystem.ts, systems/worldforge/bridge/groundChunkLoader.ts, systems/worldforge/bridge/groundProps.ts, types/index.ts, types/infernal.ts, utils/character/checkUtils.ts, utils/character/concentrationUtils.ts, utils/character/savingThrowUtils.ts, utils/character/spellAbilityFactory.ts, utils/combat/abjurerUtils.ts, utils/combat/actionEconomyUtils.ts, utils/combat/aerialMovementUtils.ts, utils/combat/alchemistUtils.ts, utils/combat/aoeCalculations.ts, utils/combat/archfeyUtils.ts, utils/combat/armorerUtils.ts, utils/combat/assassinUtils.ts, utils/combat/battleEndActions.ts, utils/combat/battleMasterUtils.ts, utils/combat/beastMasterUtils.ts, utils/combat/berserkerUtils.ts, utils/combat/circleOfTheLandUtils.ts, utils/combat/circleOfTheMoonUtils.ts, utils/combat/collegeOfLoreUtils.ts, utils/combat/collegeOfValorUtils.ts, utils/combat/combatAI.ts, utils/combat/combatLogToMessageAdapter.ts, utils/combat/combatUtils.ts, utils/combat/createEnemyFromMonster.ts, utils/combat/deathSaveUtils.ts, utils/combat/draconicSorceryUtils.ts, utils/combat/evokerUtils.ts, utils/combat/grappleUtils.ts, utils/combat/groupTurnUtils.ts, utils/combat/hunterUtils.ts, utils/combat/initiativeUtils.ts, utils/combat/lifeDomainUtils.ts, utils/combat/lightDomainUtils.ts, utils/combat/movementUtils.ts, utils/combat/multiattackUtils.ts, utils/combat/oathOfDevotionUtils.ts, utils/combat/oathOfVengeanceUtils.ts, utils/combat/openHandUtils.ts, utils/combat/physicsUtils.ts, utils/combat/repeatSaveUtils.ts, utils/combat/shadowMonkUtils.ts, utils/combat/shoveUtils.ts, utils/combat/statusConditionUtils.ts, utils/combat/thiefUtils.ts, utils/combat/wildMagicUtils.ts, utils/core/factories.ts, utils/planar/planarTargeting.ts, utils/sandbox/quickCharacterGenerator.ts, utils/spatial/elevationGeometry.ts, utils/spatial/elevationSemantics.ts, utils/spatial/geometry.ts, utils/spatial/lineOfSight.ts, utils/spatial/pathfinding.ts, utils/spatial/targetingUtils.ts, utils/visuals/combatIconVisuals.ts, utils/world/religionUtils.ts
  * Imports: None
  *
  * MULTI-AGENT SAFETY:
@@ -14,12 +20,10 @@
  */
 // @dependencies-end
 
-/**
- * @file src/types/combat.ts
- * This file contains all combat-related TypeScript type definitions and interfaces
- * used throughout the Aralia RPG application's battle map feature.
- */
 import type { AbilityScoreName, CharacterStats } from "./core.js";
+// CombatEventClass is the typed event taxonomy introduced for CMB-GAP-003. It is imported
+// type-only; combatMessages.ts imports nothing, so this cannot create an import cycle.
+import type { CombatEventClass } from "./combatMessages.js";
 import type {
   Class,
   SpellbookData,
@@ -29,7 +33,7 @@ import type {
   LimitedUses,
   RacialBreathWeapon,
 } from "./character.js";
-import type { Item } from "./items.js";
+import type { EquipmentSlotType, Item } from "./items.js";
 import type { MaterialType } from "./materials.js";
 import type {
   Spell,
@@ -178,7 +182,18 @@ export interface StatusEffect {
     value?: number;
     skill?: string;
     attackBonus?: number;
+    /** Flat Armor Class bonus, as granted by Shield of Faith or the Shield spell. */
     acBonus?: number;
+    /**
+     * Armor Class replacement used by Mage Armor-style defenses, before the
+     * relevant ability modifier is added. This mirrors the field names already
+     * used by `ActiveEffect.mechanics` so AC calculation reads one vocabulary.
+     */
+    baseAC?: number;
+    /** Human-readable formula kept beside `baseAC` so UI can explain the value. */
+    baseACFormula?: string;
+    /** Armor Class floor used by Barkskin-style defenses. */
+    acMinimum?: number;
     movementSpeed?: number;
     advantage?: ("attack" | "save" | "check")[];
     disadvantage?: ("attack" | "save" | "check")[];
@@ -205,6 +220,59 @@ export interface StatusEffect {
     dice: string;
     flat?: number;
     applies: "next_save" | "all_saves";
+  };
+  /**
+   * Attack-roll rider carried by spells such as Bless, Bane, Blur and Blade
+   * Ward.
+   *
+   * These are not conditions and they are not symmetric: Blur makes attacks
+   * *against* its holder worse, while Bane makes attacks *by* its holder worse.
+   * A single advantage/disadvantage flag cannot express that, so direction,
+   * attack family and consumption are preserved here. The field names match
+   * `ActiveEffect.mechanics` so both effect shapes speak one vocabulary.
+   */
+  attackRollRider?: {
+    modifier: "advantage" | "disadvantage" | "bonus" | "penalty";
+    direction: "incoming" | "outgoing";
+    attackKind: "any" | "weapon" | "melee_weapon" | "ranged_weapon" | "spell";
+    consumption: "next_attack" | "first_attack" | "while_active";
+    dice?: string;
+    value?: number;
+    notes?: string;
+  };
+  /**
+   * Saving-throw rider that rides alongside `attackRollRider` on the same spell
+   * effect. Bless and Bane each change attack rolls AND saving throws, so the
+   * two riders are emitted together rather than collapsed into one.
+   */
+  savingThrowRider?: {
+    modifier: "advantage" | "disadvantage" | "bonus" | "penalty";
+    consumption: "next_save" | "while_active";
+    dice?: string;
+    value?: number;
+    ability?: string;
+  };
+  /**
+   * Terrain a spell creates or reshapes, such as Fog Cloud's obscuring sphere,
+   * Spike Growth's damaging ground, or Mold Earth's excavated cube.
+   *
+   * Terrain is not a property of one creature, so this block records the zone
+   * the spell owns. `manipulation` carries the active terrain-control option
+   * that cantrips such as Mold Earth expose, which has no condition equivalent.
+   */
+  terrain?: {
+    terrainType: "difficult" | "obscuring" | "damaging" | "blocking" | "wall";
+    /** Zone footprint in grid tiles, converted from the spell's feet. */
+    areaOfEffect?: AreaOfEffect;
+    dispersedByStrongWind?: boolean;
+    wallProperties?: { hp: number; ac: number };
+    /** Damage dealt by damaging terrain, kept as dice for execution-time rolls. */
+    damage?: { dice: string; type: string };
+    manipulation?: {
+      type: string;
+      volume?: { shape?: string; size?: number; depth?: number };
+      depositDistance?: number;
+    };
   };
   /**
    * Hit-point state riders such as Chill Touch's "No Healing" rule.
@@ -623,6 +691,23 @@ export interface CombatEquipmentState {
   shield?: CombatArmorEquipmentState;
 }
 
+/**
+ * The equipped-item snapshot a combatant can carry into combat.
+ *
+ * WHAT CHANGED (agora-d649): this replaces `equippedItems?: any[]` on
+ * `CombatCharacter`. WHY IT CHANGED: the field was never an array at runtime —
+ * every producer and consumer treats it as the persistent character's
+ * slot-keyed record — so each attack bridge (True Strike, Booming Blade, Green
+ * Flame Blade) had to re-declare the real shape through an ad-hoc
+ * `caster as CombatCharacter & { equippedItems?: ... }` cast before it could
+ * read `MainHand`. WHAT IS PRESERVED: the field stays optional, because
+ * `createPlayerCombatCharacter` projects only rule-facing `equipment` facts and
+ * leaves the full item snapshot to the surfaces that actually attach it.
+ * WHAT REMAINS DEFERRED: the two cantrip bridges still hold their own local
+ * `EquippedItemSnapshot` casts; they are owned by another packet.
+ */
+export type CombatEquippedItems = Partial<Record<EquipmentSlotType, Item>>;
+
 export interface CombatCharacter {
   id: string;
   name: string;
@@ -679,7 +764,8 @@ export interface CombatCharacter {
   abilities: Ability[];
   team: "player" | "enemy" | "neutral";
   spellcastingAbility?: AbilityScoreName | 'wisdom' | 'charisma' | 'intelligence' | 'strength' | 'dexterity' | 'constitution' | string;
-  equippedItems?: any[];
+  /** Slot-keyed equipped items carried into combat; see `CombatEquippedItems`. */
+  equippedItems?: CombatEquippedItems;
   worldSource?: WorldforgeCombatantSource;
   currentHP: number;
   maxHP: number;
@@ -912,6 +998,20 @@ export interface CombatCharacter {
   initiativeBonus?: number;
   initiativeProficiency?: boolean;
   ignoreDifficultTerrain?: boolean;
+  /**
+   * The race-aware terrain movement policy this combatant moves under, named by
+   * the trait that grants it (GG-257). `ignoreDifficultTerrain` above is the
+   * unqualified waiver and cannot say WHICH squares are waived, so an Earth
+   * Genasi waded through difficult water for free. This field carries the
+   * qualifier: `utils/combat/movementUtils` owns the matching predicate and
+   * `resolveCombatantTerrainMovementPolicy` in `utils/combat/combatUtils` turns
+   * the id back into it. Unset means the combatant has no qualified waiver.
+   *
+   * The literal union is repeated here rather than imported because
+   * `movementUtils` imports this module; `TerrainMovementPolicyId` is the same
+   * union and a unit test pins the two together.
+   */
+  terrainPolicyId?: 'earth-walk' | 'timberwalk' | 'any-difficult-terrain';
   // Optional bookkeeping for analytics/logs; these were used in factories/tests.
   damageDealt?: unknown[];
   healingDone?: unknown[];
@@ -972,6 +1072,7 @@ export interface AbilityEffect {
     | "familiar_shared_senses"
     | "commanded_summon"
     | "granted_action"
+    | "summon_creature"
     | "summon_dismiss"
     | "summon_return_home";
   value?: number;
@@ -1000,6 +1101,25 @@ export interface AbilityEffect {
   commandedSummonAction?: "issue_command";
   summonCommandDescription?: string;
   summonId?: string;
+  /**
+   * Creation riders for a `summon_creature` effect. The other summon effect
+   * types above act on a summon that already exists; this one records that the
+   * cast brings an entity onto the field, which is what a SUMMONING spell row
+   * carries. The authoritative spawn still happens in SummoningCommand via the
+   * spell path; these fields describe the summon so the battle-map ability and
+   * the combat AI can see that the cast does something.
+   */
+  summonEntityType?:
+    | "familiar"
+    | "servant"
+    | "construct"
+    | "creature"
+    | "undead"
+    | "mount"
+    | "object";
+  summonCount?: number;
+  summonDescription?: string;
+  summonPersistent?: boolean;
   summonDismissAction?: "dismiss";
   summonReturnHomeAction?: "no_agreement" | "service_complete";
   grantedActionLabel?: string;
@@ -1419,6 +1539,17 @@ export interface CombatAction {
    * altitude controls can choose a climb, descent, or ground landing.
    */
   targetAltitudeFeet?: number;
+  /**
+   * Ids of creatures the caller knows to be Surprised for this action.
+   *
+   * There is no surprise system in the engine yet (GG-258), so surprise cannot
+   * be derived from combat state. Assassinate needs the fact, so it is a
+   * REQUIRED CALLER FACT: the controller that knows an ambush happened states
+   * it here. An absent list means the caller reported no surprise, which the
+   * rider reads as "not surprised" — it is never guessed from initiative,
+   * stealth, or turn order.
+   */
+  surprisedCharacterIds?: string[];
   targetCharacterIds?: string[];
   /** Rich spell target refs for creature, object, and point selections. */
   selectedSpellTargets?: SelectedSpellTarget[];
@@ -1450,6 +1581,20 @@ export interface CombatAction {
     total?: number;
   }>;
   movementUsed?: number;
+  /**
+   * Set by the combat executor when this cast was handed to the ritual runtime
+   * instead of resolved. A long cast is a ceremony that runs over the following
+   * turns, so the executor accepts the action, dispatches START_RITUAL, and
+   * spends nothing — but it still returns true, because the action WAS accepted.
+   *
+   * Plain success and "started as a ritual" are different outcomes, and a caller
+   * that cannot tell them apart casts the spell instantly on top of the ceremony
+   * (agora-f821.38). Any caller that would go on to resolve spell effects must
+   * read this flag and stop.
+   *
+   * Callers never set it. The executor writes it on the envelope it was given.
+   */
+  ritualStarted?: boolean;
   cost: AbilityCost;
   timestamp: number;
 }
@@ -2991,6 +3136,12 @@ export interface BattleMapData {
   theme: BattleMapBiome;
   seed: number;
   /**
+   * Base light level of the whole board before light sources and magical
+   * darkness apply (agora-a46a.3). When absent, visibility infers it from the
+   * theme (cave/dungeon -> darkness, else bright) as it did before the field.
+   */
+  ambientLight?: Exclude<LightLevel, 'magical_darkness'>;
+  /**
    * Present when this board was projected from a real game-world location.
    * Renderers must not invent unrelated set dressing on these maps: anything
    * object-like should be traceable to the source world or a later world delta.
@@ -3312,6 +3463,18 @@ export interface CommonCombatLogData {
   isCrit?: boolean;
   isCritical?: boolean;
   isDeath?: boolean;
+  isImmune?: boolean;
+  isResisted?: boolean;
+  isVulnerable?: boolean;
+  immunityApplied?: boolean;
+  resistanceApplied?: boolean;
+  vulnerabilityApplied?: boolean;
+  resistedDamageType?: string;
+  vulnerableDamageType?: string;
+  immuneDamageType?: string;
+  defenseTags?: string[];
+  defenseMultiplier?: number;
+  channel?: string;
   lightSource?: LightSource;
   notes?: string;
   privateRecipientIds?: string[];
@@ -3348,6 +3511,11 @@ export interface ActionCombatLogData extends CommonCombatLogData {
   actionType?: string;
   affectedPositions?: Position[];
   allocationApplied?: boolean;
+  /**
+   * The Assassinate modifiers that applied to one attack roll (Assassin rogue,
+   * level 3). Written only when the rider resolved and granted something.
+   */
+  assassinate?: { advantage: boolean; criticalOnHit: boolean };
   attackModifier?: number;
   attackRoll?: number;
   attackTotal?: number;
@@ -3384,6 +3552,13 @@ export interface ActionCombatLogData extends CommonCombatLogData {
   grantedActionSaveEffect?: string;
   grantedActionSaveType?: string;
   grantedActionWallLengthReduction?: number;
+  /**
+   * True when the attacker held an undetected Hide-derived Hidden source
+   * against this defender, so the roll was made with Advantage. Published on
+   * the attack entry because the status is removed right after the roll
+   * (AbilityCommandFactory), leaving no other record of why it applied.
+   */
+  hiddenAttackerAdvantage?: boolean;
   interruptedSpellId?: string;
   isAutoMiss?: boolean;
   isHit?: boolean;
@@ -3395,6 +3570,12 @@ export interface ActionCombatLogData extends CommonCombatLogData {
   movementFeet?: number;
   movementGain?: number;
   notes?: string;
+  /**
+   * How far resource payment got before the action was refused. `'not_started'`
+   * marks a rejection raised before any slot, use, or action cost was spent,
+   * so a reader knows nothing needs to be refunded (useAbilityExecution).
+   */
+  payment?: string;
   pendingGap?: string;
   pocketState?: string;
   position?: Position;
@@ -3415,6 +3596,16 @@ export interface ActionCombatLogData extends CommonCombatLogData {
   summonReturnHomeAction?: string;
   surfaceMark?: ActiveMoldEarthSurfaceMark;
   targetArmorClass?: number;
+  /**
+   * The free 5-foot shove Tavern Brawler offers after a hit with an Unarmed
+   * Strike or an Improvised Weapon (AbilityCommandFactory). The offer is
+   * published, not applied, so the executor or the player decides.
+   *
+   * Typed `unknown` because the shape (`TavernBrawlerShoveOffer`) is declared
+   * in `utils/combat/shoveUtils.ts`, and nothing under `src/types` imports from
+   * `utils`. Same treatment as `forcedMovement` and `sharedSenses` above.
+   */
+  tavernBrawlerShoveOffer?: unknown;
   /** Voluntary movement rule that rejected the action. */
   tauntConstraint?: string;
   telepathyRange?: number;
@@ -3524,6 +3715,20 @@ export interface StatusCombatLogData extends CommonCombatLogData {
   /** Turn-order transition recorded when a removed actor hands the group over. */
   groupTransition?: CombatTurnTransitionLogData;
   removal?: string;
+  /**
+   * Status IDs this record ended. Written when attacking reveals a hidden
+   * attacker and only the Hide-derived Hidden sources are removed, so a reader
+   * can tell which sources ended from unrelated Hidden or Invisible state.
+   */
+  removedStatusIds?: string[];
+  /**
+   * How a combatant left the fight under their own power (fight-in-place 9B:
+   * `'edge-of-map'`). Distinct from `removal`, which records a dismissal or
+   * death; an escape is a choice the player made and paid movement for.
+   */
+  escape?: string;
+  /** Movement feet an escape or similar movement-priced departure consumed. */
+  movementCostFeet?: number;
   createdObjects?: CreatedObject[];
   creationState?: string;
   crumbleReason?: string;
@@ -3580,6 +3785,13 @@ export interface StatusCombatLogData extends CommonCombatLogData {
   objectRepair?: unknown;
   pendingAftermath?: string;
   pendingRise?: unknown;
+  /**
+   * The stable `AbilityPrerequisiteErrorCode` from `useCombatValidation` when an
+   * ability action is refused before payment (for example `USES_DEPLETED`). It
+   * rides its own field so a reader never has to split `rejectedReason` on a
+   * colon to learn which prerequisite failed.
+   */
+  prerequisiteCode?: string;
   rangeLimit?: number;
   rejectedAttackAugment?: string;
   rejectedConjureFeyTeleport?: string;
@@ -3774,6 +3986,17 @@ interface CombatLogEntryBase {
   message: string;
   characterId?: string;
   targetIds?: string[];
+  /**
+   * Typed classification stamped by the emitter (CMB-GAP-003, added 2026-09-09).
+   *
+   * WHY: routing used to be recovered downstream by matching words in `message`, which
+   * breaks on any copy edit. An emitter that knows what it just did should say so.
+   *
+   * OPTIONAL ON PURPOSE: dozens of hooks emit log records. Records without this field
+   * still route correctly through `deriveEventClass` in combatLogToMessageAdapter.ts,
+   * so emitters can be migrated one at a time instead of in one sweeping change.
+   */
+  eventClass?: CombatEventClass;
 }
 
 /**

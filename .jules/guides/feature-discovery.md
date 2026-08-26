@@ -97,7 +97,7 @@ npm test --coverage
 
 ### 4. Documentation
 
-- `docs/FEATURES_TODO.md` - Feature roadmap
+- `public/planmap/index.html` - Plan-map, the feature roadmap (served at `/Aralia/planmap/index.html`)
 - `docs/VISION.md` - "Systems Needed" checklists
 - GitHub Issues - If using issue tracking
 

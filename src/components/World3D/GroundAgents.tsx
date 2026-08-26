@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 12/08/2026, 01:47:13
+ * Last Sync: 29/08/2026, 15:06:59
  * Dependents: components/World3D/World3DScene.tsx, components/Worldforge/AgentSim3DPreview.tsx
- * Imports: 12 files
+ * Imports: 13 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -48,7 +48,8 @@ import type { TownRoster } from '@/systems/worldforge/roster/types';
 import { worldToScene } from '@/systems/world3d/sceneOrigin';
 import { WORLD3D_CONFIG } from '@/systems/world3d/config';
 import { registerAllParts } from '@/systems/entities3d/parts';
-import { crowdArchetypeForGroup, CROWD_WALK_PHASES } from '@/systems/entities3d/three/crowdBake';
+import { CROWD_WALK_PHASES } from '@/systems/entities3d/three/crowdBake';
+import { crowdArchetypeForGroup } from '@/systems/entities3d/recipeFromOccupant';
 import { toonGradient, ENTITY_RENDER_MODE } from '@/systems/entities3d/three/toon';
 import { crowdInstancePlan, CROWD_GROUPS, type HeadingMemory } from './crowdInstancePlan';
 import {

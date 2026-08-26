@@ -9,8 +9,10 @@ import {
 import {
   getCharacterDistance,
   resolveAttack,
-  rollDamage,
 } from '../../../../../utils/combat/combatUtils';
+import {
+  rollDamage,
+} from '../../../../../systems/dice/rollers';
 import { createQuickCombatCharacter } from '../../../../../utils/sandbox/quickCharacterGenerator';
 import type { Race } from '../../../../../types';
 import type { CombatCharacter, Position } from '../../../../../types/combat';
@@ -165,17 +167,19 @@ function createCentaurActor(race: Race): CombatCharacter | null {
   const speedFeet = getCanonicalCentaurSpeedFeet(race);
   if (!assembled || speedFeet === null) return null;
 
-  // DEBT: quickCharacterGenerator currently gives most races a 30-foot speed.
-  // Project the canonical Centaur speed at this narrow adapter boundary so the
-  // shared reset and movement helpers enforce the real 40-foot pool. The proper
-  // long-term fix is for character assembly to derive speed from Race data.
+  // Quick character assembly now derives speed from canonical Race data
+  // (agora-0202), so this leaf no longer projects a local 40-foot override.
+  // The equality gate keeps the proof honest: if central derivation ever stops
+  // agreeing with the canonical Speed trait, the scenario reports unavailable
+  // instead of silently charging on a wrong movement pool.
+  if (assembled.stats.speed !== speedFeet) return null;
+
   return resetEconomy({
     ...assembled,
     id: CENTAUR_ACTOR_ID,
     name: `${race.name} · Charge Tester`,
     position: { x: 1, y: 2 },
     team: 'player',
-    stats: { ...assembled.stats, speed: speedFeet },
   });
 }
 

@@ -111,6 +111,20 @@ try {
 }
 
 // ============================================================================
+// Import Hygiene (GG-122 / GG-123)
+// ============================================================================
+// Orphan modules (zero inbound imports) and tracked-file imports that resolve
+// under gitignored paths. Advisory here; the underlying check is
+// scripts/quality/import-hygiene.cjs, which exits 1 on ignored imports.
+// ============================================================================
+printSection('Import Hygiene (orphans + gitignored imports)');
+const hygiene = run('node', ['scripts/quality/import-hygiene.cjs']);
+console.log((hygiene.stdout || '').trim().split('\n').slice(0, 6).join('\n'));
+if (hygiene.status !== 0) {
+  console.log('- gitignored-import violations found: run `node scripts/quality/import-hygiene.cjs` for details');
+}
+
+// ============================================================================
 // Exit Policy
 // ============================================================================
 // Normal mode is advisory. Strict mode is available for sessions that deliberately

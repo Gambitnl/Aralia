@@ -7,6 +7,7 @@
  * script environment. Added explicit types to 'forEach' callbacks to 
  * resolve implicit any warnings.
  */
+import { spawnSync } from 'child_process';
 import fs from 'fs';
 import path from 'path';
 import { z } from 'zod';
@@ -30,7 +31,25 @@ const loadManifest = (): Record<string, SpellManifestEntry> => {
   return JSON.parse(raw);
 };
 
+/**
+ * The per-class spell lists are generated from the `classes` array in every
+ * spell JSON. This checker used to catch only dangling ids (a list naming a
+ * spell the manifest lacks); the opposite drift - a spell whose JSON claims a
+ * class it is missing from - is caught by regenerating and comparing.
+ */
+const checkClassSpellListsFresh = (): boolean => {
+  const result = spawnSync(
+    process.execPath,
+    [path.join(process.cwd(), 'scripts', 'generate-class-spell-lists.mjs'), '--check'],
+    { encoding: 'utf-8' },
+  );
+  if (result.stdout) process.stdout.write(result.stdout);
+  if (result.stderr) process.stderr.write(result.stderr);
+  return result.status === 0;
+};
+
 const main = () => {
+  const classListsFresh = checkClassSpellListsFresh();
   const manifest = loadManifest();
   const manifestIds = new Set(Object.keys(manifest));
 
@@ -82,16 +101,22 @@ const main = () => {
   }
 
   if (
+    classListsFresh &&
     missingFromManifest.length === 0 &&
     wrongPath.length === 0 &&
     missingSpellFiles.length === 0 &&
     invalidSpells.length === 0
   ) {
-    console.log('[Spell Integrity] All checks passed: class lists match manifest, spell files exist, schema validates.');
+    console.log('[Spell Manifest] All checks passed: class lists match the manifest, spell paths/files exist, and SpellValidator schema validates.');
     return;
   }
 
-  console.error('[Spell Integrity] Issues detected:');
+  console.error('[Spell Manifest] Issues detected:');
+  if (!classListsFresh) {
+    console.error(
+      '  - src/data/classes/spellLists.generated.ts is stale. Run: node scripts/generate-class-spell-lists.mjs',
+    );
+  }
   if (missingFromManifest.length > 0) {
     console.error(`  - Class spell lists reference ${missingFromManifest.length} missing IDs:`);
     missingFromManifest.slice(0, 10).forEach((m) => console.error(`      ${m.classId}: ${m.spellId}`));

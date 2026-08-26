@@ -117,6 +117,16 @@ export interface BubbleFillResult {
    * horizon and band open ground in false contours.
    */
   originalTopY: Float32Array;
+  /**
+   * How many cells TALL the volume is.
+   *
+   * A bubble was a CUBE for its whole life, so every reader derived this from
+   * `cellsPerEdge` and was right. It is not a cube when the caller asks for a
+   * `heightM` (see `fillBubble`), and a reader that still derives it walks off
+   * the end of the volume or stops short of its surface. Carried explicitly so
+   * there is one answer rather than one convention.
+   */
+  cellsY: number;
   fillMs: number;
   solidCells: number;
 }
@@ -160,9 +170,29 @@ export function fillBubble(
   extentM: number,
   cellM: number,
   stackSource: ColumnStackSource = DEFAULT_STACK,
+  /**
+   * Vertical extent, metres. OMITTED KEEPS THE CUBE — `extentM` tall, which is
+   * every caller this function had before the town-on-LAND pane. See
+   * `slabHeightForFootprint` for why a wide bubble wants this and a 64 m
+   * walking bubble does not.
+   */
+  heightM?: number,
 ): BubbleFillResult {
-  const fill = fillBubbleFromGround(src, centerXM, centerZM, extentM, cellM, stackSource);
+  const fill = fillBubbleFromGround(
+    src,
+    centerXM,
+    centerZM,
+    extentM,
+    cellM,
+    stackSource,
+    /* The VERTICAL cell stays the horizontal one, the same rule and the same
+     * reason as `fillLandSlab`: the substance shader's noise is world-space and
+     * isotropic, so a lattice fine sideways and coarse vertically draws grain
+     * at two scales on one wall. The height row buys ROOM, not resolution. */
+    heightM === undefined ? {} : { heightM, cellHM: cellM },
+  );
   const n = fill.cellsPerEdge;
+  const nY = fill.cellsY;
   const originM = fill.originM as [number, number, number];
 
   const originalTopY = new Float32Array(n * n);
@@ -171,10 +201,10 @@ export function fillBubble(
     for (let x = 0; x < n; x++) {
       const wx = originM[0] + (x + 0.5) * cellM;
       let y = Math.min(
-        n - 1,
+        nY - 1,
         Math.max(0, Math.floor((src.surfaceYAt(wx, wz) - originM[1]) / cellM) + 3),
       );
-      while (y < n - 1 && fill.volume.get(x, y + 1, z) !== Material.Air) y++;
+      while (y < nY - 1 && fill.volume.get(x, y + 1, z) !== Material.Air) y++;
       while (y >= 0 && fill.volume.get(x, y, z) === Material.Air) y--;
       originalTopY[z * n + x] = originM[1] + (y + 1) * cellM;
     }
@@ -185,10 +215,61 @@ export function fillBubble(
     originM,
     cellM,
     cellsPerEdge: n,
+    cellsY: nY,
     originalTopY,
     fillMs: fill.fillMs,
     solidCells: fill.solidCells,
   };
+}
+
+/**
+ * HOW TALL A WIDE BUBBLE HAS TO BE — measured, not guessed.
+ *
+ * A bubble is a cube, and that is affordable only because the shipped one is
+ * 64 m across. The town-on-LAND pane wants to hold a whole burg: Hafting's
+ * envelope half is 244 m, so covering it needs ~560 m of footprint, and a
+ * 560 m CUBE at a walkable cell is not a volume anyone can fill. The pane's
+ * answer before this was to keep the cube and pay in CELL SIZE — extent over a
+ * fixed 256 cells per edge — which capped the bubble at 480 m because past
+ * that the 1.9 m vertical quantization reads as terraces rather than ground.
+ *
+ * Both costs are vertical, and neither is needed: a town bubble is a lid over
+ * terrain, and terrain relief across a few hundred metres is tens of metres,
+ * not hundreds. So the footprint decides the height.
+ *
+ * The number that matters is not the relief but the reach from the CENTRE
+ * COLUMN, because `fillBubbleFromGround` centres the slab on the ground under
+ * the centre. A column whose surface sits above the slab's top is clamped and
+ * draws a flat mesa; one below its floor is skipped entirely and draws a HOLE
+ * through the world. So this takes the worst reach in either direction and
+ * doubles it, plus a margin for the sky the camera stands in.
+ *
+ * Sampled on a coarse lattice — `STEP` columns per edge — because this runs
+ * before the fill and a full-resolution pre-pass would cost what it saves. A
+ * ridge narrower than the step can still be clipped; the margin absorbs a cell
+ * or two of that, and a bubble is a LID, so the clip that survives is at the
+ * rim where the terrain skin takes over.
+ */
+export function slabHeightForFootprint(
+  src: GroundHeightSource,
+  centerXM: number,
+  centerZM: number,
+  extentM: number,
+  marginM: number,
+): number {
+  const STEP = 33; // odd, so the centre column is one of the samples
+  const half = extentM / 2;
+  const centre = src.surfaceYAt(centerXM, centerZM);
+  let reach = 0;
+  for (let j = 0; j < STEP; j++) {
+    const wz = centerZM - half + (j / (STEP - 1)) * extentM;
+    for (let i = 0; i < STEP; i++) {
+      const wx = centerXM - half + (i / (STEP - 1)) * extentM;
+      const d = Math.abs(src.surfaceYAt(wx, wz) - centre);
+      if (d > reach) reach = d;
+    }
+  }
+  return 2 * (reach + marginM);
 }
 
 /** What a bubble footprint is made of, and which one substance stack wins it. */
@@ -317,12 +398,22 @@ export function rimBlendedSource(
   };
 }
 
-/** Slabs per axis for a bubble of `cellsPerEdge` voxels. */
-export function slabCounts(cellsPerEdge: number): { xz: number; y: number } {
+/**
+ * Slabs per axis for a bubble of `cellsPerEdge` voxels.
+ *
+ * `cellsY` defaults to `cellsPerEdge` because a bubble was a CUBE until the
+ * town-on-LAND pane asked for a slab, and every caller that does not pass it is
+ * still building a cube. Passing it is what keeps the plan from naming slabs
+ * that do not exist (wasted meshes of pure air) or missing the ones that do.
+ */
+export function slabCounts(
+  cellsPerEdge: number,
+  cellsY: number = cellsPerEdge,
+): { xz: number; y: number } {
   const cn = cellsPerEdge + 1; // the lattice runs one past the volume on each side
   return {
     xz: Math.ceil(cn / BUBBLE_SLAB_CELLS),
-    y: Math.ceil(cn / BUBBLE_SLAB_CELLS_Y),
+    y: Math.ceil((cellsY + 1) / BUBBLE_SLAB_CELLS_Y),
   };
 }
 
@@ -335,8 +426,8 @@ export function slabCounts(cellsPerEdge: number): { xz: number; y: number } {
  * camera is standing on. Buried rock and open sky arrive last and nobody is
  * looking at either.
  */
-export function planSlabs(cellsPerEdge: number): SlabCoord[] {
-  const { xz, y } = slabCounts(cellsPerEdge);
+export function planSlabs(cellsPerEdge: number, cellsY: number = cellsPerEdge): SlabCoord[] {
+  const { xz, y } = slabCounts(cellsPerEdge, cellsY);
   const midY = (y - 1) / 2;
   const midXZ = (xz - 1) / 2;
   const out: SlabCoord[] = [];
@@ -390,12 +481,14 @@ export function slabsForEdit(
   min: readonly [number, number, number],
   max: readonly [number, number, number],
   padCells: number,
+  /** Vertical cell count. Defaults to the cube this function grew up on. */
+  cellsY: number = cellsPerEdge,
 ): SlabCoord[] {
   const lo = [min[0] - padCells, min[1] - padCells, min[2] - padCells];
   const hi = [max[0] + padCells, max[1] + padCells, max[2] + padCells];
   const span = (c: number, step: number, i: number): boolean =>
     c * step <= hi[i] && (c + 1) * step >= lo[i];
-  return planSlabs(cellsPerEdge).filter(
+  return planSlabs(cellsPerEdge, cellsY).filter(
     (s) =>
       span(s.cx, BUBBLE_SLAB_CELLS, 0) &&
       span(s.cy, BUBBLE_SLAB_CELLS_Y, 1) &&
@@ -613,6 +706,87 @@ export function tintRatio(
     columnTop[1] / referenceTop[1],
     columnTop[2] / referenceTop[2],
   ];
+}
+
+/* ------------------------------------------------------- THE TOWN'S FLOOR */
+
+/**
+ * Trodden town earth, and the two numbers that place it. Copied from the
+ * SHEET path's own constants in `groundChunkLoader.sampleGroundChunk` so the
+ * volume top and the flat terrain agree about what a town's ground looks like.
+ *
+ * The values are duplicated rather than imported on purpose: this module is the
+ * pure terrain layer and imports nothing from `bridge/`, which is the rule that
+ * keeps it runnable under vitest with no GroundWorld in sight. The tests below
+ * pin the numbers on both sides, so a drift is a failing test rather than a
+ * silent divergence between the two paths.
+ *
+ * Why the town needs its own floor at all is written out at the sheet-path call
+ * site: measured on Hafting, 49.4% of the ground inside the built radius had
+ * NOTHING painted on it and rendered as bright meadow grass between the houses.
+ * A pale street ribbon with vivid grass on both sides has nothing to separate
+ * it from its surroundings, so the street network broke into disconnected
+ * strips. Feet wear ground bare; the tint is what says so.
+ */
+export const TOWN_FLOOR_RGB: readonly [number, number, number] = [0.42, 0.36, 0.27];
+
+/** How far past the town ring the bare ground fades back to wild biome. */
+export const TOWN_FLOOR_FEATHER_M = 26;
+
+/**
+ * How completely the town overrides its biome. Below 1 so a town on moor,
+ * marsh or red desert keeps a trace of where it stands instead of every
+ * settlement in the world sharing one identical brown.
+ */
+export const TOWN_FLOOR_STRENGTH = 0.88;
+
+/**
+ * Blend one column's top color toward trodden town earth.
+ *
+ * `townT` is the TOWN MASK: 1 inside a keep-out ring, ramping to 0 a feather
+ * away from it. Callers derive it from `townClearance` as `1 - clearance`, the
+ * same ring the vegetation keep-out already uses — so bare ground, cleared
+ * trees and the sheet path's floor can never disagree about where the town is.
+ *
+ * Returns the input tuple's values unchanged at `townT <= 0`, which is the
+ * whole world outside a settlement, so a bubble with no town in it is
+ * bit-identical to one built before this existed.
+ */
+export function townFloorTop(
+  columnTop: readonly [number, number, number],
+  townT: number,
+): [number, number, number] {
+  const t = Math.max(0, Math.min(1, townT)) * TOWN_FLOOR_STRENGTH;
+  if (t <= 0) return [columnTop[0], columnTop[1], columnTop[2]];
+  return [
+    columnTop[0] + (TOWN_FLOOR_RGB[0] - columnTop[0]) * t,
+    columnTop[1] + (TOWN_FLOOR_RGB[1] - columnTop[1]) * t,
+    columnTop[2] + (TOWN_FLOOR_RGB[2] - columnTop[2]) * t,
+  ];
+}
+
+/**
+ * How many steps the town mask is quantized into before it reaches the tint
+ * cache and the palette.
+ *
+ * The mask is CONTINUOUS across the feather, and both consumers below are
+ * keyed tables: the worker's per-stack tint cache, and `bakeTintField`'s
+ * 256-entry palette. Left continuous, a single town would hand the palette a
+ * new entry for almost every column in its feather ring, blow past 256, and
+ * drop the overflow to entry 0 — the reference tint — which is a hard bright
+ * edge exactly where the feather exists to avoid one.
+ *
+ * 32 steps over a 26 m feather is a band 80 cm wide, well under the 1–2 m cell
+ * a town bubble is drawn at, so the quantization is invisible and the palette
+ * costs at most 32 entries per ground stack.
+ */
+export const TOWN_MASK_STEPS = 32;
+
+/** Snap a town mask to the palette's step grid. */
+export function quantizeTownMask(townT: number): number {
+  if (townT <= 0) return 0;
+  if (townT >= 1) return 1;
+  return Math.round(townT * TOWN_MASK_STEPS) / TOWN_MASK_STEPS;
 }
 
 /** The buffers of one slab, for `postMessage`'s transfer list. */

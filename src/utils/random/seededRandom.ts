@@ -4,7 +4,7 @@
  * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
  * Last Sync: 27/02/2026, 09:33:31
- * Dependents: LabGrass.tsx, LabRocks.tsx, PropField.tsx, PropsLayer.tsx, Scene3D.tsx, marketEvents.ts, nobleHouseGenerator.ts, perlinNoise.ts, random/index.ts, secretGenerator.ts, templeUtils.ts, terrainUtils.ts
+ * Dependents: marketEvents.ts, nobleHouseGenerator.ts, perlinNoise.ts, random/index.ts, secretGenerator.ts, templeUtils.ts
  * Imports: None
  *
  * MULTI-AGENT SAFETY:

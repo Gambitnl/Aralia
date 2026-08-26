@@ -6,8 +6,14 @@
  * `requestPuzzleHint`, which preserves the existing PZ-002 helper behavior
  * while giving players a visible place to ask for help.
  *
+ * As of agora-b877 the surface also owns solve attempts: it renders the input
+ * controls the authored puzzle actually defines (riddle answers, ordered
+ * sequence/combination steps, item placements) and sends each one to
+ * `attemptPuzzleInput`, the existing puzzle-system rule owner.
+ *
  * Called by: GameModals.tsx when `activePuzzle` is present in game state.
- * Depends on: puzzleRuntime.ts for hint requests and WindowFrame for modal chrome.
+ * Depends on: puzzleRuntime.ts for hint requests, puzzleSystem.ts for solve
+ * attempts, and WindowFrame for modal chrome.
  */
 
 import React, { useCallback, useEffect, useState } from 'react';
@@ -15,8 +21,9 @@ import { Lightbulb, ScrollText } from 'lucide-react';
 import { WindowFrame } from '../ui/WindowFrame';
 import { WINDOW_KEYS } from '../../styles/uiIds';
 import type { PlayerCharacter } from '../../types';
-import type { Puzzle } from '../../systems/puzzles/types';
+import type { Puzzle, PuzzleResult } from '../../systems/puzzles/types';
 import { requestPuzzleHint, type PuzzleRuntimeHintResult } from '../../systems/puzzles/puzzleRuntime';
+import { attemptPuzzleInput } from '../../systems/puzzles/puzzleSystem';
 
 interface PuzzleRuntimeModalProps {
   isOpen: boolean;
@@ -54,11 +61,45 @@ function getPuzzleHintStats(character: PlayerCharacter): NonNullable<PlayerChara
 }
 
 // ============================================================================
+// Authored Input Controls
+// ============================================================================
+// The controls a player sees are derived from the puzzle the author wrote, not
+// from a generic form. Each PuzzleType in systems/puzzles/types.ts carries a
+// different solution field, so each gets the control that field describes.
+//
+// Sequence and combination steps are listed in sorted order on purpose: the set
+// of levers is visible in the room anyway, and it is the ORDER that is the
+// secret. Presenting them in `solutionSequence` order would hand over the answer.
+// ============================================================================
+
+/** The distinct steps a sequence or combination puzzle accepts, order hidden. */
+export function getAuthoredSequenceSteps(puzzle: Puzzle): string[] {
+  return Array.from(new Set(puzzle.solutionSequence ?? [])).sort();
+}
+
+/** The required items a placement puzzle is still waiting for. */
+export function getUnplacedRequiredItems(puzzle: Puzzle): string[] {
+  return (puzzle.requiredItems ?? []).filter(id => !puzzle.currentInputSequence.includes(id));
+}
+
+// ============================================================================
 // Puzzle Runtime Modal
 // ============================================================================
-// This surface is intentionally narrow: it owns the live Puzzle object and the
-// first hint caller, while solve attempts and authored puzzle input controls
-// remain deferred to later puzzle progression slices.
+// This surface owns the live Puzzle object, the hint caller, and — since
+// agora-b877 — solve attempts.
+//
+// Attempts are sent to `attemptPuzzleInput` against the LIVE puzzle record that
+// GameModals passes down from `state.activePuzzle`. That is deliberate:
+// puzzleSystem.ts is written to advance puzzle state in place
+// (`puzzle.isSolved = true`, `puzzle.currentInputSequence.push(...)`), and the
+// reducer holds that same object, so progress survives the player closing and
+// reopening the modal. The React re-render is driven by the stored attempt
+// result, and the render body reads the mutated record directly.
+//
+// What this does NOT do: there is no PUZZLE_ATTEMPT reducer action, so the
+// mutation never flows through the reducer pipeline and a save written from a
+// snapshot-copying path would not carry it. Filed as a workflow/system gap
+// rather than papered over here.
 // ============================================================================
 
 export const PuzzleRuntimeModal: React.FC<PuzzleRuntimeModalProps> = ({
@@ -68,11 +109,15 @@ export const PuzzleRuntimeModal: React.FC<PuzzleRuntimeModalProps> = ({
   character,
 }) => {
   const [hintResult, setHintResult] = useState<PuzzleRuntimeHintResult | null>(null);
+  const [attemptResult, setAttemptResult] = useState<PuzzleResult | null>(null);
+  const [riddleAnswer, setRiddleAnswer] = useState('');
 
   // Reset transient output whenever a new puzzle opens.
   useEffect(() => {
     if (isOpen) {
       setHintResult(null);
+      setAttemptResult(null);
+      setRiddleAnswer('');
     }
   }, [isOpen, puzzle.id]);
 
@@ -85,7 +130,29 @@ export const PuzzleRuntimeModal: React.FC<PuzzleRuntimeModalProps> = ({
     setHintResult(result);
   }, [character, puzzle]);
 
+  const handleAttempt = useCallback((input: string) => {
+    // puzzleSystem owns every puzzle rule. The modal only decides WHICH input
+    // the player just chose; it never re-implements the solve check.
+    const result = attemptPuzzleInput(puzzle, input);
+    setAttemptResult(result);
+  }, [puzzle]);
+
+  const handleRiddleSubmit = useCallback((event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const answer = riddleAnswer.trim();
+    if (!answer) return;
+    handleAttempt(answer);
+    setRiddleAnswer('');
+  }, [handleAttempt, riddleAnswer]);
+
   if (!isOpen) return null;
+
+  // Read straight off the live record so the panel reflects the mutation
+  // puzzleSystem just made.
+  const isResolved = puzzle.isSolved || puzzle.isFailed;
+  const sequenceSteps = getAuthoredSequenceSteps(puzzle);
+  const unplacedItems = getUnplacedRequiredItems(puzzle);
+  const isSequenceType = puzzle.type === 'sequence' || puzzle.type === 'combination';
 
   return (
     // WindowFrame already provides the named dialog surface for this puzzle.
@@ -121,6 +188,124 @@ export const PuzzleRuntimeModal: React.FC<PuzzleRuntimeModalProps> = ({
                 {hintResult.message}
               </div>
             )}
+
+            {/* ------------------------------------------------------------
+                Solve attempts (agora-b877)
+                ------------------------------------------------------------ */}
+            <section aria-label="Solve attempts" className="flex flex-col gap-3">
+              <div className="flex items-center justify-between text-xs uppercase tracking-wide text-slate-400">
+                <span>Attempt</span>
+                {typeof puzzle.maxAttempts === 'number' && (
+                  <span data-testid="puzzle-attempt-counter">
+                    Attempts {puzzle.currentAttempts} / {puzzle.maxAttempts}
+                  </span>
+                )}
+              </div>
+
+              {isSequenceType && puzzle.currentInputSequence.length > 0 && (
+                <p className="text-sm text-slate-300" data-testid="puzzle-entered-steps">
+                  Entered: {puzzle.currentInputSequence.join(' → ')}
+                </p>
+              )}
+
+              {isResolved ? (
+                <p
+                  className={`rounded border p-3 text-sm ${
+                    puzzle.isSolved
+                      ? 'border-emerald-500/60 bg-emerald-950/40 text-emerald-100'
+                      : 'border-rose-500/60 bg-rose-950/40 text-rose-100'
+                  }`}
+                  data-testid="puzzle-resolved-state"
+                >
+                  {puzzle.isSolved
+                    ? 'This puzzle is solved. Nothing more to try.'
+                    : 'The mechanism is jammed or broken. No further attempts are possible.'}
+                </p>
+              ) : (
+                <>
+                  {puzzle.type === 'riddle' && (
+                    <form onSubmit={handleRiddleSubmit} className="flex flex-col gap-2 sm:flex-row">
+                      <label className="sr-only" htmlFor="puzzle-riddle-answer">
+                        Your answer
+                      </label>
+                      <input
+                        id="puzzle-riddle-answer"
+                        type="text"
+                        value={riddleAnswer}
+                        onChange={event => setRiddleAnswer(event.target.value)}
+                        placeholder="Speak your answer"
+                        className="flex-1 rounded border border-slate-600 bg-slate-900 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-300"
+                      />
+                      <button
+                        type="submit"
+                        disabled={riddleAnswer.trim().length === 0}
+                        className="rounded border border-emerald-500 bg-emerald-700 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-600 disabled:cursor-not-allowed disabled:border-slate-600 disabled:bg-slate-800 disabled:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-300"
+                      >
+                        Answer
+                      </button>
+                    </form>
+                  )}
+
+                  {isSequenceType && (
+                    sequenceSteps.length > 0 ? (
+                      <div className="flex flex-wrap gap-2">
+                        {sequenceSteps.map(step => (
+                          <button
+                            key={step}
+                            type="button"
+                            onClick={() => handleAttempt(step)}
+                            className="rounded border border-slate-500 bg-slate-800 px-3 py-2 text-sm font-medium text-slate-100 hover:border-amber-400 hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-amber-300"
+                          >
+                            {step}
+                          </button>
+                        ))}
+                      </div>
+                    ) : (
+                      // Honest failure: a sequence puzzle with no authored steps
+                      // is unplayable data, and saying so beats a dead control.
+                      <p className="text-sm text-rose-300" data-testid="puzzle-missing-steps">
+                        This puzzle defines no input steps, so it cannot be attempted.
+                      </p>
+                    )
+                  )}
+
+                  {puzzle.type === 'item_placement' && (
+                    unplacedItems.length > 0 ? (
+                      <div className="flex flex-wrap gap-2">
+                        {unplacedItems.map(itemId => (
+                          <button
+                            key={itemId}
+                            type="button"
+                            onClick={() => handleAttempt(itemId)}
+                            className="rounded border border-slate-500 bg-slate-800 px-3 py-2 text-sm font-medium text-slate-100 hover:border-amber-400 hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-amber-300"
+                          >
+                            Place {itemId}
+                          </button>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-rose-300" data-testid="puzzle-missing-steps">
+                        This puzzle names no required items, so nothing can be placed.
+                      </p>
+                    )
+                  )}
+                </>
+              )}
+
+              {attemptResult && (
+                <div
+                  role="status"
+                  data-testid="puzzle-attempt-result"
+                  className={`rounded border p-4 text-sm ${
+                    attemptResult.success
+                      ? 'border-emerald-500/60 bg-emerald-950/40 text-emerald-100'
+                      : 'border-rose-500/60 bg-rose-950/40 text-rose-100'
+                  }`}
+                >
+                  {attemptResult.message}
+                </div>
+              )}
+            </section>
 
             <div className="mt-auto flex justify-end">
               <button

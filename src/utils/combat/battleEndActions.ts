@@ -17,6 +17,11 @@
 /**
  * Translates a finished combat into application-level state actions. CombatView
  * reports the outcome; App owns whether play resumes or reaches game over.
+ *
+ * The final enemy roster travels twice on a victory, to two different consumers:
+ * `RESOLVE_WORLDFORGE_OPENING_SCENE` reconciles source-authored identities while
+ * the tactical map still exists, and `END_BATTLE` carries it so post-combat
+ * consequences can read which enemies were actually killed (agora-31fa).
  */
 import type { AppAction } from "../../state/actionTypes";
 import { GamePhase, type Item } from "../../types";
@@ -53,7 +58,9 @@ export const createBattleEndActions = (
       ...sourceOutcomeActions,
       {
         type: "END_BATTLE",
-        ...(rewards ? { payload: { rewards, finalPartyState } } : {}),
+        ...(rewards
+          ? { payload: { rewards, finalPartyState, finalEnemyState } }
+          : {}),
       },
     ];
   }

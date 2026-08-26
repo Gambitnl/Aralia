@@ -74,6 +74,19 @@ export interface SubmapParentContext {
   features?: SubmapFeature[];
   /** Inherited rivers/roads (polylines), projected + clipped into the submap. */
   polylines?: SubmapPolyline[];
+  /**
+   * Adjacent parent-tier cells, in THIS context's coordinate frame. Present ⇒
+   * sub-cells near the shared edge lean toward the neighbour's biome, so the
+   * drill boundary reads as a gradient instead of a hard line. Absent ⇒ the
+   * generator behaves exactly as it did before edge blending existed.
+   */
+  neighbourBiomes?: NeighbourBiome[];
+}
+
+/** One adjacent parent-tier cell: its biome and its centroid in the parent frame. */
+export interface NeighbourBiome {
+  biome: string;
+  centroid: Pt;
 }
 
 export interface GenerateSubmapSitesOptions {
@@ -260,18 +273,112 @@ const BIOME_VARIANTS: Record<string, string[]> = {
   Marine: ['Marine'],
 };
 
+/** Mean of a polygon's vertices — the cell's representative point. */
+export function polygonCentroid(polygon: Pt[]): Pt {
+  let sx = 0, sy = 0;
+  for (const [x, y] of polygon) { sx += x; sy += y; }
+  const n = polygon.length || 1;
+  return [sx / n, sy / n];
+}
+
+/**
+ * Edge-blend shape constants. `START` is the fraction of the run from the
+ * parent centre to the parent boundary at which a neighbour begins to pull;
+ * below it the cell is interior and untouched. `MAX_PULL` is the pull at the
+ * boundary itself, and `FALLOFF` > 1 tightens the band against the edge.
+ */
+export const EDGE_BLEND_START = 0.42;
+const EDGE_BLEND_MAX_PULL = 0.92;
+const EDGE_BLEND_FALLOFF = 1.25;
+
+/** Geometry the blend needs: where the sub-cell sits inside the parent cell. */
+export interface EdgeBlendInput {
+  /** Representative point of the sub-cell, in the parent polygon's frame. */
+  cellCentroid: Pt;
+  /** The parent cell polygon = the submap boundary. */
+  parentPolygon: Pt[];
+  /** Adjacent parent-tier cells, same frame. */
+  neighbourBiomes: NeighbourBiome[];
+}
+
+/**
+ * How strongly one neighbour biome pulls on this sub-cell, and which one wins.
+ *
+ * For each neighbour whose biome DIFFERS from the parent, take the unit
+ * direction `u` from the parent centre toward that neighbour's centroid. The
+ * parent's reach along `u` is its support radius `R` (the largest vertex
+ * projection). The sub-cell's normalized position along `u` is `t = proj / R`,
+ * so `t ≈ 1` at the shared edge and `t ≤ 0` on the far side. Pull rises from
+ * zero at `EDGE_BLEND_START` to `EDGE_BLEND_MAX_PULL` at the boundary. The
+ * strongest pull wins, so a corner cell leans toward its nearest neighbour.
+ *
+ * Returns null when no neighbour reaches this cell — the interior case.
+ */
+export function edgeBlendPull(
+  parentBiome: string,
+  blend: EdgeBlendInput,
+): { biome: string; pull: number } | null {
+  const b = polygonBounds(blend.parentPolygon);
+  const cx = (b.minX + b.maxX) / 2;
+  const cy = (b.minY + b.maxY) / 2;
+  const px = blend.cellCentroid[0] - cx;
+  const py = blend.cellCentroid[1] - cy;
+
+  let best: { biome: string; pull: number } | null = null;
+  for (const n of blend.neighbourBiomes) {
+    if (n.biome === parentBiome) continue;
+    const dx = n.centroid[0] - cx;
+    const dy = n.centroid[1] - cy;
+    const len = Math.hypot(dx, dy);
+    if (len <= 0) continue;
+    const ux = dx / len;
+    const uy = dy / len;
+
+    let reach = 0;
+    for (const [vx, vy] of blend.parentPolygon) {
+      const proj = (vx - cx) * ux + (vy - cy) * uy;
+      if (proj > reach) reach = proj;
+    }
+    if (reach <= 0) continue;
+
+    const t = (px * ux + py * uy) / reach;
+    if (t <= EDGE_BLEND_START) continue;
+    const w = Math.min(1, (t - EDGE_BLEND_START) / (1 - EDGE_BLEND_START));
+    const pull = EDGE_BLEND_MAX_PULL * Math.pow(w, EDGE_BLEND_FALLOFF);
+    if (!best || pull > best.pull) best = { biome: n.biome, pull };
+  }
+  return best;
+}
+
 /**
  * Deterministically pick a sub-cell biome around the inherited parent biome.
  * ~62% of cells keep the parent biome; the rest spread across its variant
  * palette. Seeded per `siteIndex` off the submap seed-path → stable per tier.
+ *
+ * With `blend` supplied, a sub-cell close to a neighbouring parent cell of a
+ * DIFFERENT biome may instead adopt that neighbour's biome, with a probability
+ * that rises toward the shared edge — the gradual transition band. That draw
+ * comes from its own `edge-blend:<siteIndex>` stream, so the `subbiome` stream
+ * keeps every value it had and a context with no neighbours is unchanged.
  */
 export function subBiomeFor(
   parentBiome: string | undefined,
   seedPath: SeedPath,
   siteIndex: number,
+  blend?: EdgeBlendInput,
 ): string | undefined {
   if (!parentBiome) return undefined;
   const variants = BIOME_VARIANTS[parentBiome] ?? [parentBiome];
+  const local = localSubBiome(variants, seedPath, siteIndex);
+  if (!blend || blend.neighbourBiomes.length === 0) return local;
+  const pull = edgeBlendPull(parentBiome, blend);
+  if (!pull) return local;
+  const r = rngFromPath(streamPath(seedPath, `edge-blend:${siteIndex}`)).next();
+  return r < pull.pull ? pull.biome : local;
+}
+
+/** The pre-blend local variation — unchanged, on the frozen `subbiome` stream. */
+function localSubBiome(variants: string[], seedPath: SeedPath, siteIndex: number): string {
   if (variants.length === 1) return variants[0];
   const r = rngFromPath(streamPath(seedPath, `subbiome:${siteIndex}`)).next();
   if (r < 0.62) return variants[0];
@@ -289,6 +396,14 @@ export interface SubmapCell {
   feature?: SubmapFeature;
   /** Local sub-biome (a variation around the inherited parent biome). */
   biome?: string;
+  /**
+   * Site indices of the sub-cells that share a Voronoi edge with this one, from
+   * the submap's own Delaunay graph. This is what lets a deeper drill tier
+   * blend: `submapCellToChildContext` reads each neighbour's sub-biome to build
+   * the child's `neighbourBiomes`, exactly as `buildAtlasNeighbourhood` reads
+   * `pack.cells.c` at the region tier.
+   */
+  neighbours: number[];
 }
 
 export interface SubmapModel {
@@ -326,6 +441,10 @@ export function normalizeParentContextScale(
     polygon: ctx.polygon.map(sc),
     features: ctx.features?.map((f) => ({ ...f, x: (f.x - cx) * k + cx, y: (f.y - cy) * k + cy })),
     polylines: ctx.polylines?.map((pl) => ({ ...pl, points: pl.points.map(sc) })),
+    // The blend reads neighbour centroids in the context's own frame, so they
+    // scale with the polygon. Missing this makes a normalized tier blend toward
+    // a direction that no longer points at the neighbour.
+    neighbourBiomes: ctx.neighbourBiomes?.map((n) => ({ ...n, centroid: sc(n.centroid) })),
   };
 }
 
@@ -372,11 +491,21 @@ export function generateSubmap(
     // at the boundary so the submap is precisely the parent cell's shape.
     const polygon = clipPolygon(raw, ctx.polygon);
     if (polygon.length < 3) continue;
+    // The clipped polygon is in hand here, so the blend gets real geometry:
+    // where this sub-cell sits relative to each adjacent parent cell.
+    const neighbourBiomes = ctx.neighbourBiomes;
+    const blend: EdgeBlendInput | undefined = neighbourBiomes?.length
+      ? { cellCentroid: polygonCentroid(polygon), parentPolygon: ctx.polygon, neighbourBiomes }
+      : undefined;
     cells.push({
       siteIndex: i,
       polygon,
       feature: featureBySite.get(i),
-      biome: subBiomeFor(ctx.biome, ctx.seedPath, i),
+      biome: subBiomeFor(ctx.biome, ctx.seedPath, i, blend),
+      // `voronoi.cells.c` is already filtered to real sites (frame points are
+      // excluded by `pointsN`); a site whose cell was dropped as degenerate is
+      // filtered out at child-context time, where the kept set is known.
+      neighbours: (voronoi.cells.c[i] ?? []).slice(),
     });
   }
 
@@ -403,13 +532,42 @@ export function generateSubmap(
 export function submapCellToChildContext(
   cell: SubmapCell,
   parent: SubmapParentContext,
+  siblings?: SubmapCell[],
 ): SubmapParentContext {
   return {
     polygon: cell.polygon,
     seedPath: childSeedPath(parent.seedPath, `sub:${cell.siteIndex}`),
-    biome: parent.biome,
+    // The sub-cell's OWN sub-biome descends, not the whole submap's inherited
+    // biome: the child tier is a drill into this cell, so a Wetland sub-cell of
+    // a Grassland region opens as a Wetland. `subBiomeFor` returns undefined
+    // only when the parent biome is undefined, so this is the parent biome
+    // whenever the parent had one and the cell drew the dominant variant.
+    biome: cell.biome,
     features: cell.feature ? [cell.feature] : [],
     // Inherited rivers/roads that pass through this sub-cell descend (clipped).
     polylines: projectPolylines(parent.polylines, cell.polygon),
+    neighbourBiomes: siblings ? childNeighbourBiomes(cell, siblings) : undefined,
   };
+}
+
+/**
+ * The child tier's `neighbourBiomes`, derived from the parent submap's own cell
+ * adjacency. Each adjacent sub-cell contributes its sub-biome and its bbox
+ * centre, in the parent submap's frame — the same frame the child polygon is
+ * in, and the same centroid convention `buildAtlasNeighbourhood` uses at the
+ * region tier. Neighbours whose cell was dropped as degenerate, or that carry
+ * no biome, are skipped. `edgeBlendPull` then ignores every neighbour that
+ * matches the child's own biome, so a sub-cell in the core of a uniform patch
+ * gets no pull at all and a sub-cell on a sub-biome band edge does.
+ */
+function childNeighbourBiomes(cell: SubmapCell, siblings: SubmapCell[]): NeighbourBiome[] {
+  const bySite = new Map(siblings.map((c) => [c.siteIndex, c]));
+  const out: NeighbourBiome[] = [];
+  for (const n of cell.neighbours) {
+    const sib = bySite.get(n);
+    if (!sib?.biome) continue;
+    const b = polygonBounds(sib.polygon);
+    out.push({ biome: sib.biome, centroid: [(b.minX + b.maxX) / 2, (b.minY + b.maxY) / 2] });
+  }
+  return out;
 }

@@ -167,10 +167,16 @@
                         "utilityType":  "other",
                         "description":  "Choose one creature within 15 feet that has 0 Hit Points and is not dead; the creature becomes Stable and is no longer dying. The range increases to 30 feet at level 5, 60 feet at level 11, and 120 feet at level 17.",
                         "scaling":  {
-                                        "type":  "slot_level",
+                                        "type":  "character_level",
                                         "bonusPerLevel":  "",
-                                        "customFormula":  ""
-                                    },
+                                        "customFormula":  "",
+                                        "scalingTiers":  {
+                                                        "1":  "15 feet",
+                                                        "5":  "30 feet",
+                                                        "11":  "60 feet",
+                                                        "17":  "120 feet"
+                                        }
+                        },
                         "grantedActions":  [
 
                                            ],
@@ -308,7 +314,7 @@
                       "prompt":  "",
                       "playerInputRequired":  false
                   },
-    "description":  "Choose a creature within range that has 0 Hit Points and isn\u0027t dead. The creature becomes Stable.",
+    "description":  "Choose a creature within range that has 0 Hit Points and isn't dead. The creature becomes Stable.",
     "higherLevels":  "The range doubles when you reach levels 5 (30 feet), 11 (60 feet), and 17 (120 feet).",
     "tags":  [
                  "utility",

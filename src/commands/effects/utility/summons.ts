@@ -8,6 +8,7 @@ import { UtilityCommandControlledEntities } from './controlledEntities'
 import type { UtilityEffect } from '@/types/spells'
 import type { CombatState, CombatCharacter, StatusEffect, Ability, SelectedSpellTarget, Position, ActiveAnimatedObject } from '@/types/combat'
 import { generateId } from '../../../utils/core'
+import { rollDice } from '../../../systems/dice/rollers'
 
 
 
@@ -376,6 +377,7 @@ export abstract class UtilityCommandSummons extends UtilityCommandControlledEnti
         const formName = input.demonForm ?? 'Dretch'
         const position = input.positions?.[index] ?? this.findOffsetCompanionPosition(caster.position, index + 1)
 
+        // Non-fighter/demon creature templates for summons are tracked in Agora task agora-375e.
         // The GM still owns the exact demon stat block. This placeholder actor
         // is intentionally conservative: it makes the hostile entity, count,
         // initiative, and control boundaries real without inventing complete
@@ -763,7 +765,9 @@ export abstract class UtilityCommandSummons extends UtilityCommandControlledEnti
     }
 
     private rollSummonLesserDemonsCount(): number {
-        const roll = Math.floor(Math.random() * 6) + 1
+        // agora-f821.14: this d6 decides how many demons arrive, so it rolls
+        // through the audited contract like every other game roll.
+        const roll = rollDice('1d6', { context: 'summon lesser demons count' })
 
         if (roll <= 2) {
             return 2

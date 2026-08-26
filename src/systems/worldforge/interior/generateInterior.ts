@@ -143,6 +143,17 @@ export const BASEMENT_CHANCE: Record<BuildingType, number> = {
   temple: 0.6,
   keep: 0.9,
   civic: 0.5,
+  // Named landmarks: grain pits and bakehouse cellars are common; a windmill
+  // sits on its own stone base and a lumber mill on the mill race, so neither digs.
+  library: 0.5,
+  guildhall: 0.6,
+  granary: 0.4,
+  windmill: 0.15,
+  lumbermill: 0.2,
+  school: 0.3,
+  shrine: 0.35,
+  barracks: 0.5,
+  bakery: 0.55,
 };
 
 /**

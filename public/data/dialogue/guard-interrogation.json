@@ -1,0 +1,110 @@
+{
+  "id": "guard-interrogation",
+  "startNodeId": "challenge",
+  "nodes": {
+    "challenge": {
+      "id": "challenge",
+      "speaker": "npc",
+      "text": "Stop there. The undercroft is shut on the seneschal's word, and I am the word after that.",
+      "choices": [
+        { "text": "I only need a moment inside.", "nextNodeId": "persuade" },
+        { "text": "Step aside, or I'll move you.", "nextNodeId": "intimidate" },
+        {
+          "text": "Slide him the purse.",
+          "nextNodeId": "bribe",
+          "condition": { "type": "has_item", "params": { "itemId": "item_coin_purse", "quantity": 1 } }
+        },
+        {
+          "text": "The seneschal sent me himself.",
+          "nextNodeId": "seneschal_writ",
+          "condition": { "type": "quest_status", "params": { "questId": "quest_undercroft_writ", "status": "Active" } }
+        },
+        {
+          "text": "It's the third watch. Nobody is checking.",
+          "nextNodeId": "night_angle",
+          "condition": { "type": "time_of_day", "params": { "is": ["Night", "Dusk"] } }
+        },
+        { "text": "Another time, then.", "nextNodeId": "withdraw" }
+      ]
+    },
+    "persuade": {
+      "id": "persuade",
+      "speaker": "npc",
+      "text": "A moment. That is what the last one said, and they carried out a reliquary under a cloak.",
+      "choices": [
+        {
+          "text": "You've seen me here before. You know I'm not that.",
+          "nextNodeId": "relent",
+          "condition": { "type": "disposition", "params": { "min": 25 } }
+        },
+        { "text": "Then search me on the way out.", "nextNodeId": "refuse" }
+      ]
+    },
+    "intimidate": {
+      "id": "intimidate",
+      "speaker": "npc",
+      "text": "You will move me. In front of the gate, in daylight, with two more on the wall behind me.",
+      "effects": [
+        { "type": "update_disposition", "params": { "delta": -15 } },
+        { "type": "set_flag", "params": { "flag": "guard_undercroft_threatened" } }
+      ],
+      "next": "refuse"
+    },
+    "bribe": {
+      "id": "bribe",
+      "speaker": "npc",
+      "text": "...Put that away. Put it away and go left at the second stair, and I never saw your face.",
+      "effects": [
+        { "type": "set_flag", "params": { "flag": "guard_undercroft_bribed" } },
+        { "type": "update_disposition", "params": { "delta": -4 } }
+      ],
+      "next": "admitted"
+    },
+    "seneschal_writ": {
+      "id": "seneschal_writ",
+      "speaker": "npc",
+      "text": "Then you will have his mark on you. ...You do. Go on, and be quick about it.",
+      "effects": [
+        { "type": "update_disposition", "params": { "delta": 5 } },
+        { "type": "unlock_topic", "params": { "topicId": "topic_undercroft_rumors" } }
+      ],
+      "next": "admitted"
+    },
+    "night_angle": {
+      "id": "night_angle",
+      "speaker": "npc",
+      "text": "I am checking. That is the entire job. But the third watch is long and I would rather not spend it arguing.",
+      "choices": [
+        {
+          "text": "So let it be a short argument.",
+          "nextNodeId": "relent",
+          "condition": { "type": "disposition", "params": { "min": 10 } }
+        },
+        { "text": "Fair enough. Goodnight.", "nextNodeId": "withdraw" }
+      ]
+    },
+    "relent": {
+      "id": "relent",
+      "speaker": "npc",
+      "text": "One turn of the glass. If anyone asks, you came out the way you went in.",
+      "effects": [{ "type": "set_flag", "params": { "flag": "guard_undercroft_relented" } }],
+      "next": "admitted"
+    },
+    "admitted": {
+      "id": "admitted",
+      "speaker": "npc",
+      "text": "Go.",
+      "effects": [{ "type": "set_flag", "params": { "flag": "undercroft_access" } }]
+    },
+    "refuse": {
+      "id": "refuse",
+      "speaker": "npc",
+      "text": "No. Turn around."
+    },
+    "withdraw": {
+      "id": "withdraw",
+      "speaker": "player",
+      "text": "You step back from the gate and let the matter rest."
+    }
+  }
+}

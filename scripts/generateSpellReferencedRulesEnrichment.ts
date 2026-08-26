@@ -392,8 +392,27 @@ function normalizedRelPathStartsWith(fullPath: string, prefixPath: string): bool
   return normalizedFullPath.startsWith(normalizedPrefixPath);
 }
 
-function labelToTermId(label: string): string {
-  return `${slugify(label)}_area`;
+// The canonical snapshots cite area shapes more often than any other unmatched
+// rule, which is why this used to suffix every unknown label with "_area". That
+// was wrong for a non-shape label: it minted an id such as "prone_area", and the
+// spell card, which reads that suffix, then displayed the chip as "Area: Prone".
+// Only shape labels keep the suffix now, so a newly captured non-shape rule gets
+// an honest id instead of a mislabeled one.
+const AREA_SHAPE_LABELS = new Set([
+  'cone',
+  'cube',
+  'cylinder',
+  'emanation',
+  'line',
+  'sphere',
+  'wall',
+]);
+
+export function labelToTermId(label: string): string {
+  const normalizedLabel = normalizeRuleLabel(label);
+  const singularLabel = normalizedLabel.replace(/s$/, '');
+  const isAreaShape = AREA_SHAPE_LABELS.has(normalizedLabel) || AREA_SHAPE_LABELS.has(singularLabel);
+  return isAreaShape ? `${slugify(label)}_area` : slugify(label);
 }
 
 function extractBestDescriptionFromMarkdown(markdown: string, label: string): string {
@@ -738,6 +757,106 @@ function renderMarkdownSummary(aggregatedRules: AggregatedRuleEntry[], suppresse
 }
 
 // ============================================================================
+// Destination verification
+// ============================================================================
+// Every rule chip the spell card renders navigates by `glossaryTermId`. A chip
+// whose term id has no glossary entry behind it still looks like a link and then
+// goes nowhere, which is the exact failure this generator exists to prevent. The
+// checks below are what turns "the resolver should always produce a destination"
+// into a fact the run proves before it reports success.
+// ============================================================================
+
+export interface RuleChipDestinationProblem {
+  spellId: string;
+  label: string;
+  glossaryTermId: string;
+  reason: 'missing_term_id' | 'no_destination_entry';
+}
+
+export interface SpellChipRecord {
+  spellId: string;
+  referencedRules: Array<{ label: string; glossaryTermId?: string }>;
+}
+
+/**
+ * Report every emitted rule chip that cannot reach a glossary entry.
+ *
+ * `destinationEntryIds` is the set of entry ids that exist on disk after the
+ * generated referenced-rule entries have been written, so a freshly synthesized
+ * destination counts as resolved.
+ */
+export function findRuleChipDestinationProblems(
+  spells: SpellChipRecord[],
+  destinationEntryIds: Set<string>,
+): RuleChipDestinationProblem[] {
+  const problems: RuleChipDestinationProblem[] = [];
+
+  for (const spell of spells) {
+    for (const rule of spell.referencedRules) {
+      const glossaryTermId = rule.glossaryTermId ?? '';
+
+      if (!glossaryTermId) {
+        problems.push({
+          spellId: spell.spellId,
+          label: rule.label,
+          glossaryTermId: '',
+          reason: 'missing_term_id',
+        });
+        continue;
+      }
+
+      if (!destinationEntryIds.has(glossaryTermId)) {
+        problems.push({
+          spellId: spell.spellId,
+          label: rule.label,
+          glossaryTermId,
+          reason: 'no_destination_entry',
+        });
+      }
+    }
+  }
+
+  return problems;
+}
+
+/**
+ * Report term ids that own a glossary entry file but are not in the served index.
+ *
+ * The compiled index, not the entry folder, is what the running glossary reads.
+ * A rule entry this script just created is therefore still a dead chip until
+ * `generateGlossaryIndex.js` runs, so the caller can name that remaining step
+ * instead of leaving the operator to discover it in the UI.
+ */
+export function findUnindexedRuleTermIds(
+  glossaryTermIds: string[],
+  indexedEntryIds: Set<string>,
+): string[] {
+  return [...new Set(glossaryTermIds)]
+    .filter((glossaryTermId) => !indexedEntryIds.has(glossaryTermId))
+    .sort((a, b) => a.localeCompare(b));
+}
+
+function listIndexedEntryIds(): Set<string> {
+  const indexDir = path.resolve(REPO_ROOT, 'public', 'data', 'glossary', 'index');
+  const indexedEntryIds = new Set<string>();
+  if (!fs.existsSync(indexDir)) return indexedEntryIds;
+
+  for (const fileName of fs.readdirSync(indexDir)) {
+    if (!fileName.endsWith('.json')) continue;
+
+    const parsed = JSON.parse(fs.readFileSync(path.join(indexDir, fileName), 'utf8')) as unknown;
+    if (!Array.isArray(parsed)) continue;
+
+    for (const record of parsed) {
+      const id = (record as { id?: unknown })?.id;
+      if (typeof id === 'string') indexedEntryIds.add(id);
+    }
+  }
+
+  return indexedEntryIds;
+}
+
+// ============================================================================
 // Output
 // ============================================================================
 // This section writes a normal glossary entry JSON file with one extra machine-
@@ -822,6 +941,43 @@ function main(): void {
   console.log(`Referenced rules captured: ${output.enrichmentDataset.totalRules}`);
   console.log(`Spells with referenced rules: ${output.enrichmentDataset.totalSpellsWithReferencedRules}`);
   console.log(`Suppressed raw references: ${output.enrichmentDataset.totalSuppressedRawReferences}`);
+
+  // Re-listing the entries picks up the generated rule files written moments ago,
+  // so this asks the real question: can every chip this dataset emits land on a
+  // glossary entry? A failure here is a generator bug, not a warning to skim.
+  const destinationEntryIds = new Set(listGlossaryEntries().map((entry) => entry.id));
+  const chipProblems = findRuleChipDestinationProblems(output.enrichmentDataset.spells, destinationEntryIds);
+
+  if (chipProblems.length > 0) {
+    console.error(`${chipProblems.length} referenced-rule chip(s) have no glossary destination:`);
+    for (const problem of chipProblems) {
+      console.error(`  ${problem.spellId}: "${problem.label}" -> ${problem.glossaryTermId || '(no term id)'} (${problem.reason})`);
+    }
+    throw new Error('Referenced-rule enrichment produced chips with no glossary destination.');
+  }
+
+  console.log(`Rule chips with a resolved glossary destination: ${output.enrichmentDataset.spells.reduce((total, spell) => total + spell.referencedRules.length, 0)}`);
+
+  // The entry files are only half of a working link: the glossary reads the
+  // compiled index. Anything missing there is still a dead chip in the UI, so
+  // name it and name the command that fixes it.
+  const unindexedTermIds = findUnindexedRuleTermIds(
+    output.enrichmentDataset.rules.map((rule) => rule.glossaryTermId),
+    listIndexedEntryIds(),
+  );
+
+  if (unindexedTermIds.length > 0) {
+    console.warn(`ACTION REQUIRED: ${unindexedTermIds.length} rule destination(s) are not in the compiled glossary index yet: ${unindexedTermIds.join(', ')}`);
+    console.warn('Run "node scripts/generateGlossaryIndex.js" so the spell-card rule chips can navigate.');
+  }
 }
 
-main();
+const isDirectRun = process.argv[1]
+  ? path.resolve(process.argv[1]) === SCRIPT_FILE
+  : false;
+
+// Importing this module for tests must not rewrite the generated dataset, so the
+// write pass only happens when the script is the process entry point.
+if (isDirectRun) {
+  main();
+}

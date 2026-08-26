@@ -53,6 +53,7 @@ import { SplitPaneLayout } from '../ui/SplitPaneLayout';
 import { Shield, Zap, BookOpen } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { ClassIcon } from '../../utils/classIcons';
+import { findSubclass } from '../../data/classes/subclasses';
 import { getAgeAdjustmentSummary } from './hooks/useCharacterAssembly';
 import type { PortraitGenerationStatus } from './state/characterCreatorState';
 
@@ -76,6 +77,13 @@ interface NameAndReviewProps {
   initialName?: string;
   featStepSkipped?: boolean;
 }
+
+/** What each class calls its subclass, for the review summary row. */
+const SUBCLASS_LABELS: Record<string, string> = {
+  warlock: 'Patron',
+  cleric: 'Divine Domain',
+  sorcerer: 'Sorcerous Origin',
+};
 
 const NameAndReview: React.FC<NameAndReviewProps> = ({
   characterPreview,
@@ -106,7 +114,7 @@ const NameAndReview: React.FC<NameAndReviewProps> = ({
     selectedFightingStyle, 
     selectedDivineOrder, 
     selectedDruidOrder, 
-    selectedWarlockPatron,
+    subclassId,
     racialSelections,
     selectedWeaponMasteries,
     speed,
@@ -118,6 +126,17 @@ const NameAndReview: React.FC<NameAndReviewProps> = ({
   // by displaying the canonical vector class silhouette next to the character summary.
 
   const allSpells = useContext(SpellContext);
+
+  // WHAT CHANGED: the review now names the chosen subclass with its display name.
+  // WHY IT CHANGED: it printed the raw warlock patron id ('archfey') and showed
+  // nothing for a 2014 cleric Divine Domain or sorcerer Sorcerous Origin.
+  const subclassSummary = useMemo(() => {
+    const classId = charClass?.id;
+    if (!classId || !subclassId) return null;
+    const subclass = findSubclass(classId, subclassId);
+    if (!subclass) return null;
+    return { label: SUBCLASS_LABELS[classId] ?? 'Subclass', name: subclass.name };
+  }, [charClass?.id, subclassId]);
   const isGeneratingPortrait = portrait.status === 'requesting' || portrait.status === 'polling';
   const hasSeededDescriptionRef = useRef(false);
   const nameInputRef = useRef<HTMLInputElement>(null);
@@ -511,7 +530,12 @@ const NameAndReview: React.FC<NameAndReviewProps> = ({
                     })}
                     {selectedDivineOrder && <div className="text-gray-300"><span className="text-purple-400 font-semibold mr-2">Divine Order:</span> {selectedDivineOrder}</div>}
                     {selectedDruidOrder && <div className="text-gray-300"><span className="text-emerald-400 font-semibold mr-2">Primal Order:</span> {selectedDruidOrder}</div>}
-                    {selectedWarlockPatron && <div className="text-gray-300"><span className="text-pink-400 font-semibold mr-2">Patron:</span> {selectedWarlockPatron}</div>}
+                    {subclassSummary && (
+                      <div className="text-gray-300">
+                        <span className="text-pink-400 font-semibold mr-2">{subclassSummary.label}:</span>
+                        {subclassSummary.name}
+                      </div>
+                    )}
                   </div>
 
                   {(allKnownCantrips.length > 0 || allKnownSpells.length > 0) && (

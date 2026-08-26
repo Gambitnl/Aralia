@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 17/08/2026, 14:11:21
+ * Last Sync: 09/09/2026, 09:36:00
  * Dependents: App.tsx, components/DesignPreview/steps/PreviewEconCraft.tsx, components/DesignPreview/steps/PreviewEquipment.tsx
- * Imports: 50 files
+ * Imports: 51 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -19,7 +19,7 @@
  * Defines the state structure, initial state, actions, and the root reducer for the application.
  * The root reducer orchestrates calls to smaller "slice" reducers for better modularity.
  */
-import { GameState, GamePhase, PlayerCharacter, SuspicionLevel, KnownFact, UnderdarkState, Companion, CompanionReactionRule, Relationship } from '../types';
+import { GameState, GamePhase, PlayerCharacter, SuspicionLevel, UnderdarkState, Companion, CompanionReactionRule, Relationship } from '../types';
 import { CompanionSoul } from '../types/companion';
 import type { DivineFavor, NavalState } from '../types';
 import { AppAction } from './actionTypes';
@@ -42,9 +42,11 @@ import { logger } from '../utils/core';
 import { INITIAL_TRADE_ROUTES } from '../data/tradeRoutes';
 import { createEmptyHistory } from '../utils/world';
 import { generateId } from '../utils/core/idGenerator';
+import { migrateNpcMemoryRecord } from './migrations/npcMemoryMigration';
 import { appendAdventureLogEntry } from '../systems/adventureLog/adventureLog';
 import { gameEntryTransition } from '../systems/gameEntry/entryStateMachine';
 import { deriveWatchReaction } from '../systems/social/watchReaction';
+import { CrimeType } from '../types/crime';
 import { CrimeSystem } from '../systems/crime/CrimeSystem';
 import { INITIAL_GAME_ENTRY_STATE } from '../systems/gameEntry/types';
 import { MOCK_SHIP_SLOOP } from '../data/dev/mockShips';
@@ -59,6 +61,7 @@ import { uiReducer } from './reducers/uiReducer';
 import { religionReducer } from './reducers/religionReducer';
 import { characterReducer } from './reducers/characterReducer';
 import { worldReducer } from './reducers/worldReducer';
+import { ritualReducer } from './reducers/ritualReducer';
 import { logReducer } from './reducers/logReducer';
 import { encounterReducer } from './reducers/encounterReducer';
 import { npcReducer } from './reducers/npcReducer';
@@ -109,6 +112,8 @@ const INITIAL_NAVAL_STATE: NavalState = {
 };
 
 import { initialGameState, INITIAL_DIVINE_FAVOR } from './initialState';
+import { getRulesEdition } from '../config/rulesEdition';
+import { getAllowSaveScum, getDiceSaveCounter } from '../config/saveScum';
 export { initialGameState, INITIAL_DIVINE_FAVOR };
 
 /**
@@ -144,6 +149,23 @@ export function appReducer(state: GameState, action: AppAction): GameState {
     switch (action.type) {
         case 'SET_AUTO_SAVE_ENABLED': {
             return { ...state, autoSaveEnabled: action.payload };
+        }
+        case 'SET_COMBAT_DIFFICULTY': {
+            return { ...state, combatDifficulty: action.payload };
+        }
+        case 'SET_RULES_EDITION': {
+            return { ...state, rulesEdition: action.payload };
+        }
+
+        case 'SET_ALLOW_SAVE_SCUM': {
+            return { ...state, allowSaveScum: action.payload };
+        }
+
+        // The per-save counter lives in state so the NEXT save writes a
+        // different one; saveGame reports the number it stored and the caller
+        // dispatches it back.
+        case 'SET_DICE_SAVE_COUNTER': {
+            return { ...state, diceSaveCounter: action.payload };
         }
         case 'SET_WORLD_SEED': {
             // Reset naval.knownPorts so a mid-session seed change repopulates for
@@ -211,6 +233,9 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 ...initialGameState,
                 phase: GamePhase.MAIN_MENU,
                 autoSaveEnabled: state.autoSaveEnabled ?? initialGameState.autoSaveEnabled,
+                rulesEdition: getRulesEdition(state),
+                allowSaveScum: getAllowSaveScum(state),
+                diceSaveCounter: getDiceSaveCounter(state),
                 worldSeed: state.worldSeed,
                 // Always clear run-specific state regardless of how initialGameState was evaluated
                 party: [],
@@ -247,6 +272,9 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 worldSeed: action.payload.worldSeed,
                 // Preserve user preference across new-game resets.
                 autoSaveEnabled: state.autoSaveEnabled ?? initialGameState.autoSaveEnabled,
+                rulesEdition: getRulesEdition(state),
+                allowSaveScum: getAllowSaveScum(state),
+                diceSaveCounter: getDiceSaveCounter(state),
                 dynamicLocationItemIds: action.payload.dynamicLocationItemIds,
                 inventory: [],
                 currentLocationActiveDynamicNpcIds: determineActiveDynamicNpcsForLocation(STARTING_LOCATION_ID, LOCATIONS),
@@ -391,6 +419,9 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 phase: GamePhase.PLAYING,
                 // Preserve user preference across resets.
                 autoSaveEnabled: state.autoSaveEnabled ?? initialGameState.autoSaveEnabled,
+                rulesEdition: getRulesEdition(state),
+                allowSaveScum: getAllowSaveScum(state),
+                diceSaveCounter: getDiceSaveCounter(state),
                 worldSeed: state.worldSeed,
                 party: newParty,
                 tempParty: newParty.map(p => ({ id: p.id || generateId(), name: p.name, level: p.level || 1, classId: p.class.id })),
@@ -443,6 +474,9 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 phase: GamePhase.PLAYING,
                 // Preserve user preference across resets.
                 autoSaveEnabled: state.autoSaveEnabled ?? initialGameState.autoSaveEnabled,
+                rulesEdition: getRulesEdition(state),
+                allowSaveScum: getAllowSaveScum(state),
+                diceSaveCounter: getDiceSaveCounter(state),
                 worldSeed: worldSeed,
                 party: generatedParty,
                 tempParty: generatedParty.map(p => ({ id: p.id || generateId(), name: p.name, level: p.level || 1, classId: p.class.id })),
@@ -495,6 +529,9 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 phase: GamePhase.PLAYING,
                 // Preserve user preference across resets.
                 autoSaveEnabled: state.autoSaveEnabled ?? initialGameState.autoSaveEnabled,
+                rulesEdition: getRulesEdition(state),
+                allowSaveScum: getAllowSaveScum(state),
+                diceSaveCounter: getDiceSaveCounter(state),
                 // Prefer the seed the world was actually generated with (carried
                 // in the payload); fall back to the seed set during new-game setup.
                 worldSeed: restOfPayload.worldSeed ?? state.worldSeed,
@@ -577,51 +614,18 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                     ? [loadedState.playerCharacter]
                     : [];
 
-            // NPC-memory load policy (G3): this migration owns only `knownFacts`.
-            // Legacy string arrays become canonical fact records, and structured
-            // facts receive only the two optional strength-derived fields below.
-            // Disposition, suspicion, goals, lightweight facts, interaction
-            // history, and their timestamps remain exactly as the save supplied.
-            for (const npcId in loadedState.npcMemory) {
-                const memory = loadedState.npcMemory[npcId];
-                // Legacy saves stored knownFacts as a plain string array before the
-                // structured KnownFact model existed. Treat the loaded field as
-                // untrusted data and migrate string entries into canonical records.
-                const rawKnownFacts: unknown = memory.knownFacts;
-                if (Array.isArray(rawKnownFacts) && rawKnownFacts.length > 0 && typeof rawKnownFacts[0] === 'string') {
-                    logger.info('Migrating knownFacts for NPC', { npcId });
-                    const oldStringFacts = rawKnownFacts.filter((fact): fact is string => typeof fact === 'string');
-                    memory.knownFacts = oldStringFacts.map((factText): KnownFact => ({
-                        id: generateId(),
-                        text: factText,
-                        // Preserve a direct provenance label on migrated facts so later readers
-                        // can tell imported memories from derived ones. This is fact metadata,
-                        // not companion approval routing.
-                        source: 'direct',
-                        isPublic: true,
-                        timestamp: gameTimeFromLoad.getTime(),
-                        strength: 5,
-                        lifespan: 999,
-                    }));
-                }
-
-                // Structured facts retain their IDs and every saved content field.
-                // Only missing confidence/significance values are added, using the
-                // established strength-based calculation from the memory merge.
-                if (Array.isArray(memory.knownFacts)) {
-                    memory.knownFacts = memory.knownFacts.map((fact) => {
-                        if (typeof fact !== 'object' || fact === null) return fact;
-                        const f = fact as KnownFact;
-                        if (f.confidence !== undefined && f.significance !== undefined) return f;
-                        const baseStrength = typeof f.strength === 'number' ? f.strength : 5;
-                        return {
-                            ...f,
-                            confidence: f.confidence ?? Math.max(0, Math.min(1, baseStrength / 10)),
-                            significance: f.significance ?? Math.max(0, Math.min(10, baseStrength)),
-                        };
-                    });
-                }
-            }
+            // NPC-memory load policy (G3, agora-f4e9): every saved NPC memory
+            // entry runs through the extracted migration on load. It heals the
+            // whole canonical shape (disposition / knownFacts / suspicion / goals),
+            // keeps the original knownFacts lane (legacy string arrays become
+            // canonical records; structured facts gain only the missing
+            // strength-derived confidence/significance), and passes every other
+            // optional field through untouched so sibling systems that attach data
+            // to NpcMemory via intersection types do not lose it on reload.
+            const migratedNpcMemory = migrateNpcMemoryRecord(
+                loadedState.npcMemory,
+                gameTimeFromLoad.getTime(),
+            );
 
             // Migrate old shiny_coin items to gold property
             let migratedGold = loadedState.gold !== undefined ? loadedState.gold : 0;
@@ -716,6 +720,7 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 visualDiceEnabled: loadedState.visualDiceEnabled ?? true,
                 geminiGeneratedActions: null,
                 party: partyFromLoad.map(p => ({ ...(p as PlayerCharacter), equippedItems: (p as PlayerCharacter).equippedItems || {} })),
+                npcMemory: migratedNpcMemory,
                 inventory: migratedInventory,
                 gold: migratedGold,
                 currentLocationActiveDynamicNpcIds: determineActiveDynamicNpcsForLocation(loadedState.currentLocationId, LOCATIONS),
@@ -1065,11 +1070,23 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 // witnessed crime keyed to this town), every townsperson's disposition
                 // drops, and the log records it. Scope is one town — no faction webs.
                 const watchTownId = state.currentLocationId;
+                // agora-31fa: severity now follows the actual combat outcome instead
+                // of assuming every won fight was non-lethal. END_BATTLE carries the
+                // enemy roster exactly as combat left it; an enemy token at or below
+                // 0 HP is one the party KILLED (only PARTY members are stabilized to
+                // 1 HP on a win, a few lines above). One dead watchman makes this a
+                // Murder rather than an Assault.
+                //
+                // Resolution is per-combatant, not per-scene-NPC id, because a
+                // hostile opening spawns its watch as bestiary monsters via
+                // threatToMonsters — the scene NPC ids never reach the battle map.
+                const finalEnemyState = action.payload?.finalEnemyState ?? [];
+                const killedEnemyCount = finalEnemyState.filter(
+                    (enemy) => enemy.currentHP <= 0,
+                ).length;
                 const watchReaction = deriveWatchReaction(situation, watchTownId, {
                     openingWasHostile: true,
-                    // A won battle leaves the watch beaten, not confirmed dead; treat
-                    // as Assault. Per-NPC lethality tracking is a deferred nuance.
-                    watchNpcDied: false,
+                    watchNpcDied: killedEnemyCount > 0,
                 });
                 if (watchReaction) {
                     // Record the crime the same way COMMIT_CRIME does, so bounty +
@@ -1119,7 +1136,9 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                             ...newState.messages,
                             {
                                 id: Date.now() + 5,
-                                text: `The watch is beaten, but witnesses saw everything. You are now wanted in ${watchTownId}.`,
+                                text: watchReaction.crime.type === CrimeType.Murder
+                                    ? `The watch lies dead, and witnesses saw everything. You are now wanted in ${watchTownId}.`
+                                    : `The watch is beaten, but witnesses saw everything. You are now wanted in ${watchTownId}.`,
                                 sender: 'system',
                                 timestamp: inGameTimestamp(state.gameTime),
                             },
@@ -1201,6 +1220,14 @@ export function appReducer(state: GameState, action: AppAction): GameState {
             nextState = { ...nextState, ...religionReducer(nextState, action) };
             nextState = { ...nextState, ...characterReducer(nextState, action) };
             nextState = { ...nextState, ...worldReducer(nextState, action) };
+            // Rituals (2026-09-13, agora-f4ab.4): START_RITUAL, ADVANCE_RITUAL,
+            // INTERRUPT_RITUAL and COMPLETE_RITUAL were silent no-ops in
+            // production because ritualReducer only ran inside worldReducer for
+            // ADVANCE_TIME. It now runs here for every other action; ADVANCE_TIME
+            // stays with worldReducer so progress is not advanced twice.
+            if (action.type !== 'ADVANCE_TIME') {
+                nextState = { ...nextState, ...ritualReducer(nextState, action) };
+            }
             nextState = { ...nextState, ...logReducer(nextState, action) };
 
             // Specific Domain Systems

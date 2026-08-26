@@ -5,6 +5,7 @@
  * including the glossary route used by linked spell rules.
  */
 import React from 'react';
+import { ItemType } from '../../../types';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import CharacterSheetModal from '../CharacterSheetModal';
@@ -116,7 +117,7 @@ describe('CharacterSheetModal', () => {
   };
 
   const inventory: Item[] = [
-    { id: 'sword', name: 'Shortsword', description: '', type: 'weapon' },
+    { id: 'sword', name: 'Shortsword', description: '', type: ItemType.Weapon },
   ];
 
   const defaultProps = {

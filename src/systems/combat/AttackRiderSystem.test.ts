@@ -1,26 +1,73 @@
 import { describe, expect, it } from 'vitest';
-import { AttackRiderSystem } from './AttackRiderSystem';
+import {
+  AttackRiderSystem,
+  isRiderHitEligible,
+  isRiderTargetMatch,
+  isRiderTurnAvailable,
+  isRiderAttackFilterMatch,
+} from './AttackRiderSystem';
 import type { ActiveRider, CombatState } from '../../types/combat';
+import type { AttackContext, RiderMatchResult } from './AttackRiderSystem';
 
 /**
- * This file proves the shared attack-rider matcher used by next-attack spells.
+ * This file proves the shared attack-rider matching system used by next-attack spells.
  *
- * Lightning Arrow-style riders and future weapon riders depend on the same
- * matcher to decide which pending spell effects wake up after an attack. The
- * important boundary here is that an Unarmed Strike is not automatically a
- * held melee weapon: smite reaction prompts may opt into unarmed hits, but
- * ordinary weapon-only riders should not leak onto punches.
+ * It has two sections:
+ * 1. Focused predicate tests — each extracted predicate function is tested in isolation
+ *    so the matching contract is documented and regressions are caught at the exact
+ *    boundary that broke.
+ * 2. Composed integration tests — the original test suite that proves the full
+ *    getMatchingRiders() pipeline and consumption behavior.
+ *
+ * G32 refactor (2026-08-26): Added the predicate tests. All original integration tests
+ * are preserved unchanged.
  *
  * Called by: focused Vitest checks for combat rider matching.
- * Depends on: AttackRiderSystem and the shared ActiveRider combat type.
+ * Depends on: AttackRiderSystem, the extracted predicate functions, and ActiveRider type.
  */
 
 // ============================================================================
-// Rider Fixtures
+// Shared Fixtures
 // ============================================================================
-// These helpers keep the test focused on attack-family matching. The payload is
-// intentionally minimal because this proof is about whether the rider wakes up,
-// not about resolving damage after it matches.
+// These helpers build minimal rider and state objects focused on the dimension
+// being tested. The payload details are intentionally minimal because these
+// tests are about matching predicates, not about resolving damage.
+// ============================================================================
+
+/** Builds a minimal ActiveRider with sensible defaults, overridable per-test. */
+const createMinimalRider = (overrides: Partial<ActiveRider> = {}): ActiveRider => ({
+  id: 'test-rider',
+  spellId: 'test-spell',
+  casterId: 'attacker',
+  sourceName: 'Test Rider',
+  effect: {
+    type: 'DAMAGE',
+    damage: { dice: '1d6', type: 'radiant' },
+    trigger: { type: 'on_attack_hit', attackFilter: {} },
+    condition: { type: 'always' }
+  } as unknown as ActiveRider['effect'],
+  consumption: 'first_hit',
+  attackFilter: {},
+  usedThisTurn: false,
+  duration: { type: 'rounds', value: 1 },
+  ...overrides,
+});
+
+/** Builds a minimal AttackContext with sensible defaults, overridable per-test. */
+const createMinimalContext = (overrides: Partial<AttackContext> = {}): AttackContext => ({
+  attackerId: 'attacker',
+  targetId: 'target',
+  attackType: 'weapon',
+  weaponType: 'melee',
+  isHit: true,
+  ...overrides,
+});
+
+// ============================================================================
+// Original Fixture Helpers (preserved from pre-refactor tests)
+// ============================================================================
+// These are the exact same helpers used by the original integration tests.
+// They build richer fixtures for the composed matching + consumption proofs.
 // ============================================================================
 
 const createMeleeWeaponRider = (): ActiveRider => ({
@@ -113,11 +160,185 @@ const createStateWithRider = (rider: ActiveRider): CombatState => ({
 } as unknown as CombatState);
 
 // ============================================================================
-// Unarmed Strike Boundary
+// PART 1: Focused Predicate Tests
 // ============================================================================
+// Each extracted predicate is tested in isolation. These tests document the
+// exact matching contract for each dimension and catch regressions at the
+// specific boundary that broke, rather than surfacing failures through the
+// composed pipeline.
+// ============================================================================
+
+// ---- isRiderHitEligible ----
+// Tests the hit/miss gate: most riders only fire on hits, but hit-or-miss
+// riders (like Lightning Arrow) fire regardless of the attack outcome.
+
+describe('isRiderHitEligible', () => {
+  it('accepts a hit for a first_hit rider', () => {
+    const rider = createMinimalRider({ consumption: 'first_hit' });
+    const context = createMinimalContext({ isHit: true });
+    expect(isRiderHitEligible(rider, context)).toBe(true);
+  });
+
+  it('rejects a miss for a first_hit rider', () => {
+    const rider = createMinimalRider({ consumption: 'first_hit' });
+    const context = createMinimalContext({ isHit: false });
+    expect(isRiderHitEligible(rider, context)).toBe(false);
+  });
+
+  it('accepts a miss for a per_instance_hit_or_miss rider (Lightning Arrow pattern)', () => {
+    const rider = createMinimalRider({ consumption: 'per_instance_hit_or_miss' });
+    const context = createMinimalContext({ isHit: false });
+    expect(isRiderHitEligible(rider, context)).toBe(true);
+  });
+
+  it('accepts a hit for a per_instance_hit_or_miss rider', () => {
+    const rider = createMinimalRider({ consumption: 'per_instance_hit_or_miss' });
+    const context = createMinimalContext({ isHit: true });
+    expect(isRiderHitEligible(rider, context)).toBe(true);
+  });
+
+  it('rejects a miss for a per_turn rider', () => {
+    const rider = createMinimalRider({ consumption: 'per_turn' });
+    const context = createMinimalContext({ isHit: false });
+    expect(isRiderHitEligible(rider, context)).toBe(false);
+  });
+
+  it('rejects a miss for an unlimited rider', () => {
+    const rider = createMinimalRider({ consumption: 'unlimited' });
+    const context = createMinimalContext({ isHit: false });
+    expect(isRiderHitEligible(rider, context)).toBe(false);
+  });
+});
+
+// ---- isRiderTargetMatch ----
+// Tests target-specificity: Hex/Hunter's Mark lock to a specific target,
+// while Divine Favor matches attacks against anyone.
+
+describe('isRiderTargetMatch', () => {
+  it('matches when the rider has no target lock (applies to all targets)', () => {
+    const rider = createMinimalRider({ targetId: undefined });
+    const context = createMinimalContext({ targetId: 'any-enemy' });
+    expect(isRiderTargetMatch(rider, context)).toBe(true);
+  });
+
+  it('matches when the rider target matches the attack target', () => {
+    const rider = createMinimalRider({ targetId: 'marked-enemy' });
+    const context = createMinimalContext({ targetId: 'marked-enemy' });
+    expect(isRiderTargetMatch(rider, context)).toBe(true);
+  });
+
+  it('rejects when the rider target does not match the attack target', () => {
+    const rider = createMinimalRider({ targetId: 'marked-enemy' });
+    const context = createMinimalContext({ targetId: 'different-enemy' });
+    expect(isRiderTargetMatch(rider, context)).toBe(false);
+  });
+});
+
+// ---- isRiderTurnAvailable ----
+// Tests per-turn usage: Sneak Attack-style riders can only fire once per turn.
+
+describe('isRiderTurnAvailable', () => {
+  it('allows a per_turn rider that has not been used yet', () => {
+    const rider = createMinimalRider({ consumption: 'per_turn', usedThisTurn: false });
+    expect(isRiderTurnAvailable(rider)).toBe(true);
+  });
+
+  it('rejects a per_turn rider that has already been used this turn', () => {
+    const rider = createMinimalRider({ consumption: 'per_turn', usedThisTurn: true });
+    expect(isRiderTurnAvailable(rider)).toBe(false);
+  });
+
+  it('allows a first_hit rider regardless of usedThisTurn flag', () => {
+    // first_hit riders are removed entirely after firing, so usedThisTurn
+    // is irrelevant — but if it were set by accident, it should not block.
+    const rider = createMinimalRider({ consumption: 'first_hit', usedThisTurn: true });
+    expect(isRiderTurnAvailable(rider)).toBe(true);
+  });
+
+  it('allows an unlimited rider regardless of usedThisTurn flag', () => {
+    const rider = createMinimalRider({ consumption: 'unlimited', usedThisTurn: true });
+    expect(isRiderTurnAvailable(rider)).toBe(true);
+  });
+});
+
+// ---- isRiderAttackFilterMatch ----
+// Tests weapon type and attack type filtering, including legacy label normalization
+// and the unarmed boundary.
+
+describe('isRiderAttackFilterMatch', () => {
+  it('matches when the rider has no weapon or attack type filter (empty filter)', () => {
+    const rider = createMinimalRider({ attackFilter: {} });
+    const context = createMinimalContext({ attackType: 'weapon', weaponType: 'melee' });
+    expect(isRiderAttackFilterMatch(rider, context)).toBe(true);
+  });
+
+  it('matches when weapon type filter is "any"', () => {
+    const rider = createMinimalRider({ attackFilter: { weaponType: 'any' } });
+    const context = createMinimalContext({ weaponType: 'ranged' });
+    expect(isRiderAttackFilterMatch(rider, context)).toBe(true);
+  });
+
+  it('matches when attack type filter is "any"', () => {
+    const rider = createMinimalRider({ attackFilter: { attackType: 'any' } });
+    const context = createMinimalContext({ attackType: 'spell' });
+    expect(isRiderAttackFilterMatch(rider, context)).toBe(true);
+  });
+
+  it('rejects when weapon type does not match', () => {
+    const rider = createMinimalRider({ attackFilter: { weaponType: 'melee' } });
+    const context = createMinimalContext({ weaponType: 'ranged' });
+    expect(isRiderAttackFilterMatch(rider, context)).toBe(false);
+  });
+
+  it('rejects when attack type does not match', () => {
+    const rider = createMinimalRider({ attackFilter: { attackType: 'weapon' } });
+    const context = createMinimalContext({ attackType: 'spell' });
+    expect(isRiderAttackFilterMatch(rider, context)).toBe(false);
+  });
+
+  it('rejects when context has no weapon type but rider requires one', () => {
+    const rider = createMinimalRider({ attackFilter: { weaponType: 'melee' } });
+    const context = createMinimalContext({ weaponType: undefined });
+    expect(isRiderAttackFilterMatch(rider, context)).toBe(false);
+  });
+
+  it('normalizes legacy "melee_weapon" to "melee" for matching', () => {
+    const rider = createMinimalRider({
+      attackFilter: { weaponType: 'melee_weapon' } as unknown as ActiveRider['attackFilter']
+    });
+    const context = createMinimalContext({ weaponType: 'melee' });
+    expect(isRiderAttackFilterMatch(rider, context)).toBe(true);
+  });
+
+  it('normalizes legacy "ranged_weapon" to "ranged" for matching', () => {
+    const rider = createMinimalRider({
+      attackFilter: { weaponType: 'ranged_weapon' } as unknown as ActiveRider['attackFilter']
+    });
+    const context = createMinimalContext({ weaponType: 'ranged' });
+    expect(isRiderAttackFilterMatch(rider, context)).toBe(true);
+  });
+
+  it('rejects unarmed attacks against a melee weapon filter (unarmed boundary)', () => {
+    // An unarmed strike is melee in ordinary table language, but it is NOT a
+    // held melee weapon. Rider matching must keep these separate. Smite reaction
+    // prompts handle unarmed opt-ins through separate castingTrigger metadata.
+    const rider = createMinimalRider({ attackFilter: { attackType: 'weapon', weaponType: 'melee' } });
+    const context = createMinimalContext({ attackType: 'unarmed', weaponType: 'unarmed' });
+    expect(isRiderAttackFilterMatch(rider, context)).toBe(false);
+  });
+});
+
+// ============================================================================
+// PART 2: Composed Integration Tests (Original Suite — Preserved Unchanged)
+// ============================================================================
+// These tests prove the full getMatchingRiders() pipeline and consumption
+// behavior. They existed before the G32 predicate extraction and validate that
+// the refactored composition produces identical results.
+// ============================================================================
+
+// ---- Unarmed Strike Boundary ----
 // The matcher should keep weapon riders narrow while the after-hit smite hook
 // handles spell-specific Unarmed Strike opt-ins through castingTrigger metadata.
-// ============================================================================
 
 describe('AttackRiderSystem unarmed attack matching', () => {
   it('does not match a melee weapon rider against an Unarmed Strike context', () => {
@@ -158,14 +379,11 @@ describe('AttackRiderSystem unarmed attack matching', () => {
   });
 });
 
-// ============================================================================
-// Legacy Weapon-Type Filter Compatibility
-// ============================================================================
+// ---- Legacy Weapon-Type Filter Compatibility ----
 // Next-attack riders have lived through multiple data shapes. The runtime
 // context now reports compact `ranged` / `melee` labels, while older rider data
 // may still carry `ranged_weapon` / `melee_weapon`. This proof keeps the shared
 // matcher tolerant so Lightning Arrow-style riders do not miss their trigger.
-// ============================================================================
 
 describe('AttackRiderSystem weapon-type filter compatibility', () => {
   it('matches a legacy ranged-weapon rider against the compact ranged attack context', () => {
@@ -227,14 +445,11 @@ describe('AttackRiderSystem weapon-type filter compatibility', () => {
   });
 });
 
-// ============================================================================
-// Hit-Or-Miss Rider Consumption
-// ============================================================================
+// ---- Hit-Or-Miss Rider Consumption ----
 // Lightning Arrow spends its stored spell payload on the next matching ranged
 // weapon attack whether that attack hits or misses. These checks prove the
 // shared rider system removes that rider after matching, so a later attack
 // cannot reuse the same spell payload.
-// ============================================================================
 
 describe('AttackRiderSystem hit-or-miss rider consumption', () => {
   it('removes a Lightning Arrow-style rider after a matching miss consumes it', () => {

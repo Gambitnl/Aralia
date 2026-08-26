@@ -85,9 +85,13 @@ export const WEALTHY_HOME_SERVANT_COUNT = 2;
 // Trade nouns by workplace type — the proprietor's title and a staffer's role.
 const PROPRIETOR_TRADE: Partial<Record<BuildingType, string>> = {
   inn: 'innkeeper', tavern: 'taverner', shop: 'shopkeeper', smithy: 'blacksmith', workshop: 'master artisan', civic: 'town official',
+  library: 'librarian', guildhall: 'guildmaster', school: 'schoolmaster', barracks: 'watch captain',
+  windmill: 'miller', lumbermill: 'sawyer', bakery: 'baker', shrine: 'shrine-keeper',
 };
 const STAFF_TRADE: Partial<Record<BuildingType, string>> = {
   inn: 'inn servant', tavern: 'serving-hand', shop: 'shop hand', smithy: "smith's apprentice", workshop: 'journeyman', civic: 'clerk',
+  library: 'copyist', guildhall: 'guild clerk', school: 'usher', barracks: 'town guard',
+  windmill: "miller's hand", lumbermill: 'mill-hand', bakery: "baker's hand", shrine: 'acolyte',
 };
 
 interface Rng { next(): number }

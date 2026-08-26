@@ -36,7 +36,7 @@
  *    - -90° = North (-y)
  */
 
-import { Position } from '../../types/combat';
+import { Direction, Position } from '../../types/combat';
 
 /**
  * Converts radians to degrees.
@@ -109,4 +109,51 @@ export const facingToDegrees = (facing: string): number => {
         case 'northwest': return 315;
         default: return 0;
     }
+};
+
+/**
+ * Convert a compass facing to a grid-unit vector.
+ *
+ * The vector components are always -1, 0, or 1. The grid puts +x to the East
+ * and +y to the South, thus North is y = -1.
+ */
+export const facingToVector = (facing: Direction): Position => {
+    switch (facing) {
+        case 'north': return { x: 0, y: -1 };
+        case 'northeast': return { x: 1, y: -1 };
+        case 'east': return { x: 1, y: 0 };
+        case 'southeast': return { x: 1, y: 1 };
+        case 'south': return { x: 0, y: 1 };
+        case 'southwest': return { x: -1, y: 1 };
+        case 'west': return { x: -1, y: 0 };
+        case 'northwest': return { x: -1, y: -1 };
+    }
+};
+
+/**
+ * Find the compass facing that points from one grid position to another.
+ *
+ * Each axis is reduced to its sign, thus the result is one of the eight
+ * compass directions. The function returns undefined when the two positions
+ * are the same, because a zero step has no direction.
+ */
+export const facingFromPositions = (from: Position, to: Position): Direction | undefined => {
+    const stepX = Math.sign(to.x - from.x);
+    const stepY = Math.sign(to.y - from.y);
+
+    if (stepX === 0 && stepY === 0) return undefined;
+
+    if (stepY < 0) {
+        if (stepX < 0) return 'northwest';
+        if (stepX > 0) return 'northeast';
+        return 'north';
+    }
+
+    if (stepY > 0) {
+        if (stepX < 0) return 'southwest';
+        if (stepX > 0) return 'southeast';
+        return 'south';
+    }
+
+    return stepX < 0 ? 'west' : 'east';
 };

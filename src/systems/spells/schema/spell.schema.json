@@ -41,6 +41,80 @@
     "ritual": {
       "type": "boolean"
     },
+    "ritualData": {
+      "type": "object",
+      "description": "Spell-side data the ritual runtime reads: ceremony requirements, failure backlash, and a prose casting time for \"Special\" headers.",
+      "properties": {
+        "requirements": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "time_of_day",
+                  "location",
+                  "biome",
+                  "weather",
+                  "participants_count",
+                  "custom"
+                ]
+              },
+              "value": {},
+              "description": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "type",
+              "value"
+            ]
+          }
+        },
+        "backlash": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "damage",
+                "status",
+                "summon",
+                "area_damage",
+                "drain_slot"
+              ]
+            },
+            "value": {
+              "type": "string"
+            },
+            "damageType": {
+              "type": "string"
+            },
+            "radius": {
+              "type": "number"
+            },
+            "saveDC": {
+              "type": "number"
+            },
+            "minProgress": {
+              "type": "number"
+            },
+            "description": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "type",
+            "value",
+            "description"
+          ]
+        },
+        "castingTimeSpecial": {
+          "type": "string"
+        }
+      }
+    },
     "rarity": {
       "type": "string",
       "enum": [

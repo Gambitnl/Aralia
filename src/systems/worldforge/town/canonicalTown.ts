@@ -35,7 +35,7 @@
  * the same burg within one FMG world. See the call sites for how the atlas is
  * sourced.
  */
-import { generateTownPlan, type TownPlan } from './townEngine';
+import { generateTownPlan, typologyForPopulation, type TownPlan, type TownWard, type TownTypology } from './townEngine';
 import { townSpanFtForPeople, POPULATION_RATE, CANON_TOWN_SPAN } from './townScale';
 import { polygonBounds, type Pt } from '../submap/submapEngine';
 import type { FmgWorldResult } from '../fmg/generateWorld';
@@ -49,6 +49,11 @@ import {
   styleFamilyForCultureType,
   type StyleFamily,
 } from './architectureStyle';
+import type { VillagePersonality } from '../../../types/village';
+import {
+  resolveVillageIntegrationProfile,
+  type VillageIntegrationProfile,
+} from '../../../data/villagePersonalityProfiles';
 
 export { burgCellPolygon } from './cellFeatures';
 
@@ -195,6 +200,210 @@ export function getCanonicalTownWaterFeatures(
     coast: coast.map((l) => l.map(toCanon)),
     riverWidthCanon: course.widthCanon,
   };
+}
+
+/* ------------------------------------------------------------------ *
+ * Settlement PERSONALITY — what a burg feels like, beside what it is.
+ *
+ * `townEngine` answers geometry, population and wealth. It does not answer
+ * tagline, cultural signature or encounter hook. `villagePersonalityProfiles`
+ * holds exactly those, keyed by `culture_wealth_biomeStyle`, and until now its
+ * only caller was the retired 2D village generator, so no player could reach a
+ * single authored line (deepdive `village-generator-vs-worldforge-town.md`
+ * finding 7, Decision 2 option A).
+ *
+ * The derivation below is PURE over (atlas, worldSeed, burgId): the burg's FMG
+ * biome id, its culture type, its port flag, its population band and the ward
+ * wealth the canonical plan already assigned. No rolls, so the same burg always
+ * reads the same way in the 2D map, the 3D town and the rumor mill.
+ *
+ * All three lookup tables are TOTAL over their closed FMG vocabulary and THROW
+ * on an unknown key, mirroring `climateForBiomeId` and `styleFamilyForCultureType`
+ * (no-fallback directive) — an unmapped biome must not quietly become temperate.
+ * ------------------------------------------------------------------ */
+
+/**
+ * FMG biome id (0-12, the vocabulary documented on `BIOME_TO_CLIMATE`) → the
+ * `VillagePersonality.biomeStyle` the profile table is keyed on.
+ *
+ * `volcanic` and `blighted` have authored profiles but no FMG biome produces
+ * them, so no burg resolves to those two. That is honest: the atlas has no
+ * volcano and no blight layer to read.
+ */
+export const FMG_BIOME_TO_VILLAGE_STYLE: Record<number, VillagePersonality['biomeStyle']> = {
+  0: 'coastal',    // Marine
+  1: 'arid',       // Hot desert
+  2: 'arid',       // Cold desert
+  3: 'temperate',  // Savanna
+  4: 'temperate',  // Grassland
+  5: 'jungle',     // Tropical seasonal forest
+  6: 'temperate',  // Temperate deciduous forest
+  7: 'jungle',     // Tropical rainforest
+  8: 'temperate',  // Temperate rainforest
+  9: 'tundra',     // Taiga
+  10: 'tundra',    // Tundra
+  11: 'polar',     // Glacier
+  12: 'swampy',    // Wetland
+};
+
+/** The personality facets an FMG culture type decides. */
+interface CultureFlavor {
+  culture: VillagePersonality['culture'];
+  architecturalStyle: VillagePersonality['architecturalStyle'];
+  primaryIndustry: VillagePersonality['primaryIndustry'];
+  /** Highland culture overrides the biome table: the burg reads as upland. */
+  upland: boolean;
+}
+
+/**
+ * FMG culture types (Azgaar) → personality facets. Same closed vocabulary as
+ * `CULTURE_TYPE_TO_FAMILY` in `architectureStyle.ts`, so the two tables cannot
+ * drift apart: a culture type that gets an architecture family also gets a
+ * personality here.
+ */
+const CULTURE_TYPE_TO_FLAVOR: Record<string, CultureFlavor> = {
+  Highland: { culture: 'martial', architecturalStyle: 'industrial', primaryIndustry: 'mining', upland: true },
+  Naval: { culture: 'festive', architecturalStyle: 'aquatic', primaryIndustry: 'fishing', upland: false },
+  Lake: { culture: 'scholarly', architecturalStyle: 'aquatic', primaryIndustry: 'fishing', upland: false },
+  River: { culture: 'festive', architecturalStyle: 'medieval', primaryIndustry: 'trade', upland: false },
+  Hunting: { culture: 'stoic', architecturalStyle: 'tribal', primaryIndustry: 'agriculture', upland: false },
+  Nomadic: { culture: 'stoic', architecturalStyle: 'nomadic', primaryIndustry: 'trade', upland: false },
+  Generic: { culture: 'stoic', architecturalStyle: 'medieval', primaryIndustry: 'agriculture', upland: false },
+};
+
+/** Who runs the place, by settlement size class. */
+const TYPOLOGY_TO_GOVERNMENT: Record<TownTypology, VillagePersonality['governingBody']> = {
+  hamlet: 'elder',
+  village: 'mayor',
+  'walled town': 'council',
+  city: 'guild',
+  capital: 'monarch',
+};
+
+/** Size class → the three-band population the profile table is keyed on. */
+const TYPOLOGY_TO_POPULATION_BAND: Record<TownTypology, VillagePersonality['population']> = {
+  hamlet: 'small',
+  village: 'small',
+  'walled town': 'medium',
+  city: 'large',
+  capital: 'large',
+};
+
+/**
+ * Collapse the per-ward social classes the plan already carries into one town
+ * wealth band. `assignWardWealth` scores every ward by its distance to the
+ * prestige anchors, so the wealthy-minus-poor share is a real measure of how
+ * much of the town hugs power. Threshold 0.15 keeps the middle band wide: most
+ * towns are `comfortable`, and `rich`/`poor` mean something when they appear.
+ */
+function townWealthBand(wards: TownWard[]): VillagePersonality['wealth'] {
+  let wealthy = 0;
+  let poor = 0;
+  let counted = 0;
+  for (const w of wards) {
+    if (!w.wealth) continue;
+    counted += 1;
+    if (w.wealth === 'wealthy') wealthy += 1;
+    else if (w.wealth === 'poor') poor += 1;
+  }
+  if (counted === 0) {
+    throw new Error('Cannot derive town wealth: no ward on the canonical plan carries a social class');
+  }
+  const score = (wealthy - poor) / counted;
+  if (score > 0.15) return 'rich';
+  if (score < -0.15) return 'poor';
+  return 'comfortable';
+}
+
+/** The personality of a burg plus the flavor profile it resolves to. */
+export interface CanonicalTownPersonality {
+  /** The derived settlement personality (the resolver's input). */
+  personality: VillagePersonality;
+  /** The authored flavor: tagline, cultural signature, encounter hooks, AI prompt. */
+  profile: VillageIntegrationProfile;
+}
+
+// Memoize per atlas (object identity) → per burg, exactly like `planCache`.
+const personalityCache = new WeakMap<object, Map<number, CanonicalTownPersonality>>();
+
+/**
+ * The canonical settlement personality for a burg, and the authored
+ * {@link VillageIntegrationProfile} it resolves to.
+ *
+ * This is the ONE production caller of `resolveVillageIntegrationProfile` under
+ * `src/systems/worldforge/`. Every surface that wants a town's flavor — the 2D
+ * plan caption, the crier, the rumor mill — reads it from here, so they cannot
+ * describe the same burg two different ways.
+ *
+ * Pure and deterministic: same (atlas, worldSeed, burgId) ⇒ same profile.
+ * Throws when the atlas cannot answer the burg's culture or biome, matching
+ * {@link canonicalArtifactTownForSiteFromAtlas}.
+ */
+export function getCanonicalTownPersonality(
+  atlas: TownAtlas,
+  worldSeed: number,
+  burgId: number,
+): CanonicalTownPersonality {
+  let perBurg = personalityCache.get(atlas as object);
+  if (!perBurg) { perBurg = new Map(); personalityCache.set(atlas as object, perBurg); }
+  const hit = perBurg.get(burgId);
+  if (hit) return hit;
+
+  const burg = atlas.pack.burgs?.[burgId];
+  if (!burg || burg.removed) {
+    throw new Error(`Cannot resolve canonical burg ${burgId} in world ${worldSeed}`);
+  }
+
+  const cultureId = burg.culture ?? 0;
+  const cultureType = (atlas.pack.cultures?.[cultureId] as { type?: string } | undefined)?.type;
+  if (!cultureType) {
+    throw new Error(`Cannot resolve culture ${cultureId} for burg ${burgId} in world ${worldSeed}`);
+  }
+  const flavor = CULTURE_TYPE_TO_FLAVOR[cultureType];
+  if (!flavor) {
+    throw new Error(
+      `No settlement personality for culture type "${cultureType}" ` +
+      `(known types: ${Object.keys(CULTURE_TYPE_TO_FLAVOR).join(', ')})`,
+    );
+  }
+
+  const biomeId = (atlas.pack.cells as unknown as { biome?: ArrayLike<number> }).biome?.[burg.cell];
+  if (biomeId === undefined) {
+    throw new Error(`Cannot resolve biome for burg ${burgId} in world ${worldSeed}`);
+  }
+  const biomeStyle = FMG_BIOME_TO_VILLAGE_STYLE[Number(biomeId)];
+  if (!biomeStyle) {
+    throw new Error(
+      `No settlement biome style for FMG biome id ${biomeId} ` +
+      `(known ids: ${Object.keys(FMG_BIOME_TO_VILLAGE_STYLE).join(', ')})`,
+    );
+  }
+
+  // A harbour reads as coastal whatever grows inland of it; an upland culture
+  // reads as highland whatever the cell's biome band says. Port wins, because a
+  // working waterfront is the loudest fact about a settlement.
+  const resolvedStyle: VillagePersonality['biomeStyle'] =
+    burg.port ? 'coastal' : flavor.upland ? 'highland' : biomeStyle;
+
+  const typology = typologyForPopulation(peopleForBurg(atlas, burgId));
+  const plan = getCanonicalTownPlan(atlas, worldSeed, burgId);
+
+  const personality: VillagePersonality = {
+    wealth: townWealthBand(plan.wards),
+    culture: flavor.culture,
+    biomeStyle: resolvedStyle,
+    population: TYPOLOGY_TO_POPULATION_BAND[typology],
+    architecturalStyle: flavor.architecturalStyle,
+    governingBody: TYPOLOGY_TO_GOVERNMENT[typology],
+    primaryIndustry: flavor.primaryIndustry,
+  };
+
+  const resolved: CanonicalTownPersonality = {
+    personality,
+    profile: resolveVillageIntegrationProfile(personality),
+  };
+  perBurg.set(burgId, resolved);
+  return resolved;
 }
 
 const mapPt = (p: Pt, k: number, dx: number, dy: number): Pt => [p[0] * k + dx, p[1] * k + dy];

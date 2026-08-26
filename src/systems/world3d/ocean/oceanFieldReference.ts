@@ -34,10 +34,13 @@
  *
  * THE SPECTRA, FROM ONE COMPLEX NUMBER
  *
- * Everything derives from hhat(k, t) by multiplication:
+ * Everything derives from hhat(k, t) by multiplication. The displacement is
+ * written with Tessendorf's -i and multiplied by a NEGATED choppiness, which
+ * makes it +i (kx/k) hhat in effect: the sign that converges particles on
+ * the crest under this transform convention (see `realizeCascade`).
  *
- *   Dx      <-  -i (kx/k) hhat        (Tessendorf's horizontal displacement)
- *   Dz      <-  -i (kz/k) hhat
+ *   Dx      <-  -i (kx/k) hhat  * (-chop)   (Tessendorf's horizontal displacement)
+ *   Dz      <-  -i (kz/k) hhat  * (-chop)
  *   dh/dx   <-   i kx hhat            (a derivative is i k in the transform)
  *   dh/dz   <-   i kz hhat
  *   dDx/dx  <-   (kx*kx/k) hhat
@@ -82,7 +85,15 @@ export function realizeCascade(
 ): OceanFields {
   const n = spec.n;
   const cells = n * n;
-  const chop = spec.params.choppiness;
+  // NEGATED, exactly as the GPU pack kernel negates it. Tessendorf's
+  // -i (k/|k|) displacement moves points away from crests under this
+  // transform convention (measured: Jacobian 1.79 at a crest, 0.21 in a
+  // trough, on a single cos(kx) wave). Deep-water orbital motion converges
+  // on the crest, so the sign is flipped here and in oceanCompute.ts, and a
+  // test asserts height and Jacobian anticorrelate. Flipping the choppiness
+  // flips D and every derivative of D together, so the Jacobian statistics
+  // are unchanged and only their location moves.
+  const chop = -spec.params.choppiness;
 
   // Four interleaved-complex packed spectra.
   const packed: Float64Array[] = [

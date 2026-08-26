@@ -15,7 +15,7 @@
 // @dependencies-end
 
 import { GameState } from '../../types/index';
-import { rollDice } from '../../utils/combat';
+import { rollDice } from '../dice/rollers';
 import { logger } from '../../utils/core';
 import { generateId } from '../../utils/core';
 

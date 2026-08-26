@@ -3,8 +3,8 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 13/08/2026, 13:33:57
- * Dependents: commands/effects/DamageCommand.ts, commands/effects/GrantedActionCommand.ts, commands/effects/StatusConditionCommand.ts, commands/factory/AbilityCommandFactory.ts, commands/factory/SpellCommandFactory.ts, hooks/useAbilitySystem.ts, systems/spells/socialServiceResolution.ts
+ * Last Sync: 26/08/2026, 03:10:52
+ * Dependents: commands/effects/DamageCommand.ts, commands/effects/GrantedActionCommand.ts, commands/effects/StatusConditionCommand.ts, commands/factory/AbilityCommandFactory.ts, commands/factory/SpellCommandFactory.ts, components/DesignPreview/steps/scenarioControls/summonsControlledScenarioControls.ts, hooks/useAbilitySystem.ts, systems/spells/socialServiceResolution.ts
  * Imports: 6 files
  *
  * MULTI-AGENT SAFETY:

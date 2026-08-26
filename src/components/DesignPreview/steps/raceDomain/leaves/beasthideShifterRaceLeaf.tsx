@@ -23,8 +23,10 @@ import {
 import { calculateArmorClass } from '../../../../../utils/character/statUtils';
 import {
   createPlayerCombatCharacter,
-  rollDamage,
 } from '../../../../../utils/combat/combatUtils';
+import {
+  rollDamage,
+} from '../../../../../systems/dice/rollers';
 import { resetEconomy } from '../../../../../utils/combat/actionEconomyUtils';
 import {
   resolveHitPointAction,
@@ -136,7 +138,7 @@ export function getCanonicalBeasthideShifterResource(race: Race) {
   const shifting = parsedTraits.find(
     trait => trait.type !== 'spell' && trait.traitName === 'Shifting',
   );
-  return shifting?.type !== 'spell'
+  return shifting && shifting.type !== 'spell'
     ? shifting.resources?.find(resource => resource.id.endsWith('__shifting__resource'))
     : undefined;
 }
@@ -261,7 +263,8 @@ function getShiftedArmorClass(
       ? { ...assembledCharacter.modifiers, acBonus: 0 }
       : assembledCharacter.modifiers,
   };
-  return calculateArmorClass(unshiftedCalculationCharacter, [effect]);
+  // calculateArmorClass accepts ACRelevantActiveEffect; cast the combat effect shape
+  return calculateArmorClass(unshiftedCalculationCharacter, [effect as unknown as import('../../../../../types/effects').ActiveEffect]);
 }
 
 // ============================================================================
@@ -376,34 +379,23 @@ export function resolveBeasthideShifter(
     };
   }
 
-  // The resolver returned a paid actor and a native temp-HP target result. Add
-  // the resource payment and shifted AC effect only to that successful copy.
-  // DEBT: resolveHitPointAction's roster replacement checks caster identity
-  // before target identity, so a self-targeting feature returns the paid
-  // caster in its roster while keeping the temp-HP result in targetAfter.
-  // Merge those two native return fields here until the shared resolver owns a
-  // dedicated self-target replacement path; no HP value is recomputed locally.
-  const paidActor = nativeResolution.casterAfter ?? nativeResolution.characters[0];
-  const nativeTarget = nativeResolution.targetAfter;
-  const nativeTempHpActor: CombatCharacter = nativeTarget?.id === actor.id
-    ? {
-        ...paidActor,
-        tempHP: nativeTarget.tempHP,
-        temporaryHitPointSource: nativeTarget.temporaryHitPointSource,
-      }
-    : paidActor;
+  // The resolver owns the self-target replacement path, so its paid actor
+  // already carries the native temp-HP pool. Add the resource payment and the
+  // shifted AC effect only to that one successful copy; no HP value, temporary
+  // pool, or its provenance is recomputed or merged here.
+  const nativeActor = nativeResolution.casterAfter ?? nativeResolution.characters[0];
   const effect = createBestialDurabilityEffect(actor.id);
   const shiftedArmorClass = getShiftedArmorClass(scenario.assembledCharacter, effect);
   const shiftedActor: CombatCharacter = {
-    ...nativeTempHpActor,
+    ...nativeActor,
     limitedUses: {
-      ...paidActor.limitedUses,
+      ...nativeActor.limitedUses,
       [BEASTHIDE_SHIFTER_RESOURCE_ID]: {
         ...resource,
         current: resource.current - 1,
       },
     },
-    activeEffects: [...(nativeTempHpActor.activeEffects ?? []), effect],
+    activeEffects: [...(nativeActor.activeEffects ?? []), effect],
     armorClass: shiftedArmorClass,
     baseAC: scenario.baselineArmorClass ?? shiftedArmorClass - 1,
   };

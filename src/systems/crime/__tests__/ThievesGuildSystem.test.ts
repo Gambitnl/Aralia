@@ -1,5 +1,6 @@
 
 import { describe, it, expect } from 'vitest';
+import { ItemType } from '../../../types';
 import { ThievesGuildSystem } from '../ThievesGuildSystem';
 import { GuildJob, GuildJobType, HeistPhase, HeistPlan } from '../../../types/crime';
 import { Location } from '../../../types';
@@ -98,7 +99,7 @@ describe('ThievesGuildSystem', () => {
                     id: 'item_1',
                     name: 'Stolen Coin',
                     description: 'A coin from the heist.',
-                    type: 'treasure',
+                    type: ItemType.Treasure,
                     value: 50,
                     originalOwnerId: 'npc_1',
                     stolenAt: 0,
@@ -130,7 +131,7 @@ describe('ThievesGuildSystem', () => {
                     id: 'item_1',
                     name: 'Stolen Coin',
                     description: 'A coin from the heist.',
-                    type: 'treasure',
+                    type: ItemType.Treasure,
                     value: 50,
                     originalOwnerId: 'npc_1',
                     stolenAt: 0,

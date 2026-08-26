@@ -25,8 +25,8 @@
  * Layer drawing sequence:
  * 1. Hypsometric color heightfield grid cells with local min/max stretch and NW slope shading.
  * 2. River banks as width-scaled blue polyline paths.
- * 3. Town sites (empty placeholder loop for future C2 expansion).
- * 4. Roads (empty placeholder loop for future C2 expansion).
+ * 3. Town sites (implemented in C2 expansion: footprint envelope, center glyph, gate dots).
+ * 4. Roads (implemented in C2 expansion: multi-tier cased paths for trade roads and trails).
  *
  * Called by: AtlasDemo.tsx (React UI wrapper), renderAtlasProof.ts (headless verification script).
  * Depends on: generateRegion.ts (supplies the RegionArtifact data prop).

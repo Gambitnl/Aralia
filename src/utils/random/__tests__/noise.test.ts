@@ -128,7 +128,110 @@ describe('NoiseGenerator (realmsmith perlin)', () => {
       }
     }
   });
+
+  it('is continuous across horizontal lattice lines', () => {
+    const noise = new NoiseGenerator(4242);
+    const eps = 1e-8;
+    for (let line = 1; line <= 24; line++) {
+      for (let ix = 0; ix < 8; ix++) {
+        const x = ix + 0.37;
+        const below = noise.noise(x, line - eps);
+        const above = noise.noise(x, line + eps);
+        expect(below).toBeCloseTo(above, 6);
+      }
+    }
+  });
+
+  it('reads the (0,1) corner gradient from perm[A + 1] over all 16 gradient slots', () => {
+    // Rebuilds the permutation table the way NoiseGenerator does, then
+    // recomputes the field with the four canonical corner reads. Any corner
+    // taken from the wrong permutation entry breaks the equality below.
+    const seed = 909;
+    const perm = buildPermutation(seed);
+    const noise = new NoiseGenerator(seed);
+
+    const slots = new Set<number>();
+    const gradients = new Set<string>();
+    let differsFromWrongCorner = 0;
+
+    for (let ix = 0; ix < 24; ix++) {
+      for (let iy = 0; iy < 24; iy++) {
+        const x = ix + 0.37;
+        const y = iy + 0.61;
+        const X = Math.floor(x) & 255;
+        const Y = Math.floor(y) & 255;
+        const A = perm[X] + Y;
+        const B = perm[X + 1] + Y;
+
+        expect(noise.noise(x, y)).toBeCloseTo(referenceNoise(perm, x, y), 12);
+
+        for (const hash of [perm[A], perm[B], perm[A + 1], perm[B + 1]]) {
+          slots.add(hash & 15);
+          gradients.add(gradientVector(hash));
+        }
+        if (perm[A + 1] !== perm[B]) differsFromWrongCorner++;
+      }
+    }
+
+    // The hash has 16 slots. This 2D reduction of Perlin's 3D gradient set
+    // (z fixed at 0) resolves them to 8 distinct vectors, not 12.
+    expect(slots.size).toBe(16);
+    expect(gradients.size).toBe(8);
+    // Proves the samples would move if the (0,1) corner read perm[B].
+    expect(differsFromWrongCorner).toBeGreaterThan(0);
+  });
 });
+
+function buildPermutation(seed: number): number[] {
+  const rng = new RNG(seed);
+  const p: number[] = [];
+  for (let i = 0; i < 256; i++) p[i] = i;
+  for (let i = 255; i > 0; i--) {
+    const n = rng.rangeInt(0, i);
+    const temp = p[i];
+    p[i] = p[n];
+    p[n] = temp;
+  }
+  const perm: number[] = [];
+  for (let i = 0; i < 512; i++) perm[i] = p[i & 255];
+  return perm;
+}
+
+function gradientVector(hash: number): string {
+  const h = hash & 15;
+  const ux = h < 8 ? 1 : 0;
+  const uy = h < 8 ? 0 : 1;
+  const vx = h < 4 ? 0 : h === 12 || h === 14 ? 1 : 0;
+  const vy = h < 4 ? 1 : 0;
+  const su = (h & 1) === 0 ? 1 : -1;
+  const sv = (h & 2) === 0 ? 1 : -1;
+  return `${su * ux + sv * vx},${su * uy + sv * vy}`;
+}
+
+function referenceGrad(hash: number, x: number, y: number): number {
+  const h = hash & 15;
+  const u = h < 8 ? x : y;
+  const v = h < 4 ? y : h === 12 || h === 14 ? x : 0;
+  return ((h & 1) === 0 ? u : -u) + ((h & 2) === 0 ? v : -v);
+}
+
+function referenceNoise(perm: number[], x: number, y: number): number {
+  const X = Math.floor(x) & 255;
+  const Y = Math.floor(y) & 255;
+  const fx = x - Math.floor(x);
+  const fy = y - Math.floor(y);
+  const fade = (t: number) => t * t * t * (t * (t * 6 - 15) + 10);
+  const lerp = (t: number, a: number, b: number) => a + t * (b - a);
+  const u = fade(fx);
+  const v = fade(fy);
+  const A = perm[X] + Y;
+  const B = perm[X + 1] + Y;
+  const aa = referenceGrad(perm[A], fx, fy);
+  const ba = referenceGrad(perm[B], fx - 1, fy);
+  const ab = referenceGrad(perm[A + 1], fx, fy - 1);
+  const bb = referenceGrad(perm[B + 1], fx - 1, fy - 1);
+  return (lerp(v, lerp(u, aa, ba), lerp(u, ab, bb)) + 1) / 2;
+}
 
 describe('SimplexNoise', () => {
   it('is deterministic for the same seed', () => {

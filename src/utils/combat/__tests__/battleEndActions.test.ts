@@ -7,7 +7,14 @@ describe("createBattleEndActions", () => {
   it("settles victory through END_BATTLE", () => {
     const rewards = { gold: 12, items: [], xp: 50 };
     expect(createBattleEndActions("victory", rewards)).toEqual([
-      { type: "END_BATTLE", payload: { rewards, finalPartyState: undefined } },
+      {
+        type: "END_BATTLE",
+        payload: {
+          rewards,
+          finalPartyState: undefined,
+          finalEnemyState: undefined,
+        },
+      },
     ]);
   });
 
@@ -52,8 +59,31 @@ describe("createBattleEndActions", () => {
       },
       {
         type: "END_BATTLE",
-        payload: { rewards, finalPartyState: [] },
+        payload: { rewards, finalPartyState: [], finalEnemyState },
       },
     ]);
+  });
+
+  // agora-31fa: post-combat consequences (the town watch reaction) need to know
+  // which enemies actually died, so the final enemy roster must survive the hop
+  // into END_BATTLE rather than stopping at the WorldForge reconciliation.
+  it("carries the final enemy roster into END_BATTLE so lethality survives teardown", () => {
+    const rewards = { gold: 0, items: [], xp: 10 };
+    const finalEnemyState = [
+      { id: "watchman-1", currentHP: 0, position: { x: 1, y: 1 } },
+      { id: "watchman-2", currentHP: 4, position: { x: 2, y: 1 } },
+    ];
+
+    const endBattle = createBattleEndActions(
+      "victory",
+      rewards,
+      [],
+      finalEnemyState,
+    ).find((action) => action.type === "END_BATTLE");
+
+    expect(endBattle).toEqual({
+      type: "END_BATTLE",
+      payload: { rewards, finalPartyState: [], finalEnemyState },
+    });
   });
 });

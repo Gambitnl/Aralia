@@ -15,6 +15,7 @@
 // @dependencies-end
 
 import { GamePhase } from './core.js';
+import type { RulesEdition } from '../config/rulesEdition.js';
 import { Item } from './items.js';
 import { PlayerCharacter, TempPartyMember } from './character.js';
 import { Faction, PlayerFactionStanding } from './factions.js';
@@ -24,7 +25,9 @@ import { Fence, GuildMembership, HeistPlan, Crime, Bounty } from './crime/index.
 import { UnderdarkState } from './underdark.js';
 import { EconomyState } from './economy.js';
 import { Action, BattlefieldSourceGapReason, GroundingChunk } from './actions.js';
-import { GameMessage, MapData, NpcMemory, DiscoveryResidue, Location, WorldRumor, NPC, RichNPC } from './world.js';
+// Grid retirement (agora-608b): `MapData` is no longer imported here — it left
+// GameState on 2026-06-30 and the type is now save-migration-only.
+import { GameMessage, NpcMemory, DiscoveryResidue, Location, WorldRumor, NPC, RichNPC } from './world.js';
 import { Quest } from './quests.js';
 import { RitualState } from './rituals.js';
 import { WorldHistory } from './history.js';
@@ -281,6 +284,26 @@ export interface GameState {
   previousPhase?: GamePhase;
   /** User preference. If true, the game will auto-save to the autosave slot periodically. */
   autoSaveEnabled?: boolean;
+  /** Player-chosen combat difficulty; persisted like autoSaveEnabled (agora-a46a.1). */
+  combatDifficulty?: 'easy' | 'normal' | 'hard';
+  /**
+   * Which Player's Handbook this campaign is played under (agora-18ab).
+   * Persisted with the save. Read it through `getRulesEdition` in
+   * `src/config/rulesEdition.ts`, never directly, so old saves default once.
+   */
+  rulesEdition?: RulesEdition;
+  /**
+   * Whether a reload is allowed to reroll the dice (agora-f821.63).
+   * Persisted with the save. Read it through `getAllowSaveScum` in
+   * `src/config/saveScum.ts`, never directly, so old saves default once.
+   */
+  allowSaveScum?: boolean;
+  /**
+   * Advances on every save. With `allowSaveScum` off it is mixed with
+   * `worldSeed` to seed this campaign's dice stream at load, so the same save
+   * replays the same dice. Read it through `getDiceSaveCounter`.
+   */
+  diceSaveCounter?: number;
   party: PlayerCharacter[];
   tempParty: TempPartyMember[] | null;
   inventory: Item[];
@@ -389,6 +412,14 @@ export interface GameState {
 
   merchantModal: {
     isOpen: boolean;
+    /**
+     * Id of the merchant NPC this shop belongs to (the building id used as the
+     * generated merchant's id). Carried on the modal state so the merchant UI
+     * can address the same NPC the action handlers do — haggle cooldown, the
+     * `recent_haggle` memory fact, and the negotiated price all key off it.
+     * Optional: ad-hoc merchants opened without a backing NPC have none.
+     */
+    merchantId?: string;
     merchantName: string;
     merchantInventory: Item[];
     economy?: EconomyState;
@@ -404,6 +435,18 @@ export interface GameState {
   notoriety: NotorietyState;
 
   activeRumors: WorldRumor[];
+
+  /**
+   * Town gossip about the player's own deeds, spreading person-to-person through
+   * a town's social web (src/systems/intrigue/RumorMillSystem.ts). Distinct from
+   * `activeRumors`, which is faction/world news with no notion of who has heard
+   * it. Written by townReducer from live deed actions (COMPLETE_QUEST,
+   * COMMIT_CRIME) and advanced one day per ADVANCE_TIME.
+   *
+   * Optional: saves written before the rumor mill carry no array, and a game
+   * that has never produced a notable deed has nothing to store.
+   */
+  townRumors?: import('../systems/intrigue/RumorMillSystem').TownRumor[];
 
   worldHistory: WorldHistory;
 
@@ -483,6 +526,16 @@ export interface GameState {
   isCourierPouchVisible: boolean;
   /** Commerce Desk — the dedicated non-debug home for businesses, trade, ventures, and courier intel. */
   isCommerceDeskVisible: boolean;
+  /** Salvage Modal — equipment breakdown workshop interface. */
+  isSalvageModalVisible?: boolean;
+  /** Dedicated Bank Modal — loan agreements and capital investments. */
+  isBankModalVisible?: boolean;
+  /** Dedicated Real Estate Modal — properties, shop leases, and holdings. */
+  isRealEstateModalVisible?: boolean;
+  /** Dedicated Shop Modal — merchant trading and inventory purchasing. */
+  isShopModalVisible?: boolean;
+  /** Dedicated Trade Route Modal — caravans and route logistics. */
+  isTradeRouteModalVisible?: boolean;
 
   activeRitual?: RitualState | null;
 

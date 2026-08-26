@@ -1,5 +1,6 @@
 import { GlossaryEntry } from '../types/ui.js';
 import { Item, ItemType, ItemRarity } from '../types/items.js';
+import { toCanonicalDamageType } from '../types/spellDamageMetadata.js';
 
 /**
  * Converts a 5etools ingested glossary entry into a fully functional
@@ -40,7 +41,7 @@ export function convertGlossaryEntryToItem(entry: GlossaryEntry): Item | null {
         costInGp: meta.cost,
         properties: meta.properties,
         damageDice: meta.damage ? meta.damage.split(' ')[0] : undefined,
-        damageType: meta.damage ? meta.damage.split(' ').slice(1).join(' ') : undefined,
+        damageType: toCanonicalDamageType(meta.damage ? meta.damage.split(' ').slice(1).join(' ') : undefined),
     };
 
     if (meta.ac !== undefined) {

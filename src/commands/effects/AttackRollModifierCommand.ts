@@ -32,7 +32,7 @@
 import { BaseEffectCommand } from '../base/BaseEffectCommand';
 import { DamageCommand } from './DamageCommand';
 import { StatusConditionCommand } from './StatusConditionCommand';
-import { CombatState, ActiveEffect, LightSource } from '../../types/combat';
+import { CombatState, CombatCharacter, ActiveEffect, LightSource } from '../../types/combat';
 import { DamageEffect, StatusConditionEffect, isAttackRollModifierEffect } from '../../types/spells';
 import { calculateSpellDC, rollSavingThrow } from '../../utils/character';
 import { SavePenaltySystem } from '../../systems/combat/SavePenaltySystem';
@@ -105,40 +105,41 @@ export class AttackRollModifierCommand extends BaseEffectCommand {
         saveSucceeded = saveResult.success;
       }
 
-      // If the save worked, the rider does not land. We still keep the spell
-      // log readable so players can see that the target resisted the effect.
+      // If the save worked, the rider itself never lands.
+      //
+      // What changed (agora-7dbd): a rider whose save text reads "half damage
+      // on a successful save" now still delivers its bundled damage payload
+      // here. Before this branch existed, such a spell had to keep its damage
+      // on the plain damage path, which made the target roll the save twice -
+      // once for the rider and once for the damage.
+      //
+      // What was preserved: every other save outcome (`none`,
+      // `negates_condition`, `negates`, or no `saveEffect` at all) keeps the
+      // established all-or-nothing behaviour and deals no damage on a success.
       if (saveSucceeded) {
+        const halvesDamageOnSave =
+          this.effect.condition.saveEffect === 'half' && Boolean(this.effect.damage);
+
         currentState = this.addLogEntry(currentState, {
           type: 'status',
-          message: `${target.name} resists ${this.context.spellName}`,
+          message: halvesDamageOnSave
+            ? `${target.name} resists ${this.context.spellName} and takes half damage`
+            : `${target.name} resists ${this.context.spellName}`,
           characterId: target.id
         });
+
+        if (halvesDamageOnSave) {
+          currentState = await this.executeBundledDamage(currentState, target, 0.5);
+        }
+
         continue;
       }
 
       // Bundle any damage payload into the same save outcome so Frostbite-like
       // spells do not force the target to roll twice just because the spell has
-      // both damage and a rider.
-      // DEBT: This branch assumes the rider's damage is all-or-nothing on the
-      // same save. Spells that still need half-on-save damage should stay on the
-      // plain damage path until the effect bundling model is expanded further.
+      // both damage and a rider. A failed save takes the full rolled damage.
       if (this.effect.damage) {
-        const damageEffect: DamageEffect = {
-          type: 'DAMAGE',
-          trigger: this.effect.trigger,
-          condition: { type: 'always' },
-          scaling: this.effect.scaling,
-          description: this.effect.description,
-          damage: this.effect.damage,
-        };
-
-        const damageCommand = new DamageCommand(damageEffect, {
-          ...this.context,
-          targets: [target],
-          isCritical: false,
-        });
-
-        currentState = await damageCommand.execute(currentState);
+        currentState = await this.executeBundledDamage(currentState, target);
       }
 
 
@@ -184,6 +185,52 @@ export class AttackRollModifierCommand extends BaseEffectCommand {
     }
 
     return currentState;
+  }
+
+  /**
+   * Run the rider's bundled damage payload through the shared damage command.
+   *
+   * `execute` has already rolled the single save for this target, so the
+   * synthesized effect carries `condition: { type: 'always' }` to stop
+   * DamageCommand rolling a second one. That also means the condition can no
+   * longer express the save outcome, so `fraction` carries it instead: a
+   * successful save against a `saveEffect: 'half'` rider passes 0.5, and a
+   * failed save passes nothing so the full roll lands.
+   *
+   * The fraction is composed with any multiplier the caller already put on the
+   * context rather than replacing it, so a rider bundled inside an
+   * already-halved payload is not silently restored to full damage.
+   */
+  private async executeBundledDamage(
+    state: CombatState,
+    target: CombatCharacter,
+    fraction?: number
+  ): Promise<CombatState> {
+    if (!isAttackRollModifierEffect(this.effect) || !this.effect.damage) {
+      return state;
+    }
+
+    const damageEffect: DamageEffect = {
+      type: 'DAMAGE',
+      trigger: this.effect.trigger,
+      condition: { type: 'always' },
+      scaling: this.effect.scaling,
+      description: this.effect.description,
+      damage: this.effect.damage,
+    };
+
+    const damageMultiplier = fraction === undefined
+      ? this.context.damageMultiplier
+      : (this.context.damageMultiplier ?? 1) * fraction;
+
+    const damageCommand = new DamageCommand(damageEffect, {
+      ...this.context,
+      targets: [target],
+      isCritical: false,
+      damageMultiplier,
+    });
+
+    return damageCommand.execute(state);
   }
 
   /**

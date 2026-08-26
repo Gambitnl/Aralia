@@ -215,7 +215,7 @@ const createTurnPhaseZone = (
   spellId: 'sandbox-burning-ground',
   casterId: 'caster',
   position: { x: 1, y: 0 },
-  areaOfEffect: { shape: 'cube', size: 5 },
+  areaOfEffect: { shape: 'cube', size: 5 }, direction: { x: 1, y: 0 },
   saveDC: 15,
   effects: [{
     type: 'DAMAGE',

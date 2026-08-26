@@ -1,19 +1,3 @@
-// @dependencies-start
-/**
- * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
- *
- * Last Sync: 27/02/2026, 09:31:35
- * Dependents: combat/index.ts, pathfinding.ts, physicsUtils.ts
- * Imports: 2 files
- *
- * MULTI-AGENT SAFETY:
- * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
- * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
- */
-// @dependencies-end
-
 /**
  * Copyright (c) 2024 Aralia RPG.
  * Licensed under the MIT License.
@@ -23,15 +7,71 @@
  * Implements mechanics for movement, falling, and object interactions based on D&D 5e rules.
  */
 
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 09/09/2026, 15:05:02
+ * Dependents: components/DesignPreview/steps/raceDomain/leaves/aquaticHalfElfRaceLeaf.tsx, systems/combat/fallingGroundImpactResolution.ts, systems/travel/forcedMarch.ts, utils/character/encumbrance.ts, utils/combat/combatUtils.ts, utils/combat/index.ts, utils/combat/thiefUtils.ts, utils/spatial/pathfinding.ts
+ * Imports: 2 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import { DiceRoll } from '../../types/dice';
 import { Position } from '../../types/combat';
 
-// TODO #1320(Mechanist): Integrate object AC/HP rules into combat targeting system (attacking doors/walls).
-// TODO #1321(Mechanist): Wire up suffocation/breath rules into `useTurnManager.ts` to apply StatusEffect.Choking when breath runs out.
+// 2026-09-09: both former TODOs here (#1320 object AC/HP, #1321 suffocation) were
+// checked against the code and neither is a wire-up any more — each needs a type or
+// state change that does not exist yet, so they are tracked as gaps instead of as
+// markers that imply a caller is waiting.
+//
+// - Object AC (getObjectAC below): the targeting path exists
+//   (systems/combat/objectInteractionResolution.ts) but MapObjectInteractionState
+//   carries only hitPoints/maxHitPoints — no material, size or armorClass — and the
+//   damage operation applies raw damage with no attack roll. See GG-206.
+// - Suffocation/breath: StatusEffect.Choking does not exist and no combatant carries
+//   a breath counter, so useTurnManager has nothing to decrement. See GG-207.
 export type ObjectSize = 'tiny' | 'small' | 'medium' | 'large' | 'huge' | 'gargantuan';
 export type ObjectMaterial = 'cloth' | 'paper' | 'rope' | 'crystal' | 'glass' | 'ice' | 'wood' | 'bone' | 'stone' | 'iron' | 'steel' | 'mithral' | 'adamantine';
 
 export type LightLevel = 'bright' | 'dim' | 'darkness';
+
+/**
+ * A pool of dice that does not describe damage.
+ *
+ * `DiceRoll` (types/dice.ts) carries an optional `type` field that every damage
+ * consumer reads as a damage type. An object's hit points are not damage, so
+ * returning a `DiceRoll` from `getObjectHP` previously forced an arbitrary 'bludgeoning' tag
+ * that a reader could mistake for the damage a door deals or resists. `DicePool`
+ * is the same dice notation with that field removed, so a non-damage formula can
+ * no longer carry a damage type by accident.
+ */
+export interface DicePool {
+  /** Number of dice to roll. */
+  dice: number;
+  /** Number of sides on each die. */
+  sides: number;
+  /** Flat bonus added after the roll, when the formula has one. */
+  modifier?: number;
+}
+
+/**
+ * Returns the published average for a dice pool: the D&D convention of the
+ * arithmetic mean rounded down, e.g. 4d8 -> 18 and 5d10 -> 27.
+ *
+ * @param pool - The dice pool to average.
+ * @returns The average total, rounded down, never below 0.
+ */
+export function averageDicePool(pool: DicePool): number {
+  const mean = pool.dice * ((pool.sides + 1) / 2) + (pool.modifier ?? 0);
+  return Math.max(0, Math.floor(mean));
+}
 
 /**
  * Configuration for calculating movement costs based on physical conditions.
@@ -93,29 +133,47 @@ export function getObjectAC(material: ObjectMaterial): number {
  *
  * @param size - The size of the object (Tiny to Large+).
  * @param isFragile - Whether the object is fragile (e.g. glass) or resilient (e.g. wood/stone).
- * @returns A DiceRoll representing the object's HP formula.
+ * @returns A DicePool representing the object's HP formula. Object hit points are
+ *          not damage, so the pool carries no damage type; use `getObjectHPAverage`
+ *          when a plain number is wanted.
  */
-export function getObjectHP(size: ObjectSize, isFragile: boolean = false): DiceRoll {
+export function getObjectHP(size: ObjectSize, isFragile: boolean = false): DicePool {
   // DMG p. 247 "Object Hit Points" Table
   switch (size) {
     case 'tiny':
       // Fragile: 2 (1d4), Resilient: 5 (2d4)
-      return { dice: isFragile ? 1 : 2, sides: 4, type: 'bludgeoning' }; // Damage type is placeholder
+      return { dice: isFragile ? 1 : 2, sides: 4 };
     case 'small':
       // Fragile: 3 (1d6), Resilient: 10 (3d6)
-      return { dice: isFragile ? 1 : 3, sides: 6, type: 'bludgeoning' };
+      return { dice: isFragile ? 1 : 3, sides: 6 };
     case 'medium':
       // Fragile: 4 (1d8), Resilient: 18 (4d8)
-      return { dice: isFragile ? 1 : 4, sides: 8, type: 'bludgeoning' };
+      return { dice: isFragile ? 1 : 4, sides: 8 };
     case 'large':
     case 'huge':
     case 'gargantuan':
       // Fragile: 5 (1d10), Resilient: 27 (5d10)
       // Note: Huge/Gargantuan usually treated as multiple Large sections or custom HP
-      return { dice: isFragile ? 1 : 5, sides: 10, type: 'bludgeoning' };
+      return { dice: isFragile ? 1 : 5, sides: 10 };
     default:
-       return { dice: 1, sides: 4, type: 'bludgeoning' };
+       return { dice: 1, sides: 4 };
   }
+}
+
+/**
+ * Gets the published average hit points for an object.
+ * D&D 5e DMG pg 247. Every row of that table is the dice average rounded down,
+ * so this reads the same formula `getObjectHP` returns rather than a second table.
+ *
+ * Callers that store object hit points as a plain number (for example
+ * `MapObjectInteractionState.maxHitPoints`) want this, not the formula.
+ *
+ * @param size - The size of the object (Tiny to Large+).
+ * @param isFragile - Whether the object is fragile rather than resilient.
+ * @returns The object's average hit points.
+ */
+export function getObjectHPAverage(size: ObjectSize, isFragile: boolean = false): number {
+  return averageDicePool(getObjectHP(size, isFragile));
 }
 
 /**
@@ -224,7 +282,10 @@ export function calculateSuffocationRounds(conMod: number): number {
   return Math.max(1, conMod);
 }
 
-// TODO #1322(Mechanist): Wire up throw distance calculation to the 'Throw' item action in useInventoryAction.ts.
+// 2026-09-09: the former TODO #1322 named `useInventoryAction.ts` as this function's
+// caller, but no such file exists anywhere in src/ and there is no Throw item action
+// to wire into. The math below stays as the ready-made rule; the missing action is
+// tracked as GG-208.
 /**
  * Calculates throwing distance based on Strength.
  * D&D 5e simplified: STR * 10 feet, weight penalty after 5 lbs.
@@ -290,7 +351,12 @@ export function calculateChebyshevDistance(a: Position, b: Position): number {
   return Math.max(dx, dy) * 5;
 }
 
-// TODO #1323(Mechanist): Integrate `calculateLightLevel` into `BattleMap` rendering to dynamically visualize Fog of War.
+// 2026-09-09: the former TODO #1323 asked for this function to be wired into BattleMap
+// Fog of War. Fog already has a light-level owner — VisibilitySystem.calculateLightLevels,
+// reached through hooks/combat/useVisibility.ts — so wiring this per-point variant in as
+// well would give the map two sources of light truth. The pair below is kept (it models
+// bright/dim radius falloff from a single source, which the map-wide version does not
+// expose) pending the convergence tracked as GG-209.
 /**
  * Calculates the light level at a specific target position relative to a light source.
  * D&D 5e Rules (PHB p. 183):
@@ -347,6 +413,40 @@ export function getCombinedLightLevel(
   }
 
   return hasDim ? 'dim' : 'darkness';
+}
+
+/** The condition string used repo-wide when exhaustion is applied to a character. */
+export const EXHAUSTION_CONDITION = 'exhaustion';
+
+/**
+ * Reads an exhaustion level out of a character's free-form `conditions` array.
+ *
+ * Exhaustion is stored as a condition string rather than a number, so every caller
+ * that wants a level has to parse it. This parser lives beside
+ * `calculateExhaustionEffects` — the rule it feeds — rather than in any one caller.
+ *
+ * `systems/travel/forcedMarch.ts` still carries its own party-wide copy of this
+ * parse (`partyExhaustionLevel`). That copy was uncommitted in-flight work from
+ * another agent on 2026-09-09, so it was left alone rather than edited mid-flight;
+ * folding it into this function is tracked as GG-217.
+ *
+ * A bare 'exhaustion' counts as level 1, which is what the game applies today.
+ * Numbered forms ('exhaustion_2', 'exhaustion 3', 'exhaustion-4') are read when
+ * present so a future stacking implementation needs no change here. Matching is
+ * case-insensitive; anything unrecognized is ignored rather than guessed at.
+ *
+ * @param conditions - The character's condition strings, if any.
+ * @returns The highest exhaustion level found, or 0 when none is present.
+ */
+export function exhaustionLevelFromConditions(conditions?: readonly string[]): number {
+  let worst = 0;
+  for (const raw of conditions ?? []) {
+    const c = String(raw).toLowerCase();
+    if (c === EXHAUSTION_CONDITION) worst = Math.max(worst, 1);
+    const numbered = /^exhaustion[_ -]?(\d)$/.exec(c);
+    if (numbered) worst = Math.max(worst, Number(numbered[1]));
+  }
+  return worst;
 }
 
 /**

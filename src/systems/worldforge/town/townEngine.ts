@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 24/08/2026, 00:54:46
+ * Last Sync: 07/09/2026, 23:01:59
  * Dependents: components/DesignPreview/steps/PreviewTown3D.tsx, components/DesignPreview/steps/Town3DScene.tsx, components/DesignPreview/steps/townMesh.ts, components/MapPane.tsx, components/Worldforge/TownPlanView.tsx, devtools/buildingIdentityLab/buildingIdentityLabModel.ts, systems/worldforge/bridge/buildingOccupancy.ts, systems/worldforge/town/architectureDistricts.ts, systems/worldforge/town/buildingEnsembles.ts, systems/worldforge/town/canonicalTown.ts, systems/worldforge/town/demoTownPlan.ts, systems/worldforge/town/householdBrief.ts, systems/worldforge/town/population.ts, systems/worldforge/town/townDiagnostics.ts, systems/worldforge/town/townPlanAdapter.ts, systems/worldforge/town/voronoiTownAdapter.ts
  * Imports: 8 files
  *
@@ -470,7 +470,7 @@ export function packWardFrontage(
   const interior = polygonCentroid(ward);
   const rng = rngFromPath(streamPath(seedPath, 'frontage'));
   const plots: BuildingPlot[] = [];
-  const minNegotiatedLotFt = CELL_FT * 3;
+  const minNegotiatedLotFt = CELL_FT * 5;
 
   // Corner lots may poke past the ADJACENT block edge. Instead of clearing a
   // whole plot-depth around every corner (the old rule — it left bald corners),
@@ -504,9 +504,9 @@ export function packWardFrontage(
     const maxDepth = Math.max(2, len(a, interior) * 0.6);
     const baseDepth = Math.min(plotDepth, maxDepth);
     const negotiatesCellGrid = opts.partyWallRows === true
-      // A source envelope of at least 1.5 cells can be rounded to the smallest
-      // useful three-cell urban lot without doubling either axis. Smaller
-      // scale-model towns keep their legacy packing and receive no fit receipt.
+      // Keep the existing threshold separating miniature preview plans from
+      // negotiated physical lots. Physical rows now reserve usable frontage;
+      // miniature plans retain legacy packing and receive no fit receipt.
       && plotWidth >= CELL_FT * 1.5
       && baseDepth >= CELL_FT * 1.5;
     // Attached frontage is one negotiated street envelope. A stable edge hash
@@ -519,9 +519,11 @@ export function packWardFrontage(
     while (t + plotWidth <= L - corner) {
       const rolledWidth = plotWidth * (0.8 + rng.next() * 0.4);
       const w = negotiatesCellGrid
-        // Preserve the existing width roll as a bounded 15/20 ft urban band.
-        // This adds proportion variety without introducing another RNG draw.
-        ? minNegotiatedLotFt + (rolledWidth > plotWidth * 1.05 ? CELL_FT : 0)
+        // Keep the authored street frontage instead of replacing every home
+        // with a 15/20ft miniature. Five cells leave space for rooms and a
+        // character-sized route; wider wards retain their larger source lots.
+        // The edge budget below seats fewer buildings rather than overlapping.
+        ? Math.max(minNegotiatedLotFt, Math.round(rolledWidth / CELL_FT) * CELL_FT)
         : rolledWidth;
       if (t + w > L - corner) break;
       // Preserve the historical frontage RNG draw order even when the current
@@ -529,9 +531,13 @@ export function packWardFrontage(
       // individual roll. Detached settlements retain the individual value.
       const individualDepthRoll = variety ? rng.next() : 0.5;
       const depth = negotiatesCellGrid
-        // Depth remains shared by the edge, but deeper edge rolls receive one
-        // extra cell so neighboring blocks do not all become 15 ft squares.
-        ? minNegotiatedLotFt + (rowDepth > baseDepth ? CELL_FT : 0)
+        // Share the snapped rear boundary, preserving the ward's finite depth.
+        // Narrow wards can still be smaller than the preferred five-cell depth;
+        // expanding them would overwrite streets or neighboring parcels.
+        ? Math.min(
+            Math.max(CELL_FT, Math.floor(maxDepth / CELL_FT) * CELL_FT),
+            Math.max(minNegotiatedLotFt, Math.round(rowDepth / CELL_FT) * CELL_FT),
+          )
         : variety
           ? baseDepth * (0.78 + individualDepthRoll * 0.44)
           : baseDepth;
@@ -1469,6 +1475,18 @@ export function generateTownPlan(
     ? { plaza: profile.hasPlaza, temple: profile.hasTemple, keep: profile.hasKeep, citadel: profile.hasCitadel }
     : { plaza: true, temple: true, keep: true };
   const roles = assignCivicRoles(wardCentroids, townCenter, req);
+  // Peripheral slivers cannot contain a keep. Prefer the outermost unclaimed
+  // ward that can reserve a forty-foot square before the street setback.
+  // Tiny schematic towns retain the historical placement when none can fit.
+  for (const kind of ['keep', 'citadel'] as const) {
+    const current = [...roles].find(([, role]) => role === kind)?.[0];
+    if (current === undefined) continue;
+    const candidates = wardPolys.map((polygon, index) => ({ polygon, index }))
+      .filter(({ polygon, index }) => (!roles.has(index) || index === current)
+        && squareAt(wardCentroids[index], 40).every(p => pointInPolygon(p, polygon)))
+      .sort((a, b) => dist2(wardCentroids[b.index], townCenter) - dist2(wardCentroids[a.index], townCenter));
+    if (candidates.length) { roles.delete(current); roles.set(candidates[0].index, kind); }
+  }
 
   // Terrain/water inputs (#4): inherited rivers/coast → docks + bridges.
   const water = opts.water ?? [];
@@ -1623,7 +1641,13 @@ export function generateTownPlan(
     if (role === 'temple' || role === 'keep' || role === 'citadel') {
       const b = polygonBounds(block);
       const span = Math.min(b.maxX - b.minX, b.maxY - b.minY);
-      civic.push({ kind: role, polygon: squareAt(wardCentroids[i], span * civicSize[role]), wardIndex: i });
+      // A keep is a habitable stronghold, not a ten-foot-wide three-floor pole.
+      // The existing civic-priority pass reserves its ground before houses.
+      const preferredSize = Math.max(role === 'keep' || role === 'citadel' ? 40 : 25, span * civicSize[role] * 2);
+      const center = wardCentroids[i];
+      let size = preferredSize;
+      while (size > 5 && !squareAt(center, size).every(p => pointInPolygon(p, block))) size -= 5;
+      civic.push({ kind: role, polygon: squareAt(center, size), wardIndex: i });
       return { polygon, block, plots, civic: role };
     }
     return { polygon, block, plots, civic: waterEdge != null ? 'dock' : undefined };

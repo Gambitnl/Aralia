@@ -14,7 +14,7 @@ wrapper mounts: `getWorldforgeLocalForCell` (about 325 ms) and `makeGroundWorld`
 
 Today the wait also *looks* like an error. The wrapper shows "World data is not
 ready for 3D view. Use Open Map to return to the atlas"
-(`src/components/World3D/World3DWrapper.tsx:978`) — a message that reads like
+(`src/components/World3D/World3DWrapper.tsx:978`) - a message that reads like
 something broke, not like a world loading.
 
 A separate note on where this came NOT from: an external performance report
@@ -28,7 +28,7 @@ above, and that is what this spec fixes.
 Move the heavy world assembly off the main thread and build the world in stages,
 so:
 
-1. The main thread stays responsive during entry — the loading screen animates
+1. The main thread stays responsive during entry - the loading screen animates
    instead of freezing.
 2. Terrain and the town appear first; props and gameplay wiring fill in after.
 3. The world is byte-identical to today's, given the same seed.
@@ -49,7 +49,7 @@ so:
 The design rests on one fact confirmed in the code: the loader closure that
 `createGroundChunkLoader` returns closes over **only the `ground` data object**
 (`src/systems/worldforge/bridge/groundChunkLoader.ts:1657`). Its two helpers,
-`sampleGroundChunk(ground, …)` and `buildGroundVegetation(ground, …)`, are pure
+`sampleGroundChunk(ground, ...)` and `buildGroundVegetation(ground, ...)`, are pure
 functions of that data. Nothing in the closure needs a live object that can't
 cross a worker boundary.
 
@@ -75,13 +75,13 @@ go/no-go spike, not assumed.
 
 Add a `worldGenWorker` built on the same shape as `createWorkerChunkLoader`:
 
-- The host posts a request: `{ wfSeed, entryCellId, centerPx, hour, deltas }` —
+- The host posts a request: `{ wfSeed, entryCellId, centerPx, hour, deltas }` -
   all serializable.
 - The worker runs the assembly and posts results back in stages (below), each
   tagged with the request id so a stale request from a previous mount is
   ignored.
 - The worker is owned by the host, disposed on unmount, and respawns if it dies
-  — the same self-healing lifecycle the chunk worker uses, for the same
+  - the same self-healing lifecycle the chunk worker uses, for the same
   StrictMode reason.
 - A synchronous in-process fake worker backs the unit tests.
 
@@ -89,7 +89,7 @@ Add a `worldGenWorker` built on the same shape as `createWorkerChunkLoader`:
 
 The worker streams the world back in the order the player perceives it.
 
-**Stage A — land and town.** The worker runs `getWorldforgeLocalForCell` then
+**Stage A - land and town.** The worker runs `getWorldforgeLocalForCell` then
 `makeGroundWorld` **with the props pass skipped**. Props are already the final,
 separable step of `makeGroundWorld`
 (`src/systems/worldforge/bridge/groundChunkLoader.ts:489`), so this is a real
@@ -98,12 +98,12 @@ The host rebuilds the loader closure and hands it to `World3DScene`. Terrain,
 town buildings, walls, roads, and water render. **This is the moment the player
 can look around.**
 
-**Stage B — dressing.** The worker runs `buildGroundProps` on the assembled
+**Stage B - dressing.** The worker runs `buildGroundProps` on the assembled
 world and posts just the props array. The host patches `ground.props` and the
-prop layer renders — market stalls, dock crates, wilderness cover.
+prop layer renders - market stalls, dock crates, wilderness cover.
 
-**Stage C — gameplay wiring.** The NPC and shop registration loop
-(`src/components/World3D/World3DWrapper.tsx:251-323`) stays on the main thread —
+**Stage C - gameplay wiring.** The NPC and shop registration loop
+(`src/components/World3D/World3DWrapper.tsx:251-323`) stays on the main thread -
 it dispatches Redux actions and reads live game state, so it cannot move to a
 worker. It runs after Stage A paints, spread across idle frames so it never
 blocks a frame. Buildings already show correct names before it finishes, because
@@ -116,7 +116,7 @@ A subtlety that must survive this reordering: today the registration loop runs
 *before* assembly, so `makeGroundWorld` sees the freshly registered businesses.
 In the staged design the worker assembles *without* them. This is safe only
 because the deterministic name fallback and the registration loop derive names
-from the identical seed formula (`worldSeed + burgId + plotId` →
+from the identical seed formula (`worldSeed + burgId + plotId` ->
 `generateBusinessName`, at `World3DWrapper.tsx:278` and
 `groundChunkLoader.ts:1132`). The fallback name therefore equals the registered
 name by construction. This invariant is load-bearing and is exactly what the
@@ -126,15 +126,15 @@ determinism gate below proves.
 
 Replace the error-looking placeholder with a staged loading view:
 
-- Plain stage text that advances with the real stages: "Shaping the land…" →
-  "Raising the town…" → "Scattering details…".
+- Plain stage text that advances with the real stages: "Shaping the land..." ->
+  "Raising the town..." -> "Scattering details...".
 - A simple progress bar tied to stage completion.
-- US spelling, plain wording, sentence case — house style.
+- US spelling, plain wording, sentence case - house style.
 
 Because assembly is off-thread, this screen animates smoothly instead of
 freezing.
 
-## Determinism — the hard acceptance gate
+## Determinism - the hard acceptance gate
 
 The worker-built world must equal today's main-thread world byte for byte, for a
 fixed seed. Both paths run in the same JavaScript engine, so floating-point
@@ -163,16 +163,16 @@ before writing more code.
 
 ## Files touched (indicative)
 
-- New: `src/components/World3D/worldGenWorker.ts` — the worker entry point.
-- New: `src/components/World3D/createWorldGenClient.ts` — host-side client that
+- New: `src/components/World3D/worldGenWorker.ts` - the worker entry point.
+- New: `src/components/World3D/createWorldGenClient.ts` - host-side client that
   owns the worker, streams stages, and rebuilds the loader closure. Mirrors
   `createWorkerChunkLoader`.
 - New: a loading-screen component for the staged entry view.
-- Change: `src/systems/worldforge/bridge/groundChunkLoader.ts` — split
+- Change: `src/systems/worldforge/bridge/groundChunkLoader.ts` - split
   `makeGroundWorld` so the props pass can be skipped and run on its own
   (`makeGroundWorld({ withoutProps })` plus an exported props-only pass). The
   loader-closure builder becomes callable from an already-built `ground`.
-- Change: `src/components/World3D/World3DWrapper.tsx` — replace the inline
+- Change: `src/components/World3D/World3DWrapper.tsx` - replace the inline
   synchronous assembly in the ground `useEffect` with the staged worker client;
   swap the error-looking placeholder for the loading screen; move the
   registration loop to run after Stage A across idle frames.
@@ -193,20 +193,20 @@ before writing more code.
 5. Both feasibility spikes passed before the full build landed.
 6. No change to `?phase=webgpuprobe` behavior.
 
-## Progress note — 2026-07-07 (built)
+## Progress note - 2026-07-07 (built)
 
 All infrastructure built test-first and wired into the live PLAYING 3D entry.
 
 **Files:**
-- `src/systems/worldforge/bridge/groundChunkLoader.ts` — added `skipProps` option,
+- `src/systems/worldforge/bridge/groundChunkLoader.ts` - added `skipProps` option,
   exported `computeGroundProps` (the Stage B pass) and `buildGroundLoaderFromWorld`
   (rebuild the loader closure from an assembled `ground`).
-- `src/components/World3D/worldGenCore.ts` — pure two-stage orchestration + progress.
-- `src/components/World3D/worldGenWorker.ts` — worker entry (thin glue).
-- `src/components/World3D/createWorldGenClient.ts` — host client: owns the worker,
+- `src/components/World3D/worldGenCore.ts` - pure two-stage orchestration + progress.
+- `src/components/World3D/worldGenWorker.ts` - worker entry (thin glue).
+- `src/components/World3D/createWorldGenClient.ts` - host client: owns the worker,
   streams stages, correlates by id, supersedes, self-heals, disposes.
-- `src/components/World3D/WorldGenLoadingScreen.tsx` — staged loading view.
-- `src/components/World3D/World3DWrapper.tsx` — ground `useEffect` now drives the
+- `src/components/World3D/WorldGenLoadingScreen.tsx` - staged loading view.
+- `src/components/World3D/World3DWrapper.tsx` - ground `useEffect` now drives the
   worker client; registration deferred to idle after Stage A; props patched on
   Stage B; error-looking placeholder replaced by the loading screen.
 
@@ -215,11 +215,11 @@ All infrastructure built test-first and wired into the live PLAYING 3D entry.
 - 165 worldforge/bridge regression tests green (split is behavior-preserving).
 - 0 type errors, 0 lint errors in the changed files.
 - All modules (incl. the worker) transform through Vite; the real worker runs
-  end-to-end in a browser: progress → Stage A (terrain+town, loader rebuilt,
-  props=0) → Stage B (props populated), all off the main thread.
+  end-to-end in a browser: progress -> Stage A (terrain+town, loader rebuilt,
+  props=0) -> Stage B (props populated), all off the main thread.
 
-**Open gap:** the in-game visual eyeball (character creation → spawn → Enter 3D →
-see the loading screen give way to the world, props popping in) was not run — it
+**Open gap:** the in-game visual eyeball (character creation -> spawn -> Enter 3D ->
+see the loading screen give way to the world, props popping in) was not run - it
 needs the full game-entry flow (and, per project notes, Ollama for the opening).
 Everything up to that boundary is proven.
 
@@ -227,7 +227,7 @@ Everything up to that boundary is proven.
 
 - Live in-game freeze-frame of the loading screen on a cold entry. The staged
   path runs live in the real game (proven via `window.__wfEntry` + a rendered
-  scene, no errors), but the loading-label frames themselves were not captured —
+  scene, no errors), but the loading-label frames themselves were not captured -
   Stage A completes sub-second on a warm atlas.
 
 <!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/specs/2026-07-06-staged-offthread-3d-world-entry-design.md","sha256WithoutMarker":"88448e2e778206f620628a753bfd79f93831928ef87a02f3a0b8e8eed5c46e5d","markedAtUtc":"2026-08-09T20:24:29.251Z"} -->

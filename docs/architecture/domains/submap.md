@@ -1,6 +1,6 @@
 # Submap (Retired Legacy Domain)
 
-Verified: unknown — predates the verification rule (see AGENTS.md)
+Verified: 2026-09-09
 
 ## Current Authority
 
@@ -37,6 +37,15 @@ is registered as Worldforge WF-G15, not as a reason to resurrect Submap.
 The 2D-to-3D path is cell-native at the atlas tier, but selected-leaf handoff
 and cell/anchor identity invariants remain Worldforge WF-G13/WF-G14. The
 historical Submap G12 row is routed there.
+
+## Tile-Grid Model Retirement (2026-09-09)
+
+The last shared residue between the retired Submap grid and the world layer was
+`MapData.tiles` in `src/types/world.ts`. That field is now optional and
+deprecated, and the click/3D-entry/observation payloads are cell-native
+(`WorldCellView`, carrying the atlas `cellId`). The single remaining consumer is
+the pre-v2 save backfill, which cannot migrate. See
+`docs/adr/0003-mapdata-tiles-grid-retirement.md` and the World Map domain doc.
 
 ## Historical Boundary
 

@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 04/08/2026, 01:57:56
- * Dependents: hooks/useAbilitySystem.ts
- * Imports: 6 files
+ * Last Sync: 20/09/2026, 21:00:39
+ * Dependents: hooks/ability/useAbilityExecution.ts, hooks/useAbilitySystem.ts
+ * Imports: 7 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -19,6 +19,7 @@ import { MovementEffect } from '../types/spells';
 import { rollSavingThrow } from '../utils/character';
 import { generateId } from '../utils/combat';
 import { findPath } from '../utils/spatial/pathfinding';
+import type { TerrainMovementPolicy } from '../utils/combat/movementUtils';
 import { SavePenaltySystem } from '../systems/combat/SavePenaltySystem';
 
 export interface SpellMovementVisualInput {
@@ -165,11 +166,21 @@ export const resolveImmediateAfterForcedMovementRepeatSaves = (
   return nextState;
 };
 
+/**
+ * Routes the squares a forced-movement visual travels through.
+ *
+ * The route is priced with the MOVED creature's own terrain policy, so a
+ * shoved Earth Genasi is dragged along the same squares it would have walked
+ * rather than a detour that only exists because the router charged it the
+ * difficult-terrain surcharge its trait waives. Callers with no policy pass
+ * nothing and get the ordinary route.
+ */
 export const buildResolvedMovementVisualPath = (
   mapData: BattleMapData | null,
   from: Position,
   to: Position,
-  visualType: SpellMovementVisualInput['type']
+  visualType: SpellMovementVisualInput['type'],
+  terrainPolicy: TerrainMovementPolicy | null = null
 ): Position[] => {
   if (visualType === 'teleport' || !mapData) {
     return [from, to];
@@ -182,7 +193,7 @@ export const buildResolvedMovementVisualPath = (
     return [from, to];
   }
 
-  const routedTiles = findPath(startTile, endTile, mapData);
+  const routedTiles = findPath(startTile, endTile, mapData, {}, 1, terrainPolicy);
   return routedTiles.length > 1
     ? routedTiles.map(tile => tile.coordinates)
     : [from, to];

@@ -25,7 +25,8 @@ import { wfBiomeIndexToLegacyId } from '../../systems/worldforge/local/wfBiomeTo
 import { LOCATIONS, STARTING_LOCATION_ID } from '../../data/world/locations';
 import { BIOMES } from '../../data/biomes';
 import { generateWorldSeed } from '../../utils/random/generateWorldSeed';
-import type { MapData } from '../../types';
+// Grid retirement (agora-608b): the `MapData` import was dead here — spawn
+// auditing reads the Worldforge atlas cells directly, never a tile grid.
 
 const LAND_THRESHOLD = 20;
 

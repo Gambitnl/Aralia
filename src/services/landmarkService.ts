@@ -1,7 +1,340 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 20/09/2026, 21:00:39
+ * Dependents: services/travelEventService.ts
+ * Imports: 5 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
 
 import { createSeededRandom } from '../utils/spatial/submapUtils';
 import { DiscoveryReward, DiscoveryConsequence } from '../types/exploration';
-import { LANDMARK_ORIGINS, LANDMARK_TYPES, LANDMARK_STATES } from '../data/landmarkGenData';
+import {
+  LANDMARK_ORIGINS,
+  LANDMARK_TYPES,
+  LANDMARK_STATES,
+  LandmarkOrigin,
+  LandmarkState,
+} from '../data/landmarkGenData';
+import { LootTable, LootEntry } from '../types/loot';
+import { ALL_ITEMS } from '../data/items';
+
+// -----------------------------------------------------------------------------
+// Landmark loot tables
+// -----------------------------------------------------------------------------
+//
+// WHAT CHANGED (agora-8aa4): the 'item' reward branch used to coin-flip between
+// 'healing_potion' and 'torch'. It now rolls a real loot table, so what a ruin
+// yields reads as the work of whoever built it.
+//
+// WHY HERE: `src/types/loot.ts` already defined the LootTable / LootPool /
+// LootEntry schema (weights, quantity ranges, per-entry chance, unique pools,
+// nested table references) but nothing in the repo rolled against it. This is
+// that schema's first consumer rather than a new parallel system.
+//
+// WHAT IS PRESERVED: generation stays deterministic on the landmark rng, the
+// reward still arrives as a single DiscoveryReward[] entry list, and every
+// origin that data may later mark as item-bearing has a table, not just the two
+// that carry 'item' in LANDMARK_ORIGINS today.
+//
+// WHAT IS DEFERRED: LootTable.conditions (minLevel / playerClass) is NOT
+// evaluated here, because generateLandmark is given no character. Landmark
+// tables therefore declare no conditions; a table that grows one must also grow
+// a caller that can answer it.
+
+/** Guards a cycle in `table_reference` entries. */
+const MAX_LOOT_TABLE_DEPTH = 3;
+
+/**
+ * Loot shared by every ruin regardless of who raised it: the leavings of the
+ * scavengers and wayfarers who sheltered there after it fell.
+ */
+const WAYFARER_CACHE: LootTable = {
+  id: 'landmark_loot_wayfarer',
+  name: 'Wayfarer Cache',
+  description: 'Supplies left behind by whoever last sheltered in the ruin.',
+  pools: [
+    {
+      rolls: { min: 1, max: 1 },
+      entries: [
+        { type: 'item', id: 'torch', weight: 5, minQuantity: 1, maxQuantity: 3 },
+        { type: 'item', id: 'rations', weight: 4, minQuantity: 1, maxQuantity: 2 },
+        { type: 'item', id: 'oil_flask', weight: 3 },
+        { type: 'item', id: 'healing_potion', weight: 2 },
+        { type: 'item', id: 'old_map_fragment', weight: 1 },
+      ],
+    },
+  ],
+};
+
+/**
+ * The high-risk table. Rolled in place of the origin table when the landmark's
+ * state is dangerous (riskLevel >= HIGH_RISK_LOOT_THRESHOLD): the places that
+ * can kill you are the places nobody stripped.
+ */
+const DEEP_VAULT: LootTable = {
+  id: 'landmark_loot_deep',
+  name: 'Undisturbed Vault',
+  description: 'What survives where the danger kept looters out.',
+  pools: [
+    {
+      rolls: { min: 1, max: 1 },
+      entries: [
+        { type: 'item', id: 'amulet_of_health', weight: 1 },
+        { type: 'item', id: 'cloak_of_protection', weight: 1 },
+        { type: 'item', id: 'ring_of_protection', weight: 1 },
+        { type: 'item', id: 'shield_plus_one', weight: 1 },
+        { type: 'item', id: 'breastplate', weight: 2 },
+        { type: 'item', id: 'diamond_300gp', weight: 2 },
+        { type: 'item', id: 'healing_potion', weight: 4, minQuantity: 1, maxQuantity: 2 },
+        { type: 'table_reference', id: 'landmark_loot_wayfarer', weight: 3 },
+      ],
+    },
+    {
+      // A hoard usually carries coin alongside the prize.
+      rolls: { min: 1, max: 1 },
+      entries: [
+        { type: 'currency', id: 'gold', weight: 3, minQuantity: 40, maxQuantity: 120 },
+        { type: 'nothing', weight: 2 },
+      ],
+    },
+  ],
+};
+
+/**
+ * One table per landmark origin, keyed by LandmarkOrigin.id. Every origin gets a
+ * table even where LANDMARK_ORIGINS does not currently list 'item' among its
+ * rewardTypes, so that adding 'item' to an origin is a pure data edit.
+ */
+export const LANDMARK_LOOT_TABLES: Record<string, LootTable> = {
+  [WAYFARER_CACHE.id]: WAYFARER_CACHE,
+  [DEEP_VAULT.id]: DEEP_VAULT,
+
+  landmark_loot_elven: {
+    id: 'landmark_loot_elven',
+    name: 'Elven Landmark Cache',
+    pools: [
+      {
+        rolls: { min: 1, max: 1 },
+        entries: [
+          { type: 'item', id: 'silver_necklace', weight: 3 },
+          { type: 'item', id: 'silver_ring', weight: 3 },
+          { type: 'item', id: 'travelers_cloak', weight: 2 },
+          { type: 'item', id: 'leather_bracers', weight: 2 },
+          { type: 'item', id: 'shortbow', weight: 2 },
+          { type: 'item', id: 'rapier', weight: 1 },
+          { type: 'item', id: 'healing_potion', weight: 3 },
+          { type: 'table_reference', id: 'landmark_loot_wayfarer', weight: 4 },
+        ],
+      },
+    ],
+  },
+
+  landmark_loot_dwarven: {
+    id: 'landmark_loot_dwarven',
+    name: 'Dwarven Landmark Cache',
+    pools: [
+      {
+        rolls: { min: 1, max: 1 },
+        entries: [
+          { type: 'item', id: 'warhammer', weight: 3 },
+          { type: 'item', id: 'handaxe', weight: 3 },
+          { type: 'item', id: 'war_pick', weight: 2 },
+          { type: 'item', id: 'battleaxe', weight: 2 },
+          { type: 'item', id: 'steel_helmet', weight: 2 },
+          { type: 'item', id: 'chain_shirt', weight: 1 },
+          { type: 'item', id: 'thieves-tools', weight: 1 },
+          { type: 'table_reference', id: 'landmark_loot_wayfarer', weight: 4 },
+        ],
+      },
+    ],
+  },
+
+  landmark_loot_ancient: {
+    id: 'landmark_loot_ancient',
+    name: 'Ancient Landmark Cache',
+    pools: [
+      {
+        rolls: { min: 1, max: 1 },
+        entries: [
+          { type: 'item', id: 'rusty_sword', weight: 4 },
+          { type: 'item', id: 'ring_mail', weight: 2 },
+          { type: 'item', id: 'leather_armor', weight: 2 },
+          { type: 'item', id: 'old_map_fragment', weight: 3 },
+          { type: 'item', id: 'lodestone_pair', weight: 1 },
+          { type: 'table_reference', id: 'landmark_loot_wayfarer', weight: 4 },
+        ],
+      },
+    ],
+  },
+
+  landmark_loot_draconic: {
+    id: 'landmark_loot_draconic',
+    name: 'Draconic Landmark Hoard',
+    pools: [
+      {
+        rolls: { min: 1, max: 1 },
+        entries: [
+          { type: 'item', id: 'gold_ring', weight: 3 },
+          { type: 'item', id: 'platinum_piece', weight: 3, minQuantity: 1, maxQuantity: 4 },
+          { type: 'item', id: 'scale_mail', weight: 2 },
+          { type: 'item', id: 'diamond_300gp', weight: 1 },
+          { type: 'item', id: 'shiny_coin', weight: 2, minQuantity: 2, maxQuantity: 6 },
+          { type: 'table_reference', id: 'landmark_loot_wayfarer', weight: 2 },
+        ],
+      },
+    ],
+  },
+
+  landmark_loot_fey: {
+    id: 'landmark_loot_fey',
+    name: 'Fey Landmark Cache',
+    pools: [
+      {
+        rolls: { min: 1, max: 1 },
+        entries: [
+          { type: 'item', id: 'healing_potion', weight: 4 },
+          { type: 'item', id: 'silver_ring', weight: 3 },
+          { type: 'item', id: 'travelers_cloak', weight: 2 },
+          { type: 'item', id: 'lodestone_pair', weight: 2 },
+          { type: 'item', id: 'shiny_coin', weight: 2, minQuantity: 1, maxQuantity: 3 },
+          { type: 'table_reference', id: 'landmark_loot_wayfarer', weight: 3 },
+        ],
+      },
+    ],
+  },
+};
+
+/** A landmark state this dangerous rolls the undisturbed-vault table instead. */
+const HIGH_RISK_LOOT_THRESHOLD = 5;
+
+/** Picks an index into `entries` in proportion to each entry's weight. */
+function pickWeightedIndex(entries: LootEntry[], rng: () => number): number {
+  const totalWeight = entries.reduce((sum, entry) => sum + entry.weight, 0);
+  if (totalWeight <= 0) {
+    throw new Error('landmarkService: loot pool has no positive weight');
+  }
+  let roll = rng() * totalWeight;
+  for (let i = 0; i < entries.length; i++) {
+    roll -= entries[i].weight;
+    if (roll <= 0) return i;
+  }
+  return entries.length - 1;
+}
+
+/** Rolls a quantity inside an entry's declared range (defaults to exactly 1). */
+function rollQuantity(entry: LootEntry, rng: () => number): number {
+  const min = entry.minQuantity ?? 1;
+  const max = entry.maxQuantity ?? min;
+  if (max < min) {
+    throw new Error(`landmarkService: loot entry "${entry.id ?? entry.type}" has maxQuantity < minQuantity`);
+  }
+  return min + Math.floor(rng() * (max - min + 1));
+}
+
+/**
+ * Rolls one loot table into DiscoveryReward entries.
+ *
+ * Unknown table ids, unknown item ids, and unsupported currencies throw instead
+ * of silently degrading: a landmark that cannot name its own prize is a data
+ * bug, and hiding it behind a default potion is what this task removed.
+ */
+export function rollLandmarkLootTable(
+  tableId: string,
+  rng: () => number,
+  depth: number = 0
+): DiscoveryReward[] {
+  if (depth > MAX_LOOT_TABLE_DEPTH) {
+    throw new Error(`landmarkService: loot table "${tableId}" nests deeper than ${MAX_LOOT_TABLE_DEPTH}`);
+  }
+  const table = LANDMARK_LOOT_TABLES[tableId];
+  if (!table) {
+    throw new Error(`landmarkService: unknown loot table "${tableId}"`);
+  }
+
+  const rewards: DiscoveryReward[] = [];
+
+  for (const pool of table.pools) {
+    if (pool.rolls.max < pool.rolls.min) {
+      throw new Error(`landmarkService: loot pool in "${tableId}" has max rolls below min`);
+    }
+    const rolls = pool.rolls.min + Math.floor(rng() * (pool.rolls.max - pool.rolls.min + 1));
+    const usedIndices = new Set<number>();
+
+    for (let roll = 0; roll < rolls; roll++) {
+      const candidates = pool.unique
+        ? pool.entries.filter((_, index) => !usedIndices.has(index))
+        : pool.entries;
+      if (candidates.length === 0) break;
+
+      const candidateIndex = pickWeightedIndex(candidates, rng);
+      const entry = candidates[candidateIndex];
+      if (pool.unique) {
+        usedIndices.add(pool.entries.indexOf(entry));
+      }
+
+      // Per-entry chance is checked AFTER selection, as src/types/loot.ts states.
+      if (entry.chance !== undefined && rng() > entry.chance) continue;
+      if (entry.type === 'nothing') continue;
+
+      if (entry.type === 'table_reference') {
+        rewards.push(...rollLandmarkLootTable(entry.id, rng, depth + 1));
+        continue;
+      }
+
+      const quantity = rollQuantity(entry, rng);
+
+      if (entry.type === 'currency') {
+        if (entry.id !== 'gold') {
+          throw new Error(`landmarkService: landmark rewards carry only 'gold', got "${entry.id}"`);
+        }
+        rewards.push({
+          type: 'gold',
+          amount: quantity,
+          description: `A cache of ${quantity} gold coins lies among the stones.`,
+        });
+        continue;
+      }
+
+      const item = ALL_ITEMS[entry.id];
+      if (!item) {
+        throw new Error(`landmarkService: loot table "${tableId}" names unknown item "${entry.id}"`);
+      }
+      rewards.push({
+        type: 'item',
+        resourceId: entry.id,
+        amount: quantity,
+        description:
+          quantity > 1
+            ? `You discover ${quantity} ${item.name}.`
+            : `You discover a ${item.name}.`,
+      });
+    }
+  }
+
+  return rewards;
+}
+
+/**
+ * Chooses which table an item reward rolls on. Dangerous sites keep their best
+ * things, because the danger is what kept the looters out.
+ */
+function rollLandmarkItemReward(
+  origin: LandmarkOrigin,
+  state: LandmarkState,
+  rng: () => number
+): DiscoveryReward[] {
+  const tableId =
+    state.riskLevel >= HIGH_RISK_LOOT_THRESHOLD ? DEEP_VAULT.id : `landmark_loot_${origin.id}`;
+  return rollLandmarkLootTable(tableId, rng);
+}
 
 export interface GeneratedLandmark {
   id: string;
@@ -113,16 +446,11 @@ export function generateLandmark(
               break;
           }
           case 'item': {
-              // Simple item placeholder - ideally would pull from a loot table
-              // For now, give a potion or generic item
-              const itemId = rng() > 0.5 ? 'healing_potion' : 'torch';
-              const itemName = itemId === 'healing_potion' ? 'Healing Potion' : 'Torch';
-              rewards.push({
-                  type: 'item',
-                  resourceId: itemId,
-                  amount: 1,
-                  description: `You discover a ${itemName}.`
-              });
+              // agora-8aa4: rolls the origin's loot table (or the undisturbed-vault
+              // table at high risk) instead of the old healing_potion/torch coin flip.
+              // A high-risk table roll can yield coin alongside the item, so this
+              // branch may now push more than one reward.
+              rewards.push(...rollLandmarkItemReward(origin, state, rng));
               break;
           }
       }

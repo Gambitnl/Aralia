@@ -23,7 +23,7 @@
  */
 import { VoyageEvent, VoyageState } from '../../types/naval';
 import { CrewManager } from '../../systems/naval/CrewManager';
-import { rollDamage, rollDice } from '../../utils/combat';
+import { rollDamage, rollDice } from '../../systems/dice/rollers';
 
 export const VOYAGE_EVENTS: VoyageEvent[] = [
     // ========================================================================
@@ -282,6 +282,96 @@ export const VOYAGE_EVENTS: VoyageEvent[] = [
             return {
                 log: `Salvaged debris found floating. Recovered supplies worth ${goldFound}gp.`,
                 type: 'Discovery'
+            };
+        }
+    },
+
+    // ========================================================================
+    // PORTED FROM THE RETIRED src/data/naval/voyageEvents/index.ts (agora-f821.11)
+    // ------------------------------------------------------------------------
+    // That directory index exported a second, unreachable VOYAGE_EVENTS table.
+    // Most of its twelve entries were re-spellings of events already here
+    // (storm_heavy/storm_gale, thick_fog/dense_fog, dead_calm/doldrums,
+    // tailwind/fair_winds, scurvy_outbreak/scurvy_signs). These four had no
+    // counterpart in this table, so they are carried over rather than pruned:
+    // a spoilage event, a superstition beat that reads crew traits, a merfolk
+    // trade, and the only pirate encounter in either table.
+    // ========================================================================
+    {
+        id: 'bad_rations',
+        name: 'Spoiled Rations',
+        description: 'A barrel of salt pork has gone off.',
+        type: 'Crew',
+        probability: 0.08,
+        effect: (_state, ship) => {
+            const lostFood = 20;
+            ship.cargo.supplies.food = Math.max(0, ship.cargo.supplies.food - lostFood);
+            CrewManager.modifyCrewMorale(ship.crew, -3, 'Bad food');
+
+            return {
+                log: `Found weevils in the biscuits and rot in the pork. Tossed ${lostFood} rations overboard.`,
+                type: 'Warning'
+            };
+        }
+    },
+    {
+        id: 'religious_omen',
+        name: 'Religious Omen',
+        description: 'The crew spotted an albino dolphin.',
+        type: 'Crew',
+        probability: 0.05,
+        effect: (_state, ship) => {
+            // The beat only lands for a crew that believes in it, so the morale
+            // swing is gated on the trait rather than handed to every crew.
+            const superstitious = ship.crew.members.filter(m => m.traits.includes('Superstitious'));
+            if (superstitious.length > 0) {
+                CrewManager.modifyCrewMorale(ship.crew, 10, 'Divine favor');
+                return {
+                    log: `An albino dolphin! The superstitious crew members claim it's a blessing from the Sea Gods.`,
+                    type: 'Fluff'
+                };
+            }
+            return {
+                log: `We saw a white dolphin today. Pretty.`,
+                type: 'Fluff'
+            };
+        }
+    },
+    {
+        id: 'merfolk_trade',
+        name: 'Merfolk Traders',
+        description: 'Merfolk surface to trade pearls for steel.',
+        type: 'Encounter',
+        probability: 0.05,
+        effect: (_state, ship) => {
+            CrewManager.modifyCrewMorale(ship.crew, 5, 'Profitable trade');
+            return {
+                log: `Traded old knives for pearls with a pod of Merfolk. A profitable day!`,
+                type: 'Discovery'
+            };
+        }
+    },
+    {
+        id: 'pirate_sighting',
+        name: 'Pirate Sighting',
+        description: 'Black sails on the horizon.',
+        type: 'Encounter',
+        probability: 0.05,
+        effect: (state, ship) => {
+            // A fast hull simply outruns them. A slow one is caught, and the
+            // voyage hands off to the naval combat status.
+            if (ship.stats.speed > 40) {
+                return {
+                    log: `Spotted a pirate vessel, but we outran them.`,
+                    type: 'Info'
+                };
+            }
+
+            CrewManager.modifyCrewMorale(ship.crew, -5, 'Fear');
+            state.status = 'Combat';
+            return {
+                log: `Pirates closing in! Prepare for battle!`,
+                type: 'Warning'
             };
         }
     }

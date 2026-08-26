@@ -23,13 +23,15 @@
  * roll tied to an actual party member or selected sheet character instead,
  * while still honoring the older Crafter callback shape those systems expect.
  *
- * Remaining limitation: if a save truly has no party yet, the adapter falls
- * back to an explicit placeholder so the UI does not crash in empty states.
+ * No fallbacks: when a save truly has no party yet there is no crafter, and
+ * the adapter says so with a typed empty result (`status: 'no_crafter'`)
+ * instead of fabricating an "Unassigned" stub that would roll flat d20s. Every
+ * caller must narrow on `status` and render its own empty state.
  */
 import { SKILLS_DATA } from '../../data/skills';
 import { PlayerCharacter, AbilityScoreName } from '../../types';
 import { getAbilityModifierValue } from '../../utils/character/statUtils';
-import { rollDice } from '../../utils/combat';
+import { rollDice } from '../../systems/dice/rollers';
 import { Crafter } from '../../systems/crafting/craftingSystem';
 
 interface CraftingStateSnapshot {
@@ -54,11 +56,32 @@ export interface CraftingCrafterSelectionOptions {
   allowCharacterSheetSelection?: boolean;
 }
 
-export interface CraftingCrafterResolution {
-  crafter: Crafter;
-  sourceCharacter: PlayerCharacter | null;
-  sourceLabel: 'selected_character' | 'party_lead' | 'fallback';
-}
+/**
+ * Discriminated result of resolving a crafter from live state.
+ *
+ * `no_crafter` is the one honest answer to an empty party: there is no
+ * character to roll for, so the adapter returns nothing rollable and the UI
+ * tells the player why. Callers narrow on `status`; the null members exist so
+ * a caller that reads `.crafter` without narrowing fails to typecheck.
+ */
+export type CraftingCrafterResolution =
+  | {
+      status: 'resolved';
+      crafter: Crafter;
+      sourceCharacter: PlayerCharacter;
+      sourceLabel: 'selected_character' | 'party_lead';
+    }
+  | {
+      status: 'no_crafter';
+      reason: 'empty_party';
+      crafter: null;
+      sourceCharacter: null;
+      sourceLabel: null;
+    };
+
+/** Human-readable reason shown by panels when no crafter could be resolved. */
+export const NO_CRAFTER_MESSAGE =
+  'No party member is available to craft. Recruit or create a character first.';
 
 const TOOL_CHECK_ABILITY_MAP: Record<string, AbilityScoreName> = {
   alchemists_supplies: 'Intelligence',
@@ -127,13 +150,6 @@ const getCheckAbility = (skillName: string): AbilityScoreName => {
   return TOOL_CHECK_ABILITY_MAP[normalized] ?? 'Intelligence';
 };
 
-const createPlaceholderCrafter = (): Crafter => ({
-  id: 'no-crafter',
-  name: 'Unassigned',
-  inventory: [],
-  rollSkill: () => rollDice('1d20'),
-});
-
 /**
  * Turns a character into the lightweight Crafter contract expected by the
  * legacy gathering and harvest systems.
@@ -179,13 +195,16 @@ export function resolveCraftingCrafter(
 
   if (!sourceCharacter) {
     return {
-      crafter: createPlaceholderCrafter(),
+      status: 'no_crafter',
+      reason: 'empty_party',
+      crafter: null,
       sourceCharacter: null,
-      sourceLabel: 'fallback',
+      sourceLabel: null,
     };
   }
 
   return {
+    status: 'resolved',
     crafter: createCraftingCrafter(sourceCharacter),
     sourceCharacter,
     sourceLabel: selectedCharacter ? 'selected_character' : 'party_lead',

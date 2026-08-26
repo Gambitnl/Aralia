@@ -6,11 +6,11 @@ Folder deleted; git history is the archive.
 ## Surface
 
 Crafting UI lives under `src/components/Crafting/`:
-- `AlchemyBenchPanel.tsx` — tab routing, location/tool filters, research
+- `AlchemyBenchPanel.tsx` - tab routing, location/tool filters, research
   actions, recent-activity log. Live recipe-browser derivations and the
   quantity-aware batch preview are owned by `alchemyBenchSelectors.ts`
   (G9 modularization split).
-- `ExperimentPanel.tsx` — counts reagent stack `quantity` when building the
+- `ExperimentPanel.tsx` - counts reagent stack `quantity` when building the
   available ingredient pool; accepts additive drag-and-drop staging into the
   cauldron alongside the click path. Experimental damage routes through
   `MODIFY_PARTY_HEALTH` (proven in ExperimentPanel.test.tsx; G3 resolved
@@ -36,7 +36,7 @@ Crafting UI lives under `src/components/Crafting/`:
   crafter stats.
 - G8 (salvage UI owner): salvage recipes have backend support
   (`salvageSystem.ts`) but no confirmed player-facing inventory entry point
-  (`InventoryList.tsx`). This topic is the routed owner for salvage UI —
+  (`InventoryList.tsx`). This topic is the routed owner for salvage UI -
   `docs/tasks/ui-features` G1/T3 point here; do not reopen the retired
   standalone `docs/tasks/CRAFTING_UI_TODO.md`.
 

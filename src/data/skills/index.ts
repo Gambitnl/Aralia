@@ -1,27 +1,24 @@
-/**
- * @file src/data/skills/index.ts
- * Defines all skill data for the Aralia RPG.
- */
 import { Skill } from '../../types';
 
-// TODO: Add a 'description' field to the Skill type (types/core.ts) and populate SKILLS_DATA with lore/mechanics text.
+// Every skill carries a two-sentence description: what it covers, then when the
+// game calls for it. Shown on the character sheet (agora-d1c7.7, 2026-09-13).
 export const SKILLS_DATA: Record<string, Skill> = {
-  'acrobatics': { id: 'acrobatics', name: 'Acrobatics', ability: 'Dexterity' },
-  'animal_handling': { id: 'animal_handling', name: 'Animal Handling', ability: 'Wisdom' },
-  'arcana': { id: 'arcana', name: 'Arcana', ability: 'Intelligence' },
-  'athletics': { id: 'athletics', name: 'Athletics', ability: 'Strength' },
-  'deception': { id: 'deception', name: 'Deception', ability: 'Charisma' },
-  'history': { id: 'history', name: 'History', ability: 'Intelligence' },
-  'insight': { id: 'insight', name: 'Insight', ability: 'Wisdom' },
-  'intimidation': { id: 'intimidation', name: 'Intimidation', ability: 'Charisma' },
-  'investigation': { id: 'investigation', name: 'Investigation', ability: 'Intelligence' },
-  'medicine': { id: 'medicine', name: 'Medicine', ability: 'Wisdom' },
-  'nature': { id: 'nature', name: 'Nature', ability: 'Intelligence' },
-  'perception': { id: 'perception', name: 'Perception', ability: 'Wisdom' },
-  'performance': { id: 'performance', name: 'Performance', ability: 'Charisma' },
-  'persuasion': { id: 'persuasion', name: 'Persuasion', ability: 'Charisma' },
-  'religion': { id: 'religion', name: 'Religion', ability: 'Intelligence' },
-  'sleight_of_hand': { id: 'sleight_of_hand', name: 'Sleight of Hand', ability: 'Dexterity' },
-  'stealth': { id: 'stealth', name: 'Stealth', ability: 'Dexterity' },
-  'survival': { id: 'survival', name: 'Survival', ability: 'Wisdom' },
+  'acrobatics': { id: 'acrobatics', name: 'Acrobatics', ability: 'Dexterity', description: 'Balance, tumbling, and staying on your feet on ice, rigging, or a swaying deck. The game asks for it when you land a fall, cross a narrow ledge, or slip out of a grapple with agility.' },
+  'animal_handling': { id: 'animal_handling', name: 'Animal Handling', ability: 'Wisdom', description: 'Calming, reading, and directing animals, from a spooked horse to a guard dog. The game asks for it when you soothe a mount, read a beast\'s intent, or push an animal past its fear.' },
+  'arcana': { id: 'arcana', name: 'Arcana', ability: 'Intelligence', description: 'Knowledge of spells, magic items, planes, and eldritch symbols. The game asks for it when you identify a rune, recall what a creature from another plane can do, or read an arcane trap.' },
+  'athletics': { id: 'athletics', name: 'Athletics', ability: 'Strength', description: 'Climbing, jumping, swimming, and raw feats of muscle. The game asks for it when you scale a wall, leap a chasm, swim a current, or shove and grapple in combat.' },
+  'deception': { id: 'deception', name: 'Deception', ability: 'Charisma', description: 'Lies, disguises, bluffs, and misdirection that hide the truth. The game asks for it when you talk past a guard, fast-talk a merchant, or keep a straight face at the table.' },
+  'history': { id: 'history', name: 'History', ability: 'Intelligence', description: 'Knowledge of past events, dynasties, wars, lost cities, and old laws. The game asks for it when you place a ruin, recall a treaty, or recognize a noble crest.' },
+  'insight': { id: 'insight', name: 'Insight', ability: 'Wisdom', description: 'Reading intent, mood, and honesty from words and body language. The game asks for it when you judge whether a stranger lies, sense a hidden motive, or spot a bluff.' },
+  'intimidation': { id: 'intimidation', name: 'Intimidation', ability: 'Charisma', description: 'Threats, menace, and shows of force that bend others through fear. The game asks for it when you scare off thugs, squeeze a prisoner for answers, or make a bribe unnecessary.' },
+  'investigation': { id: 'investigation', name: 'Investigation', ability: 'Intelligence', description: 'Deduction from clues: hidden doors, tampered locks, the weak point in a wall. The game asks for it when you search a room with purpose, follow a paper trail, or work out how a mechanism fails.' },
+  'medicine': { id: 'medicine', name: 'Medicine', ability: 'Wisdom', description: 'Stabilizing the dying, diagnosing illness, and reading wounds. The game asks for it when you treat a companion at zero hit points, name a poison, or tell how a body died.' },
+  'nature': { id: 'nature', name: 'Nature', ability: 'Intelligence', description: 'Knowledge of terrain, plants, animals, weather, and natural cycles. The game asks for it when you identify a herb, predict a storm, or recall a beast\'s habits.' },
+  'perception': { id: 'perception', name: 'Perception', ability: 'Wisdom', description: 'Noticing what is there: a hidden foe, a faint sound, a trail in the grass. The game asks for it when you keep watch, spot an ambush, or catch a whisper through a door.' },
+  'performance': { id: 'performance', name: 'Performance', ability: 'Charisma', description: 'Music, acting, storytelling, and any art that holds a crowd. The game asks for it when you earn coin in a tavern, distract a room, or carry a disguise with confidence.' },
+  'persuasion': { id: 'persuasion', name: 'Persuasion', ability: 'Charisma', description: 'Honest influence: tact, good faith, and a convincing case. The game asks for it when you negotiate a price, win an ally, or talk a guard into bending a rule.' },
+  'religion': { id: 'religion', name: 'Religion', ability: 'Intelligence', description: 'Knowledge of deities, rites, holy symbols, cults, and the undead. The game asks for it when you recognize a shrine, recall a prophecy, or read the marks of a forbidden order.' },
+  'sleight_of_hand': { id: 'sleight_of_hand', name: 'Sleight of Hand', ability: 'Dexterity', description: 'Quick, hidden hand work: picking pockets, palming a coin, planting a note. The game asks for it when you lift a key unnoticed, hide a dagger, or cheat at dice.' },
+  'stealth': { id: 'stealth', name: 'Stealth', ability: 'Dexterity', description: 'Moving unseen and unheard, past guards or through a sleeping camp. The game asks for it when you sneak up on a foe, hide from a patrol, or slip away after a theft.' },
+  'survival': { id: 'survival', name: 'Survival', ability: 'Wisdom', description: 'Tracking, foraging, shelter, and finding the way in the wild. The game asks for it when you follow a trail, avoid quicksand, predict weather, or feed the party on the road.' },
 };

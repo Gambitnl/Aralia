@@ -2,16 +2,29 @@ import { describe, expect, it, beforeEach, vi } from 'vitest'
 import { SpellCommandFactory } from '../SpellCommandFactory'
 import primalSavagery from '@/data/spells/level-0/primal-savagery.json'
 import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '@/utils/core'
-import * as combatUtils from '@/utils/combat'
+import * as diceRollers from '@/systems/dice/rollers'
 import type { Spell } from '@/types/spells'
+
+// agora-f821.4 retired the combatUtils roller family; the modules under
+// test roll through systems/dice/rollers now. One hoisted set of mocks
+// stands in for BOTH specifiers, so one vi.mocked(...) pins every die.
+const diceMocks = vi.hoisted(() => ({
+    rollD20: vi.fn(),
+    rollDamage: vi.fn()
+}))
+
+
+vi.mock('@/systems/dice/rollers', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/systems/dice/rollers')>()
+  return { ...actual, ...diceMocks }
+})
 
 vi.mock('@/utils/combat', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/utils/combat')>()
   return {
     ...actual,
-    rollD20: vi.fn(),
-    rollDamage: vi.fn()
-  }
+    ...diceMocks,
+}
 })
 
 /**
@@ -46,13 +59,13 @@ describe('Primal Savagery bridge', () => {
   })
 
   beforeEach(() => {
-    vi.mocked(combatUtils.rollD20).mockReset()
-    vi.mocked(combatUtils.rollDamage).mockReset()
+    vi.mocked(diceRollers.rollD20).mockReset()
+    vi.mocked(diceRollers.rollDamage).mockReset()
   })
 
   it('creates a real melee spell attack, applies acid damage on hit, and clears the sharpened state', async () => {
-    vi.mocked(combatUtils.rollD20).mockReturnValue(12)
-    vi.mocked(combatUtils.rollDamage).mockReturnValue(7)
+    vi.mocked(diceRollers.rollD20).mockReturnValue(12)
+    vi.mocked(diceRollers.rollDamage).mockReturnValue(7)
 
     const caster = makeCaster(1)
     const target = makeTarget('primal-target', 10)
@@ -97,8 +110,8 @@ describe('Primal Savagery bridge', () => {
   })
 
   it('skips damage on miss and still clears the sharpened state', async () => {
-    vi.mocked(combatUtils.rollD20).mockReturnValue(2)
-    vi.mocked(combatUtils.rollDamage).mockReturnValue(7)
+    vi.mocked(diceRollers.rollD20).mockReturnValue(2)
+    vi.mocked(diceRollers.rollDamage).mockReturnValue(7)
 
     const caster = makeCaster(1)
     const target = makeTarget('primal-miss-target', 18)
@@ -144,8 +157,8 @@ describe('Primal Savagery bridge', () => {
     [11, '3d10'],
     [17, '4d10']
   ] as const)('scales acid damage to %s at caster level %s', async (level, expectedDice) => {
-    vi.mocked(combatUtils.rollD20).mockReturnValue(12)
-    vi.mocked(combatUtils.rollDamage).mockReturnValue(7)
+    vi.mocked(diceRollers.rollD20).mockReturnValue(12)
+    vi.mocked(diceRollers.rollDamage).mockReturnValue(7)
 
     const caster = makeCaster(level)
     const target = makeTarget(`primal-scale-${level}`, 10)
@@ -165,6 +178,6 @@ describe('Primal Savagery bridge', () => {
 
     await commands[0].execute(state)
 
-    expect(vi.mocked(combatUtils.rollDamage)).toHaveBeenCalledWith(expectedDice, false, 1)
+    expect(vi.mocked(diceRollers.rollDamage)).toHaveBeenCalledWith(expectedDice, false, 1, undefined)
   })
 })

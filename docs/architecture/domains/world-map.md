@@ -1,6 +1,6 @@
 # World Map
 
-Verified: 2026-08-12
+Verified: 2026-09-09
 
 ## Purpose
 
@@ -43,6 +43,30 @@ This comparison is for design review only. It lets developers identify useful co
 The old `phase=worldforge` route remains closed. The active World Generation route is opened with the `worldmap=1` query and uses `AtlasSvgView`.
 
 `src/components/Worldforge/__tests__/duplicateCanvasRetirement.test.ts` protects this boundary. The only allowed React import of `AtlasMapView` is the clearly labeled Design Preview comparison.
+
+## Legacy Tile-Grid Model (retired)
+
+The world once had a second data model: `MapData` in `src/types/world.ts` - a
+`gridSize` plus `tiles: MapTile[][]`, a dense 30x20 rectangular array. It is
+retired. `mapData` left `GameState` and the save format on 2026-06-30, and the
+2026-09-09 pass (agora-608b) finished the residue: `MapData.tiles` is now
+optional and deprecated, and every click, 3D-entry and observation contract
+carries `WorldCellView` - a cell-native payload holding the canonical atlas
+`cellId` - instead of a synthesized `MapTile` whose coordinates were always
+`(0, 0)`.
+
+Nothing in the running game constructs or reads a `MapData`. One consumer
+remains and cannot migrate: `migrateMapDataToWorldDataV2` in
+`src/state/migrations/worldDataMigration.ts` backfills `worldData` for a pre-v2
+save, and that save's grid is the only surviving record of its biomes. The
+field is kept for it, not deleted.
+
+Do not reintroduce a rectangular world grid. The inventory, the per-consumer
+verdicts and the deletion criterion are in
+`docs/adr/0003-mapdata-tiles-grid-retirement.md`.
+
+Note that `BattleMapData.tiles` (`src/types/combat.ts`) is an unrelated model -
+the tactical combat board - and is not covered by this retirement.
 
 ## Scale Hierarchy
 

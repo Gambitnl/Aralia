@@ -265,7 +265,7 @@
                                                                    ]
                                       },
                         "utilityType":  "information",
-                        "description":  "On a failed Wisdom save, the caster knows the target\u0027s location for up to 1 hour with concentration while both remain on the same plane; during that time, the target cannot become hidden from the caster and gains no benefit from Invisible against the caster.",
+                        "description":  "On a failed Wisdom save, the caster knows the target's location for up to 1 hour with concentration while both remain on the same plane; during that time, the target cannot become hidden from the caster and gains no benefit from Invisible against the caster.",
                         "revealedState":  {
                                               "appliesOn":  "failed_wisdom_save",
                                               "duration":  "while_spell_active_and_same_plane",
@@ -358,10 +358,10 @@
                 ],
     "arbitrationType":  "mechanical",
     "aiContext":  {
-                      "prompt":  "Resolve the Wisdom save and Psychic damage. On failed save, track the target\u0027s location while both creatures remain on the same plane, block it from becoming hidden from the caster, and suppress any benefit it would gain from Invisible against the caster.",
+                      "prompt":  "Resolve the Wisdom save and Psychic damage. On failed save, track the target's location while both creatures remain on the same plane, block it from becoming hidden from the caster, and suppress any benefit it would gain from Invisible against the caster.",
                       "playerInputRequired":  true
                   },
-    "description":  "You drive a spike of psionic energy into the mind of one creature you can see within range. The target makes a Wisdom saving throw, taking 3d8 Psychic damage on a failed save or half as much damage on a successful one. On a failed save, you also always know the target\u0027s location until the spell ends, but only while the two of you are on the same plane of existence. While you have this knowledge, the target can\u0027t become hidden from you, and if it has the Invisible condition, it gains no benefit from that condition against you.",
+    "description":  "You drive a spike of psionic energy into the mind of one creature you can see within range. The target makes a Wisdom saving throw, taking 3d8 Psychic damage on a failed save or half as much damage on a successful one. On a failed save, you also always know the target's location until the spell ends, but only while the two of you are on the same plane of existence. While you have this knowledge, the target can't become hidden from you, and if it has the Invisible condition, it gains no benefit from that condition against you.",
     "higherLevels":  "Using a Higher-Level Spell Slot. The damage increases by 1d8 for each spell slot level above 2.",
     "tags":  [
                  "damage",

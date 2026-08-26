@@ -316,7 +316,7 @@ two-phase sequence:
 3. **Build phase**: pick up the selected gap as the new active task and execute
    it.
 
-The current wording gives step 1 but does not explicitly trigger step 2 â†’ 3
+The current wording gives step 1 but does not explicitly trigger step 2 â†' 3
 when the mission is empty, so agents stop after step 1.
 
 #### Why This Is Workflow-Level
@@ -329,7 +329,7 @@ behavior across all future iteration agents.
 #### Current Safe Handling
 
 When the cold-start mission reads as "None" or empty, treat that as a trigger
-to perform the scan â†’ gate â†’ pick-up â†’ build sequence. Record the picked-up
+to perform the scan â†' gate â†' pick-up â†' build sequence. Record the picked-up
 gap as the new active task in the iteration handoff before executing. If no
 actionable gap is found, register the idle state per WFG-005 instead of
 silently ending the iteration.
@@ -355,7 +355,7 @@ an explicit two-branch instruction:
 > If no actionable gap exists, register the project idle per WFG-005.
 
 And update the shared `ITERATION_AGENT_WORKFLOW.md` "Choose The Work" step to
-state the scan â†’ gate â†’ pick-up â†’ build sequence explicitly, so the idle
+state the scan â†' gate â†' pick-up â†' build sequence explicitly, so the idle
 mission is not a terminal state.
 
 #### Resolution
@@ -382,7 +382,7 @@ Last updated: 2026-06-10
 #### Problem
 
 When a project's status is `active` but a cold-start agent (after performing
-the WFG-004 scan â†’ gate â†’ pick-up sequence) finds no actionable gap in the
+the WFG-004 scan â†' gate â†' pick-up sequence) finds no actionable gap in the
 project's `GAPS.md`, `GLOBAL_GAPS.md`, or `WORKFLOW_GAPS.md`, the workflow
 gives no way to record that outcome. The project stays `active`, the next
 handoff still says `status: active`, and the next iteration agent repeats the
@@ -403,14 +403,14 @@ Until an idle status is defined, when the scan finds no actionable gap, the
 iteration agent should record the "no gaps found" outcome explicitly in the
 cold-start handoff's `Recent progress` and `Current Mission` fields, and note
 the idle state in the iteration ledger. Do not change the project status to
-`done` or `dormant` without human confirmation â€” but do surface the idle
+`done` or `dormant` without human confirmation â€" but do surface the idle
 signal so dispatchers see it.
 
 #### Testimonies
 
 - 2026-06-10 | docs/projects/crafting iteration 6 review | Qoder CLI: After
   the crafting G1 compatibility proof closed and G5 remained blocked, the
-  project is functionally idle â€” no actionable gaps, but the status stays
+  project is functionally idle â€" no actionable gaps, but the status stays
   `active` and the handoff keeps producing "preserve and wait" iterations.
   Avoided assuming the project was done; the state is "waiting for evidence,"
   which the schema has no place to record.
@@ -579,7 +579,7 @@ Last updated: 2026-06-22
 
 The warning against "inventing gaps just to satisfy the count" and the suggestion to focus sweeps on "touched files only" creates a systemic bias. When performing a bounded gap sweep, agents tend to only audit files they have directly modified during the iteration. As a result, they may declare a project "gap-free" (or recommend it go `idle`), missing pre-existing bugs or incomplete features in unedited but closely related/adjacent files in the same project.
 
-Without active, adversarial probing—or **chaos testing** of system boundaries—agents default to a passive, static inspection of their own code changes. They assume adjacent code works correctly, missing hidden integration failures and logic gaps in untouched files.
+Without active, adversarial probing-or **chaos testing** of system boundaries-agents default to a passive, static inspection of their own code changes. They assume adjacent code works correctly, missing hidden integration failures and logic gaps in untouched files.
 
 #### Why This Is Workflow-Level
 

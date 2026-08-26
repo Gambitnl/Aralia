@@ -1,10 +1,12 @@
 
 import { describe, it, expect } from 'vitest';
+import { ItemType } from '../../../types';
 import { createPlayerCombatCharacter } from '../../combat/combatUtils';
 import { CLASSES_DATA } from '../../../data/classes';
 import { Item } from '../../../types';
 import { Spell, SpellSchool } from '../../../types/spells';
 import { createMockPlayerCharacter, createMockSpell } from '../../core/factories';
+import { DRAGONBORN_DATA } from '../../../data/races/dragonborn';
 
 // Mocks
 const mockAllSpells: Record<string, Spell> = {
@@ -71,7 +73,7 @@ describe('combatUtils: createPlayerCombatCharacter', () => {
       id: 'plate-armor',
       name: 'Plate Armor',
       description: 'Full interlocking metal plates.',
-      type: 'armor',
+      type: ItemType.Armor,
       slot: 'Torso',
       armorCategory: 'Heavy',
       baseArmorClass: 18,
@@ -83,7 +85,7 @@ describe('combatUtils: createPlayerCombatCharacter', () => {
       id: 'sentinel-shield',
       name: 'Sentinel Shield',
       description: 'A shield that requires magical attunement.',
-      type: 'armor',
+      type: ItemType.Armor,
       slot: 'OffHand',
       armorCategory: 'Shield',
       armorClassBonus: 2,
@@ -196,15 +198,17 @@ describe('combatUtils: createPlayerCombatCharacter', () => {
     const unarmed = combatChar.abilities.find(a => a.id === 'unarmed_strike');
     expect(unarmed).toBeDefined();
     expect(unarmed?.name).toBe('Unarmed Strike');
-    // Str 10 -> Mod 0. 1 + 0 = 1 damage
-    expect(unarmed?.effects[0].value).toBe(1);
+    // Str 10 -> Mod 0. 1 + 0 = 1 damage. Since agora-4325.2 the magnitude is a
+    // dice formula, not a flat value, because Tavern Brawler turns the strike
+    // into 1d4 + Strength and AbilityEffectMapper reads `dice` over `value`.
+    expect(unarmed?.effects[0].dice).toBe('1');
   });
 
   it('should generate weapon abilities for equipped items', () => {
     const longsword: Item = {
       id: 'longsword',
       name: 'Longsword',
-      type: 'weapon',
+      type: ItemType.Weapon,
       properties: [],
       description: 'A sharp blade.',
       category: 'Martial Weapon',
@@ -228,7 +232,7 @@ describe('combatUtils: createPlayerCombatCharacter', () => {
     const dagger: Item = {
       id: 'dagger',
       name: 'Dagger',
-      type: 'weapon',
+      type: ItemType.Weapon,
       properties: ['light', 'finesse'],
       description: 'A small blade.',
       category: 'Simple Weapon',
@@ -477,5 +481,131 @@ describe('combatUtils: createPlayerCombatCharacter', () => {
 
      expect(fireball).toBeDefined();
      expect(fireball?.type).toBe('spell');
+  });
+
+  // --------------------------------------------------------------------------
+  // Exhaustion (agora-117a.8, formerly TODO #1313)
+  // --------------------------------------------------------------------------
+
+  it('applies the exhaustion speed penalty from calculateExhaustionEffects', () => {
+    const rested = createPlayerCombatCharacter(createMockPlayerCharacter({ speed: 30 }));
+    expect(rested.stats.speed).toBe(30);
+
+    // Flat 'exhaustion' is how the game applies it today: level 1, so -5 ft.
+    const tired = createPlayerCombatCharacter(
+      createMockPlayerCharacter({ speed: 30, conditions: ['exhaustion'] }),
+    );
+    expect(tired.stats.speed).toBe(25);
+
+    // Numbered forms are read so a future stacking implementation needs no change.
+    const worn = createPlayerCombatCharacter(
+      createMockPlayerCharacter({ speed: 30, conditions: ['exhaustion_3'] }),
+    );
+    expect(worn.stats.speed).toBe(15);
+  });
+
+  it('keeps the movement budget in step with the exhausted speed', () => {
+    const worn = createPlayerCombatCharacter(
+      createMockPlayerCharacter({ speed: 30, conditions: ['Exhaustion_2'] }),
+    );
+    expect(worn.stats.speed).toBe(20);
+    expect(worn.actionEconomy.movement.total).toBe(20);
+  });
+
+  it('floors exhausted speed at zero and never speeds up a level-6 character', () => {
+    const immobile = createPlayerCombatCharacter(
+      createMockPlayerCharacter({ speed: 20, conditions: ['exhaustion-5'] }),
+    );
+    expect(immobile.stats.speed).toBe(0);
+
+    // Level 6 is death in the rules and calculateExhaustionEffects reports no speed
+    // penalty there; we clamp to 5 so the dying character is not the fastest on the map.
+    const dying = createPlayerCombatCharacter(
+      createMockPlayerCharacter({ speed: 30, conditions: ['exhaustion_6'] }),
+    );
+    expect(dying.stats.speed).toBe(5);
+  });
+
+  // --------------------------------------------------------------------------
+  // Darkvision (agora-117a.8, formerly TODO #1316)
+  // --------------------------------------------------------------------------
+
+  it('takes darkvision from the race-derived darkvisionRange rather than the race name', () => {
+    const homebrew = createPlayerCombatCharacter(
+      createMockPlayerCharacter({
+        darkvisionRange: 90,
+        race: {
+          id: 'ashborn',
+          name: 'Ashborn',
+          description: 'A homebrew race whose name matches no legacy heuristic.',
+          traits: ['Vision: You have Darkvision with a range of 90 feet.'],
+        },
+      }),
+    );
+    expect(homebrew.stats.senses?.darkvision).toBe(90);
+  });
+
+  it('falls back to the legacy race-name heuristic when darkvisionRange was never derived', () => {
+    // Fixtures and older saves never ran updateDerivedStats, so darkvisionRange is 0.
+    const drow = createPlayerCombatCharacter(
+      createMockPlayerCharacter({
+        darkvisionRange: 0,
+        race: { id: 'drow', name: 'Drow', description: 'Dark elf.', traits: [] },
+      }),
+    );
+    expect(drow.stats.senses?.darkvision).toBe(120);
+
+    const dwarf = createPlayerCombatCharacter(
+      createMockPlayerCharacter({
+        darkvisionRange: 0,
+        race: { id: 'dwarf', name: 'Dwarf', description: 'Stout.', traits: [] },
+      }),
+    );
+    expect(dwarf.stats.senses?.darkvision).toBe(60);
+
+    const human = createPlayerCombatCharacter(createMockPlayerCharacter({ darkvisionRange: 0 }));
+    expect(human.stats.senses?.darkvision).toBe(0);
+  });
+});
+
+describe('combatUtils: racial movement modes reach the combat actor (agora-db71.30)', () => {
+  it('withholds Dragonborn Draconic Flight from a level-4 combatant', () => {
+    const combatant = createPlayerCombatCharacter(
+      createMockPlayerCharacter({ level: 4, race: DRAGONBORN_DATA }),
+    );
+
+    expect(combatant.stats.extraMovementSpeeds?.fly).toBeUndefined();
+  });
+
+  it('gives a level-5 Dragonborn combatant a fly speed equal to its walking speed', () => {
+    const combatant = createPlayerCombatCharacter(
+      createMockPlayerCharacter({ level: 5, race: DRAGONBORN_DATA }),
+    );
+
+    expect(combatant.stats.extraMovementSpeeds?.fly).toBe(30);
+  });
+
+  it('carries an ungated racial swim and climb speed from level 1', () => {
+    const combatant = createPlayerCombatCharacter(
+      createMockPlayerCharacter({
+        level: 1,
+        race: {
+          id: 'test_amphibian',
+          name: 'Test Amphibian',
+          description: 'A homebrew race with ungated alternate movement.',
+          traits: [
+            'Speed: Your Speed is 30 feet. You have a Swim Speed of 30 feet and a Climb Speed of 20 feet.',
+          ],
+        },
+      }),
+    );
+
+    expect(combatant.stats.extraMovementSpeeds).toEqual({ swim: 30, climb: 20 });
+  });
+
+  it('leaves the key off a race with no alternate movement at all', () => {
+    const combatant = createPlayerCombatCharacter(createMockPlayerCharacter({ level: 5 }));
+
+    expect(combatant.stats.extraMovementSpeeds).toBeUndefined();
   });
 });

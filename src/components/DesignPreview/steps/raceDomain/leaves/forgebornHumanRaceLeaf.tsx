@@ -19,7 +19,7 @@ import { getRacialModifierBucketsFromTraitText } from '../../../../../data/races
 import { applyRacialSpellGrantsByLevel } from '../../../../../utils/character/characterUtils';
 import { rollAbilityCheck, type CheckResult } from '../../../../../utils/character/checkUtils';
 import { createQuickCharacter } from '../../../../../utils/sandbox/quickCharacterGenerator';
-import { rollDice } from '../../../../../utils/combat/combatUtils';
+import { rollDice } from '../../../../../systems/dice/rollers';
 import { Button } from '../../../../ui/Button';
 import type { PlayerCharacter, Race } from '../../../../../types';
 import type {

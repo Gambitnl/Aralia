@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 26/08/2026, 14:23:02
+ * Dependents: components/DesignPreview/steps/sidebyside/SideBySideOcean.tsx, systems/world3d/ocean/index.ts, systems/world3d/ocean/oceanCompute.ts, systems/world3d/ocean/oceanField.ts, systems/world3d/ocean/oceanSpectrum.ts, systems/world3d/ocean/oceanSurface.ts
+ * Imports: None
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file oceanConfig.ts — the open-ocean wave field's parameters and unit rule.
  *
@@ -103,7 +119,16 @@ export interface CascadeParams {
   readonly cutoffHighM: number;
   /**
    * Horizontal choppiness. 0 gives round swell; ~1.2 gives the sharp crest
-   * and broad trough of a real sea. Above ~1.5 the surface self-intersects.
+   * and broad trough of a real sea. Where it self-intersects depends on the
+   * band: a short steep band folds at a lower setting than a long one, so
+   * the limit is measured per cascade (the `<0` Jacobian fraction must stay
+   * at zero), not assumed.
+   *
+   * POSITIVE MEANS THE CREST SHARPENS. The kernels apply this value with a
+   * negative sign to Tessendorf's displacement formula, because under this
+   * pipeline's transform convention his sign moves surface points away from
+   * the crest and cusps the trough instead. That was measured, not argued:
+   * see the pack kernel in oceanCompute.ts. Callers never see the sign.
    */
   readonly choppiness: number;
   /** Distance roll-off applied to this cascade's DISPLACEMENT (geometry). */
@@ -125,6 +150,59 @@ export interface CascadeParams {
    * error of 0.010 and a worst case of 0.078.
    */
   readonly drivesFoam: boolean;
+  /**
+   * Directional spreading model.
+   *
+   * `mitsuyasu` is cosine-2s with the Mitsuyasu power, the shipped form.
+   * `donelan` is the Donelan-Banner sech^2 form: narrower at the peak, so
+   * the dominant crests run three to five wavelengths, and wider in the
+   * chop, so short waves cross those crests at an angle. `donelanBeta` in
+   * oceanSpectrum.ts carries the measurement. `ewans` is the Ewans (1998)
+   * bimodal form: above the peak the energy splits into two lobes on
+   * either side of the wind, separated by an angle that grows with
+   * frequency, so the chop arrives as two crossing families rather than
+   * one broad fan. `ewansLobeRad` in oceanSpectrum.ts carries the fit.
+   * `hasselmann` is cosine-2s with the Hasselmann, Dunckel and Ewing (1980)
+   * power: 9.77 at the peak for every wave age (30 degrees half-width,
+   * between Donelan's 22 and Mitsuyasu's 56 at this wave age), falling
+   * faster above the peak the younger the sea. `hasselmannPower` in
+   * oceanSpectrum.ts carries it.
+   * Absent means `mitsuyasu`, so every existing sea state keeps its shape.
+   */
+  readonly spreading?: 'mitsuyasu' | 'donelan' | 'ewans' | 'hasselmann';
+  /**
+   * Fraction of the JONSWAP variance this cascade keeps; 1 when absent.
+   *
+   * JONSWAP describes a sea under the wind that made it. A swell that has
+   * left its storm keeps the storm's peak period but not its energy:
+   * Snodgrass et al. (1966) tracked swell across the Pacific and measured
+   * the loss, and a swell a few thousand kilometers from its source keeps a
+   * tenth or less. A distant swell is therefore a JONSWAP peak with a
+   * fraction of its energy, and this is that fraction. It scales VARIANCE,
+   * so the wave height goes as its square root.
+   */
+  readonly energyScale?: number;
+  /**
+   * Exponent of the spectral tail above the peak; 5 when absent.
+   *
+   * 5 is JONSWAP's omega^-5, Phillips's 1958 saturation range. 4 is the
+   * equilibrium range Toba (1973), Donelan et al. (1985) and Phillips (1985)
+   * measured in the field: twice JONSWAP's energy one octave above the
+   * peak, four times two octaves above. It changes the short waves only
+   * (the low side and the peak are untouched), so it is the lever for the
+   * mean-square slope of the chop: with 5 the `waterpro` layout resolves
+   * 0.039 of Cox and Munk's 0.080 at 15 m/s. See `jonswapS`.
+   */
+  readonly tailPower?: number;
+  /**
+   * True to taper the tail above the peak by Elfouhaily et al. (1997):
+   * exp(-(U10 / cp) / sqrt(10) (omega / omegaP - 1)). Off when absent. It is
+   * meant for an omega^-4 band: it keeps the peak and brings the equilibrium
+   * range back toward JONSWAP's level a few peak frequencies up, so the band
+   * meets a shorter omega^-5 band without a step. `elfouhailyTaper` in
+   * oceanSpectrum.ts carries the measurement.
+   */
+  readonly tailTaper?: boolean;
 }
 
 /**
@@ -160,6 +238,27 @@ export const FIELDS_PER_CASCADE = 4;
  * cascades re-collapse into a single direction and the corduroy comes back.
  * The ripple keeps the wind sea's heading, because short waves really do
  * follow the local wind.
+ *
+ * WHAT THE OCEAN GAUNTLET FOUND IN THIS LAYOUT (2026-09-23), kept here so
+ * the next pass on it starts from the measurement and not from taste:
+ *
+ *   - A 97 m patch holds its 44.6 m peak only twice, so from 600 m up the
+ *     wind sea repeats in a visible lattice.
+ *   - The ripple band's longest waves (13 m) are exactly one patch long, so
+ *     the ripple's folds tile at 13 m. From straight above the Jacobian
+ *     channel shows the tiles; at eye level they are a diagonal streak
+ *     texture at one density and one scale.
+ *   - Mitsuyasu spreading collapses to isotropic in the ripple (its power
+ *     clamps at 0.1), so the combined along-wind to cross-wind slope
+ *     variance ratio is 1.04 against Cox and Munk's 1.45 at this wind: the
+ *     fine texture reads as speckle, not as wind-blown water.
+ *
+ * The `waterpro` state in oceanSeaStates.ts is the layout that fixes all
+ * three (13 / 89 / 421 m patches, every band at least three waves per patch,
+ * Donelan-Banner spreading). This default was NOT re-banded in that pass
+ * because the `storm` state spreads these cascades and its measured numbers
+ * assume these bands; re-banding the default means re-measuring the storm
+ * on the new bands in the same change.
  */
 export const DEFAULT_CASCADES: readonly CascadeParams[] = [
   {

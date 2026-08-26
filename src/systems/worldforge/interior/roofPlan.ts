@@ -380,6 +380,235 @@ function wingValleys(wing: RectFt, main: RectFt): RoofPlan['valleys'] {
 }
 
 // ── The solver ───────────────────────────────────────────────────────────────
+
+// ── One merged skin, built on a shared subdivision ──────────────────────────
+
+/** A line a*x + b*y + c = 0, normalised so (a,b) is a unit vector. */
+interface CutLine { a: number; b: number; c: number }
+
+/** z = a*x + b*y + c for a planar polygon. */
+function planeCoeffs(pts: Pt3[]): { a: number; b: number; c: number } {
+  const z0 = planeZAt({ pts }, 0, 0);
+  return { a: planeZAt({ pts }, 1, 0) - z0, b: planeZAt({ pts }, 0, 1) - z0, c: z0 };
+}
+
+/** Sutherland-Hodgman clip against an arbitrary half-plane a*x+b*y+c >= 0. */
+function clipPolyLine(pts: Pt3[], a: number, b: number, c: number, keepGE: boolean): Pt3[] {
+  const val = (p: Pt3): number => a * p[0] + b * p[1] + c;
+  const inside = (p: Pt3): boolean => (keepGE ? val(p) >= -EPS : val(p) <= EPS);
+  const out: Pt3[] = [];
+  for (let i = 0; i < pts.length; i++) {
+    const cur = pts[i];
+    const nxt = pts[(i + 1) % pts.length];
+    const ci = inside(cur);
+    const ni = inside(nxt);
+    if (ci) out.push(cur);
+    if (ci !== ni) {
+      const vc = val(cur);
+      const d = val(nxt) - vc;
+      // The SAME t on both sides of the split, so both halves get the same
+      // point. This is the property the previous attempt lacked.
+      const t = Math.abs(d) < 1e-12 ? 0 : -vc / d;
+      out.push([
+        cur[0] + t * (nxt[0] - cur[0]),
+        cur[1] + t * (nxt[1] - cur[1]),
+        cur[2] + t * (nxt[2] - cur[2]),
+      ]);
+    }
+  }
+  return out;
+}
+
+/** Normalise so equal lines compare equal, and dedupe. */
+function addLine(into: CutLine[], a: number, b: number, c: number): void {
+  const n = Math.hypot(a, b);
+  if (n < 1e-9) return;
+  let na = a / n;
+  let nb = b / n;
+  let nc = c / n;
+  // One canonical direction per line.
+  if (na < -1e-9 || (Math.abs(na) <= 1e-9 && nb < 0)) {
+    na = -na; nb = -nb; nc = -nc;
+  }
+  for (const l of into) {
+    if (Math.abs(l.a - na) < 1e-6 && Math.abs(l.b - nb) < 1e-6 && Math.abs(l.c - nc) < 1e-6) return;
+  }
+  into.push({ a: na, b: nb, c: nc });
+}
+
+interface OwnedPlane { pts: Pt3[]; owner: number }
+
+/**
+ * Rebuild the roof as one surface.
+ *
+ * Cut lines are every polygon edge (eaves, ridges, hips, mass boundaries) plus,
+ * for every pair of surfaces raised by DIFFERENT masses, the line where their
+ * heights are equal. That last set is what puts a valley exactly on a patch
+ * boundary instead of somewhere inside a patch.
+ */
+function subdivideRoof(items: OwnedPlane[]): RoofPlane[] {
+  if (items.length === 0) return [];
+
+  // Plan-view box of each surface, so overlap is a cheap test.
+  const boxes = items.map((it) => {
+    let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
+    for (const [px, py] of it.pts) {
+      x0 = Math.min(x0, px); x1 = Math.max(x1, px);
+      y0 = Math.min(y0, py); y1 = Math.max(y1, py);
+    }
+    return { x0, x1, y0, y1 };
+  });
+  const overlaps = (a: number, b: number): boolean => {
+    const p = boxes[a];
+    const q = boxes[b];
+    return p.x1 > q.x0 + EPS && q.x1 > p.x0 + EPS && p.y1 > q.y0 + EPS && q.y1 > p.y0 + EPS;
+  };
+
+  // A surface only needs cutting if another section's surface reaches into it.
+  // Everything else is emitted whole, which is what keeps the piece count near
+  // where it was before this solver existed.
+  const contested = items.map((_, i) =>
+    items.some((_o, j) => j !== i && items[j].owner !== items[i].owner && overlaps(i, j)));
+
+  const lines: CutLine[] = [];
+  let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+  for (let i = 0; i < items.length; i++) {
+    const it = items[i];
+    for (let k = 0; k < it.pts.length; k++) {
+      const [x1, y1] = it.pts[k];
+      const [x2, y2] = it.pts[(k + 1) % it.pts.length];
+      minX = Math.min(minX, x1); maxX = Math.max(maxX, x1);
+      minY = Math.min(minY, y1); maxY = Math.max(maxY, y1);
+      // Every surface edge is a cut line, even for surfaces emitted whole:
+      // a rebuilt face that borders an untouched surface must land on its edge
+      // exactly, or the two do not meet.
+      addLine(lines, -(y2 - y1), x2 - x1, (y2 - y1) * x1 - (x2 - x1) * y1);
+    }
+  }
+  const coeffs = items.map((it) => planeCoeffs(it.pts));
+  for (let i = 0; i < items.length; i++) {
+    for (let j = i + 1; j < items.length; j++) {
+      if (items[i].owner === items[j].owner) continue;
+      // Two surfaces that never meet in plan view need no seam between them.
+      if (!overlaps(i, j)) continue;
+      addLine(lines, coeffs[i].a - coeffs[j].a, coeffs[i].b - coeffs[j].b, coeffs[i].c - coeffs[j].c);
+    }
+  }
+
+  // Nothing contested: the sections do not reach each other, so the original
+  // surfaces are already one skin.
+  if (!contested.some(Boolean)) return items.map((it) => ({ pts: it.pts }));
+  // A pathological plan must not explode the face count.
+  if (lines.length > 64) return items.map((it) => ({ pts: it.pts }));
+
+  const pad = 2;
+  let faces: Pt3[][] = [[
+    [minX - pad, minY - pad, 0],
+    [maxX + pad, minY - pad, 0],
+    [maxX + pad, maxY + pad, 0],
+    [minX - pad, maxY + pad, 0],
+  ]];
+  for (const l of lines) {
+    const next: Pt3[][] = [];
+    for (const f of faces) {
+      let lo = 0;
+      let hi = 0;
+      for (const p of f) {
+        const v = l.a * p[0] + l.b * p[1] + l.c;
+        if (v > EPS) hi++;
+        else if (v < -EPS) lo++;
+      }
+      if (hi === 0 || lo === 0) { next.push(f); continue; }
+      const ge = clipPolyLine(f, l.a, l.b, l.c, true);
+      const le = clipPolyLine(f, l.a, l.b, l.c, false);
+      if (ge.length >= 3 && polyAreaXY(ge) > 1e-6) next.push(ge);
+      if (le.length >= 3 && polyAreaXY(le) > 1e-6) next.push(le);
+    }
+    faces = next;
+    if (faces.length > 4000) return items.map((it) => ({ pts: it.pts }));
+  }
+
+  const out: RoofPlane[] = [];
+  // Uncontested surfaces are emitted exactly as they were raised. Only the
+  // contested ones are rebuilt from the shared subdivision.
+  for (let i = 0; i < items.length; i++) {
+    if (!contested[i]) out.push({ pts: items[i].pts });
+  }
+  for (const f of faces) {
+    let cx = 0;
+    let cy = 0;
+    for (const p of f) { cx += p[0]; cy += p[1]; }
+    cx /= f.length;
+    cy /= f.length;
+    let win = -1;
+    let best = -Infinity;
+    for (let i = 0; i < items.length; i++) {
+      if (!contested[i]) continue;
+      if (!pointInPolyXY(cx, cy, items[i].pts)) continue;
+      const z = coeffs[i].a * cx + coeffs[i].b * cy + coeffs[i].c;
+      if (z > best) { best = z; win = i; }
+    }
+    if (win < 0) continue; // no roof over this patch
+    const k = coeffs[win];
+    out.push({ pts: f.map((p) => [p[0], p[1], k.a * p[0] + k.b * p[1] + k.c] as Pt3) });
+  }
+  return out;
+}
+
+/**
+ * Close every open edge that lies inside the footprint.
+ *
+ * On the outline an open edge is correct: a wall carries it. Inside the
+ * outline it is a step down to a lower roof, and you can see through it.
+ */
+function stepSkirts(planes: RoofPlane[], rects: RectFt[]): RoofPlane[] {
+  const K = 1e4;
+  const vk = (p: Pt3): string =>
+    Math.round(p[0] * K) + ',' + Math.round(p[1] * K) + ',' + Math.round(p[2] * K);
+  const ek = (a: Pt3, b: Pt3): string => (vk(a) < vk(b) ? vk(a) + '|' + vk(b) : vk(b) + '|' + vk(a));
+
+  const count = new Map<string, number>();
+  const ends = new Map<string, [Pt3, Pt3]>();
+  for (const pl of planes) {
+    for (let i = 0; i < pl.pts.length; i++) {
+      const a = pl.pts[i];
+      const b = pl.pts[(i + 1) % pl.pts.length];
+      const key = ek(a, b);
+      count.set(key, (count.get(key) ?? 0) + 1);
+      ends.set(key, [a, b]);
+    }
+  }
+
+  const depthInside = (px: Feet, py: Feet): number => {
+    let best = -Infinity;
+    for (const r of rects) {
+      best = Math.max(best, Math.min(px - r.x, r.x + r.w - px, py - r.y, r.y + r.h - py));
+    }
+    return best;
+  };
+  const under = (p: Pt3): Feet => {
+    let best = 0;
+    for (const pl of planes) {
+      if (!pointInPolyXY(p[0], p[1], pl.pts)) continue;
+      const z = planeZAt(pl, p[0], p[1]);
+      if (z < p[2] - EPS && z > best) best = z;
+    }
+    return best;
+  };
+
+  const skirts: RoofPlane[] = [];
+  for (const [key, n] of count) {
+    if (n !== 1) continue;
+    const [a, b] = ends.get(key) as [Pt3, Pt3];
+    if (depthInside((a[0] + b[0]) / 2, (a[1] + b[1]) / 2) < 0.5) continue;
+    const za = under(a);
+    const zb = under(b);
+    if (a[2] - za < EPS && b[2] - zb < EPS) continue;
+    skirts.push({ pts: [a, b, [b[0], b[1], zb], [a[0], a[1], za]] });
+  }
+  return skirts;
+}
+
 export function solveRoof(input: SolveRoofInput): RoofPlan {
   const {
     masses,
@@ -402,6 +631,9 @@ export function solveRoof(input: SolveRoofInput): RoofPlan {
   const slope = pitchSlope(mainRect, pitchRiseFt);
 
   let planes: RoofPlane[] = [];
+  // Which mass raised each plane. Two slopes of the SAME mass meet at their own
+  // ridge, so the height-equality line between them is not a valley.
+  const owners: number[] = [];
   const ridges: RoofPlan['ridges'] = [];
   const valleys: RoofPlan['valleys'] = [];
 
@@ -417,21 +649,26 @@ export function solveRoof(input: SolveRoofInput): RoofPlan {
   } else if (roofForm === 'hip') {
     const { planes: hp, ridge } = hipPrism(mainRect, slope, eave);
     planes.push(...hp);
+    owners.push(...hp.map(() => 0));
     ridges.push(ridge);
   } else {
     // gable or steep
     const { planes: gp, ridge } = gablePrism(mainRect, slope, eave);
     planes.push(...gp);
+    owners.push(...gp.map(() => 0));
     ridges.push(ridge);
   }
 
   // ── Step 2: wings ──────────────────────────────────────────────────────────
   const slopedMain = roofForm !== 'flat';
+  let wingOwner = 1;
   for (const w of wings) {
     const wRect = massRectFt(w);
     if (slopedMain) {
       const { planes: wp, ridge } = gablePrism(wRect, slope, eave);
       planes.push(...wp);
+      owners.push(...wp.map(() => wingOwner));
+      wingOwner += 1;
       ridges.push(ridge);
       valleys.push(...wingValleys(wRect, mainRect));
     } else {
@@ -443,6 +680,14 @@ export function solveRoof(input: SolveRoofInput): RoofPlan {
           : { x1: wRect.x + wRect.w / 2, y1: wRect.y, x2: wRect.x + wRect.w / 2, y2: wRect.y + wRect.h, zFt: 0 },
       );
     }
+  }
+
+  // ── Step 2b: rebuild as ONE surface ───────────────────────────────────────
+  // Until here every mass carries its own prism and the prisms simply overlap,
+  // which is the junction defect. Rebuild the whole roof on a single
+  // subdivision so neighbouring patches share exact corners.
+  if (owners.length === planes.length && new Set(owners).size > 1) {
+    planes = subdivideRoof(planes.map((p, i) => ({ pts: p.pts, owner: owners[i] })));
   }
 
   // ── Step 3: towers — clip planes out of tower cells, emit a cap ────────────
@@ -506,8 +751,12 @@ export function solveRoof(input: SolveRoofInput): RoofPlan {
     }
   }
 
+  // ── Step 5b: close the steps the subdivision leaves ───────────────────────
+  const skirts = slopedMain ? stepSkirts(planes, masses.map((m) => massRectFt(m))) : [];
+
   return {
     planes,
+    skirts,
     ridges,
     valleys,
     chimneys,

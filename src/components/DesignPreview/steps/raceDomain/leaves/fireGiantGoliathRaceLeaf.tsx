@@ -19,9 +19,12 @@ import {
   calculateDamage,
   createPlayerCombatCharacter,
   resolveAttack,
+  spendCombatLimitedUse,
+} from '../../../../../utils/combat/combatUtils';
+import {
   rollD20,
   rollDamage,
-} from '../../../../../utils/combat/combatUtils';
+} from '../../../../../systems/dice/rollers';
 import {
   canAffordActionCost,
   consumeActionCost,
@@ -171,18 +174,16 @@ function createFireGiantGoliathActor(race: Race): CombatCharacter | null {
   const resource = assembledCharacter.limitedUses?.[FIRE_GIANT_GOLIATH_FIRE_BURN_RESOURCE_ID];
   if (!resource) return null;
 
-  // DEBT: createPlayerCombatCharacter currently does not project racial
-  // limitedUses into CombatCharacter. This adapter carries only the canonical
-  // parsed resource forward; the shared bridge should own this projection once
-  // it is widened, and no other Fire Giant mechanic is materialized here.
+  // agora-0ad6 landed: createPlayerCombatCharacter projects player.limitedUses
+  // onto the combat actor, so the parsed Fire's Burn entry arrives on its own.
+  // Fail honestly if it does not rather than re-attaching a second copy.
+  if (!generatedActor.limitedUses?.[FIRE_GIANT_GOLIATH_FIRE_BURN_RESOURCE_ID]) return null;
+
   return resetEconomy({
     ...generatedActor,
     id: FIRE_GIANT_GOLIATH_ACTOR_ID,
     name: `${race.name} · Fire's Burn Tester`,
     position: { x: 2, y: 4 },
-    limitedUses: {
-      [FIRE_GIANT_GOLIATH_FIRE_BURN_RESOURCE_ID]: { ...resource },
-    },
   });
 }
 
@@ -307,7 +308,7 @@ export function resolveFireGiantGoliathFireBurn(
   const attack = resolveAttack(
     attackRoll,
     getFireGiantGoliathAttackBonus(actor),
-    target.armorClass,
+    target.armorClass ?? 10,
   );
   const paidActor = consumeActionCost(actor, actionCost);
   const targetHpBefore = target.currentHP;
@@ -356,16 +357,9 @@ export function resolveFireGiantGoliathFireBurn(
     const rolledFireDamage = rollDamage(FIRE_GIANT_GOLIATH_FIRE_BURN_DICE, false, 1, FIXED_DAMAGE_RNG);
     fireDamage = calculateDamage(rolledFireDamage, actor, nextTarget, 'fire');
     nextTarget = applyDamageAndCheckDowned(nextTarget, fireDamage);
-    nextActor = {
-      ...paidActor,
-      limitedUses: {
-        ...paidActor.limitedUses,
-        [FIRE_GIANT_GOLIATH_FIRE_BURN_RESOURCE_ID]: {
-          ...resource,
-          current: Math.max(0, resource.current - 1),
-        },
-      },
-    };
+    // spendCombatLimitedUse is the shared immutable payer (agora-0ad6); it
+    // refuses rather than going negative, so no local clamp is needed.
+    nextActor = spendCombatLimitedUse(paidActor, FIRE_GIANT_GOLIATH_FIRE_BURN_RESOURCE_ID).character;
     fireBurnUsed = true;
   }
 
@@ -501,7 +495,7 @@ const FireGiantGoliathRaceLeafContent: React.FC<RaceDomainLeafProps> = ({
 
       {/* The bridge gap is explicit so this leaf cannot be mistaken for a shared resource migration. */}
       <p data-testid="fire-giant-goliath-assembly-boundary">
-        Assembly boundary: production quick character assembly plus canonical racial resource parsing; this leaf carries limitedUses across the combat bridge because that bridge does not currently project racial resources.
+        Assembly boundary: production quick character assembly plus canonical racial resource parsing; the combat bridge projects limitedUses and spendCombatLimitedUse pays the charge, so this leaf carries no resource adapter of its own.
       </p>
       <p data-testid="fire-giant-goliath-unsupported-boundary">
         Unsupported boundary: this leaf does not implement Large Form size, Powerful Build grapple/carry rules, speed changes, long-rest orchestration, or mounted 2D/3D proof; parent Reset restores the canonical Proficiency Bonus charges.

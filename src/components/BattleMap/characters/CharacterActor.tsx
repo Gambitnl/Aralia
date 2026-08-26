@@ -3,7 +3,11 @@
  * 3D character representation for the combat map.
  *
  * Each CombatCharacter is rendered as a CharacterActor containing:
- * - Humanoid procedural model (placeholder until glTF models via Pixal3D pipeline)
+ * - Generated body: a skinned EntityModel assembled by systems/entities3d
+ *   from the character's race/class (PCs) or creature type x size (monsters).
+ *   The box-primitive placeholders it replaced were retired 2026-09-20
+ *   (agora-b8b9); adopting IMPORTED pack-rigged base meshes here is a separate,
+ *   unmade call that waits on the skeleton canon (agora-9dbc).
  * - Animation state machine (idle sway, walk bob, attack, hit react, death)
  * - BG3-style selection decal (cyan/red ground ring)
  * - Active turn golden ring with pulse animation

@@ -21,6 +21,8 @@
  */
 
 import { GameState, GamePhase, SuspicionLevel, UnderdarkState } from '../types';
+import { DEFAULT_RULES_EDITION } from '../config/rulesEdition';
+import { DEFAULT_ALLOW_SAVE_SCUM, INITIAL_DICE_SAVE_COUNTER } from '../config/saveScum';
 import { withLegacyWeatherBridge } from '../types/environment';
 import { DEFAULT_WEATHER } from '../systems/environment/EnvironmentSystem';
 import { STARTING_LOCATION_ID } from '../data/world/locations';
@@ -86,6 +88,10 @@ export const INITIAL_DIVINE_FAVOR: Record<string, DivineFavor> = DEITIES.reduce(
 export const initialGameState: GameState = {
     phase: GamePhase.MAIN_MENU,
     autoSaveEnabled: true,
+    combatDifficulty: 'normal',
+    rulesEdition: DEFAULT_RULES_EDITION,
+    allowSaveScum: DEFAULT_ALLOW_SAVE_SCUM,
+    diceSaveCounter: INITIAL_DICE_SAVE_COUNTER,
     party: [],
     tempParty: null,
     inventory: [],
@@ -342,6 +348,11 @@ export const initialGameState: GameState = {
     isEconomyLedgerVisible: false,
     isCourierPouchVisible: false,
     isCommerceDeskVisible: false,
+    isSalvageModalVisible: false,
+    isBankModalVisible: false,
+    isRealEstateModalVisible: false,
+    isShopModalVisible: false,
+    isTradeRouteModalVisible: false,
 
     // 3D World Transition (world-3d-ui)
     worldViewMode: 'atlas' as const,

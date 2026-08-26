@@ -6,9 +6,9 @@ import type { SubmapModel, SubmapCell } from '../../submap/submapEngine';
 // Three square cells in a row, each sharing a vertical edge with the next:
 //  cell0 [0..10]  cell1 [10..20]  cell2 [20..30]  (all y 0..10)
 const cells: SubmapCell[] = [
-  { siteIndex: 0, polygon: [[0, 0], [10, 0], [10, 10], [0, 10]], biome: 'Grassland' },
-  { siteIndex: 1, polygon: [[10, 0], [20, 0], [20, 10], [10, 10]], biome: 'Wetland' },
-  { siteIndex: 2, polygon: [[20, 0], [30, 0], [30, 10], [20, 10]], biome: 'Grassland' },
+  { siteIndex: 0, polygon: [[0, 0], [10, 0], [10, 10], [0, 10]], biome: 'Grassland', neighbours: [1] },
+  { siteIndex: 1, polygon: [[10, 0], [20, 0], [20, 10], [10, 10]], biome: 'Wetland', neighbours: [0, 2] },
+  { siteIndex: 2, polygon: [[20, 0], [30, 0], [30, 10], [20, 10]], biome: 'Grassland', neighbours: [1] },
 ];
 const model: SubmapModel = { boundary: [[0, 0], [30, 0], [30, 10], [0, 10]], biome: 'Grassland', cells, burgCellIndex: null, polylines: [] };
 

@@ -165,7 +165,7 @@
                                                                     "type":  "advantage",
                                                                     "appliesTo":  "initial_wisdom_save",
                                                                     "condition":  "caster_or_allies_fighting_target",
-                                                                    "reason":  "The target has Advantage on the save if the caster or the caster\u0027s allies are fighting it."
+                                                                    "reason":  "The target has Advantage on the save if the caster or the caster's allies are fighting it."
                                                                 }
                                                             ],
                                           "saveOutcomeOverrides":  [
@@ -208,7 +208,7 @@
                                                    "actionType":  "reaction",
                                                    "timing":  "when_commanding_the_charmed_target_to_react",
                                                    "target":  "charmed_target_on_same_plane",
-                                                   "description":  "Spend the caster\u0027s Reaction to command the dominated target to take a Reaction."
+                                                   "description":  "Spend the caster's Reaction to command the dominated target to take a Reaction."
                                                }
                                            ],
                         "attackAugments":  [
@@ -298,7 +298,7 @@
                       "prompt":  "Track whether the target is fighting the caster or allies for Advantage on the initial Wisdom save, record commands issued through the telepathic link, and prompt a repeat Wisdom save whenever the target takes damage.",
                       "playerInputRequired":  true
                   },
-    "description":  "One Humanoid you can see within range must succeed on a Wisdom saving throw or have the Charmed condition for the duration. The target has Advantage on the save if you or your allies are fighting it. Whenever the target takes damage, it repeats the save, ending the spell on itself on a success. You have a telepathic link with the Charmed target while the two of you are on the same plane of existence. On your turn, you can use this link to issue commands to the target (no action required), such as \"Attack that creature,\" \"Move over there,\" or \"Fetch that object.\" The target does its best to obey on its turn. If it completes an order and doesn\u0027t receive further direction from you, it acts and moves as it likes, focusing on protecting itself. You can command the target to take a Reaction but must take your own Reaction to do so.",
+    "description":  "One Humanoid you can see within range must succeed on a Wisdom saving throw or have the Charmed condition for the duration. The target has Advantage on the save if you or your allies are fighting it. Whenever the target takes damage, it repeats the save, ending the spell on itself on a success. You have a telepathic link with the Charmed target while the two of you are on the same plane of existence. On your turn, you can use this link to issue commands to the target (no action required), such as \"Attack that creature,\" \"Move over there,\" or \"Fetch that object.\" The target does its best to obey on its turn. If it completes an order and doesn't receive further direction from you, it acts and moves as it likes, focusing on protecting itself. You can command the target to take a Reaction but must take your own Reaction to do so.",
     "higherLevels":  "Your Concentration can last longer with a spell slot of level 6 (up to 10 minutes), 7 (up to 1 hour), or 8+ (up to 8 hours).",
     "tags":  [
                  "enchantment",

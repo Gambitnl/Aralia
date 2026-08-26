@@ -1,11 +1,16 @@
+/**
+ * @file src/utils/character/checkUtils.ts
+ * Utility functions for handling ability checks and skill checks in D&D 5e.
+ */
+
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
- * SHARED UTILITY: Multiple systems rely on these exports.
+ * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 11/08/2026, 20:24:06
- * Dependents: systems/crafting/batchCrafting.ts, systems/crafting/craftingEngine.ts, systems/puzzles/mechanism.ts, utils/character/index.ts, utils/combat/grappleUtils.ts
- * Imports: 5 files
+ * Last Sync: 20/09/2026, 21:00:39
+ * Dependents: components/DesignPreview/steps/raceDomain/leaves/deepGnomeRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/draconbloodDragonbornRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/drowRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/forgebornHumanRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/giffRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/guardianHumanRaceLeaf.tsx, systems/crafting/batchCrafting.ts, systems/crafting/craftingEngine.ts, systems/crafting/craftingService.ts, systems/puzzles/arcaneGlyphSystem.ts, systems/puzzles/mechanism.ts, systems/spells/mechanics/dispelMagicResolution.ts, utils/character/index.ts, utils/combat/grappleUtils.ts
+ * Imports: 7 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -14,14 +19,12 @@
  */
 // @dependencies-end
 
-/**
- * @file src/utils/character/checkUtils.ts
- * Utility functions for handling ability checks and skill checks in D&D 5e.
- */
 import { PlayerCharacter } from '../../types/character';
 import { CombatCharacter, StatusEffect } from '../../types/combat';
-import { rollDice } from '../combat/combatUtils';
+import { rollDice } from '../../systems/dice/rollers';
 import { getAbilityModifierValue } from './statUtils';
+import { calculateProficiencyBonus } from './savingThrowUtils';
+import { calculateExpertiseBonus, hasExpertiseInSkill } from './skillModifierUtils';
 import { AbilityScoreName } from '../../types/core';
 
 /**
@@ -244,8 +247,18 @@ export function rollAbilityCheck(
     }
 
     let mod = getAbilityModifierValue(score);
+    const proficiencyBonus = calculateProficiencyBonus(level);
+    let expertiseBonusApplied = 0;
     if (isProficient) {
-        mod += (2 + Math.floor(Math.max(0, level - 1) / 4)); // calculateProficiencyBonus inline or import
+        mod += proficiencyBonus;
+        // Expertise doubles the proficiency bonus on a chosen skill. Only a
+        // PlayerCharacter records the choice, and only a named skill can carry it.
+        expertiseBonusApplied = calculateExpertiseBonus({
+            hasProficiency: true,
+            hasExpertise: Boolean(skill) && 'featChoices' in character && hasExpertiseInSkill(character, skill as string),
+            proficiencyBonus
+        });
+        mod += expertiseBonusApplied;
     }
 
     // Add external modifier (e.g. from crafting progression or location)
@@ -255,6 +268,9 @@ export function rollAbilityCheck(
 
     // Track modifiers for logging
     const modifiersApplied: { source: string; value: number }[] = [];
+    if (expertiseBonusApplied > 0) {
+        modifiersApplied.push({ source: 'Expertise', value: expertiseBonusApplied });
+    }
 
     // Racial Intuition / Bonuses
     character.modifiers?.bonuses.forEach(bonus => {
@@ -292,4 +308,32 @@ export function rollAbilityCheck(
         total: roll + mod,
         modifiersApplied: modifiersApplied.length > 0 ? modifiersApplied : undefined
     };
+}
+
+/**
+ * Structured advantage and disadvantage sources that would apply to a check.
+ *
+ * Character sheets need to name the reason next to a skill without rolling, and
+ * blessings such as Scales of Justice carry that reason on a status effect. Text
+ * modifiers on `character.modifiers` are deliberately excluded: the sheet already
+ * renders racial traits from its own data.
+ */
+export function getCheckAdvantageSources(
+    character: PlayerCharacter | CombatCharacter,
+    ability: AbilityScoreName,
+    skill?: string
+): { advantage: string[]; disadvantage: string[] } {
+    const advantage: string[] = [];
+    const disadvantage: string[] = [];
+
+    for (const modifier of collectStructuredAbilityCheckModifiers(character, ability, skill)) {
+        if (modifier.advantage === true && !advantage.includes(modifier.source)) {
+            advantage.push(modifier.source);
+        }
+        if (modifier.disadvantage === true && !disadvantage.includes(modifier.source)) {
+            disadvantage.push(modifier.source);
+        }
+    }
+
+    return { advantage, disadvantage };
 }

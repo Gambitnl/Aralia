@@ -99,8 +99,9 @@ export function getHunterFeatures(character: PlayerCharacter) {
 // The subclass grant is real, but the searched runtime has no complete,
 // subclass-aware Hunter's Prey transaction. Generic riders, once-per-turn flags,
 // target HP checks, and Multiattack execution are not proof of any Hunter option.
+// Runtime implementation is tracked in Agora task agora-af5b.
 export const HUNTER_RUNTIME_BOUNDARY =
-  "Unsupported boundary: canonical Hunter's Prey (hunters_prey) is present and its source description names Colossus Slayer, Giant Killer, and Horde Breaker, but no subclass-aware production path was found to persist one of those three choices or execute its attack timing. No native Colossus Slayer once-per-turn extra damage against a target below maximum HP, Giant Killer reaction attack, or Horde Breaker multi-target attack transaction was found. Generic attack riders, once-per-turn limits, target HP fields, and authored Multiattack helpers are not Hunter proof. This demo does not simulate a Prey choice, damage, attack, reaction, action, target HP change, resource, multi-target result, or combat log outcome."
+  "Unsupported boundary: canonical Hunter's Prey (hunters_prey) is present and its source description names Colossus Slayer, Giant Killer, and Horde Breaker, but no subclass-aware production path was found to persist one of those three choices or execute its attack timing. Runtime implementation is tracked in Agora task agora-af5b. No native Colossus Slayer once-per-turn extra damage against a target below maximum HP, Giant Killer reaction attack, or Horde Breaker multi-target attack transaction was found. Generic attack riders, once-per-turn limits, target HP fields, and authored Multiattack helpers are not Hunter proof. This demo does not simulate a Prey choice, damage, attack, reaction, action, target HP change, resource, multi-target result, or combat log outcome."
 
 // ============================================================================
 // Hunter demonstration surface

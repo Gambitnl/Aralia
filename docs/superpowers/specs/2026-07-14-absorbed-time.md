@@ -34,16 +34,16 @@ handlers: `handleMovement.ts`, `handleResourceActions.ts`, `handleObservation.ts
 
 ## Done work on record
 
-- G2 resolved: day-boundary regression test across world/ritual reducers —
+- G2 resolved: day-boundary regression test across world/ritual reducers -
   `src/state/reducers/__tests__/worldReducer.timeBoundary.test.ts` (7 tests) proves
   day-boundary crossing, literal elapsed-second ritual advance, completion-at-boundary
   stamps POST-advance gameTime, ritualReducer-alone stamps PRE-advance time.
 - G3 resolved 2026-07-21 (Remy's call: HARD GLOBAL CONTRACT): seasons are one source of
-  truth in `src/systems/time/seasonContract.ts` — `getSeasonState(gameTime)` is a pure,
+  truth in `src/systems/time/seasonContract.ts` - `getSeasonState(gameTime)` is a pure,
   deterministic, save-safe function of the persisted clock. Movement is wired: route
   planning takes `timeCostMultiplier` (`routePlanning.ts`) and MapPane passes the
   contract's seasonal multiplier (winter routes honestly take 1.5x). The diverged
-  winter 1.25 in `timeUtils.getTimeModifiers` is dead — `getTimeModifiers` moved into
+  winter 1.25 in `timeUtils.getTimeModifiers` is dead - `getTimeModifiers` moved into
   the contract and composes contract season x night. `SeasonalSystem` delegates to the
   contract. Encounters/economy/farming are documented extension seams on the contract
   (neutral 1.0 until a consumer lands). Tests:
@@ -51,12 +51,12 @@ handlers: `handleMovement.ts`, `handleResourceActions.ts`, `handleObservation.ts
   seams), `src/systems/travel/__tests__/routePlanning.test.ts` (seasonal scaling).
 - G5 resolved 2026-07-21 (Remy's call: CHARACTER'S LOCAL IN-WORLD TIME): day-part words
   come from `getDayPartLabel(gameTime)` in `timeUtils.ts`, which reads the local
-  in-world clock (`getUTCHours` — the same clock the HUD renders). The four social
+  in-world clock (`getUTCHours` - the same clock the HUD renders). The four social
   builders (`handleNpcInteraction`, `useConversation`, `useCompanionBanter`,
   `useCompanionCommentary`) no longer call host-timezone `.getHours()`;
   `adventureLog.formatGameClock` now stamps the in-world clock too. Residual: the 3D
   sky/lighting hour sources (`EnhancedSkyDome`, `lighting.ts`, `World3DWrapper`,
-  `App.tsx` ambush loader) still use host-local `.getHours()` — visual clock, flagged
+  `App.tsx` ambush loader) still use host-local `.getHours()` - visual clock, flagged
   separately.
 
 <!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/specs/2026-07-14-absorbed-time.md","sha256WithoutMarker":"03d24eb56a0efa4ed4b260e0e14588390b710f0a4d9a14c33e0d7fc4511dc8da","markedAtUtc":"2026-08-09T20:24:24.666Z"} -->

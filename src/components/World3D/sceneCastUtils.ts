@@ -1,55 +1,38 @@
+// @dependencies-start
 /**
- * @file sceneCastUtils.ts
- * Pure helpers for 3D Scene Cast layout and recipe resolution.
+ * ARCHITECTURAL ADVISORY:
+ * RE-EXPORT BRIDGE / MIDDLEMAN: Forwards exports to another file.
  *
- * Extracted from SceneCast.tsx to decouple non-component helper exports
- * from TSX files, ensuring React Fast Refresh works cleanly in Vite.
+ * Last Sync: 30/08/2026, 21:43:15
+ * Dependents: None (Orphan)
+ * Imports: 1 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
  */
-import type { EntityRecipe } from '@/systems/entities3d/types';
-import type { SceneCastMember } from './SceneCast';
+// @dependencies-end
 
 /**
- * Whether a cast figure is click-to-talk interactive: only NPC figures, and only
- * when a select handler is wired.
+ * @file sceneCastUtils.ts — World3D compatibility facade for scene-cast rules.
+ *
+ * Scene-cast data and pure rules now belong to the generated-entity engine, so
+ * that engine never reaches upward into React components. This small facade keeps
+ * the established World3D import path working for callers while forwarding every
+ * export to the engine-owned contract; it contains no second implementation.
  */
-export function figureIsInteractive(member: SceneCastMember, hasHandler: boolean): boolean {
-  return hasHandler && !member.isPlayer;
-}
 
-/**
- * The one place an unspecified cast member becomes a body: an unarmed human
- * commoner, deterministic per member id.
- */
-export function castMemberRecipe(member: SceneCastMember): EntityRecipe {
-  if (member.recipe) return member.recipe;
-  return {
-    kind: 'humanoid',
-    raceId: 'human',
-    classId: 'fighter', // classId only tints accents; commoners carry no gear
-    seed: `cast:${member.id}`,
-    gearOverride: [],
-  };
-}
+// ============================================================================
+// Engine contract re-exports
+// ============================================================================
+// Existing World3D callers may keep this local path. New engine code imports the
+// source module directly, preserving the one-way engine -> renderer boundary.
+// ============================================================================
 
-/**
- * Lay the cast out as a small face-to-face cluster: the player at the near edge
- * (+Z, toward the camera) and the NPCs in a shallow arc opposite, facing back.
- */
-export function layoutCast(cast: SceneCastMember[]): Array<SceneCastMember & { pos: [number, number, number] }> {
-  const player = cast.find((c) => c.isPlayer);
-  const npcs = cast.filter((c) => !c.isPlayer);
-
-  const out: Array<SceneCastMember & { pos: [number, number, number] }> = [];
-  if (player) out.push({ ...player, pos: [0, 0, 2.2] });
-
-  // Arc the NPCs across the far side, centered, ~3 m from the player.
-  const n = npcs.length;
-  const spread = 1.4; // metres between adjacent NPCs
-  npcs.forEach((npc, i) => {
-    const x = (i - (n - 1) / 2) * spread;
-    const z = -1.0 - Math.abs(i - (n - 1) / 2) * 0.25; // gentle arc, ends pull back
-    out.push({ ...npc, pos: [x, 0, z] });
-  });
-
-  return out;
-}
+export {
+  castMemberRecipe,
+  figureIsInteractive,
+  layoutCast,
+  type SceneCastMember,
+} from '@/systems/entities3d/sceneCastUtils';

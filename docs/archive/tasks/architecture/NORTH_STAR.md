@@ -1,4 +1,4 @@
-> **ARCHIVED 2026-07-01** — docs-only sweep complete, all gaps closed. Archived by doc-triage batch 1. Original location: `docs/tasks/architecture/NORTH_STAR.md`.
+> **ARCHIVED 2026-07-01** - docs-only sweep complete, all gaps closed. Archived by doc-triage batch 1. Original location: `docs/tasks/architecture/NORTH_STAR.md`.
 
 # Architecture Sweep North Star
 

@@ -17,7 +17,7 @@
 import { BaseEffectCommand } from '../base/BaseEffectCommand'
 import { CombatState } from '@/types/combat'
 import { isHealingEffect } from '../../types/spells'
-import { rollDamage as rollFormula } from '../../utils/combat'
+import { rollDamage as rollFormula } from '../../systems/dice/rollers';
 import {
   applyHealingAndRestore,
   applyTemporaryHitPoints,

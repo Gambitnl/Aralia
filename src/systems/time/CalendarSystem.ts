@@ -5,7 +5,6 @@
  * @file src/systems/time/CalendarSystem.ts
  * Manages the game calendar, holidays, and moon phases.
  */
-// TODO #1088(lint-intent): Otherwise drop the import to keep the module surface intentional.
 import { Season, getSeason, getGameDay } from '../../utils/core';
 
 export interface GameDate {

@@ -51,7 +51,8 @@ import {
   consumeActionCost,
 } from '../../../utils/combat/actionEconomyUtils';
 import { calculateAffectedTiles, type AoEParams } from '../../../utils/combat/aoeCalculations';
-import { getDistance, getOccupiedTiles, rollDamage } from '../../../utils/combat/combatUtils';
+import { getDistance, getOccupiedTiles } from '../../../utils/combat/combatUtils';
+import { rollDamage } from '../../dice/rollers';
 import { applyDamageAndCheckDowned } from '../../../utils/combat/deathSaveUtils';
 import { ResistanceCalculator } from '../../../utils/combat/resistanceUtils';
 import { hasLineOfSight } from '../../../utils/spatial/lineOfSight';
@@ -287,7 +288,7 @@ export function resolveAreaDamageSpellCast(
   }
   if (readRequestedSlot(caster, requestedSlotLevel) <= 0) return reject('slot_unavailable');
 
-  const geometry = resolveAoEParams(combatArea, input.placement, caster);
+  const geometry = resolveAoEParams(combatArea, input.placement, caster, spell.name);
   if (!geometry) return reject('unsupported_area_shape');
   const affectedTiles = clippedAffectedTiles(input.mapData, geometry);
   const affectedKeys = new Set(affectedTiles.map(position => `${position.x}-${position.y}`));

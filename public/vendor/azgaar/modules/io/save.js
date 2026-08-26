@@ -216,7 +216,10 @@ async function initiateAutosave() {
   setInterval(autosave, MINUTE / 2);
 }
 
-// TODO: unused code
+// Unused in this bundle. Nothing calls compressData, and no module uses
+// DecompressionStream, so a gzipped save could not be read back by modules/io/load.js.
+// Kept verbatim for parity with upstream Azgaar FMG rather than pruned.
+// Audited 2026-09-20 (agora-f5f3).
 async function compressData(uncompressedData) {
   const compressedStream = new Blob([uncompressedData]).stream().pipeThrough(new CompressionStream("gzip"));
 

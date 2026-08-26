@@ -208,7 +208,7 @@
                 ],
     "arbitrationType":  "mechanical",
     "aiContext":  {
-                      "prompt":  "Designate unaffected creatures, choose the spirit form/damage mode, halve other creatures\u0027 Speed while they are in the 15-foot Emanation, and resolve the once-per-turn Wisdom save when the Emanation enters a creature\u0027s space, a creature enters it, or a creature ends its turn there.",
+                      "prompt":  "Designate unaffected creatures, choose the spirit form/damage mode, halve other creatures' Speed while they are in the 15-foot Emanation, and resolve the once-per-turn Wisdom save when the Emanation enters a creature's space, a creature enters it, or a creature ends its turn there.",
                       "playerInputRequired":  true
                   },
     "modeChoice":  {
@@ -220,7 +220,7 @@
                        "options":  [
                                        {
                                            "label":  "Angelic Spirits",
-                                           "summary":  "Good or neutral caster option: spirits appear angelic and the spell\u0027s damage remains Radiant.",
+                                           "summary":  "Good or neutral caster option: spirits appear angelic and the spell's damage remains Radiant.",
                                            "effectIndices":  [
                                                                  0
                                                              ],
@@ -232,7 +232,7 @@
                                        },
                                        {
                                            "label":  "Fey Spirits",
-                                           "summary":  "Good or neutral caster option: spirits appear fey and the spell\u0027s damage remains Radiant.",
+                                           "summary":  "Good or neutral caster option: spirits appear fey and the spell's damage remains Radiant.",
                                            "effectIndices":  [
                                                                  0
                                                              ],
@@ -244,7 +244,7 @@
                                        },
                                        {
                                            "label":  "Fiendish Spirits",
-                                           "summary":  "Evil caster option: spirits appear fiendish and the spell\u0027s damage is Necrotic.",
+                                           "summary":  "Evil caster option: spirits appear fiendish and the spell's damage is Necrotic.",
                                            "effectIndices":  [
                                                                  0
                                                              ],
@@ -257,7 +257,7 @@
                                    ],
                        "notes":  "Caster alignment gates which spectral form and damage type apply. The unaffected-creature designation is separate target exclusion input and still needs runtime binding."
                    },
-    "description":  "Protective spirits flit around you in a 15-foot Emanation for the duration. If you are good or neutral, their spectral form appears angelic or fey (your choice). If you are evil, they appear fiendish. When you cast this spell, you can designate creatures to be unaffected by it. Any other creature\u0027s Speed is halved in the Emanation, and whenever the Emanation enters a creature\u0027s space and whenever a creature enters the Emanation or ends its turn there, the creature must make a Wisdom saving throw. On a failed save, the creature takes 3d8 Radiant damage (if you are good or neutral) or 3d8 Necrotic damage (if you are evil). On a successful save, the creature takes half as much damage. A creature makes this save only once per turn.",
+    "description":  "Protective spirits flit around you in a 15-foot Emanation for the duration. If you are good or neutral, their spectral form appears angelic or fey (your choice). If you are evil, they appear fiendish. When you cast this spell, you can designate creatures to be unaffected by it. Any other creature's Speed is halved in the Emanation, and whenever the Emanation enters a creature's space and whenever a creature enters the Emanation or ends its turn there, the creature must make a Wisdom saving throw. On a failed save, the creature takes 3d8 Radiant damage (if you are good or neutral) or 3d8 Necrotic damage (if you are evil). On a successful save, the creature takes half as much damage. A creature makes this save only once per turn.",
     "higherLevels":  "Using a Higher-Level Spell Slot. The damage increases by 1d8 for each spell slot level above 3.",
     "tags":  [
                  "concentration"

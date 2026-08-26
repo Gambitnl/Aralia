@@ -1,11 +1,19 @@
+/**
+ * @file BattleMapDemo.tsx
+ * This component serves as a playable demonstration and test environment for
+ * both the legacy procedural arena and real WorldForge-derived tactical maps.
+ * It owns the same turn, targeting, roster, rail, and 2D/3D controls used by
+ * combat so design-preview harnesses exercise real behavior instead of a mock.
+ */
+
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 04/08/2026, 01:51:58
+ * Last Sync: 23/09/2026, 23:43:29
  * Dependents: components/BattleMap/index.ts, components/DesignPreview/steps/PreviewBattleMap.tsx, components/DesignPreview/steps/PreviewBattleMapScenarioLab.tsx
- * Imports: 27 files
+ * Imports: 28 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -14,13 +22,6 @@
  */
 // @dependencies-end
 
-/**
- * @file BattleMapDemo.tsx
- * This component serves as a playable demonstration and test environment for
- * both the legacy procedural arena and real WorldForge-derived tactical maps.
- * It owns the same turn, targeting, roster, rail, and 2D/3D controls used by
- * combat so design-preview harnesses exercise real behavior instead of a mock.
- */
 import React, {
   useState,
   useMemo,
@@ -81,26 +82,36 @@ import CompactTurnStrip from "./CompactTurnStrip";
 import CombatRailResizeHandle from "./CombatRailResizeHandle";
 import { CombatIntentPreview } from "./CombatIntentPreview";
 import BattlefieldSourceGap from "../Combat/BattlefieldSourceGap";
+import { resolveBattleMapCaptureSeed } from "./battleMapCaptureSeed";
+import { rollInitiativeTotal } from "../../utils/combat/initiativeUtils";
 
 // ============================================================================
-// Deterministic World-Scenario Initiative
+// Deterministic World-Scenario and Dev-Capture Initiative
 // ============================================================================
-// The visual lab rebuilds the same world seed repeatedly. A stable d20 face per
+// The visual lab rebuilds the same seed repeatedly. A stable d20 face per
 // character keeps the active token, palette, and combat log identical across
-// screenshots while standalone/production combat continues to roll normally.
+// screenshots while ordinary combat continues to roll normally.
 // ============================================================================
 
-function deterministicWorldInitiative(
-  worldSeed: number,
+function deterministicBattleMapInitiative(
+  mapSeed: number,
   character: CombatCharacter,
 ): number {
-  let hash = worldSeed >>> 0;
+  let hash = mapSeed >>> 0;
   for (const characterCode of character.id) {
     hash = Math.imul(hash ^ characterCode.charCodeAt(0), 16_777_619) >>> 0;
   }
   const d20 = (hash % 20) + 1;
   const dexterityModifier = Math.floor((character.stats.dexterity - 10) / 2);
   return d20 + dexterityModifier + character.stats.baseInitiative;
+}
+
+function getDevCaptureSeed(): number | null {
+  if (typeof window === "undefined" || !canUseDevTools()) return null;
+  return resolveBattleMapCaptureSeed(
+    (window as unknown as { __BM3D_SEED?: unknown }).__BM3D_SEED,
+    window.location.search,
+  );
 }
 
 // Dev-only: when the demo is opened without real enemies, spawn a small opposing
@@ -427,13 +438,8 @@ const BattleMapDemo: React.FC<BattleMapDemoProps> = ({
       return initialMapData.seed;
     }
 
-    // Dev-only deterministic seed override so the headless capture rig can take
-    // same-map before/after shots (`SEED=` in shoot.mjs → window.__BM3D_SEED).
-    if (typeof window !== "undefined" && canUseDevTools()) {
-      const s = (window as unknown as { __BM3D_SEED?: number }).__BM3D_SEED;
-      if (typeof s === "number" && Number.isFinite(s)) return s;
-    }
-    return Date.now();
+    // Capture rigs can pin the board with addInitScript or a shareable URL.
+    return getDevCaptureSeed() ?? Date.now();
   });
   const [combatLog, setCombatLog] = useState<CombatLogEntry[]>([]);
   // [2026-05-21] 3D render mode toggle. Dev-only `?render=3d` URL param starts in
@@ -674,12 +680,23 @@ const BattleMapDemo: React.FC<BattleMapDemoProps> = ({
     setCombatLog((prev) => [...prev, entry]);
   }, []);
 
+  const activeSeedRef = useRef(seed);
+  const worldSeed = initialMapData?.provenance?.worldSeed;
+  const hasInitialMapData = initialMapData != null;
   const initiativeRoller = useMemo(() => {
-    const worldSeed = initialMapData?.provenance?.worldSeed;
-    if (worldSeed == null) return undefined;
+    if (worldSeed != null) {
+      return (character: CombatCharacter) =>
+        deterministicBattleMapInitiative(worldSeed, character);
+    }
+    if (hasInitialMapData) return undefined;
+    // Read the dev override when initiative is rolled: a capture rig can pin a
+    // seed after mount and rebuild through New Map or the 2D/3D toggle. Without
+    // a pin this delegates to the same ordinary d20 roller as useTurnManager.
     return (character: CombatCharacter) =>
-      deterministicWorldInitiative(worldSeed, character);
-  }, [initialMapData?.provenance?.worldSeed]);
+      getDevCaptureSeed() === null
+        ? rollInitiativeTotal(character)
+        : deterministicBattleMapInitiative(activeSeedRef.current, character);
+  }, [worldSeed, hasInitialMapData]);
 
   const turnManager = useTurnManager({
     characters,
@@ -780,15 +797,16 @@ const BattleMapDemo: React.FC<BattleMapDemoProps> = ({
     [abilitySystem],
   );
 
-  const handleGenerate = () => {
-    const nextSeed = Date.now();
+  const loadSandboxMap = (nextBiome: BiomeType, nextSeed: number) => {
+    activeSeedRef.current = nextSeed;
     const baseCombatants = getBaseCombatants();
     const setup = generateProceduralSandboxBattleSetup(
-      biome,
+      nextBiome,
       nextSeed,
       baseCombatants,
     );
 
+    setBiome(nextBiome);
     setSeed(nextSeed);
     setCombatLog([]); // Clear log on new map
     setSheetCharacter(null);
@@ -796,6 +814,26 @@ const BattleMapDemo: React.FC<BattleMapDemoProps> = ({
     setMapData(setup.mapData);
     setCharacters(setup.positionedCharacters);
     turnManager.initializeCombat(setup.positionedCharacters);
+  };
+
+  const handleGenerate = () => {
+    loadSandboxMap(biome, getDevCaptureSeed() ?? Date.now());
+  };
+
+  const handleRenderModeToggle = () => {
+    // A capture rig may set its override after the demo mounted. Rebuild only
+    // when that changes the actual board; an ordinary 2D/3D switch is a view
+    // change and must not reset an encounter in progress.
+    const pinnedSeed = getDevCaptureSeed();
+    if (
+      allowSandboxGeneration &&
+      !initialMapData &&
+      pinnedSeed !== null &&
+      pinnedSeed !== seed
+    ) {
+      loadSandboxMap(biome, pinnedSeed);
+    }
+    setRenderMode((current) => (current === "2d" ? "3d" : "2d"));
   };
 
   const handleCharacterSelect = useCallback(() => {}, []);
@@ -873,6 +911,32 @@ const BattleMapDemo: React.FC<BattleMapDemoProps> = ({
       cost: { type: "action" },
       effects: [],
     } as unknown as Ability;
+    // Synthetic blink ability for the teleport-destination showcase (gap #29,
+    // sky-blue decal layer). Production only builds the teleport destination
+    // preview for a SELF-targeted spell carrying a teleport movement effect
+    // (useAbilitySystem.startTargeting), and no demo roster ships one — so the
+    // sky layer had no headless proof path at all. Targeting reads only
+    // targeting/effects/areaOfEffect here; it is never executed. `spell` is
+    // present because startTargeting gates the teleport branch on it, and is
+    // deliberately left without structured `targeting` so the shared spell
+    // resolver stays out of the demo path.
+    const devTeleportAbility = {
+      id: "dev-teleport-showcase",
+      name: "Dev Teleport Showcase",
+      description:
+        "Dev-only blink template for capture verification: teleport destinations plus an arrival burst.",
+      type: "spell",
+      targeting: "self",
+      range: 0,
+      areaOfEffect: { shape: "circle", size: 3 },
+      cost: { type: "bonus_action" },
+      effects: [{ type: "teleport", value: 6 }],
+      spell: {
+        id: "dev-teleport-showcase",
+        name: "Dev Teleport Showcase",
+        effects: [],
+      },
+    } as unknown as Ability;
     w.__bm3dTargeting = {
       // prepOnly: advance turns to the chosen caster but do NOT start
       // targeting — gives before/after captures an identical turn state.
@@ -882,6 +946,9 @@ const BattleMapDemo: React.FC<BattleMapDemoProps> = ({
         // loadout (real area abilities still win via the normal ranking when
         // present — pass their name instead).
         const useDevAoe = abilityName === "__aoe";
+        // '__teleport' selects the synthetic blink showcase so a capture can
+        // prove the sky-blue destination layer alongside the AoE template.
+        const useDevTeleport = abilityName === "__teleport";
         // Choose the best (caster, ability) across the whole player roster,
         // then advance turns until that caster is active.
         const players = roster.filter(
@@ -890,7 +957,11 @@ const BattleMapDemo: React.FC<BattleMapDemoProps> = ({
         const ranked = players
           .map((c) => ({
             c,
-            a: useDevAoe ? devAoeAbility : pickAbility(c, abilityName),
+            a: useDevAoe
+              ? devAoeAbility
+              : useDevTeleport
+                ? devTeleportAbility
+                : pickAbility(c, abilityName),
           }))
           .filter(
             (
@@ -1033,20 +1104,7 @@ const BattleMapDemo: React.FC<BattleMapDemoProps> = ({
                   value={biome}
                   onChange={(e) => {
                     const nextBiome = e.target.value as BiomeType;
-                    const baseCombatants = getBaseCombatants();
-                    const setup = generateProceduralSandboxBattleSetup(
-                      nextBiome,
-                      seed,
-                      baseCombatants,
-                    );
-
-                    setBiome(nextBiome);
-                    setCombatLog([]);
-                    setSheetCharacter(null);
-                    setAutoCharacters(new Set());
-                    setMapData(setup.mapData);
-                    setCharacters(setup.positionedCharacters);
-                    turnManager.initializeCombat(setup.positionedCharacters);
+                    loadSandboxMap(nextBiome, getDevCaptureSeed() ?? seed);
                   }}
                   className="mt-0.5 block h-7 w-full rounded-md border-gray-600 bg-gray-800/90 py-0.5 pl-2 pr-7 text-xs focus:border-sky-500 focus:outline-none focus:ring-sky-500"
                 >
@@ -1091,7 +1149,7 @@ const BattleMapDemo: React.FC<BattleMapDemoProps> = ({
           </button>
           {/* [2026-05-21] 2D/3D render mode toggle */}
           <button
-            onClick={() => setRenderMode(renderMode === "2d" ? "3d" : "2d")}
+            onClick={handleRenderModeToggle}
             className="h-7 rounded-md bg-indigo-600 px-3 text-xs font-bold shadow hover:bg-indigo-500"
             title={`Switch to ${renderMode === "2d" ? "3D" : "2D"} view`}
           >

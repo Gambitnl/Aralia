@@ -1,8 +1,8 @@
-# Plan-map date progression tracker — Implementation Plan
+# Plan-map date progression tracker - Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Add three retrospective history views to the plan-map — momentum (what shipped when), staleness (how long a tile has sat in its status), and time-travel replay (redraw the map as of any past day) — driven entirely by git history.
+**Goal:** Add three retrospective history views to the plan-map - momentum (what shipped when), staleness (how long a tile has sat in its status), and time-travel replay (redraw the map as of any past day) - driven entirely by git history.
 
 **Architecture:** A Node generator diffs `topics.json` across its daily-snapshot commits and writes `public/planmap/history.json`. A pure ESM module derives momentum and staleness from that history and is unit-tested with vitest and reused in the browser. The plan-map page (`public/planmap/index.html`) is refactored so its map build is a function of a topics array, then gains a bottom timeline (momentum bars + draggable playhead + play), and a staleness heat overlay toggle.
 
@@ -23,17 +23,17 @@
 
 ## File Structure
 
-- Create `tools/agora/planmap-history.mjs` — generator: reads git, writes `history.json`. Exports pure helpers.
-- Create `tools/agora/planmap-history.test.mjs` — vitest tests for the generator's pure helpers.
-- Create `public/planmap/history-derive.mjs` — pure derive functions (`flatNodes`, `diffDone`, `momentumByDay`, `stalenessDays`, `slug`); dual-use (vitest import + browser `window.PlanmapHistory`).
-- Create `public/planmap/history-derive.test.mjs` — vitest tests for the derive functions.
-- Create `public/planmap/history.json` — generated artifact (produced by running the generator; not hand-written).
-- Modify `public/planmap/index.html` — extract `buildAndShow(topics)`; add timeline bar + momentum; playhead replay + play; staleness heat toggle; load the derive module.
+- Create `tools/agora/planmap-history.mjs` - generator: reads git, writes `history.json`. Exports pure helpers.
+- Create `tools/agora/planmap-history.test.mjs` - vitest tests for the generator's pure helpers.
+- Create `public/planmap/history-derive.mjs` - pure derive functions (`flatNodes`, `diffDone`, `momentumByDay`, `stalenessDays`, `slug`); dual-use (vitest import + browser `window.PlanmapHistory`).
+- Create `public/planmap/history-derive.test.mjs` - vitest tests for the derive functions.
+- Create `public/planmap/history.json` - generated artifact (produced by running the generator; not hand-written).
+- Modify `public/planmap/index.html` - extract `buildAndShow(topics)`; add timeline bar + momentum; playhead replay + play; staleness heat toggle; load the derive module.
 - Document (outside repo): add `node tools/agora/planmap-history.mjs` to `C:\Users\Gambit\.claude\scripts\aralia-daily-commit.ps1` so history regenerates at 2am.
 
 ---
 
-## Task 1: History generator (git → history.json)
+## Task 1: History generator (git -> history.json)
 
 **Files:**
 - Create: `tools/agora/planmap-history.mjs`
@@ -41,8 +41,8 @@
 
 **Interfaces:**
 - Produces:
-  - `parseSnapshot(text: string) => object[] | null` — parsed `topics` array, or `null` if the text isn't valid `topics.json`.
-  - `collapseDaily(commits: {hash,dateISO,topics}[]) => {date,commit,topics}[]` — one entry per calendar day (last commit of the day), sorted ascending by date.
+  - `parseSnapshot(text: string) => object[] | null` - parsed `topics` array, or `null` if the text isn't valid `topics.json`.
+  - `collapseDaily(commits: {hash,dateISO,topics}[]) => {date,commit,topics}[]` - one entry per calendar day (last commit of the day), sorted ascending by date.
   - `buildHistory(commits) => { generatedAt: string, days: {date,commit,topics}[] }`.
 
 - [ ] **Step 1: Write the failing tests**
@@ -93,7 +93,7 @@ describe('buildHistory', () => {
 - [ ] **Step 2: Run the tests, verify they fail**
 
 Run: `npx vitest run tools/agora/planmap-history.test.mjs`
-Expected: FAIL — cannot resolve `./planmap-history.mjs` / exports undefined.
+Expected: FAIL - cannot resolve `./planmap-history.mjs` / exports undefined.
 
 - [ ] **Step 3: Write the generator**
 
@@ -144,7 +144,7 @@ function gitCommits(file) {
     let topics = null;
     try {
       topics = parseSnapshot(execFileSync('git', ['show', `${hash}:${file}`], { encoding: 'utf8' }));
-    } catch { /* commit predates the file or blob missing — leave null */ }
+    } catch { /* commit predates the file or blob missing - leave null */ }
     return { hash, dateISO, topics };
   });
 }
@@ -187,10 +187,10 @@ Leave `planmap-history.mjs`, its test, and `history.json` in the working tree. D
 - Consumes: the `{date, topics}[]` shape from `history.json` (`days`), plus a live "today" point appended by the caller.
 - Produces:
   - `slug(title) => string`
-  - `flatNodes(topics) => {key,kind,topicId,title,status}[]` — topics + features as one comparable list; `key` = topic `id` or `` `${id}::${slug(title)}` ``.
-  - `diffDone(prevTopics, nextTopics) => node[]` — nodes that became `done` (incl. first-seen-as-done).
-  - `momentumByDay(timeline) => {date,count,shipped}[]` — `timeline` is `[{date,topics}]` ascending (live appended by caller).
-  - `stalenessDays(timeline, today) => Map<key,{days:number,floored:boolean}>` — for each live node in the last point, days held in current status; `floored` when unchanged across all visible history.
+  - `flatNodes(topics) => {key,kind,topicId,title,status}[]` - topics + features as one comparable list; `key` = topic `id` or `` `${id}::${slug(title)}` ``.
+  - `diffDone(prevTopics, nextTopics) => node[]` - nodes that became `done` (incl. first-seen-as-done).
+  - `momentumByDay(timeline) => {date,count,shipped}[]` - `timeline` is `[{date,topics}]` ascending (live appended by caller).
+  - `stalenessDays(timeline, today) => Map<key,{days:number,floored:boolean}>` - for each live node in the last point, days held in current status; `floored` when unchanged across all visible history.
 
 - [ ] **Step 1: Write the failing tests**
 
@@ -262,7 +262,7 @@ describe('stalenessDays', () => {
 - [ ] **Step 2: Run the tests, verify they fail**
 
 Run: `npx vitest run public/planmap/history-derive.test.mjs`
-Expected: FAIL — module not found.
+Expected: FAIL - module not found.
 
 - [ ] **Step 3: Write the derive module**
 
@@ -271,7 +271,7 @@ Create `public/planmap/history-derive.mjs`:
 ```js
 // Pure history-derivation for the plan-map date tracker. Dual-use: imported by
 // vitest AND loaded in the browser (attaches window.PlanmapHistory). No DOM, no
-// git — just data in, data out.
+// git - just data in, data out.
 export const slug = s => String(s ?? '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40);
 
 export function flatNodes(topics) {
@@ -339,7 +339,7 @@ Leave both files in the tree.
 
 **Interfaces:**
 - Produces (module-level in the page):
-  - `buildAndShow(topics, opts?: { preserveView?: boolean }) => void` — rebuilds the SVG from any topics array, sets `#canvas` innerHTML, and re-wires hover/pin/filter. First call fits; `preserveView:true` keeps the current zoom/pan.
+  - `buildAndShow(topics, opts?: { preserveView?: boolean }) => void` - rebuilds the SVG from any topics array, sets `#canvas` innerHTML, and re-wires hover/pin/filter. First call fits; `preserveView:true` keeps the current zoom/pan.
   - Persistent module-level `view` object and the zoom/pan/fit handlers, defined once and reused across rebuilds.
 
 **Why:** Replay (Task 5) and the heat toggle (Task 6) redraw the map from different topics arrays without resetting the reader's zoom/pan.
@@ -367,7 +367,7 @@ Move the `const view = { x:0, y:0, w:W, h:H }` declaration and the `applyView` /
 
 Replace the old inline execution with a single initial call:
 ```js
-buildAndShow(data.topics);   // live map, first render → fits
+buildAndShow(data.topics);   // live map, first render -> fits
 ```
 
 - [ ] **Step 4: Verify no behavior change (DOM eval)**
@@ -403,7 +403,7 @@ In `index.html` `<head>` (or before the main inline script), add:
 ```html
 <script type="module" src="./history-derive.mjs"></script>
 ```
-It attaches `window.PlanmapHistory`. The main script's `fetch(...).then` is async, so the module is loaded by the time it runs; guard with `const H = window.PlanmapHistory;` and if absent, skip building the timeline (feature simply absent — no error).
+It attaches `window.PlanmapHistory`. The main script's `fetch(...).then` is async, so the module is loaded by the time it runs; guard with `const H = window.PlanmapHistory;` and if absent, skip building the timeline (feature simply absent - no error).
 
 - [ ] **Step 2: Add the timeline container**
 
@@ -426,11 +426,11 @@ CSS (in the `<style>` block):
 
 - [ ] **Step 3: Fetch history and build the timeline**
 
-Inside the `.then(data => …)`, after `buildAndShow(data.topics)`:
+Inside the `.then(data => ...)`, after `buildAndShow(data.topics)`:
 ```js
 const todayISO = new Date().toISOString().slice(0, 10);
 fetch('./history.json').then(r => r.ok ? r.json() : null).then(hist => {
-  if (!hist || !H) return;                       // no history yet → no timeline (feature absent)
+  if (!hist || !H) return;                       // no history yet -> no timeline (feature absent)
   const timeline = [...hist.days, { date: todayISO, topics: data.topics }];
   const momentum = H.momentumByDay(timeline);
   buildTimeline(timeline, momentum, timeline.length - 1); // playhead at Now
@@ -439,7 +439,7 @@ fetch('./history.json').then(r => r.ok ? r.json() : null).then(hist => {
 
 - [ ] **Step 4: Implement `buildTimeline(timeline, momentum, activeIndex)`**
 
-Renders an SVG into `#timeline`: a horizontal axis; one `.tl-bar` per day whose `count > 0` (bar height ∝ `count`, min 3px, positioned at that day's x); date ticks at the first, last, and a few interior days; a `<title>` per bar listing `shipped` titles; a play button rect at the left; a `.tl-playhead` vertical line + `.tl-knob` circle at `activeIndex`'s x; and a `.tl-readout` text showing the active day's date (or "Now" for the last index). Map day index → x with `x(i) = PADX + i*(W-2*PADX)/(timeline.length-1)`. For Task 4 the playhead is static at Now and the play button is inert (wired in Task 5).
+Renders an SVG into `#timeline`: a horizontal axis; one `.tl-bar` per day whose `count > 0` (bar height ∝ `count`, min 3px, positioned at that day's x); date ticks at the first, last, and a few interior days; a `<title>` per bar listing `shipped` titles; a play button rect at the left; a `.tl-playhead` vertical line + `.tl-knob` circle at `activeIndex`'s x; and a `.tl-readout` text showing the active day's date (or "Now" for the last index). Map day index -> x with `x(i) = PADX + i*(W-2*PADX)/(timeline.length-1)`. For Task 4 the playhead is static at Now and the play button is inert (wired in Task 5).
 
 - [ ] **Step 5: Verify (DOM eval)**
 
@@ -467,7 +467,7 @@ Expected: `timelinePresent:true`; `barCount` equals the number of days with a do
 
 **Interfaces:**
 - Consumes: `timeline`, `buildTimeline`, `buildAndShow` (Task 3).
-- Produces (module-level): `let dayIndex = timeline.length - 1;` and `goToDay(i)` — clamps `i`, re-renders the map from that day's topics (live topics when `i` is the last index), preserves view, and redraws the timeline with the playhead at `i`.
+- Produces (module-level): `let dayIndex = timeline.length - 1;` and `goToDay(i)` - clamps `i`, re-renders the map from that day's topics (live topics when `i` is the last index), preserves view, and redraws the timeline with the playhead at `i`.
 
 - [ ] **Step 1: Implement `goToDay(i)`**
 
@@ -483,7 +483,7 @@ Keep `timeline`/`momentum` at module scope (assigned when history loads) so `goT
 
 - [ ] **Step 2: Make the knob draggable**
 
-On the `.tl-knob` (and the timeline SVG background), add pointer handlers: on drag, convert clientX → nearest day index via the inverse of `x(i)`, and call `goToDay(nearest)`. Snap to integer day indices. Use `pointerdown`/`pointermove`/`pointerup` with pointer capture.
+On the `.tl-knob` (and the timeline SVG background), add pointer handlers: on drag, convert clientX -> nearest day index via the inverse of `x(i)`, and call `goToDay(nearest)`. Snap to integer day indices. Use `pointerdown`/`pointermove`/`pointerup` with pointer capture.
 
 - [ ] **Step 3: Wire the play button**
 
@@ -542,7 +542,7 @@ const heat = heatOn && window.PlanmapHistory
   : null;
 const HEAT = d => d <= 2 ? '#22d3ee' : d <= 7 ? '#fbbf24' : d <= 21 ? '#fb923c' : '#f87171';
 ```
-(`HEAT` maps age-in-days to a cool→hot color; buckets: ≤2 fresh cyan, ≤7 amber, ≤21 orange, >21 hot red.)
+(`HEAT` maps age-in-days to a cool->hot color; buckets: ≤2 fresh cyan, ≤7 amber, ≤21 orange, >21 hot red.)
 
 - [ ] **Step 3: Draw the tint per node**
 
@@ -551,7 +551,7 @@ When emitting each parent tile and each step tile, if `heat` has an entry for th
 const hk = heat && heat.get(nodeKey);
 if (hk) S.push(`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="6" fill="${HEAT(hk.days)}" fill-opacity="0.28" pointer-events="none"/>`);
 ```
-Add a small legend row into `#timeline` or the legend area when `heatOn` (fresh → hot swatches with the day-bucket labels).
+Add a small legend row into `#timeline` or the legend area when `heatOn` (fresh -> hot swatches with the day-bucket labels).
 
 - [ ] **Step 4: Verify (DOM eval)**
 
@@ -570,17 +570,17 @@ Expected: `tintsWhenOn` > 0 (one per live tile), `tintsWhenOff` === 0. Colors ma
 
 Run `node tools/agora/planmap-history.mjs` once more, reload, and confirm: timeline present, momentum bars correct, scrubbing works, heat toggles cleanly, and normal map interactions (hover per-type colors, pin, filter, zoom, pan) are unaffected.
 
-- [ ] **Step 6: Checkpoint (no commit)** — leave everything in the tree.
+- [ ] **Step 6: Checkpoint (no commit)** - leave everything in the tree.
 
 ---
 
 ## Post-plan wiring (one-time, documented)
 
-- Add `node tools/agora/planmap-history.mjs` to the 2am snapshot script `C:\Users\Gambit\.claude\scripts\aralia-daily-commit.ps1` (runs before the commit so the fresh `history.json` is included). This file is outside the repo — note it in the session summary rather than editing it as a plan task unless the user asks.
+- Add `node tools/agora/planmap-history.mjs` to the 2am snapshot script `C:\Users\Gambit\.claude\scripts\aralia-daily-commit.ps1` (runs before the commit so the fresh `history.json` is included). This file is outside the repo - note it in the session summary rather than editing it as a plan task unless the user asks.
 
 ## Self-review notes
 
-- **Spec coverage:** momentum → Task 4; staleness heat → Task 6; time-travel replay → Tasks 3+5; git-derived history → Task 1; topic+step granularity → `flatNodes` (Task 2); daily grain → `collapseDaily` (Task 1); no-forecast guardrail → Global Constraints; empty-history graceful absence → Task 4 Step 3; layout-shift-is-honest → inherent to `buildAndShow(snapshot)`; view preservation → Task 3.
+- **Spec coverage:** momentum -> Task 4; staleness heat -> Task 6; time-travel replay -> Tasks 3+5; git-derived history -> Task 1; topic+step granularity -> `flatNodes` (Task 2); daily grain -> `collapseDaily` (Task 1); no-forecast guardrail -> Global Constraints; empty-history graceful absence -> Task 4 Step 3; layout-shift-is-honest -> inherent to `buildAndShow(snapshot)`; view preservation -> Task 3.
 - **Type consistency:** `buildAndShow`, `timeline`, `momentum`, `dayIndex`, `goToDay`, `heatOn`, `HEAT`, node `key` scheme, and `window.PlanmapHistory` names are used identically across tasks.
 
 <!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/plans/2026-07-04-planmap-date-progression-tracker.md","sha256WithoutMarker":"3d6d199e283e4e626edec2eceefb9ebd4a41b49a182e194db69fe6d99eae8d19","markedAtUtc":"2026-08-09T20:22:07.609Z"} -->

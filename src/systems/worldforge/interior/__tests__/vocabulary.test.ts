@@ -3,6 +3,7 @@ import { genFootprint } from '../footprint';
 import { roomCapFor } from '../partition';
 import { buildingTypeForRole, BASEMENT_CHANCE } from '../generateInterior';
 import { generateBuilding } from '../generateBuilding';
+import { HEADLINE } from '../program';
 import { rootSeedPath } from '../../seedPath';
 import type { BuildingType } from '../blueprintTypes';
 import type { BuildingType as TownBuildingType } from '../../town/population';
@@ -11,6 +12,9 @@ const ALL_TYPES: BuildingType[] = [
   'cottage', 'townhouse', 'tenement', 'farmstead',
   'shop', 'smithy', 'workshop', 'inn', 'tavern', 'storehouse',
   'manor', 'temple', 'keep', 'civic',
+  // named landmarks (town/population.ts caps how many a town may hold)
+  'library', 'guildhall', 'granary', 'windmill', 'lumbermill',
+  'school', 'shrine', 'barracks', 'bakery',
 ];
 
 describe('shared building vocabulary', () => {
@@ -40,6 +44,17 @@ describe('shared building vocabulary', () => {
     expect(buildingTypeForRole('civic')).toBe('civic');
     expect(buildingTypeForRole('house')).toBe('cottage');
     expect(() => buildingTypeForRole('lighthouse')).toThrow(/no BuildingType mapping/);
+  });
+
+  it('every type has a headline purpose and builds without throwing', () => {
+    // Acceptance for the landmark vocabulary: a type a town plan can name must
+    // be buildable, or the drill into that building dead-ends.
+    for (const type of ALL_TYPES) {
+      expect(HEADLINE[type], `${type} has a headline purpose`).toBeTruthy();
+      const plan = generateBuilding({ buildingId: 1, type, seedPath: rootSeedPath(11) });
+      expect(plan.floors.length, `${type} has a ground floor`).toBeGreaterThanOrEqual(1);
+      expect(plan.floors[0].rooms.length, `${type} has at least one room`).toBeGreaterThanOrEqual(1);
+    }
   });
 
   it('v2 contract fields exist and stay optional (bare v1 call unaffected)', () => {

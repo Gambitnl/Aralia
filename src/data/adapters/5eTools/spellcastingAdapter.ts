@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 20/09/2026, 21:00:39
+ * Dependents: data/adapters/5eTools/index.ts
+ * Imports: 6 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 // Converts the 5eTools `spellcasting` array into Aralia Ability objects.
 // Handles three schema variants:
 //   will[]          — at-will spells (both MM and XMM)
@@ -10,6 +26,7 @@ import { AbilityScoreName } from '../../../types/core';
 import { Spell } from '../../../types/spells';
 import { strip5eToolsMarkup } from './shared';
 import { mapSpellToAbilityProperties } from './spellEffectMapper';
+import type { FiveEToolsSpellcasting, MonsterSpellSlotPool } from './types';
 
 const ABILITY_MAP: Record<string, AbilityScoreName> = {
   str: 'Strength', dex: 'Dexterity', con: 'Constitution',
@@ -102,7 +119,7 @@ function makeSpellAbility(
 
 
 export function parseSpellcasting(
-  spellcastingBlocks: any[] | undefined,
+  spellcastingBlocks: FiveEToolsSpellcasting[] | undefined,
   spellLookup?: (name: string) => Spell | undefined
 ): Ability[] {
   if (!spellcastingBlocks || !Array.isArray(spellcastingBlocks)) return [];
@@ -117,14 +134,14 @@ export function parseSpellcasting(
 
     // At-will spells — no usage limit
     if (Array.isArray(block.will)) {
-      for (const spellRef of block.will as string[]) {
+      for (const spellRef of block.will) {
         abilities.push(makeSpellAbility(spellRef, costType, description, saveDC, saveAbility, 'will', spellLookup, undefined, blockIdx));
       }
     }
 
     // Daily-limited spells — key format: "1e"=1/day each, "2e"=2/day each, "1"=1/day shared pool
     if (block.daily && typeof block.daily === 'object') {
-      for (const [key, spells] of Object.entries<string[]>(block.daily)) {
+      for (const [key, spells] of Object.entries(block.daily)) {
         if (!Array.isArray(spells)) continue;
         const each = key.endsWith('e');
         const count = parseInt(key);
@@ -146,13 +163,14 @@ export function parseSpellcasting(
     }
 
     // Slot-based prepared spells (MM 2014 format — XMM dropped this).
-    // DEBT: slot counts are cosmetic only; no runtime slot-tracking exists yet.
+    // The per-level slot pool these spells draw from is parsed separately by
+    // parseMonsterSpellSlots below; the note here is the stat-block display text.
     if (block.spells && typeof block.spells === 'object') {
-      for (const [levelStr, levelData] of Object.entries<any>(block.spells)) {
+      for (const [levelStr, levelData] of Object.entries(block.spells)) {
         const level = parseInt(levelStr);
         if (isNaN(level)) continue;
         const spellList: string[] = levelData.spells ?? [];
-        const slots: number | undefined = levelData.slots;
+        const slots = levelData.slots;
         const slotsNote = slots != null ? `(${slots} slot${slots !== 1 ? 's' : ''})` : '';
         for (const spellRef of spellList) {
           const ability = makeSpellAbility(
@@ -170,5 +188,38 @@ export function parseSpellcasting(
   }
 
   return abilities;
+}
+
+/**
+ * Extracts the per-level spell-slot pool a slot-based (prepared) caster monster
+ * starts combat with, e.g. a Lich yields { 1: 4, 2: 3, 3: 3, 4: 3, 5: 3, 6: 1, 7: 1, 8: 1, 9: 1 }.
+ *
+ * Cantrips are excluded: 5eTools stores them under level "0" with no `slots`
+ * key, and they cost no slot to cast.
+ *
+ * Returns undefined when the creature has no slot-based spellcasting at all —
+ * at-will and N/Day casters carry their limits on the abilities themselves.
+ *
+ * Across bestiary-mm.json and bestiary-xmm.json no creature has more than one
+ * slot-bearing spellcasting block, so the max is only a determinism guard.
+ */
+export function parseMonsterSpellSlots(
+  spellcastingBlocks: FiveEToolsSpellcasting[] | undefined,
+): MonsterSpellSlotPool | undefined {
+  if (!spellcastingBlocks || !Array.isArray(spellcastingBlocks)) return undefined;
+
+  const pool: MonsterSpellSlotPool = {};
+  for (const block of spellcastingBlocks) {
+    if (!block.spells || typeof block.spells !== 'object') continue;
+    for (const [levelStr, levelData] of Object.entries(block.spells)) {
+      const level = parseInt(levelStr);
+      if (isNaN(level) || level < 1 || level > 9) continue;
+      const slots = levelData.slots;
+      if (typeof slots !== 'number' || slots <= 0) continue;
+      pool[level] = Math.max(pool[level] ?? 0, slots);
+    }
+  }
+
+  return Object.keys(pool).length > 0 ? pool : undefined;
 }
 

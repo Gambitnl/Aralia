@@ -14,7 +14,7 @@ import path from 'node:path';
 import type { Page } from 'playwright';
 import { describe, expect, it } from 'vitest';
 import type { CaptureStep, VisScenario } from '../../../src/devtools/vistest/scenarios';
-import { captureScenarioRecipe, isReloadInterruption } from '../shoot';
+import { captureScenarioRecipe, isReloadInterruption, probeServedCode } from '../shoot';
 
 // ============================================================================
 // Real command runner
@@ -174,6 +174,7 @@ describe('vistest capture command safety', () => {
     expect(result.error).toBeUndefined();
     expect(result.status).toBe(0);
     expect(result.stdout).toContain('Usage: npx tsx tools/vistest/shoot.ts [options]');
+    expect(result.stdout).toContain('--expect-served-code');
     expect(existsSync(unusedOutput)).toBe(false);
   }, 15_000);
 
@@ -252,6 +253,62 @@ describe('vistest capture command safety', () => {
       await new Promise<void>((resolve) => server.close(() => resolve()));
     }
   }, 10_000);
+
+  it('rejects a source-comment marker stripped by Vite before creating output', async () => {
+    const source = readFileSync(shootScript, 'utf8');
+    const server = createServer((request, response) => {
+      response.writeHead(200, { 'Content-Type': 'text/javascript' });
+      if (request.url?.includes('?raw')) {
+        response.end('export default ' + JSON.stringify(source) + ';');
+      } else if (request.url?.includes('/tools/vistest/shoot.ts')) {
+        response.end('export const roofHeight = riseAt(slope, sampleX, sampleY) * FT;');
+      } else {
+        response.end('<title>Mock Vite</title>');
+      }
+    });
+    const port = await listen(server);
+    const unusedOutput = path.join(repoRoot, '.agent/vistest/captures/comment-marker-no-write');
+
+    try {
+      const result = await runShootAsync(
+        '--base', `http://127.0.0.1:${port}/Aralia/`,
+        '--fresh-module', 'tools/vistest/shoot.ts',
+        '--expect-served-code', 'LEGACY CAPTURE',
+        '--probe-timeout', '1000',
+        '--out', '.agent/vistest/captures/comment-marker-no-write',
+      );
+
+      expect(result.status).toBe(1);
+      expect(result.stderr).toContain('SERVED_VARIANT_FAILURE');
+      expect(result.stderr).toContain('no browser or capture output was created');
+      expect(existsSync(unusedOutput)).toBe(false);
+    } finally {
+      await new Promise<void>((resolve) => server.close(() => resolve()));
+    }
+  }, 15_000);
+});
+
+describe('transformed served-code proof', () => {
+  it('accepts code in the transformed module and rejects stripped comments', async () => {
+    const server = createServer((_request, response) => {
+      response.writeHead(200, { 'Content-Type': 'text/javascript' });
+      response.end('export const roofHeight = riseAt(slope, sampleX, sampleY) * FT;');
+    });
+    const port = await listen(server);
+    const options = {
+      baseUrl: `http://127.0.0.1:${port}/Aralia/`,
+      modulePath: 'src/systems/worldforge/bridge/buildingHistoryParts.ts',
+      timeoutMs: 1000,
+    };
+    try {
+      expect((await probeServedCode({ ...options, expectedCode: 'riseAt(slope, sampleX, sampleY) * FT' })).ok).toBe(true);
+      const missing = await probeServedCode({ ...options, expectedCode: 'LEGACY CAPTURE' });
+      expect(missing.ok).toBe(false);
+      expect(missing.error).toContain('not found in the transformed module');
+    } finally {
+      await new Promise<void>((resolve) => server.close(() => resolve()));
+    }
+  });
 });
 
 // ============================================================================

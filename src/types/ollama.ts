@@ -121,9 +121,9 @@ export type TaskType =
  */
 export interface TaskProfile {
     taskType: TaskType;
-    /** Preferred models for this task, in priority order. Router walks this list
-     * against installed models, then falls back to OllamaConfig.preferredModels. */
-    preferredModels: string[];
+    /** The model category this task runs on. The router resolves it to ONE model
+     * (the player's choice or the category default); nothing is walked (agora-d1c7.1). */
+    category: 'dialogue' | 'judgment' | 'utility' | 'prose';
     /** Default sampling parameters for this category. Callers may override per-request. */
     params: Required<Pick<ModelParams, 'temperature' | 'topP' | 'repeatPenalty' | 'numCtx' | 'numPredict'>>;
     /** Optional response format hint. */

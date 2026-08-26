@@ -1,7 +1,7 @@
 # Rendering Hall of Shame
 
 A field guide to the rendering bugs this project has actually hit. Purpose:
-when you SEE a symptom, find its NAME here, and say the name — the right fix
+when you SEE a symptom, find its NAME here, and say the name - the right fix
 starts from the right word. Each entry: what you see, what it is called, why
 it happens, and where we hit it.
 
@@ -24,7 +24,7 @@ it happens, and where we hit it.
 ## 2. Ink-swallowed model (value crush)
 
 - **You see:** a creature renders as a black silhouette with no interior
-  detail — "an ink hole with legs".
+  detail - "an ink hole with legs".
 - **Names:** value crush · black crush · (ours) ink-swallowed.
 - **Why:** a near-black albedo under a toon ramp's shadow band leaves no
   value steps; the black ink outline and the body merge.
@@ -49,7 +49,7 @@ it happens, and where we hit it.
 - **Names:** open mesh · non-watertight · single-sided shell.
 - **Why:** the geometry never closed (missing caps, open rims), and culling
   hides the shell's far side.
-- **We hit it:** the shell-assumption failure class across 3D surfaces —
+- **We hit it:** the shell-assumption failure class across 3D surfaces -
   gated since by `entities3d/__tests__/shellAssumptions.test.ts`. The fused
   hand's wrist cut is a DELIBERATE open rim (specimen only).
 
@@ -60,12 +60,12 @@ it happens, and where we hit it.
 - **Names:** T-pose (or A-pose) leak · bind-pose leak.
 - **Why:** a driver or animation never posed that limb, so the bind/default
   transform shows through.
-- **We hit it:** plan-gait arms (gnoll, centaur, wisp — "starfish" seed
+- **We hit it:** plan-gait arms (gnoll, centaur, wisp - "starfish" seed
   poses), fixed for upright walkers 2026-08-19 in `three/gaits.ts`.
 
 ## 6. Detached sticker (floating part)
 
-- **You see:** a hat, hair plate, or weapon floats near — not on — the body,
+- **You see:** a hat, hair plate, or weapon floats near - not on - the body,
   or drifts when the body animates.
 - **Names:** floating part · detached attachment · (anyCreature) "a detached
   sticker".
@@ -77,17 +77,17 @@ it happens, and where we hit it.
 ## 7. Clipping shapes (non-fused junction)
 
 - **You see:** body parts read as separate primitives shoved into each other
-  — "a bunch of shapes partially clipping into each other" (Remy,
+  - "a bunch of shapes partially clipping into each other" (Remy,
   2026-08-21, the tube hand).
 - **Names:** interpenetrating primitives · unfused junction.
 - **Why:** pieces are separate meshes with no shared surface, weld, or blend
   at the joint.
-- **Fix ladder we walked:** root embedding (hides seams) → SDF fusion (one
-  surface, but soap) → AUTHORED TOPOLOGY (the real answer — hands round 4).
+- **Fix ladder we walked:** root embedding (hides seams) -> SDF fusion (one
+  surface, but soap) -> AUTHORED TOPOLOGY (the real answer - hands round 4).
 
 ## 8. Isosurface soap
 
-- **You see:** a fused/metaball model is one surface but reads as melted —
+- **You see:** a fused/metaball model is one surface but reads as melted -
   no edges, no planes, no crisp features.
 - **Names:** blob look · metaball soap · (ours) isosurface soap.
 - **Why:** implicit-surface blends round everything; crisp features need
@@ -97,10 +97,10 @@ it happens, and where we hit it.
 
 ## 9. NaN-poisoned geometry
 
-- **You see:** a mesh silently renders NOTHING — no error, no object.
+- **You see:** a mesh silently renders NOTHING - no error, no object.
 - **Names:** NaN poisoning · NaN geometry.
 - **Why:** one NaN in a math chain (for us: `smin(Infinity, x)` =
-  `Infinity × 0` = NaN) spreads through every sample or vertex; comparisons
+  `Infinity x 0` = NaN) spreads through every sample or vertex; comparisons
   against NaN are false, so builders emit zero output.
 - **We hit it:** the fused hand's first field bake (2026-08-21). Rule: seed
   accumulators FINITE.
@@ -119,19 +119,19 @@ it happens, and where we hit it.
 ## 11. Ring shear (the plank disease)
 
 - **You see:** a tube-built limb reads as a flat plank, or a bent limb
-  collapses sideways into a melted wave — even though its skeleton points
+  collapses sideways into a melted wave - even though its skeleton points
   the right way.
 - **Names:** ring shear · (ours) the plank disease.
 - **Why:** cross-section rings stay world-axis-aligned while the limb's
   direction pitches or splays; each ring slides diagonally against the next
   and the stack shears. The DIRECTIONS are right; the RING ORIENTATION is
   wrong. Cure: build each ring perpendicular to its own segment direction.
-- **We hit it:** twice in one night (2026-08-21) — the template thumb ("a
+- **We hit it:** twice in one night (2026-08-21) - the template thumb ("a
   flat plank") and the v3 finger bend ("melting fist"). Same cure both
   times, in `steps/templateHand.ts` oriented rings.
 
 ---
 
-Add new entries the day a bug is named — one entry per DISTINCT cause, with
+Add new entries the day a bug is named - one entry per DISTINCT cause, with
 the local incident and fix location. The name is the tool: it turns "this
 looks wrong" into a one-line work order.

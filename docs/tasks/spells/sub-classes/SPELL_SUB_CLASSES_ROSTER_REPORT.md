@@ -9,8 +9,8 @@ Scanned:   459 spell files
 Compares each spell's structured `- **Sub-Classes**:` line against
 the canonical `Available For:` block, after applying:
 
-- Decision 6 — only roster-supported subclass labels are kept
-- Decision 2 — repeated-base entries (parent class already in `Classes`) are stripped
+- Decision 6 - only roster-supported subclass labels are kept
+- Decision 2 - repeated-base entries (parent class already in `Classes`) are stripped
 
 A spell shows as `roster_clean` only when its current structured value matches
 the expected post-Decision-2/6 set exactly. `needs_*` rows are real edits left to do.

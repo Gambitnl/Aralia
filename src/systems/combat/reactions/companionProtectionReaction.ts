@@ -33,7 +33,8 @@ import { FEATS_DATA } from '../../../data/feats/featsData';
 import type { BattleMapData, CombatCharacter } from '../../../types/combat';
 import { calculateProficiencyBonus } from '../../../utils/character/savingThrowUtils';
 import { canAffordActionCost, consumeActionCost } from '../../../utils/combat/actionEconomyUtils';
-import { getCharacterDistance, rollDamage } from '../../../utils/combat/combatUtils';
+import { getCharacterDistance } from '../../../utils/combat/combatUtils';
+import { rollDamage } from '../../dice/rollers';
 import { applyDamageAndCheckDowned, isIncapacitated } from '../../../utils/combat/deathSaveUtils';
 import { hasLineOfSight } from '../../../utils/spatial/lineOfSight';
 

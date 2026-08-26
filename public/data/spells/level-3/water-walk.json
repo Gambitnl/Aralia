@@ -18,6 +18,30 @@
 
                    ],
     "ritual":  true,
+    "ritualData": {
+      "requirements": [
+        {
+          "type": "custom",
+          "value": "component:verbal",
+          "description": "The ritual must be chanted aloud from start to finish."
+        },
+        {
+          "type": "custom",
+          "value": "component:somatic",
+          "description": "The ritual needs a free hand for its gestures throughout."
+        },
+        {
+          "type": "custom",
+          "value": "component:material",
+          "description": "The ritual needs a piece of cork; it is held throughout the casting."
+        },
+        {
+          "type": "custom",
+          "value": "uninterrupted_casting",
+          "description": "Ritual casting adds 10 minutes to the casting time and must run uninterrupted."
+        }
+      ]
+    },
     "rarity":  "common",
     "attackType":  "",
     "castingTime":  {
@@ -167,7 +191,7 @@
                                                                    ]
                                       },
                         "utilityType":  "other",
-                        "description":  "Choose up to ten creatures within 30 feet for 1 hour. Targets can move across liquid surfaces as harmless solid ground and can use a Bonus Action to pass between a liquid\u0027s surface and the liquid itself, while falling into the liquid bypasses that Bonus Action requirement.",
+                        "description":  "Choose up to ten creatures within 30 feet for 1 hour. Targets can move across liquid surfaces as harmless solid ground and can use a Bonus Action to pass between a liquid's surface and the liquid itself, while falling into the liquid bypasses that Bonus Action requirement.",
                         "scaling":  {
                                         "type":  "slot_level",
                                         "bonusPerLevel":  "",
@@ -176,7 +200,7 @@
                         "grantedActions":  [
                                                {
                                                    "type":  "bonus_action",
-                                                   "action":  "Pass between the liquid\u0027s surface and the liquid itself, or vice versa.",
+                                                   "action":  "Pass between the liquid's surface and the liquid itself, or vice versa.",
                                                    "frequency":  "while_active",
                                                    "notes":  "Falling into the liquid bypasses this Bonus Action requirement and passes the target through the surface into the liquid below."
                                                }
@@ -260,7 +284,7 @@
                       "prompt":  "",
                       "playerInputRequired":  false
                   },
-    "description":  "This spell grants the ability to move across any liquid surface-such as water, acid, mud, snow, quicksand, or lava-as if it were harmless solid ground (creatures crossing molten lava can still take damage from the heat). Up to ten willing creatures of your choice within range gain this ability for the duration. An affected target must take a Bonus Action to pass from the liquid\u0027s surface into the liquid itself and vice versa, but if the target falls into the liquid, the target passes through the surface into the liquid below.",
+    "description":  "This spell grants the ability to move across any liquid surface-such as water, acid, mud, snow, quicksand, or lava-as if it were harmless solid ground (creatures crossing molten lava can still take damage from the heat). Up to ten willing creatures of your choice within range gain this ability for the duration. An affected target must take a Bonus Action to pass from the liquid's surface into the liquid itself and vice versa, but if the target falls into the liquid, the target passes through the surface into the liquid below.",
     "higherLevels":  "",
     "tags":  [
                  "transmutation",

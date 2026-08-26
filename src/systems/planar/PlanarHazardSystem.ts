@@ -18,7 +18,8 @@ import { GameState, Location } from '../../types';
 import { PlanarHazard } from '../../types/planes';
 import { LOCATIONS } from '../../constants';
 import { getCurrentPlane } from '../../utils/planar';
-import { rollDice , createPlayerCombatCharacter } from '../../utils/combat';
+import { createPlayerCombatCharacter } from '../../utils/combat';
+import { rollDice } from '../dice/rollers';
 import { rollSavingThrow } from '../../utils/character';
 
 export interface HazardEvent {

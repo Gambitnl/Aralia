@@ -248,9 +248,8 @@ export function createGithzeraiScenario(race: Race): GithzeraiScenarioState {
     };
   }
 
-  // DEBT: The combat bridge currently misses this parsed racial defense in some
-  // snapshots. The durable fix belongs in the shared bridge; this leaf adds
-  // only the canonical Psychic resistance while labeling the boundary.
+  // Projecting trait-text racial damage defenses automatically in createPlayerCombatCharacter bridge is tracked in Agora task agora-ddb7.
+  // Adds canonical Psychic resistance as a narrow adapter until the shared bridge projects it natively.
   const fallbackActor: CombatCharacter = {
     ...actor,
     resistances: [...(actor.resistances ?? []), PSYCHIC_DAMAGE],

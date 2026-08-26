@@ -1,4 +1,4 @@
-﻿# Eldritch Blast Scenario Review
+# Eldritch Blast Scenario Review
 
 ## Components that matter
 

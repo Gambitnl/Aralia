@@ -19,9 +19,12 @@ import {
   calculateDamage,
   createPlayerCombatCharacter,
   resolveAttack,
+  spendCombatLimitedUse,
+} from '../../../../../utils/combat/combatUtils';
+import {
   rollD20,
   rollDamage,
-} from '../../../../../utils/combat/combatUtils';
+} from '../../../../../systems/dice/rollers';
 import {
   canAffordActionCost,
   consumeActionCost,
@@ -188,21 +191,22 @@ function createFrostGiantGoliathActor(race: Race): CombatCharacter | null {
   const resource = assembledCharacter.limitedUses?.[FROST_GIANT_GOLIATH_FROSTS_CHILL_RESOURCE_ID];
   if (!resource) return null;
 
-  // DEBT: createPlayerCombatCharacter currently does not project racial
-  // limitedUses into CombatCharacter. This adapter carries only the canonical
-  // parsed resource forward; the shared bridge should own this projection once
-  // it is widened, and no other Frost Giant mechanic is materialized here.
-  // DEBT: quick character assembly also needs to derive Race speed centrally.
-  // This leaf projects the canonical 35-foot speed only at this narrow seam.
+  // Quick character assembly now derives speed from canonical Race data
+  // (agora-0202), so this leaf no longer projects a local 35-foot override.
+  // The equality gate fails the scenario honestly if central derivation ever
+  // stops agreeing with the canonical Speed trait.
+  if (generatedActor.stats.speed !== speedFeet) return null;
+
+  // agora-0ad6 landed: createPlayerCombatCharacter projects player.limitedUses
+  // onto the combat actor, so the parsed Frost's Chill entry arrives on its
+  // own. Fail honestly if it does not rather than re-attaching a second copy.
+  if (!generatedActor.limitedUses?.[FROST_GIANT_GOLIATH_FROSTS_CHILL_RESOURCE_ID]) return null;
+
   return resetEconomy({
     ...generatedActor,
     id: FROST_GIANT_GOLIATH_ACTOR_ID,
     name: `${race.name} · Frost's Chill Tester`,
     position: { x: 2, y: 4 },
-    stats: { ...generatedActor.stats, speed: speedFeet },
-    limitedUses: {
-      [FROST_GIANT_GOLIATH_FROSTS_CHILL_RESOURCE_ID]: { ...resource },
-    },
   });
 }
 
@@ -367,7 +371,7 @@ export function resolveFrostGiantGoliathFrostsChill(
   const attack = resolveAttack(
     attackRoll,
     getFrostGiantGoliathAttackBonus(actor),
-    target.armorClass,
+    target.armorClass ?? 10,
   );
   const paidActor = consumeActionCost(actor, actionCost);
   const targetHpBefore = target.currentHP;
@@ -420,16 +424,9 @@ export function resolveFrostGiantGoliathFrostsChill(
     const rolledColdDamage = rollDamage(FROST_GIANT_GOLIATH_FROSTS_CHILL_DICE, false, 1, FIXED_DAMAGE_RNG);
     coldDamage = calculateDamage(rolledColdDamage, actor, nextTarget, 'cold');
     nextTarget = applyDamageAndCheckDowned(nextTarget, coldDamage);
-    nextActor = {
-      ...paidActor,
-      limitedUses: {
-        ...paidActor.limitedUses,
-        [FROST_GIANT_GOLIATH_FROSTS_CHILL_RESOURCE_ID]: {
-          ...resource,
-          current: Math.max(0, resource.current - 1),
-        },
-      },
-    };
+    // spendCombatLimitedUse is the shared immutable payer (agora-0ad6); it
+    // refuses rather than going negative, so no local clamp is needed.
+    nextActor = spendCombatLimitedUse(paidActor, FROST_GIANT_GOLIATH_FROSTS_CHILL_RESOURCE_ID).character;
     // Build the paired records once so the status and condition mirrors share
     // exactly the same ownership metadata for later native removal.
     const slowRecords = createFrostGiantGoliathSlowRecords(actor);
@@ -633,7 +630,7 @@ const FrostGiantGoliathRaceLeafContent: React.FC<RaceDomainLeafProps> = ({
 
       {/* The resource bridge gap is explicit so this leaf cannot be mistaken for a shared migration. */}
       <p data-testid="frost-giant-goliath-assembly-boundary">
-        Assembly boundary: production quick-character assembly plus canonical racial parsing supply the PB/Long Rest resource; this leaf carries limitedUses across the combat bridge because that bridge does not currently project racial resources.
+        Assembly boundary: production quick-character assembly plus canonical racial parsing supply the PB/Long Rest resource; the combat bridge projects limitedUses and spendCombatLimitedUse pays the charge, so this leaf carries no resource adapter of its own.
       </p>
       <p data-testid="frost-giant-goliath-unsupported-boundary">
         Unsupported boundary: this leaf does not implement Large Form size transformation, Powerful Build grapple/carry rules, long-rest orchestration, or mounted 2D/3D proof. The explicit next-turn control uses native owned status removal and Action reset; the mounted actor turn-event bus is not claimed here.

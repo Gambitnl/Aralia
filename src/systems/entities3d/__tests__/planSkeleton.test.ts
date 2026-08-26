@@ -240,4 +240,58 @@ describe('createPlanPoseSink — driver emissions drive the bones', () => {
   });
 });
 
+// ============================================================================
+// Task 3 acceptance: HEAD BONE PARENTAGE.
+// ============================================================================
+// The socket test above proves a formed head bone lands ON its socket, which a
+// bone parented to the wrong place could still do for one frame. What the
+// pivot actually promises is structural: a head is not a free-floating
+// transform, it hangs off the neck chain that hangs off the spine, so posing
+// the spine carries the head with it. These two cases pin that hierarchy
+// (parent id + world-space follow) without renaming a bone or changing a bone
+// count — the 39-bone/66-joint skeleton canon decision is still open.
+// ============================================================================
+describe('buildPlanSkeleton — head bones hang off the spine', () => {
+  it('parents every head<i> to its neck-chain tip, and every neck chain to the spine', () => {
+    let headsSeen = 0;
+    for (const [name, { frame, planSpec }] of fixtureCases()) {
+      const spec = planSpec!;
+      const built = buildPlanSkeleton(frame, spec);
+      spec.heads.forEach((h, hi) => {
+        headsSeen++;
+        const bone = built.bones[built.index.get(`head${hi}`)!];
+        expect(bone, `${name} head${hi} bone exists`).toBeTruthy();
+        // Immediate parent: the neck chain's LAST link, or the spine front for
+        // a neckless head (planSkeleton's chainTipParent / 'spine.0' rule).
+        const expected = h.chainId
+          ? `${h.chainId}.${(spec.chains.find((c) => c.id === h.chainId)?.links.length ?? 1) - 1}`
+          : 'spine.0';
+        expect(bone.parent?.name, `${name} head${hi} parent`).toBe(expected);
+        // Ancestry: walking up must reach a spine bone and end at the root.
+        const chainUp: string[] = [];
+        for (let p = bone.parent; p; p = p.parent) chainUp.push(p.name);
+        expect(chainUp.some((n) => n.startsWith('spine')), `${name} head${hi} ancestry ${chainUp.join(' < ')}`).toBe(true);
+        expect(chainUp[chainUp.length - 1], `${name} head${hi} root`).toBe(built.root.name);
+      });
+    }
+    expect(headsSeen).toBeGreaterThan(0);
+  });
+
+  it('a head bone rides its parent: moving the spine moves the head in world space', () => {
+    for (const [name, { frame, planSpec }] of fixtureCases()) {
+      const spec = planSpec!;
+      if (spec.heads.length === 0) continue;
+      const built = buildPlanSkeleton(frame, spec);
+      built.root.updateMatrixWorld(true);
+      const before = boneWorld(built, 'head0');
+      // Translate the spine front; a correctly parented head must move with it.
+      const spine = built.bones[built.index.get('spine.0')!];
+      spine.position.x += 0.5;
+      built.root.updateMatrixWorld(true);
+      const after = boneWorld(built, 'head0');
+      expect(after.distanceTo(before), `${name} head0 follows the spine`).toBeGreaterThan(0.4);
+    }
+  });
+});
+
 

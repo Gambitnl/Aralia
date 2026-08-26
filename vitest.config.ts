@@ -42,6 +42,63 @@ const vitestJsonOutputFile =
     process.env.VITEST_JSON_OUTPUT_FILE ??
     path.join(defaultReportDir, `vitest-results.${resolvedReportAgentId ?? `pid-${process.pid}`}.json`);
 
+// ============================================================================
+// Shared discovery rules (WF-G112)
+// ============================================================================
+// Both lanes below must see the same universe of files, so the exclusion list stays
+// declared once at the root. Vitest concatenates a project's own `exclude` onto the
+// inherited one rather than replacing it, so the fast lane only has to name the slow
+// globs and the slow lane names nothing.
+// ============================================================================
+const SHARED_EXCLUDE = [
+    '**/node_modules/**',
+    '**/dist/**',
+    '**/verification/**',
+    '**/*.spec.ts',
+    // Agora uses Node's built-in test runner because its tests import node:test
+    // and exercise subprocess/server behavior that jsdom cannot bundle. The
+    // standalone `node --test "tools/agora/*.test.mjs"` suite covers them.
+    '**/tools/agora/**/*.test.mjs',
+    '**/.claude/**',
+    // Keep default app test runs focused on Aralia code.
+    // Tooling workspaces under .agent_tools are validated separately.
+    '**/.agent_tools/**',
+    // Disposable proofs and diagnostic tests live under .agent/scratch.
+    // They intentionally probe unfinished behavior and must not become part
+    // of the tracked product suite merely because their filenames end in test.ts.
+    '**/.agent/**',
+    // Keep local git snapshots, scratch vendors, and toolchain mirrors out of
+    // normal discovery so `npm run test` stays on the main repository.
+    '**/.worktrees/**',
+    '**/.tmp/**',
+    '**/.local/**',
+    '**/vendor/**',
+];
+
+// ============================================================================
+// Generation-heavy suites (WF-G112)
+// ============================================================================
+// These directories drive real procedural generation - chunk meshing, local world
+// assembly, battle-map layout - so single tests legitimately run 4.5-9.7 s on a quiet
+// box and considerably longer while several agents share the machine. Under the
+// stock 5 s `testTimeout` they produced rotating, file-dependent phantom failures that
+// cost every worker a rerun to disprove.
+//
+// They are split into their own project purely to carry a longer timeout. Nothing
+// else about how they run changes, and the fast lane keeps Vitest's default 5 s so a
+// genuinely hung unit test still fails quickly.
+//
+// To add a suite: confirm on a quiet run that its tests exceed roughly 4 s, then add
+// its `__tests__` glob here rather than raising the global default.
+// ============================================================================
+const SLOW_SUITE_GLOBS = [
+    'src/systems/worldforge/bridge/__tests__/**/*.{test,spec}.?(c|m)[jt]s?(x)',
+    'src/systems/worldforge/local/__tests__/**/*.{test,spec}.?(c|m)[jt]s?(x)',
+    'src/components/BattleMap/__tests__/**/*.{test,spec}.?(c|m)[jt]s?(x)',
+];
+
+const SLOW_SUITE_TIMEOUT_MS = 60_000;
+
 export default defineConfig({
     plugins: [react()],
     test: {
@@ -62,29 +119,29 @@ export default defineConfig({
         ],
         alias: {
             '@': path.resolve(__dirname, 'src'),
-        },        exclude: [
-            '**/node_modules/**',
-            '**/dist/**',
-            '**/verification/**',
-            '**/*.spec.ts',
-            // Agora uses Node's built-in test runner because its tests import node:test
-            // and exercise subprocess/server behavior that jsdom cannot bundle. The
-            // standalone `node --test "tools/agora/*.test.mjs"` suite covers them.
-            '**/tools/agora/**/*.test.mjs',
-            '**/.claude/**',
-            // Keep default app test runs focused on Aralia code.
-            // Tooling workspaces under .agent_tools are validated separately.
-            '**/.agent_tools/**',
-            // Disposable proofs and diagnostic tests live under .agent/scratch.
-            // They intentionally probe unfinished behavior and must not become part
-            // of the tracked product suite merely because their filenames end in test.ts.
-            '**/.agent/**',
-            // Keep local git snapshots, scratch vendors, and toolchain mirrors out of
-            // normal discovery so `npm run test` stays on the main repository.
-            '**/.worktrees/**',
-            '**/.tmp/**',
-            '**/.local/**',
-            '**/vendor/**',
+        },
+        exclude: SHARED_EXCLUDE,
+        // WF-G112: the two lanes differ in exactly one setting, `testTimeout`. Both
+        // inherit everything above through `extends: true`, so jsdom, the setup file,
+        // the alias, the worker ceiling, and the reporters stay identical and the union
+        // of the two `include` sets is the same file list a single-project run found.
+        projects: [
+            {
+                extends: true,
+                test: {
+                    name: 'app',
+                    exclude: SLOW_SUITE_GLOBS,
+                },
+            },
+            {
+                extends: true,
+                test: {
+                    name: 'generation',
+                    include: SLOW_SUITE_GLOBS,
+                    testTimeout: SLOW_SUITE_TIMEOUT_MS,
+                    hookTimeout: SLOW_SUITE_TIMEOUT_MS,
+                },
+            },
         ],
         coverage: {
             // GG-25: coverage for the shared utility lanes (savingThrowUtils,
@@ -110,7 +167,7 @@ export default defineConfig({
                 branches: 55,
             },
         },
-    },
+    },
     resolve: {
         alias: {
             '@': path.resolve(__dirname, 'src'),

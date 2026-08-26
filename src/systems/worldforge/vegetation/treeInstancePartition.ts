@@ -1,11 +1,11 @@
-// @dependencies-start
+﻿// @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 04/08/2026, 02:05:58
- * Dependents: components/World3D/WebGPUProbeScene.tsx, systems/worldforge/vegetation/treeBatching.ts
- * Imports: 1 files
+ * Last Sync: 26/08/2026
+ * Dependents: components/World3D/WebGPUProbeScene.tsx, systems/worldforge/vegetation/treeBatching.ts, systems/worldforge/vegetation/grownTreeWiring.ts
+ * Imports: 2 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -15,50 +15,81 @@
 // @dependencies-end
 
 /**
- * @file treeInstancePartition.ts
- * @description Deterministically splits an existing VegetationScatter payload
- * (positions come from the chunk loaders — placement is NOT re-invented here)
- * into per-(species, variant) instance buckets for instanced tree rendering.
+ * ============================================================================
+ * TREE INSTANCE PARTITIONING
+ * ============================================================================
  *
- * TWO PARTITIONS LIVE HERE.
+ * WHAT THIS FILE DOES:
+ * This file sorts thousands of scattered trees into organized groups (buckets) based on
+ * what kind of tree they are and which visual variant they should use.
  *
- * `partitionTreeInstances` is the PRESET path. Species selection reads the
- * scatter's per-instance palette color, then a positional hash mixes ~1 in 5
- * the other way so forests are not monocultures.
+ * WHY IT EXISTS:
+ * When the world generates forests, terrain chunk loaders create lists of tree positions.
+ * To draw all these trees efficiently using 3D hardware instancing, all trees sharing
+ * the exact same 3D mesh must be grouped together into a single draw batch. This file
+ * performs that grouping deterministically so trees never pop or change appearance.
  *
- * `partitionGrownTreeInstances` is the GROWN path. It reads the per-instance
- * BIOME the loaders now carry, and never looks at a color.
+ * TWO PATHS LIVE HERE:
+ * 1. Preset Path (`partitionTreeInstances`):
+ *    The legacy approach that guessed a tree species from foliage colors and position hashes.
+ * 2. Grown Path (`partitionGrownTreeInstances`):
+ *    The modern environment-biased approach that reads the actual biome channel carried
+ *    by the chunk loader, assigning true climate-tailored tree variants with per-variant
+ *    height scaling.
  *
- * WHY THE PALETTE WAS USED, AND WHY IT IS WRONG
- *
- * When the preset path was written the scatter carried positions, scales,
- * rotations and colors — and nothing that said where the tree stood. The
- * palette was the only per-instance channel with any authored meaning, so it
- * was read as a biome proxy.
- *
- * It never was one. In ground mode — the mode the game runs in — the palette
- * comes from a THREE-ENTRY green table picked by a hash of the feature id
- * (`buildGroundVegetation`), identical in every biome on the map. Classifying
- * from it therefore returns a fixed 3-way hash split, not a biome: a taiga and
- * a rainforest draw from the same three colors, and the deep-saturated third
- * entry resolves into the rainforest band, so palms grow on tundra.
- *
- * The fix is not a better color rule. It is to carry the biome, which the
- * loaders knew all along and threw away.
- *
- * Both partitions are pure and deterministic from the scatter buffers alone.
+ * HOW IT CONNECTS:
+ * - Called by: treeBatching.ts and grownTreeWiring.ts during chunk vegetation preparation.
+ * - Calls into: grownTreeVariants.ts (for variant counts) and treeMeshGenerator.ts (for species).
+ * ============================================================================
  */
+
 import type { TreeSpecies } from './treeMeshGenerator';
 import { VARIANTS_PER_SPECIES, TREE_SPECIES } from './treeMeshGenerator';
 import { GROWN_VARIANTS_PER_BIOME } from './grownTreeVariants';
 
+// ============================================================================
+// TYPES & DATA STRUCTURES
+// ============================================================================
+
+/** One (species, variant) bucket of tree instance indices for preset rendering. */
 export interface TreeInstanceBucket {
+  /** The tree species category (e.g. broadleaf, conifer, scrub). */
   species: TreeSpecies;
+  /** The specific model variation number within this species. */
   variant: number;
-  /** Indices into the scatter arrays (instance i = positions[i*3..]). */
+  /** Indices into the original scatter arrays (instance i = positions[i*3..]). */
   instanceIndices: number[];
 }
 
+/** One (biome, variant) bucket of tree instance indices for grown-tree rendering. */
+export interface GrownTreeBucket {
+  /** A biome key matching treeEnvironment (e.g. 'Taiga', 'jungle'). */
+  biome: string;
+  /** The specific model variation number grown for this biome. */
+  variant: number;
+  /** Indices into the original scatter arrays (instance i = positions[i*3..]). */
+  instanceIndices: number[];
+}
+
+/**
+ * The per-instance biome channel that chunk loaders attach to vegetation scatter data.
+ * Uses compact numeric codes and a lookup table to minimize memory and worker transfer costs.
+ */
+export interface GrownScatterBiomes {
+  /** One numeric biome index per instance; this code indexes `biomeTable`. */
+  biomeCodes?: Uint8Array;
+  /** Distinct biome names referenced across this chunk's scatter data. */
+  biomeTable?: readonly string[];
+}
+
+// ============================================================================
+// DETERMINISTIC HASHING HELPERS
+// ============================================================================
+// Math utilities that turn world coordinates into stable random numbers so that
+// trees in the same location always pick the same species and variant.
+// ============================================================================
+
+/** 32-bit integer hash producing a normalized float between 0.0 and 1.0. */
 function hash01(a: number, b: number, c: number): number {
   let h = Math.imul(a + 374761393, 668265263) ^ Math.imul(b + 1442695041, 1597334677) ^ (c | 0);
   h = (h ^ (h >>> 13)) | 0;
@@ -67,73 +98,95 @@ function hash01(a: number, b: number, c: number): number {
   return h / 0xffffffff;
 }
 
-/** Quantized-position hash: stable per world tree, no float-noise sensitivity. */
+/** Quantized-position hash: stable per world tree, immune to floating-point noise. */
 function positionHash(x: number, z: number, salt: number): number {
+  // Quantize coordinates to 1/8th unit steps for stability across float boundaries
   return hash01(Math.round(x * 8), Math.round(z * 8), salt);
 }
 
+/**
+ * Computes the stable procedural variant index for a grown tree at the given world coordinates.
+ *
+ * @param x World X coordinate of the tree
+ * @param z World Z coordinate of the tree
+ * @returns An integer variant index from 0 to GROWN_VARIANTS_PER_BIOME - 1
+ */
+export function getGrownVariantIndex(x: number, z: number): number {
+  return Math.min(
+    GROWN_VARIANTS_PER_BIOME - 1,
+    Math.floor(positionHash(x, z, 211) * GROWN_VARIANTS_PER_BIOME),
+  );
+}
+
+// ============================================================================
+// LEGACY PRESET CLASSIFICATION & PARTITIONING
+// ============================================================================
+// Backward-compatible classification logic using vertex color heuristics.
+// ============================================================================
+
+/**
+ * Guesses a tree species from scatter vertex colors and a position hash.
+ *
+ * @param r Red color channel (0..1)
+ * @param g Green color channel (0..1)
+ * @param b Blue color channel (0..1)
+ * @param mix Random mix factor (0..1)
+ * @returns The assigned TreeSpecies
+ */
 export function classifySpecies(
   r: number | undefined,
   g: number | undefined,
   b: number | undefined,
   mix: number,
 ): TreeSpecies {
+  // If no palette is provided, fall back to a temperate mix based purely on position hash
   if (r === undefined || g === undefined || b === undefined) {
-    // No palette: hash-only spread across the temperate set.
     if (mix < 0.42) return 'broadleaf';
     if (mix < 0.68) return 'conifer';
     if (mix < 0.82) return 'ash';
     if (mix < 0.92) return 'aspen';
     return 'scrub';
   }
-  /* Six species, not three (2026-08-04).
-   *
-   * Three meant a taiga, a temperate wood and a rainforest all drew from the
-   * same silhouettes, so canopy tint was the only thing separating them and
-   * every forest in the world read as the same forest in a different color.
-   *
-   * Each band still keeps a MINORITY companion species rather than resolving
-   * to one: a pure stand is the monoculture read the position-hash mix exists
-   * to break, and real woods are mixed almost everywhere.
-   */
-  // Yellow-shifted (dry biome palette): scrub, with the odd hardy conifer.
-  if (r >= g * 0.85 && g >= b) return mix < 0.86 ? 'scrub' : 'conifer';
+
+  // Yellow-shifted palette (dry biome): scrub with occasional conifer
+  if (r >= g * 0.85 && g >= b) {
+    return mix < 0.86 ? 'scrub' : 'conifer';
+  }
 
   const luminance = 0.299 * r + 0.587 * g + 0.114 * b;
 
-  // Dark green (taiga/highland palette): conifer country, and the one place
-  // aspen belongs — it is the cold-country pioneer that fills burns and edges.
+  // Dark green palette (taiga/highland): conifer led with aspen pioneer
   if (luminance < 0.24) {
     if (mix < 0.68) return 'conifer';
     if (mix < 0.9) return 'aspen';
     return 'broadleaf';
   }
 
-  // Blue-shifted and bright (wet/lowland palette): ash is the streamside and
-  // wetland tree, so it leads where the ground reads damp.
+  // Blue-shifted and bright palette (wet/lowland): ash trees near streams
   if (b > r * 1.05) {
     if (mix < 0.55) return 'ash';
     if (mix < 0.85) return 'broadleaf';
     return 'aspen';
   }
 
-  // Deep saturated green (rainforest palette): the only band that grows palm.
+  // Deep saturated green (rainforest): broadleaf and palm
   if (g > 0.34 && g > r * 1.6) {
     if (mix < 0.5) return 'broadleaf';
     if (mix < 0.78) return 'palm';
     return 'ash';
   }
 
-  // Temperate: broadleaf-led, mixed with conifer and ash.
+  // Standard temperate baseline: broadleaf, conifer, and ash
   if (mix < 0.62) return 'broadleaf';
   if (mix < 0.84) return 'conifer';
   return 'ash';
 }
 
 /**
- * Partition scatter instances into per-(species, variant) buckets.
- * Bucket order is fixed: species in TREE_SPECIES order × variant ascending, so
- * the renderer's mesh list is stable across chunks. Empty buckets included.
+ * Partitions legacy preset scatter instances into per-(species, variant) buckets.
+ *
+ * @param scatter Chunk scatter object containing positions and optional colors
+ * @returns Array of buckets ready for preset batching
  */
 export function partitionTreeInstances(scatter: {
   positions: Float32Array;
@@ -141,6 +194,8 @@ export function partitionTreeInstances(scatter: {
 }): TreeInstanceBucket[] {
   const buckets: TreeInstanceBucket[] = [];
   const bucketIndex = new Map<string, TreeInstanceBucket>();
+
+  // Pre-seed all possible species and variant combinations
   for (const species of TREE_SPECIES) {
     for (let v = 0; v < VARIANTS_PER_SPECIES; v++) {
       const bucket: TreeInstanceBucket = { species, variant: v, instanceIndices: [] };
@@ -148,6 +203,7 @@ export function partitionTreeInstances(scatter: {
       bucketIndex.set(`${species}|${v}`, bucket);
     }
   }
+
   const count = scatter.positions.length / 3;
   for (let i = 0; i < count; i++) {
     const x = scatter.positions[i * 3];
@@ -165,50 +221,36 @@ export function partitionTreeInstances(scatter: {
     );
     bucketIndex.get(`${species}|${variant}`)!.instanceIndices.push(i);
   }
+
   return buckets;
 }
 
-// ── The grown path ──────────────────────────────────────────────────────────
-
-/** One (biome, variant) bucket of instances for the grown-tree renderer. */
-export interface GrownTreeBucket {
-  /** A `treeEnvironment` biome key — an FMG name or a ground biome id. */
-  biome: string;
-  variant: number;
-  /** Indices into the scatter arrays (instance i = positions[i*3..]). */
-  instanceIndices: number[];
-}
+// ============================================================================
+// ENVIRONMENT-BIASED GROWN TREE PARTITIONING
+// ============================================================================
+// Groups instances by the true biome channel carried from world terrain data.
+// ============================================================================
 
 /**
- * The per-instance biome channel a grown-tree scatter must carry.
+ * Partition scatter instances into per-(biome, variant) buckets using true biome channels.
  *
- * Codes rather than strings so the array survives a worker `postMessage` as a
- * typed array instead of one cloned string per tree.
- */
-export interface GrownScatterBiomes {
-  /** One code per instance; the code indexes `biomeTable`. */
-  biomeCodes?: Uint8Array;
-  /** Distinct biome keys this scatter references. */
-  biomeTable?: readonly string[];
-}
-
-/**
- * Partition scatter instances into per-(biome, variant) buckets.
+ * Bucket order is stable: `biomeTable` order × variant ascending. Empty buckets are omitted
+ * to avoid unnecessary render calls for absent biomes.
  *
- * Bucket order is fixed: `biomeTable` order x variant ascending, so the
- * renderer's mesh list is stable across rebuilds. Empty buckets are dropped —
- * unlike the preset path there is no fixed global biome list to enumerate, and
- * a chunk normally touches one or two biomes out of eleven.
+ * Throws an error if the scatter is missing its biome data channel (no silent fallback).
  *
- * THROWS when the biome channel is missing. NO FALLBACK: a scatter with no
- * biome cannot grow a tree, and guessing one is the fault this path removes.
+ * @param scatter Chunk scatter containing positions, biomeCodes, and biomeTable
+ * @returns Array of populated GrownTreeBucket objects
  */
 export function partitionGrownTreeInstances(scatter: {
   positions: Float32Array;
 } & GrownScatterBiomes): GrownTreeBucket[] {
   const count = scatter.positions.length / 3;
   if (count === 0) return [];
+
   const { biomeCodes, biomeTable } = scatter;
+
+  // Enforce strict safety invariant: grown trees require real biome data
   if (!biomeCodes || !biomeTable) {
     throw new Error(
       'partitionGrownTreeInstances: scatter carries no biome channel. '
@@ -217,6 +259,7 @@ export function partitionGrownTreeInstances(scatter: {
       + 'not guessed at.',
     );
   }
+
   if (biomeCodes.length !== count) {
     throw new Error(
       `partitionGrownTreeInstances: ${biomeCodes.length} biome codes for `
@@ -226,6 +269,8 @@ export function partitionGrownTreeInstances(scatter: {
 
   const buckets: GrownTreeBucket[] = [];
   const bucketIndex = new Map<string, GrownTreeBucket>();
+
+  // Initialize bucket slots for every biome present in this chunk's table
   for (const biome of biomeTable) {
     for (let v = 0; v < GROWN_VARIANTS_PER_BIOME; v++) {
       const bucket: GrownTreeBucket = { biome, variant: v, instanceIndices: [] };
@@ -234,6 +279,7 @@ export function partitionGrownTreeInstances(scatter: {
     }
   }
 
+  // Assign each scattered tree instance to its corresponding (biome, variant) bucket
   for (let i = 0; i < count; i++) {
     const biome = biomeTable[biomeCodes[i]];
     if (biome === undefined) {
@@ -242,15 +288,16 @@ export function partitionGrownTreeInstances(scatter: {
         + `${biomeCodes[i]}, outside a table of ${biomeTable.length}.`,
       );
     }
+
     const x = scatter.positions[i * 3];
     const z = scatter.positions[i * 3 + 2];
-    // Same salt and the same variant count as the preset path, so which
-    // variant lands where is decided the same way in both.
-    const variant = Math.min(
-      GROWN_VARIANTS_PER_BIOME - 1,
-      Math.floor(positionHash(x, z, 211) * GROWN_VARIANTS_PER_BIOME),
-    );
+
+    // Compute the deterministic variant index for this location
+    const variant = getGrownVariantIndex(x, z);
+
     bucketIndex.get(`${biome}|${variant}`)!.instanceIndices.push(i);
   }
+
+  // Filter out unused buckets so the renderer only receives active meshes
   return buckets.filter((b) => b.instanceIndices.length > 0);
 }

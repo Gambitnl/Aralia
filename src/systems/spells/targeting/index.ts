@@ -31,7 +31,8 @@ export type { SelectedSpellTargetBuildInput } from './selectedSpellTargets'
 
 // For testing/advanced use
 export { getCone } from './gridAlgorithms/cone'
-export { getCube } from './gridAlgorithms/cube'
+// getCube (centered cube) was DELETED 2026-09-23 per ruling Q4 (face anchor, GG-202).
+// The one cube is getCubeAoE in src/utils/combat/aoeCalculations.ts; AoECalculator.getCube wraps it.
 export { getSphere } from './gridAlgorithms/sphere'
 export { getLine } from './gridAlgorithms/line'
 export { getCylinder } from './gridAlgorithms/cylinder'

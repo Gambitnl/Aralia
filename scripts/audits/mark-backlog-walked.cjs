@@ -236,7 +236,6 @@ const ignoredRepoPrefixes = [
   // proof. They are not Aralia-facing backlog queues for the default retirement
   // scan, so keeping them out makes "what remains?" answerable instead of noisy.
   '.agent/',
-  'conductor/',
   'deprecated/uplink/',
   '.agent/scratch/',
   '.agent/roadmap-local/tooling_state',

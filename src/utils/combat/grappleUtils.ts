@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 16/08/2026, 12:07:30
+ * Last Sync: 26/08/2026, 03:19:16
  * Dependents: commands/factory/AbilityCommandFactory.ts, components/BattleMap/CombatCharacterInspector.tsx, components/DesignPreview/steps/PreviewCombatScenarios.tsx, components/DesignPreview/steps/scenarioControls/grappleEscapeScenarioControls.ts, hooks/combat/useTurnManager.ts, utils/combat/index.ts
  * Imports: 7 files
  *
@@ -239,7 +239,7 @@ export function hasGrappledAttackDisadvantage(
   );
 
   return (
-    attacker.statusEffects.some(attacksSomeoneOtherThanGrappler)
+    (attacker.statusEffects ?? []).some(attacksSomeoneOtherThanGrappler)
     || (attacker.conditions ?? []).some(attacksSomeoneOtherThanGrappler)
   );
 }

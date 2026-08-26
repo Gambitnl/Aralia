@@ -12,13 +12,13 @@ There is a single root cause. **A region window is smaller than one FMG cell.**
 | | |
 |---|---|
 | region window | 25,000 ft (2.5 FMG pixels) |
-| one FMG cell (Epicea) | 78,741 × 88,584 ft (~8 × 9 px) |
+| one FMG cell (Epicea) | 78,741 x 88,584 ft (~8 x 9 px) |
 
 A region window covers roughly one ninth of the area of a single cell. Every region field except the heightfield is *extracted* from atlas data, and atlas data has no structure below cell resolution. So there is nothing to extract: rivers clip to two points, markers almost never land inside, and `biomeSites` returns exactly 1 because only the anchor cell's center is in the window.
 
 The region tier cannot inherit its detail. It has to generate it. That is why the drilldown looks blank, and it is what "more dynamic proceduralism" has to mean here.
 
-That blankness is also why the town and the world disagree about rivers. The region tier hands the town nothing usable, so the town invents its own water from the burg's cell shape — at 1/30 of true scale.
+That blankness is also why the town and the world disagree about rivers. The region tier hands the town nothing usable, so the town invents its own water from the burg's cell shape - at 1/30 of true scale.
 
 ## What the Epicea investigation actually found
 
@@ -38,13 +38,13 @@ The town water bakes, carves, meshes and renders. The zero comes from the window
 
 | measure | value |
 |---|---|
-| burg cell bounding box | 78,741 × 88,584 ft |
+| burg cell bounding box | 78,741 x 88,584 ft |
 | town span | 2,936 ft |
-| shrink factor | ~30× |
+| shrink factor | ~30x |
 | real river distance from burg | 4,045 ft |
 | distance the town draws it at | 135 ft from town center |
 
-`canonAffine` normalizes the cell bounding box to `CANON_TOWN_SPAN`, and placement rescales that to the town's span. Inherited water rides the same transform, so every inherited feature lands at 1/30 of its true offset. Epicea's river genuinely runs 4,045 ft away — well outside a 2,936 ft town — and gets dragged through the town center. Its four bridges exist only because of the shrink.
+`canonAffine` normalizes the cell bounding box to `CANON_TOWN_SPAN`, and placement rescales that to the town's span. Inherited water rides the same transform, so every inherited feature lands at 1/30 of its true offset. Epicea's river genuinely runs 4,045 ft away - well outside a 2,936 ft town - and gets dragged through the town center. Its four bridges exist only because of the shrink.
 
 ## Region tier measurements
 
@@ -52,14 +52,14 @@ Six burg-centered windows in world 903674813. Window is 25,000 ft across in ever
 
 | burg | heightfield | rivers | roads | crossings | markers | zones | biomeSites |
 |---|---|---|---|---|---|---|---|
-| Epicea (river+port) | 250×250 @ 100 ft | 1 (2 pts / 25,537 ft) | 0 | 0 | 0 | 0 | absent |
-| Jarimibu (capital+river) | 250×250 @ 100 ft | 0 | 1 (6 pts / 27,635 ft) | 0 | 0 | 0 | absent |
-| Reararesto (inland+river) | 250×250 @ 100 ft | 1 (3 pts / 6,643 ft) | 1 (6 pts / 25,080 ft) | 0 | 0 | 0 | 1 |
-| Canta (port+river) | 250×250 @ 100 ft | 1 (2 pts / 16,123 ft) | 0 | 0 | 0 | 0 | absent |
-| Tsabralamur (inland) | 250×250 @ 100 ft | 0 | 1 (7 pts / 26,364 ft) | 0 | 0 | 0 | 1 |
-| Cythyra (port) | 250×250 @ 100 ft | 0 | 0 | 0 | 0 | 1 | 1 |
+| Epicea (river+port) | 250x250 @ 100 ft | 1 (2 pts / 25,537 ft) | 0 | 0 | 0 | 0 | absent |
+| Jarimibu (capital+river) | 250x250 @ 100 ft | 0 | 1 (6 pts / 27,635 ft) | 0 | 0 | 0 | absent |
+| Reararesto (inland+river) | 250x250 @ 100 ft | 1 (3 pts / 6,643 ft) | 1 (6 pts / 25,080 ft) | 0 | 0 | 0 | 1 |
+| Canta (port+river) | 250x250 @ 100 ft | 1 (2 pts / 16,123 ft) | 0 | 0 | 0 | 0 | absent |
+| Tsabralamur (inland) | 250x250 @ 100 ft | 0 | 1 (7 pts / 26,364 ft) | 0 | 0 | 0 | 1 |
+| Cythyra (port) | 250x250 @ 100 ft | 0 | 0 | 0 | 0 | 1 | 1 |
 
-Read that against the heightfield: terrain gets a sample every 100 ft, while a river gets a vertex every 3,300–25,500 ft and a road every 4,400–5,500 ft.
+Read that against the heightfield: terrain gets a sample every 100 ft, while a river gets a vertex every 3,300-25,500 ft and a road every 4,400-5,500 ft.
 
 ## Findings
 
@@ -70,29 +70,29 @@ A region river is the FMG cell-center sequence clipped to the window. At canonic
 `generateRiverBanks` stores the **raw** clipped centerline in the artifact (`generateRegion.ts:860`) but carves the heightfield along a **Chaikin-smoothed** line (`generateRegion.ts:872`). The channel in the terrain and the ribbon the renderer draws do not follow the same path.
 
 ### 3. Crossings never generate
-Zero crossings in all six windows, including Reararesto, which has both a river and a road in-window. `deriveRegionCrossings` exists and is called. Every region bridge and ford is therefore missing. Needs its own investigation — the two polylines may simply never intersect at this coarseness, which would make this a symptom of findings 1 and 4 rather than a separate bug.
+Zero crossings in all six windows, including Reararesto, which has both a river and a road in-window. `deriveRegionCrossings` exists and is called. Every region bridge and ford is therefore missing. Needs its own investigation - the two polylines may simply never intersect at this coarseness, which would make this a symptom of findings 1 and 4 rather than a separate bug.
 
 ### 4. Roads are as coarse as rivers
-6–7 points across a 25,000 ft window. A road crosses the whole drilldown as three or four straight runs.
+6-7 points across a 25,000 ft window. A road crosses the whole drilldown as three or four straight runs.
 
 ### 5. Markers never appear
-Zero in all six windows. This is not a plumbing gap: the bridge does pass `world: atlas` (`legacySubmapBridge.ts:345`) and `extractWorldOverlays` reads `pack.markers` correctly. It is the window-size root cause. A 2.5 px window on a 960 × 540 px map will essentially never contain a marker. Markers cannot be inherited at this zoom; sub-cell points of interest have to be generated.
+Zero in all six windows. This is not a plumbing gap: the bridge does pass `world: atlas` (`legacySubmapBridge.ts:345`) and `extractWorldOverlays` reads `pack.markers` correctly. It is the window-size root cause. A 2.5 px window on a 960 x 540 px map will essentially never contain a marker. Markers cannot be inherited at this zoom; sub-cell points of interest have to be generated.
 
 ### 6. Biome blending has nothing to blend
-`biomeSites` is absent or exactly 1, which is exactly what a sub-cell window predicts — only the anchor cell's center falls inside. The renderer IDW-blends these so land near a biome border shades toward its neighbor. With one site there is no gradient, so the whole window wears the anchor biome's color — the exact problem the field was added to fix.
+`biomeSites` is absent or exactly 1, which is exactly what a sub-cell window predicts - only the anchor cell's center falls inside. The renderer IDW-blends these so land near a biome border shades toward its neighbor. With one site there is no gradient, so the whole window wears the anchor biome's color - the exact problem the field was added to fix.
 
 ### 7. Zones are effectively absent
 One zone across six windows, for the same reason.
 
 ## What works
 
-- The heightfield: 250×250 at 100 ft resolution, with river channels carved into it.
+- The heightfield: 250x250 at 100 ft resolution, with river channels carved into it.
 - `townSites`: correct in all six windows.
 - The town water pipeline itself, once a town is in the window.
 
 ## The shape of the fix
 
-Every finding above is the same shape: the region tier tries to copy atlas features into a window too small to contain them. The fix is the same shape too. For each field, keep the atlas as the authority on *what* exists and *roughly where*, then procedurally generate the sub-cell detail the window actually needs — seeded so it is stable and so neighboring windows agree.
+Every finding above is the same shape: the region tier tries to copy atlas features into a window too small to contain them. The fix is the same shape too. For each field, keep the atlas as the authority on *what* exists and *roughly where*, then procedurally generate the sub-cell detail the window actually needs - seeded so it is stable and so neighboring windows agree.
 
 That gives a rule the whole tier can follow:
 

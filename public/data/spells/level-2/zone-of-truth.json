@@ -242,7 +242,7 @@
                       "prompt":  "Ask the caster to place the 15-foot-radius sphere; prompt Charisma saves for creatures entering for the first time on a turn or starting there, record success/failure for the caster, and prevent deliberate lies on failed saves.",
                       "playerInputRequired":  true
                   },
-    "description":  "You create a magical zone that guards against deception in a 15-foot-radius Sphere centered on a point within range. Until the spell ends, a creature that enters the spell\u0027s area for the first time on a turn or starts its turn there makes a Charisma saving throw. On a failed save, a creature can\u0027t speak a deliberate lie while in the radius. You know whether a creature succeeds or fails on this save. An affected creature is aware of the spell and can avoid answering questions to which it would normally respond with a lie. Such a creature can be evasive yet must be truthful.",
+    "description":  "You create a magical zone that guards against deception in a 15-foot-radius Sphere centered on a point within range. Until the spell ends, a creature that enters the spell's area for the first time on a turn or starts its turn there makes a Charisma saving throw. On a failed save, a creature can't speak a deliberate lie while in the radius. You know whether a creature succeeds or fails on this save. An affected creature is aware of the spell and can avoid answering questions to which it would normally respond with a lie. Such a creature can be evasive yet must be truthful.",
     "higherLevels":  "",
     "tags":  [
                  "enchantment",

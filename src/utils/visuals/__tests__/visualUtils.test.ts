@@ -1,5 +1,6 @@
 
 import { describe, it, expect } from 'vitest';
+import { ItemType } from '../../../types';
 import { resolveNPCVisual, resolveItemAssetSrc, resolveItemVisual } from '../visualUtils';
 import { NPC, Item } from '../../../types';
 import { NPCVisualSpec } from '../../../types/visuals';
@@ -119,7 +120,7 @@ describe('resolveItemVisual legacy weapon ids', () => {
         id: weaponId,
         name: weaponId,
         description: 'Older saved weapon record',
-        type: 'weapon',
+        type: ItemType.Weapon,
         icon: 'legacy-emoji',
       });
 
@@ -134,7 +135,7 @@ describe('resolveItemVisual', () => {
     id: 'test-item',
     name: 'Test Item',
     description: 'A test item',
-    type: 'weapon', // Using string literal as enum might not be available in test context easily without import
+    type: ItemType.Weapon, // Using string literal as enum might not be available in test context easily without import
   };
 
   it('resolves explicit visual spec path', () => {
@@ -170,7 +171,7 @@ describe('resolveItemVisual', () => {
       ...mockItemBase,
       id: 'potion_of_healing',
       name: 'Potion of Healing',
-      type: 'consumable',
+      type: ItemType.Consumable,
       icon: '/assets/icons/items/potion_of_healing.svg',
     };
 

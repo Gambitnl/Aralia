@@ -668,9 +668,8 @@ export const useCompanionBanter = (
     // G5: day-part word from the character's local in-world clock (the HUD
     // clock, UTC-rendered) — never host-machine getHours().
     const timeOfDay = getDayPartLabel(new Date(state.gameTime));
-    // DEBT: Cast status to any to bridge case sensitivity mismatch between legacy and modern quest schemas.
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const activeQuest = state.questLog.find(q => q.status === 'Active' || (q.status as any) === 'active');
+    // Case-insensitive status check bridges legacy ('active') and modern ('Active') quest log schemas safely.
+    const activeQuest = state.questLog.find(q => q.status === 'Active' || (typeof q.status === 'string' && q.status.toLowerCase() === 'active'));
     const playerName = state.party[0]?.name || 'the player';
 
     // For PLAYER_DIRECTED, attach NPC personality traits + real player gear to the context.

@@ -17,7 +17,7 @@
 import React, { useState } from 'react';
 import { PlayerCharacter, AbilityScoreName } from '../../../types';
 import Tooltip from '../../ui/Tooltip';
-import { getAbilityModifierValue, getAbilityModifierString, getCharacterRaceDisplayString, buildHitPointDicePools, deriveAlternateMovementSpeeds } from '../../../utils/character';
+import { getAbilityModifierValue, getAbilityModifierString, getCharacterRaceDisplayString, buildHitPointDicePools, getRacialMovementSpeedsForLevel } from '../../../utils/character';
 import { calculatePassiveScore } from '../../../utils/character';
 import { AbilityScoreIcon } from '../../../utils/abilityIcons';
 import { FEATS_DATA } from '../../../data/feats/featsData';
@@ -211,9 +211,10 @@ const CharacterOverview: React.FC<CharacterOverviewProps> = ({ character }) => {
     );
 
     // Alternate movement speeds (swim/climb/fly/burrow) granted by the race
-    // (GG-7). Only always-present race modes are surfaced; conditional or
-    // level-gated abilities are intentionally left out of this overview.
-    const movementSpeeds = deriveAlternateMovementSpeeds(character);
+    // (GG-7). Read at the character level (GG-259): a later-level racial mode
+    // such as Dragonborn Draconic Flight stays off the sheet until its own
+    // level is reached, instead of being handed to a level-1 character.
+    const movementSpeeds = getRacialMovementSpeedsForLevel(character);
 
     // Passive scores
     const wisdomMod = getAbilityModifierValue(character.finalAbilityScores.Wisdom);

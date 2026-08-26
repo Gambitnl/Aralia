@@ -175,7 +175,7 @@
                                         "bonusPerLevel":  "",
                                         "customFormula":  ""
                                     },
-                        "description":  "One visible creature within 60 feet makes a Constitution save, taking 7d8 + 30 Necrotic damage on a failure or half as much on a success; if this damage kills a Humanoid, it rises at the start of the caster\u0027s next turn as a Zombie that follows the caster\u0027s verbal orders.",
+                        "description":  "One visible creature within 60 feet makes a Constitution save, taking 7d8 + 30 Necrotic damage on a failure or half as much on a success; if this damage kills a Humanoid, it rises at the start of the caster's next turn as a Zombie that follows the caster's verbal orders.",
                         "conditionalEndings":  [
 
                                                ],
@@ -267,12 +267,12 @@
                                        "commandCost":  "free",
                                        "commandsPerTurn":  1,
                                        "initiative":  "immediate",
-                                       "objectDescription":  "Permanent Zombie created from a Humanoid killed by the spell; it follows the caster\u0027s verbal orders.",
+                                       "objectDescription":  "Permanent Zombie created from a Humanoid killed by the spell; it follows the caster's verbal orders.",
                                        "specialActions":  [
 
                                                           ]
                                    },
-                        "description":  "A Humanoid killed by this spell rises at the start of the caster\u0027s next turn as a Zombie that follows the caster\u0027s verbal orders.",
+                        "description":  "A Humanoid killed by this spell rises at the start of the caster's next turn as a Zombie that follows the caster's verbal orders.",
                         "conditionalEndings":  [
 
                                                ],
@@ -358,7 +358,7 @@
                                                                    ]
                                       },
                         "utilityType":  "control",
-                        "description":  "A Humanoid killed by the spell rises at the start of the caster\u0027s next turn as a Zombie that follows the caster\u0027s verbal orders.",
+                        "description":  "A Humanoid killed by the spell rises at the start of the caster's next turn as a Zombie that follows the caster's verbal orders.",
                         "scaling":  {
                                         "type":  "slot_level",
                                         "bonusPerLevel":  "",

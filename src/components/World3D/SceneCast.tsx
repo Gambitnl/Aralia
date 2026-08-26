@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 12/07/2026, 00:33:34
+ * Last Sync: 30/08/2026, 21:43:14
  * Dependents: components/World3D/World3DDemo.tsx, components/World3D/World3DScene.tsx, components/World3D/World3DWrapper.tsx
- * Imports: 4 files
+ * Imports: 6 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -25,7 +25,8 @@
  * renders their actual race + class + equipped gear, rich NPCs render their
  * class and worn gear. A member without a recipe renders as an unarmed human
  * commoner — the same default the NPC generator itself uses for unspecified
- * folk (castMemberRecipe below is the one place that decides this).
+ * folk. The UI-neutral contract and fallback now live in systems/entities3d,
+ * keeping the entity engine independent from this renderer.
  *
  * Positions are scene-local: the streamed scene origin is centered on the spawn
  * `start`, so scene-space (0, surfaceY, 0) is the ground at the player's feet.
@@ -37,22 +38,20 @@ import type { ThreeEvent } from '@react-three/fiber';
 import { registerAllParts } from '@/systems/entities3d/parts';
 import { generateEntityBlueprint } from '@/systems/entities3d/generateEntityBlueprint';
 import { heightM } from '@/systems/entities3d/types';
-import type { EntityRecipe } from '@/systems/entities3d/types';
 import { Entity3D } from '@/systems/entities3d/three/Entity3D';
 import { gameBodyOptions } from '@/systems/entities3d/three/assembleEntity';
+import {
+  figureIsInteractive,
+  castMemberRecipe,
+  layoutCast,
+  type SceneCastMember,
+} from '@/systems/entities3d/sceneCastUtils';
 
 registerAllParts();
 
-export interface SceneCastMember {
-  id: string;
-  name: string;
-  /** The player's own figure (stands at the near edge). */
-  isPlayer?: boolean;
-  /** The stranger who speaks first — label carries the highlight. */
-  isSpeaker?: boolean;
-  /** Real identity when known (player sheet / rich NPC). */
-  recipe?: EntityRecipe;
-}
+// Preserve SceneCast's public type export for existing UI callers while the
+// source of truth lives in the engine-owned contract above.
+export type { SceneCastMember } from '@/systems/entities3d/sceneCastUtils';
 
 interface SceneCastProps {
   cast: SceneCastMember[];
@@ -65,8 +64,6 @@ interface SceneCastProps {
    */
   onSelectNpc?: (npcId: string) => void;
 }
-
-import { figureIsInteractive, castMemberRecipe, layoutCast } from './sceneCastUtils';
 
 const Figure: React.FC<{
   member: SceneCastMember & { pos: [number, number, number] };

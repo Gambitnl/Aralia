@@ -38,7 +38,7 @@ import { EffectComposer, Bloom, Vignette, N8AO, ToneMapping } from '@react-three
 import { BlendFunction, ToneMappingMode } from 'postprocessing';
 import * as THREE from 'three';
 import { Button } from '../../ui/Button';
-import type { Cell, DungeonPlan } from '../../../systems/worldforge/dungeon/types';
+import type { Cell, DungeonPlan, DungeonTheme } from '../../../systems/worldforge/dungeon/types';
 import type { DungeonIdentity } from '../../../systems/worldforge/dungeon/world/dungeonIdentity';
 import {
   canClaimDungeonTreasure,
@@ -56,6 +56,7 @@ import { revealedDungeonCellKeys } from '../../../systems/worldforge/dungeon/wor
 import { PerfProbe } from '../../../devtools/perf';
 import {
   buildDungeonSceneModel,
+  dungeonThemeLighting,
   type DungeonSceneInstance,
   type DungeonSceneLine,
   type DungeonSceneMarker,
@@ -567,6 +568,8 @@ const AtmosphericGround: React.FC<{ model: DungeonSceneModel }> = ({ model }) =>
 
 const DungeonScene: React.FC<{
   model: DungeonSceneModel;
+  /** The plan's theme, used only to select this scene's lighting recipe. */
+  theme: DungeonTheme;
   overlays: Dungeon3DOverlays;
   preset: DungeonCameraPreset;
   autoRotate: boolean;
@@ -576,6 +579,7 @@ const DungeonScene: React.FC<{
   treasurePosition?: { x: number; z: number };
 }> = ({
   model,
+  theme,
   overlays,
   preset,
   autoRotate,
@@ -585,6 +589,9 @@ const DungeonScene: React.FC<{
   treasurePosition,
 }) => {
   const readyFrames = useRef(0);
+  // Per-theme lighting recipe. Before this lookup all five themes shared one hardcoded
+  // ambient/hemisphere/sun/torch budget, so crypt, cavern, and frost differed only in hue.
+  const lighting = dungeonThemeLighting(theme);
   const fogDensity = 0.46 / Math.max(model.bounds.width, model.bounds.depth);
 
   // A seed, theme, or overlay rebuild invalidates the previous canvas proof. Reset both the
@@ -612,27 +619,42 @@ const DungeonScene: React.FC<{
       {/* Scale fog to the generated footprint. A fixed cave-like density hid an entire
           large dungeon from the tactical camera even though close rooms looked correct. A modest
           multiplier deepens the crypt gloom and swallows the atmospheric ground's outer rim. */}
-      <fogExp2 attach="fog" args={[model.palette.fog, fogDensity * 1.18]} />
+      <fogExp2 attach="fog" args={[model.palette.fog, fogDensity * lighting.fogMultiplier]} />
       {/* Moody-but-readable budget: a low cold ambient plus a soft cool hemisphere establish a
           legible base for the whole plan, a gentle warm key gives walls and props form, and the
           torch point lights are boosted so they pool warm light across the now-lit floor. The old
           values flattened everything to bright uniform tan and let the accent torches vanish. */}
-      <ambientLight color={model.palette.ambient} intensity={1.0} />
-      <hemisphereLight args={[model.palette.ambient, model.palette.background, 1.25]} />
-      <directionalLight color={model.palette.sun} intensity={1.2} position={[24, 38, 16]} />
+      <ambientLight color={model.palette.ambient} intensity={lighting.ambientIntensity} />
+      <hemisphereLight args={[model.palette.ambient, model.palette.background, lighting.hemisphereIntensity]} />
+      <directionalLight color={model.palette.sun} intensity={lighting.sunIntensity} position={[24, 38, 16]} />
+      {/* Every shadow-casting point light costs six extra full scene passes. All ten torches
+          casting put a 28-room crypt at 5,267 draw calls and 13.6M triangles per frame; only the
+          leading few torches contribute perceptible contact shadowing, so the shadow pass is now
+          budgeted per theme while the light count, positions, and colours are unchanged. */}
       {model.lights.map((light, index) => (
         <pointLight
           key={`${light.x}:${light.z}:${index}`}
           position={[light.x, light.y, light.z]}
           color={light.color}
-          intensity={26}
-          distance={12}
+          intensity={lighting.torchIntensity}
+          distance={lighting.torchDistance}
           decay={2}
-          castShadow
+          castShadow={index < lighting.shadowCasters}
           shadow-mapSize={[512, 512]}
           shadow-bias={-0.0006}
+          // normalBias offsets the shadow lookup along the surface normal, the
+          // term that scales with the grazing angle a torch makes against a wall
+          // a foot away. Constant bias alone cannot cover both that and a contact
+          // shadow without detaching one of them; it is kept for the flat cases.
+          // Added with wall casting above — before it, nothing large and
+          // near-tangent was in the shadow pass at all.
+          shadow-normalBias={0.035}
           shadow-near={0.1}
-          shadow-far={20}
+          // Was a flat 20 while the light itself dies at `distance` (9-12 by
+          // theme). The extra range spent 512-px cube-map depth precision on
+          // space no torch reaches; tracking the light keeps precision where the
+          // shadow actually is.
+          shadow-far={lighting.torchDistance + 1}
         />
       ))}
 
@@ -648,17 +670,42 @@ const DungeonScene: React.FC<{
       ) : (
         <InstancedPieces instances={model.floors} useInstanceColors />
       )}
-      <InstancedPieces instances={model.walls} useInstanceColors />
+      {/* Walls cast (2026-09-09, agora-75ed.1). Every torch is a bounded shadow-
+          casting point light, but the walls — the only real occluders a dungeon
+          has — were absent from the shadow pass, so torchlight crossed five feet
+          of solid stone and lit the floor of the next room. Props, architecture
+          and doors already cast; walls are ONE instanced mesh, so this adds one
+          draw per cube face per casting torch, not one per wall.
+          Wall CAPS deliberately still do not cast: they are 0.07-unit lids
+          sitting on top of walls that already block, so they doubled the added
+          triangle cost (crypt tactical +0.97M -> +0.48M) for no occlusion a
+          floor-level torch can see. */}
+      <InstancedPieces instances={model.walls} useInstanceColors castShadow />
       <InstancedPieces instances={model.wallCaps} useInstanceColors />
       {/* Architecture remains visible when the optional prop overlay is hidden. These bounded
           batches are raised from real wall/door cells: rotated supports for crypts, curved rock
           masses for caverns, ice spires for frost, and one true half-ring per authored doorway. */}
-      <ColorBatchedPieces instances={model.architectureBoxes} shape="box" castShadow />
-      <ColorBatchedPieces instances={model.architectureCylinders} shape="cylinder" castShadow />
-      <ColorBatchedPieces instances={model.architectureCones} shape="cone" castShadow />
-      <ColorBatchedPieces instances={model.architectureSpheres} shape="sphere" castShadow />
-      <ColorBatchedPieces instances={model.architectureOctahedrons} shape="octahedron" castShadow />
-      <ColorBatchedPieces instances={model.arches} shape="arch" castShadow />
+      {/* These six batches use the per-instance color buffer rather than ColorBatchedPieces.
+          WHY: architecture colours are mixed with continuous coordinate noise, so grouping by
+          exact hex produced one single-instance draw per piece — a frost plan reached 110
+          instanced meshes and thousands of calls per frame. The declarative instanceColor path
+          (the same one floors and walls already use) keeps identical shading at one draw per
+          shape. Debug overlays keep ColorBatchedPieces, where the colours really are banded. */}
+      <InstancedPieces instances={model.architectureBoxes} shape="box" castShadow useInstanceColors />
+      <InstancedPieces instances={model.architectureCylinders} shape="cylinder" castShadow useInstanceColors />
+      <InstancedPieces instances={model.architectureCones} shape="cone" castShadow useInstanceColors />
+      <InstancedPieces instances={model.architectureSpheres} shape="sphere" castShadow useInstanceColors />
+      <InstancedPieces instances={model.architectureOctahedrons} shape="octahedron" castShadow useInstanceColors />
+      <InstancedPieces instances={model.arches} shape="arch" castShadow useInstanceColors />
+      {/* Suspended theme atmosphere: cavern spores, frost snow, crypt dust. One unlit instanced
+          batch; the motes carry their own theme colour so no per-theme branch lives here. */}
+      <InstancedPieces
+        instances={model.themeMotes}
+        shape="sphere"
+        emissive
+        opacity={0.62}
+        useInstanceColors
+      />
       <ColorBatchedPieces instances={model.liquids} baked opacity={0.72} />
       <InstancedPieces
         instances={model.doors.filter((door) => door.state === 'door')}
@@ -723,19 +770,33 @@ const DungeonScene: React.FC<{
 // stack: while an EffectComposer is mounted it sets gl.toneMapping =
 // NoToneMapping, which would otherwise silently drop ACES and read as "raw
 // 3D". Every dungeon is underground, so this uses the dark-biome profile.
-// NOTE (2026-08-03): aoRadius copied from the close combat camera (1.8) as the
-// wiring default; it is a world-unit value and must be re-measured for the
-// dungeon entrance/objective cameras by a vision-capable critic (do NOT assume
-// the battle-map value transfers).
+// SETTLED 2026-09-09 (agora-75ed.1), replacing the 2026-08-03 NOTE that asked a
+// vision-capable critic to re-measure the inherited battle-map aoRadius of 1.8.
+// MEASURED: on the crypt entrance preset (seed 20260730) the old settings moved
+// 1.3% of the frame; the AO was doing almost nothing at either dungeon camera.
+// WHY it could not work: aoRadius is a WORLD-unit radius, but this preview has
+// two fixed presets at very different ranges — entrance sits ~9-18 units out,
+// tactical ~0.57 x the footprint diagonal (55+ units on a 28-room crypt). One
+// world radius cannot serve both: tuned for the entrance it vanishes at
+// tactical, tuned for tactical it smears at the entrance. The fix is therefore
+// NOT a better number but a different unit — screenSpaceRadius reinterprets
+// aoRadius as PIXELS, which is scale-free across both presets. 48 px spans a
+// wall/floor junction on this canvas at either range.
+// depthAwareUpsampling keeps halfRes (and its cost) while stopping the half-res
+// AO from bleeding across wall silhouettes. quality "medium" raises the sample
+// count from the "performance" preset, which was visibly under-sampled once the
+// radius actually covered geometry.
 // ============================================================================
 const PostProcessingStack: React.FC = () => (
   <EffectComposer>
     <N8AO
       halfRes
-      quality="performance"
-      aoRadius={1.8}
-      distanceFalloff={3.5}
-      intensity={2.2}
+      depthAwareUpsampling
+      screenSpaceRadius
+      quality="medium"
+      aoRadius={48}
+      distanceFalloff={1}
+      intensity={3}
     />
     <Bloom
       mipmapBlur
@@ -1110,12 +1171,23 @@ export const Dungeon3DPreview: React.FC<Dungeon3DPreviewProps> = ({ plan, overla
         className="h-full w-full"
         dpr={[1, 2]}
         shadows
-        camera={{ fov: 46, near: 0.1, far: 600, position: [30, 34, 30] }}
+        // near/far were 0.1/600 — a 6000:1 ratio that spends most of a 24-bit
+        // depth buffer on the first unit in front of the lens. At the tactical
+        // camera that left ~1.5e-3 world units of depth resolution, and several
+        // dungeon surfaces are authored inside that margin (history overlays sit
+        // 5e-4 above the floor slabs). No z-fighting was VISIBLE in the audit
+        // captures — those pairs are either sub-pixel or hidden behind a nearer
+        // face — so this is a guard, not a repair. MapControls clamps
+        // minDistance to 4, so near 0.5 cannot clip; far 450 still clears the
+        // widest plan plus its 2.6x atmospheric ground plane. Net: ~6.7x more
+        // depth resolution everywhere.
+        camera={{ fov: 46, near: 0.5, far: 450, position: [30, 34, 30] }}
         gl={{ antialias: true, alpha: false, preserveDrawingBuffer: true, toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: 1.35 }}
       >
         <PerfProbe id="dungeon3d" label="Dungeon 3D" />
         <DungeonScene
           model={model}
+          theme={plan.params.theme}
           overlays={overlays}
           preset={preset}
           autoRotate={autoRotate}

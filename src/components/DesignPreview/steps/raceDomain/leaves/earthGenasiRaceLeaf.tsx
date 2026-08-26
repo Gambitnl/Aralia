@@ -22,11 +22,10 @@ import {
   resetEconomy,
 } from '../../../../../utils/combat/actionEconomyUtils';
 import {
+  EARTH_WALK_TERRAIN_POLICY,
   calculatePathMovementCost,
-  calculateStepMovementCost,
-  isDifficultMovementCost,
+  resolveTerrainMovementPolicyFromTraits,
 } from '../../../../../utils/combat/movementUtils';
-import { getElevationTransitionCostFeet } from '../../../../../utils/spatial/elevationGeometry';
 import { createQuickCombatCharacter } from '../../../../../utils/sandbox/quickCharacterGenerator';
 import { calculateProficiencyBonus } from '../../../../../utils/character/savingThrowUtils';
 import type {
@@ -155,43 +154,34 @@ function getEarthGenasiPath(choice: EarthGenasiPathChoice): readonly BattleMapTi
 function isGroundOrFloorDifficultPath(path: readonly BattleMapTile[]): boolean {
   // Earth Walk applies only to a walkable ground/floor route, never to a flight
   // route, a blocked tile, or a path that quietly changes surface semantics.
-  return path.length > 1 && path.every(tile => (
-    (tile.terrain === 'difficult' || tile.terrain === 'floor')
-    && !tile.blocksMovement
-  ));
+  // The surface question is answered by the shared policy predicate, so this
+  // gate and production pathfinding can never disagree about what 'ground or a
+  // floor' means.
+  return path.length > 1
+    && path.every(tile => EARTH_WALK_TERRAIN_POLICY.ignoresDifficultTerrain(tile));
 }
 
 /**
- * Calculates Earth Walk cost using the native 5-10-5 step and elevation rules.
+ * Calculates Earth Walk cost through the production terrain-policy seam.
  *
- * DEBT: The production path helper has no race-aware terrain policy seam, so
- * this adapter normalizes only difficult terrain to multiplier 1 and then calls
- * the native step helper. The proper fix is a race-aware movement policy passed
- * into production pathfinding and turn movement; this leaf does not expand that
- * unrelated engine contract.
+ * Earth Walk is no longer a local adapter. `calculatePathMovementCost` accepts
+ * the same `TerrainMovementPolicy` production pathfinding accepts, so this leaf
+ * proves the shipped rule rather than a preview copy of it: the native 5-10-5
+ * step, native elevation transitions, and the surcharge waived on exactly the
+ * squares the canonical trait names (agora-395a).
  */
 export function calculateEarthWalkPathMovementCost(path: readonly BattleMapTile[]): number {
-  let totalCost = 0;
-  let diagonalCount = 0;
+  return calculatePathMovementCost([...path], EARTH_WALK_TERRAIN_POLICY);
+}
 
-  // Charge each destination with native step geometry, preserving elevation and
-  // normal-tile costs while removing only the difficult-terrain surcharge.
-  for (let index = 1; index < path.length; index += 1) {
-    const previous = path[index - 1];
-    const next = path[index];
-    const dx = next.coordinates.x - previous.coordinates.x;
-    const dy = next.coordinates.y - previous.coordinates.y;
-    const normalizedMovementCost = isDifficultMovementCost(next.movementCost)
-      ? 1
-      : next.movementCost;
-    const step = calculateStepMovementCost(dx, dy, diagonalCount, normalizedMovementCost);
-    totalCost += step.cost + getElevationTransitionCostFeet(previous, next);
-    if (step.isDiagonal) {
-      diagonalCount += 1;
-    }
-  }
-
-  return totalCost;
+/**
+ * Reads the policy the canonical Earth Genasi trait text grants.
+ *
+ * This is the same reader production movement uses, so the preview proves the
+ * race record itself resolves to Earth Walk instead of asserting it by name.
+ */
+export function getCanonicalEarthWalkTerrainPolicyId(race: Race): string | null {
+  return resolveTerrainMovementPolicyFromTraits(race.traits)?.id ?? null;
 }
 
 // ============================================================================
@@ -409,7 +399,7 @@ const EarthGenasiRaceLeafContent: React.FC<RaceDomainLeafProps> = ({
         Spell boundary: Merge with Stone grants and spellcasting ability choices are canonical facts only here; this leaf does not cast Blade Ward, apply Blade Ward effects, spend PB uses, cast Pass without Trace, or claim spell-slot/2D/3D proof.
       </p>
       <p data-testid="earth-genasi-movement-boundary">
-        Movement boundary: native calculatePathMovementCost supplies the ordinary comparator and native action-economy helpers commit movement; because no race-aware terrain bypass exists in production pathfinding, this leaf uses a canonical-derived adapter only around the difficult-terrain multiplier.
+        Movement boundary: native calculatePathMovementCost supplies both comparators and native action-economy helpers commit movement; Earth Walk is the production race-aware terrain policy ({getCanonicalEarthWalkTerrainPolicyId(race) ?? 'none'}) read from this canonical Race record, not a preview-local adapter, and this leaf still claims no 2D/3D render proof.
       </p>
     </section>
   );

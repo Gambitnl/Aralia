@@ -97,7 +97,7 @@ test('checkpointTask accepts only the current claimant of a claimed or in-progre
 
   // Blocked and completed tasks retain their last valid note but reject new
   // writes because neither state represents active claimant work.
-  store.setTaskState({ taskId: task.id, agentId: owner.id, state: 'blocked' });
+  store.setTaskState({ taskId: task.id, agentId: owner.id, state: 'blocked', reason: 'test (WF-G86)' });
   const blocked = store.checkpointTask({ taskId: task.id, agentId: owner.id, did: 'blocked overwrite' });
   assert.equal(blocked.code, 'task_not_active');
   store.setTaskState({ taskId: task.id, agentId: owner.id, state: 'done' });

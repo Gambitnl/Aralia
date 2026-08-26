@@ -15,6 +15,29 @@ import { AttackRollModifierEffect } from '../../../types/spells';
 describe('AttackRollModifierCommand', () => {
   it('bundles status condition logic so targets only roll one save', async () => {
     const caster = createMockCombatCharacter({ id: 'caster', name: 'Caster' });
+
+// agora-f821.4: this file pins Math.random to make a roll deterministic. Game rolls now
+// run on the audit log's own seed stream, so the pin only reaches them
+// through the roller's supported injected-source seam. Feeding
+// Math.random in as that source keeps every pin below meaning what it
+// meant before the migration.
+vi.mock('../../../systems/dice/rollers', async importOriginal => {
+  const actual = await importOriginal<typeof import('../../../systems/dice/rollers')>()
+  return {
+    ...actual,
+    rollDice: (notation: string, options: { rng?: () => number } = {}) =>
+      actual.rollDice(notation, { ...options, rng: options.rng ?? Math.random }),
+    rollD20: (options: { rng?: () => number } = {}) =>
+      actual.rollD20({ ...options, rng: options.rng ?? Math.random }),
+    rollDamage: (
+      notation: string,
+      isCritical: boolean,
+      minRoll = 1,
+      rng?: () => number,
+    ) => actual.rollDamage(notation, isCritical, minRoll, rng ?? Math.random),
+  }
+})
+
     const target = createMockCombatCharacter({ id: 'target', name: 'Target' });
 
     const state = createMockCombatState();

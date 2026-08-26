@@ -2,9 +2,9 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** One deterministic building generator that emits a rich, believable `BlueprintPlan` (rooms, doors, windows, furniture, stairs, and wall edges — all in feet on a 5 ft grid), rendered as a 2D module-map blueprint and raised into 3D from that same data.
+**Goal:** One deterministic building generator that emits a rich, believable `BlueprintPlan` (rooms, doors, windows, furniture, stairs, and wall edges - all in feet on a 5 ft grid), rendered as a 2D module-map blueprint and raised into 3D from that same data.
 
-**Architecture:** Grow the existing L4 interior generator (`src/systems/worldforge/interior/`) into the shared building-maker rather than forking. Generation is split into small pure modules (footprint → partition → program → doors → windows/walls → furniture → floors) that assemble a `BlueprintPlan` POJO. Two consumers read that data: a pure 2D SVG drawer (already prototyped in `PreviewBlueprint.tsx`) and the 3D building build.
+**Architecture:** Grow the existing L4 interior generator (`src/systems/worldforge/interior/`) into the shared building-maker rather than forking. Generation is split into small pure modules (footprint -> partition -> program -> doors -> windows/walls -> furniture -> floors) that assemble a `BlueprintPlan` POJO. Two consumers read that data: a pure 2D SVG drawer (already prototyped in `PreviewBlueprint.tsx`) and the 3D building build.
 
 **Tech Stack:** TypeScript, Vitest (unit tests), React (preview surfaces), the worldforge seed-path RNG (`rngFromPath`/`childSeedPath`/`streamPath` in `src/systems/worldforge/seedPath.ts`).
 
@@ -12,11 +12,11 @@
 
 - **Feet-canon 5 ft grid.** Every coordinate is in feet and aligned to the 5 ft atomic grid. `CELL_FT = 5`, `MIN_ROOM_FT = 10`.
 - **Pure data, zero THREE imports.** The generator and `BlueprintPlan` must not import `three` or any renderer. Data only.
-- **Deterministic via seed paths.** Randomness comes only from `rngFromPath(streamPath(path, '<concern>'))`. Same seed path in → byte-identical plan out. Never `Math.random()` in generator code.
+- **Deterministic via seed paths.** Randomness comes only from `rngFromPath(streamPath(path, '<concern>'))`. Same seed path in -> byte-identical plan out. Never `Math.random()` in generator code.
 - **US spelling** in all identifiers and labels (color, gray, -ize).
 - **No fallback.** One real path; fail honestly. No silent graceful degradation.
 - **Walls sit on the grid line with real thickness** (thick outer, thin inner) growing outward from the line; a wall never consumes a playable tile.
-- **Do not commit.** The repo auto-snapshots to GitHub daily at 2am — leave finished work in the tree. Each task ends by running its tests green; there is no manual `git commit` step.
+- **Do not commit.** The repo auto-snapshots to GitHub daily at 2am - leave finished work in the tree. Each task ends by running its tests green; there is no manual `git commit` step.
 - **Spec:** `docs/superpowers/specs/2026-07-05-building-blueprint-pipeline-design.md`.
 
 ---
@@ -24,22 +24,22 @@
 ## File Structure
 
 **New:**
-- `src/systems/worldforge/interior/blueprintTypes.ts` — the `BlueprintPlan` contract and all sub-types.
-- `src/systems/worldforge/interior/footprint.ts` — irregular footprint (wings + tower) → occupied cells.
-- `src/systems/worldforge/interior/partition.ts` — split the footprint into connected rooms (cells per room).
-- `src/systems/worldforge/interior/program.ts` — per-building-type room purposes + which room is the dominant "main".
-- `src/systems/worldforge/interior/doors.ts` — connected door graph, street entry on the main room, swing direction.
-- `src/systems/worldforge/interior/walls.ts` — wall edges (outer/inner + thickness) and outward-facing windows.
-- `src/systems/worldforge/interior/furnish.ts` — room-clipped furniture from purpose recipes.
-- `src/systems/worldforge/interior/generateBuilding.ts` — assembles all of the above into a `BlueprintPlan`.
-- `src/systems/worldforge/interior/renderBlueprintSvg.ts` — pure `BlueprintPlan` → SVG string (module-map style), lifted and cleaned from `PreviewBlueprint.tsx`.
-- `src/systems/worldforge/interior/__tests__/*.test.ts` — one test file per module above.
+- `src/systems/worldforge/interior/blueprintTypes.ts` - the `BlueprintPlan` contract and all sub-types.
+- `src/systems/worldforge/interior/footprint.ts` - irregular footprint (wings + tower) -> occupied cells.
+- `src/systems/worldforge/interior/partition.ts` - split the footprint into connected rooms (cells per room).
+- `src/systems/worldforge/interior/program.ts` - per-building-type room purposes + which room is the dominant "main".
+- `src/systems/worldforge/interior/doors.ts` - connected door graph, street entry on the main room, swing direction.
+- `src/systems/worldforge/interior/walls.ts` - wall edges (outer/inner + thickness) and outward-facing windows.
+- `src/systems/worldforge/interior/furnish.ts` - room-clipped furniture from purpose recipes.
+- `src/systems/worldforge/interior/generateBuilding.ts` - assembles all of the above into a `BlueprintPlan`.
+- `src/systems/worldforge/interior/renderBlueprintSvg.ts` - pure `BlueprintPlan` -> SVG string (module-map style), lifted and cleaned from `PreviewBlueprint.tsx`.
+- `src/systems/worldforge/interior/__tests__/*.test.ts` - one test file per module above.
 
 **Modified:**
-- `src/components/DesignPreview/steps/PreviewBlueprint.tsx` — consume `generateBuilding` + `renderBlueprintSvg`.
-- `src/components/DesignPreview/steps/PreviewFloorplans.tsx` — retire its private generator; consume the shared one (or delete once Blueprint covers it — decide during Task 12).
-- `src/systems/worldforge/interior/generateInterior.ts` — becomes a thin adapter that returns the legacy `InteriorPlan` shape from a `BlueprintPlan` (keeps existing 3D-build callers working), OR is superseded — decide in Task 10.
-- The 3D interior build (`src/systems/worldforge/bridge/interiorBuild.ts` + `interiorParts.ts`, `src/systems/world3d/buildingModels.ts`) — raise the irregular shell + wall thickness from `BlueprintPlan`.
+- `src/components/DesignPreview/steps/PreviewBlueprint.tsx` - consume `generateBuilding` + `renderBlueprintSvg`.
+- `src/components/DesignPreview/steps/PreviewFloorplans.tsx` - retire its private generator; consume the shared one (or delete once Blueprint covers it - decide during Task 12).
+- `src/systems/worldforge/interior/generateInterior.ts` - becomes a thin adapter that returns the legacy `InteriorPlan` shape from a `BlueprintPlan` (keeps existing 3D-build callers working), OR is superseded - decide in Task 10.
+- The 3D interior build (`src/systems/worldforge/bridge/interiorBuild.ts` + `interiorParts.ts`, `src/systems/world3d/buildingModels.ts`) - raise the irregular shell + wall thickness from `BlueprintPlan`.
 
 **Convention note:** `BlueprintPlan` is the new source of truth. `InteriorPlan` (legacy) either becomes a derived view or is replaced; no data is generated twice.
 
@@ -159,7 +159,7 @@ Expected: PASS.
 - Consumes: `BuildingType`, `Cell`, `cellKey` (Task 1); `rngFromPath`, `SeedPath`, `streamPath` (seedPath.ts).
 - Produces: `genFootprint(path: SeedPath, type: BuildingType): { cols: number; rows: number; occ: boolean[][]; cells: Cell[] }`.
 
-**Design:** A footprint is the union of a main rectangle plus 0–4 wings/towers, snapped to the 5 ft grid, chosen by type. Cottage: main + optional 1 wing. Shop/workshop: main + a front/side wing. Tavern: main + 1–2 wings. Manor: main + up to 2 wings + one square tower. Every building must have at least one shape-breaking feature (guarantee: if no wing rolled, force one). Wings attach flush to a side, overlapping by one cell so the union is connected. Normalize so min cell is (0,0).
+**Design:** A footprint is the union of a main rectangle plus 0-4 wings/towers, snapped to the 5 ft grid, chosen by type. Cottage: main + optional 1 wing. Shop/workshop: main + a front/side wing. Tavern: main + 1-2 wings. Manor: main + up to 2 wings + one square tower. Every building must have at least one shape-breaking feature (guarantee: if no wing rolled, force one). Wings attach flush to a side, overlapping by one cell so the union is connected. Normalize so min cell is (0,0).
 
 - [x] **Step 1: Write tests that pin the shape guarantees**
 
@@ -237,9 +237,9 @@ Expected: PASS (all three).
 
 **Interfaces:**
 - Consumes: footprint `{cols, rows, occ}` (Task 2); `Cell` (Task 1); seed path RNG.
-- Produces: `partition(path: SeedPath, fp: Footprint, opts: { keepMainWhole: boolean }): number[][]` — a `rg[y][x]` room-id grid (-1 outside), room ids compact from 0.
+- Produces: `partition(path: SeedPath, fp: Footprint, opts: { keepMainWhole: boolean }): number[][]` - a `rg[y][x]` room-id grid (-1 outside), room ids compact from 0.
 
-**Design:** BSP-split the bounding box, clip each leaf to the occupied cells, flood-fill each leaf's occupied region into connected rooms (so a leaf spanning a notch yields two rooms). Merge slivers (< 3 cells) into the neighbor they share the most edge with. **Dominant main room:** reserve the largest wing (or a target rectangle around the front-centre) as ONE un-split room so the hall/common-room/nave stays big — controlled by `opts.keepMainWhole`. Target room count scales with area but stays modest (cottage 3–5, tavern 6–9, manor 6–10) — bias the BSP stop so big footprints do not shred.
+**Design:** BSP-split the bounding box, clip each leaf to the occupied cells, flood-fill each leaf's occupied region into connected rooms (so a leaf spanning a notch yields two rooms). Merge slivers (< 3 cells) into the neighbor they share the most edge with. **Dominant main room:** reserve the largest wing (or a target rectangle around the front-centre) as ONE un-split room so the hall/common-room/nave stays big - controlled by `opts.keepMainWhole`. Target room count scales with area but stays modest (cottage 3-5, tavern 6-9, manor 6-10) - bias the BSP stop so big footprints do not shred.
 
 - [x] **Step 1: Write tests**
 
@@ -279,11 +279,11 @@ describe('partition', () => {
 });
 ```
 
-- [x] **Step 2: Run to fail** — `npx vitest run src/systems/worldforge/interior/__tests__/partition.test.ts` → FAIL.
+- [x] **Step 2: Run to fail** - `npx vitest run src/systems/worldforge/interior/__tests__/partition.test.ts` -> FAIL.
 
 - [x] **Step 3: Implement `partition.ts`** per design (BSP + clip + connected components + sliver-merge + reserved main room + compaction).
 
-- [x] **Step 4: Run to green** — same command → PASS.
+- [x] **Step 4: Run to green** - same command -> PASS.
 
 ---
 
@@ -295,9 +295,9 @@ describe('partition', () => {
 
 **Interfaces:**
 - Consumes: `rg` (Task 3), `BuildingType`, `RoomPurpose`, `Cell`, `BlueprintRoom` (Task 1).
-- Produces: `assignPurposes(path, type, rg): BlueprintRoom[]` — one room per id, with `purpose`, `cells`, `bbox` (feet), `isMain`, `isCorridor`.
+- Produces: `assignPurposes(path, type, rg): BlueprintRoom[]` - one room per id, with `purpose`, `cells`, `bbox` (feet), `isMain`, `isCorridor`.
 
-**Design:** Detect corridors (a room whose cells form a 1-cell-wide run of length ≥ 3) → `corridor`. Mark the biggest non-corridor room `isMain`, give it the type's headline purpose (cottage `hall`, tavern `common-room`, manor `great-hall`, shop `shopfront`, workshop `workshop`). Assign the rest from a per-type weighted program with min/max counts (e.g. tavern = 1 kitchen, 0–1 cellar, then guest-rooms; a shop = shopfront + workshop + storage + living rooms). **Cap `storage` at ~1 per building** — no plan is half storeroom.
+**Design:** Detect corridors (a room whose cells form a 1-cell-wide run of length ≥ 3) -> `corridor`. Mark the biggest non-corridor room `isMain`, give it the type's headline purpose (cottage `hall`, tavern `common-room`, manor `great-hall`, shop `shopfront`, workshop `workshop`). Assign the rest from a per-type weighted program with min/max counts (e.g. tavern = 1 kitchen, 0-1 cellar, then guest-rooms; a shop = shopfront + workshop + storage + living rooms). **Cap `storage` at ~1 per building** - no plan is half storeroom.
 
 - [x] **Step 1: Write tests**
 
@@ -352,9 +352,9 @@ Run: `npx vitest run src/systems/worldforge/interior/__tests__/program.test.ts`
 
 **Interfaces:**
 - Consumes: `rg` (Task 3), `BlueprintRoom[]` (Task 4), `BlueprintDoor`, `EXTERIOR` (Task 1).
-- Produces: `wireDoors(path, rg, rooms): { doors: BlueprintDoor[] }` — a connected door graph plus one street entry.
+- Produces: `wireDoors(path, rg, rooms): { doors: BlueprintDoor[] }` - a connected door graph plus one street entry.
 
-**Design:** Build room adjacency from shared wall edges. Compute a spanning tree over rooms so every room is reachable, one door per tree edge; add a few loop doors. The **street entry** is placed on an outer wall edge of the main room (or, if the main room has no outer wall, on a corridor that connects to it) — never a random back room. Each interior door's swing opens into the **larger** of the two rooms.
+**Design:** Build room adjacency from shared wall edges. Compute a spanning tree over rooms so every room is reachable, one door per tree edge; add a few loop doors. The **street entry** is placed on an outer wall edge of the main room (or, if the main room has no outer wall, on a corridor that connects to it) - never a random back room. Each interior door's swing opens into the **larger** of the two rooms.
 
 - [x] **Step 1: Write tests**
 
@@ -416,7 +416,7 @@ Run: `npx vitest run src/systems/worldforge/interior/__tests__/doors.test.ts`
 - Consumes: `rg` (Task 3), `BlueprintDoor[]` (Task 5), `WallEdge`, `BlueprintWindow` (Task 1).
 - Produces: `buildWalls(path, rg, doors): { walls: WallEdge[]; windows: BlueprintWindow[] }`.
 
-**Design:** For every cell edge where the two sides differ (room vs room, or room vs outside), emit a `WallEdge` unless a door sits there. `kind` = `'outer'` when one side is outside, else `'inner'`. `thicknessFt`: outer = 1.5 ft, inner = 0.5 ft (grows outward from the line; the drawing and 3D both read this). **Windows** go only on `outer` edges that face true open air — classify by ray-casting outward from the edge to the footprint's bounding box; an edge whose outward ray immediately re-enters the footprint (a re-entrant notch) is NOT outdoors and gets no window. Space windows along each outer run, none within one cell of a door or the entry.
+**Design:** For every cell edge where the two sides differ (room vs room, or room vs outside), emit a `WallEdge` unless a door sits there. `kind` = `'outer'` when one side is outside, else `'inner'`. `thicknessFt`: outer = 1.5 ft, inner = 0.5 ft (grows outward from the line; the drawing and 3D both read this). **Windows** go only on `outer` edges that face true open air - classify by ray-casting outward from the edge to the footprint's bounding box; an edge whose outward ray immediately re-enters the footprint (a re-entrant notch) is NOT outdoors and gets no window. Space windows along each outer run, none within one cell of a door or the entry.
 
 - [x] **Step 1: Write tests**
 
@@ -462,7 +462,7 @@ describe('buildWalls', () => {
 });
 ```
 
-- [x] **Step 2–4: fail → implement `walls.ts` → green.**
+- [x] **Step 2-4: fail -> implement `walls.ts` -> green.**
 
 Run: `npx vitest run src/systems/worldforge/interior/__tests__/walls.test.ts`
 
@@ -478,7 +478,7 @@ Run: `npx vitest run src/systems/worldforge/interior/__tests__/walls.test.ts`
 - Consumes: `BlueprintRoom[]` (Task 4), `BlueprintDoor[]` (Task 5), `BlueprintFurnishing` (Task 1).
 - Produces: `furnishRooms(path, rooms, doors, blocked): BlueprintFurnishing[]`, where `blocked` is a set of cell keys reserved for stairs.
 
-**Design:** One recipe per `RoomPurpose` (bed/chest in bedrooms, hearth+tables in halls, counter+shelves in shops, and so on). Every placed item must land on a cell that belongs to the room (`room.cells`), never its bounding box — so L-shaped rooms don't leak furniture. Skip cells within one cell of a door or in `blocked` (stairs). Corridors get no furniture.
+**Design:** One recipe per `RoomPurpose` (bed/chest in bedrooms, hearth+tables in halls, counter+shelves in shops, and so on). Every placed item must land on a cell that belongs to the room (`room.cells`), never its bounding box - so L-shaped rooms don't leak furniture. Skip cells within one cell of a door or in `blocked` (stairs). Corridors get no furniture.
 
 - [x] **Step 1: Write test**
 
@@ -520,7 +520,7 @@ describe('furnishRooms', () => {
 });
 ```
 
-- [x] **Step 2–4: fail → implement `furnish.ts` → green.**
+- [x] **Step 2-4: fail -> implement `furnish.ts` -> green.**
 
 Run: `npx vitest run src/systems/worldforge/interior/__tests__/furnish.test.ts`
 
@@ -575,7 +575,7 @@ describe('generateBuilding', () => {
 });
 ```
 
-- [x] **Step 2–4: fail → implement `generateBuilding.ts` → green.**
+- [x] **Step 2-4: fail -> implement `generateBuilding.ts` -> green.**
 
 Run: `npx vitest run src/systems/worldforge/interior/__tests__/generateBuilding.test.ts`
 
@@ -615,7 +615,7 @@ describe('generateBuilding golden', () => {
 });
 ```
 
-- [x] **Step 2: Run to create the snapshot** — `npx vitest run src/systems/worldforge/interior/__tests__/generateBuilding.golden.test.ts` → writes `__snapshots__`. **Eyeball the summaries for sanity** (room counts modest, purposes sensible, storage ≤ 1) before accepting.
+- [x] **Step 2: Run to create the snapshot** - `npx vitest run src/systems/worldforge/interior/__tests__/generateBuilding.golden.test.ts` -> writes `__snapshots__`. **Eyeball the summaries for sanity** (room counts modest, purposes sensible, storage ≤ 1) before accepting.
 
 ---
 
@@ -623,17 +623,17 @@ describe('generateBuilding golden', () => {
 
 **Files:**
 - Modify: `src/systems/worldforge/interior/generateInterior.ts`
-- Test: `src/systems/worldforge/interior/__tests__/generateInterior.test.ts` (existing — must stay green)
+- Test: `src/systems/worldforge/interior/__tests__/generateInterior.test.ts` (existing - must stay green)
 
 **Interfaces:**
 - Produces: `generateInterior(plot, seedPath): InteriorPlan` unchanged in signature, now derived from `generateBuilding`.
 
-**Design:** Rewrite `generateInterior` as a thin adapter: call `generateBuilding`, then map `BlueprintPlan` → the legacy `InteriorPlan` shape (rooms as bbox rects, doorways, furnishings, stairs, upperFloors). This keeps every current 3D-build caller working while a single generator now owns generation. Legacy `RoomRole` maps from `RoomPurpose` (e.g. `common-room`/`great-hall` → `hall`, `shopfront` → `shopfloor`, everything cellar/pantry/armory → `storage`).
+**Design:** Rewrite `generateInterior` as a thin adapter: call `generateBuilding`, then map `BlueprintPlan` -> the legacy `InteriorPlan` shape (rooms as bbox rects, doorways, furnishings, stairs, upperFloors). This keeps every current 3D-build caller working while a single generator now owns generation. Legacy `RoomRole` maps from `RoomPurpose` (e.g. `common-room`/`great-hall` -> `hall`, `shopfront` -> `shopfloor`, everything cellar/pantry/armory -> `storage`).
 
-- [x] **Step 1: Run the existing interior tests to capture current behavior** — `npx vitest run src/systems/worldforge/interior/__tests__/generateInterior.test.ts` (note what they assert).
-- [x] **Step 2: Implement the adapter** mapping `BlueprintPlan` → `InteriorPlan`.
-- [x] **Step 3: Run the existing tests** — same command. If an assertion no longer holds because the plan is legitimately richer, update the assertion to the new truth (do not weaken a real check). Expected: PASS.
-- [x] **Step 4: Run the whole interior suite** — `npx vitest run src/systems/worldforge/interior` → PASS.
+- [x] **Step 1: Run the existing interior tests to capture current behavior** - `npx vitest run src/systems/worldforge/interior/__tests__/generateInterior.test.ts` (note what they assert).
+- [x] **Step 2: Implement the adapter** mapping `BlueprintPlan` -> `InteriorPlan`.
+- [x] **Step 3: Run the existing tests** - same command. If an assertion no longer holds because the plan is legitimately richer, update the assertion to the new truth (do not weaken a real check). Expected: PASS.
+- [x] **Step 4: Run the whole interior suite** - `npx vitest run src/systems/worldforge/interior` -> PASS.
 
 ---
 
@@ -685,7 +685,7 @@ describe('renderBlueprintSvg', () => {
 
 Run: `npx vitest run src/systems/worldforge/interior/__tests__/renderBlueprintSvg.test.ts`
 
-- [x] **Step 6: Eyeball on the Design Preview.** Start `dev:preview`, open `/Aralia/misc/design.html?step=blueprint`, reroll each type and every floor. Confirm: irregular shapes draw, doors read as normal doors, corners aren't black, labels don't cross walls, scale bar + room numbers show. (Screenshots hang on this page — inspect via the SVG DOM, per the known limitation.)
+- [x] **Step 6: Eyeball on the Design Preview.** Start `dev:preview`, open `/Aralia/misc/design.html?step=blueprint`, reroll each type and every floor. Confirm: irregular shapes draw, doors read as normal doors, corners aren't black, labels don't cross walls, scale bar + room numbers show. (Screenshots hang on this page - inspect via the SVG DOM, per the known limitation.)
 
 ---
 

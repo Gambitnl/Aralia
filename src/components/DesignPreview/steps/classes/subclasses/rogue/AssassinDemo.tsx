@@ -96,8 +96,9 @@ export function getAssassinFeatures(character: PlayerCharacter) {
 // Generic critical, stealth, poison, initiative, puzzle, and crafting helpers each
 // prove only their own behavior. None binds the Assassin's level-3 feature to one
 // production attack transaction with the authored target and turn-state conditions.
+// Runtime implementation is tracked in Agora task agora-a279.
 export const ASSASSIN_RUNTIME_BOUNDARY =
-  "Unsupported boundary: canonical Assassinate (assassinate) and Assassin's Tools (assassins_tools) are present, but no subclass-aware production path was found that grants advantage against a foe who has not acted, makes a hit against a surprised creature an automatic critical, or grants and validates the disguise-kit and poisoner's-kit proficiencies as one Assassin contract. Generic stealth, advantage, critical-hit, initiative, poison, puzzle, and crafting helpers prove only separate behavior. This demo does not simulate a roll, damage, initiative state, surprise flag, target result, tool check, proficiency result, resource, or combat log outcome.";
+  "Unsupported boundary: canonical Assassinate (assassinate) and Assassin's Tools (assassins_tools) are present, but no subclass-aware production path was found that grants advantage against a foe who has not acted, makes a hit against a surprised creature an automatic critical, or grants and validates the disguise-kit and poisoner's-kit proficiencies as one Assassin contract. Runtime implementation is tracked in Agora task agora-a279. Generic stealth, advantage, critical-hit, initiative, poison, puzzle, and crafting helpers prove only separate behavior. This demo does not simulate a roll, damage, initiative state, surprise flag, target result, tool check, proficiency result, resource, or combat log outcome.";
 
 // ============================================================================
 // Assassin demonstration surface

@@ -28,7 +28,7 @@ before(async () => {
   app = createAgoraServer({ dir: serverDir });
   await new Promise((resolve) => app.listen(0, resolve));
   baseUrl = `http://127.0.0.1:${app.server.address().port}`;
-  env = { AGORA_DIR: idDir, AGORA_PET: 'gf-sd' };
+  env = { AGORA_DIR: idDir, AGORA_AGENT_ID: 'onboard-senior', AGORA_PET: 'gf-sd' };
 });
 
 after(async () => {
@@ -50,7 +50,7 @@ test('onboard: registers and prints the full situational briefing in one shot', 
   // Fresh identity dir = a truly fresh agent.
   const freshId = fs.mkdtempSync(path.join(os.tmpdir(), 'agora-onboard-fresh-'));
   const r = await run(['onboard', 'newcomer', '--note', 'fresh worker', '--gaps', gapsRoot], {
-    env: { AGORA_DIR: freshId, AGORA_PET: 'dream-girl' },
+    env: { AGORA_DIR: freshId, AGORA_AGENT_ID: 'onboard-newcomer', AGORA_PET: 'dream-girl' },
     baseUrl,
   });
   assert.equal(r.code, 0);

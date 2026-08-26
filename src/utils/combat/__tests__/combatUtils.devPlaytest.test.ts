@@ -9,7 +9,7 @@ import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
 import type { CombatCharacter } from '../../../types/combat';
 import type { Spell } from '../../../types/spells';
-import { buildDevPlayer } from '../../../components/DesignPreview/steps/devPlayerPreview';
+import { buildDevPlayer } from '../../character/devPlayer';
 import {
   createPlayerCombatCharacter,
   isUnlimitedSpellSlotCombatant,
@@ -40,7 +40,7 @@ describe('Dev Player combat capability', () => {
     // live Battle Map. Filtering preserves honest behavior if a class list ever
     // references a spell asset that has not shipped yet.
     const allSpells = JSON.parse(
-      readFileSync('src/data/spells_bundle.json', 'utf8'),
+      readFileSync('public/data/spells_bundle.json', 'utf8'),
     ) as Record<string, Spell>;
     const player = buildDevPlayer({
       raceId: 'human',

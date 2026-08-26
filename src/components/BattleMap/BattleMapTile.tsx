@@ -310,6 +310,12 @@ const BattleMapTile: React.FC<BattleMapTileProps> = React.memo(
         }
         data-local-relief-feet={elevationPresentation.localReliefFeet}
         style={{
+          // Explicit grid placement from the tile's own coordinates. The grid
+          // is viewport-culled, so DOM order no longer matches board order and
+          // auto-placement would put an off-screen-culled row in the wrong
+          // cell. Placement is 1-based; tile coordinates are 0-based.
+          gridColumn: tile.coordinates.x + 1,
+          gridRow: tile.coordinates.y + 1,
           // Dark inset halo paired with the light border above: the grid line
           // now has both a light and a dark component, so it stays legible over
           // bright grass and dark shadow alike.

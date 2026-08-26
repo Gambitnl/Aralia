@@ -200,7 +200,7 @@ describe('Fire Giant Goliath Race domain leaf', () => {
     expect(screen.getByTestId('fire-giant-goliath-actor')).toHaveTextContent('Action ready');
     expect(screen.getByTestId('fire-giant-goliath-actor')).toHaveTextContent('Uses 3/3');
     expect(screen.getByTestId('fire-giant-goliath-target')).toHaveTextContent('HP 40/40');
-    expect(screen.getByTestId('fire-giant-goliath-assembly-boundary')).toHaveTextContent('does not currently project racial resources');
+    expect(screen.getByTestId('fire-giant-goliath-assembly-boundary')).toHaveTextContent('spendCombatLimitedUse pays the charge');
     expect(screen.getByTestId('fire-giant-goliath-unsupported-boundary')).toHaveTextContent('does not implement Large Form size');
     expect(screen.getByTestId('fire-giant-goliath-unsupported-boundary')).toHaveTextContent('mounted 2D/3D proof');
   });

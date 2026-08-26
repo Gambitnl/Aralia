@@ -165,7 +165,7 @@
                                                                    ]
                                       },
                         "utilityType":  "communication",
-                        "description":  "The touched creature understands spoken or signed languages it hears or sees, and creatures that know at least one language understand the target\u0027s speech or signing for 1 hour.",
+                        "description":  "The touched creature understands spoken or signed languages it hears or sees, and creatures that know at least one language understand the target's speech or signing for 1 hour.",
                         "scaling":  {
                                         "type":  "slot_level",
                                         "bonusPerLevel":  "",

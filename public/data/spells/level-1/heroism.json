@@ -323,7 +323,7 @@
                                                                        "dice":  "spellcasting_ability_modifier",
                                                                        "isTemporaryHp":  true
                                                                    },
-                                                       "notes":  "The target gains Temporary Hit Points equal to the caster\u0027s spellcasting ability modifier at the start of each of the target\u0027s turns."
+                                                       "notes":  "The target gains Temporary Hit Points equal to the caster's spellcasting ability modifier at the start of each of the target's turns."
                                                    }
                                                ],
                         "endCleanup":  [

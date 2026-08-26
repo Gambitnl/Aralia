@@ -1,4 +1,4 @@
-﻿# Choices And Modes
+# Choices And Modes
 
 Bucket id: `choice_or_mode`
 Total findings: 234

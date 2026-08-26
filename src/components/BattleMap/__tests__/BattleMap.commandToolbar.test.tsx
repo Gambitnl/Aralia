@@ -14,6 +14,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Ability, BattleMapData, CombatCharacter } from '../../../types/combat';
 import { Z_INDEX } from '../../../styles/zIndex';
 import BattleMap from '../BattleMap';
+import { createBattleMapCombatState } from './fixtures/battleMapCombatState';
 
 // ============================================================================
 // Focused Renderer Stubs
@@ -146,48 +147,18 @@ const renderCommandToolbar = ({
     <BattleMap
       mapData={mapData}
       characters={[hero]}
-      combatState={{
-        turnManager: {
-          turnState: {
-            currentTurn: 0,
-            turnOrder: [hero.id],
-            currentCharacterId: hero.id,
-            phase: 'action',
-            actionsThisTurn: [],
-          },
-          activeLightSources: [],
-          reactiveTriggers: [],
-          damageNumbers: [],
-          animations: [],
-          spellZones: [],
-          scheduledSpellEffects: [],
-          movementDebuffs: [],
-          spellMovementVisuals: [],
-          spellDeliveryVisuals: [],
-          canAffordAction: vi.fn(() => true),
-        } as never,
-        turnState: {
-          currentTurn: 0,
-          turnOrder: [hero.id],
-          currentCharacterId: hero.id,
-          phase: 'action',
-          actionsThisTurn: [],
-        } as never,
+      combatState={createBattleMapCombatState({
+        turnState: { turnOrder: [hero.id], currentCharacterId: hero.id },
+        turnManager: { canAffordAction: vi.fn(() => true) },
         abilitySystem: {
           targetingMode,
           selectedAbility: targetingMode ? longsword : null,
           targetValidationReason,
-          aoePreview: null,
-          teleportDestinationPreview: null,
-          pendingTeleportAssignment: null,
-          previewAoE: vi.fn(),
-          isValidTarget: vi.fn(),
           startTargeting,
           cancelTargeting,
-        } as never,
+        },
         isCharacterTurn: vi.fn(() => true),
-        onCharacterUpdate: vi.fn(),
-      }}
+      })}
     />,
   );
 

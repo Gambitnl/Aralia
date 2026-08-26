@@ -4,6 +4,12 @@
  * the Class, Sorcerers must immediately pick their Cantrips and Level 1 
  * spells.
  *
+ * WHEN the Sorcerous Origin is chosen depends on the campaign's rules edition
+ * (agora-f821.57): the 2014 Player's Handbook picks a Sorcerous Origin at level
+ * 1, while the 2024 one defers it to level 3. The level comes from
+ * `getSubclassLevel`, so this component never decides the edition for itself —
+ * it is told.
+ *
  * Recent updates focus on 'UX Feedback' and 'Validation Robustness'.
  * - Added `sr-only` accessibility labels for screen readers.
  * - Refined the item highlight logic (`selectedCantripIds.has || selectedSpellL1Ids.has`). 
@@ -16,26 +22,46 @@
  */
 import React, { useState, useMemo } from 'react';
 import { Spell, Class as CharClass } from '../../../types';
+import { getSubclassLevel, type RulesEdition } from '../../../config/rulesEdition';
 import { CreationStepLayout } from '../ui/CreationStepLayout';
 import { SpellCard } from './SpellCard';
 
+/** One Sorcerous Origin offered at level 1, derived from SUBCLASSES.sorcerer by the caller. */
+export interface SorcerousOriginOption {
+  id: string;
+  name: string;
+  description: string;
+}
+
 interface SorcererFeatureSelectionProps {
   spellcastingInfo: NonNullable<CharClass['spellcasting']>;
+  /** Every Sorcerous Origin a sorcerer can draw on; only offered when the edition puts the choice at level 1. */
+  origins: SorcerousOriginOption[];
+  /** The campaign's rules edition, read by the caller via `getRulesEdition`. */
+  rulesEdition: RulesEdition;
   allSpells: Record<string, Spell>;
-  onSorcererFeaturesSelect: (cantrips: Spell[], spellsL1: Spell[]) => void;
+  onSorcererFeaturesSelect: (cantrips: Spell[], spellsL1: Spell[], originId?: string) => void;
   onBack: () => void;
 }
 
 const SorcererFeatureSelection: React.FC<SorcererFeatureSelectionProps> = ({
   spellcastingInfo,
+  origins,
+  rulesEdition,
   allSpells,
   onSorcererFeaturesSelect,
   onBack,
 }) => {
   const [selectedCantripIds, setSelectedCantripIds] = useState<Set<string>>(new Set());
   const [selectedSpellL1Ids, setSelectedSpellL1Ids] = useState<Set<string>>(new Set());
+  const [selectedOriginId, setSelectedOriginId] = useState<string | null>(null);
 
   const { knownCantrips, knownSpellsL1, spellList } = spellcastingInfo;
+
+  // The whole edition switch reduces to this one number. Level 1 means the
+  // Sorcerous Origin is part of this step; anything later means it is not.
+  const originLevel = getSubclassLevel('sorcerer', rulesEdition);
+  const choosesOriginNow = originLevel === 1 && origins.length > 0;
 
   const availableCantrips = useMemo(() => spellList
     .map((id: string) => allSpells[String(id)])
@@ -55,25 +81,64 @@ const SorcererFeatureSelection: React.FC<SorcererFeatureSelectionProps> = ({
     setSelection(newSelection);
   };
 
+  const isOriginSatisfied = !choosesOriginNow || selectedOriginId !== null;
+
   const handleSubmit = () => {
-    if (selectedCantripIds.size === knownCantrips && selectedSpellL1Ids.size === knownSpellsL1) {
+    if (selectedCantripIds.size === knownCantrips && selectedSpellL1Ids.size === knownSpellsL1 && isOriginSatisfied) {
       const cantrips = Array.from(selectedCantripIds).map(id => allSpells[String(id)]);
       const spellsL1 = Array.from(selectedSpellL1Ids).map(id => allSpells[String(id)]);
-      onSorcererFeaturesSelect(cantrips, spellsL1);
+      onSorcererFeaturesSelect(cantrips, spellsL1, choosesOriginNow ? selectedOriginId! : undefined);
     }
   };
 
-  const isButtonDisabled = selectedCantripIds.size !== knownCantrips || selectedSpellL1Ids.size !== knownSpellsL1;
+  const isButtonDisabled =
+    selectedCantripIds.size !== knownCantrips ||
+    selectedSpellL1Ids.size !== knownSpellsL1 ||
+    !isOriginSatisfied;
 
   return (
     <CreationStepLayout
-      title="Sorcerer Spell Selection"
+      title={choosesOriginNow ? 'Sorcerous Origin & Spells' : 'Sorcerer Spell Selection'}
       onBack={onBack}
       onNext={handleSubmit}
       canProceed={!isButtonDisabled}
       nextLabel="Confirm Spells"
     >
       <div className="space-y-8">
+        {choosesOriginNow ? (
+          <section>
+            <div className="flex justify-between items-end mb-3 border-b border-gray-700 pb-1">
+              <h3 className="text-xl font-cinzel text-amber-400">Choose Your Sorcerous Origin</h3>
+              <span className="text-xs font-mono text-gray-500 mb-1">2014 rules &middot; level 1</span>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {origins.map(origin => {
+                const isSelected = selectedOriginId === origin.id;
+                return (
+                  <button
+                    key={origin.id}
+                    type="button"
+                    onClick={() => setSelectedOriginId(origin.id)}
+                    aria-pressed={isSelected}
+                    className={`text-left p-3 rounded-lg border transition-colors ${
+                      isSelected
+                        ? 'bg-amber-900/40 border-amber-400'
+                        : 'bg-gray-800 border-gray-700 hover:border-amber-600'
+                    }`}
+                  >
+                    <span className="block font-cinzel text-amber-300">{origin.name}</span>
+                    <span className="block text-xs text-gray-400 mt-1">{origin.description}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </section>
+        ) : (
+          <p className="text-sm text-gray-400 italic">
+            Under the 2024 rules you choose a Sorcerous Origin at level {originLevel}.
+          </p>
+        )}
+
         <section>
           <div className="flex justify-between items-end mb-3 border-b border-gray-700 pb-1">
             <h3 className="text-xl font-cinzel text-amber-400">Select Cantrips</h3>

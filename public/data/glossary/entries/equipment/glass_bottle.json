@@ -7,11 +7,11 @@
     "item",
     "itemType:Adventuring Gear"
   ],
-  "excerpt": "A Glass Bottle holds up to 1½ pints....",
+  "excerpt": "A Glass Bottle holds up to 11/2 pints....",
   "aliases": [],
   "seeAlso": [],
   "filePath": "/data/glossary/entries/equipment/glass_bottle.json",
-  "markdown": "# Glass Bottle\n\nA Glass Bottle holds up to 1½ pints.",
+  "markdown": "# Glass Bottle\n\nA Glass Bottle holds up to 11/2 pints.",
   "itemMetadata": {
     "type": "Adventuring Gear",
     "rarity": "None",

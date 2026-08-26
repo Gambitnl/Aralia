@@ -188,7 +188,8 @@ describe('household-driven building', () => {
   });
 
   it('briefless call is byte-identical to pre-task output (no accidental re-roll)', () => {
-    // Snapshot guard: run once before implementing to capture, then assert equality.
+    // The character-scale sizing request intentionally refreshes this receipt:
+    // the plan is larger, while repeat generation must still stay byte-stable.
     const plan = generateBuilding({ buildingId: 3, type: 'tavern', seedPath: rootSeedPath(3), storeys: 2, basement: true });
     expect(plan).toMatchSnapshot();
   });

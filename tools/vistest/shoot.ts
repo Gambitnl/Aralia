@@ -5,6 +5,8 @@
  *   npx tsx tools/vistest/shoot.ts --fresh-module src/App.tsx --only crowd-commute
  *   npx tsx tools/vistest/shoot.ts --fresh-module src/App.tsx --base http://localhost:5174/Aralia/ --out .agent/vistest/captures
  *   npx tsx tools/vistest/shoot.ts --fresh-module src/App.tsx --width 1353 --height 1272 # constrained layout proof
+ *   npx tsx tools/vistest/shoot.ts --fresh-module src/App.tsx --expect-served-code "unique live expression" # A/B variant proof
+ *   A/B marker selection and the comment-stripping pitfall: tools/vistest/README.md
  *
  * Interprets each scenario's declarative capture recipe from
  * src/devtools/vistest/scenarios.ts against a running dev server and writes
@@ -32,6 +34,7 @@ const require = createRequire(import.meta.url);
 type FreshnessProbeResult = {
   ok: boolean;
   status: 'healthy' | 'liveness_failure' | 'freshness_failure';
+  freshness?: { modulePath?: string; actualHash?: string };
   [key: string]: unknown;
 };
 type WatchdogModule = {
@@ -62,6 +65,7 @@ type RunnerOptions = {
   viewportWidth: number;
   viewportHeight: number;
   freshnessModule: string;
+  expectedServedCode: string;
   probeTimeoutMs: number;
 };
 
@@ -77,6 +81,7 @@ const DEFAULT_OPTIONS: RunnerOptions = {
   viewportWidth: 1600,
   viewportHeight: 1000,
   freshnessModule: '',
+  expectedServedCode: '',
   probeTimeoutMs: 3000,
 };
 
@@ -93,6 +98,7 @@ const HELP_TEXT = [
   '  --width <pixels>       Viewport width (default: ' + DEFAULT_OPTIONS.viewportWidth + ')',
   '  --height <pixels>      Viewport height (default: ' + DEFAULT_OPTIONS.viewportHeight + ')',
   '  --fresh-module <path>  Required repo-relative source file to verify through Vite.',
+  '  --expect-served-code <text>  For A/B proof, require this code in the transformed module before capture.',
   '  --probe-timeout <ms>   Per-request preflight ceiling (default: ' + DEFAULT_OPTIONS.probeTimeoutMs + ')',
 ].join('\n');
 
@@ -118,7 +124,7 @@ function isIgnoredCaptureDirectory(outDir: string): boolean {
  */
 function parseCommand(argv: readonly string[]): ParsedCommand {
   const options: RunnerOptions = { ...DEFAULT_OPTIONS };
-  const valueFlags = new Set(['base', 'out', 'only', 'width', 'height', 'fresh-module', 'probe-timeout']);
+  const valueFlags = new Set(['base', 'out', 'only', 'width', 'height', 'fresh-module', 'expect-served-code', 'probe-timeout']);
 
   for (let index = 0; index < argv.length; index += 1) {
     const token = argv[index];
@@ -147,6 +153,7 @@ function parseCommand(argv: readonly string[]): ParsedCommand {
     if (name === 'out') options.outDir = value;
     if (name === 'only') options.only = value;
     if (name === 'fresh-module') options.freshnessModule = value;
+    if (name === 'expect-served-code') options.expectedServedCode = value;
 
     // Viewport dimensions are parsed here so invalid values cannot make the
     // runner start a browser and produce a misleadingly sized proof image.
@@ -173,6 +180,10 @@ function parseCommand(argv: readonly string[]): ParsedCommand {
     };
   }
 
+  if (options.expectedServedCode && !options.expectedServedCode.trim()) {
+    return { kind: 'error', message: 'vistest: --expect-served-code must name a nonblank code expression' };
+  }
+
   // The runner writes one PNG below this directory per scenario. Rejecting a
   // destination that Git would track protects product assets from accidental
   // generated files and leaves ignored scratch directories available for proof.
@@ -184,6 +195,61 @@ function parseCommand(argv: readonly string[]): ParsedCommand {
   }
 
   return { kind: 'run', options };
+}
+
+type ServedCodeProof = {
+  ok: boolean;
+  url: string;
+  expectedCode: string;
+  statusCode?: number;
+  error?: string;
+};
+
+/** Check the executed Vite module, not the raw-source wrapper that still contains stripped comments. */
+export async function probeServedCode({
+  baseUrl,
+  modulePath,
+  expectedCode,
+  timeoutMs,
+}: {
+  baseUrl: string;
+  modulePath: string;
+  expectedCode: string;
+  timeoutMs: number;
+}): Promise<ServedCodeProof> {
+  const base = new URL(baseUrl);
+  if (!base.pathname.endsWith('/')) base.pathname += '/';
+  const relativePath = modulePath.replace(/\\/g, '/');
+  if (!relativePath || relativePath.startsWith('/') || relativePath.split('/').includes('..')) {
+    return { ok: false, url: base.toString(), expectedCode, error: 'module path must stay below the Vite base' };
+  }
+  const url = new URL(relativePath, base);
+  url.searchParams.set('wf_g306_variant', `${Date.now()}`);
+  if (!expectedCode.trim()) {
+    return { ok: false, url: url.toString(), expectedCode, error: 'expected code expression is blank' };
+  }
+
+  try {
+    const response = await fetch(url, {
+      headers: { 'Cache-Control': 'no-cache, no-store', Pragma: 'no-cache' },
+      signal: AbortSignal.timeout(timeoutMs),
+    });
+    const statusCode = response.status;
+    if (!response.ok) {
+      return { ok: false, url: url.toString(), expectedCode, statusCode, error: `transformed module returned HTTP ${statusCode}` };
+    }
+    const contentType = response.headers.get('content-type') ?? '';
+    if (!/javascript|ecmascript/i.test(contentType)) {
+      return { ok: false, url: url.toString(), expectedCode, statusCode, error: `transformed module returned ${contentType || 'no content type'}, not JavaScript` };
+    }
+    const body = await response.text();
+    if (!body.includes(expectedCode)) {
+      return { ok: false, url: url.toString(), expectedCode, statusCode, error: 'expected code expression was not found in the transformed module (comments may have been stripped)' };
+    }
+    return { ok: true, url: url.toString(), expectedCode, statusCode };
+  } catch (error) {
+    return { ok: false, url: url.toString(), expectedCode, error: errorMessage(error) };
+  }
 }
 
 // ============================================================================
@@ -474,6 +540,7 @@ async function main({
   viewportWidth,
   viewportHeight,
   freshnessModule,
+  expectedServedCode,
   probeTimeoutMs,
 }: RunnerOptions): Promise<void> {
   const problems = validateScenarios(SCENARIOS);
@@ -500,15 +567,30 @@ async function main({
     repoRoot: process.cwd(),
     timeoutMs: probeTimeoutMs,
   });
+  const servedCodeProof = preflight.ok && expectedServedCode
+    ? await probeServedCode({
+      baseUrl: base,
+      modulePath: preflight.freshness?.modulePath ?? freshnessModule,
+      expectedCode: expectedServedCode,
+      timeoutMs: probeTimeoutMs,
+    })
+    : null;
   const evidencePath = watchdog.appendEvidence(watchdog.DEFAULT_EVIDENCE_PATH, {
     event: 'vistest_preflight',
     ...preflight,
+    ...(servedCodeProof ? { servedCodeProof } : {}),
   });
   if (!preflight.ok) {
     console.error(`vistest: preflight ${preflight.status.toUpperCase()}; no browser or capture output was created; evidence=${evidencePath}`);
     process.exitCode = 1;
     return;
   }
+  if (servedCodeProof && !servedCodeProof.ok) {
+    console.error(`vistest: preflight SERVED_VARIANT_FAILURE: ${servedCodeProof.error}; no browser or capture output was created; evidence=${evidencePath}`);
+    process.exitCode = 1;
+    return;
+  }
+  console.log(`vistest: preflight passed; source=${preflight.freshness?.actualHash ?? 'unknown'}; variant=${servedCodeProof?.expectedCode ?? 'not requested'}; evidence=${evidencePath}`);
 
   mkdirSync(outDir, { recursive: true });
 

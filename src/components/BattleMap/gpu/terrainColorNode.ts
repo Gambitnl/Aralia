@@ -124,7 +124,11 @@ const getRockColor = Fn(([wXZ]: [N]) => {
   const light = vec3(0.58, 0.55, 0.5);
   const dark = vec3(0.24, 0.22, 0.2);
   const ochre = vec3(0.48, 0.38, 0.26);
-  const c = mix(dark, light, macro.mul(0.45).add(0.38)).toVar();
+  /* Kept in step with the GLSL twin's GOAL #30 mineral-zone contrast: the
+   * granite<->basalt zones span most of the light/dark range so a rock area
+   * reads as distinct formations. The node graph had drifted back to the
+   * pre-#30 linear remap, which flattened exactly the contrast G12 needs. */
+  const c = mix(dark, light, smoothstep(0.22, 0.78, macro).mul(0.72).add(0.16)).toVar();
   c.mulAssign(float(0.55).add(smoothstep(0.0, 0.18, crack).mul(0.45)));
   c.mulAssign(float(0.88).add(smoothstep(0.0, 0.08, fine).mul(0.12)));
   const stain = smoothstep(0.62, 0.8, fbm4(wXZ.mul(0.28).add(vec2(71.0, 59.0))));
@@ -280,12 +284,19 @@ export function buildTerrainAlbedoNode(p: TerrainColorNodeParams): N {
     const fn = flatNormal();
     If(sType.equal(int(0)).or(sType.equal(int(2))).or(sType.equal(int(3))), () => {
       const slope = float(1.0).sub(clamp(fn.y, 0.0, 1.0));
-      const rocky = smoothstep(0.09, 0.24, slope).toVar();
+      /* slope_threshold / edge_sharpness (G12, 2026-09-09) — same numbers as
+       * the GLSL twin in terrain/terrainSurfaceMaterial.ts, which carries the
+       * measured rationale. 0.09/0.24 lit only ~31% of the ground next to a
+       * real elevation step at seed 424242; 0.04/0.16 lifts that to ~58% and
+       * leaves flat ground at ~1.5%. */
+      const rocky = smoothstep(0.04, 0.16, slope).toVar();
       If(rocky.greaterThan(0.001), () => {
-        const rockC = getRockColor(wXZ).mul(0.92);
+        /* rock_color_mix (G12): darker exposed rock + a higher mix ceiling, so a
+         * fully steep face reads as rock rather than as tinted grass. */
+        const rockC = getRockColor(wXZ).mul(0.86);
         const streak = fbm4(wXZ.mul(vec2(0.9, 2.6)).add(vec2(31.0, 5.0)));
         rocky.mulAssign(float(0.55).add(smoothstep(0.35, 0.65, streak).mul(0.45)));
-        terrainColor.assign(mix(terrainColor, rockC, clamp(rocky, 0.0, 1.0).mul(0.85)));
+        terrainColor.assign(mix(terrainColor, rockC, clamp(rocky, 0.0, 1.0).mul(0.95)));
       });
     });
 

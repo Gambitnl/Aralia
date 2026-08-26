@@ -20,6 +20,51 @@ it('returns empty geometry when there are no roads', () => {
   expect(mesh.indices).toHaveLength(0);
 });
 
+it('keeps the interiors of road faces above a terrain crest, not just their corners', () => {
+  const data = baseChunk();
+  data.resolution = 3;
+  data.heights = new Float32Array([50, 70, 50, 50, 70, 50, 50, 70, 50]);
+  const span = WORLD3D_CONFIG.CHUNK_WORLD_SIZE / WORLD3D_CONFIG.METERS_PER_CELL;
+  data.roads = [{ points: [{ x: 0, y: span / 2 }, { x: span, y: span / 2 }], width: [0.01, 0.01] }];
+  const mesh = buildRoadMesh(data);
+  expect(mesh.indices.length).toBeGreaterThan(6);
+  const low = heightToMeters(50), high = heightToMeters(70);
+  for (let i = 0; i < mesh.indices.length; i += 3) {
+    let x = 0, y = 0;
+    for (let j = 0; j < 3; j++) {
+      const v = mesh.indices[i + j] * 3;
+      x += mesh.positions[v] / 3;
+      y += mesh.positions[v + 1] / 3;
+    }
+    const fraction = x / WORLD3D_CONFIG.CHUNK_WORLD_SIZE;
+    const surface = low + (high - low) * (1 - Math.abs(2 * fraction - 1));
+    expect(y - surface).toBeCloseTo(0.3, 3);
+  }
+});
+
+it('preserves each paving layer across a nonplanar terrain-cell diagonal', () => {
+  const data = streetChunk(STREET_TIER_SPECS.plaza.colorHex);
+  data.resolution = 2;
+  data.heights = new Float32Array([50, 50, 50, 70]);
+  const low = heightToMeters(50), rise = heightToMeters(70) - low;
+  const lifts = new Set<number>();
+  const mesh = buildRoadMesh(data);
+  for (let i = 0; i < mesh.indices.length; i += 3) {
+    let x = 0, y = 0, z = 0;
+    for (let j = 0; j < 3; j++) {
+      const v = mesh.indices[i + j] * 3;
+      x += mesh.positions[v] / 3;
+      y += mesh.positions[v + 1] / 3;
+      z += mesh.positions[v + 2] / 3;
+    }
+    const surface = low + rise * Math.max(0, (x + z) / WORLD3D_CONFIG.CHUNK_WORLD_SIZE - 1);
+    const lift = y - surface;
+    expect(Math.min(Math.abs(lift - 0.39), Math.abs(lift - 0.4))).toBeLessThan(0.001);
+    lifts.add(Math.round(lift * 1000));
+  }
+  expect([...lifts].sort()).toEqual([390, 400]);
+});
+
 it('builds a ribbon for a road crossing the chunk', () => {
   const data = baseChunk();
   data.roads = [
@@ -118,6 +163,35 @@ it('is deterministic — identical chunk input produces identical buffers', () =
   expect(Array.from(a.positions)).toEqual(Array.from(b.positions));
   expect(Array.from(a.indices)).toEqual(Array.from(b.indices));
   expect(Array.from(a.colors)).toEqual(Array.from(b.colors));
+});
+
+it('fills the outside corner between separate street ends', () => {
+  const data = baseChunk();
+  data.roads = [
+    { points: [{ x: 0.03, y: 0.05 }, { x: 0.05, y: 0.05 }], width: [0.004, 0.004], colorHex: STREET_TIER_SPECS.plaza.colorHex },
+    { points: [{ x: 0.05, y: 0.05 }, { x: 0.05, y: 0.07 }], width: [0.004, 0.004], colorHex: STREET_TIER_SPECS.plaza.colorHex },
+  ];
+  const mesh = buildRoadMesh(data);
+  // This point lies outside both square-ended strips, inside their bevel.
+  const px = 0.05 * WORLD3D_CONFIG.METERS_PER_CELL + 0.5;
+  const pz = 0.05 * WORLD3D_CONFIG.METERS_PER_CELL - 0.5;
+  let paved = false;
+  for (let i = 0; i < mesh.indices.length; i += 3) {
+    const verts = Array.from(mesh.indices.slice(i, i + 3), v => [mesh.positions[v * 3], mesh.positions[v * 3 + 2]]);
+    const signs = verts.map((a, j) => {
+      const b = verts[(j + 1) % 3];
+      return (b[0] - a[0]) * (pz - a[1]) - (b[1] - a[1]) * (px - a[0]);
+    });
+    if (signs.every(s => s <= 0) || signs.every(s => s >= 0)) paved = true;
+  }
+  expect(paved).toBe(true);
+});
+
+it('keeps the whole plaza surface above an intersecting lane rut', () => {
+  const plaza = buildRoadMesh(streetChunk(STREET_TIER_SPECS.plaza.colorHex));
+  const lane = buildRoadMesh(streetChunk(STREET_TIER_SPECS.lane.colorHex));
+  const heights = (mesh: ReturnType<typeof buildRoadMesh>) => Array.from(mesh.positions).filter((_, i) => i % 3 === 1);
+  expect(Math.min(...heights(plaza))).toBeGreaterThan(Math.max(...heights(lane)));
 });
 
 it('drapes every ribbon vertex on the RENDERED slope, not the nearest height vertex (burial fix)', () => {

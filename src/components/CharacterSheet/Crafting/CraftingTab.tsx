@@ -5,7 +5,7 @@
  */
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { GatheringPanel, AlchemyBenchPanel, RefiningEnchantingPanel } from '../../Crafting';
+import { GatheringPanel, AlchemyBenchPanel, RefiningEnchantingPanel, SalvageModal } from '../../Crafting';
 
 interface CraftingTabProps {
     disabled?: boolean;
@@ -15,6 +15,7 @@ export const CraftingTab: React.FC<CraftingTabProps> = ({ disabled = false }) =>
     const [isGatheringPanelOpen, setIsGatheringPanelOpen] = useState(false);
     const [isAlchemyBenchOpen, setIsAlchemyBenchOpen] = useState(false);
     const [isRefiningEnchantingOpen, setIsRefiningEnchantingOpen] = useState(false);
+    const [isSalvageOpen, setIsSalvageOpen] = useState(false);
 
     return (
         <>
@@ -38,10 +39,15 @@ export const CraftingTab: React.FC<CraftingTabProps> = ({ disabled = false }) =>
                 <RefiningEnchantingPanel onClose={() => setIsRefiningEnchantingOpen(false)} />
             )}
 
+            {/* Salvage Workshop: also a WindowFrame — no backdrop wrapper needed. */}
+            {isSalvageOpen && (
+                <SalvageModal onClose={() => setIsSalvageOpen(false)} />
+            )}
+
             <div className="h-full flex flex-col gap-6 p-4">
                 <h2 className="text-xl font-semibold text-amber-300">Crafting & Gathering</h2>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                     {/* Gathering Button */}
                     <motion.button
                         onClick={() => setIsGatheringPanelOpen(true)}
@@ -100,6 +106,26 @@ export const CraftingTab: React.FC<CraftingTabProps> = ({ disabled = false }) =>
                         <span className="text-4xl">🔥</span>
                         <span className="text-lg font-medium">Refinery &amp; Enchanting</span>
                         <span className="text-sm text-gray-300/80">Smelt ores into ingots, then bind magic into weapons and rings</span>
+                    </motion.button>
+
+                    {/* Salvage Workshop Button */}
+                    <motion.button
+                        onClick={() => setIsSalvageOpen(true)}
+                        disabled={disabled}
+                        whileTap={!disabled ? { scale: 0.98 } : undefined}
+                        whileHover={!disabled ? { scale: 1.02 } : undefined}
+                        className={`
+              flex flex-col items-center gap-3 p-6 rounded-xl
+              border-2 transition-all duration-200
+              ${!disabled
+                                ? 'bg-gradient-to-br from-amber-900/60 to-amber-800/40 border-amber-600/50 hover:border-amber-400 hover:shadow-lg hover:shadow-amber-900/30 text-white cursor-pointer'
+                                : 'bg-gray-700/50 border-gray-600/50 text-gray-400 cursor-not-allowed'
+                            }
+            `}
+                    >
+                        <span className="text-4xl">⚒️</span>
+                        <span className="text-lg font-medium">Salvage Workshop</span>
+                        <span className="text-sm text-gray-300/80">Break down weapons, armor, and gear into raw crafting components</span>
                     </motion.button>
                 </div>
             </div>

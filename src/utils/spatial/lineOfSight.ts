@@ -1,11 +1,11 @@
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
- * SHARED UTILITY: Multiple systems rely on these exports.
+ * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 13/08/2026, 15:05:43
- * Dependents: components/BattleMap/BattleMapOverlay.tsx, hooks/combat/engine/useCombatEngine.ts, systems/combat/fallingGroundImpactResolution.ts, systems/combat/reactions/companionProtectionReaction.ts, systems/spells/mechanics/reactiveDamageRetaliationResolution.ts, systems/spells/mechanics/witchBoltOngoingResolution.ts, utils/combat/combatAI.ts, utils/combat/combatUtils.ts, utils/spatial/index.ts
- * Imports: 1 files
+ * Last Sync: 26/08/2026, 03:25:28
+ * Dependents: components/BattleMap/BattleMapOverlay.tsx, components/DesignPreview/steps/scenarioControls/elevationRangeScenarioControls.ts, hooks/combat/engine/useCombatEngine.ts, systems/combat/fallingGroundImpactResolution.ts, systems/combat/objectInteractionResolution.ts, systems/combat/reactions/companionProtectionReaction.ts, systems/spells/mechanics/areaDamageSpellCastResolution.ts, systems/spells/mechanics/reactiveDamageRetaliationResolution.ts, systems/spells/mechanics/witchBoltOngoingResolution.ts, utils/combat/combatAI.ts, utils/combat/combatUtils.ts, utils/spatial/index.ts
+ * Imports: 2 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -69,11 +69,12 @@ export function bresenhamLine(x0: number, y0: number, x1: number, y1: number): {
 /**
  * Checks if there is a clear line of sight between two tiles, considering obstacles.
  *
- * NOTE: Current implementation uses a simplified elevation check. Any tile flagged with `blocksLoS`
- * between the start and end points will completely block vision, regardless of relative elevations.
+ * Elevation-aware sight (G14): opaque `blocksLoS` tiles still block as before,
+ * and terrain relief whose surface rises to meet the eye ray also blocks, so
+ * ridges and crests grant genuine cover. Authored low blockers can be seen over
  *
- * Future improvements should compare tile elevations (e.g. looking down from a cliff should
- * ignore low walls).
+ * (e.g. looking down from a cliff ignores a low wall), while walls without an
+ * authored top remain fully opaque regardless of elevation.
  *
  * @param startTile - The tile where the line of sight originates.
  * @param endTile - The tile being targeted.
@@ -122,6 +123,14 @@ export function hasLineOfSight(
     // But currently we treat all blocksLoS tiles as infinite height walls.
     const isEndPoint = i === line.length - 1;
     const progress = line.length <= 1 ? 1 : i / (line.length - 1);
+    // Terrain relief occludes sight too: a crest whose surface reaches the
+    // eye ray at this point blocks the view even without an opaque flag.
+    // Endpoints stay exempt because standing on high ground must not hide
+    // the observer, and the target's own visibility is judged above.
+    const rayHeightFeet = startEyeFeet + (endEyeFeet - startEyeFeet) * progress;
+    if (!isEndPoint && tile && getBattleMapTileAltitudeFeet(tile) >= rayHeightFeet) {
+      return false;
+    }
     if (blockerIntersectsRay(tile, progress) && (includeEndTileBlocker || !isEndPoint)) {
        return false;
     }

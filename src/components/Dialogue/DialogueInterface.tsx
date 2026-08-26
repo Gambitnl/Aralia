@@ -14,7 +14,7 @@
  */
 // @dependencies-end
 
-import React, { useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import type { DialogueSession, ConversationTopic } from '../../types/dialogue';
 import type { GameState, NPC, PlayerCharacter } from '../../types';
 import {
@@ -22,6 +22,17 @@ import {
     processTopicSelection,
     type ProcessTopicResult,
 } from '../../services/dialogueService';
+import { loadDialogueGraph } from '../../systems/dialogue/dialogueGraphLoader';
+import {
+    advanceLinear,
+    getAvailableChoices,
+    getNode,
+} from '../../systems/dialogue/dialogueGraphRuntime';
+import type {
+    DialogueGraph,
+    DialogueGraphContext,
+    DialogueEffectOutcome,
+} from '../../systems/dialogue/dialogueGraphTypes';
 import { WindowFrame } from '../ui/WindowFrame';
 import { DialogueConversationView } from './DialogueConversationView';
 import { WINDOW_KEYS } from '../../styles/uiIds';
@@ -59,6 +70,28 @@ interface DialogueInterfaceProps {
      * gate explains ineligible cases instead of hiding the action in advance.
      */
     onInvite?: (npcId: string) => void;
+    /**
+     * Scripted-conversation mode (DIAL-001). Supply either an already-loaded
+     * `dialogueGraph` or a `dialogueGraphId` to fetch through the loader. When
+     * one is present this window plays the authored graph instead of the
+     * free-form topic pool; when neither is, nothing about the existing topic
+     * behavior changes.
+     */
+    dialogueGraph?: DialogueGraph;
+    dialogueGraphId?: string;
+    /**
+     * Initial gating context for graph conditions (quest statuses, inventory,
+     * time of day, flags). Disposition defaults to this NPC's stored value.
+     * Kept separate from `gameState` so a preview can drive a graph without a
+     * save, and so the graph system never binds to the game state shape.
+     */
+    graphContext?: DialogueGraphContext;
+    /**
+     * Receives the effects a graph node fired, resolved but NOT applied. The
+     * parent's reducer stays the only writer of items, quests, disposition,
+     * topic unlocks, and flags.
+     */
+    onGraphEffects?: (outcomes: DialogueEffectOutcome[]) => void;
 }
 
 // ============================================================================
@@ -78,6 +111,10 @@ export const DialogueInterface: React.FC<DialogueInterfaceProps> = ({
     onTopicOutcome,
     onGenerateResponse,
     onInvite,
+    dialogueGraph,
+    dialogueGraphId,
+    graphContext,
+    onGraphEffects,
 }) => {
     // Seed the visible reply from the most recent game response. Fresh sessions
     // still receive a readable greeting before an AI reply has been generated.
@@ -86,6 +123,106 @@ export const DialogueInterface: React.FC<DialogueInterfaceProps> = ({
     );
     const [isThinking, setIsThinking] = useState(false);
     const [lastTopicResult, setLastTopicResult] = useState<ProcessTopicResult | null>(null);
+
+    // ------------------------------------------------------------------
+    // Scripted graph mode (DIAL-001)
+    // ------------------------------------------------------------------
+    // Graph playback lives beside the topic flow rather than replacing it.
+    // The two answer different needs: authored graphs give exact wording and
+    // deterministic branching, the topic pool gives open-ended, LLM-voiced
+    // conversation. A caller picks per conversation.
+    const [loadedGraph, setLoadedGraph] = useState<DialogueGraph | null>(null);
+    const [graphError, setGraphError] = useState<string | null>(null);
+    const activeGraph = dialogueGraph ?? loadedGraph;
+
+    // Fetch by id only when no graph object was handed in. Cancellation via the
+    // `cancelled` guard keeps a slow fetch from resolving into a closed window.
+    useEffect(() => {
+        if (dialogueGraph || !dialogueGraphId) return undefined;
+        let cancelled = false;
+        setGraphError(null);
+        loadDialogueGraph(dialogueGraphId)
+            .then((graph) => {
+                if (!cancelled) setLoadedGraph(graph);
+            })
+            .catch((error: unknown) => {
+                if (!cancelled) {
+                    setLoadedGraph(null);
+                    setGraphError(error instanceof Error ? error.message : String(error));
+                }
+            });
+        return () => {
+            cancelled = true;
+        };
+    }, [dialogueGraph, dialogueGraphId]);
+
+    // Disposition seeds the graph context so a `disposition` condition works
+    // against the same number the header shows, without the graph system having
+    // to know what `npcMemory` is.
+    const storedDisposition = gameState.npcMemory?.[npc.id]?.disposition ?? 0;
+    const [graphState, setGraphState] = useState<{
+        nodeId: string | null;
+        context: DialogueGraphContext;
+    }>({ nodeId: null, context: {} });
+
+    // Entering a graph (or switching to a different one) replays its opening
+    // linear run so the player sees the full authored lead-in at once.
+    useEffect(() => {
+        if (!activeGraph) {
+            setGraphState({ nodeId: null, context: {} });
+            return;
+        }
+        const startContext: DialogueGraphContext = {
+            disposition: storedDisposition,
+            ...graphContext,
+        };
+        const run = advanceLinear(activeGraph, activeGraph.startNodeId, startContext);
+        setGraphState({ nodeId: run.nodeId, context: run.context });
+        if (run.outcomes.length > 0) onGraphEffects?.(run.outcomes);
+        // `graphContext`/`onGraphEffects` are intentionally excluded: a parent
+        // re-creating either object each render must not restart the
+        // conversation from its first line.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [activeGraph, storedDisposition]);
+
+    const graphNode = useMemo(
+        () => (activeGraph && graphState.nodeId ? getNode(activeGraph, graphState.nodeId) : undefined),
+        [activeGraph, graphState.nodeId],
+    );
+
+    const graphChoices = useMemo(
+        () => getAvailableChoices(graphNode, graphState.context),
+        [graphNode, graphState.context],
+    );
+
+    // Graph choices are presented through the SAME view as topics so scripted
+    // and free-form conversation look identical to the player. Reusing
+    // `ConversationTopic` here avoids a second button component and a second
+    // visual standard; only the fields the view reads are populated.
+    const graphChoiceTopics = useMemo<ConversationTopic[]>(
+        () =>
+            graphChoices.map((choice, index) => ({
+                id: `graph-choice-${index}`,
+                label: choice.text,
+                category: 'personal',
+                playerPrompt: choice.text,
+            })),
+        [graphChoices],
+    );
+
+    const handleGraphChoice = useCallback(
+        (topic: ConversationTopic) => {
+            if (!activeGraph) return;
+            const index = Number(topic.id.replace('graph-choice-', ''));
+            const choice = graphChoices[index];
+            if (!choice) return;
+
+            const run = advanceLinear(activeGraph, choice.nextNodeId, graphState.context);
+            setGraphState({ nodeId: run.nodeId, context: run.context });
+            if (run.outcomes.length > 0) onGraphEffects?.(run.outcomes);
+        },
+        [activeGraph, graphChoices, graphState.context, onGraphEffects],
+    );
 
     // Topic availability depends on current game state, NPC knowledge, and what
     // this session already discussed. Recalculate only when those inputs change.
@@ -120,7 +257,24 @@ export const DialogueInterface: React.FC<DialogueInterfaceProps> = ({
 
         // Dialogue service owns costs, checks, unlocks, and the prompt used for
         // the NPC reply. The UI surfaces the result but does not duplicate rules.
-        const result = processTopicSelection(topic.id, gameState, session, skillMod, npc);
+        //
+        // processTopicSelection throws on an id it cannot resolve. Unhandled,
+        // that throw escapes this async handler to the ErrorBoundary wrapping
+        // the mount in GameModals and tears the conversation down mid-sentence
+        // (agora-f821.27). A stale session or a graph-choice id reaching this
+        // handler is a lookup miss, not a reason to end the conversation, so it
+        // is reported inside the window and the session is left untouched: no
+        // discussedTopicIds append, no outcome, no AI call.
+        let result: ProcessTopicResult;
+        try {
+            result = processTopicSelection(topic.id, gameState, session, skillMod, npc);
+        } catch (error: unknown) {
+            const reason = error instanceof Error ? error.message : String(error);
+            setLastTopicResult(null);
+            setCurrentResponse(`(That subject leads nowhere: ${reason})`);
+            setIsThinking(false);
+            return;
+        }
         setLastTopicResult(result);
 
         // Mark the topic discussed immediately so repeated clicks cannot race a
@@ -128,7 +282,6 @@ export const DialogueInterface: React.FC<DialogueInterfaceProps> = ({
         const newSession: DialogueSession = {
             ...session,
             discussedTopicIds: [...session.discussedTopicIds, topic.id],
-            availableTopicIds: session.availableTopicIds,
         };
         onUpdateSession(newSession);
 
@@ -149,7 +302,15 @@ export const DialogueInterface: React.FC<DialogueInterfaceProps> = ({
     // focus above the game world.
     if (!isOpen || !session) return null;
 
-    const disposition = gameState.npcMemory[npc.id]?.disposition || 0;
+    const disposition = graphState.context.disposition ?? storedDisposition;
+
+    // In graph mode the visible line is the authored node text (or the loader's
+    // error, which is surfaced rather than swallowed so a broken content file
+    // is obvious in play instead of showing an empty window).
+    const isGraphMode = Boolean(activeGraph) || Boolean(dialogueGraphId);
+    const graphResponse = graphError
+        ? `(Dialogue unavailable: ${graphError})`
+        : graphNode?.text ?? (activeGraph ? null : 'Loading...');
 
     return (
         <WindowFrame
@@ -167,11 +328,15 @@ export const DialogueInterface: React.FC<DialogueInterfaceProps> = ({
                 body. Only this controller can execute game and AI effects. */}
             <DialogueConversationView
                 npcDescription={npc.baseDescription}
-                currentResponse={currentResponse}
-                isThinking={isThinking}
-                topicResult={lastTopicResult}
-                topics={availableTopics}
-                onTopicSelect={(topic) => void handleTopicSelect(topic)}
+                currentResponse={isGraphMode ? graphResponse : currentResponse}
+                isThinking={isGraphMode ? false : isThinking}
+                topicResult={isGraphMode ? null : lastTopicResult}
+                topics={isGraphMode ? graphChoiceTopics : availableTopics}
+                onTopicSelect={
+                    isGraphMode
+                        ? handleGraphChoice
+                        : (topic) => void handleTopicSelect(topic)
+                }
                 onInvite={onInvite ? () => onInvite(npc.id) : undefined}
                 onEndConversation={onClose}
             />

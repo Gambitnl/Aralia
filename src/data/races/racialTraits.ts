@@ -1,10 +1,10 @@
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 31/05/2026, 19:21:27
- * Dependents: utils/character/characterUtils.ts
+ * Last Sync: 20/09/2026, 21:00:39
+ * Dependents: components/DesignPreview/steps/raceDomain/leaves/autognomeRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/blackDragonbornRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/blueDragonbornRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/brassDragonbornRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/bronzeDragonbornRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/copperDragonbornRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/draconbloodDragonbornRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/fireGenasiRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/forestGnomeRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/forgebornHumanRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/giffRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/goblinRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/goldDragonbornRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/greenDragonbornRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/guardianHumanRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/hadozeeRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/halfOrcRaceLeaf.tsx, utils/character/stats.ts, utils/combat/combatUtils.ts
  * Imports: 2 files
  *
  * MULTI-AGENT SAFETY:
@@ -242,12 +242,26 @@ const DAMAGE_TYPE_SYNONYMS: Record<string, string> = {
   thunder: 'Thunder',
 };
 
+/**
+ * Canonical race prose carries display markup: glossary links ([[id|Label]]),
+ * Markdown links ([Label](href)) and emphasis (**Label**). Those wrappers split
+ * rule words such as "resistance", "advantage" and "Long Rest" away from the
+ * sentence shapes every parser below matches on, so each race leaf had to strip
+ * them locally before it could call in. Normalize once, at the parser boundary,
+ * before anything is cached in the shared racial trait library.
+ */
+export const normalizeRacialTraitDisplayText = (text: string): string => text
+  .replace(/\[\[(?:[^|\]]+\|)?([^\]]+)\]\]/g, '$1')
+  .replace(/\[([^\]]+)\]\([^)]*\)/g, '$1')
+  .replace(/\*\*([^*]+)\*\*/g, '$1')
+  .replace(/\*([^*\n]+)\*/g, '$1');
+
 const normalizeDefenseTokens = (value: string): string[] => {
   const normalized = value
     .toLowerCase()
-    .replace(/[^a-z\\s]/g, ' ')
-    .replace(/\\b(non[-\\s]?magical|magical|spell|damage|type|types|effect|effects)\\b/g, ' ')
-    .split(/\\s+/)
+    .replace(/[^a-z\s]/g, ' ')
+    .replace(/\b(non[-\s]?magical|magical|spell|damage|type|types|effect|effects)\b/g, ' ')
+    .split(/\s+/)
     .map((token) => token.trim())
     .filter(Boolean);
 
@@ -283,7 +297,7 @@ const extractDefenseBuckets = (text: string): RacialDefenseBuckets => {
 
   const trimClause = (clause: string): string => {
     const nextMarker = clause.search(
-      /\\b(resistance|resistant|immunity|immune|vulnerability|vulnerable)\\s+(?:to|against)\\b/i
+      /\b(resistance|resistant|immunity|immune|vulnerability|vulnerable)\s+(?:to|against)\b/i
     );
     if (nextMarker > 0) return clause.slice(0, nextMarker).trim();
     return clause.trim();
@@ -308,7 +322,7 @@ const extractDefenseBuckets = (text: string): RacialDefenseBuckets => {
 };
 
 export const getRacialDefenseBucketsFromTraitText = (traitText: string): RacialDefenseBuckets =>
-  extractDefenseBuckets(traitText);
+  extractDefenseBuckets(normalizeRacialTraitDisplayText(traitText));
 
 // ============================================================================
 // Racial Modifier Parsing and Extraction
@@ -339,6 +353,23 @@ const extractModifierBuckets = (text: string): RacialModifierBuckets => {
   const disMatch = text.match(/disadvantage on ([^.;]+)/gi);
   if (disMatch) {
     disMatch.forEach(match => buckets.disadvantage.push(match.replace(/disadvantage on /i, '').trim()));
+  }
+
+  // Some traits state the advantage after the roll rather than before it:
+  // "When you make a Charisma (Intimidation or Persuasion) check, you can do so
+  // with advantage." Record those in the same "<subject> checks" shape the
+  // advantage bucket already uses. Both quantifiers are bounded, so the scan
+  // stays linear (CodeQL js/redos).
+  const checkAdvantageRegex = /\b(?:make|makes|making)\s+(?:a|an)\s+([^.;]{1,80}?)\s+check\b([^.;]{0,120})/gi;
+  let checkAdvantageMatch: RegExpExecArray | null;
+  while ((checkAdvantageMatch = checkAdvantageRegex.exec(text)) !== null) {
+    if (!/\bwith advantage\b/i.test(checkAdvantageMatch[2])) continue;
+    const checkSubject = checkAdvantageMatch[1].trim();
+    if (!checkSubject) continue;
+    const checkEntry = `${checkSubject} checks`;
+    if (!buckets.advantage.includes(checkEntry)) {
+      buckets.advantage.push(checkEntry);
+    }
   }
 
   // Look for custom base Armor Class overrides.
@@ -449,22 +480,46 @@ const extractModifierBuckets = (text: string): RacialModifierBuckets => {
   // Parse breath weapon parameters if this trait describes a dragonborn-style breath weapon.
   if (/Breath\s+Weapon/i.test(text)) {
     const areaMatch = text.match(/(\d+)-foot\s+(cone|line)/i);
-    const saveMatch = text.match(/\b(Dexterity|Constitution)\b\s+saving\s+throw/i);
-    const damageMatch = text.match(/(\d+d\d+)\s+([a-z]+)\s+damage/i);
-    
-    if (areaMatch && saveMatch && damageMatch) {
+    // 2024 rows state the save as a DC formula ("The Saving Throw DC is 8 +
+    // your Constitution modifier"), so accept that wording beside the older
+    // "<Ability> saving throw" phrasing.
+    const saveMatch = text.match(/\b(Dexterity|Constitution)\b\s+(?:saving\s+throw|modifier)/i);
+    // "1d10 Acid damage" names dice and type together; the 2024 rows split them
+    // ("an exhalation of Acid damage ... a creature takes 1d10 damage").
+    const inlineDamageMatch = text.match(/(\d+d\d+)\s+([a-z]+)\s+damage/i);
+    const damageDice = inlineDamageMatch?.[1] ?? text.match(/(\d+d\d+)\s+damage/i)?.[1];
+    const damageType = inlineDamageMatch?.[2] ?? text.match(/exhalation of\s+([a-z]+)\s+damage/i)?.[1];
+
+    if (areaMatch && saveMatch && damageDice && damageType) {
       const scaling: { level: number; dice: string }[] = [];
       const scalingMatches = [...text.matchAll(/(\d+d\d+)\s+at\s+(\d+)(?:st|nd|rd|th)?\s+level/gi)];
       scalingMatches.forEach(m => {
         scaling.push({ level: parseInt(m[2], 10), dice: m[1] });
       });
 
+      // Compact 2024 phrasing states one increment for several levels ("damage
+      // increases by 1d10 at levels 5, 11, and 17"). Expand it into the
+      // cumulative dice each listed level actually rolls.
+      const incrementMatch = text.match(/damage increases by (\d+)d(\d+)\s+at levels?\s+([^.;]+)/i);
+      if (scaling.length === 0 && incrementMatch) {
+        const incrementDice = parseInt(incrementMatch[1], 10);
+        const baseDiceMatch = damageDice.match(/(\d+)d(\d+)/i);
+        const baseCount = baseDiceMatch ? parseInt(baseDiceMatch[1], 10) : 1;
+        const baseSides = baseDiceMatch ? parseInt(baseDiceMatch[2], 10) : parseInt(incrementMatch[2], 10);
+        [...incrementMatch[3].matchAll(/\d+/g)].forEach((levelMatch, index) => {
+          scaling.push({
+            level: parseInt(levelMatch[0], 10),
+            dice: `${baseCount + (index + 1) * incrementDice}d${baseSides}`,
+          });
+        });
+      }
+
       buckets.breathWeapon = {
         areaShape: areaMatch[2].toLowerCase() as 'cone' | 'line',
         areaSize: parseInt(areaMatch[1], 10),
         saveAbility: saveMatch[1] as AbilityScoreName,
-        damageDice: damageMatch[1],
-        damageType: damageMatch[2],
+        damageDice,
+        damageType,
         scaling
       };
     }
@@ -490,13 +545,17 @@ const extractModifierBuckets = (text: string): RacialModifierBuckets => {
 };
 
 export const getRacialModifierBucketsFromTraitText = (traitText: string): RacialModifierBuckets =>
-  extractModifierBuckets(traitText);
+  extractModifierBuckets(normalizeRacialTraitDisplayText(traitText));
 
 const isSpellTokenAcceptable = (rawSpellId: string): boolean => {
   const token = normalizeSpellToken(rawSpellId);
   if (!token || token.length < 2) return false;
   if (!/^[a-z]/i.test(token)) return false;
   if (INVALID_RACIAL_SPELL_TOKENS.has(token.toLowerCase())) return false;
+  // A multi-word capture that opens with a pronoun or an article is prose a
+  // sentence parser over-reached into ("them using any spell slots you have"),
+  // never a spell name. Reject it rather than cache an invalid grant.
+  if (INVALID_RACIAL_SPELL_TOKENS.has(token.toLowerCase().split('-')[0])) return false;
   if (/^(?:can|also|be|cast|with|using|without|at|level|from|or|and|of|to|by|for|your|you)$/.test(token.toLowerCase())) {
     return false;
   }
@@ -611,6 +670,11 @@ const parseFeatureMaxLevel = (trait: string): number | undefined => {
 const parseSpellCastingMethodFromText = (trait: string): RacialSpellCastingMethod => {
   if (/\bonce per short rest\b/i.test(trait)) return 'once_per_short_rest';
   if (/\bonce per long rest\b/i.test(trait)) return 'once_per_long_rest';
+  // "once with this trait, and you regain the ability to do so when you finish
+  // a Long Rest" is the 2024 phrasing of the same budget. The bounded gap keeps
+  // the scan linear and stops it crossing into the next sentence.
+  if (/\bonce\b[^.;]{0,160}\bfinish a short rest\b/i.test(trait)) return 'once_per_short_rest';
+  if (/\bonce\b[^.;]{0,160}\bfinish a long rest\b/i.test(trait)) return 'once_per_long_rest';
   return 'at_will';
 };
 
@@ -633,6 +697,13 @@ const parseSpellMaxCastLevel = (spellText: string): number | undefined => {
 const parseCountedAsPrepared = (trait: string): boolean => {
   if (/\bprepared\b/i.test(trait)) return true;
   return false;
+};
+
+/** Return only the sentence that contains the given index. */
+const sliceSentenceAt = (text: string, index: number): string => {
+  const start = text.lastIndexOf('.', index) + 1;
+  const end = text.indexOf('.', index);
+  return text.slice(start, end === -1 ? text.length : end + 1).trim();
 };
 
 const parseSpellLevelFromPhrase = (text: string): number => {
@@ -735,7 +806,9 @@ const extractSpellGrantsFromTraitText = (
     });
   });
 
-  const anyCastMatches = [...traitDescription.matchAll(/cast (?:the )?([a-z0-9_' -]+?) spell\b/gi)];
+  // "spell" in "cast them using any spell slots you have" belongs to the slot
+  // permission, not to a spell name; the lookahead keeps the scan off it.
+  const anyCastMatches = [...traitDescription.matchAll(/cast (?:the )?([a-z0-9_' -]+?) spell\b(?!\s*slots?\b)/gi)];
   anyCastMatches.forEach((match) => {
     const rawSpells = splitSpellNames(match[1]);
     const matchContext = traitDescription.slice(0, (match.index ?? 0) + match[0].length);
@@ -757,6 +830,35 @@ const extractSpellGrantsFromTraitText = (
         upcastable: parseCastingUpcastability(localTrait),
         maxCastLevel: parseSpellMaxCastLevel(localTrait),
         countsAsPrepared: parseCountedAsPrepared(localTrait),
+      });
+    });
+  });
+
+  // Canonical prose names the spell in title case and usually omits the word
+  // "spell": "Starting at 3rd level, you can cast False Life once per long
+  // rest." Read only the sentence the phrase sits in, so the level and the rest
+  // budget come from that clause rather than an earlier one.
+  const namedCastMatches = [...traitDescription.matchAll(
+    /\bcast\s+(?:the\s+)?([A-Z][A-Za-z']*(?:\s+(?:of|with|the|and|in)\s+[A-Z][A-Za-z']*|\s+[A-Z][A-Za-z']*){0,3})/g
+  )];
+  namedCastMatches.forEach((match) => {
+    const sentence = sliceSentenceAt(traitDescription, match.index ?? 0);
+    const spellAbility = inferSpellAbilityFromText(traitDescription);
+    splitSpellNames(match[1]).forEach((spellId) => {
+      addGrant({
+        type: 'spell',
+        sourceRaceId: race.id,
+        sourceRaceName: race.name,
+        traitName,
+        traitDescription,
+        minLevel: parseSpellLevelFromPhrase(sentence),
+        maxLevel: parseFeatureMaxLevel(traitDescription),
+        spellId,
+        castingMethod: parseSpellCastingMethodFromText(sentence),
+        spellAbility,
+        upcastable: parseCastingUpcastability(sentence),
+        maxCastLevel: parseSpellMaxCastLevel(sentence),
+        countsAsPrepared: parseCountedAsPrepared(sentence),
       });
     });
   });
@@ -809,7 +911,11 @@ const extractChoicesFromTrait = (
       const grants = extractSpellGrantsFromTraitText(race, traitName, trait);
       grants.forEach((grant) => requiredSpellIds.add(grant.spellId));
 
-      const isManualChoiceHint = /choose when you select this race/i.test(trait);
+      // "chosen when you select your legacy", "choose when you select this
+      // species" and "choose when you select this race" are the same offer. A
+      // trait that states it IS the choice, whether or not a spell name was
+      // parsed out of the same sentence.
+      const isManualChoiceHint = /\b(?:choose|chosen)\b[^.;]{0,60}\bwhen you select\b/i.test(trait);
       if (requiredSpellIds.size > 0 || isManualChoiceHint || availableSpellIds) {
          choices.push({
           type: 'spellAbility',
@@ -877,6 +983,19 @@ const extractChoicesFromTrait = (
 
 const buildRacialChoiceRequirementFromLegacyRaceField = (race: Race): RacialChoiceRequirement | null => {
   if (!race.racialSpellChoice) return null;
+  // The legacy race field states its ability list in prose ("Intelligence,
+  // Wisdom, or Charisma"). Project it so consumers of this choice read the same
+  // availableAbilities the text parser produces for a modern trait. Some rows
+  // summarize instead of listing, so fall through to the canonical trait the
+  // field names - that row is the source both readings come from.
+  const choiceTraitPrefix = `${race.racialSpellChoice.traitName.toLowerCase()}:`;
+  const canonicalChoiceTrait = race.traits.find(trait => (
+    normalizeRacialTraitDisplayText(trait).trim().toLowerCase().startsWith(choiceTraitPrefix)
+  ));
+  const describedAbilities = parseChoicePromptAbilities(race.racialSpellChoice.traitDescription);
+  const availableAbilities = describedAbilities.length > 0
+    ? describedAbilities
+    : parseChoicePromptAbilities(normalizeRacialTraitDisplayText(canonicalChoiceTrait ?? ''));
   return {
     type: 'spellAbility',
     id: `${race.id}::legacy-choice`,
@@ -886,6 +1005,7 @@ const buildRacialChoiceRequirementFromLegacyRaceField = (race: Race): RacialChoi
     sourceTraitDescription: race.racialSpellChoice.traitDescription,
     sourceText: race.racialSpellChoice.traitDescription,
     requiredSpellIds: race.knownSpells ? race.knownSpells.map(spell => spell.spellId) : [],
+    availableAbilities: availableAbilities.length > 0 ? availableAbilities : undefined,
   };
 };
 
@@ -981,7 +1101,9 @@ const extractRacialReactions = (text: string, raceId: string, traitName: string)
       id: `${raceId}__${toResourceSlug(traitName)}__reaction`,
       name: traitName,
       description: text,
-      trigger: { type: 'on_target_takes_damage' }, // Placeholder
+      // The trait fires on the failed save it adds to, not on damage taken. The
+      // damage trigger made this reaction offer itself on every hit instead.
+      trigger: { type: 'on_failed_saving_throw' },
       condition: {
         type: 'save',
         saveType: saveType
@@ -1023,7 +1145,9 @@ const extractRacialReactions = (text: string, raceId: string, traitName: string)
   return reactions;
 };
 
-const buildRacialTextFeatureTrait = (race: Race, trait: string): RacialFeatureTrait => {
+const buildRacialTextFeatureTrait = (race: Race, rawTrait: string): RacialFeatureTrait => {
+  // Idempotent: the library normalizes before it calls in; direct callers may not.
+  const trait = normalizeRacialTraitDisplayText(rawTrait);
   const featureNameMatch = trait.match(/^([^:]+):\s*(.*)$/);
   const traitName = featureNameMatch ? featureNameMatch[1].trim() : `${race.name} racial trait`;
   const traitDescription = featureNameMatch ? featureNameMatch[2].trim() : trait;
@@ -1056,6 +1180,9 @@ const buildRacialTextFeatureTrait = (race: Race, trait: string): RacialFeatureTr
       reachBonus: modifierBuckets.reachBonus,
       powerfulBuild: modifierBuckets.powerfulBuild,
       unendingBreath: modifierBuckets.unendingBreath,
+      // Parsed but previously dropped here, which is why every dragonborn leaf
+      // had to re-parse its own breath weapon.
+      breathWeapon: modifierBuckets.breathWeapon,
       languages: modifierBuckets.languages ? [...modifierBuckets.languages] : undefined,
       reactions: reactions.length > 0 ? reactions : undefined,
       skillProficiencies: modifierBuckets.skillProficiencies ? [...modifierBuckets.skillProficiencies] : [],
@@ -1160,25 +1287,44 @@ export const buildRacialTraitLibrary = (races: Record<string, Race>): RacialTrai
 
     const spellTraitName = race.racialSpellChoice?.traitName ?? buildDefaultTraitName(race);
     const spellTraitDescription = race.racialSpellChoice?.traitDescription ?? buildDefaultTraitDescription(race);
-    const knownSpellIds = new Set(race.knownSpells?.map(spell => spell.spellId) ?? []);
+    const legacyKnownSpells = race.knownSpells ?? [];
+    const knownSpellIds = new Set(legacyKnownSpells.map(spell => spell.spellId));
+    // A legacy knownSpells row wins de-duplication against the same spell parsed
+    // out of the trait sentence, so keep each row beside its source record and
+    // fill back only the metadata the row itself left unstated.
+    const legacySpellRows = new Map<string, { trait: RacialSpellTrait; source: RacialSpell }>();
 
-    if (race.knownSpells?.length) {
-      const spellTraits = race.knownSpells.map((spell) =>
+    if (legacyKnownSpells.length) {
+      const spellTraits = legacyKnownSpells.map((spell) =>
         buildRacialSpellTraitFromRacialSpell(race, spellTraitName, spellTraitDescription, spell)
       );
       traits.push(...spellTraits);
-      spellTraits.forEach((trait) => {
+      spellTraits.forEach((trait, index) => {
           allSpells.push(trait);
         addToRecord(bySpellId, trait.spellId, trait);
+        legacySpellRows.set(trait.spellId, { trait, source: legacyKnownSpells[index] });
       });
     }
 
     const textTraitSpells: RacialSpellTrait[] = [];
-    race.traits.forEach((traitText) => {
+    race.traits.forEach((rawTraitText) => {
+      // Display links are markup, not rule words. Strip them once here so every
+      // parser below, and everything cached from it, reads the same plain prose.
+      const traitText = normalizeRacialTraitDisplayText(rawTraitText);
       const parsedTrait = buildRacialTextFeatureTrait(race, traitText);
       traits.push(parsedTrait);
       const parsedSpells = extractSpellGrantsFromTraitText(race, parsedTrait.traitName, traitText);
       parsedSpells.forEach((parsedSpellTrait) => {
+        const legacyRow = legacySpellRows.get(parsedSpellTrait.spellId);
+        if (legacyRow) {
+          if (
+            legacyRow.source.castingMethod === undefined &&
+            parsedSpellTrait.castingMethod !== DEFAULT_RACIAL_SPELL_CASTING_METHOD
+          ) {
+            legacyRow.trait.castingMethod = parsedSpellTrait.castingMethod;
+          }
+          return;
+        }
         if (knownSpellIds.has(parsedSpellTrait.spellId)) return;
         textTraitSpells.push(parsedSpellTrait);
         knownSpellIds.add(parsedSpellTrait.spellId);

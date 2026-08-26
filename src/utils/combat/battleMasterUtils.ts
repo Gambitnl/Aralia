@@ -35,7 +35,7 @@ import {
   rollSavingThrow,
   type SavingThrowResult,
 } from '../character/savingThrowUtils';
-import { rollDice } from './combatUtils';
+import { rollDice } from '../../systems/dice/rollers';
 import { applyRuntimeStatusCondition } from './statusConditionUtils';
 
 // ============================================================================

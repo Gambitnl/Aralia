@@ -1,11 +1,13 @@
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
- * This file appears to be an ISOLATED UTILITY or ORPHAN.
+ * SCRIPT-GATED AND TEST-GATED VALIDATOR: the spell integrity suite gates the
+ * mechanical rules, and scripts/validate-data.ts calls validateSemantics().
  *
- * Last Sync: 15/07/2026, 22:29:48
- * Dependents: None (Orphan)
- * Imports: 1 files
+ * Last Sync: 20/09/2026 (hand-refreshed; re-run --sync to regenerate)
+ * Dependents: scripts/validate-data.ts, plus the test files under
+ *   systems/spells/validation/__tests__/spellIntegrity/
+ * Imports: 2 files (types/spells, types/spellEffectMetadata) + ./modeChoiceSchemas
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -15,6 +17,66 @@
 // @dependencies-end
 
 import { Spell } from '../../../types/spells';
+import type { GrantedAction, SpellActionCost } from '../../../types/spellEffectMetadata';
+import { MULTI_SELECT_MODE_CHOICE_TYPES } from './modeChoiceSchemas';
+
+/**
+ * Canonical action cost for every action-cost label the spell corpus authors.
+ *
+ * Spell records name their granted actions in source terms - a Magic action, a
+ * free command, a narrative flourish - while the action economy only spends an
+ * Action, a Bonus Action, a Reaction, nothing, or nothing at all. This table is
+ * the single mapping between the two vocabularies, so a validator, a UI, and a
+ * command factory all read one answer for what a granted action costs.
+ */
+export const CANONICAL_ACTION_COSTS: Readonly<Record<string, SpellActionCost>> = {
+  // Costs an Action. The 2024 Magic action is an Action, and a magic-jar soul
+  // whose only available action is projecting itself still spends that Action.
+  action: 'action',
+  magic_action: 'action',
+  only_available_action: 'action',
+  // Costs a Bonus Action.
+  bonus_action: 'bonus_action',
+  // Costs a Reaction.
+  reaction: 'reaction',
+  // Costs nothing. Verbal commands to a summon, telepathic orders to a
+  // dominated creature, questions put to an otherworldly entity, and dream
+  // scene-setting all happen without spending an action.
+  free: 'free',
+  free_command: 'free',
+  no_action: 'free',
+  narrative_control: 'free',
+  question: 'free',
+  // Not an action. Tenser's Transformation changes how the Attack action
+  // resolves rather than granting a new action to spend.
+  attack_action_modifier: 'special',
+};
+
+/**
+ * Resolves one granted-action row onto the canonical action-cost vocabulary.
+ *
+ * The canonical spelling is `type` / `action` / `frequency`. Legacy rows author
+ * the same three facts as `actionType` / `name` / `timing`, and pool-limited
+ * legacy rows spell their cadence `cost`. Both spellings normalize here so the
+ * rules below read one shape.
+ */
+export function normalizeGrantedAction(grantedAction: GrantedAction): {
+  sourceCost: string | undefined;
+  canonicalCost: SpellActionCost | undefined;
+  label: unknown;
+  cadence: unknown;
+  rangeCap: unknown;
+} {
+  const sourceCost = grantedAction.type ?? grantedAction.actionType;
+
+  return {
+    sourceCost: sourceCost === undefined ? undefined : String(sourceCost),
+    canonicalCost: sourceCost === undefined ? undefined : CANONICAL_ACTION_COSTS[String(sourceCost)],
+    label: grantedAction.action ?? grantedAction.name,
+    cadence: grantedAction.frequency ?? grantedAction.timing ?? grantedAction.cost,
+    rangeCap: grantedAction.rangeLimit ?? grantedAction.rangeFeet ?? grantedAction.range,
+  };
+}
 
 /**
  * SpellIntegrityValidator
@@ -41,7 +103,206 @@ import { Spell } from '../../../types/spells';
  * that exact string to decide which rule caused each failure.
  */
 
+/**
+ * Target-filter keys whose spell-level restriction a direct effect is expected
+ * to repeat on its own condition payload.
+ */
+export const RESTRICTED_FILTER_KEYS = ['creatureTypes', 'excludeCreatureTypes', 'sizes', 'alignments'] as const;
+
+export type RestrictedFilterKey = typeof RESTRICTED_FILTER_KEYS[number];
+
+/**
+ * One reviewed Rule 7 exemption: an Enchantment spell whose own text names no
+ * creature type, size, or communication gate at all.
+ */
+export interface EnchantmentTargetingExemption {
+  /** The spell id exactly as the data file records it. */
+  spellId: string;
+  /** Why the spell carries no creature-type restriction by design. */
+  reason: string;
+  /** Who reviewed the spell text and signed off on the exemption. */
+  reviewedBy: string;
+  /** ISO date of that review. */
+  reviewedOn: string;
+}
+
+/**
+ * Normalizes one restricted-filter value into a sorted list of comparable
+ * strings.
+ *
+ * The spell data sometimes records "Huge or smaller" as explanatory source text
+ * while the effect payload stores the actual creature sizes. Expanding that
+ * phrase here lets rows such as Tsunami's ongoing wave damage compare equal
+ * instead of needing a permanent semantic exception. The `not_applicable`
+ * sentinel means "no restriction", so it never becomes a comparable value.
+ *
+ * Exported because the corpus gate in
+ * `__tests__/spellIntegrity/systematicAllSpellValidation.test.ts` compares the
+ * same rows. One copy keeps the executable rule and the gate from drifting.
+ */
+export function normalizeFilterValues(value: unknown, key?: RestrictedFilterKey): string[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  const expandedValues = value.flatMap(item => {
+    if (
+      key === 'sizes'
+      && typeof item === 'string'
+      && item.toLowerCase().startsWith('huge or smaller')
+    ) {
+      return ['Huge', 'Large', 'Medium', 'Small', 'Tiny'];
+    }
+
+    return item;
+  });
+
+  return expandedValues.filter(item => item !== 'not_applicable').map(String).sort();
+}
+
+/**
+ * True when two restricted-filter values name the same restriction.
+ */
+export function sameFilterValues(left: unknown, right: unknown, key?: RestrictedFilterKey): boolean {
+  const normalizedLeft = normalizeFilterValues(left, key);
+  const normalizedRight = normalizeFilterValues(right, key);
+
+  return normalizedLeft.length === normalizedRight.length
+    && normalizedLeft.every((value, index) => value === normalizedRight[index]);
+}
+
+/**
+ * One issue raised by the named-spell targeting backstop,
+ * `SpellIntegrityValidator.validateSemantics`.
+ *
+ * `validate` returns plain strings because every rule it runs is a hard error.
+ * The named-spell checks carry two severities, so they keep a structured shape
+ * and `scripts/validate-data.ts` decides which severity stops the build.
+ */
+export interface SpellSemanticIssue {
+  spellId: string;
+  issueType: 'missing_immunity_filter' | 'generic_targeting' | 'nonstandard_scaling_format';
+  message: string;
+  severity: 'warning' | 'error';
+}
+
 export class SpellIntegrityValidator {
+  /**
+   * Spells whose own text restricts them to Humanoid targets.
+   *
+   * Rule 7 below is the structural gate: it fails any single-target
+   * Enchantment that declares no creature-type inclusion, no exclusion, no
+   * size limit, and no communication prerequisite at all. These named spells are the backstop
+   * behind that rule. A spell can satisfy Rule 7 with some other gate and still
+   * be wrong if the gate it declares is not the Humanoid restriction its own
+   * description names.
+   */
+  private static readonly HUMANOID_ONLY_SPELLS: ReadonlySet<string> = new Set([
+    'charm-person',
+    'hold-person',
+    'crown-of-madness',
+    'friends',
+  ]);
+
+  /**
+   * Mind-affecting spells that need a creature-type gate on the data so the
+   * engine never applies them to a target the spell text rules out.
+   *
+   * Rule 7 accepts a communication prerequisite as a valid gate, which is right
+   * for a social enchantment such as Suggestion. This list is narrower: these
+   * spells also need the creature-type side of the filter, on the spell-level
+   * targeting or on an effect condition, before the runtime can decide who is
+   * immune.
+   */
+  private static readonly MENTAL_IMMUNITY_SPELLS: ReadonlySet<string> = new Set([
+    'charm-person',
+    'command',
+    'sleep',
+    'tashas-hideous-laughter',
+    'crown-of-madness',
+    'suggestion',
+    'animal-friendship',
+  ]);
+
+  /**
+   * Named-spell targeting backstop behind Rule 7.
+   *
+   * `validate` covers every spell structurally. This pass covers the handful of
+   * spells whose individual text names a restriction that no structural rule
+   * can infer, and it reports severity so the data gate can keep a known gap as
+   * a warning while a real authoring mistake stops the build.
+   */
+  static validateSemantics(spell: Spell): SpellSemanticIssue[] {
+    const issues: SpellSemanticIssue[] = [];
+
+    if (
+      spell.school === 'Enchantment'
+      && SpellIntegrityValidator.MENTAL_IMMUNITY_SPELLS.has(spell.id)
+      && !SpellIntegrityValidator.hasCreatureTypeGate(spell)
+    ) {
+      issues.push({
+        spellId: spell.id,
+        issueType: 'missing_immunity_filter',
+        message: `Spell is a mental enchantment but lacks 'excludeCreatureTypes' or 'creatureTypes' on its targeting filter or on an effect condition.`,
+        severity: 'warning',
+      });
+    }
+
+    if (SpellIntegrityValidator.HUMANOID_ONLY_SPELLS.has(spell.id)) {
+      const validTargets = spell.targeting.validTargets || [];
+      const explicitlyHumanoid =
+        validTargets.some(target => target.toLowerCase() === 'humanoids')
+        || Boolean(spell.targeting.filter?.creatureTypes?.includes('Humanoid'));
+
+      if (!explicitlyHumanoid) {
+        issues.push({
+          spellId: spell.id,
+          issueType: 'generic_targeting',
+          message: `Spell should be restricted to Humanoids but uses generic targeting.`,
+          severity: 'error',
+        });
+      }
+    }
+
+    // A `bonusPerLevel` the dice math can read is "+1d6", "1d6", "+5", or "-1".
+    // Anything else - "+1 target", "+5 temp HP", "+1 maximum devil CR" - is a
+    // rule the engine still has to interpret, so the upcast is not yet
+    // automatic. That is real debt rather than an authoring mistake, so it
+    // stays a warning and names the row it found.
+    (spell.effects ?? []).forEach((effect, effectIndex) => {
+      const bonusPerLevel = effect.scaling?.bonusPerLevel;
+      if (!bonusPerLevel) return;
+
+      const isStandard = /^([+-]?\d+)(d\d+)?$/.test(String(bonusPerLevel).replace(/\s/g, ''));
+      if (isStandard) return;
+
+      issues.push({
+        spellId: spell.id,
+        issueType: 'nonstandard_scaling_format',
+        message: `Effect ${effectIndex} scaling "${bonusPerLevel}" is not standard dice or flat math, so upcasting needs custom handling.`,
+        severity: 'warning',
+      });
+    });
+
+    return issues;
+  }
+
+  /**
+   * True when some part of the spell names the creature types it can or cannot
+   * affect. A positive list implies the exclusion, so either side counts.
+   */
+  private static hasCreatureTypeGate(spell: Spell): boolean {
+    const filter = spell.targeting.filter;
+    if (filter?.excludeCreatureTypes?.length) return true;
+    if (filter?.creatureTypes?.length) return true;
+
+    return (spell.effects ?? []).some(effect => {
+      const effectFilter = effect.condition?.targetFilter;
+      return Boolean(effectFilter?.excludeCreatureTypes?.length)
+        || Boolean(effectFilter?.creatureTypes?.length);
+    });
+  }
+
   /**
    * Returns classified restricted-filter mismatches with the explanation needed
    * by future audit, validation, and UI/debug surfaces.
@@ -141,6 +402,40 @@ export class SpellIntegrityValidator {
     return SpellIntegrityValidator
       .getClassifiedRestrictedFilterMismatchDetails()
       .map(detail => detail.key);
+  }
+
+  /**
+   * Returns the Enchantment spells that are reviewed and exempt from Rule 7.
+   *
+   * Rule 7 asks every single-target Enchantment spell to name who it can
+   * affect. A small number of spells name nobody because their own text names
+   * nobody: they are Enchantment by school only and carry no mind-affecting
+   * clause to constrain. Forcing the usual Construct + Undead exclusion onto
+   * them would break real play, so each one is reviewed by hand and recorded
+   * here.
+   *
+   * The list lives in this file, not in the spell JSON, on purpose. A data
+   * author editing a spell file must not be able to self-exempt that spell
+   * from a validator rule; changing this list is a code change that a reviewer
+   * sees. The stale-exemption check in Rule 7 is the other half of that guard:
+   * if a listed spell ever gains a real creature-type filter, the exemption is
+   * no longer true and the validator fails until the row is removed.
+   */
+  static getEnchantmentTargetingExemptions(): EnchantmentTargetingExemption[] {
+    return [
+      {
+        spellId: 'hex',
+        reason: 'Hex is a curse that deals necrotic damage and saps one ability. It is not mind-affecting, and warlocks are expected to hex Undead, so its text names no creature type to restrict.',
+        reviewedBy: 'Remy',
+        reviewedOn: '2026-09-21',
+      },
+      {
+        spellId: 'power-word-heal',
+        reason: 'Power Word Heal is healing, not mind control. Its text names no creature type, and excluding Constructs and Undead would stop the spell from healing an ally of those kinds.',
+        reviewedBy: 'Remy',
+        reviewedOn: '2026-09-21',
+      },
+    ];
   }
 
   /**
@@ -268,7 +563,10 @@ export class SpellIntegrityValidator {
     // choice that silently creates no runtime command.
     const modeChoice = (spell as Spell & {
       modeChoice?: {
+        type?: unknown;
         optionCount?: unknown;
+        minSelections?: unknown;
+        maxSelections?: unknown;
         optionsSource?: unknown;
         options?: Array<{
           label?: unknown;
@@ -283,8 +581,51 @@ export class SpellIntegrityValidator {
       if (!Array.isArray(modeChoice.options) || modeChoice.options.length === 0) {
         errors.push('Mode Choice Invalid: modeChoice must include at least one option');
       } else {
-        if (modeChoice.optionCount !== modeChoice.options.length) {
-          errors.push(`Mode Choice Invalid: optionCount ${String(modeChoice.optionCount)} does not match options length ${modeChoice.options.length}`);
+        // A single-select menu resolves to exactly one entry, so its
+        // optionCount records the menu size. A multi-select menu resolves to
+        // several entries out of a larger menu, so its optionCount is the
+        // selection budget and only has to fit inside the menu: Commune with
+        // Nature offers 5 information categories and the caster picks 3.
+        const menuSize = modeChoice.options.length;
+        const isMultiSelect = MULTI_SELECT_MODE_CHOICE_TYPES.includes(String(modeChoice.type));
+
+        if (!isMultiSelect) {
+          if (modeChoice.optionCount !== menuSize) {
+            errors.push(`Mode Choice Invalid: optionCount ${String(modeChoice.optionCount)} does not match options length ${menuSize}`);
+          }
+
+          if (modeChoice.minSelections !== undefined || modeChoice.maxSelections !== undefined) {
+            errors.push(`Mode Choice Invalid: single-select type "${String(modeChoice.type)}" must not declare a selection range`);
+          }
+        } else {
+          const selectionCount = modeChoice.optionCount;
+
+          if (!Number.isInteger(selectionCount) || Number(selectionCount) < 1 || Number(selectionCount) > menuSize) {
+            errors.push(`Mode Choice Invalid: multi-select optionCount ${String(selectionCount)} must select between 1 and ${menuSize} of its options`);
+          }
+
+          const minSelections = modeChoice.minSelections;
+          const maxSelections = modeChoice.maxSelections;
+
+          if (minSelections !== undefined && (!Number.isInteger(minSelections) || Number(minSelections) < 1 || Number(minSelections) > menuSize)) {
+            errors.push(`Mode Choice Invalid: minSelections ${String(minSelections)} must be an integer between 1 and ${menuSize}`);
+          }
+
+          if (maxSelections !== undefined && (!Number.isInteger(maxSelections) || Number(maxSelections) < 1 || Number(maxSelections) > menuSize)) {
+            errors.push(`Mode Choice Invalid: maxSelections ${String(maxSelections)} must be an integer between 1 and ${menuSize}`);
+          }
+
+          if (Number.isInteger(minSelections) && Number.isInteger(maxSelections) && Number(minSelections) > Number(maxSelections)) {
+            errors.push(`Mode Choice Invalid: minSelections ${String(minSelections)} exceeds maxSelections ${String(maxSelections)}`);
+          }
+
+          if (Number.isInteger(minSelections) && Number(selectionCount) < Number(minSelections)) {
+            errors.push(`Mode Choice Invalid: optionCount ${String(selectionCount)} falls below minSelections ${String(minSelections)}`);
+          }
+
+          if (Number.isInteger(maxSelections) && Number(selectionCount) > Number(maxSelections)) {
+            errors.push(`Mode Choice Invalid: optionCount ${String(selectionCount)} exceeds maxSelections ${String(maxSelections)}`);
+          }
         }
 
         const controlOptionLengths = spell.effects
@@ -388,28 +729,29 @@ export class SpellIntegrityValidator {
         }
       }
 
-      const grantedActions = (effect as { grantedActions?: Array<{
-        type?: unknown;
-        action?: unknown;
-        frequency?: unknown;
-        rangeLimit?: unknown;
-      }> }).grantedActions;
+      const grantedActions = (effect as { grantedActions?: GrantedAction[] }).grantedActions;
 
       if (Array.isArray(grantedActions)) {
         grantedActions.forEach((grantedAction, actionIndex) => {
-          if (!knownActionCosts.includes(String(grantedAction.type))) {
-            errors.push(`Action Cost Invalid: effect ${effectIndex} granted action ${actionIndex} uses unknown type "${String(grantedAction.type)}"`);
+          // Granted-action rows use two authored spellings. normalizeGrantedAction
+          // resolves both onto one shape and maps the source cost label - a Magic
+          // action, a free command, a narrative flourish - onto the canonical cost
+          // the action economy actually spends.
+          const { sourceCost, canonicalCost, label, cadence, rangeCap } = normalizeGrantedAction(grantedAction);
+
+          if (canonicalCost === undefined) {
+            errors.push(`Action Cost Invalid: effect ${effectIndex} granted action ${actionIndex} uses unmapped action cost "${String(sourceCost)}"`);
           }
 
-          if (typeof grantedAction.action !== 'string' || grantedAction.action.trim().length === 0) {
+          if (typeof label !== 'string' || label.trim().length === 0) {
             errors.push(`Action Cost Invalid: effect ${effectIndex} granted action ${actionIndex} must include a non-empty action label`);
           }
 
-          if (typeof grantedAction.frequency !== 'string' || grantedAction.frequency.trim().length === 0) {
+          if (typeof cadence !== 'string' || cadence.trim().length === 0) {
             errors.push(`Action Cost Invalid: effect ${effectIndex} granted action ${actionIndex} must include a non-empty frequency`);
           }
 
-          if (grantedAction.rangeLimit !== undefined && typeof grantedAction.rangeLimit !== 'number') {
+          if (rangeCap !== undefined && typeof rangeCap !== 'number') {
             errors.push(`Action Cost Invalid: effect ${effectIndex} granted action ${actionIndex} rangeLimit must be numeric when present`);
           }
         });
@@ -485,6 +827,14 @@ export class SpellIntegrityValidator {
       // (e.g., "works on everything except Undead and Constructs").
       const hasExclusions = filter?.excludeCreatureTypes && filter.excludeCreatureTypes.length > 0;
 
+      // A size limit is a real target restriction as well. Antipathy/Sympathy
+      // names no creature type at all: its own text gates the anchor on
+      // "Huge or smaller", which the data records either as that source
+      // phrase or as a concrete size list. normalizeFilterValues() expands the
+      // phrase and drops the "not_applicable" sentinel, so both spellings
+      // count and an empty or placeholder size list does not.
+      const hasSizeRestriction = normalizeFilterValues(filter?.sizes, 'sizes').length > 0;
+
       // Social enchantments like Suggestion constrain targets through explicit
       // communication prerequisites rather than a creature-type list. Treat any
       // required hearing/understanding/sight gate as a real targeting filter.
@@ -495,14 +845,28 @@ export class SpellIntegrityValidator {
         || communication?.canSeeCaster === 'required'
       );
 
-      // If no recognized gate is populated, the targeting is unconstrained.
-      if (!hasInclusions && !hasExclusions && !hasCommunicationPrerequisites) {
-        errors.push(`Enchantment Gap: Single-target Enchantment spell has no targeting filters (expected creature type, exclusion, or communication restriction)`);
+      // A hand-reviewed exemption covers the spells whose own text names no
+      // creature type at all. The list is code, not data, so a data author
+      // cannot self-exempt a spell by editing its JSON.
+      const exemption = SpellIntegrityValidator
+        .getEnchantmentTargetingExemptions()
+        .find(entry => entry.spellId === spell.id);
+
+      if (exemption) {
+        // The exemption says "this spell has no creature-type restriction".
+        // The moment the data gives it one, that statement is false, so the
+        // exemption must be removed rather than quietly outliving its reason.
+        if (SpellIntegrityValidator.hasCreatureTypeGate(spell)) {
+          errors.push(`Stale Exemption: Spell is on the reviewed Enchantment targeting exemption list (reviewed by ${exemption.reviewedBy} on ${exemption.reviewedOn}) but now declares a creature-type filter. Remove the exemption entry in SpellIntegrityValidator.ts.`);
+        }
+      } else if (!hasInclusions && !hasExclusions && !hasSizeRestriction && !hasCommunicationPrerequisites) {
+        // If no recognized gate is populated, the targeting is unconstrained.
+        errors.push(`Enchantment Gap: Single-target Enchantment spell has no targeting filters (expected creature type, exclusion, size limit, or communication restriction)`);
       }
     }
 
     // =========================================================================
-    // Rule 3: Upcast Scaling Sync
+    // Rule 8: Upcast Scaling Sync
     // =========================================================================
     // Many spells become more powerful when cast using a higher-level spell slot
     // ("upcasting"). If a spell has a substantive higherLevels text description
@@ -519,10 +883,21 @@ export class SpellIntegrityValidator {
     // higherLevels text is treated as a sufficient signal for those cases.
     if (spell.higherLevels && spell.higherLevels.length > 20 && spell.higherLevels !== 'None') {
 
-      // Walk every effect and check for a bonusPerLevel or customFormula value.
-      const hasEffectScaling = spell.effects.some(e =>
-        e.scaling && (e.scaling.bonusPerLevel || e.scaling.customFormula)
-      );
+      // Walk every effect and check for machine-readable scaling. A cantrip
+      // records its growth as a `scalingTiers` table keyed by character level
+      // rather than a per-slot bonus, so a tier table counts as real scaling
+      // just as `bonusPerLevel` and `customFormula` do. Missing that third
+      // shape is what made this rule fire on cantrips such as Fire Bolt.
+      const hasEffectScaling = spell.effects.some(effect => {
+        const scaling = effect.scaling;
+        if (!scaling) return false;
+
+        const tiers = (scaling as { scalingTiers?: Record<string, unknown> }).scalingTiers;
+
+        return Boolean(scaling.bonusPerLevel)
+          || Boolean(scaling.customFormula)
+          || Boolean(tiers && Object.keys(tiers).length > 0);
+      });
 
       // Some spells scale by adding more targets, not by changing damage values.
       // Those are valid even without effect-level scaling data.
@@ -534,7 +909,7 @@ export class SpellIntegrityValidator {
     }
 
     // =========================================================================
-    // Rule 4: Monolithic Effect Formulation
+    // Rule 9: Monolithic Effect Formulation
     // =========================================================================
     // This rule hunts for spells imported during early prototyping, before the
     // engine supported arrays of distinct effects. Those spells crammed all
@@ -595,7 +970,7 @@ export class SpellIntegrityValidator {
     }
 
     // =========================================================================
-    // Rule 5: Effect Description Completeness
+    // Rule 10: Effect Description Completeness
     // =========================================================================
     // Each effect row needs its own concise description because downstream UI,
     // glossary, audit, and debugging surfaces often render the effect object
@@ -690,7 +1065,7 @@ export class SpellIntegrityValidator {
     });
 
     // =========================================================================
-    // Rule 6: Effect Target Filter Completeness
+    // Rule 11: Effect Target Filter Completeness
     // =========================================================================
     // Some spells restrict the legal target at the spell picker level, for
     // example "only Humanoids" or "only Beasts". When a direct effect later
@@ -703,48 +1078,13 @@ export class SpellIntegrityValidator {
     // object selected as a source, a chosen form, a later repair target, or an
     // ongoing area rule. Those rows stay explicitly classified here until their
     // dedicated semantic models exist, preventing broad blind filter copying.
-    const restrictedFilterKeys = ['creatureTypes', 'excludeCreatureTypes', 'sizes', 'alignments'] as const;
-    type RestrictedFilterKey = typeof restrictedFilterKeys[number];
-
     const classifiedRestrictedFilterMismatches = new Set<string>(
       SpellIntegrityValidator.getClassifiedRestrictedFilterMismatchKeys()
     );
 
-    const normalizeFilterValues = (value: unknown, key?: RestrictedFilterKey): string[] => {
-      if (!Array.isArray(value)) {
-        return [];
-      }
-
-      // The spell data sometimes records "Huge or smaller" as explanatory
-      // source text while the effect payload stores the actual creature sizes.
-      // Treat those as the same filter for validation so rows like Tsunami's
-      // ongoing wave damage do not need a permanent semantic exception.
-      const expandedValues = value.flatMap(item => {
-        if (
-          key === 'sizes'
-          && typeof item === 'string'
-          && item.toLowerCase().startsWith('huge or smaller')
-        ) {
-          return ['Huge', 'Large', 'Medium', 'Small', 'Tiny'];
-        }
-
-        return item;
-      });
-
-      return expandedValues.filter(item => item !== 'not_applicable').map(String).sort();
-    };
-
-    const sameFilterValues = (left: unknown, right: unknown, key?: RestrictedFilterKey): boolean => {
-      const normalizedLeft = normalizeFilterValues(left, key);
-      const normalizedRight = normalizeFilterValues(right, key);
-
-      return normalizedLeft.length === normalizedRight.length
-        && normalizedLeft.every((value, index) => value === normalizedRight[index]);
-    };
-
     const spellFilter = spell.targeting?.filter as Partial<Record<RestrictedFilterKey, unknown>> | undefined;
-    const restrictedKeys = restrictedFilterKeys.filter(key =>
-      normalizeFilterValues(spellFilter?.[key]).length > 0
+    const restrictedKeys = RESTRICTED_FILTER_KEYS.filter(key =>
+      normalizeFilterValues(spellFilter?.[key], key).length > 0
     );
 
     if (restrictedKeys.length > 0) {

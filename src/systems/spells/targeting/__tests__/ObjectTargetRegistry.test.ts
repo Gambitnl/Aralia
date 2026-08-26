@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-
+import { ItemType } from '../../../../types';
 import { collectObjectTargetCandidates, withObjectTargetCandidates } from '../ObjectTargetRegistry';
 import { TargetResolver } from '../TargetResolver';
 import type { BattleMapData, CombatCharacter, CombatState, TargetableMapObject } from '@/types/combat';
@@ -165,7 +165,7 @@ describe('collectObjectTargetCandidates', () => {
       id: 'oil-flask',
       name: 'Oil Flask',
       description: 'A flask of oil that can be picked up or hurled.',
-      type: 'consumable',
+      type: ItemType.Consumable,
       weight: 1
     };
 

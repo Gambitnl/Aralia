@@ -24,8 +24,6 @@ import { CommandExecutor } from '../base/CommandExecutor';
 import { CombatState } from '../../types/combat';
 import { ReactiveEffect, SpellEffect } from '../../types/spells';
 import { generateId } from '../../utils/combat';
-import { movementEvents, MovementEvent, MovementEventEmitter } from '../../systems/combat/MovementEventEmitter';
-import { attackEvents, AttackEvent, AttackEventEmitter } from '../../systems/combat/AttackEventEmitter';
 import { combatEvents, CastEvent, CombatEventEmitter } from '../../systems/events/CombatEvents';
 import { sustainActionSystem, SustainedSpell } from '../../systems/combat/SustainActionSystem';
 import { logger } from '../../utils/core';
@@ -39,24 +37,27 @@ import { TerrainCommand } from './TerrainCommand';
 import { UtilityCommand } from './UtilityCommand';
 import { DefensiveCommand } from './DefensiveCommand';
 
-type ReactiveEvent = MovementEvent | AttackEvent | CastEvent;
+type ReactiveEvent = CastEvent;
 type DurationLike = { type?: string; unit?: string; value?: number };
 
 /**
  * Event buses used by a reactive command.
  *
- * Normal game commands use the shared buses below. Tests and isolated combat
- * simulations can provide fresh buses so listeners cannot leak between runs.
+ * Normal game commands use the shared bus below. Tests and isolated combat
+ * simulations can provide a fresh bus so listeners cannot leak between runs.
+ *
+ * Only the combat bus is here. 'on_target_move' and 'on_target_attack' used to
+ * register listeners on a movement emitter and an attack emitter that no
+ * production file ever fired. Both trigger types are still recorded in
+ * `state.reactiveTriggers` by `execute` below, and that array is what the live
+ * consumers read: `useActionExecutor.resolveOnTargetAttackReactiveEffects` for
+ * an attack, and the movement-debuff pipeline for a move.
  */
 export interface ReactiveEventEmitters {
-    movement: Pick<MovementEventEmitter, 'onMovement' | 'offMovement'>;
-    attack: Pick<AttackEventEmitter, 'onPreAttack' | 'offPreAttack'>;
     combat: Pick<CombatEventEmitter, 'on' | 'off'>;
 }
 
 const sharedReactiveEventEmitters: ReactiveEventEmitters = {
-    movement: movementEvents,
-    attack: attackEvents,
     combat: combatEvents
 };
 
@@ -133,39 +134,10 @@ export class ReactiveEffectCommand extends BaseEffectCommand<ReactiveEffect> {
         const targetId = this.context.targets[0]?.id;
 
         switch (trigger.type) {
-            case 'on_target_move':
-                if (targetId) {
-                    const listener = async (event: MovementEvent) => {
-                        // Check if movement matches our criteria
-                        if (event.creatureId !== targetId) return;
-
-                        const movementType = trigger.movementType || 'any';
-                        if (movementType !== 'any' && event.movementType !== movementType) return;
-
-                        // Trigger the effect
-                        await this.executeReactiveEffect(event);
-                    };
-
-                    this.eventEmitters.movement.onMovement(listener);
-                    this.registeredListeners.push(() => this.eventEmitters.movement.offMovement(listener));
-                }
-                break;
-
-            case 'on_target_attack':
-                if (targetId) {
-                    const listener = async (event: AttackEvent) => {
-                        // Check if this is an attack against our target
-                        if (event.targetId !== targetId) return;
-
-                        // Trigger the effect (save vs lose attack for compelled duel)
-                        await this.executeReactiveEffect(event);
-                    };
-
-                    this.eventEmitters.attack.onPreAttack(listener);
-                    this.registeredListeners.push(() => this.eventEmitters.attack.offPreAttack(listener));
-                }
-                break;
-
+            // 'on_target_move' and 'on_target_attack' register nothing here. The
+            // row `execute` pushed onto `state.reactiveTriggers` is the whole
+            // registration, and the hook layer reads that array when a creature
+            // moves or is attacked.
             case 'on_target_cast':
                 if (targetId) {
                     const listener = (event: CastEvent) => {

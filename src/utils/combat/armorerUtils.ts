@@ -25,7 +25,7 @@
  */
 
 import type { CombatCharacter, CombatState } from '../../types/combat';
-import { rollDice } from './combatUtils';
+import { rollDice } from '../../systems/dice/rollers';
 
 export const ARCANE_ARMOR_FEATURE_ID = 'arcane_armor';
 export const THUNDER_GAUNTLET_DICE = '1d8';

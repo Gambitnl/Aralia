@@ -20,7 +20,7 @@
  */
 import { Crafter } from './craftingSystem';
 import { GatherableResource, getResourcesForBiome, Biome } from './gatheringData';
-import { rollDice } from '../../utils/combat';
+import { rollDice } from '../dice/rollers';
 
 export interface IdentificationResult {
     success: boolean;

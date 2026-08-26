@@ -13,7 +13,7 @@
  * docs/superpowers/specs/2026-06-24-submap-neighbourhood-view-design.md
  */
 import { atlasCellToSubmapContext } from './l0Adapter';
-import { generateSubmap, polygonBounds, type Pt, type SubmapModel, type SubmapParentContext } from './submapEngine';
+import { generateSubmap, polygonBounds, type NeighbourBiome, type Pt, type SubmapModel, type SubmapParentContext } from './submapEngine';
 import { childSeedPath, type SeedPath } from '../seedPath';
 import type { FmgAtlasResult } from '../fmg/generateAtlas';
 
@@ -100,11 +100,34 @@ export function buildAtlasNeighbourhood(
   const cx = (fb.minX + fb.maxX) / 2;
   const cy = (fb.minY + fb.maxY) / 2;
 
-  let focusCtx: SubmapParentContext = scaleCtx(focus.ctx, cx, cy, k);
+  // Scale every context ONCE into the shared cluster frame, then index by cell
+  // id: the edge blend needs each cell's neighbours in that same frame.
+  const scaledById = new Map<number, SubmapParentContext>(
+    raw.map((r) => [r.id, scaleCtx(r.ctx, cx, cy, k)]),
+  );
+  const focusCtx: SubmapParentContext = scaledById.get(focus.id) ?? scaleCtx(focus.ctx, cx, cy, k);
+
+  /**
+   * The adjacent atlas cells of `cellId` that this neighbourhood actually
+   * holds, with their biome and their centroid in the cluster frame. This is
+   * what turns the hard drill boundary into a gradient: `generateSubmap` leans
+   * sub-cells near a shared edge toward the neighbour's biome.
+   */
+  const neighbourBiomesFor = (cellId: number): NeighbourBiome[] => {
+    const adj = (atlas.pack.cells.c?.[cellId] ?? []) as number[];
+    const out: NeighbourBiome[] = [];
+    for (const adjId of adj) {
+      const adjCtx = scaledById.get(adjId);
+      if (!adjCtx?.biome) continue;
+      const ab = polygonBounds(adjCtx.polygon);
+      out.push({ biome: adjCtx.biome, centroid: [(ab.minX + ab.maxX) / 2, (ab.minY + ab.maxY) / 2] });
+    }
+    return out;
+  };
+
   const cells: NeighbourhoodCell[] = raw.map((r) => {
-    const scaled = scaleCtx(r.ctx, cx, cy, k);
+    const scaled = scaledById.get(r.id) as SubmapParentContext;
     const isFocus = r.id === focusCellId;
-    if (isFocus) focusCtx = scaled;
     const explored = isFocus || isExplored(r.id);
     const burg = r.ctx.features?.find((f) => f.kind === 'burg');
     return {
@@ -114,7 +137,9 @@ export function buildAtlasNeighbourhood(
       polygon: scaled.polygon,
       biome: r.ctx.biome,
       burgName: burg?.name,
-      model: explored ? generateSubmap(scaled, { count }) : undefined,
+      model: explored
+        ? generateSubmap({ ...scaled, neighbourBiomes: neighbourBiomesFor(r.id) }, { count })
+        : undefined,
     };
   });
 

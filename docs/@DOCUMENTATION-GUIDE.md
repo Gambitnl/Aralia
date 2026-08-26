@@ -48,7 +48,7 @@ A markdown file is not automatically part of the maintained doc system just beca
 The following areas are excluded unless explicitly re-admitted later:
 - local agent and workbench folders such as `.agent*`, `.claude`, `.codex`, `.cursor`, `.gemini`, `.jules`, `.uplink`, and `.playwright-cli`
 - dependency and build output folders such as `node_modules`, `dist`, `dist-ssr`, and the repo-root `generated/` directory
-- local tooling and report areas such as `misc`, `artifacts`, `verification`, `devtools`, `conductor`, and `playwright-report`
+- local tooling and report areas such as `misc`, `artifacts`, `verification`, `devtools`, and `playwright-report`
 - gitignored roadmap-tooling docs such as `docs/tasks/roadmap/` and `docs/@ROADMAP-SYSTEM-GUIDE.md`
 
 See [`docs/registry/@DOC-SCOPE.md`](./registry/@DOC-SCOPE.md) for the current scoped inventory snapshot.

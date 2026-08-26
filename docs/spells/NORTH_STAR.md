@@ -1,4 +1,4 @@
-﻿# Spell Phase Workstream North Star
+# Spell Phase Workstream North Star
 
 Status: active
 Last updated: 2026-05-31

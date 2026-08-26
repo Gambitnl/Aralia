@@ -1,4 +1,4 @@
-# Moved — Item Icons project docs
+# Moved - Item Icons project docs
 
 **2026-07-01 (doc-triage batch 1):** this project is complete (810 SVG assets
 verified at `public/assets/icons/items/`; 810 registry references in
@@ -7,7 +7,7 @@ verified at `public/assets/icons/items/`; 810 registry references in
 were archived to `docs/archive/tasks/item-icons/`.
 
 Taxonomy questions live in `docs/projects/item_categorization/GAPS.md`.
-Future art-direction passes may replace icons in place — the archived
+Future art-direction passes may replace icons in place - the archived
 `JULES_ACCEPTANCE_CRITERIA.md` remains the reusable constraint sheet.
 
 This README exists because live docs reference this folder

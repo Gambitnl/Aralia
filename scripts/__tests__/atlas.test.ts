@@ -79,7 +79,7 @@ describe('Aralia Atlas markdown discovery', () => {
         writeFile(repoPath, '.agent/scratch/proof.md', '# Scratch proof');
         writeFile(repoPath, '.agent_tools/AGENT_README.md', '# Local tool instructions');
         writeFile(repoPath, '.cursor/commands/todo-finder.md', '# Cursor command');
-        writeFile(repoPath, '.gemini/extensions/conductor/README.md', '# Gemini extension');
+        writeFile(repoPath, '.gemini/extensions/sample-ext/README.md', '# Gemini extension');
         writeFile(repoPath, '.worktrees/matrix-copy/docs/projects/worldforge/NORTH_STAR.md', '# Duplicate worktree proof');
         writeFile(repoPath, '.tmp/generated/docs/plans/temp-plan.md', '# Temporary generated plan');
 

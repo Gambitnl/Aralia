@@ -621,7 +621,7 @@ test('campaigns expose ownerAlive=false when the lead is gone', async () => {
   assert.equal(claim.status, 201);
 
   const live = await request('GET', '/campaigns');
-  const rowLive = live.json.campaigns.find((c) => c.id === 'tidy-probe');
+  const rowLive = live.json.campaigns.find((c) => c.name === 'tidy-probe');
   assert.ok(rowLive, 'campaign listed');
   assert.equal(rowLive.ownerAlive, true, 'live owner reads alive');
 
@@ -630,7 +630,7 @@ test('campaigns expose ownerAlive=false when the lead is gone', async () => {
   assert.equal(retire.status, 200);
 
   const r = await request('GET', '/campaigns');
-  const row = r.json.campaigns.find((c) => c.id === 'tidy-probe');
+  const row = r.json.campaigns.find((c) => c.name === 'tidy-probe');
   assert.ok(row, 'campaign still listed after the owner is gone');
   assert.equal(row.ownerAlive, false);
 });

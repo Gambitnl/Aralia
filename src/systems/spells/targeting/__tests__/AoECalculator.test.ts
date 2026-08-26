@@ -38,23 +38,45 @@ describe('AoECalculator', () => {
       }).toThrow('Cone requires direction vector')
     })
 
-    it('should handle Cube AoE', () => {
-      // 15ft cube -> 3x3 tiles = 9 using the shared utility's origin-based cube convention.
-      const tiles15 = AoECalculator.getAffectedTiles(
+    it('should handle a face-anchored Cube AoE in each cardinal direction', () => {
+      // Ruling Q4 (2026-09-22): the direction vector is the way the cube extends
+      // away from the caster. The origin tile is the center of the near row.
+      const cube15 = { shape: 'Cube', size: 15 } as AreaOfEffect
+      const east = AoECalculator.getAffectedTiles({ x: 5, y: 5 }, cube15, { x: 1, y: 0 })
+      expect(east.length).toBe(9)
+      expect(east).toContainEqual({ x: 5, y: 4 })
+      expect(east).toContainEqual({ x: 7, y: 6 })
+      expect(east).not.toContainEqual({ x: 4, y: 5 })
+
+      const west = AoECalculator.getAffectedTiles({ x: 5, y: 5 }, cube15, { x: -1, y: 0 })
+      expect(west).toContainEqual({ x: 3, y: 4 })
+      expect(west).not.toContainEqual({ x: 6, y: 5 })
+
+      const north = AoECalculator.getAffectedTiles({ x: 5, y: 5 }, cube15, { x: 0, y: -1 })
+      expect(north).toContainEqual({ x: 4, y: 3 })
+      expect(north).not.toContainEqual({ x: 5, y: 6 })
+
+      const south = AoECalculator.getAffectedTiles({ x: 5, y: 5 }, cube15, { x: 0, y: 1 })
+      expect(south).toContainEqual({ x: 6, y: 7 })
+      expect(south).not.toContainEqual({ x: 5, y: 4 })
+
+      // 10ft cube -> 2x2 tiles = 4; the extra width tile goes south for an east cube.
+      const tiles10 = AoECalculator.getCube({ x: 5, y: 5 }, 10, { x: 1, y: 0 })
+      expect(tiles10).toEqual(expect.arrayContaining([
+        { x: 5, y: 5 }, { x: 5, y: 6 }, { x: 6, y: 5 }, { x: 6, y: 6 }
+      ]))
+      expect(tiles10.length).toBe(4)
+
+      // A diagonal vector uses its dominant axis; a true diagonal uses the horizontal axis.
+      expect(AoECalculator.getCube({ x: 5, y: 5 }, 15, { x: 1, y: 3 })).toEqual(south)
+      expect(AoECalculator.getCube({ x: 5, y: 5 }, 15, { x: -1, y: 1 })).toEqual(west)
+    })
+
+    it('should throw for a Cube without direction', () => {
+      expect(() => AoECalculator.getAffectedTiles(
         { x: 5, y: 5 },
         { shape: 'Cube', size: 15 } as AreaOfEffect
-      )
-      expect(tiles15.length).toBe(9)
-      expect(tiles15).toContainEqual({ x: 5, y: 5 })
-      expect(tiles15).toContainEqual({ x: 7, y: 7 })
-
-      // 10ft cube -> 2x2 tiles = 4
-      const tiles10 = AoECalculator.getAffectedTiles(
-        { x: 5, y: 5 },
-        { shape: 'Cube', size: 10 } as AreaOfEffect
-      )
-      expect(tiles10.length).toBe(4)
-      expect(tiles10).toContainEqual({ x: 5, y: 5 })
+      )).toThrow('Cube requires direction vector')
     })
 
     it('should match the shared combat AoE utility for non-directional shapes', () => {

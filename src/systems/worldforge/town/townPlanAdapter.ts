@@ -152,6 +152,11 @@ export function roleForPlot(plot: BuildingPlot, wardCivic?: CivicKind): string {
     if (t === 'inn' || t === 'tavern' || t === 'shop') return 'market';
     if (t === 'smithy' || t === 'workshop' || t === 'storehouse') return 'workshop';
     if (t === 'civic') return 'civic';
+    // Named landmarks. Public halls read civic; the mills, the granary and the
+    // bakehouse are working buildings; a shrine is the small end of temple.
+    if (t === 'library' || t === 'guildhall' || t === 'school' || t === 'barracks') return 'civic';
+    if (t === 'windmill' || t === 'lumbermill' || t === 'granary' || t === 'bakery') return 'workshop';
+    if (t === 'shrine') return 'temple';
   }
   // No population pass tagged this plot: bias the market square's ward to shops.
   if (wardCivic === 'plaza') return 'market';

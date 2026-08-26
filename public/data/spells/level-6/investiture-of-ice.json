@@ -408,7 +408,7 @@
                                                "direction":  "away_from_caster",
                                                "maxDistance":  ""
                                            },
-                        "description":  "A creature that fails the save against the freezing wind has its Speed halved until the start of the caster\u0027s next turn.",
+                        "description":  "A creature that fails the save against the freezing wind has its Speed halved until the start of the caster's next turn.",
                         "conditionalEndings":  [
 
                                                ]

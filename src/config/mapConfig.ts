@@ -29,8 +29,10 @@
 // and zooms to fit; the 3D map renders a non-playable fringe beyond this rect
 // so the battlefield no longer ends at a visible boundary.
 // 2026-07-06 (Remy): "way more tiles" — 80×60 → 120×90 (2.25×, ~10.8k tiles).
-// The 2D grid renders one DOM node per tile, so growth beyond this needs
-// viewport culling first.
+// 2026-08-26: the 2D grid is viewport-culled (useVisibleTileWindow), so it now
+// renders only the tiles the scroll viewport shows — about 1.1k of the 10.8k on
+// a 1600×900 screen. DOM node count no longer scales with these dimensions;
+// map generation, the ground canvas, and visibility still do.
 export const BATTLE_MAP_DIMENSIONS = { width: 120, height: 90 };
 export const TILE_SIZE_PX = 32;
 

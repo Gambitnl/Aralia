@@ -82,6 +82,9 @@ const SpellbookTab: React.FC<SpellbookTabProps> = ({ character, onAction, party,
     const [selectedSpellId, setSelectedSpellId] = useState<string | null>(null);
     const [showAllPossibleSpells, setShowAllPossibleSpells] = useState(false);
     const [referencedRulesBySpellId, setReferencedRulesBySpellId] = useState<Record<string, SpellReferencedRule[]>>({});
+    // A failed enrichment load used to be indistinguishable from a spell that
+    // simply cites no rules. This records the failure so the tab can say so.
+    const [ruleLinkLoadError, setRuleLinkLoadError] = useState<string | null>(null);
     const allSpellsData = useContext(SpellContext);
     const glossaryEntries = useContext(GlossaryContext);
 
@@ -105,13 +108,16 @@ const SpellbookTab: React.FC<SpellbookTabProps> = ({ character, onAction, party,
                 );
 
                 setReferencedRulesBySpellId(nextRulesBySpellId);
+                setRuleLinkLoadError(null);
             })
-            .catch(() => {
+            .catch((error: unknown) => {
                 if (cancelled) return;
-                // DEBT: Rule-link enrichment remains fail-open because a missing
-                // optional generated artifact must not hide the spell itself. A
-                // future mandatory-link gate should replace this with a visible warning.
+                // The spell itself must stay readable, so a missing enrichment file
+                // does not blank the card. It does gate the rule links and says so
+                // in the UI: silently showing spell prose with no rule chips looked
+                // identical to a spell that cites no rules (agora-65d0).
                 setReferencedRulesBySpellId({});
+                setRuleLinkLoadError(error instanceof Error ? error.message : String(error));
             });
 
         return () => {
@@ -387,6 +393,23 @@ const SpellbookTab: React.FC<SpellbookTabProps> = ({ character, onAction, party,
                     their glossary records intentionally have no filePath. Future
                     file-backed spell entries can flow through FullEntryDisplay,
                     while missing compiled entries preserve the legacy pane. */}
+                {/* Rule-link gate: the spell stays visible, but the tab states
+                    plainly that its glossary rule chips are unavailable and names
+                    the generator that produces them. */}
+                {ruleLinkLoadError && (
+                    <div
+                        role="status"
+                        className="mx-6 mt-4 rounded border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-200"
+                    >
+                        <p className="font-semibold">Rule links unavailable</p>
+                        <p className="text-amber-200/80">
+                            The generated spell rule-link dataset did not load, so this spell's rules are shown without glossary links.
+                            Run <code className="font-mono">npx tsx scripts/generateSpellReferencedRulesEnrichment.ts</code> to rebuild it.
+                        </p>
+                        <p className="text-amber-200/60">{ruleLinkLoadError}</p>
+                    </div>
+                )}
+
                 <div className="flex-1 overflow-y-auto p-6 scrollable-content">
                     {selectedSpellEntry?.hasSpellJson && selectedSpell ? (
                         <SpellCardTemplate

@@ -24,7 +24,9 @@ multi-agent fix/build campaign across the Aralia repo using **three systems toge
    Ad-hoc issue logs (e.g. `.agent/scratch/ux-pass/ISSUES.md`) are another work source.
 
 This file is the missing link that ties them together. Read `PROTOCOL.md` for exact API
-details; read this for **how to run a campaign**.
+details; read this for **how to run a campaign**. When a second orchestrator is live, read
+the pact, [`CO-ORCHESTRATION.md`](./CO-ORCHESTRATION.md) — ownership, lock etiquette,
+conflict resolution, escalation, seats and the unattended-closure path.
 
 ---
 
@@ -53,8 +55,11 @@ stop if a row lacks a pet or if two live rows share one `pet.slug`. Workers self
 against the returned assignment, not merely the originally requested slug.
 A worker never invents its own name; you hand it one. This is what stops two workers in the
 one shared checkout from sharing an identity and having `unlock --mine` free each other's
-locks. `orchestrate.mjs`'s generated prompts already bake `export AGORA_AGENT_ID=<handle>`
-into STEP 1 — if you hand-write a worker prompt, include it yourself.
+locks. `orchestrate.mjs`'s generated prompts put `AGORA_AGENT_ID=<handle>` on every Agora
+command, starting with register; for PowerShell they set `$env:AGORA_AGENT_ID` in the same
+call. A separate shell does not inherit the previous export. If you hand-write a worker
+prompt, include the same scope on the register call and every later call. The client now
+refuses unscoped registration by default, including in a fresh checkout (WF-G344).
 
 **Stamp the model at launch.** You know which model each worker is before it starts, so its
 register line carries `--model <model>` (generated prompts use `pkt.model || pkt.agent`). That
@@ -68,6 +73,25 @@ daemon rejects missing required provenance before Presence, and both values surf
 so a sibling's `git reset --hard` can't nuke live coordination state.
 
 ---
+
+### Seed under the identity you already hold (WF-G172)
+
+`orchestrate seed` used to register `orchestrator-<wave>` every time. An orchestrator that
+had ALREADY registered its own handle then owned TWO live presence rows for one session:
+presence, campaign ownership and the seeded tasks' `creatorAgent` split across them, a later
+`unlock --mine` or `retire` under one handle left the other's claims and locks orphaned, and
+the roster over-reported the fleet size.
+
+THE RULE, and `seedPlan` now applies it:
+
+- When `AGORA_AGENT_ID` names a LIVE agent on this board whose role is `orchestrator` or
+  `master`, seed coordinates as that identity and registers nothing. It prints which identity
+  it reused and why.
+- Only when no such identity is set does seed register a fresh `orchestrator-<wave>` handle
+  in its own per-wave identity directory.
+
+So: register yourself ONCE, export `AGORA_AGENT_ID`, and seed every wave of that session
+under it. Do not register a second orchestrator handle by hand.
 
 ## 0a. Arm event-driven Codex wake and desktop surfacing
 
@@ -144,6 +168,7 @@ agents, and runs the gate.
 
 ```bash
 npm run agora                                              # daemon up (once)
+node tools/agora/orchestrate.mjs partition plan.json       # check claimed tasks against packet file ownership
 node tools/agora/orchestrate.mjs seed     plan.json        # register orchestrator + announce the wave
 node tools/agora/orchestrate.mjs prompt   plan.json PK-x   # the ready coordination contract for a packet…
 node tools/agora/orchestrate.mjs dispatch plan.json PK-x   # …claude => writes prompt for the Agent tool; codex/gemini => probes quota + launches in bg
@@ -196,6 +221,27 @@ a write, they only *signal*. So you pre-partition so locks rarely collide.
   feature's data + render span several files, either give one agent the whole chain or sequence
   the consumers after the producer.
 
+Before seed or dispatch, run `node tools/agora/orchestrate.mjs partition plan.json`. List every
+existing Agora task a packet claims in `taskIds`; a task ID in packet `issues` or `refs`
+is checked too. The report reads the live task refs and flags every file path outside
+the packet's `files`. Widen the packet when it should own the file. If another packet
+owns the file, add a `handoffs` entry with `ref`, `toPacket`, and
+`expectedBreakage` (and optionally `taskId`). The named sibling must own that exact
+file; the worker prompt then states the expected effect and handoff. Missing tasks, duplicate
+claims, unowned refs and stale handoffs fail before seed or dispatch changes board state.
+
+For every owned `src/` source file, the partition check also finds existing co-located and
+`__tests__/` sibling `*.test.*` or `*.spec.*` files with the same module name, plus
+same-prefix tests that import that module (WF-G209).
+Put those regression tests in the **same packet's** `files`, not a sibling handoff: the
+worker must be able to update an obsolete expectation when its source change requires it.
+The generated prompt and lock command then name both source and tests. A source-only
+packet fails pre-dispatch instead of forcing the worker to preserve an outdated assertion.
+
+This checks declared file refs, not where implementation actually belongs. Read each task
+and confirm its refs name the files that must change; a ref to a comment about deferred work
+does not establish ownership of the implementation file (WF-G239).
+
 ### Step C — Seed the wave ONTO the board (v0.2: the board IS the plan)
 ```bash
 node tools/agora/orchestrate.mjs seed <plan.json>
@@ -220,6 +266,95 @@ Every seeded task must show a non-null `creatorAgent` block for the orchestrator
 that seeded it. If a hand-written or custom seeding flow produces a task whose creator is
 missing, stop the wave and recreate the task after registering the orchestrator correctly.
 
+#### Connected campaigns: umbrella lead + deputy pattern (WF-G152)
+
+When seeding several connected clusters that share files, claiming multiple `lead` campaigns will fail with HTTP 409 because the daemon prevents active lead campaigns from overlapping paths. Instead, use the **umbrella lead + deputy** pattern:
+1. Claim one broad **umbrella lead** campaign covering the entire sweep domain and all shared hot files.
+2. Claim one **deputy** campaign per connected work cluster, setting `--role deputy --lead <umbrella-lead-id>`. Deputies are permitted to overlap their lead's path scope, allowing individual clusters to group related tasks without triggering 409 collisions.
+3. Seed or file cluster tasks under their respective deputy campaign (`--campaign <deputy-id>`).
+
+CLI recipe:
+```bash
+# 1. Claim umbrella lead
+node tools/agora/client.mjs campaign claim agora-sweep-lead --role lead --scope "sweep umbrella" --path src/hotFile.ts src/cluster1.ts src/cluster2.ts
+
+# 2. Claim deputies attached to the lead
+node tools/agora/client.mjs campaign claim agora-cluster-1 --role deputy --lead agora-sweep-lead --scope "cluster 1" --path src/hotFile.ts src/cluster1.ts
+node tools/agora/client.mjs campaign claim agora-cluster-2 --role deputy --lead agora-sweep-lead --scope "cluster 2" --path src/hotFile.ts src/cluster2.ts
+
+# 3. File tasks under the deputies
+node tools/agora/client.mjs task new "Cluster 1 fix" --campaign agora-cluster-1
+node tools/agora/client.mjs task new "Cluster 2 fix" --campaign agora-cluster-2
+```
+
+In plan files passed to `orchestrate.mjs seed`, declare `plan.campaign.deputies[]` (each with `id`, `scope`, `paths`, and optional `globs` or `wave`). Seed claims the lead, claims all deputies attached to it, and routes packet tasks to their named `pkt.campaign`.
+
+#### Lint every seeded body BEFORE you dispatch it (WF-G111, WF-G158, WF-G161, WF-G165, WF-G167)
+
+```bash
+for t in $(node tools/agora/client.mjs tasks --state open | grep -o "agora-[a-z0-9.]*"); do
+  node tools/agora/client.mjs task lint "$t"
+done
+```
+
+`task lint <id>` reads a task body and reports mechanically detectable defects before dispatch:
+
+1. every **path-shaped token** in the title, body or refs that is not in this checkout (`missingPaths`);
+2. every **backticked identifier** that does not grep anywhere under `src/` (`missingIdentifiers`);
+3. every **bare source file name** checked across the repository (`missingFileNames`, WF-G158);
+4. every **named test path** that does not exist on disk, reporting split test suite candidates (e.g. `combatUtils_*.test.ts` instead of `combatUtils.test.ts`) so vitest does not silently exit 0 on empty filters (`missingTestPaths`, WF-G167);
+5. suspect **missing-schema claims** where a task claims "no schema" or "add a schema for X" when type X is already defined under `src/types/**` (`suspectSchemaClaims`, WF-G165);
+6. **unresolved type fields** where a DO step names a type file as the source of fields that do not exist in that file (`unresolvedTypeFields`, WF-G161).
+
+It also notes paths that DO exist but are gitignored, because a reader grepping the git
+index will not find them and will wrongly call them missing (the GG-145 case).
+
+It exits 1 when it finds anything, so it drops into a wave script directly. It never
+refuses or rewrites a task: a body may legitimately name a file the task will CREATE. The
+orchestrator's job is to fix the stale references and, for the rest, say in the body which
+ones the task is going to create.
+
+Why this is a step and not a nicety: on 2026-09-09, 14 of 40 expanded phase-2 task bodies
+were stale or wrong about the code — files that do not exist, invented action names
+(`TOGGLE_LEDGER_BOOK` never existed), systems that had already shipped. Workers spent up to
+a third of each packet proving a negative, and a less careful worker rebuilds what exists.
+Every one of those defects would have shown up here.
+
+`task lint` checks references, not claims. It cannot tell you that a system already
+shipped or that a described failure was never observed — for those, state in the body what
+IS (file, line count, existing tests) and how the failure was observed.
+
+##### The Grep-Before-Prescribing Rule (WF-G161, WF-G165, WF-G167)
+
+Before writing task DO and ACCEPTANCE steps:
+- **Grep `src/types/**` before claiming "no schema exists" (WF-G165)**: Avoid sending workers to create duplicate types or schemas when one already exists (or is re-exported from another type file).
+- **Grep named fields in target files before prescribing them (WF-G161)**: If a DO step asserts that fields come from a specific type file, grep the file first. If absent, identify the real source (e.g. a sim state file) or explicitly record in EVIDENCE that the source is unresolved rather than asserting a false source.
+- **Resolve test paths against the tree before writing verify gates (WF-G167)**: Vitest treats non-existent test file paths as empty filters and exits 0! Always confirm test paths exist on disk. If a monolithic test suite was split into smaller files, name the exact split files or containing directory.
+
+##### Two-Sided TODO Sweep Lifecycle Contract (WF-G151)
+
+When running a code-marker sweep (`TODO`, `FIXME`, `HACK`):
+1. **The two-sided contract**: Every inventoried in-code marker MUST end in exactly one of three terminal dispositions:
+   - **(a) A board task**: filed and prioritized as an actionable task on the Agora board.
+   - **(b) Code deletion**: deleted from source code if already shipped, obsolete, or factually false.
+   - **(c) An explicit in-code parked note**: `// TODO: parked YYYY-MM-DD: <reason>` placed directly at the marker site if deferred or out-of-scope.
+2. **Staleness is judged by reading code, not Plan Map status**: Plan Map topic status can be lagging, coarse, or aspirational. Always inspect the code the marker names before classifying staleness.
+3. **Full inventory completeness**: Sweeps must not triage only the top 5 largest clusters and ignore the scattered 1-per-file markers. Every inventoried marker must be explicitly resolved, tasked, or parked so the inventory is fully drained.
+
+#### Reading a sibling task back (WF-G118)
+
+`task show <id>` prints one task in full: body, refs, typed deps, claimant, result,
+finding/evidence, blocked reason, checkpoint, and the last five history entries. Use it
+instead of digging through `.agent/agora/snapshot.json` when a worker asks what a sibling
+shipped. `tasks --state blocked` prints each blocked reason under its row.
+
+### Step C2 — Post the wave baseline (WF-G132)
+Before the first dispatch, run (or collect from the last wave) the test files the packets will touch,
+and post the red list once with `say "WAVE BASELINE (<campaign>, <date>): <test file> <n> (<gap id>); ..."`.
+Put the same list in the campaign scope or the packet bodies. A worker that meets one of those reds
+cites the message; only a NEW red costs an A/B rerun against the pre-change file. Without this every
+worker in the wave re-proves the same sibling breakage (agora-907c.7 spent a full restore-and-rerun).
+
 ### Step D — Dispatch the fix agents (each dogfoods Agora)
 Every fix agent — Claude subagent OR external CLI — gets a prompt containing the **same
 coordination contract**:
@@ -227,7 +362,10 @@ coordination contract**:
 export AGORA_AGENT_ID=<unique-handle>     # MUST be unique per agent (see gotchas)
 B=http://localhost:4319
 node tools/agora/client.mjs register <handle> --pet <assigned-pet-slug> --session <worker-task-or-thread-id> --note "<scope>" --url $B
-TID=$(node tools/agora/client.mjs task new "<scope>" --id-only --url $B)   # --id-only = bare id, no grep
+TID=$(node tools/agora/client.mjs task new "<scope>" --campaign <campaignId> --id-only --url $B)   # --id-only = bare id, no grep
+# WF-G171: name a campaign, or say --standalone --reason "<why>". The daemon refuses a task
+# that makes no campaign decision. A seed that must still create campaignless tasks runs
+# against a daemon started with AGORA_CAMPAIGN_INTAKE=legacy.
 node tools/agora/client.mjs task claim "$TID" --url $B
 node tools/agora/client.mjs lock <every owned file> --reason "<packet>" --url $B   # 409 => STOP + report
 node tools/agora/client.mjs say "starting <packet>" --url $B
@@ -291,7 +429,9 @@ CLI invocations (kept for reference; the registry carries the authoritative stat
 |---|---|---|
 | **codex** | `codex exec --dangerously-bypass-approvals-and-sandbox --skip-git-repo-check "<prompt>"` | **Orchestrator/supervisor role ONLY by policy.** Hits a usage quota that resets ~2am — probe first. |
 | **gemini** | `gemini --approval-mode yolo -p "<prompt>"` | **DEPRECATED for new lanes** — registry rejects it; historical sessions kept for audit. |
-| cursor / kilo / agy | onboarded per the dashboard contract, not yet wired into `orchestrate dispatch` | wire `dispatch.command/args` in agents.json + a `launchSpec` branch before first use. |
+| **cursor** | `cursor-agent.cmd -p "<prompt>"` (versioned path, see agents.json) | WIRED. Pin the versioned `versions/<stamp>` path: a Cursor update writes a new folder. |
+| **kilo** | `kilocode` per `agents.json.dispatch` | WIRED. 429-prone: sandbox the lane and fix forward. |
+| **agy** | dashboard prompt-file runner per `agents.json.dispatch` | WIRED, but NOT through `orchestrate dispatch`: `promptMode` is "file", so `launchSpec` refuses it without a prompt file. Dispatch it through the dashboard runner. |
 
 **External-agent gotchas (learned the hard way):**
 - **Quota check before dispatch.** Codex returns "hit your usage limit" when dry. Probe with a
@@ -309,6 +449,46 @@ CLI invocations (kept for reference; the registry carries the authoritative stat
 The cockpit (`:3040`) is where a human watches the whole fleet; the Agora activity bridge means
 your peer-coordination events show up there alongside external dispatches automatically.
 
+### OrcaRouter free tier — evaluated 2026-09-08, DO NOT WIRE
+
+**Conclusion first: do not point the CLI coding fleet at the OrcaRouter free tier.** The free
+tier applies a per-request PROMPT SIZE cap. A coding agent sends source files, the docs say a
+long document exceeds that cap, and no amount of waiting helps. The account balance is $0.00,
+so only the free tier is reachable. Nothing is wired.
+
+**The 429 rule — the least obvious fact, and the one an implementer must not miss.** Every
+free-tier rejection returns HTTP 429 with code `free_rate_limited` and an identical message.
+Only the `Retry-After` header tells the two causes apart.
+
+- **429 WITH `Retry-After`** — a rate window is full. Wait exactly that many seconds, then retry
+  ONCE. Do **not** back off exponentially: a free window refills completely at its boundary
+  rather than easing back, so exponential backoff is actively wrong here — the opposite of
+  normal quota guidance.
+- **429 WITHOUT `Retry-After`** — the prompt exceeded the free tier's cap. **Never retry.** The
+  docs say "Retrying unchanged fails identically, forever."
+
+**What it is.** An OpenAI-compatible gateway fronting 40+ providers behind one key and one endpoint. The base URL was not captured in this pass — read it from the console; do not guess.
+
+**Model ids.** The console catalog on 2026-09-08 showed `deepseek-v4-flash-free` (deepseek),
+`hy3-free` (tencent), `glm-5.3-flash-free` (z-ai). The docs page instead lists
+`deepseek/deepseek-v4-flash-free` and `deepseek/deepseek-v4-pro-free`. The two lists disagree;
+the docs say the catalog is the source of truth, because free capacity changes as models come
+and go. Prefer the built-in router alias **`orcarouter/free`**: it covers the whole free tier
+under one id, scores each request's difficulty, sends light work to the smaller free model and
+hard work to the stronger one, never escapes to paid, and removes the need to chase name
+changes by hand.
+
+**Three caps.** (1) Requests per minute and per day, counted per workspace; the day bucket rolls
+at 00:00 UTC. (2) The tier is set by LIFETIME spend, not a subscription — an account that never
+topped up gets a deliberately small daily allowance, and one modest top-up lifts it permanently.
+(3) Below the spend threshold only, the per-request prompt size cap above. Marketing shows "10
+requests/min, 50/day" free and "20/min, 800/day" after $20 lifetime spend; the docs contradict
+that, saying the limits are tuned live and none is published. Docs win; marketing is indicative.
+
+**Fallback.** A free id works as the PRIMARY model of a request, but a free id further down an
+`extra_body.models` chain is DROPPED. Free never rolls over to paid. That agrees with this
+repo's NO-FALLBACK DIRECTIVE in `src/config/llmProviderConfig.ts` lines 28-37.
+
 ---
 
 ## 3. Agora client cheat-sheet (full API in PROTOCOL.md)
@@ -318,7 +498,8 @@ pets                            register <handle> --pet <slug> [--note]      who
 lock <path...> [--ttl min]      unlock <id|path> | --mine | <id> --force       locks
 campaign claim <id> [--role lead|deputy] [--lead <id>] [--path <p>...] [--glob <g>...]
 campaign state <id> done|blocked|active     campaigns [--state active]
-task new <title> [--dep <id>...] [--priority N] [--ref <gapId>...] [--campaign <id>] [--id-only]
+task new <title> (--campaign <id> | --standalone --reason "...") [--dep <id>...] [--priority N] [--ref <gapId>...] [--id-only]
+task campaign <id> (<campaignId> | --standalone) --reason "..."     move a task between campaigns (WF-G169)
 task claim <id>    task next [--id-only]    task done <id> --result "<what+proof>"
 task handoff <id> <to>    tasks [--ready]
 say <body> | say --to <h> <body>     inbox [--since <seq>] [--mine]     watch     health

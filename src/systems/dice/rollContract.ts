@@ -46,6 +46,10 @@ export interface RollSpec {
   notation: string;
   advantage?: boolean;
   disadvantage?: boolean;
+  /** 5e critical hit: double the DIE COUNT of every dice group, never the total. */
+  isCritical?: boolean;
+  /** Floor for every individual die face (Elemental Adept rolls a 1 as `minRoll`). */
+  minRoll?: number;
 }
 
 /** The deterministic result of a roll: every die, the flat modifier, the total. */
@@ -107,15 +111,38 @@ export function deriveRollSeed(baseSeed: number, index: number): number {
  * `dropped` so audits show what was discarded.
  */
 export function executeRoll(spec: RollSpec, seed: number): RollOutcome {
-  const { notation, advantage, disadvantage } = spec;
+  const rng = new SeededRandom(seed);
+  return executeRollWithSource(spec, () => rng.next());
+}
+
+/**
+ * The same core, driven by a caller-owned 0..1 source instead of a seed.
+ *
+ * WHY: the retired `combatUtils` roller family let a caller inject a
+ * `() => number` source, and Design Preview scenarios pin it to a constant so a
+ * demo shows a fixed number. Those callers own their sequence, so they cannot
+ * be handed a seed without changing every pinned value they display. One draw
+ * per die, `floor(draw * sides) + 1` — byte-for-byte the arithmetic the retired
+ * `rollDieGroup` used, so a pinned scenario keeps the number it always showed.
+ *
+ * A roll driven this way is reproducible only by re-running the caller's
+ * source, so it is NOT recorded in the audit log; `DiceAuditLog.perform` is for
+ * rolls the contract seeds.
+ */
+export function executeRollWithSource(spec: RollSpec, draw: () => number): RollOutcome {
+  const { notation, advantage, disadvantage, isCritical, minRoll } = spec;
   const outcome: RollOutcome = { dice: [], modifier: 0, total: 0 };
   if (!notation || notation === '0') return outcome;
 
   const formula = notation.replace(/\s+/g, '');
-  const rng = new SeededRandom(seed);
+  const rollDie = (sides: number): number => Math.floor(draw() * sides) + 1;
   // Advantage and disadvantage cancel (5e rule).
   const keep: 'max' | 'min' | null =
     advantage && !disadvantage ? 'max' : disadvantage && !advantage ? 'min' : null;
+
+  // A floor below 1 can never bite, so normalise it away instead of branching later.
+  const floor = typeof minRoll === 'number' && minRoll > 1 ? minRoll : 1;
+  const applyFloor = (value: number): number => (value < floor ? floor : value);
 
   const regex = new RegExp(TERM_REGEX.source, 'g');
   let match: RegExpExecArray | null;
@@ -124,12 +151,13 @@ export function executeRoll(spec: RollSpec, seed: number): RollOutcome {
     const sign = match[1] === '-' ? -1 : 1;
 
     if (match[2] && match[3]) {
-      const count = parseInt(match[2], 10);
+      // 5e critical: double the number of dice rolled, not the rolled total.
+      const count = parseInt(match[2], 10) * (isCritical ? 2 : 1);
       const sides = parseInt(match[3], 10);
       for (let i = 0; i < count; i++) {
-        const first = rng.nextInt(1, sides + 1);
+        const first = applyFloor(rollDie(sides));
         if (keep) {
-          const second = rng.nextInt(1, sides + 1);
+          const second = applyFloor(rollDie(sides));
           const kept = keep === 'max' ? Math.max(first, second) : Math.min(first, second);
           const droppedValue = kept === first ? second : first;
           outcome.dice.push({ sides, value: kept });
@@ -172,10 +200,24 @@ class DiceAuditLogClass {
   /**
    * Perform a roll through the shared contract and record it.
    * This is the ONLY sanctioned way for silent and visual paths to roll.
+   *
+   * `options.seed` pins the per-roll seed instead of deriving it from the
+   * session stream. Callers that already own a deterministic stream (a seeded
+   * voyage, a Design Preview scenario) pass their own seed and keep their
+   * determinism while still getting an audit record. The record stores the
+   * exact seed used either way, so `reproduce()` is unaffected. The session
+   * index still advances, so an explicit-seed roll never silently re-uses a
+   * derived seed a later roll will also get.
    */
-  perform(spec: RollSpec, options: { mode: RollMode; context?: string }): RollAuditRecord {
+  perform(
+    spec: RollSpec,
+    options: { mode: RollMode; context?: string; seed?: number }
+  ): RollAuditRecord {
     const index = this.nextIndex++;
-    const seed = deriveRollSeed(this.baseSeed, index);
+    const seed =
+      typeof options.seed === 'number'
+        ? options.seed
+        : deriveRollSeed(this.baseSeed, index);
     const record: RollAuditRecord = {
       id: generateId(),
       index,

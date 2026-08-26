@@ -15,6 +15,28 @@
 
                    ],
     "ritual":  true,
+    "ritualData": {
+      "requirements": [
+        {
+          "type": "custom",
+          "value": "component:verbal",
+          "description": "The ritual must be chanted aloud from start to finish."
+        },
+        {
+          "type": "custom",
+          "value": "uninterrupted_casting",
+          "description": "Ritual casting adds 10 minutes to the casting time and must run uninterrupted."
+        }
+      ],
+      "backlash": {
+        "type": "damage",
+        "value": "6d6",
+        "damageType": "psychic",
+        "saveDC": 15,
+        "minProgress": 0.5,
+        "description": "The alien mind on the far end of the contact tears free: DC 15 Intelligence save or take 6d6 psychic damage and go insane until the caster finishes a long rest."
+      }
+    },
     "rarity":  "common",
     "attackType":  "",
     "castingTime":  {
@@ -415,10 +437,10 @@
                 ],
     "arbitrationType":  "mechanical",
     "aiContext":  {
-                      "prompt":  "On cast, resolve the caster\u0027s DC 15 Intelligence save. On success, allow up to five questions before the spell ends; on failure, apply 6d6 Psychic damage and Incapacitated until Long Rest or Greater Restoration.",
+                      "prompt":  "On cast, resolve the caster's DC 15 Intelligence save. On success, allow up to five questions before the spell ends; on failure, apply 6d6 Psychic damage and Incapacitated until Long Rest or Greater Restoration.",
                       "playerInputRequired":  true
                   },
-    "description":  "You mentally contact a demigod, the spirit of a long-dead sage, or some other knowledgeable entity from another plane. Contacting this otherworldly intelligence can break your mind. When you cast this spell, make a DC 15 Intelligence saving throw. On a successful save, you can ask the entity up to five questions. You must ask your questions before the spell ends. The DM answers each question with one word, such as \"yes,\" \"no,\" \"maybe,\" \"never,\" \"irrelevant,\" or \"unclear\" (if the entity doesn\u0027t know the answer to the question). If a one-word answer would be misleading, the DM might instead offer a short phrase as an answer. On a failed save, you take 6d6 Psychic damage and have the Incapacitated condition until you finish a Long Rest. A Greater Restoration spell cast on you ends this effect.",
+    "description":  "You mentally contact a demigod, the spirit of a long-dead sage, or some other knowledgeable entity from another plane. Contacting this otherworldly intelligence can break your mind. When you cast this spell, make a DC 15 Intelligence saving throw. On a successful save, you can ask the entity up to five questions. You must ask your questions before the spell ends. The DM answers each question with one word, such as \"yes,\" \"no,\" \"maybe,\" \"never,\" \"irrelevant,\" or \"unclear\" (if the entity doesn't know the answer to the question). If a one-word answer would be misleading, the DM might instead offer a short phrase as an answer. On a failed save, you take 6d6 Psychic damage and have the Incapacitated condition until you finish a Long Rest. A Greater Restoration spell cast on you ends this effect.",
     "higherLevels":  "",
     "tags":  [
                  "ritual"

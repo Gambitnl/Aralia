@@ -25,7 +25,7 @@
 
 import type { CombatCharacter, CombatState } from '../../types/combat';
 import type { LimitedUses } from '../../types/character';
-import { rollDice } from './combatUtils';
+import { rollDice } from '../../systems/dice/rollers';
 
 export const WILD_SHAPE_RESOURCE_KEY = 'wild_shape';
 export const LANDS_AID_ABILITY_ID = 'lands_aid';

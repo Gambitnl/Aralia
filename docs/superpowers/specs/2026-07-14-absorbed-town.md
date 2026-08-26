@@ -1,18 +1,18 @@
 # Absorbed: Town runtime (docs/projects/town)
 
-Status: active reference — absorbed into planmap topic `shipped-styled-town` on
+Status: active reference - absorbed into planmap topic `shipped-styled-town` on
 2026-07-15. The living-project folder was deleted (git history is the archive). This
 covers the LEGACY 2D town runtime surface (`GamePhase.VILLAGE_VIEW`), not the canonical
 Worldforge town generator.
 
 ## Surface map
 
-- `src/components/Town/TownCanvas.tsx` — the active render surface; `src/App.tsx`
+- `src/components/Town/TownCanvas.tsx` - the active render surface; `src/App.tsx`
   lazy-loads it. `src/components/Town/VillageScene.tsx` remains exported and tested but
   is not routed to (ownership decision open, gap G4).
 - Entry path: the action contract has `ENTER_TOWN`, but the live overworld path uses
   `ENTER_VILLAGE` plus direct phase switching in `src/hooks/actions/handleMovement.ts`
-  (gap G2 — pick one canonical entry action before expanding transitions).
+  (gap G2 - pick one canonical entry action before expanding transitions).
 - `determineSettlementInfo(...)` is computed in `App.tsx` but never consumed by the
   TownCanvas flow (gap G3); settlement personality data
   (`src/data/villagePersonalityProfiles.ts`, `src/utils/world/settlementGeneration.ts`)

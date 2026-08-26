@@ -213,7 +213,7 @@
                                                                        "dice":  "1d4",
                                                                        "type":  "same_as_attack"
                                                                    },
-                                                   "notes":  "While enlarged, the target\u0027s enlarged weapons and Unarmed Strikes deal an extra 1d4 damage on a hit."
+                                                   "notes":  "While enlarged, the target's enlarged weapons and Unarmed Strikes deal an extra 1d4 damage on a hit."
                                                }
                                            ],
                         "controlOptions":  [
@@ -371,7 +371,7 @@
                                                                          "dice":  "1d4",
                                                                          "minimumDamage":  1
                                                                      },
-                                                   "notes":  "While reduced, the target\u0027s reduced weapons and Unarmed Strikes deal 1d4 less damage on a hit, never reducing damage below 1."
+                                                   "notes":  "While reduced, the target's reduced weapons and Unarmed Strikes deal 1d4 less damage on a hit, never reducing damage below 1."
                                                }
                                            ],
                         "controlOptions":  [
@@ -423,7 +423,7 @@
                       "prompt":  "Ask the caster to choose Enlarge or Reduce and the visible creature or loose object target; if the target is an unwilling creature, prompt the Constitution save before applying size, Strength-check/save, and attack-damage changes.",
                       "playerInputRequired":  true
                   },
-    "description":  "For the duration, the spell enlarges or reduces a creature or an object you can see within range (see the chosen effect below). A targeted object must be neither worn nor carried. If the target is an unwilling creature, it can make a Constitution saving throw. On a successful save, the spell has no effect. Everything that a targeted creature is wearing and carrying changes size with it. Any item it drops returns to normal size at once. A thrown weapon or piece of ammunition returns to normal size immediately after it hits or misses a target. Enlarge. The target\u0027s size increases by one category-from Medium to Large, for example. The target also has Advantage on Strength checks and Strength saving throws. The target\u0027s attacks with its enlarged weapons or Unarmed Strikes deal an extra 1d4 damage on a hit. Reduce. The target\u0027s size decreases by one category-from Medium to Small, for example. The target also has Disadvantage on Strength checks and Strength saving throws. The target\u0027s attacks with its reduced weapons or Unarmed Strikes deal 1d4 less damage on a hit (this can\u0027t reduce the damage below 1).",
+    "description":  "For the duration, the spell enlarges or reduces a creature or an object you can see within range (see the chosen effect below). A targeted object must be neither worn nor carried. If the target is an unwilling creature, it can make a Constitution saving throw. On a successful save, the spell has no effect. Everything that a targeted creature is wearing and carrying changes size with it. Any item it drops returns to normal size at once. A thrown weapon or piece of ammunition returns to normal size immediately after it hits or misses a target. Enlarge. The target's size increases by one category-from Medium to Large, for example. The target also has Advantage on Strength checks and Strength saving throws. The target's attacks with its enlarged weapons or Unarmed Strikes deal an extra 1d4 damage on a hit. Reduce. The target's size decreases by one category-from Medium to Small, for example. The target also has Disadvantage on Strength checks and Strength saving throws. The target's attacks with its reduced weapons or Unarmed Strikes deal 1d4 less damage on a hit (this can't reduce the damage below 1).",
     "higherLevels":  "",
     "tags":  [
                  "transmutation",
@@ -440,7 +440,7 @@
                        "options":  [
                                        {
                                            "label":  "Enlarge",
-                                           "summary":  "The target\u0027s size increases by one category. Advantage on Str checks/saves. Attacks deal extra 1d4 damage.",
+                                           "summary":  "The target's size increases by one category. Advantage on Str checks/saves. Attacks deal extra 1d4 damage.",
                                            "effectIndices":  [
                                                                  0
                                                              ],
@@ -453,7 +453,7 @@
                                        },
                                        {
                                            "label":  "Reduce",
-                                           "summary":  "The target\u0027s size decreases by one category. Disadvantage on Str checks/saves. Attacks deal 1d4 less damage.",
+                                           "summary":  "The target's size decreases by one category. Disadvantage on Str checks/saves. Attacks deal 1d4 less damage.",
                                            "effectIndices":  [
                                                                  1
                                                              ],

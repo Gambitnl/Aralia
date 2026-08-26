@@ -1,4 +1,4 @@
-﻿# Primal Savagery Scenarios
+# Primal Savagery Scenarios
 
 Source references:
 - `docs/spells/reference/level-0/primal-savagery.md`

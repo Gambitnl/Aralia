@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>Wildkin repo board · Agora</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: radial-gradient(1150px 520px at 10% -20%, #1f2b4d, transparent 56%), #080d1b;
+      --panel: linear-gradient(150deg, rgba(22, 32, 52, .94), rgba(19, 26, 45, .94));
+      --panel-2: linear-gradient(180deg, rgba(36, 49, 77, .95), rgba(23, 32, 52, .95));
+      --border: #2f3d5e; --border-soft: rgba(116, 181, 255, .18);
+      --text: #edf2ff; --text-dim: #aab7d2; --text-faint: #7f8ea8;
+      --accent: #87bbff; --accent-2: #6de3ff;
+      --green: #2ec27e; --amber: #e3a008; --red: #f85149;
+      --mono: "IBM Plex Mono", "SFMono-Regular", "Cascadia Code", Consolas, monospace;
+      --sans: "Manrope", "Avenir Next", "Segoe UI", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 100%; }
+    body { background: var(--bg); color: var(--text); font: 14px/1.45 var(--sans); letter-spacing: .1px; }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { color: var(--accent-2); text-decoration: underline; }
+    button, input, select { font: inherit; }
+    button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, .panel > h2:focus-visible {
+      outline: 2px solid var(--accent-2); outline-offset: 2px;
+    }
+    header {
+      --mono: ui-monospace, "SFMono-Regular", "Cascadia Code", "Consolas", monospace;
+      --text-dim: #9aa7b4; --text-faint: #6e7d8c;
+      --accent: #58a6ff; --accent-2: #67e8f9;
+      position: sticky; top: 0; z-index: 10;
+      display: flex; align-items: center; gap: 18px; flex-wrap: wrap;
+      padding: 12px 20px; border-bottom: 1px solid #2b3340;
+      background: linear-gradient(180deg, #141a23, #0e1117);
+      color: #e6edf3; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    }
+    .brand { display: flex; align-items: baseline; gap: 10px; white-space: nowrap; }
+    .brand h1 { margin: 0; font-size: 20px; letter-spacing: .5px; }
+    .brand h1 a { color: var(--text); }
+    .brand h1 a:hover { text-decoration: none; }
+    .brand .meta { color: var(--text-dim); font: 12px var(--mono); }
+    .refresh-meta { color: var(--text-dim); font-size: 14px; }
+    .cockpit-link, .docs-link {
+      color: var(--accent-2); text-decoration: none; white-space: nowrap;
+      border: 1px solid rgba(148, 163, 184, .3); border-radius: 8px;
+      padding: 2px 8px; font-size: 12px;
+    }
+    .cockpit-link { margin-left: 12px; }
+    .docs-link { color: var(--text-dim); }
+    .cockpit-link:hover, .docs-link:hover { border-color: var(--accent-2); text-decoration: none; }
+    .conn {
+      display: flex; align-items: center; gap: 7px;
+      padding: 4px 10px; border: 1px solid var(--border); border-radius: 999px;
+      background: #161b22; color: var(--text-dim); font-size: 12px;
+      white-space: nowrap;
+    }
+    .conn .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--amber); }
+    .conn[data-state="connected"] .dot { background: var(--green); box-shadow: 0 0 6px var(--green); }
+    .conn[data-state="offline"] .dot { background: var(--red); box-shadow: 0 0 6px var(--red); }
+    .view-tabs { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+    .view-tab {
+      color: var(--text-dim); background: #161b22;
+      border: 1px solid var(--border); border-radius: 8px;
+      padding: 5px 10px; font-size: 12px; cursor: pointer; white-space: nowrap;
+    }
+    .view-tab:hover { border-color: var(--accent); color: var(--text); text-decoration: none; }
+    .view-tab.active { color: var(--text); border-color: var(--accent); background: #17263a; cursor: default; }
+    .view-tab:disabled { opacity: .6; cursor: wait; }
+    .view-tab-count { margin-left: 5px; color: var(--accent); font: 11px var(--mono); }
+    .counts { display: flex; gap: 8px; margin-left: auto; flex-wrap: wrap; }
+    .scope-note { align-self: center; color: var(--text-dim); font: 11px var(--mono); white-space: nowrap; }
+    .count {
+      display: flex; flex-direction: column; align-items: center;
+      min-width: 64px; padding: 4px 14px;
+      border: 1px solid #2b3340; border-radius: 8px;
+      background: #161b22;
+    }
+    .count .n { font-size: 18px; font-weight: 700; font-variant-numeric: tabular-nums; }
+    .count .l { color: var(--text-faint); font-size: 10px; text-transform: uppercase; letter-spacing: .6px; }
+    .count-link { color: inherit; }
+    .count-link:hover { text-decoration: none; }
+    .count-link:hover .n { color: var(--accent-2); }
+    main {
+      display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 14px;
+      max-width: 1500px; margin: 0 auto; padding: 16px 18px 28px;
+    }
+    .panel {
+      display: flex; flex-direction: column; min-width: 0; min-height: 220px; overflow: hidden;
+      border: 3px solid var(--border-soft); border-radius: 14px;
+      background: var(--panel); box-shadow: 0 0 0 2px rgba(116, 181, 255, .08), 0 20px 35px rgba(0, 0, 0, .28);
+    }
+    .panel.wide { grid-column: 1 / -1; }
+    .panel > h2 {
+      display: flex; align-items: center; gap: 8px;
+      margin: 0; padding: 11px 16px;
+      border-bottom: 3px solid var(--border-soft);
+      background: var(--panel-2); color: var(--text-dim);
+      font-size: 13px; text-transform: uppercase; letter-spacing: .7px;
+      cursor: pointer; user-select: none;
+    }
+    .panel > h2::before { content: "v"; width: 10px; color: var(--text-faint); font-family: var(--mono); }
+    .panel.collapsed { min-height: 0; }
+    .panel.collapsed > h2 { border-bottom: 0; }
+    .panel.collapsed > h2::before { content: ">"; }
+    .panel.collapsed > :not(h2) { display: none; }
+    .panel > h2 .badge {
+      margin-left: auto; padding: 1px 9px;
+      border: 1px solid rgba(116, 181, 255, .25); border-radius: 999px;
+      background: rgba(116, 181, 255, .14); color: var(--accent);
+      font: 11px var(--mono); font-variant-numeric: tabular-nums; letter-spacing: 0;
+    }
+    .body { flex: 1; padding: 8px; overflow-y: auto; }
+    .feed-body { max-height: 420px; }
+    .feed-summary { padding: 8px 12px; color: var(--text-faint); font-size: 11px; }
+    .empty { padding: 28px 12px; color: var(--text-faint); font-size: 13px; font-style: italic; text-align: center; }
+    .empty strong { display: block; color: var(--text-dim); font-style: normal; }
+    .empty code { color: #9fd0ff; font: 12px var(--mono); }
+    .agent-line { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 8px; }
+    .agent-line:hover, .side-row:hover, .task-row:hover { background: rgba(116, 181, 255, .07); }
+    .agent-dot { flex: 0 0 auto; width: 10px; height: 10px; border-radius: 50%; background: var(--green); box-shadow: 0 0 6px rgba(46, 194, 126, .7); }
+    .agent-name { font-weight: 600; }
+    .agent-detail { margin-left: auto; color: var(--text-faint); font: 11px var(--mono); }
+    .side-row {
+      margin-bottom: 6px; padding: 9px 11px; border: 1px solid var(--border);
+      border-radius: 8px; background: var(--panel-2);
+    }
+    .row-title { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-weight: 700; }
+    .row-title .pill { margin-left: auto; }
+    .row-meta { margin-top: 4px; color: var(--text-faint); font: 11px/1.5 var(--mono); overflow-wrap: anywhere; }
+    .row-note { margin: 4px 0 0; color: var(--text-dim); font-size: 12px; overflow-wrap: anywhere; }
+    .pill { padding: 1px 8px; border: 1px solid #2b4160; border-radius: 999px; background: #101a27; color: var(--text-dim); font: 10px var(--mono); white-space: nowrap; }
+    .pill.blocked { color: #ff9a9a; border-color: #6b2438; background: #3a1620; }
+    .pill.done { color: #5fe3a1; border-color: #1d6b47; background: #103a2a; }
+    .pill.claimed, .pill.in_progress { color: #ffd479; border-color: #6b5220; background: #3a2c10; }
+    .task-toolbar {
+      display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+      padding: 10px 12px; border-bottom: 3px solid var(--border-soft);
+      background: linear-gradient(90deg, rgba(22, 32, 53, .95), rgba(19, 26, 44, .85));
+    }
+    .task-toolbar .label { color: #94a5d2; font-size: 11px; font-weight: 700; letter-spacing: .45px; text-transform: uppercase; }
+    .task-toolbar input, .task-toolbar select {
+      min-height: 30px; padding: 5px 9px; border: 1px solid var(--border-soft);
+      border-radius: 9px; background: #0c1628; color: var(--text); font-size: 11px;
+    }
+    .task-toolbar input { flex: 1 1 180px; }
+    .task-toolbar .muted { margin-left: auto; color: var(--text-faint); font-size: 11px; }
+    .task-row { position: relative; padding: 10px 12px; border-top: 3px solid rgba(116, 181, 255, .12); }
+    .task-row:first-child { border-top: 0; }
+    .task-row .row-title { font-weight: 700; }
+    .task-row .row-note { margin-top: 5px; }
+    .refs { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 6px; }
+    .ref { padding: 1px 7px; border: 1px solid #1d3a55; border-radius: 5px; background: #0c1622; color: #9fd0ff; font: 11px var(--mono); overflow-wrap: anywhere; }
+    @media (max-width: 920px) { main { grid-template-columns: minmax(0, 1fr); } }
+    @media (max-width: 620px) {
+      header { gap: 10px; padding: 10px 12px; }
+      .brand { width: 100%; }
+      .brand .meta { overflow: hidden; text-overflow: ellipsis; }
+      .counts { width: 100%; margin-left: 0; }
+      .count { flex: 1 1 66px; padding-inline: 7px; }
+      main { padding: 12px; }
+      .task-toolbar .muted { width: 100%; margin-left: 0; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <h1><a href="/" aria-label="Agora dashboard home">🏛️ Agora</a></h1>
+      <span class="meta" id="hdr-meta">connecting…</span>
+      <a class="cockpit-link" href="http://127.0.0.1:3040/agent_matrix.html" title="Operator cockpit — external-agent fleet dispatch, quotas, live terminals">🛰️ Cockpit</a>
+    </div>
+    <div class="conn" id="connection" data-state="loading" role="status" aria-live="polite">
+      <span class="dot" aria-hidden="true"></span><span id="connection-label">reconnecting</span>
+    </div>
+    <span class="refresh-meta" id="updated-at" title="Last successful data fetch · next scheduled poll (SSE events refresh instantly in between)"></span>
+    <a class="docs-link" href="/?docs=1" title="Coordination reference docs — protocol & orchestrator playbook">📚 Docs</a>
+    <nav class="view-tabs" aria-label="Dashboard views">
+      <a class="view-tab" href="/">Board</a>
+      <span class="view-tab active" aria-current="page" title="Scoped to F:\Repos\Wildkin">Wildkin</span>
+      <a class="view-tab" href="/?view=pets">Pets <span class="view-tab-count" id="pets-count">—</span></a>
+      <a class="view-tab" href="http://127.0.0.1:5210/" target="_blank" rel="noopener" title="Open the Wildkin development site">Open Wildkin ↗</a>
+      <button class="view-tab" id="refresh" type="button">Refresh</button>
+    </nav>
+    <div class="counts" aria-label="Wildkin Agora counts">
+      <span class="scope-note">Wildkin scope</span>
+      <div class="count"><span class="n" id="count-agents">—</span><span class="l">agents</span></div>
+      <div class="count"><span class="n" id="count-locks">—</span><span class="l">locks</span></div>
+      <div class="count"><span class="n" id="count-campaigns">—</span><span class="l">campaigns</span></div>
+      <div class="count"><span class="n" id="count-reservations">—</span><span class="l">reservations</span></div>
+      <div class="count"><span class="n" id="count-tasks">—</span><span class="l">tasks</span></div>
+      <div class="count"><span class="n" id="count-messages">—</span><span class="l">messages</span></div>
+      <a class="count count-link" href="/docs/WORKFLOW_GAPS.md" target="_blank" rel="noopener" title="Agora-wide open workflow gaps (not Wildkin-scoped)"><span class="n" id="count-gaps">—</span><span class="l">open gaps</span></a>
+    </div>
+  </header>
+  <main>
+    <section class="panel" data-panel-id="presence">
+      <h2 id="agents-title" role="button" tabindex="0" aria-expanded="true" aria-controls="agent-list">👥 Presence <span class="badge" id="agent-count">0</span></h2>
+      <div class="body" id="agent-list"><div class="empty">Waiting for Agora presence…</div></div>
+    </section>
+    <section class="panel" data-panel-id="locks">
+      <h2 id="locks-title" role="button" tabindex="0" aria-expanded="true" aria-controls="lock-list">🔒 Locks <span class="badge" id="lock-count">0</span></h2>
+      <div class="body" id="lock-list"><div class="empty">Waiting for Agora locks…</div></div>
+    </section>
+    <section class="panel" data-panel-id="campaigns">
+      <h2 id="campaigns-title" role="button" tabindex="0" aria-expanded="true" aria-controls="campaign-list">🎯 Campaigns <span class="badge" id="campaign-count">0</span></h2>
+      <div class="body" id="campaign-list"><div class="empty">Waiting for Agora campaigns…</div></div>
+    </section>
+    <section class="panel" data-panel-id="command-feed">
+      <h2 id="command-title" role="button" tabindex="0" aria-expanded="true" aria-controls="command-list">🎖️ Command Feed <span class="badge" id="command-count">0</span></h2>
+      <div class="body feed-body" id="command-list"><div class="empty">Waiting for Agora commands…</div></div>
+    </section>
+    <section class="panel" data-panel-id="reservations">
+      <h2 id="reservations-title" role="button" tabindex="0" aria-expanded="true" aria-controls="reservation-list">📌 Reservations <span class="badge" id="reservation-count">0</span></h2>
+      <div class="body" id="reservation-list"><div class="empty">Waiting for Agora reservations…</div></div>
+    </section>
+    <section class="panel" data-panel-id="tasks">
+      <h2 id="tasks-title" role="button" tabindex="0" aria-expanded="true" aria-controls="task-list">📋 Task Board <span class="badge" id="task-count">0</span></h2>
+      <div class="task-toolbar">
+        <span class="label">Status:</span>
+        <select id="state-filter" aria-label="Filter tasks by status">
+          <option value="all">All states</option><option value="active">Active work</option>
+          <option value="blocked">Blocked</option><option value="done">Done</option>
+        </select>
+        <input id="search" type="search" aria-label="Search Wildkin tasks" placeholder="Search scoped tasks">
+        <span class="muted" id="task-summary"></span>
+      </div>
+      <div class="body" id="task-list"><div class="empty">Waiting for Agora tasks…</div></div>
+    </section>
+    <section class="panel wide" data-panel-id="message-feed">
+      <h2 id="messages-title" role="button" tabindex="0" aria-expanded="true" aria-controls="message-list">💬 Message Feed <span class="badge" id="message-count">0</span></h2>
+      <div class="body feed-body" id="message-list"><div class="empty">Waiting for Agora messages…</div></div>
+    </section>
+  </main>
+  <script type="module" src="/dashboard/wildkin.mjs"></script>
+</body>
+</html>

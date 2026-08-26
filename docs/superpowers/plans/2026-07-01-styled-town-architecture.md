@@ -2,19 +2,19 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Give towns regional architectural identity — culture-keyed style families drive procedurally modeled buildings (varied roof shapes, palettes, chimneys), gatehouses at real road-gate openings in the town wall, and detailed docks/bridges (pilings, piers, railings) — with the 2D town map sharing the same palettes.
+**Goal:** Give towns regional architectural identity - culture-keyed style families drive procedurally modeled buildings (varied roof shapes, palettes, chimneys), gatehouses at real road-gate openings in the town wall, and detailed docks/bridges (pilings, piers, railings) - with the 2D town map sharing the same palettes.
 
-**Architecture:** A new shared data module (`architectureStyle.ts`) resolves a burg's culture TYPE (from the FMG atlas) to a `StyleFamily`. The town-plan adapter stamps per-plot style fields (wall/roof color, roof form) onto the artifact plan using a deterministic polygon-centroid hash, so 2D and 3D pick identical colors from identical inputs. The ground loader threads style data through `GroundWorld` → `ChunkData` → mesh builders; new/extended geometry builders (`gateGeometry.ts`, `deckGeometry.ts`, `buildingModels.ts`) turn the data into multi-part models. The wall ring now splits at road gatehouses (reusing the water-gate splitter) and each gate gets a styled gatehouse model.
+**Architecture:** A new shared data module (`architectureStyle.ts`) resolves a burg's culture TYPE (from the FMG atlas) to a `StyleFamily`. The town-plan adapter stamps per-plot style fields (wall/roof color, roof form) onto the artifact plan using a deterministic polygon-centroid hash, so 2D and 3D pick identical colors from identical inputs. The ground loader threads style data through `GroundWorld` -> `ChunkData` -> mesh builders; new/extended geometry builders (`gateGeometry.ts`, `deckGeometry.ts`, `buildingModels.ts`) turn the data into multi-part models. The wall ring now splits at road gatehouses (reusing the water-gate splitter) and each gate gets a styled gatehouse model.
 
 **Spec:** `docs/superpowers/specs/2026-07-01-styled-town-architecture-design.md`
 
 **Tech Stack:** TypeScript, three.js/R3F (render only), vitest. Geometry is plain `positions/indices/normals/colors` arrays (worker-transferable), matching `wallGeometry.ts`/`deckGeometry.ts`.
 
 **Project rules that override skill defaults:**
-- **NO commits** — leave all work in the tree (2am auto-snapshot). Plan steps therefore have no commit steps.
-- **Master only** — no branches, no worktrees.
-- **No fallbacks** — unresolvable culture type THROWS; demo paths pass an explicit family.
-- **Guardrails:** 2D↔3D identity must hold (re-run `.agent/scratch/townIdentityProof.mjs`); do not touch plot-ID assignment (business binding — `groundChunkLoader.test.ts` regression must stay green).
+- **NO commits** - leave all work in the tree (2am auto-snapshot). Plan steps therefore have no commit steps.
+- **Master only** - no branches, no worktrees.
+- **No fallbacks** - unresolvable culture type THROWS; demo paths pass an explicit family.
+- **Guardrails:** 2D↔3D identity must hold (re-run `.agent/scratch/townIdentityProof.mjs`); do not touch plot-ID assignment (business binding - `groundChunkLoader.test.ts` regression must stay green).
 
 **Verification suite used throughout** (same set the last program used, 385 green as of 2026-06-27):
 ```
@@ -30,8 +30,8 @@ npx vitest run src/systems/worldforge/town src/systems/worldforge/bridge src/sys
 | Style tables shared 2D/3D (pattern to follow) | `src/systems/worldforge/town/buildingStyle.ts` |
 | Plan adapter (plot ids, roles, `centroidHash01`) | `src/systems/worldforge/town/townPlanAdapter.ts` |
 | Culture lookup precedent (`getBurgNamer`, throws on unresolvable) | `src/systems/worldforge/bridge/legacySubmapBridge.ts:81-114` |
-| Wall ring → runs, water-gate split | `src/systems/worldforge/bridge/groundChunkLoader.ts:952-979`, `splitWallRingAtGates` at `:640` |
-| GroundWorld → ChunkData clipping | `groundChunkLoader.ts:1315-1330` (walls/decks), sites at `:1362` |
+| Wall ring -> runs, water-gate split | `src/systems/worldforge/bridge/groundChunkLoader.ts:952-979`, `splitWallRingAtGates` at `:640` |
+| GroundWorld -> ChunkData clipping | `groundChunkLoader.ts:1315-1330` (walls/decks), sites at `:1362` |
 | Wall/deck mesh builders (pattern for gate builder) | `src/systems/world3d/wallGeometry.ts`, `src/systems/world3d/deckGeometry.ts` |
 | Chunk types | `src/systems/world3d/types.ts` (`ChunkData`, `ChunkSite`, `ChunkMeshBundle`) |
 | Mesh bundle assembly | `src/systems/world3d/chunkBundle.ts` |
@@ -40,7 +40,7 @@ npx vitest run src/systems/worldforge/town src/systems/worldforge/bridge src/sys
 
 ---
 
-### Task 1: `architectureStyle.ts` — style families + culture-type resolution
+### Task 1: `architectureStyle.ts` - style families + culture-type resolution
 
 **Files:**
 - Create: `src/systems/worldforge/town/architectureStyle.ts`
@@ -102,19 +102,19 @@ describe('architectureStyle', () => {
 - [ ] **Step 2: Run to verify failure**
 
 Run: `npx vitest run src/systems/worldforge/town/__tests__/architectureStyle.test.ts`
-Expected: FAIL — module not found.
+Expected: FAIL - module not found.
 
 - [ ] **Step 3: Implement the module**
 
 ```ts
 // src/systems/worldforge/town/architectureStyle.ts
 /**
- * @file architectureStyle.ts — regional architecture style families.
+ * @file architectureStyle.ts - regional architecture style families.
  *
  * Single source of truth for HOW a culture builds: palettes, roof shapes,
  * gatehouse forms, dock/bridge detailing. Shared by the 2D town map
  * (TownPlanView) and the 3D ground renderer, sibling of buildingStyle.ts.
- * A burg's family comes from its FMG culture TYPE — deterministic, and per
+ * A burg's family comes from its FMG culture TYPE - deterministic, and per
  * the no-fallback directive an unknown type is an ERROR, not a default.
  */
 import type { Pt } from '../submap/submapEngine';
@@ -231,7 +231,7 @@ const pick = <T,>(arr: T[], h: number): T => arr[Math.min(arr.length - 1, Math.f
 /**
  * Per-plot style picks, keyed on the plot POLYGON so the 2D map (engine plan)
  * and the 3D bake (artifact plan, same polygons pre-quad) derive identical
- * colors/forms from identical inputs — 2D↔3D identity by construction.
+ * colors/forms from identical inputs - 2D↔3D identity by construction.
  */
 export function styledWallColor(fam: StyleFamily, poly: Pt[]): string {
   return pick(fam.wallPalette, polyHash01(poly, 0));
@@ -251,10 +251,10 @@ Expected: PASS (5 tests).
 
 ---
 
-### Task 2: `getBurgCultureType` — atlas accessor
+### Task 2: `getBurgCultureType` - atlas accessor
 
 **Files:**
-- Modify: `src/systems/worldforge/bridge/legacySubmapBridge.ts` (add export next to `getBurgNamer`, which starts ~line 81 — mirror its atlas/burg/culture resolution)
+- Modify: `src/systems/worldforge/bridge/legacySubmapBridge.ts` (add export next to `getBurgNamer`, which starts ~line 81 - mirror its atlas/burg/culture resolution)
 - Test: `src/systems/worldforge/bridge/__tests__/legacySubmapBridge.cultureType.test.ts`
 
 - [ ] **Step 1: Write the failing test**
@@ -281,15 +281,15 @@ describe('getBurgCultureType', () => {
 });
 ```
 
-> If other bridge tests use a different canonical seed constant, reuse THAT seed — the atlas build is expensive and cached per seed.
+> If other bridge tests use a different canonical seed constant, reuse THAT seed - the atlas build is expensive and cached per seed.
 
-- [ ] **Step 2: Run to verify failure** — `npx vitest run src/systems/worldforge/bridge/__tests__/legacySubmapBridge.cultureType.test.ts` → FAIL (`getBurgCultureType` not exported).
+- [ ] **Step 2: Run to verify failure** - `npx vitest run src/systems/worldforge/bridge/__tests__/legacySubmapBridge.cultureType.test.ts` -> FAIL (`getBurgCultureType` not exported).
 
 - [ ] **Step 3: Implement (mirror `getBurgNamer`'s resolution + throw style)**
 
 ```ts
 /**
- * FMG culture TYPE for a burg ('Highland' | 'Naval' | ... ) — drives the
+ * FMG culture TYPE for a burg ('Highland' | 'Naval' | ... ) - drives the
  * architecture style family. No-fallback: throws if the burg or its culture
  * can't be resolved (same posture as getBurgNamer).
  */
@@ -305,7 +305,7 @@ export function getBurgCultureType(worldSeed: number, burgId: number): string {
 }
 ```
 
-- [ ] **Step 4: Run tests** — expected PASS.
+- [ ] **Step 4: Run tests** - expected PASS.
 
 ---
 
@@ -314,12 +314,12 @@ export function getBurgCultureType(worldSeed: number, burgId: number): string {
 **Files:**
 - Modify: `src/systems/worldforge/town/townPlanAdapter.ts` (`toArtifactPlan` gains an optional `family` param; stamps style fields)
 - Modify: `src/systems/worldforge/artifacts.ts` (artifact `TownPlan` plot type gains optional `wallColorHex`, `roofColorHex`, `roofForm`, and `role` already exists)
-- Modify: `src/systems/worldforge/town/voronoiTownAdapter.ts` (same stamping for the demo path — demo callers pass `STYLE_FAMILIES.temperateFrame` EXPLICITLY)
-- Modify: `src/systems/worldforge/bridge/groundChunkLoader.ts` — `canonicalArtifactTownForSite` resolves the family via `styleFamilyForCultureType(getBurgCultureType(worldSeed, site.burgId))` and passes it to `toArtifactPlan`
+- Modify: `src/systems/worldforge/town/voronoiTownAdapter.ts` (same stamping for the demo path - demo callers pass `STYLE_FAMILIES.temperateFrame` EXPLICITLY)
+- Modify: `src/systems/worldforge/bridge/groundChunkLoader.ts` - `canonicalArtifactTownForSite` resolves the family via `styleFamilyForCultureType(getBurgCultureType(worldSeed, site.burgId))` and passes it to `toArtifactPlan`
 - Modify: `src/systems/worldforge/town/demoTownPlan.ts` + its three preview consumers only if the adapter signature change requires it (keep demo family = `temperateFrame`, passed explicitly)
 - Test: `src/systems/worldforge/town/__tests__/townPlanAdapter.test.ts` (extend)
 
-**CRITICAL:** Do NOT change plot-ID assignment order or the plot filter — business binding depends on it (`groundChunkLoader.test.ts` regression).
+**CRITICAL:** Do NOT change plot-ID assignment order or the plot filter - business binding depends on it (`groundChunkLoader.test.ts` regression).
 
 - [ ] **Step 1: Write the failing test (extend the adapter suite)**
 
@@ -348,16 +348,16 @@ it('plot IDs are unchanged by styling (business-binding invariant)', () => {
 });
 ```
 
-(Use whatever fixture the existing suite already builds engine plans with; if it generates via `townEngine`, reuse that call — determinism is what matters, not the fixture shape.)
+(Use whatever fixture the existing suite already builds engine plans with; if it generates via `townEngine`, reuse that call - determinism is what matters, not the fixture shape.)
 
-- [ ] **Step 2: Run to verify failure** — adapter has no third param / fields.
+- [ ] **Step 2: Run to verify failure** - adapter has no third param / fields.
 
 - [ ] **Step 3: Implement**
 
-In `artifacts.ts`, extend the plot type (optional fields — old saves/goldens stay valid):
+In `artifacts.ts`, extend the plot type (optional fields - old saves/goldens stay valid):
 
 ```ts
-// artifacts.ts TownPlan plots entry — ADD:
+// artifacts.ts TownPlan plots entry - ADD:
 /** Architecture-style stamps (2026-07-01). Optional: legacy plans omit them. */
 wallColorHex?: string;
 roofColorHex?: string;
@@ -392,18 +392,18 @@ const adapted = toArtifactPlan(feetPlan, site.burgId, family);
 // and RETURN the family alongside: { ...adapted, family }
 ```
 
-Extend `AdaptedTownPlan`'s return at this call site (add `family: StyleFamily` to the object `canonicalArtifactTownForSite` returns — type it as `AdaptedTownPlan & { family: StyleFamily }` at the function signature, don't change `AdaptedTownPlan` itself since demo adapters return it without a family).
+Extend `AdaptedTownPlan`'s return at this call site (add `family: StyleFamily` to the object `canonicalArtifactTownForSite` returns - type it as `AdaptedTownPlan & { family: StyleFamily }` at the function signature, don't change `AdaptedTownPlan` itself since demo adapters return it without a family).
 
 In `demoTownPlan.ts` pass `STYLE_FAMILIES.temperateFrame` explicitly to `voronoiTownToArtifactPlan`.
 
 - [ ] **Step 4: Run adapter + bridge + integration tests**
 
 Run: `npx vitest run src/systems/worldforge/town src/systems/worldforge/bridge src/systems/worldforge/__integration__`
-Expected: PASS. If the pipeline golden test asserts exact plot object shapes, the new OPTIONAL fields may re-freeze a snapshot — inspect the diff: ONLY additive style fields may appear; ids/footprints must be byte-identical.
+Expected: PASS. If the pipeline golden test asserts exact plot object shapes, the new OPTIONAL fields may re-freeze a snapshot - inspect the diff: ONLY additive style fields may appear; ids/footprints must be byte-identical.
 
 ---
 
-### Task 4: Road gates — split the wall at gatehouse points
+### Task 4: Road gates - split the wall at gatehouse points
 
 **Files:**
 - Modify: `src/systems/worldforge/bridge/groundChunkLoader.ts:952-979` (groundTowns wall-run block)
@@ -412,7 +412,7 @@ Expected: PASS. If the pipeline golden test asserts exact plot object shapes, th
 - [ ] **Step 1: Write the failing test**
 
 ```ts
-// append to groundChunkLoader.test.ts — reuse the suite's existing local/region/site fixtures
+// append to groundChunkLoader.test.ts - reuse the suite's existing local/region/site fixtures
 it('opens the wall ring at road gatehouses (not only water gates)', () => {
   const gw = makeGroundWorld(/* same args the suite already uses for a walled town */);
   // A town with gatehouses must yield MULTIPLE wall runs (the ring is split),
@@ -429,7 +429,7 @@ it('opens the wall ring at road gatehouses (not only water gates)', () => {
 });
 ```
 
-- [ ] **Step 2: Run to verify failure** — `gw.gatehouses` doesn't exist yet.
+- [ ] **Step 2: Run to verify failure** - `gw.gatehouses` doesn't exist yet.
 
 - [ ] **Step 3: Implement**
 
@@ -445,14 +445,14 @@ const roadGatesM = (adapted.walls.gatehouses ?? []).map(([fx, fy]) => ({
 const roadGapHalfM = 4;
 
 // Wall-run split: pass BOTH gate sets. Water gates keep their computed gap;
-// simplest correct move — split once with the union using per-gate radii:
+// simplest correct move - split once with the union using per-gate radii:
 const allGates = [
   ...gatesM.map((g) => ({ ...g, gapHalfM })),          // water gates (existing gapHalfM calc)
   ...roadGatesM.map((g) => ({ ...g, gapHalfM: roadGapHalfM })),
 ];
 ```
 
-Change `splitWallRingAtGates` to accept per-gate radii (`gates: Array<{x,z,gapHalfM}>`) — inside `gated()`, compare against each gate's own `gapHalfM * gapHalfM`. Update the existing water-gate call site accordingly, and drop the `gatesM.length === 0` closed-ring branch condition to `allGates.length === 0`.
+Change `splitWallRingAtGates` to accept per-gate radii (`gates: Array<{x,z,gapHalfM}>`) - inside `gated()`, compare against each gate's own `gapHalfM * gapHalfM`. Update the existing water-gate call site accordingly, and drop the `gatesM.length === 0` closed-ring branch condition to `allGates.length === 0`.
 
 Record placements for Task 5 (tangent from the nearest ring segment):
 
@@ -487,7 +487,7 @@ function wallTangentAt(ring: Array<{ x: number; z: number }>, p: { x: number; z:
 
 Thread `planGatehouses` through `groundTowns`'s return + `GroundWorld` (field `gatehouses`) exactly like `planWalls`. Also tint the wall runs: `planWalls.push({ points: run, widthM: 1.2, colorHex: family.wallTint })` (add optional `colorHex` to `GroundPolyline`).
 
-- [ ] **Step 4: Run the bridge suite** — `npx vitest run src/systems/worldforge/bridge` → PASS, including the untouched business-binding regression.
+- [ ] **Step 4: Run the bridge suite** - `npx vitest run src/systems/worldforge/bridge` -> PASS, including the untouched business-binding regression.
 
 ---
 
@@ -496,11 +496,11 @@ Thread `planGatehouses` through `groundTowns`'s return + `GroundWorld` (field `g
 **Files:**
 - Create: `src/systems/world3d/gateGeometry.ts`
 - Test: `src/systems/world3d/__tests__/gateGeometry.test.ts`
-- Modify: `src/systems/world3d/types.ts` — `ChunkData` gains `gatehouses?: Array<{ x: number; y: number; angleRad: number; gapHalfM: number; form: 'twinTowers'|'tunnelBlock'|'singleTower'; colorHex: string }>` (grid space, like sites); `ChunkMeshBundle` gains `gates?: ChunkGeometryArrays & { colors?: Float32Array }`; `ClippedPolyline` gains `colorHex?: string`
-- Modify: `src/systems/world3d/chunkBundle.ts` — call `buildGateMesh(data)` alongside `buildWallMesh`
-- Modify: `src/systems/world3d/wallGeometry.ts` — emit per-vertex `colors` from `ring.colorHex` (default the current `#9a9387`), same pattern as `deckGeometry`
-- Modify: `src/systems/worldforge/bridge/groundChunkLoader.ts` `loadChunk` (~`:1315`) — map `ground.gatehouses` whose center falls in this chunk into `ChunkData.gatehouses` (convert meters → grid via the same conversion sites use); carry `colorHex` through `clipGroundPolylineToChunk`
-- Modify: `src/components/World3D/World3DScene.tsx` — `WallPiece` material becomes `vertexColors` (white base); add `GatePiece` rendering `bundle.gates` (clone of `WallPiece` with `vertexColors`)
+- Modify: `src/systems/world3d/types.ts` - `ChunkData` gains `gatehouses?: Array<{ x: number; y: number; angleRad: number; gapHalfM: number; form: 'twinTowers'|'tunnelBlock'|'singleTower'; colorHex: string }>` (grid space, like sites); `ChunkMeshBundle` gains `gates?: ChunkGeometryArrays & { colors?: Float32Array }`; `ClippedPolyline` gains `colorHex?: string`
+- Modify: `src/systems/world3d/chunkBundle.ts` - call `buildGateMesh(data)` alongside `buildWallMesh`
+- Modify: `src/systems/world3d/wallGeometry.ts` - emit per-vertex `colors` from `ring.colorHex` (default the current `#9a9387`), same pattern as `deckGeometry`
+- Modify: `src/systems/worldforge/bridge/groundChunkLoader.ts` `loadChunk` (~`:1315`) - map `ground.gatehouses` whose center falls in this chunk into `ChunkData.gatehouses` (convert meters -> grid via the same conversion sites use); carry `colorHex` through `clipGroundPolylineToChunk`
+- Modify: `src/components/World3D/World3DScene.tsx` - `WallPiece` material becomes `vertexColors` (white base); add `GatePiece` rendering `bundle.gates` (clone of `WallPiece` with `vertexColors`)
 
 - [ ] **Step 1: Write the failing geometry test**
 
@@ -548,9 +548,9 @@ it('towers rise above the rampart height', () => {
 });
 ```
 
-> For the height assertion, compute the terrain Y the same way the builder does (flat 50-height fixture → constant), or simply assert `maxY > minY + 4.5` (tower height over base). Use the simpler relative assertion.
+> For the height assertion, compute the terrain Y the same way the builder does (flat 50-height fixture -> constant), or simply assert `maxY > minY + 4.5` (tower height over base). Use the simpler relative assertion.
 
-- [ ] **Step 2: Run to verify failure** — module not found.
+- [ ] **Step 2: Run to verify failure** - module not found.
 
 - [ ] **Step 3: Implement `gateGeometry.ts`**
 
@@ -559,7 +559,7 @@ it('towers rise above the rampart height', () => {
  * @file gateGeometry.ts
  * Procedural gatehouse models at town road-gate openings (styled-architecture
  * slice, 2026-07-01). Assembled from oriented boxes into one vertex-colored
- * mesh per chunk — same transferable-arrays contract as wallGeometry/deckGeometry.
+ * mesh per chunk - same transferable-arrays contract as wallGeometry/deckGeometry.
  */
 import type { ChunkData, ChunkGeometryArrays } from './types';
 import { WORLD3D_CONFIG, heightToMeters } from './config';
@@ -636,7 +636,7 @@ export function buildGateMesh(data: ChunkData): GateMesh {
 }
 
 // Same nearest-vertex terrain sampler as wallGeometry.heightAt (duplicated
-// deliberately — both files keep their samplers private and parallel).
+// deliberately - both files keep their samplers private and parallel).
 function heightAt(data: ChunkData, gx: number, gy: number): number {
   const res = data.resolution;
   const span = WORLD3D_CONFIG.CHUNK_WORLD_SIZE / WORLD3D_CONFIG.METERS_PER_CELL;
@@ -651,9 +651,9 @@ function heightAt(data: ChunkData, gx: number, gy: number): number {
 
 Wire-up:
 - `chunkBundle.ts`: `gates: buildGateMesh(data)` next to `walls: buildWallMesh(data)` (only include when non-empty, matching how walls/decks are conditionally attached).
-- `loadChunk` in `groundChunkLoader.ts`: convert each `ground.gatehouses` entry whose meter position falls inside the chunk into grid space (use the same meters→grid conversion the walls/decks block at `:1315-1330` uses) and attach as `ChunkData.gatehouses`.
-- `wallGeometry.ts`: add `colors` output — fill from `ring.colorHex ?? '#9a9387'` per vertex (copy `deckGeometry`'s rgb helper).
-- `World3DScene.tsx`: `WallPiece` material → `<meshStandardMaterial vertexColors color="#ffffff" roughness={0.95} side={THREE.DoubleSide} />`; add `GatePiece` (copy of `DeckPiece` reading `chunk.bundle.gates`); render it in the chunk group wherever `WallPiece`/`DeckPiece` are rendered.
+- `loadChunk` in `groundChunkLoader.ts`: convert each `ground.gatehouses` entry whose meter position falls inside the chunk into grid space (use the same meters->grid conversion the walls/decks block at `:1315-1330` uses) and attach as `ChunkData.gatehouses`.
+- `wallGeometry.ts`: add `colors` output - fill from `ring.colorHex ?? '#9a9387'` per vertex (copy `deckGeometry`'s rgb helper).
+- `World3DScene.tsx`: `WallPiece` material -> `<meshStandardMaterial vertexColors color="#ffffff" roughness={0.95} side={THREE.DoubleSide} />`; add `GatePiece` (copy of `DeckPiece` reading `chunk.bundle.gates`); render it in the chunk group wherever `WallPiece`/`DeckPiece` are rendered.
 
 - [ ] **Step 4: Run world3d + bridge suites**
 
@@ -665,15 +665,15 @@ Expected: PASS (existing `wallGeometry` tests may need the new `colors` field as
 ### Task 6: Dock pilings, bridge piers/railings/arch (`deckGeometry.ts`)
 
 **Files:**
-- Modify: `src/systems/world3d/types.ts` — `ChunkData.decks` entries gain `detail?: { pilingSpacingM: number; railing: boolean; archRiseM: number }`
-- Modify: `src/systems/worldforge/bridge/groundChunkLoader.ts` — `GroundDeck` gains `detail`; `canonicalTownWaterAndDecks` stamps `detail: family.deckDetail` (resolve the family the same way as Task 3 — this function already loads the atlas/plan, add the culture lookup); the deck clip at `:1324` carries `detail` through
-- Modify: `src/systems/world3d/deckGeometry.ts` — pilings + railings + arch
+- Modify: `src/systems/world3d/types.ts` - `ChunkData.decks` entries gain `detail?: { pilingSpacingM: number; railing: boolean; archRiseM: number }`
+- Modify: `src/systems/worldforge/bridge/groundChunkLoader.ts` - `GroundDeck` gains `detail`; `canonicalTownWaterAndDecks` stamps `detail: family.deckDetail` (resolve the family the same way as Task 3 - this function already loads the atlas/plan, add the culture lookup); the deck clip at `:1324` carries `detail` through
+- Modify: `src/systems/world3d/deckGeometry.ts` - pilings + railings + arch
 - Test: `src/systems/world3d/__tests__/deckGeometry.test.ts` (extend)
 
 - [ ] **Step 1: Write the failing tests**
 
 ```ts
-// append to deckGeometry.test.ts — reuse its existing deck fixture builder
+// append to deckGeometry.test.ts - reuse its existing deck fixture builder
 it('emits pilings below the deck when detail is present', () => {
   const d = deckFixture('dock');
   d.decks![0].detail = { pilingSpacingM: 2, railing: false, archRiseM: 0 };
@@ -721,7 +721,7 @@ if (detail) {
     // Square post, axis-aligned is fine at 0.25 m scale.
     pushPostBox(positions, indices, normals, colors, px, pz, topYp - depth, depth, 0.25, [cr2 * 0.8, cg2 * 0.8, cb2 * 0.8]);
   };
-  // Long axis = edge 0→1 of the quad (docks/bridges are built as oriented
+  // Long axis = edge 0->1 of the quad (docks/bridges are built as oriented
   // rectangles by pierQuad); posts march along both long edges.
   const A = local[0], B = local[1], C = local[2], D = local[3];
   const lenAB = Math.hypot(B.x - A.x, B.z - A.z);
@@ -740,11 +740,11 @@ if (detail) {
 }
 ```
 
-`pushPostBox`/`pushRailBox` are local helpers emitting axis-aligned boxes into the shared arrays (same structure as `gateGeometry.pushBox` but simpler — no yaw for posts; the rail box spans from point a to point b: center = midpoint, length = distance, yaw = atan2). Copy the box emission from `gateGeometry.ts` (Task 5) and slim it.
+`pushPostBox`/`pushRailBox` are local helpers emitting axis-aligned boxes into the shared arrays (same structure as `gateGeometry.pushBox` but simpler - no yaw for posts; the rail box spans from point a to point b: center = midpoint, length = distance, yaw = atan2). Copy the box emission from `gateGeometry.ts` (Task 5) and slim it.
 
 **Arch:** when `deck.kind === 'bridge' && detail.archRiseM > 0`, replace the flat fan top with strips: subdivide the long axis into 8 slices; slice `t` gets `topY + detail.archRiseM * 4 * t * (1 - t)` (parabola, 0 at ends). Emit each strip as two triangles (both windings) and skirt the two long edges per-slice. Keep docks (and archRiseM = 0) on the existing fan path.
 
-- [ ] **Step 4: Run** `npx vitest run src/systems/world3d/__tests__/deckGeometry.test.ts` → PASS, then the full world3d suite.
+- [ ] **Step 4: Run** `npx vitest run src/systems/world3d/__tests__/deckGeometry.test.ts` -> PASS, then the full world3d suite.
 
 ---
 
@@ -753,10 +753,10 @@ if (detail) {
 **Files:**
 - Create: `src/systems/world3d/buildingModels.ts` (roof-form geometry arrays)
 - Test: `src/systems/world3d/__tests__/buildingModels.test.ts`
-- Modify: `src/systems/world3d/types.ts` — `ChunkData` site + `ChunkSite` gain `role?: string`, `roofForm?: 'gable'|'hip'|'steep'|'flat'`, `roofColorHex?: string`, `chimney?: boolean`
-- Modify: `src/systems/world3d/siteGeometry.ts` — pass the four new fields through (one line each in the site mapping)
-- Modify: `src/systems/worldforge/bridge/groundChunkLoader.ts:1362` region — building sites now carry `role: b.role`, `colorHex: b.wallColorHex ?? (b.role === 'market' ? '#c8923f' : '#b09a72')`, `roofForm: b.roofForm`, `roofColorHex: b.roofColorHex`, `chimney: family.chimneys` — the `buildings` entries in `groundTowns` must copy `wallColorHex/roofColorHex/roofForm` from the (now-stamped) plan plots when they are built (find where `plan.plots` → `buildings` around `:1030-1060` and carry the fields)
-- Modify: `src/components/World3D/World3DScene.tsx` — `SiteBuilding`: role from `s.role` (kill the color-sniffing at `:263`), roof switches on `s.roofForm`, roof color `s.roofColorHex ?? '#7a4a32'`, chimney box when `s.chimney`
+- Modify: `src/systems/world3d/types.ts` - `ChunkData` site + `ChunkSite` gain `role?: string`, `roofForm?: 'gable'|'hip'|'steep'|'flat'`, `roofColorHex?: string`, `chimney?: boolean`
+- Modify: `src/systems/world3d/siteGeometry.ts` - pass the four new fields through (one line each in the site mapping)
+- Modify: `src/systems/worldforge/bridge/groundChunkLoader.ts:1362` region - building sites now carry `role: b.role`, `colorHex: b.wallColorHex ?? (b.role === 'market' ? '#c8923f' : '#b09a72')`, `roofForm: b.roofForm`, `roofColorHex: b.roofColorHex`, `chimney: family.chimneys` - the `buildings` entries in `groundTowns` must copy `wallColorHex/roofColorHex/roofForm` from the (now-stamped) plan plots when they are built (find where `plan.plots` -> `buildings` around `:1030-1060` and carry the fields)
+- Modify: `src/components/World3D/World3DScene.tsx` - `SiteBuilding`: role from `s.role` (kill the color-sniffing at `:263`), roof switches on `s.roofForm`, roof color `s.roofColorHex ?? '#7a4a32'`, chimney box when `s.chimney`
 
 - [ ] **Step 1: Write failing tests for the roof builders**
 
@@ -887,12 +887,12 @@ function fromTris(P: number[][], tris: number[][]): ChunkGeometryArrays {
 }
 ```
 
-- [ ] **Step 4: Run the buildingModels test** → PASS.
+- [ ] **Step 4: Run the buildingModels test** -> PASS.
 
 - [ ] **Step 5: Wire the data through**
 
-1. `groundTowns` (plots → buildings, ~`:1030-1060`): copy `wallColorHex`, `roofColorHex`, `roofForm` from each plan plot onto the pushed building entry, plus `chimney: family.chimneys`.
-2. `loadChunk` site mapping (`:1362`): set `role: b.role`, `colorHex: b.wallColorHex ?? (b.role === 'market' ? '#c8923f' : '#b09a72')`, `roofForm: b.roofForm`, `roofColorHex: b.roofColorHex`, `chimney: b.chimney` (the `??` here is legacy-compat for non-styled callers of the loader, e.g. continent mode — it is not a style fallback; canonical towns always stamp).
+1. `groundTowns` (plots -> buildings, ~`:1030-1060`): copy `wallColorHex`, `roofColorHex`, `roofForm` from each plan plot onto the pushed building entry, plus `chimney: family.chimneys`.
+2. `loadChunk` site mapping (`:1362`): set `role: b.role`, `colorHex: b.wallColorHex ?? (b.role === 'market' ? '#c8923f' : '#b09a72')`, `roofForm: b.roofForm`, `roofColorHex: b.roofColorHex`, `chimney: b.chimney` (the `??` here is legacy-compat for non-styled callers of the loader, e.g. continent mode - it is not a style fallback; canonical towns always stamp).
 3. `siteGeometry.buildSiteMeshes`: pass the four fields through to `ChunkSite`.
 
 - [ ] **Step 6: Update `SiteBuilding` in `World3DScene.tsx`**
@@ -901,7 +901,7 @@ function fromTris(P: number[][], tris: number[][]): ChunkGeometryArrays {
 // role: EXPLICIT field replaces color-sniffing (line 263)
 const role = s.role ?? s.kind;
 
-// roof: memoized BufferGeometry per (form, w, d, h) — module-level cache
+// roof: memoized BufferGeometry per (form, w, d, h) - module-level cache
 const roofGeom = useRoofGeometry(s.roofForm ?? 'hip', roof.width, roof.depth, rHeight);
 // ...
 <mesh ref={roofRef} position={[0, (s.boxHeight ?? 0), 0]} geometry={roofGeom} castShadow={SHADOWS}>
@@ -917,7 +917,7 @@ const roofGeom = useRoofGeometry(s.roofForm ?? 'hip', roof.width, roof.depth, rH
 ```
 
 ```tsx
-// module scope — geometry cache so 200 buildings share a handful of roofs
+// module scope - geometry cache so 200 buildings share a handful of roofs
 const roofGeomCache = new Map<string, THREE.BufferGeometry>();
 function useRoofGeometry(form: RoofForm, w: number, d: number, h: number): THREE.BufferGeometry {
   return React.useMemo(() => {
@@ -938,7 +938,7 @@ function useRoofGeometry(form: RoofForm, w: number, d: number, h: number): THREE
 
 Note the roof mesh no longer uses `scale` (the geometry is built at real size) and its position drops the `rHeight * 0.5` offset and the `Math.PI / 4` yaw (both were cone artifacts). The existing roof auto-hide `useFrame` logic keeps working (it toggles `roof.visible` on the ref).
 
-- [ ] **Step 7: Run the World3D component tests + full verification suite** — the lifecycle tests assert on scene structure; if any snapshot pins the cone geometry, update it deliberately.
+- [ ] **Step 7: Run the World3D component tests + full verification suite** - the lifecycle tests assert on scene structure; if any snapshot pins the cone geometry, update it deliberately.
 
 ---
 
@@ -946,7 +946,7 @@ Note the roof mesh no longer uses `scale` (the geometry is built at real size) a
 
 **Files:**
 - Modify: `src/components/Worldforge/TownPlanView.tsx` (fill at `:334`)
-- Modify: the drill-view caller that renders `TownPlanView` for a burg (find with `Grep "TownPlanView" src/components` — it's the map-drill leaf) to resolve + pass `styleFamily`
+- Modify: the drill-view caller that renders `TownPlanView` for a burg (find with `Grep "TownPlanView" src/components` - it's the map-drill leaf) to resolve + pass `styleFamily`
 - Test: `src/components/Worldforge/__tests__/TownPlanView.test.tsx` (extend or create alongside existing component tests)
 
 - [ ] **Step 1: Write the failing test**
@@ -965,7 +965,7 @@ it('uses family wall palette when styleFamily is provided', () => {
 });
 ```
 
-(Adapt the selector to how TownPlanView actually emits plot shapes — check the existing suite's queries first.)
+(Adapt the selector to how TownPlanView actually emits plot shapes - check the existing suite's queries first.)
 
 - [ ] **Step 2: Run to verify failure.**
 
@@ -984,7 +984,7 @@ fill={
 
 In the drill-view caller: `styleFamily={styleFamilyForCultureType(getBurgCultureType(worldSeed, burgId))}` (it already has `worldSeed` + `burgId` to fetch the canonical plan). Demo previews (`AgentSimPreview` etc.) pass `STYLE_FAMILIES.temperateFrame` if they render TownPlanView.
 
-- [ ] **Step 4: Run the Worldforge component suite** — `npx vitest run src/components/Worldforge` → PASS.
+- [ ] **Step 4: Run the Worldforge component suite** - `npx vitest run src/components/Worldforge` -> PASS.
 
 ---
 
@@ -992,7 +992,7 @@ In the drill-view caller: `styleFamily={styleFamilyForCultureType(getBurgCulture
 
 - [ ] **Step 1: Full suite**
 
-Run the verification suite from the header. Expected: all green (count will exceed the prior 385 with the new tests). Known background noise per memory: ~346 empty test files elsewhere — not in these paths.
+Run the verification suite from the header. Expected: all green (count will exceed the prior 385 with the new tests). Known background noise per memory: ~346 empty test files elsewhere - not in these paths.
 
 - [ ] **Step 2: Types**
 
@@ -1001,11 +1001,11 @@ Expected: zero NEW errors in touched files (pre-existing `src/commands`/BattleMa
 
 - [ ] **Step 3: 2D↔3D identity guardrail**
 
-Run: `npx tsx .agent/scratch/townIdentityProof.mjs` → regenerate `town-identity-proof.png`, EYEBALL it: same wall ring/wards/streets/civic between 2D and 3D input; plot quads still align. (If the scratch script was cleaned up, restore it from the 2026-06-27 handover's description: it renders the canonical 2D plan and the 3D-transformed input side by side for burg "Agrannoce".)
+Run: `npx tsx .agent/scratch/townIdentityProof.mjs` -> regenerate `town-identity-proof.png`, EYEBALL it: same wall ring/wards/streets/civic between 2D and 3D input; plot quads still align. (If the scratch script was cleaned up, restore it from the 2026-06-27 handover's description: it renders the canonical 2D plan and the 3D-transformed input side by side for burg "Agrannoce".)
 
-- [ ] **Step 4: Visual inspection (visual-inspection rule — REQUIRED)**
+- [ ] **Step 4: Visual inspection (visual-inspection rule - REQUIRED)**
 
-Using the headless shoot rig (`shoot.mjs`, see memory `preview-screenshot-3d-capture`): capture ground-mode screenshots of three towns with different culture types — one Highland, one Naval/Lake, one River (pick burgs by checking `atlas.pack.cultures[burg.culture].type` in a scratch script). Verify by eye:
+Using the headless shoot rig (`shoot.mjs`, see memory `preview-screenshot-3d-capture`): capture ground-mode screenshots of three towns with different culture types - one Highland, one Naval/Lake, one River (pick burgs by checking `atlas.pack.cultures[burg.culture].type` in a scratch script). Verify by eye:
   - three visibly DISTINCT palettes/roofscapes (stone+slate vs weathered timber vs half-timber),
   - gabled/steep/flat roofs mixed within a town (not all pyramids),
   - wall opens at road gates with a gatehouse structure standing there,
@@ -1015,15 +1015,15 @@ Save shots under `.agent/scratch/` (gitignored proof area) and show them to Remy
 
 - [ ] **Step 5: Update program docs**
 
-Mark deferred follow-up #1 as done in a short handover note under `docs/superpowers/plans/` and update the memory file `worldforge-canonical-town.md` (add: styled-architecture slice landed — gates/gatehouses/deck detail/roof variety; follow-up #2 roster parity still open).
+Mark deferred follow-up #1 as done in a short handover note under `docs/superpowers/plans/` and update the memory file `worldforge-canonical-town.md` (add: styled-architecture slice landed - gates/gatehouses/deck detail/roof variety; follow-up #2 roster parity still open).
 
 ---
 
 ## Self-review notes (already applied)
 
-- **Spec coverage:** §1→Task 1-2, §2→Tasks 5/7, §3→Task 4, §4→Task 5, §5→Task 6, §6→Task 8, §7→Task 9 + per-task TDD. ✔
+- **Spec coverage:** §1->Task 1-2, §2->Tasks 5/7, §3->Task 4, §4->Task 5, §5->Task 6, §6->Task 8, §7->Task 9 + per-task TDD. ✔
 - **Business-binding invariant** explicitly tested in Task 3. ✔
-- **Color-sniffed role** (`World3DScene.tsx:263`) is removed in Task 7 — REQUIRED, otherwise palette walls silently lose their wall/roof textures. ✔
+- **Color-sniffed role** (`World3DScene.tsx:263`) is removed in Task 7 - REQUIRED, otherwise palette walls silently lose their wall/roof textures. ✔
 - **`??` legacy-compat vs no-fallback:** the `colorHex`/roof `??` defaults in Tasks 7 only cover non-Worldforge sites (continent mode) that never had styling; canonical towns always stamp. This is compatibility, not a silent style fallback.
 - **Type consistency:** `RoofForm`/`GatehouseForm`/`DeckDetail` defined once in `architectureStyle.ts`; world3d imports the type (type-only import keeps the worker bundle clean).
 

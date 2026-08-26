@@ -164,7 +164,7 @@
                                                                    ]
                                       },
                         "utilityType":  "other",
-                        "description":  "Animates up to five Small or Medium corpses as skeletons or zombies under the caster\u0027s command, with each undead gaining a bonus to attack and damage rolls equal to the caster\u0027s spellcasting ability modifier.",
+                        "description":  "Animates up to five Small or Medium corpses as skeletons or zombies under the caster's command, with each undead gaining a bonus to attack and damage rolls equal to the caster's spellcasting ability modifier.",
                         "scaling":  {
                                         "type":  "slot_level",
                                         "bonusPerLevel":  "+2 corpses per slot level above 5th",
@@ -267,7 +267,7 @@
                 ],
     "arbitrationType":  "mechanical",
     "aiContext":  {
-                      "prompt":  "Choose up to five Small or Medium corpses and decide zombie or skeleton for each; apply the caster\u0027s spellcasting ability modifier to their attack and damage rolls, and offer the 60-foot Bonus Action group command.",
+                      "prompt":  "Choose up to five Small or Medium corpses and decide zombie or skeleton for each; apply the caster's spellcasting ability modifier to their attack and damage rolls, and offer the 60-foot Bonus Action group command.",
                       "playerInputRequired":  true
                   },
     "description":  "Threads of dark power leap from your fingers to pierce up to five Small or Medium corpses you can see within range. Each corpse immediately stands up and becomes undead. You decide whether it is a zombie or a skeleton (the statistics for zombies and skeletons are in the Monster Manual), and it gains a bonus to its attack and damage rolls equal to your spellcasting ability modifier. You can use a bonus action to mentally command the creatures you make with this spell, issuing the same command to all of them. To receive the command, a creature must be within 60 feet of you. You decide what action the creatures will take and where they will move during their next turn, or you can issue a general command, such as to guard a chamber or passageway against your foes. If you issue no commands, the creatures do nothing except defend themselves against hostile creatures. Once given an order, the creatures continue to follow it until their task is complete. The creatures are under your control until the spell ends, after which they become inanimate once more.",

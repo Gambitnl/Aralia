@@ -66,6 +66,21 @@ const atomicWrite = (file, text, { attempts = WRITE_ATTEMPTS, sleep = sleepSync 
       if (attempt < attempts) sleep(backoffFor(attempt));
     }
   }
+  // LAST RESORT: WRITE IN PLACE. On 2026-09-12 every rename over
+  // public/planmap/topics.json failed with EPERM (40 of 40 in a probe), while a
+  // plain in-place write to the same file succeeded every time. The board step
+  // had failed on every run, so no task progress reached the plan map at all.
+  // An in-place write is not atomic, but a reader that catches a half-written
+  // file retries on its next poll, and a map that never updates is worse.
+  // Read the file back to prove the write landed.
+  if (lastError?.code === 'EPERM' || lastError?.code === 'EBUSY') {
+    try {
+      fs.writeFileSync(file, text);
+      if (fs.readFileSync(file, 'utf8') === text) return { attempts, inPlace: true };
+    } catch (e) {
+      lastError = e;
+    }
+  }
   throw new Error(
     `could not write ${path.basename(file)} after ${attempts} attempts — ` +
     `something is holding it open (${lastError?.code ?? lastError?.message})`,
@@ -83,6 +98,7 @@ export async function runSync({
   steps = ['board', 'docs', 'tidy', 'health'],
   dryRun = false,
   tasksProvider, // test seam; defaults to fetching the daemon
+  campaignsProvider, // test seam; WF-G150 needs each campaign's charter primary
 } = {}) {
   const topicsPath = path.join(repoRoot, 'public', 'planmap', 'topics.json');
   const healthPath = path.join(repoRoot, 'public', 'planmap', 'health.json');
@@ -148,6 +164,12 @@ export async function runSync({
     const body = await res.json();
     return body.tasks ?? body ?? [];
   });
+  // A test that injects tasks and no campaigns must not reach a real daemon.
+  const getCampaigns = campaignsProvider ?? (tasksProvider ? async () => [] : async () => {
+    const res = await fetch(`${agoraUrl}/campaigns`);
+    const body = await res.json();
+    return body.campaigns ?? [];
+  });
 
   const today = now.toISOString().slice(0, 10);
   const stepResults = [];
@@ -156,7 +178,10 @@ export async function runSync({
     board: async () => {
       const tasks = await getTasks();
       const before = JSON.stringify(map);
-      const { changes, disconnected } = reconcileBoardToPlanmap(map, tasks);
+      // WF-G150: without the campaigns, a feature named as a charter's primary
+      // could be marked done by its approval task alone.
+      const campaigns = await getCampaigns();
+      const { changes, disconnected } = reconcileBoardToPlanmap(map, tasks, { campaigns });
       for (const line of changes) {
         const id = /^"([a-z0-9-]+)"/.exec(line)?.[1];
         const topic = map.topics.find((t) => t.id === id);
@@ -196,8 +221,20 @@ export async function runSync({
     },
     health: async () => {
       const topics = {};
+      // GG-121: `updated` says when a topic was last touched, not when it was
+      // last checked against reality. Topics may carry an optional `verified`
+      // date (same discipline as docs/architecture/domains `Verified:` lines).
+      // Active topics with no verification, or verified too long ago, are
+      // flagged so stale claims are visible in derived output rather than
+      // incubating inside prose until they misroute a future campaign.
+      const STALE_VERIFIED_DAYS = 30;
       for (const t of map.topics) {
         const entry = { ageDays: t.updated && DATE_RE.test(t.updated) ? dayDiff(now, t.updated) : null };
+        const verifiedAge = t.verified && DATE_RE.test(t.verified) ? dayDiff(now, t.verified) : null;
+        if (verifiedAge !== null) entry.verifiedAgeDays = verifiedAge;
+        if ((t.status === 'active' || t.status === 'specced')) {
+          entry.staleUnverified = verifiedAge === null || verifiedAge > STALE_VERIFIED_DAYS;
+        }
         if (t.docset) {
           const projDir = path.join(repoRoot, 'docs', 'projects', t.docset);
           entry.docset = t.docset;

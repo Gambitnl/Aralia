@@ -71,7 +71,7 @@ const createTrueStrikeCaster = (overrides: Partial<ReturnType<typeof createMockC
         description: 'A straightforward weapon for a real combat snapshot.',
         category: 'Martial Weapon',
         damageDice: '1d8',
-        damageType: 'slashing',
+        damageType: 'Slashing',
         costInGp: 1,
         properties: []
       })
@@ -208,7 +208,7 @@ describe('True Strike bridge', () => {
       }
     }
 
-    expect(attackCommand.ability.effects[0].damageType).toBe('slashing')
+    expect(attackCommand.ability.effects[0].damageType).toBe('Slashing')
     expect(attackCommand.ability.effects[0].dice).toBe('1d8+5')
     expect(attackCommand.ability.effects[1].damageType).toBe('Radiant')
     expect(attackCommand.ability.effects[1].dice).toBe('3d6')
@@ -224,7 +224,7 @@ describe('True Strike bridge', () => {
           description: 'A weapon that intentionally fails the True Strike requirements.',
           category: 'Simple Weapon',
           damageDice: '1d4',
-          damageType: 'piercing',
+          damageType: 'Piercing',
           costInGp: 0
         })
       } as never

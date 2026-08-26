@@ -24,7 +24,7 @@
 
 import { PlayerCharacter } from '../../types/character';
 import { Item } from '../../types/items';
-import { rollDice } from '../../utils/combat';
+import { rollDice } from '../dice/rollers';
 import { getAbilityModifierValue } from '../../utils/character';
 import { getPuzzleCharacterStats } from './characterAbilityBridge';
 import { Lock, Trap, LockpickResult, KeyUnlockResult, BreakResult, TrapDetectionResult, TrapDisarmResult } from './types';
@@ -34,6 +34,19 @@ const getClasses = (character: PlayerCharacter) => character.classes ?? (charact
 /**
  * Checks if a character has proficiency with a specific tool.
  */
+/**
+ * Uses the d20 the caller already rolled, or rolls one.
+ *
+ * WHY (agora-f821.1): the lockpicking modal used to show the player an animated
+ * d20 and then let this system roll a SECOND, unrelated d20 to decide the
+ * outcome. Callers that show a die now pass its face in, so the die the player
+ * watched is the die that resolves. Callers with no presentation pass nothing
+ * and keep rolling here.
+ */
+function resolveD20(suppliedD20?: number): number {
+  return suppliedD20 ?? rollDice('1d20');
+}
+
 export function hasToolProficiency(character: PlayerCharacter, _toolId: string): boolean {
   // Logic simplified for MVP: Rogue class implies proficiency with Thieves' Tools.
   // Future iteration should check the character's explicit proficiency list.
@@ -55,7 +68,8 @@ export function hasTool(character: PlayerCharacter, toolId: string, inventory: A
 export function attemptLockpick(
   character: PlayerCharacter,
   lock: Lock,
-  inventory: Item[]
+  inventory: Item[],
+  suppliedD20?: number
 ): LockpickResult {
   if (!lock.isLocked) {
     return { success: true, margin: 0, triggeredTrap: false };
@@ -73,7 +87,7 @@ export function attemptLockpick(
   const dexMod = getAbilityModifierValue(stats.dexterity);
   const isProficient = hasToolProficiency(character, 'thieves-tools');
   const bonus = isProficient ? (character.proficiencyBonus ?? 0) : 0;
-  const total = rollDice('1d20') + dexMod + bonus;
+  const total = resolveD20(suppliedD20) + dexMod + bonus;
 
   const success = total >= lock.dc;
   const margin = total - lock.dc;
@@ -125,7 +139,8 @@ export function attemptKeyUnlock(
  */
 export function attemptBreak(
   character: PlayerCharacter,
-  lock: Lock
+  lock: Lock,
+  suppliedD20?: number
 ): BreakResult {
   if (!lock.isLocked && !lock.isBroken) {
      // Even if unlocked, you can break it.
@@ -141,7 +156,7 @@ export function attemptBreak(
     // Keep break checks on raw strength modifier only; no skill bonus unless called elsewhere.
     const stats = getPuzzleCharacterStats(character);
     const strMod = getAbilityModifierValue(stats.strength);
-    const total = rollDice('1d20') + strMod;
+    const total = resolveD20(suppliedD20) + strMod;
     const success = total >= lock.breakDC;
     return {
       success,
@@ -158,7 +173,8 @@ export function attemptBreak(
  */
 export function detectTrap(
   character: PlayerCharacter,
-  trap: Trap
+  trap: Trap,
+  suppliedD20?: number
 ): TrapDetectionResult {
   if (trap.isDisarmed || trap.isTriggered) {
     return { success: true, margin: 0, trapDetected: true };
@@ -168,8 +184,10 @@ export function detectTrap(
   const stats = getPuzzleCharacterStats(character);
   const wisMod = getAbilityModifierValue(stats.wisdom);
   const intMod = getAbilityModifierValue(stats.intelligence);
-  const perceptionRoll = rollDice('1d20');
-  const investigationRoll = rollDice('1d20');
+  // One face, two skills: the player watched a single d20, so Perception and
+  // Investigation compare against the same face when one is supplied.
+  const perceptionRoll = resolveD20(suppliedD20);
+  const investigationRoll = suppliedD20 ?? rollDice('1d20');
   const perceptionTotal = perceptionRoll + wisMod;
   const investigationTotal = investigationRoll + intMod;
   const total = Math.max(perceptionTotal, investigationTotal);
@@ -189,7 +207,8 @@ export function detectTrap(
 export function disarmTrap(
   character: PlayerCharacter,
   trap: Trap,
-  inventory: Item[]
+  inventory: Item[],
+  suppliedD20?: number
 ): TrapDisarmResult {
    if (trap.isDisarmed) {
      return { success: true, margin: 0, triggeredTrap: false };
@@ -206,7 +225,7 @@ export function disarmTrap(
   const dexMod = getAbilityModifierValue(stats.dexterity);
   const isProficient = hasToolProficiency(character, 'thieves-tools');
   const bonus = isProficient ? (character.proficiencyBonus ?? 0) : 0;
-  const total = rollDice('1d20') + dexMod + bonus;
+  const total = resolveD20(suppliedD20) + dexMod + bonus;
 
    const success = total >= trap.disarmDC;
    const margin = total - trap.disarmDC;
@@ -222,4 +241,11 @@ export function disarmTrap(
    };
 }
 
-// TODO #895(Lockpick): Integrate this system with the Dungeon Map generation (Submap) to place locked doors and trapped chests.
+// #895 (2026-09-09): not wired, and deliberately so. The "Submap" generation
+// this marker pointed at no longer exists as code - src/features/SubmapGeneration
+// is a README describing deleted files, and the surviving Voronoi submap engine
+// has no prop or interactable list to place a Lock into. The live dungeon
+// generator does have a furnishing pass, but it emits no Lock records and its
+// seeded call order is frozen by golden tests, so the work is a generator change
+// rather than a lock-system change. Tracked as GG-196 in
+// docs/projects/GLOBAL_GAPS.md; nothing in this file blocks it.

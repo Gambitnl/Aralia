@@ -57,7 +57,8 @@ describe('Air Genasi Race leaf', () => {
     expect(baseline.actor).toMatchObject({
       class: { id: 'fighter' },
       level: 1,
-      resistances: ['lightning'],
+      // Projected by the shared racial parser, in its canonical capitalization.
+      resistances: ['Lightning'],
     });
     expect(baseline.actor?.currentHP).toBe(baseline.actor?.maxHP);
   });
@@ -100,7 +101,7 @@ describe('Air Genasi Race leaf', () => {
 
     expect(screen.getByTestId('air-genasi-canonical-traits')).toHaveTextContent('Speed 35 ft');
     expect(screen.getByTestId('air-genasi-canonical-traits')).toHaveTextContent('level 1 shocking-grasp');
-    expect(screen.getByTestId('air-genasi-resistance-actor')).toHaveTextContent('Resistance: lightning');
+    expect(screen.getByTestId('air-genasi-resistance-actor')).toHaveTextContent('Resistance: Lightning');
     expect(screen.getByTestId('air-genasi-resistance-packet')).toHaveTextContent('Raw 15; Final not resolved');
     fireEvent.click(screen.getByRole('button', { name: /resolve air genasi damage/i }));
 
@@ -118,7 +119,7 @@ describe('Air Genasi Race leaf', () => {
 
     expect(screen.getByTestId('air-genasi-resistance-packet')).toHaveTextContent('Raw 15; Final not resolved');
     expect(screen.getByTestId('air-genasi-resistance-actor')).toHaveTextContent(/HP \d+\/\d+/);
-    expect(screen.getByTestId('air-genasi-assembly-boundary')).toHaveTextContent('materialized into CombatCharacter.resistances');
+    expect(screen.getByTestId('air-genasi-assembly-boundary')).toHaveTextContent('projected by the shared racial parser');
     expect(screen.getByTestId('air-genasi-unsupported-boundaries')).toHaveTextContent('Unending Breath');
     expect(screen.getByTestId('air-genasi-unsupported-boundaries')).toHaveTextContent('spell execution are not claimed');
   });

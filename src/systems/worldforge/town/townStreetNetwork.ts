@@ -714,6 +714,101 @@ export function halfWidthByWardEdge(
   return out;
 }
 
+/* ------------------------------------------------------------ dead-end nodes */
+
+/**
+ * A terminal (degree-1) node of a polyline graph: a line that simply stops,
+ * with nothing continuing from its tip.
+ */
+export interface PolylineDeadEnd {
+  /** The terminal point itself. */
+  point: Pt;
+  /** Heading from the tip back along its own line, radians. */
+  inwardRad: number;
+  /** Index of the line that stops here, into the array that was passed in. */
+  lineIndex: number;
+}
+
+/**
+ * Terminal nodes of a set of polylines, found by node degree.
+ *
+ * Every vertex is quantized to `quant` and counted once per incident segment,
+ * so a vertex shared by two lines has degree 2 and is a junction, while a line
+ * tip nobody else touches has degree 1 and is a dead end. Vertices in the
+ * middle of a line also have degree 2, so only true ends survive.
+ *
+ * Deterministic: no randomness, and the output follows input order (line order,
+ * then start tip before end tip).
+ */
+export function polylineDeadEnds(
+  lines: ReadonlyArray<readonly Pt[]>,
+  quant: number,
+): PolylineDeadEnd[] {
+  const q = quant > 0 ? quant : 1e-6;
+  const key = (p: Pt): string => `${Math.round(p[0] / q)},${Math.round(p[1] / q)}`;
+  const degree = new Map<string, number>();
+  for (const line of lines) {
+    for (let i = 0; i + 1 < line.length; i++) {
+      for (const p of [line[i], line[i + 1]]) {
+        const k = key(p);
+        degree.set(k, (degree.get(k) ?? 0) + 1);
+      }
+    }
+  }
+  const out: PolylineDeadEnd[] = [];
+  const taken = new Set<string>();
+  lines.forEach((line, lineIndex) => {
+    if (line.length < 2) return;
+    const tips: Array<[tip: Pt, inward: Pt]> = [
+      [line[0], line[1]],
+      [line[line.length - 1], line[line.length - 2]],
+    ];
+    for (const [tip, inward] of tips) {
+      const k = key(tip);
+      if ((degree.get(k) ?? 0) !== 1) continue;
+      if (taken.has(k)) continue; // a zero-length line can repeat its own tip
+      taken.add(k);
+      out.push({
+        point: [tip[0], tip[1]],
+        inwardRad: Math.atan2(inward[1] - tip[1], inward[0] - tip[0]),
+        lineIndex,
+      });
+    }
+  });
+  return out;
+}
+
+/** A street that stops: a terminal node of the town street graph. */
+export interface StreetDeadEnd {
+  /** The tip, in the PLAN's own coordinate frame. */
+  point: Pt;
+  /** Heading from the tip back along the street, radians. */
+  inwardRad: number;
+  /** Tier and role of the street that stops here. */
+  tier: StreetTierName;
+  role: StreetRole;
+}
+
+/**
+ * Terminal nodes of the street network — the lane ends a town dresses instead
+ * of leaving bare (RealmSmith F11, `docs/deepdives/realmsmith-vs-worldforge.md`).
+ *
+ * `approach` streets are excluded: their outer tip is where the extramural road
+ * leaves the plan window, which is a map edge, not a place in the town.
+ */
+export function streetDeadEnds(
+  streets: readonly TownStreet[],
+  quant: number,
+): StreetDeadEnd[] {
+  const intramural = streets.filter((s) => s.role !== 'approach');
+  return polylineDeadEnds(intramural.map((s) => s.centerline), quant).map((d) => ({
+    point: d.point,
+    inwardRad: d.inwardRad,
+    tier: intramural[d.lineIndex].tier,
+    role: intramural[d.lineIndex].role,
+  }));
+}
+
 /** Ordered widest→narrowest, re-exported so consumers need one import. */
 export { STREET_TIER_ORDER };
 export type { StreetTierName };

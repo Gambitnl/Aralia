@@ -29,7 +29,7 @@ export class AoECalculator {
    *
    * @param center - Center point of AoE (or origin for Cone/Line)
    * @param aoe - AoE definition (shape + size)
-   * @param direction - Direction vector (required for Cone/Line)
+   * @param direction - Direction vector (required for Cone/Line/Cube; for a Cube it is the way the cube extends away from the caster)
    * @returns Array of affected tile positions
    *
    * @example
@@ -103,10 +103,18 @@ export class AoECalculator {
   /**
    * Get tiles affected by a Cube
    *
-   * Uses the shared combat AoE utility convention where the point is the cube origin.
+   * CHANGED 2026-09-23 (ruling Q4, face anchor): the point is the point of origin
+   * on the near face of the cube, and `direction` is the way the cube extends
+   * away from the caster (its dominant axis is used). The old call without a
+   * direction put the origin at the north-west corner; that convention is gone.
    */
-  static getCube(center: Position, size: number): Position[] {
-    return calculateAffectedTiles({ shape: 'Cube', origin: center, size })
+  static getCube(origin: Position, size: number, direction: Position): Position[] {
+    return calculateAffectedTiles({
+      shape: 'Cube',
+      origin,
+      size,
+      direction: vectorToCompassDegrees(direction)
+    })
   }
 
   /**
@@ -152,7 +160,9 @@ export class AoECalculator {
   ): AoEParams {
     const shape = normalizeShapeForSharedGeometry(aoe.shape)
 
-    if ((shape === 'Cone' || shape === 'Line') && !direction) {
+    // A Cube also needs a direction since ruling Q4 (2026-09-22): the cube
+    // extends away from the caster, and a zone keeps only this vector.
+    if ((shape === 'Cone' || shape === 'Line' || shape === 'Cube') && !direction) {
       throw new Error(`${shape} requires direction vector`)
     }
 

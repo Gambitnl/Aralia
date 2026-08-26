@@ -265,7 +265,7 @@
                                         "bonusPerLevel":  "",
                                         "customFormula":  ""
                                     },
-                        "description":  "Healing Light: the chosen target regains Hit Points equal to 4d12 plus the caster\u0027s spellcasting ability modifier.",
+                        "description":  "Healing Light: the chosen target regains Hit Points equal to 4d12 plus the caster's spellcasting ability modifier.",
                         "conditionalEndings":  [
                                                    {
                                                        "trigger":  "spell_ends",
@@ -359,7 +359,7 @@
                         "controlOptions":  [
                                                {
                                                    "name":  "Healing Light",
-                                                   "effect":  "The chosen target regains Hit Points equal to 4d12 plus the caster\u0027s spellcasting ability modifier."
+                                                   "effect":  "The chosen target regains Hit Points equal to 4d12 plus the caster's spellcasting ability modifier."
                                                },
                                                {
                                                    "name":  "Searing Light",

@@ -1,10 +1,10 @@
-# Living-World Sim — Life-Event Core Implementation Plan
+# Living-World Sim - Life-Event Core Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Build the pure, deterministic engine that ages a town's tracked villagers over many days and emits life events (death, inheritance, birth, coming-of-age, role succession) into an append-only chronicle with cached wealth meters.
 
-**Architecture:** A new pure module `src/systems/worldforge/townsim/` layered on top of the existing roster/family substrate. No game-state wiring, no React, no I/O — just `TownSimState → advance N days → new TownSimState + chronicle`. Rolls take a `SeededRandom` parameter so production can seed path-dependently (per design D6) while tests pin a fixed seed. This is the foundation; all later content layers (economy, relationships, festivals) pour events into the same chronicle/meter machinery.
+**Architecture:** A new pure module `src/systems/worldforge/townsim/` layered on top of the existing roster/family substrate. No game-state wiring, no React, no I/O - just `TownSimState -> advance N days -> new TownSimState + chronicle`. Rolls take a `SeededRandom` parameter so production can seed path-dependently (per design D6) while tests pin a fixed seed. This is the foundation; all later content layers (economy, relationships, festivals) pour events into the same chronicle/meter machinery.
 
 **Tech Stack:** TypeScript, Vitest (globals:true), `SeededRandom` (Park-Miller, `nextInt` max-EXCLUSIVE), `seedPath` helpers. Existing types: `Occupant`/`TownRoster` (`roster/types.ts`), `FamilyTies` (`roster/family.ts`).
 
@@ -14,11 +14,11 @@
 
 ## File Structure
 
-- `src/systems/worldforge/townsim/types.ts` — data contracts: `LifeEvent`, `LifeEventKind`, `LivingVillager`, `InstitutionRole`, `TownChronicle`, `TownSimState`.
-- `src/systems/worldforge/townsim/constants.ts` — `DAYS_PER_YEAR` and sim tuning constants.
-- `src/systems/worldforge/townsim/lifespans.ts` — per-race lifespan table + `lifespanForRace`, `dailyDeathProbability`, `childbearingWindow`.
-- `src/systems/worldforge/townsim/townSim.ts` — `initTownSimState`, `ageOf`, `rollTownDay`, `advanceTownDays`, `villagerDiary`.
-- `src/systems/worldforge/townsim/chronicle.ts` — `summarizeChronicle` (year-grouped plain-English history).
+- `src/systems/worldforge/townsim/types.ts` - data contracts: `LifeEvent`, `LifeEventKind`, `LivingVillager`, `InstitutionRole`, `TownChronicle`, `TownSimState`.
+- `src/systems/worldforge/townsim/constants.ts` - `DAYS_PER_YEAR` and sim tuning constants.
+- `src/systems/worldforge/townsim/lifespans.ts` - per-race lifespan table + `lifespanForRace`, `dailyDeathProbability`, `childbearingWindow`.
+- `src/systems/worldforge/townsim/townSim.ts` - `initTownSimState`, `ageOf`, `rollTownDay`, `advanceTownDays`, `villagerDiary`.
+- `src/systems/worldforge/townsim/chronicle.ts` - `summarizeChronicle` (year-grouped plain-English history).
 - `src/systems/worldforge/townsim/__tests__/lifespans.test.ts`
 - `src/systems/worldforge/townsim/__tests__/townSim.test.ts`
 - `src/systems/worldforge/townsim/__tests__/chronicle.test.ts`
@@ -139,7 +139,7 @@ git commit -m "feat(townsim): life-event core data contracts"
 
 ---
 
-## Task 2: Lifespans (lifespans.ts) — TDD
+## Task 2: Lifespans (lifespans.ts) - TDD
 
 **Files:**
 - Create: `src/systems/worldforge/townsim/lifespans.ts`
@@ -249,7 +249,7 @@ git commit -m "feat(townsim): per-race lifespans + death/fertility curves"
 
 ---
 
-## Task 3: Core sim — init + age + single-day roll (townSim.ts) — TDD
+## Task 3: Core sim - init + age + single-day roll (townSim.ts) - TDD
 
 **Files:**
 - Create: `src/systems/worldforge/townsim/townSim.ts`
@@ -257,9 +257,9 @@ git commit -m "feat(townsim): per-race lifespans + death/fertility curves"
 
 **Behavior of `rollTownDay(state, day, rng)` (pure, returns new state):**
 1. Deaths: for each living villager (sorted by id), draw `rng.next() < dailyDeathProbability(ageOf, race)`. On death: set `diedDay=day`, append `death` event, distribute wealth to living children equally (or spouse if no children) appending an `inheritance` event bumping heir(s) wealth meters.
-2. Succession: for each death whose villager held a `role`, pick heir (eldest living child → living spouse → eldest living roleless adult), set heir.role, append `role_succession` event.
-3. Births: for each unique living married couple (dedupe by `min(id,spouseId)`), both alive, both within `childbearingWindow`, `childIds.length < MAX_CHILDREN`, draw annual→daily birth chance. On birth: create newborn `LivingVillager` (new id from `nextVillagerId`, bornDay=day, race=bloodline of primary parent, parents set, added to both parents' childIds), append `birth` event.
-4. Coming-of-age: any villager whose `ageOf(day) >= comingOfAge && ageOf(day-1) < comingOfAge` → append `came_of_age` event.
+2. Succession: for each death whose villager held a `role`, pick heir (eldest living child -> living spouse -> eldest living roleless adult), set heir.role, append `role_succession` event.
+3. Births: for each unique living married couple (dedupe by `min(id,spouseId)`), both alive, both within `childbearingWindow`, `childIds.length < MAX_CHILDREN`, draw annual->daily birth chance. On birth: create newborn `LivingVillager` (new id from `nextVillagerId`, bornDay=day, race=bloodline of primary parent, parents set, added to both parents' childIds), append `birth` event.
+4. Coming-of-age: any villager whose `ageOf(day) >= comingOfAge && ageOf(day-1) < comingOfAge` -> append `came_of_age` event.
 
 Deterministic: iterate sorted ids; draw rng in that order; tie-break by id.
 
@@ -298,7 +298,7 @@ describe('townSim ageOf', () => {
 });
 
 describe('rollTownDay determinism', () => {
-  it('same state + same seed → identical result', () => {
+  it('same state + same seed -> identical result', () => {
     const s = stateOf([villager({ occupantId: 1 }), villager({ occupantId: 2 })]);
     const a = rollTownDay(s, 1, new SeededRandom(99));
     const b = rollTownDay(s, 1, new SeededRandom(99));
@@ -376,12 +376,12 @@ Expected: PASS (all describe blocks).
 
 ```bash
 git add src/systems/worldforge/townsim/townSim.ts src/systems/worldforge/townsim/__tests__/townSim.test.ts
-git commit -m "feat(townsim): day roll — aging, death, inheritance, births, succession"
+git commit -m "feat(townsim): day roll - aging, death, inheritance, births, succession"
 ```
 
 ---
 
-## Task 4: `initTownSimState` from roster + families — TDD
+## Task 4: `initTownSimState` from roster + families - TDD
 
 **Files:**
 - Modify: `src/systems/worldforge/townsim/townSim.ts` (add/confirm `initTownSimState`)
@@ -414,26 +414,26 @@ it('initTownSimState builds living villagers from a real roster', () => {
 
 (Confirm exact `buildDemoTownPlan` / `generateTownRoster` signatures against source before running; adjust the `nameFor` shape if needed.)
 
-- [ ] **Step 2-5:** run (fail) → implement `initTownSimState` → run (pass) → commit `feat(townsim): build sim state from roster + families`.
+- [ ] **Step 2-5:** run (fail) -> implement `initTownSimState` -> run (pass) -> commit `feat(townsim): build sim state from roster + families`.
 
 ---
 
-## Task 5: Chronicle summary (chronicle.ts) — TDD
+## Task 5: Chronicle summary (chronicle.ts) - TDD
 
 **Files:**
 - Create: `src/systems/worldforge/townsim/chronicle.ts`
 - Test: `src/systems/worldforge/townsim/__tests__/chronicle.test.ts`
 
-`summarizeChronicle(state, opts?)` → `string[]`, one line per year that had events:
-`"Year N (days A–B): X died. Y succeeded as lord. 2 births, 1 came of age."`
-`villagerDiary(state, occupantId)` → events where `subjectId===id || relatedIds.includes(id)`.
+`summarizeChronicle(state, opts?)` -> `string[]`, one line per year that had events:
+`"Year N (days A-B): X died. Y succeeded as lord. 2 births, 1 came of age."`
+`villagerDiary(state, occupantId)` -> events where `subjectId===id || relatedIds.includes(id)`.
 
-- [ ] **Step 1: Failing test** — assert a hand-built chronicle with a death+birth in year 1 yields a non-empty line containing the dead villager's name and "died"; assert `villagerDiary` filters correctly.
-- [ ] **Step 2-5:** run (fail) → implement → run (pass) → commit `feat(townsim): year-grouped chronicle + per-villager diary`.
+- [ ] **Step 1: Failing test** - assert a hand-built chronicle with a death+birth in year 1 yields a non-empty line containing the dead villager's name and "died"; assert `villagerDiary` filters correctly.
+- [ ] **Step 2-5:** run (fail) -> implement -> run (pass) -> commit `feat(townsim): year-grouped chronicle + per-villager diary`.
 
 ---
 
-## Task 6: Full-decade determinism + conservation sweep — TDD
+## Task 6: Full-decade determinism + conservation sweep - TDD
 
 **Files:**
 - Test: append to `townSim.test.ts`
@@ -465,27 +465,27 @@ it('a 20-year run is deterministic and conserves the population ledger', () => {
 });
 ```
 
-- [ ] **Step 2-5:** run → fix any conservation bugs in townSim.ts → run (pass) → commit `test(townsim): 20-year determinism + ledger conservation`.
+- [ ] **Step 2-5:** run -> fix any conservation bugs in townSim.ts -> run (pass) -> commit `test(townsim): 20-year determinism + ledger conservation`.
 
 ---
 
 ## Self-Review checklist (run after Task 6)
 
 1. **Spec coverage (life-event slice of LIVING_WORLD_SIM_SPEC):** aging ✓ (ageOf/bornDay), death ✓, role succession ✓ (D9 institution roles), births ✓, diary+meters ✓ (D7: events + cached wealth, wealth moves only via inheritance event), event-grained ✓ (D8: no per-tick numeric sim). Coming-of-age ✓ (sets up relationships layer).
-2. **Placeholder scan:** none — every step has concrete code.
+2. **Placeholder scan:** none - every step has concrete code.
 3. **Type consistency:** `LivingVillager`/`LifeEvent`/`TownSimState` names identical across all tasks; `rollTownDay`/`advanceTownDays`/`initTownSimState`/`ageOf`/`villagerDiary`/`summarizeChronicle` signatures stable.
 
 ---
 
-## Subsequent plans (roadmap — separate plans, build in this order)
+## Subsequent plans (roadmap - separate plans, build in this order)
 
 This plan delivers the **engine**. The remaining subsystems each get their own plan and produce working, testable software on their own:
 
-- **Plan B — Key-NPC tagging:** at town generation, tag institution-holders (lord/priest/innkeeper/tavernkeeper/marketmaster/harbormaster) + 1–2 wildcards, scaled by `TownScaleProfile.typology`. Hook after `assignTownPopulation`/`assignWorkplaces` (proprietors) and `assignCivicRoles` (plaza/temple/keep/dock). Produces `Map<occupantId, InstitutionRole>` consumed by `initTownSimState`.
-- **Plan C — Persistence + daily-loop wiring:** add `townSim` slice to `GameState` (both `initialState.ts` AND `factories.ts` — parity test!), tick the **near-ring** towns in `worldReducer` ADVANCE_TIME (new RNG offset, NOT 7777/8888/6666/9999), save/load. Path-dependent seed per D6 (incorporate a running mutation count so it's non-reproducible across routes).
-- **Plan D — Distance LOD + approach catch-up:** player-relative near/far via `getTownTilesForGrid` + `atlasMilesPerUnit`; stochastic `advanceTownDays` catch-up on approach (watch player position / MOVE_PLAYER); `lastSimDay` bridges both paths (D4/D5).
-- **Plan E — Festivals:** extend `CalendarSystem.HOLIDAYS` + temple-deity holy days (`templeUtils`/`DEITIES`) + per-town founding day; emit `festival` chronicle events; present-day plaza behaviour reuses existing agentSim gathering.
-- **Plan F — Preview surface (play-and-eyeball, D12):** new `?phase=livingworld` preview (append `GamePhase` tail + `PHASE_SLUG_OVERRIDES`); run `advanceTownDays` over N years on a demo town, render `summarizeChronicle` + a `window.__livingWorldPreview` hook for headless proof.
-- **Later layers (per §5):** economy events (good/bad years, levy, boom → wealth meter), relationships (affinity → courtship → marriage, building on `came_of_age` + `socialized`), town-scale orchestrators (fire/crime).
+- **Plan B - Key-NPC tagging:** at town generation, tag institution-holders (lord/priest/innkeeper/tavernkeeper/marketmaster/harbormaster) + 1-2 wildcards, scaled by `TownScaleProfile.typology`. Hook after `assignTownPopulation`/`assignWorkplaces` (proprietors) and `assignCivicRoles` (plaza/temple/keep/dock). Produces `Map<occupantId, InstitutionRole>` consumed by `initTownSimState`.
+- **Plan C - Persistence + daily-loop wiring:** add `townSim` slice to `GameState` (both `initialState.ts` AND `factories.ts` - parity test!), tick the **near-ring** towns in `worldReducer` ADVANCE_TIME (new RNG offset, NOT 7777/8888/6666/9999), save/load. Path-dependent seed per D6 (incorporate a running mutation count so it's non-reproducible across routes).
+- **Plan D - Distance LOD + approach catch-up:** player-relative near/far via `getTownTilesForGrid` + `atlasMilesPerUnit`; stochastic `advanceTownDays` catch-up on approach (watch player position / MOVE_PLAYER); `lastSimDay` bridges both paths (D4/D5).
+- **Plan E - Festivals:** extend `CalendarSystem.HOLIDAYS` + temple-deity holy days (`templeUtils`/`DEITIES`) + per-town founding day; emit `festival` chronicle events; present-day plaza behaviour reuses existing agentSim gathering.
+- **Plan F - Preview surface (play-and-eyeball, D12):** new `?phase=livingworld` preview (append `GamePhase` tail + `PHASE_SLUG_OVERRIDES`); run `advanceTownDays` over N years on a demo town, render `summarizeChronicle` + a `window.__livingWorldPreview` hook for headless proof.
+- **Later layers (per §5):** economy events (good/bad years, levy, boom -> wealth meter), relationships (affinity -> courtship -> marriage, building on `came_of_age` + `socialized`), town-scale orchestrators (fire/crime).
 
 <!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/plans/2026-06-29-living-world-life-event-core.md","sha256WithoutMarker":"74d6f5cef73b7c1367ed826aad314f8d7225444ff745bd5261454532d7687259","markedAtUtc":"2026-08-09T20:22:07.605Z"} -->

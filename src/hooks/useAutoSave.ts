@@ -27,6 +27,13 @@ import * as SaveLoadService from '../services/saveLoadService';
  *
  * App.tsx supplies the live GameState. The save service owns serialization,
  * storage selection, slot metadata, and migration behavior.
+ *
+ * agora-f821.63: this hook deliberately does NOT dispatch the dice counter that
+ * `saveGame` returns back into state, unlike the manual save paths. Every
+ * autosave therefore writes the same counter for the whole session, so an
+ * autosave slot reloaded twice replays the same dice — which is exactly the
+ * property the save-scum setting is protecting. Dispatching here would also
+ * re-arm this hook's own state-change effect on every write.
  */
 
 const AUTO_SAVE_DEBOUNCE_MS = 1500;

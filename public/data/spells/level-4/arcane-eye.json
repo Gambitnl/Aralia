@@ -212,7 +212,7 @@
                                                    "type":  "bonus_action",
                                                    "action":  "Move the eye up to 30 feet in any direction.",
                                                    "frequency":  "while_active",
-                                                   "notes":  "A solid barrier blocks the eye\u0027s movement, but it can pass through an opening as small as 1 inch in diameter."
+                                                   "notes":  "A solid barrier blocks the eye's movement, but it can pass through an opening as small as 1 inch in diameter."
                                                }
                                            ],
                         "attackAugments":  [
@@ -281,7 +281,7 @@
                       "prompt":  "Create an Invisible, invulnerable hovering eye sensor. Track all-direction vision, 30-foot Darkvision, mental visual feed, and Bonus Action movement up to 30 feet through openings at least 1 inch wide.",
                       "playerInputRequired":  true
                   },
-    "description":  "You create an Invisible, invulnerable eye within range that hovers for the duration. You mentally receive visual information from the eye, which can see in every direction. It also has Darkvision with a range of 30 feet. As a Bonus Action, you can move the eye up to 30 feet in any direction. A solid barrier blocks the eye\u0027s movement, but the eye can pass through an opening as small as 1 inch in diameter.",
+    "description":  "You create an Invisible, invulnerable eye within range that hovers for the duration. You mentally receive visual information from the eye, which can see in every direction. It also has Darkvision with a range of 30 feet. As a Bonus Action, you can move the eye up to 30 feet in any direction. A solid barrier blocks the eye's movement, but the eye can pass through an opening as small as 1 inch in diameter.",
     "higherLevels":  "",
     "tags":  [
                  "divination",

@@ -1,4 +1,4 @@
-﻿# Spell Phase Workstream Living Tracker
+# Spell Phase Workstream Living Tracker
 
 Status: active
 Last updated: 2026-05-31

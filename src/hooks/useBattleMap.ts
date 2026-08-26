@@ -1,19 +1,3 @@
-// @dependencies-start
-/**
- * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
- *
- * Last Sync: 13/08/2026, 08:01:31
- * Dependents: components/BattleMap/BattleMap.tsx, components/BattleMap/BattleMap3D.tsx
- * Imports: 7 files
- *
- * MULTI-AGENT SAFETY:
- * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
- * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
- */
-// @dependencies-end
-
 /**
  * @file useBattleMap.ts
  * Custom hook to manage the state and logic of a procedural battle map.
@@ -33,13 +17,34 @@
  * - Pathfinding recalculated frequently without caching
  * - No batched state updates for multiple simultaneous changes
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 20/09/2026, 21:00:39
+ * Dependents: components/BattleMap/BattleMap.tsx, components/BattleMap/BattleMap3D.tsx, components/BattleMap/hooks/useBattleMapPointer.ts
+ * Imports: 7 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import React, { useState, useCallback, useMemo } from 'react';
 import { BattleMapData, BattleMapTile, CombatCharacter, CharacterPosition, AbilityCost, CombatAction } from '../types/combat';
 import { useTurnManager } from './combat/useTurnManager';
 import { useAbilitySystem } from './useAbilitySystem';
 import { useGridMovement } from './combat/useGridMovement';
 import { findPath } from '../utils/spatial/pathfinding';
-import { calculatePathMovementCost } from '../utils/combat';
+import {
+  calculatePathMovementCost,
+  getCharacterSizeMultiplier,
+  resolveCombatantTerrainMovementPolicy,
+} from '../utils/combat';
 import { resolveAerialMovement } from '../utils/combat/aerialMovementUtils';
 
 interface UseBattleMapReturn {
@@ -234,10 +239,18 @@ export function useBattleMap(
           : null;
         if (aerialPreview && !aerialPreview.allowed) return;
 
+        // The mover's own terrain waiver prices this route. Earth Walk and
+        // Timberwalk name a surface, so the policy is asked per tile instead of
+        // waiving every difficult square: an Earth Genasi still pays full cost
+        // through difficult water (GG-257). The remaining arguments mirror
+        // useGridMovement so the executed path matches the previewed one.
+        const terrainPolicy = resolveCombatantTerrainMovementPolicy(character);
+        const isProne = character.conditions?.some(c => c.name === 'Prone' || c.name === 'prone') || false;
+        const sizeMultiplier = getCharacterSizeMultiplier(character.stats.size);
         const path = aerialPreview
           ? aerialPreview.route.map(waypoint => mapData.tiles.get(`${waypoint.position.x}-${waypoint.position.y}`))
               .filter((pathTile): pathTile is BattleMapTile => Boolean(pathTile))
-          : findPath(startTile, tile, mapData);
+          : findPath(startTile, tile, mapData, { isCrawling: isProne }, sizeMultiplier, terrainPolicy);
         // We call calculatePath to update the visual state in the hook,
         // but we use the local 'path' var for immediate execution logic.
         calculatePath(character, tile);
@@ -245,7 +258,7 @@ export function useBattleMap(
         // Charge movement with the same feet-based path cost used by the range
         // preview. Summing raw tile movementCost was unsafe because maps mix
         // two conventions: 5/10 feet-per-tile and 1/2 terrain multipliers.
-        const moveCost = aerialPreview?.costFeet ?? calculatePathMovementCost(path);
+        const moveCost = aerialPreview?.costFeet ?? calculatePathMovementCost(path, terrainPolicy);
         const moveActionCost: AbilityCost = { type: 'movement-only', movementCost: moveCost };
 
         if (await turnManager.executeAction({

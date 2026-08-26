@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { ItemType } from '../../../types';
 import { renderHook } from '@testing-library/react';
 import { useActionExecutor } from '../useActionExecutor';
 import { CombatCharacter, CombatAction, TurnState, Ability, Position } from '../../../types/combat';
@@ -35,6 +36,9 @@ import {
  * Called by: the focused combat-hook Vitest gate.
  * Depends on: useActionExecutor and the shared mounted hook fixtures.
  */
+
+const messagesOf = (logMock: { mock: { calls: unknown[][] } }): string[] =>
+    logMock.mock.calls.map(call => (call[0] as { message: string }).message);
 
 describe('useActionExecutor', () => {
     beforeEach(() => {
@@ -118,7 +122,7 @@ describe('useActionExecutor', () => {
                 id: 'replay-rapier-item',
                 name: 'Replay Rapier',
                 description: 'A finesse weapon.',
-                type: 'weapon',
+                type: ItemType.Weapon,
                 properties: ['finesse']
             },
             range: 1,
@@ -198,7 +202,7 @@ describe('useActionExecutor', () => {
                 id: 'decline-scimitar-item',
                 name: 'Decline Scimitar',
                 description: 'A scenario melee weapon.',
-                type: 'weapon',
+                type: ItemType.Weapon,
                 properties: [],
             },
             range: 1,
@@ -261,7 +265,7 @@ describe('useActionExecutor', () => {
                 id: 'timing-sword-item',
                 name: 'Timing Sword',
                 description: 'A timing fixture.',
-                type: 'weapon',
+                type: ItemType.Weapon,
                 properties: [],
             },
             range: 1,
@@ -332,14 +336,21 @@ describe('useActionExecutor', () => {
             position: { x: 0, y: 2 },
             actionEconomy: { movement: { used: 5, total: 30 } },
         });
-        expect(mockHandleDamage).toHaveBeenCalledWith(
+        // The swing is a WeaponAttackCommand, so its damage is applied by
+        // DamageCommand inside the command transaction and never reaches the
+        // engine's handleDamage prop. The pinned damageRoll of 6 on this
+        // weapon's 1d8 is visible as the mover's 20 -> 14 hit points above.
+        expect(mockHandleDamage).not.toHaveBeenCalledWith(
             expect.objectContaining({ id: mover.id }),
-            6,
+            expect.any(Number),
             'Hero (Opportunity Attack)',
             'slashing',
             mockTurnState.currentTurn,
         );
-        const messages = mockOnLogEntry.mock.calls.map(call => call[0].message as string);
+        expect(messagesOf(mockOnLogEntry)).toEqual(expect.arrayContaining([
+            expect.stringContaining('for 6 slashing damage'),
+        ]));
+        const messages = messagesOf(mockOnLogEntry);
         expect(messages.findIndex(message => message.includes('Opportunity Attack')))
             .toBeLessThan(messages.findIndex(message => message.includes('moves')));
     });
@@ -389,7 +400,7 @@ describe('useActionExecutor', () => {
                 id: `${id}-item`,
                 name: id,
                 description: 'A scenario sword.',
-                type: 'weapon',
+                type: ItemType.Weapon,
                 properties: [],
             },
             range: 1,
@@ -463,7 +474,7 @@ describe('useActionExecutor', () => {
             type: 'attack' as const,
             cost: { type: 'action' as const },
             targeting: 'single_enemy' as const,
-            weapon: { id: 'scimitar_item', name: 'Scimitar', description: 'A scimitar', type: 'weapon', properties: ['finesse'] },
+            weapon: { id: 'scimitar_item', name: 'Scimitar', description: 'A scimitar', type: ItemType.Weapon, properties: ['finesse'] },
             range: 1,
             effects: [{ type: 'damage' as const, value: 4, damageType: 'physical' as const, dice: '1d6' }]
         };
@@ -507,14 +518,26 @@ describe('useActionExecutor', () => {
             team: 'enemy',
             abilities: [scimitar]
         };
-        const moveAction: CombatAction = {
-            id: 'protected-mover-leaves-reach',
+        // Every unpinned roll now comes off the audited seeded roller, so a
+        // Math.random spy cannot decide this attack any more. The decision
+        // record is the supported pinning seam: a 19 clears the fixture AC of
+        // 10 and a 2 cannot.
+        const moveActionWithRoll = (attackRoll: number): CombatAction => ({
+            id: `protected-mover-leaves-reach-${attackRoll}`,
             characterId: protectedMover.id,
             type: 'move',
             targetPosition: { x: 0, y: 3 },
             cost: { type: 'movement-only', movementCost: 10 },
-            timestamp: Date.now()
-        };
+            timestamp: Date.now(),
+            opportunityAttackDecisions: {
+                oa_attacker: {
+                    decision: 'accept',
+                    abilityId: 'scimitar',
+                    attackRoll,
+                    damageRoll: 1,
+                },
+            },
+        });
 
         // Opportunity-attack proof needs the moving protected target to keep
         // its Armor of Agathys temporary-HP source while the movement helper
@@ -529,7 +552,6 @@ describe('useActionExecutor', () => {
             currentHP: character.currentHP - amount
         }));
 
-        const hitRoll = vi.spyOn(Math, 'random').mockReturnValue(0.95);
         const hitHarness = renderHook(() => useActionExecutor({
             ...defaultProps,
             characters: [protectedMover, attacker],
@@ -545,7 +567,7 @@ describe('useActionExecutor', () => {
             }]
         }));
 
-        expect(await hitHarness.result.current.executeAction(moveAction)).toBe(true);
+        expect(await hitHarness.result.current.executeAction(moveActionWithRoll(19))).toBe(true);
         expect(mockHandleDamage).toHaveBeenCalledWith(
             expect.objectContaining({ id: attacker.id }),
             5,
@@ -553,7 +575,6 @@ describe('useActionExecutor', () => {
             'Cold',
             mockTurnState.currentTurn,
         );
-        hitRoll.mockRestore();
 
         vi.clearAllMocks();
         mockCanAfford.mockReturnValue(true);
@@ -561,7 +582,6 @@ describe('useActionExecutor', () => {
         mockProcessTileEffects.mockImplementation((character) => character);
         mockProcessRepeatSaves.mockReturnValue(mockCharacter);
 
-        const missRoll = vi.spyOn(Math, 'random').mockReturnValue(0);
         const missHarness = renderHook(() => useActionExecutor({
             ...defaultProps,
             characters: [protectedMover, attacker],
@@ -577,7 +597,7 @@ describe('useActionExecutor', () => {
             }]
         }));
 
-        expect(await missHarness.result.current.executeAction(moveAction)).toBe(true);
+        expect(await missHarness.result.current.executeAction(moveActionWithRoll(2))).toBe(true);
         expect(mockHandleDamage).not.toHaveBeenCalledWith(
             expect.objectContaining({ id: attacker.id }),
             5,
@@ -585,7 +605,6 @@ describe('useActionExecutor', () => {
             'Cold',
             mockTurnState.currentTurn,
         );
-        missRoll.mockRestore();
     });
 
     it('should omit proficiency bonus from opportunity attacks with non-proficient weapons', async () => {
@@ -653,7 +672,7 @@ describe('useActionExecutor', () => {
             type: 'attack' as const,
             cost: { type: 'action' as const },
             targeting: 'single_enemy' as const,
-            weapon: { id: 'spear_item', name: 'Spear', description: 'A spear', type: 'weapon', properties: ['versatile'] },
+            weapon: { id: 'spear_item', name: 'Spear', description: 'A spear', type: ItemType.Weapon, properties: ['versatile'] },
             range: 1,
             effects: [{ type: 'damage' as const, value: 4, damageType: 'physical' as const, dice: '1d6' }]
         };
@@ -687,8 +706,6 @@ describe('useActionExecutor', () => {
         mockProcessTileEffects.mockImplementation((char) => char);
         mockHandleDamage.mockImplementation((char) => char);
 
-        const randomSpy = vi.spyOn(Math, 'random').mockReturnValue(0.99);
-
         try {
             const { result } = renderHook(() => useActionExecutor({
                 ...defaultProps,
@@ -696,22 +713,36 @@ describe('useActionExecutor', () => {
                 turnState: turnFor(mover.id),
             }));
 
+            // Sentinel only stops a creature on a HIT, so the attack is pinned
+            // rather than left to the audited roller.
             const action: CombatAction = {
                 id: 'runner-leaves-reach',
                 characterId: mover.id,
                 type: 'move' as const,
                 targetPosition: { x: 0, y: 2 },
                 cost: { type: 'movement-only' as const, movementCost: 5 },
-                timestamp: Date.now()
+                timestamp: Date.now(),
+                opportunityAttackDecisions: {
+                    sentinel_guard: {
+                        decision: 'accept',
+                        abilityId: 'spear',
+                        attackRoll: 19,
+                        damageRoll: 1,
+                    },
+                },
             };
 
             const success = await result.current.executeAction(action);
 
             expect(success).toBe(true);
 
-            const movedUpdate = mockOnCharacterUpdate.mock.calls
+            // The command publishes the damaged mover mid-movement, and the
+            // Sentinel stop lands on the mover the movement finally commits, so
+            // the assertion reads the last publish rather than the first.
+            const moverUpdates = mockOnCharacterUpdate.mock.calls
                 .map(call => call[0] as CombatCharacter)
-                .find(character => character.id === mover.id);
+                .filter(character => character.id === mover.id);
+            const movedUpdate = moverUpdates[moverUpdates.length - 1];
 
             expect(movedUpdate).toBeDefined();
             expect(movedUpdate?.statusEffects).toEqual(expect.arrayContaining([
@@ -729,7 +760,7 @@ describe('useActionExecutor', () => {
                 message: expect.stringContaining('Sentinel feat stops Runner in place')
             }));
         } finally {
-            randomSpy.mockRestore();
+            // Nothing to restore: the roll is pinned on the action itself.
         }
     });
 
@@ -741,7 +772,7 @@ describe('useActionExecutor', () => {
             type: 'attack' as const,
             cost: { type: 'action' as const },
             targeting: 'single_enemy' as const,
-            weapon: { id: 'rapier_item', name: 'Rapier', description: 'A rapier', type: 'weapon', properties: ['finesse'] },
+            weapon: { id: 'rapier_item', name: 'Rapier', description: 'A rapier', type: ItemType.Weapon, properties: ['finesse'] },
             range: 1,
             effects: [{ type: 'damage' as const, value: 8, damageType: 'physical' as const, dice: '1d8' }]
         };
@@ -800,7 +831,7 @@ describe('useActionExecutor', () => {
         // drives the log entry and carries structured hit metadata for downstream
         // combat-message adapters.
         expect(mockOnLogEntry).toHaveBeenCalledWith(expect.objectContaining({
-            message: expect.stringContaining('using Rapier'),
+            message: expect.stringContaining('Opportunity Attack using Rapier'),
             data: expect.objectContaining({
                 isHit: expect.any(Boolean),
                 isCrit: expect.any(Boolean)
@@ -816,7 +847,7 @@ describe('useActionExecutor', () => {
             type: 'attack' as const,
             cost: { type: 'action' as const },
             targeting: 'single_enemy' as const,
-            weapon: { id: 'rapier_item', name: 'Rapier', description: 'A rapier', type: 'weapon', properties: ['finesse'] },
+            weapon: { id: 'rapier_item', name: 'Rapier', description: 'A rapier', type: ItemType.Weapon, properties: ['finesse'] },
             range: 1,
             effects: [{ type: 'damage' as const, value: 8, damageType: 'physical' as const, dice: '1d8' }]
         };
@@ -891,7 +922,7 @@ describe('useActionExecutor', () => {
             type: 'attack' as const,
             cost: { type: 'action' as const },
             targeting: 'single_enemy' as const,
-            weapon: { id: 'rapier_item', name: 'Rapier', description: 'A rapier', type: 'weapon', properties: ['finesse'] },
+            weapon: { id: 'rapier_item', name: 'Rapier', description: 'A rapier', type: ItemType.Weapon, properties: ['finesse'] },
             range: 1,
             effects: [{ type: 'damage' as const, value: 8, damageType: 'physical' as const, dice: '1d8' }]
         };

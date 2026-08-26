@@ -4,7 +4,7 @@
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
  * Last Sync: 09/06/2026, 02:48:37
- * Dependents: data/naval/voyageEvents.ts, data/naval/voyageEvents/index.ts, state/reducers/navalReducer.ts, systems/naval/VoyageManager.ts
+ * Dependents: data/naval/voyageEvents.ts, state/reducers/navalReducer.ts, systems/naval/VoyageManager.ts
  * Imports: 3 files
  *
  * MULTI-AGENT SAFETY:
@@ -25,6 +25,55 @@
 import { Crew, CrewMember, CrewRole, Ship } from '../../types/naval';
 import { CREW_NAMES, CREW_SURNAMES, CREW_TRAITS, ROLE_BASE_SKILLS, ROLE_DAILY_WAGE } from '../../data/naval/crewTraits';
 import { SeededRandom } from '@/utils/random';
+
+/**
+ * Roles that make up a ship's chain of command. When a rising starts it is the
+ * officers who either put it down or lead it, so their loyalty — not the lower
+ * deck's average — is what actually buys the captain a margin.
+ */
+export const OFFICER_ROLES: readonly CrewRole[] = ['Captain', 'FirstMate', 'Bosun', 'Quartermaster'];
+
+/** Loyalty at or above which an ordinary hand stands with the captain. */
+const LOYALIST_THRESHOLD = 75;
+
+/**
+ * A hand with the 'Loyal' trait stands with the captain from a lower mark: the
+ * trait already means this crewman holds on where others would let go.
+ */
+const LOYAL_TRAIT_THRESHOLD = 60;
+
+/**
+ * Percentage points the officer corps is worth. A wholly loyal wardroom (100)
+ * adds the full amount; a wholly bought one (0) subtracts it, cancelling what
+ * the loyalists below deck are worth. A neutral wardroom (50) is worth nothing.
+ */
+const OFFICER_BUFFER_MAX = 15;
+
+/** Percentage points a lower deck made up entirely of loyalists is worth. */
+const LOYALIST_BUFFER_MAX = 10;
+
+/**
+ * The lowest a crew member's loyalty can ever be driven. Loyalty is a 0-100
+ * score and nothing — including the faction surcharge below — is allowed to
+ * push a hand under it.
+ */
+export const CREW_LOYALTY_FLOOR = 0;
+
+/**
+ * Standing with a ship's faction at or above which the lower deck has nothing
+ * to grumble about. Below it the captain has visibly fallen out with the flag
+ * his crew signed under.
+ */
+export const FACTION_UNREST_THRESHOLD = -20;
+
+/**
+ * Unrest points a wholly hated faction (standing -100) adds to the daily check.
+ * The surcharge only ever ADDS unrest: by Remy's ruling bad standing never
+ * subtracts from {@link CrewManager.mutinyLoyaltyBuffer} and never touches crew
+ * loyalty, so a fallen-out flag reads as grumbling, not as a vanished officer
+ * corps.
+ */
+export const FACTION_UNREST_SURCHARGE_MAX = 15;
 
 const hashStringToSeed = (value: string): number => {
   let hash = 2166136261;
@@ -101,6 +150,65 @@ export class CrewManager {
   }
 
   /**
+   * Percentage points subtracted from a mutiny roll's threshold — the margin
+   * standing between a dangerous grumble and an actual rising.
+   *
+   * Two terms, both drawn from the roster rather than from morale (which the
+   * unrest number already accounts for):
+   *
+   * 1. The officer corps. Mean loyalty across {@link OFFICER_ROLES}, measured
+   *    from the neutral 50, scaled to ±{@link OFFICER_BUFFER_MAX}. A crew with
+   *    no officers aboard has no chain of command and so gets nothing here.
+   * 2. The loyalists below deck. The share of the whole crew standing with the
+   *    captain, worth up to {@link LOYALIST_BUFFER_MAX}. A hand counts when its
+   *    loyalty clears {@link LOYALIST_THRESHOLD}, or {@link LOYAL_TRAIT_THRESHOLD}
+   *    when it carries the 'Loyal' trait.
+   *
+   * A bought wardroom can cancel the lower deck's loyalists outright, but the
+   * buffer never goes negative: officers cannot make a rising more likely than
+   * the unrest already makes it.
+   */
+  static mutinyLoyaltyBuffer(crew: Crew): number {
+      const members = crew.members;
+      if (members.length === 0) return 0;
+
+      const officers = members.filter(member => OFFICER_ROLES.includes(member.role));
+      let officerTerm = 0;
+      if (officers.length > 0) {
+          const meanOfficerLoyalty = officers.reduce((sum, m) => sum + m.loyalty, 0) / officers.length;
+          officerTerm = ((meanOfficerLoyalty - 50) / 50) * OFFICER_BUFFER_MAX;
+      }
+
+      const loyalists = members.filter(member => {
+          const threshold = member.traits.includes('Loyal') ? LOYAL_TRAIT_THRESHOLD : LOYALIST_THRESHOLD;
+          return member.loyalty >= threshold;
+      });
+      const loyalistTerm = (loyalists.length / members.length) * LOYALIST_BUFFER_MAX;
+
+      return Math.max(0, officerTerm + loyalistTerm);
+  }
+
+  /**
+   * Unrest points added to the daily mutiny check because the captain has
+   * fallen out with the faction his ship sails under.
+   *
+   * Zero while standing is at or above {@link FACTION_UNREST_THRESHOLD}, then
+   * rising linearly to {@link FACTION_UNREST_SURCHARGE_MAX} at standing -100.
+   * The result is never negative: good standing with the flag is its own
+   * reward elsewhere, it does not buy down a mutiny here.
+   *
+   * @param standing The player's public standing with the ship's faction, -100 to 100.
+   */
+  static factionUnrestSurcharge(standing: number): number {
+      if (standing >= FACTION_UNREST_THRESHOLD) return 0;
+
+      const span = FACTION_UNREST_THRESHOLD - -100;
+      const depth = Math.min(FACTION_UNREST_THRESHOLD - standing, span);
+
+      return (depth / span) * FACTION_UNREST_SURCHARGE_MAX;
+  }
+
+  /**
    * Calculates derived stats for the entire crew.
    */
   static calculateCrewStats(members: CrewMember[]): Crew {
@@ -171,9 +279,19 @@ export class CrewManager {
    * @param rng Optional seeded source used by callers that already have a replay seed.
    *            If omitted, the current ship/funds snapshot is hashed so the
    *            fallback path still behaves deterministically.
+   * @param factionStanding The player's public standing with the faction this ship
+   *            sails under (see systems/naval/shipFaction.ts). Bad standing adds
+   *            an unrest surcharge; it never touches crew loyalty and never
+   *            reduces the mutiny buffer. Omitted by callers that have no
+   *            faction state to hand, and the surcharge is then not applied.
    * @returns Updated ship, remaining funds, and logs
    */
-  static processDailyCrewUpdate(ship: Ship, availableFunds: number, rng?: SeededRandom): {
+  static processDailyCrewUpdate(
+      ship: Ship,
+      availableFunds: number,
+      rng?: SeededRandom,
+      factionStanding?: number
+  ): {
       ship: Ship;
       remainingFunds: number;
       logs: string[];
@@ -231,12 +349,26 @@ export class CrewManager {
           unrest += 10;
       }
 
+      // 3b. Faction Surcharge
+      // A captain who has fallen out with the flag his crew signed under gets
+      // grumbling, not a collapsed wardroom: the term adds unrest only. Crew
+      // loyalty is untouched here, so no hand is pushed below CREW_LOYALTY_FLOOR.
+      if (factionStanding !== undefined) {
+          const factionSurcharge = this.factionUnrestSurcharge(factionStanding);
+
+          if (factionSurcharge > 0) {
+              unrest += factionSurcharge;
+              logs.push('The crew mutters about the company the captain keeps.');
+          }
+      }
+
       // 4. Mutiny Check
       let mutinyTriggered = false;
       if (unrest > 80) {
-          // High chance of mutiny
-          // Reduce chance if Loyalty is high (already factored into unrest, but maybe individual loyalists help?)
-          const loyaltyBuffer = Math.max(0, (updatedCrew.averageMorale + 50) / 10); // Placeholder logic
+          // High chance of mutiny. Unrest already folds in the crew's average
+          // loyalty; the buffer is the separate weight of the officer corps and
+          // of the individual loyalists who would stand against a rising.
+          const loyaltyBuffer = this.mutinyLoyaltyBuffer(updatedCrew);
 
           if (randomSource.nextInt(0, 100) < (unrest - 50 - loyaltyBuffer)) {
               mutinyTriggered = true;

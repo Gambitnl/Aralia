@@ -1,4 +1,4 @@
-> **ARCHIVED 2026-07-01 — SSO tracker slice log (formerly the tail of `docs/tasks/spell-system-overhaul/TRACKER.md`).**
+> **ARCHIVED 2026-07-01 - SSO tracker slice log (formerly the tail of `docs/tasks/spell-system-overhaul/TRACKER.md`).**
 >
 > This is the append-only implementation/investigation slice log from the 2026-05-31/06-01 SSO wave
 > (~1,070 lines of dated slice updates), preserved as historical evidence. The live Active Task Queue and
@@ -357,7 +357,7 @@ Next recommended slice: investigate the next tracked non-schema gap, or run targ
 - Gap: SSO-EXECUTION-SPLIT-001
 - Status: Active/open, narrowed.
 - Evidence used: `TODO.md`, `useAbilitySystem.ts`, `SpellCommandFactory.ts`, `spellAbilityFactory.ts`, and bounded usage searches.
-- Finding: rich combat execution already uses command creation/execution; the old â€œlegacy factory inferenceâ€ wording is stale for combat execution.
+- Finding: rich combat execution already uses command creation/execution; the old â€œlegacy factory inferenceâ€ wording is stale for combat execution.
 - Newly tracked follow-ups: `SSO-ABILITY-BRIDGE-PARITY-001` and `SSO-SPELL-COMMAND-GAMESTATE-CONTEXT-001`.
 
 ### 2026-05-31 - Area containment source-of-truth pass

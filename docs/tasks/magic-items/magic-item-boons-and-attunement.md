@@ -3,8 +3,8 @@
 ## What this covers
 
 How a magic item's mechanical benefits reach the player character, and how
-attunement gates those benefits. This is the path from item data → equipped
-character → final ability scores, armor class, and attack rolls.
+attunement gates those benefits. This is the path from item data -> equipped
+character -> final ability scores, armor class, and attack rolls.
 
 ## Current state (data gap closed 2026-08-06)
 

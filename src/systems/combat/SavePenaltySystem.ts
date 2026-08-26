@@ -24,7 +24,7 @@
  */
 
 import { CombatState, CombatCharacter, SavePenaltyRider } from '@/types/combat';
-import { rollDice } from '@/utils/combat';
+import { rollDice } from '@/systems/dice/rollers';
 import { SavingThrowModifier } from '@/utils/character';
 import { generateId } from '@/utils/core/idGenerator';
 

@@ -1,4 +1,9 @@
-﻿# Spell Phase 1 Task Tracker
+# Spell Phase 1 Task Tracker
+
+> **Paths below are historical.** `conductor/symphony/` was deleted on
+> 2026-08-31. This record is left exactly as written, because rewriting a
+> receipt to match today's tree would falsify it. See
+> [`docs/projects/CONDUCTOR_RETIRED.md`](../../projects/CONDUCTOR_RETIRED.md).
 
 Status: active guiding tracker for early-game spell execution.
 

@@ -18,7 +18,9 @@ import {
   buildDungeonSceneModel,
   classifyPropKind,
   decomposeProp,
+  DUNGEON_3D_LIGHTING,
   DUNGEON_3D_PALETTES,
+  dungeonThemeLighting,
   roomPurposeReadability,
   type DungeonSceneOptions,
 } from '../dungeonSceneModel';
@@ -126,7 +128,7 @@ describe('buildDungeonSceneModel', () => {
     expect(cavern.architectureSpheres.length).toBeGreaterThan(0);
     expect(cavern.architectureCones).toHaveLength(0);
     expect(frost.architectureCones.length).toBeGreaterThan(0);
-    expect(frost.architectureOctahedrons).toHaveLength(THEME_PLANS.frost.doors.length);
+    expect(frost.architectureOctahedrons.length).toBeGreaterThan(THEME_PLANS.frost.doors.length);
 
     // At least one diagonal/chamfered boundary must survive into visible wall rotation for every
     // representative form; otherwise ellipse and diamond plans regress to axis-aligned teeth.
@@ -281,6 +283,78 @@ describe('buildDungeonSceneModel', () => {
     expect(debug.floors.map(({ color: _color, ...placement }) => placement))
       .toEqual(plain.floors.map(({ color: _color, ...placement }) => placement));
     expect(debug.floors.some((floor, index) => floor.color !== plain.floors[index].color)).toBe(true);
+  });
+
+  it('dresses each theme with its own atmosphere without touching the other two', () => {
+    const crypt = buildDungeonSceneModel(THEME_PLANS.crypt, BASE_OPTIONS);
+    const cavern = buildDungeonSceneModel(THEME_PLANS.cavern, BASE_OPTIONS);
+    const frost = buildDungeonSceneModel(THEME_PLANS.frost, BASE_OPTIONS);
+
+    // Suspended atmosphere is the one batch that must differ per theme in DENSITY, not only in
+    // hue: drifting spores are sparse, falling snow is dense, crypt dust is rarest of all.
+    for (const model of [crypt, cavern, frost]) {
+      expect(model.themeMotes.length).toBeGreaterThan(0);
+    }
+    expect(frost.themeMotes.length).toBeGreaterThan(cavern.themeMotes.length);
+    expect(cavern.themeMotes.length).toBeGreaterThan(crypt.themeMotes.length);
+
+    // A mote is a decorative particulate, never geometry a player could mistake for a prop.
+    expect(crypt.themeMotes.every((mote) => mote.detail === true && mote.sx < 0.12)).toBe(true);
+
+    // Motes are seeded from the raised floor batch, so none can hang inside solid rock.
+    const cavernFloorKeys = new Set(cavern.floors.map((floor) => `${floor.x}:${floor.z}`));
+    expect(cavern.themeMotes.every((mote) => (
+      cavernFloorKeys.has(`${Math.round(mote.x * 2) / 2}:${Math.round(mote.z * 2) / 2}`)
+      || cavern.floors.some((floor) => Math.abs(floor.x - mote.x) <= 0.5 && Math.abs(floor.z - mote.z) <= 0.5)
+    ))).toBe(true);
+
+    // Cavern stalactites hang above the floor; frost crystals sit on it. Both use the octahedron
+    // batch, so their vertical placement is what proves they are two different theme statements.
+    expect(cavern.architectureOctahedrons.length).toBeGreaterThan(0);
+    expect(cavern.architectureOctahedrons.every((spike) => spike.y > 1)).toBe(true);
+    expect(frost.architectureOctahedrons.some((crystal) => crystal.y < 0.5)).toBe(true);
+    expect(crypt.architectureOctahedrons).toHaveLength(0);
+
+    // Damp crypt stone tints a subset of exposed walls toward moss. Cavern and frost walls stay
+    // on their own palette, so the moss statement cannot leak across themes.
+    const greenish = (hex: string): boolean => {
+      const r = parseInt(hex.slice(1, 3), 16);
+      const g = parseInt(hex.slice(3, 5), 16);
+      const b = parseInt(hex.slice(5, 7), 16);
+      return g > r + 4 && g > b + 4;
+    };
+    expect(crypt.walls.some((wall) => greenish(wall.color))).toBe(true);
+    expect(frost.walls.some((wall) => greenish(wall.color))).toBe(false);
+  });
+
+  it('gives every theme its own lighting recipe', () => {
+    const crypt = dungeonThemeLighting('crypt');
+    const cavern = dungeonThemeLighting('cavern');
+    const frost = dungeonThemeLighting('frost');
+
+    // The art direction each theme is meant to communicate, expressed as inequalities rather
+    // than magic numbers so tuning stays free while the intent stays enforced.
+    // Crypt is torch-driven: lowest ambient, hottest torches.
+    expect(crypt.ambientIntensity).toBeLessThan(cavern.ambientIntensity);
+    expect(crypt.ambientIntensity).toBeLessThan(frost.ambientIntensity);
+    expect(crypt.torchIntensity).toBeGreaterThan(cavern.torchIntensity);
+    expect(crypt.torchIntensity).toBeGreaterThan(frost.torchIntensity);
+    // Cavern glows from the rock, so its directional key is the weakest of the three.
+    expect(cavern.sunIntensity).toBeLessThan(crypt.sunIntensity);
+    expect(cavern.sunIntensity).toBeLessThan(frost.sunIntensity);
+    // Frost is the brightest, longest-sighted room: strongest key, thinnest fog.
+    expect(frost.sunIntensity).toBeGreaterThan(crypt.sunIntensity);
+    expect(frost.fogMultiplier).toBeLessThan(crypt.fogMultiplier);
+    expect(cavern.fogMultiplier).toBeGreaterThan(crypt.fogMultiplier);
+
+    // Shadow casting is a draw-call budget, not an art choice: every theme must stay well under
+    // the ten selected torches or the six-pass-per-light shadow cost returns.
+    for (const theme of Object.keys(DUNGEON_3D_LIGHTING) as (keyof typeof DUNGEON_3D_LIGHTING)[]) {
+      const lighting = DUNGEON_3D_LIGHTING[theme];
+      expect(lighting.shadowCasters).toBeGreaterThan(0);
+      expect(lighting.shadowCasters).toBeLessThanOrEqual(3);
+      expect(lighting.torchDistance).toBeGreaterThan(0);
+    }
   });
 
   it('keeps semantic door states available to the renderer', () => {

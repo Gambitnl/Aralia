@@ -247,7 +247,7 @@ describe('Frost Giant Goliath Race domain leaf', () => {
     expect(screen.getByTestId('frost-giant-goliath-actor')).toHaveTextContent('Action ready');
     expect(screen.getByTestId('frost-giant-goliath-actor')).toHaveTextContent('Uses 3/3');
     expect(screen.getByTestId('frost-giant-goliath-target')).toHaveTextContent('HP 40/40');
-    expect(screen.getByTestId('frost-giant-goliath-assembly-boundary')).toHaveTextContent('does not currently project racial resources');
+    expect(screen.getByTestId('frost-giant-goliath-assembly-boundary')).toHaveTextContent('spendCombatLimitedUse pays the charge');
     expect(screen.getByTestId('frost-giant-goliath-unsupported-boundary')).toHaveTextContent('mounted actor turn-event bus is not claimed');
   });
 });

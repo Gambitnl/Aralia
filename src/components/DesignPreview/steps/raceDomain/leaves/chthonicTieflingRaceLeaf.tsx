@@ -198,10 +198,9 @@ export function createChthonicTieflingActor(
     ...(quickCharacter.spellbook?.preparedSpells ?? []),
   ]);
 
-  // DEBT: The current text parser can emit a malformed `them-using-any` grant
-  // from the canonical Chthonic prose, and legacy knownSpells entries override
-  // structured long-rest metadata. Keep the production projection bounded to
-  // authored spell IDs until that shared parser/bridge is repaired upstream.
+  // Racial spell parser repair for malformed "them-using-any" grant and long-rest metadata is tracked in Agora task agora-2da3.
+  // Canonical Chthonic prose can produce a malformed grant and legacy knownSpells entries can override structured long-rest
+  // metadata; this keeps the projection bounded to authored spell IDs until upstream parsing is updated.
   const canonicalCharacter: PlayerCharacter = {
     ...assembledCharacter,
     spellbook: assembledCharacter.spellbook
@@ -226,9 +225,8 @@ export function createChthonicTieflingActor(
     ...generatedActor,
     id: CHTHONIC_TIEFLING_ACTOR_ID,
     name: `${race.name} - Resistance Tester`,
-    // DEBT: The shared persistent-to-combat bridge does not yet project this
-    // trait-text defense. Materialize only the canonical Chthonic defense here
-    // so calculateDamage remains the authority for resistance math.
+    // Projecting trait-text racial damage defenses automatically in combat bridge is tracked in Agora task agora-ddb7.
+    // Materializes the canonical Chthonic defense here so calculateDamage remains the authority for resistance math.
     resistances: [...new Set([
       ...(generatedActor.resistances ?? []),
       ...canonicalResistanceTypes,

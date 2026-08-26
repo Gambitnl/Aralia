@@ -10,7 +10,7 @@
  * decorative delegate; (e) guards: species gaits refuse skinned.
  */
 import { describe, it, expect } from 'vitest';
-import { AnimationClip, QuaternionKeyframeTrack, Vector3 } from 'three';
+import { AnimationClip, Color, QuaternionKeyframeTrack, Vector3 } from 'three';
 import type { EntityBlueprint, Frame, PlanSpec, SegmentSink, Palette } from '../types';
 import { deriveFrame } from '../types';
 import { compilePlan } from '../textPlan/compilePlan';
@@ -265,4 +265,72 @@ describe('assembleEntity — clip contract guards (the ONE mixer door)', () => {
   });
 });
 
+/**
+ * agora-2976 — the two concrete slices of "the skinned path replaces the
+ * segment renderer": both halves of the A/B must carry the SAME belly
+ * gradient (GG-152) and the SAME accent-toned dorsal crest (GG-153).
+ */
+describe('createSkinnedPlan — surface parity with the segment renderer', () => {
+  function serpentBlueprint(): EntityBlueprint {
+    const compiled = compilePlan(PLAN_FIXTURES.threeHeadedSerpent);
+    // the fixture must actually carry the crest garnish and a belly tone
+    expect(compiled.parts.some((p) => p.partId === 'finRidge'), 'serpent has a finRidge garnish').toBe(true);
+    expect(compiled.palette.secondaryHex, 'serpent has a belly tone').toBeTruthy();
+    return { ...compiled, label: 'ThreeHeadedSerpent' };
+  }
 
+  /** The group segmentBody makes per emission id, and the fill material on it. */
+  function segMaterial(root: import('three').Object3D, id: string): import('three').MeshToonMaterial | null {
+    const group = root.getObjectByName(`seg:${id}`);
+    if (!group) return null;
+    const mesh = group.children.find((c) => (c as import('three').Mesh).isMesh) as import('three').Mesh | undefined;
+    return (mesh?.material as import('three').MeshToonMaterial) ?? null;
+  }
+
+  it('GG-152: the skinned trunk carries the belly countershade, not one flat tone', () => {
+    const blueprint = serpentBlueprint();
+    const handle = assembleEntity(blueprint, { bodyTech: 'skinned' });
+    const fill = handle.group.getObjectByName('skinnedFill') as import('three').SkinnedMesh;
+    expect(fill, 'skinned fill mesh exists').toBeTruthy();
+    const material = fill.material as import('three').MeshToonMaterial;
+    expect(material.vertexColors, 'countershaded fill reads the color attribute').toBe(true);
+
+    const attr = fill.geometry.getAttribute('color') as import('three').BufferAttribute | undefined;
+    expect(attr, 'bind geometry carries a baked countershade attribute').toBeTruthy();
+
+    const body = new Color(blueprint.palette.skinHex);
+    const belly = new Color(blueprint.palette.secondaryHex!);
+    // a real gradient: some vertex lands on the belly tone, some on the body
+    // tone. (Flat-toned geometry — the GG-152 bug — hits neither end.)
+    let nearBelly = 0;
+    let nearBody = 0;
+    const c = new Color();
+    for (let v = 0; v < attr!.count; v++) {
+      c.setRGB(attr!.getX(v), attr!.getY(v), attr!.getZ(v));
+      if (Math.abs(c.r - belly.r) + Math.abs(c.g - belly.g) + Math.abs(c.b - belly.b) < 0.02) nearBelly++;
+      if (Math.abs(c.r - body.r) + Math.abs(c.g - body.g) + Math.abs(c.b - body.b) < 0.02) nearBody++;
+    }
+    expect(nearBelly, 'underside vertices reach the belly tone').toBeGreaterThan(0);
+    expect(nearBody, 'dorsal vertices keep the body tone').toBeGreaterThan(0);
+    handle.dispose();
+  });
+
+  it('GG-153: the dorsal crest is the same accent-toned fin loft on both paths', () => {
+    const blueprint = serpentBlueprint();
+    const accent = new Color(blueprint.palette.accentHex);
+
+    const segments = assembleEntity(blueprint);
+    const segCrest = segMaterial(segments.group, 'crest');
+    expect(segCrest, 'segment path draws the crest fin loft').toBeTruthy();
+    expect(segCrest!.color.getHexString(), 'segment crest is accent-toned').toBe(accent.getHexString());
+    segments.dispose();
+
+    const skinned = assembleEntity(blueprint, { bodyTech: 'skinned' });
+    const skinCrest = segMaterial(skinned.group, 'crest');
+    expect(skinCrest, 'skinned path forwards the crest fin loft to the delegate').toBeTruthy();
+    expect(skinCrest!.color.getHexString(), 'skinned crest is accent-toned too').toBe(accent.getHexString());
+    // and the per-blade fallback must NOT also fire — one crest, not two
+    expect(segMaterial(skinned.group, 'crest.0'), 'no per-blade fallback when the loft drew').toBeNull();
+    skinned.dispose();
+  });
+});

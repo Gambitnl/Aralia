@@ -1,7 +1,7 @@
-# Stage 2 — Canonical Position Model (`playerCell`) — Design
+# Stage 2 - Canonical Position Model (`playerCell`) - Design
 
 **Date:** 2026-06-29
-**Status:** Approved (design) — implementing
+**Status:** Approved (design) - implementing
 **Program:** [Cell-native world umbrella](2026-06-29-cell-native-world-umbrella.md), Stage 2
 **Foundation:** [Stage 1 grid↔atlas bridge](2026-06-27-grid-atlas-bridge-unification-design.md) (IMPLEMENTED)
 
@@ -25,7 +25,7 @@ Flipping the *readers* onto the cell is Stage 3+ work, not this one.
 
 ### (a) `localeCoords` representation
 
-**Decision: `localeCoords` reuses the existing `subMapCoordinates` semantics** — an
+**Decision: `localeCoords` reuses the existing `subMapCoordinates` semantics** - an
 integer `{ x, y }` sub-tile cell within the Locale (the legacy submap grid), the *same
 value* the game already stores in `subMapCoordinates`. We do **not** introduce a new
 feet/meters unit in Stage 2.
@@ -33,7 +33,7 @@ feet/meters unit in Stage 2.
 Rationale:
 - The umbrella's end-state names `locale: { xFt, yFt }` (continuous feet) backed by
   `playerWorldPos` / `playerGroundPos` (meters). But continuous-feet Locale movement is
-  literally Stage 3 ("Locale movement (2D + 3D synced) — the new movement system").
+  literally Stage 3 ("Locale movement (2D + 3D synced) - the new movement system").
   Inventing an `xFt/yFt` field now, with no producer/consumer, would be speculative
   (violates the no-fallback / build-one-real-path directive) and untestable against real
   movement.
@@ -49,19 +49,19 @@ So in Stage 2: `playerCell.localeCoords` is `{ x: number; y: number } | null`, s
 same value as `subMapCoordinates` at every write site. Type kept deliberately structural
 so Stage 3 can widen it to feet without a second migration.
 
-### (b) reader-migration order — flip incrementally or in one cut?
+### (b) reader-migration order - flip incrementally or in one cut?
 
 **Decision: do NOT flip any readers in Stage 2.** Cell becomes the recorded truth; the
 derived `coord_X_Y` keeps feeding every existing reader unchanged. Concretely the readers
 that stay on the derived value this stage:
 
-- **movement** — `handleMovement.ts` parses `currentLocationId.split('_')` and computes the
+- **movement** - `handleMovement.ts` parses `currentLocationId.split('_')` and computes the
   next `coord_X_Y`; unchanged. It is also the place we *derive* the cell (see below).
-- **biome** — `worldReducer.resolveBiomeId` regex-matches `coord_X_Y` → `mapData.tiles`;
+- **biome** - `worldReducer.resolveBiomeId` regex-matches `coord_X_Y` -> `mapData.tiles`;
   unchanged.
-- **NPC guards / discovery / save preview** — read `currentLocationId`; unchanged.
+- **NPC guards / discovery / save preview** - read `currentLocationId`; unchanged.
 
-The reader flip (movement → biome → NPC → discovery → save) is sequenced in **Stage 3**,
+The reader flip (movement -> biome -> NPC -> discovery -> save) is sequenced in **Stage 3**,
 where the new Locale movement system actually produces continuous positions worth reading
 from the cell. Flipping readers now would be churn with no behavioural payoff and real
 regression risk (the Stage-1 lesson).
@@ -69,20 +69,20 @@ regression risk (the Stage-1 lesson).
 ### (c) save migration
 
 On load, derive `cellId` from the saved `coord_X_Y` via `legacyTileToAtlasCell` (the
-EXISTING, golden mapping — see HARD CONSTRAINT below), versioned and idempotent, mirroring
+EXISTING, golden mapping - see HARD CONSTRAINT below), versioned and idempotent, mirroring
 `worldDataMigration`. Saves predating Stage 2 have no `playerCell`; the migration backfills
 it from `currentLocationId` + `subMapCoordinates`.
 
 ## Why `legacyTileToAtlasCell` for the derive (not `atlasCellToLegacyGrid`)
 
-The umbrella names `atlasCellToLegacyGrid` for the *forward* (cell → tile) projection and
-`legacyTileToAtlasCell` for the *reverse* (tile → cell). Stage 2 has BOTH directions:
+The umbrella names `atlasCellToLegacyGrid` for the *forward* (cell -> tile) projection and
+`legacyTileToAtlasCell` for the *reverse* (tile -> cell). Stage 2 has BOTH directions:
 
-- **Forward (cell → coord_X_Y), when a cell is the input** (3D-entry anchor, future
+- **Forward (cell -> coord_X_Y), when a cell is the input** (3D-entry anchor, future
   start-selection): use `atlasCellToLegacyGrid(atlas, cellId, gridSize)` to derive the
   bookkeeping tile. (Already used this way in Stage 1 / MapPane.)
-- **Reverse (coord_X_Y → cellId), when a tile is the input** (legacy compass movement,
-  save migration of old saves): use `legacyTileToAtlasCell(atlas, x, y, cols, rows)` — the
+- **Reverse (coord_X_Y -> cellId), when a tile is the input** (legacy compass movement,
+  save migration of old saves): use `legacyTileToAtlasCell(atlas, x, y, cols, rows)` - the
   SAME function `getWorldforgeLocalForLocation` already uses, so the recorded `cellId`
   matches the cell the 3D generator would resolve for that tile. No new mapping, no flip.
 
@@ -90,14 +90,14 @@ The umbrella names `atlasCellToLegacyGrid` for the *forward* (cell → tile) pro
 `getTownTilesForGrid`, and we do NOT change `atlasCellToLegacyGrid`'s behaviour. Stage 1's
 regression came from *reimplementing* `legacyTileToAtlasCell`; Stage 2 only *calls* these
 existing functions. The recorded cell is a faithful, derived shadow of the tile the game
-already computes — never an authority that overrides it in Stage 2.
+already computes - never an authority that overrides it in Stage 2.
 
 > A subtlety: today's movement still computes `coord_X_Y` first; `playerCell.cellId` is
 > derived FROM that tile via `legacyTileToAtlasCell`. So in Stage 2 the tile is still the
 > de-facto driver and the cell is its shadow. The *naming* (cell = truth) is established
 > and the field is populated everywhere, so Stage 3 can invert the dependency (cell drives,
 > tile derived via `atlasCellToLegacyGrid`) without adding the field or the migration.
-> This staged inversion is exactly what "incremental — existing readers untouched" means.
+> This staged inversion is exactly what "incremental - existing readers untouched" means.
 
 ## Data model
 
@@ -119,29 +119,29 @@ export interface PlayerCell {
 
 ## Components & Changes
 
-1. **`src/types/state.ts`** — add `PlayerCell` interface + `playerCell: PlayerCell | null`
+1. **`src/types/state.ts`** - add `PlayerCell` interface + `playerCell: PlayerCell | null`
    field on `GameState`.
 
 2. **`src/utils/core/factories.ts`** (BOTH factory functions) + **`src/state/initialState.ts`**
-   — add `playerCell: null` (project rule: update both factories + initialState).
+   - add `playerCell: null` (project rule: update both factories + initialState).
 
-3. **`src/state/actionTypes.ts`** + **`src/types/actions.ts`** — `StartGameSuccessPayload`
+3. **`src/state/actionTypes.ts`** + **`src/types/actions.ts`** - `StartGameSuccessPayload`
    gains optional `playerCell?: PlayerCell | null`. No new action type is needed for moves:
    the cell rides existing actions.
 
-4. **A derive helper** — `src/systems/worldforge/local/playerCellFromLegacy.ts`:
-   `deriveCellIdFromTile(worldSeed, x, y, cols, rows): number | null` — a thin, pure wrapper
+4. **A derive helper** - `src/systems/worldforge/local/playerCellFromLegacy.ts`:
+   `deriveCellIdFromTile(worldSeed, x, y, cols, rows): number | null` - a thin, pure wrapper
    over `getBridgeAtlas` + `legacyTileToAtlasCell` (the golden reverse mapping), guarded so a
    generator hiccup returns `null` rather than throwing into a reducer/migration. (Returning
-   null is honest "unknown cell", not a behavioural fallback path — the game still runs on the
+   null is honest "unknown cell", not a behavioural fallback path - the game still runs on the
    untouched grid.)
 
-5. **`src/state/appState.ts`** — derive + store `playerCell` alongside the legacy fields in
+5. **`src/state/appState.ts`** - derive + store `playerCell` alongside the legacy fields in
    the two position writers, so the canonical cell is recorded at every set:
    - `MOVE_PLAYER`: compute `playerCell` from `action.payload.newLocationId` +
      `newSubMapCoordinates`. If the id is `coord_X_Y`, parse + `deriveCellIdFromTile`; if it's
      a static `LOCATIONS` id with `mapCoordinates`, derive from those. `localeCoords =
-     newSubMapCoordinates`. (Recording-only — does not change the legacy assignments.)
+     newSubMapCoordinates`. (Recording-only - does not change the legacy assignments.)
    - `START_GAME_SUCCESS`: `playerCell = restOfPayload.playerCell ?? <derive from
      initialLocationId + initialSubMapCoordinates>`. (Start-selection already carries the
      cell in `entry3DAnchor`; we thread the same cell into `playerCell` so the source of
@@ -151,39 +151,39 @@ export interface PlayerCell {
      the spawn is the static `STARTING_LOCATION_ID` with no map coords). These dev/skip paths
      just stay self-consistent; no behavioural change.
 
-6. **`src/hooks/useGameInitialization.ts`** — `startGame` already resolves the spawn tile +
+6. **`src/hooks/useGameInitialization.ts`** - `startGame` already resolves the spawn tile +
    (for start-selection) the `entry3DAnchor` cell. Thread the spawn cell into the payload's
    `playerCell` (use `startTown.atlasCellId` when present, else `deriveCellIdFromTile` on the
    resolved spawn tile). `localeCoords = initialSubMapCoords`.
 
-7. **`src/services/saveLoadService.ts`** — in `loadGame`, after the existing migrations, call a
+7. **`src/services/saveLoadService.ts`** - in `loadGame`, after the existing migrations, call a
    new `migratePlayerCell(loadedState)` (in `src/state/migrations/playerCellMigration.ts`):
-   idempotent — if `playerCell` already present, no-op; else derive `cellId` from
+   idempotent - if `playerCell` already present, no-op; else derive `cellId` from
    `currentLocationId` (parse `coord_X_Y`, or a static location's `mapCoordinates`) via
    `deriveCellIdFromTile`, `localeCoords = subMapCoordinates`. On any failure leave
    `playerCell` null (old save still loads + plays on the grid; honest unknown, not a fake
    position). Mirrors the `migrateMapDataToWorldDataV2` call-site + idempotence pattern.
 
-## Testing (TDD — failing test first for each)
+## Testing (TDD - failing test first for each)
 
-- **state types/factories parity** — `createMockGameState().playerCell` is `null`;
+- **state types/factories parity** - `createMockGameState().playerCell` is `null`;
   `initialState.playerCell` is `null` (the existing `factories.parity.test.ts` already
   enforces key parity; add explicit assertions).
-- **`deriveCellIdFromTile`** — for a sample seed, a known land tile derives the SAME cell id
+- **`deriveCellIdFromTile`** - for a sample seed, a known land tile derives the SAME cell id
   that `getWorldforgeLocalForLocation` resolves for that tile (golden agreement with the
   untouched mapping); a bad/empty world returns `null` without throwing.
-- **`MOVE_PLAYER` records the cell** — dispatching `MOVE_PLAYER` with a `coord_X_Y`
+- **`MOVE_PLAYER` records the cell** - dispatching `MOVE_PLAYER` with a `coord_X_Y`
   newLocationId + subMapCoordinates produces `playerCell.cellId === deriveCellIdFromTile(...)`
   and `playerCell.localeCoords === newSubMapCoordinates`, AND leaves `currentLocationId` /
   `subMapCoordinates` byte-identical to today (compat regression guard).
-- **`START_GAME_SUCCESS` threads the payload cell** — when payload carries `playerCell`, it is
+- **`START_GAME_SUCCESS` threads the payload cell** - when payload carries `playerCell`, it is
   stored as-is and agrees with `entry3DAnchor.cellId`; without it, the cell is derived from
   `initialLocationId`.
-- **save migration** — a pre-Stage-2 save (no `playerCell`) loads with `playerCell` backfilled
+- **save migration** - a pre-Stage-2 save (no `playerCell`) loads with `playerCell` backfilled
   from `currentLocationId` + `subMapCoordinates`; a save that already has `playerCell` is
   untouched (idempotent); a save whose location can't resolve loads with `playerCell: null`
   and still plays.
-- **golden / regression** — full `src/systems/worldforge/` + `src/state/__tests__/` +
+- **golden / regression** - full `src/systems/worldforge/` + `src/state/__tests__/` +
   `MapPane.test.tsx` suites stay green; `getTownTilesForGrid` + the Stage-1 cell-addressed
   entry tests unchanged (we touch neither mapping).
 

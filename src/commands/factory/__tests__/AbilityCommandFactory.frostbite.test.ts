@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { createMockCombatCharacter, AbilityCommandFactory } from './AbilityCommandFactory.testHelpers';
+import { AbilityCommandFactory, createMockCombatCharacter, createMockCombatState } from './AbilityCommandFactory.testHelpers';
 import type { Ability } from './AbilityCommandFactory.testHelpers';
 
 // ============================================================================
@@ -54,7 +54,7 @@ describe('Frostbite next-weapon-attack rider', () => {
     };
 
     const [command] = AbilityCommandFactory.createCommands(weaponAttack, attacker, [target], {} as any);
-    const newState = await command.execute({ characters: [attacker, target], combatLog: [] } as any);
+    const newState = await command.execute(createMockCombatState({ characters: [attacker, target] }));
     const updatedAttacker = newState.characters.find(character => character.id === attacker.id);
 
     expect(updatedAttacker?.activeEffects ?? []).toHaveLength(0);
@@ -98,7 +98,7 @@ describe('Frostbite next-weapon-attack rider', () => {
     };
 
     const [command] = AbilityCommandFactory.createCommands(weaponAttack, attacker, [otherDefender], {} as any);
-    const newState = await command.execute({ characters: [attacker, otherDefender], combatLog: [] } as any);
+    const newState = await command.execute(createMockCombatState({ characters: [attacker, otherDefender] }));
     const updatedAttacker = newState.characters.find(character => character.id === attacker.id);
 
     // Chill Touch's Undead rider is scoped to the caster who applied it. An
@@ -132,7 +132,7 @@ describe('Frostbite next-weapon-attack rider', () => {
     };
 
     const [command] = AbilityCommandFactory.createCommands(spellAttack, attacker, [target], {} as any);
-    const newState = await command.execute({ characters: [attacker, target], combatLog: [] } as any);
+    const newState = await command.execute(createMockCombatState({ characters: [attacker, target] }));
     const updatedAttacker = newState.characters.find(character => character.id === attacker.id);
 
     expect(updatedAttacker?.activeEffects?.some(effect => effect.spellId === 'frostbite')).toBe(true);

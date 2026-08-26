@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 26/07/2026, 23:09:39
- * Dependents: components/World3D/GroundAgents.tsx, components/World3D/crowdInstancePlan.ts
- * Imports: 7 files
+ * Last Sync: 29/08/2026, 15:06:21
+ * Dependents: components/World3D/GroundAgents.tsx, components/World3D/crowdInstancePlan.ts, systems/entities3d/recipeFromOccupant.ts
+ * Imports: 6 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -49,7 +49,6 @@ import type { LocomotionState } from './gaits';
 import { createSegmentBody } from './segmentBody';
 import { buildHeadForm } from './headForms';
 import { generateEntityBlueprint } from '../generateEntityBlueprint';
-import { recipeFromOccupant } from '../recipeFromOccupant';
 
 export const CROWD_WALK_PHASES = 8;
 const WALK_SPEED = 1.15;
@@ -195,6 +194,13 @@ function bakePose(blueprint: EntityBlueprint, walkPhase: number | null): BufferG
   return merged;
 }
 
+// ============================================================================
+// Archetype Keyframe Baking
+// ============================================================================
+// Bakes a compiled blueprint's idle and walking phases into standalone
+// geometries.
+// ============================================================================
+
 /** Bake the full keyframe set for one blueprint. */
 export function bakeCrowdArchetype(blueprint: EntityBlueprint): CrowdArchetype {
   const geometries: BufferGeometry[] = [bakePose(blueprint, null)];
@@ -202,25 +208,4 @@ export function bakeCrowdArchetype(blueprint: EntityBlueprint): CrowdArchetype {
     geometries.push(bakePose(blueprint, p / CROWD_WALK_PHASES));
   }
   return { geometries, heightM: heightM(blueprint.frame) };
-}
-
-/** Stable tiny hash for group → representative seed. */
-function hashGroup(group: string): number {
-  let h = 0;
-  for (let i = 0; i < group.length; i++) h = ((h << 5) - h + group.charCodeAt(i)) | 0;
-  return Math.abs(h) % 100000;
-}
-
-const archetypeCache = new Map<string, CrowdArchetype>();
-
-/** One representative baked body per ancestry group, cached for the session. */
-export function crowdArchetypeForGroup(group: string): CrowdArchetype {
-  const cached = archetypeCache.get(group);
-  if (cached) return cached;
-  const blueprint = generateEntityBlueprint(
-    recipeFromOccupant({ id: hashGroup(group), ageBand: 'adult', race: group }),
-  );
-  const arch = bakeCrowdArchetype(blueprint);
-  archetypeCache.set(group, arch);
-  return arch;
 }

@@ -1,7 +1,8 @@
 /**
  * @file PlayerSprite.tsx
  * SVG-based player character sprite that can be used in HTML contexts.
- * Matches the pixel-art style of the canvas-based AssetPainter.drawPlayer().
+ * Matches the pixel-art style of the retired RealmSmith canvas player painter
+ * (removed 2026-09-14; salvage lives in src/rendering2d/).
  *
  * USED BY:
  * - ./Submap/SubmapTile.tsx (submap player position)

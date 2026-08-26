@@ -19,7 +19,7 @@
  * Handles NPC interaction actions like 'talk'.
  */
 import React from 'react';
-import { GameState, Action, GoalStatus, KnownFact } from '../../types';
+import { GameState, Action, GoalStatus } from '../../types';
 import { AppAction } from '../../state/actionTypes';
 import * as OllamaTextService from '../../services/ollamaTextService';
 import { townChronicleForLocation } from '../../systems/worldforge/townsim/chronicleForLocation';
@@ -29,7 +29,8 @@ import { NPCS } from '../../constants';
 import { resolveAndRegisterEntities } from '../../utils/context';
 import { generateNPC, NPCGenerationConfig } from '../../services/npcGenerator';
 import { generateId } from '../../utils/core/idGenerator';
-import { getDayPartLabel } from '../../utils/core/timeUtils';
+import { getDayPartLabel, getGameDay } from '../../utils/core/timeUtils';
+import { buildActionMemoryDispatches } from '../../systems/memory/actionMemoryMatrix';
 import { OllamaService } from '../../services/ollama';
 import { ConversationMessage } from '../../types/conversation';
 import { getWeatherSummary } from '../../types/environment';
@@ -349,17 +350,16 @@ export async function handleStartDialogue({
     // Register them permanently
     dispatch({ type: 'REGISTER_GENERATED_NPC', payload: { npc: generatedNpc } });
 
-    // Add "Met" fact immediately so they remember you
-    const metFact: KnownFact = {
-      id: generateId(),
-      text: `Met the adventurer.`,
-      source: 'direct',
-      isPublic: true,
+    // Add "Met" fact immediately so they remember you. Routed through the
+    // action-memory matrix so first contact carries the same id, strength,
+    // lifespan and provenance rules as every other remembered act.
+    buildActionMemoryDispatches({
+      actionType: 'met',
+      observerNpcId: generatedNpc.id,
+      gameDay: getGameDay(gameState.gameTime),
       timestamp: gameState.gameTime.getTime(),
-      strength: 3,
-      lifespan: 999,
-    };
-    dispatch({ type: 'ADD_NPC_KNOWN_FACT', payload: { npcId: generatedNpc.id, fact: metFact } });
+      detail: 'the adventurer',
+    }).forEach(memoryAction => dispatch(memoryAction));
     dispatch({ type: 'ADD_MET_NPC', payload: { npcId: generatedNpc.id } });
     // First contact now counts as a fresh memory touch so the new fact and the
     // interaction clock stay aligned before the dialogue session opens.
@@ -480,16 +480,13 @@ export async function handleTalk({
 
     // Add NPC to met list on first successful interaction
     if (!gameState.metNpcIds.includes(npc.id)) {
-      const metFact: KnownFact = {
-        id: generateId(),
-        text: `Met ${playerContext}.`,
-        source: 'direct',
-        isPublic: true,
+      buildActionMemoryDispatches({
+        actionType: 'met',
+        observerNpcId: npc.id,
+        gameDay: getGameDay(gameState.gameTime),
         timestamp: gameState.gameTime.getTime(),
-        strength: 3,
-        lifespan: 999,
-      };
-      dispatch({ type: 'ADD_NPC_KNOWN_FACT', payload: { npcId: npc.id, fact: metFact } });
+        detail: playerContext,
+      }).forEach(memoryAction => dispatch(memoryAction));
       dispatch({ type: 'ADD_MET_NPC', payload: { npcId: npc.id } });
     }
 
@@ -633,16 +630,13 @@ export async function handleTalk({
     }
 
     if (!gameState.metNpcIds.includes(generated.id)) {
-      const metFact: KnownFact = {
-        id: generateId(),
-        text: `Met ${playerContext}.`,
-        source: 'direct',
-        isPublic: true,
+      buildActionMemoryDispatches({
+        actionType: 'met',
+        observerNpcId: generated.id,
+        gameDay: getGameDay(gameState.gameTime),
         timestamp: gameState.gameTime.getTime(),
-        strength: 3,
-        lifespan: 999,
-      };
-      dispatch({ type: 'ADD_NPC_KNOWN_FACT', payload: { npcId: generated.id, fact: metFact } });
+        detail: playerContext,
+      }).forEach(memoryAction => dispatch(memoryAction));
       dispatch({ type: 'ADD_MET_NPC', payload: { npcId: generated.id } });
     }
 

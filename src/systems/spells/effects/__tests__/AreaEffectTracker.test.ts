@@ -86,6 +86,8 @@ const makeZone = (
     casterId: 'caster',
     position,
     areaOfEffect,
+    // A cube zone extends away from the caster (ruling Q4, 2026-09-22), thus it needs a direction.
+    direction: { x: 1, y: 0 },
     effects,
     triggeredThisTurn: new Set(),
     triggeredEver: new Set()

@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 09/09/2026, 09:05:07
+ * Dependents: components/DesignPreview/steps/PreviewDialogue.tsx, components/Dialogue/DialogueConversationView.tsx, components/Dialogue/DialogueInterface.tsx, data/dialogue/topics.ts, services/dialogueService.ts, state/reducers/dialogueReducer.ts, types/index.ts
+ * Imports: None
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file src/types/dialogue.ts
  * Defines the types for the structured dialogue and conversation system.
@@ -93,10 +109,83 @@ export interface NPCKnowledgeProfile {
  */
 export interface DialogueSession {
   npcId: string;
-  /** Topics currently available to choose from */
-  availableTopicIds: string[];
   /** Topics already discussed in this session */
   discussedTopicIds: string[];
-  /** Current 'mood' or temporary disposition modifier for this session */
-  sessionDispositionMod: number;
+}
+
+/*
+ * DIAL-003 (agora-f821.22): `availableTopicIds` and `sessionDispositionMod`
+ * were removed rather than wired. Both were write-only: the reducer seeded them
+ * at session start, `DialogueInterface` copied `availableTopicIds` forward
+ * unchanged, and a grep across `src/` found no reader for either one. The live
+ * behavior they looked like they controlled is already owned elsewhere —
+ * `getAvailableTopics` recomputes the topic list from `discussedTopicIds` and
+ * current game state on every render, and `checkTopicPrerequisites` reads the
+ * NPC's persisted disposition directly. Keeping the fields would have meant
+ * inventing a second, stale copy of both.
+ */
+
+/**
+ * NPC Speech Fingerprinting (agora-9e0f).
+ *
+ * A `SpeechProfile` is the per-NPC voice signature used to post-process raw LLM
+ * dialogue so two NPCs answering the same prompt do not sound identical. It is an
+ * additive layer: `initialPersonalityPrompt`, `dialoguePromptSeed` and the TTS
+ * `voice` keep their existing roles, and a missing profile is a no-op.
+ *
+ * Generation and transformation live in `src/systems/social/speechProfile.ts`.
+ */
+export type SpeechVocabularyLevel = 'scholarly' | 'common' | 'crude';
+export type SpeechFormality = 'formal' | 'casual' | 'gruff';
+export type SpeechDialectTag = 'coastal' | 'mountain' | 'urban' | 'rural';
+export type SpeechSentenceLength = 'short' | 'medium' | 'long';
+
+/**
+ * Professional/social culture that cuts across the four geographic dialects
+ * (agora-3c98, wired here by agora-db71.17).
+ *
+ * Dialect answers "where are they from"; culture answers "who raised them and
+ * what do they do all day". The union is declared here, beside the axes it sits
+ * with, rather than in `src/systems/social/speechProfile.ts` where it started:
+ * that module imports this file, so a `cultureFamily` field typed from there
+ * would have made the dependency circular. `speechProfile.ts` re-exports the
+ * name, so its existing importers are unaffected.
+ */
+export type SpeechCultureFamily =
+  | 'nautical'
+  | 'criminal'
+  | 'clergy'
+  | 'military'
+  | 'mercantile'
+  | 'arcane'
+  | 'noble'
+  | 'agrarian'
+  | 'artisan';
+
+export interface SpeechProfile {
+  /** Stable identifier derived from the profile axes (e.g. `coastal-casual-common`). */
+  id: string;
+  /** Short human-readable label for debug panels and dossiers. */
+  label: string;
+  /** Word choice register: scholarly swaps up, crude swaps down. */
+  vocabularyLevel: SpeechVocabularyLevel;
+  /** Social register: formal expands contractions, gruff contracts and drops courtesies. */
+  formality: SpeechFormality;
+  /** Regional flavor bank used for word substitutions. */
+  dialectTag: SpeechDialectTag;
+  /** Recurring interjections or tags (e.g. 'aye', 'indeed', 'hmm'). */
+  verbalTics: string[];
+  /** Pacing preference; drives sentence splitting/fusing, never truncation. */
+  sentenceLength: SpeechSentenceLength;
+  /**
+   * Culture that shaped this speaker, or absent when none matched. Optional and
+   * additive: a profile written before this field existed still post-processes
+   * exactly as it did, because the culture lexicon is skipped when it is absent.
+   *
+   * Until this field existed, culture reached the voice only through
+   * `verbalTics`, because `applySpeechProfile` receives the profile and nothing
+   * else. It now also selects a jargon bank in `CULTURE_LEXICON`, which is the
+   * layer the speech-profile module recorded as deferred on this exact field.
+   */
+  cultureFamily?: SpeechCultureFamily;
 }

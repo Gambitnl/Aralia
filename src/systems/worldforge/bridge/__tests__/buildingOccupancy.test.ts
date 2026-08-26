@@ -232,6 +232,82 @@ describe('occupancyScheduleForPlot', () => {
   });
 });
 
+describe('public-house visitors', () => {
+  const town = rootSeedPath(11);
+
+  /** A tavern run by the family living in the neighbouring home. */
+  function tavernFixture(): {
+    plotPop: TownPlotPopulation;
+    allPlots: TownPlotPopulation[];
+    plotInput: InteriorPlotInput;
+  } {
+    const home: TownPlotPopulation = {
+      buildingType: 'townhouse', residential: true, occupants: 4,
+      homeId: 'taverner-home', district: 'common',
+    };
+    const plotPop: TownPlotPopulation = {
+      buildingType: 'tavern', residential: false,
+      proprietorHomeId: 'taverner-home', district: 'common',
+    };
+    const plotInput: InteriorPlotInput = {
+      id: 501, footprint, role: 'house', storeys: 2, buildingType: 'tavern',
+    };
+    return { plotPop, allPlots: [home, plotPop], plotInput };
+  }
+
+  it('bakes patron day-schedules past the household indices, in real feet', () => {
+    const { plotPop, allPlots, plotInput } = tavernFixture();
+    const sched = occupancyScheduleForPlot(plotPop, allPlots, plotInput, town, town)!;
+    expect(sched).toBeDefined();
+
+    const visitors = sched.occupants.filter((o) => o.visitor);
+    expect(visitors.length).toBeGreaterThan(0);
+
+    const plan = blueprintForPlot(plotInput, town);
+    for (const v of visitors) {
+      // Indices continue PAST the family so no patron can be mistaken for,
+      // or collide with, a named household member.
+      expect(v.memberIndex).toBeGreaterThanOrEqual(sched.household.members.length);
+      expect(sched.household.members[v.memberIndex]).toBeUndefined();
+      expect(v.ageBand).toBe('adult');
+      expect(v.stationsByHour).toHaveLength(24);
+
+      const evening = v.stationsByHour[19];
+      expect(evening).not.toBeNull();
+      expect(evening!.activity).toBe('visiting');
+      // The patron stands inside a real room cell of the plan.
+      expect(roomCellSet(plan, evening!.level))
+        .toContain(`${Math.floor(evening!.xFt / 5)},${Math.floor(evening!.yFt / 5)}`);
+      // And is gone by the small hours.
+      expect(v.stationsByHour[3]).toBeNull();
+      expect(v.stationsByHour[12]).toBeNull();
+    }
+
+    // Render ids stay unique across family and patrons alike.
+    const indices = sched.occupants.map((o) => o.memberIndex);
+    expect(new Set(indices).size).toBe(indices.length);
+  });
+
+  it('lights the taproom windows while patrons are in, and is deterministic', () => {
+    const { plotPop, allPlots, plotInput } = tavernFixture();
+    const sched = occupancyScheduleForPlot(plotPop, allPlots, plotInput, town, town)!;
+    // A full taproom is never a dark building from the street.
+    expect(sched.litHours[19]).toBe(true);
+    expect(sched.litHours[3]).toBe(false);
+
+    const again = occupancyScheduleForPlot(plotPop, allPlots, plotInput, town, town)!;
+    expect(again).toEqual(sched);
+  });
+
+  it('leaves a private house with no visitors at all', () => {
+    const f = makePopulatedHousePlotFixture();
+    const sched = occupancyScheduleForPlot(
+      f.plotPop, f.allPlots, f.plotInput, f.seedPath, f.townSeed,
+    )!;
+    expect(sched.occupants.some((o) => o.visitor)).toBe(false);
+  });
+});
+
 describe('windowsLitAt (pure decision)', () => {
   it('needs BOTH occupancy and the dusk/night band', () => {
     expect(windowsLitAt(true, 19)).toBe(true);

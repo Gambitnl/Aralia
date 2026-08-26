@@ -89,6 +89,13 @@ export interface CharacterCreationState {
   selectedDivineOrder: 'Protector' | 'Thaumaturge' | null;
   selectedDruidOrder: 'Magician' | 'Warden' | null;
   selectedWarlockPatron: string | null;
+  /**
+   * The subclass picked during creation, which only happens when the campaign's
+   * rules edition puts that choice at level 1 (agora-f821.56/.57: cleric Divine
+   * Domain and sorcerer Sorcerous Origin under the 2014 PHB). Under the 2024 PHB
+   * it stays null and the level-up flow asks at level 3.
+   */
+  selectedSubclassId: string | null;
   selectedCantrips: Spell[];
   selectedSpellsL1: Spell[];
   selectedWeaponMasteries: string[] | null;
@@ -111,15 +118,15 @@ export interface CharacterCreationState {
 
 export type ClassFeatureFinalSelectionAction =
   | { type: 'SELECT_FIGHTER_FEATURES'; payload: FightingStyle }
-  | { type: 'SELECT_CLERIC_FEATURES'; payload: { order: 'Protector' | 'Thaumaturge', cantrips: Spell[]; spellsL1: Spell[] } }
+  | { type: 'SELECT_CLERIC_FEATURES'; payload: { order: 'Protector' | 'Thaumaturge', cantrips: Spell[]; spellsL1: Spell[]; domainId?: string } }
   | { type: 'SELECT_WIZARD_FEATURES'; payload: { cantrips: Spell[]; spellsL1: Spell[] } }
   | { type: 'SELECT_ARTIFICER_FEATURES'; payload: { cantrips: Spell[]; spellsL1: Spell[] } }
-  | { type: 'SELECT_SORCERER_FEATURES'; payload: { cantrips: Spell[]; spellsL1: Spell[] } }
+  | { type: 'SELECT_SORCERER_FEATURES'; payload: { cantrips: Spell[]; spellsL1: Spell[]; originId?: string } }
   | { type: 'SELECT_RANGER_FEATURES'; payload: { spellsL1: Spell[] } }
   | { type: 'SELECT_PALADIN_FEATURES'; payload: { spellsL1: Spell[] } }
   | { type: 'SELECT_BARD_FEATURES'; payload: { cantrips: Spell[]; spellsL1: Spell[] } }
   | { type: 'SELECT_DRUID_FEATURES'; payload: { order: 'Magician' | 'Warden', cantrips: Spell[]; spellsL1: Spell[] } }
-  | { type: 'SELECT_WARLOCK_FEATURES'; payload: { cantrips: Spell[]; spellsL1: Spell[] } };
+  | { type: 'SELECT_WARLOCK_FEATURES'; payload: { cantrips: Spell[]; spellsL1: Spell[]; patronId?: string } };
 
 export type CharacterCreatorAction =
   | { type: 'SET_STEP'; payload: CreationStep }
@@ -164,6 +171,7 @@ export const initialCharacterCreatorState: CharacterCreationState = {
   selectedDivineOrder: null,
   selectedDruidOrder: null,
   selectedWarlockPatron: null,
+  selectedSubclassId: null,
   selectedCantrips: [],
   selectedSpellsL1: [],
   selectedWeaponMasteries: null,
@@ -259,6 +267,7 @@ const getFieldsToResetOnGoBack = (state: CharacterCreationState, exitedStep: Cre
       resetFields.selectedDivineOrder = null;
       resetFields.selectedDruidOrder = null;
       resetFields.selectedWarlockPatron = null;
+      resetFields.selectedSubclassId = null;
       resetFields.selectedCantrips = [];
       resetFields.selectedSpellsL1 = [];
       break;
@@ -355,10 +364,13 @@ function handleClassFeatureFinalSelectionAction(state: CharacterCreationState, a
     case 'SELECT_FIGHTER_FEATURES':
       return applyFeaturesAndAdvance({ selectedFightingStyle: action.payload });
     case 'SELECT_CLERIC_FEATURES':
+      // Under the 2014 rules the Divine Domain is picked here at level 1; under
+      // 2024 the component sends no domain and the choice waits for level 3.
       return applyFeaturesAndAdvance({
         selectedDivineOrder: action.payload.order,
         selectedCantrips: action.payload.cantrips,
         selectedSpellsL1: action.payload.spellsL1,
+        selectedSubclassId: action.payload.domainId ?? null,
       });
     case 'SELECT_DRUID_FEATURES':
       return applyFeaturesAndAdvance({
@@ -366,11 +378,30 @@ function handleClassFeatureFinalSelectionAction(state: CharacterCreationState, a
         selectedCantrips: action.payload.cantrips,
         selectedSpellsL1: action.payload.spellsL1,
       });
+    case 'SELECT_WARLOCK_FEATURES':
+      // Under the 2014 rules the patron is picked here at level 1; under 2024
+      // the component sends no patron and the choice waits for level 3.
+      // The patron IS the warlock subclass, so it lands on `selectedSubclassId`
+      // — the one field `useCharacterAssembly` reads into `character.subclassId`
+      // — exactly like the cleric domain and the sorcerer origin. Without this
+      // the LevelUpModal sees an empty `subclassId` and asks again at level 3.
+      return applyFeaturesAndAdvance({
+        selectedCantrips: action.payload.cantrips,
+        selectedSpellsL1: action.payload.spellsL1,
+        selectedWarlockPatron: action.payload.patronId ?? null,
+        selectedSubclassId: action.payload.patronId ?? null,
+      });
+    case 'SELECT_SORCERER_FEATURES':
+      // Under the 2014 rules the Sorcerous Origin is picked here at level 1;
+      // under 2024 the component sends none and the choice waits for level 3.
+      return applyFeaturesAndAdvance({
+        selectedCantrips: action.payload.cantrips,
+        selectedSpellsL1: action.payload.spellsL1,
+        selectedSubclassId: action.payload.originId ?? null,
+      });
     case 'SELECT_WIZARD_FEATURES':
     case 'SELECT_ARTIFICER_FEATURES':
-    case 'SELECT_SORCERER_FEATURES':
     case 'SELECT_BARD_FEATURES':
-    case 'SELECT_WARLOCK_FEATURES':
       return applyFeaturesAndAdvance({
         selectedCantrips: action.payload.cantrips,
         selectedSpellsL1: action.payload.spellsL1,
@@ -459,6 +490,7 @@ export function characterCreatorReducer(state: CharacterCreationState, action: C
         selectedDivineOrder: null,
         selectedDruidOrder: null,
         selectedWarlockPatron: null,
+        selectedSubclassId: null,
         selectedCantrips: [],
         selectedSpellsL1: [],
         selectedWeaponMasteries: null,

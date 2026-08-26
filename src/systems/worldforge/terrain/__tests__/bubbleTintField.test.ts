@@ -20,7 +20,17 @@ import {
   tintSlab,
   tintRatio,
   transfersOfTintField,
+  townFloorTop,
+  quantizeTownMask,
+  TOWN_FLOOR_RGB,
+  TOWN_FLOOR_STRENGTH,
+  TOWN_FLOOR_FEATHER_M,
+  TOWN_MASK_STEPS,
 } from '../volumeBubbleCore';
+import {
+  buildTownKeepOut,
+  townClearance,
+} from '@/systems/worldforge/bridge/townVegetationKeepOut';
 
 const ORIGIN = [-8, 0, -8] as const;
 const CELL = 0.25;
@@ -149,5 +159,114 @@ describe('the re-mesh is byte-equivalent to the worker build', () => {
 describe('tintRatio', () => {
   it('is exactly 1 when the column matches the reference', () => {
     expect(tintRatio([0.4, 0.3, 0.2], [0.4, 0.3, 0.2])).toEqual([1, 1, 1]);
+  });
+});
+
+/**
+ * THE TOWN'S FLOOR ON THE VOLUME TOP (agora-f452).
+ *
+ * The sheet path has blended a town's ground toward trodden earth since
+ * 2026-08-24; the volume path had not, so the town-on-LAND pane stood its burg
+ * on meadow grass and the street ribbons over it had nothing to read against.
+ * These pin the blend, the mask quantization the palette depends on, and the
+ * end-to-end path a bubble containing a town actually takes.
+ */
+describe('town floor tint', () => {
+  const GRASS: readonly [number, number, number] = [0.36, 0.48, 0.26];
+
+  it('matches the sheet path\'s own constants', () => {
+    /* Pinned literally, and duplicated on purpose: `volumeBubbleCore` is the
+     * pure terrain layer and does not import `bridge/`. If the sheet path's
+     * TOWN_FLOOR_RGB / _STRENGTH / _FEATHER_M in
+     * `groundChunkLoader.sampleGroundChunk` ever move, this test is what says
+     * the two paths have stopped agreeing about what a town looks like. */
+    expect(Array.from(TOWN_FLOOR_RGB)).toEqual([0.42, 0.36, 0.27]);
+    expect(TOWN_FLOOR_STRENGTH).toBe(0.88);
+    expect(TOWN_FLOOR_FEATHER_M).toBe(26);
+  });
+
+  it('leaves the wilderness exactly as it found it', () => {
+    expect(townFloorTop(GRASS, 0)).toEqual([...GRASS]);
+    expect(townFloorTop(GRASS, -1)).toEqual([...GRASS]);
+    // And so the ratio against any reference is still exactly 1.
+    expect(tintRatio(townFloorTop(GRASS, 0), GRASS)).toEqual([1, 1, 1]);
+  });
+
+  it('blends toward trodden earth, but never all the way', () => {
+    const t = townFloorTop(GRASS, 1);
+    for (let i = 0; i < 3; i++) {
+      expect(t[i]).toBeCloseTo(GRASS[i] + (TOWN_FLOOR_RGB[i] - GRASS[i]) * TOWN_FLOOR_STRENGTH, 12);
+    }
+    /* The point of the whole change, stated as a measurement: the green a
+     * player saw between the houses drops, and the red rises. */
+    expect(t[1]).toBeLessThan(GRASS[1]);
+    expect(t[0]).toBeGreaterThan(GRASS[0]);
+    // Below 1 so a town keeps a trace of the biome it stands on.
+    expect(t[1]).toBeGreaterThan(TOWN_FLOOR_RGB[1]);
+  });
+
+  it('quantizes the mask onto the palette\'s step grid', () => {
+    expect(quantizeTownMask(0)).toBe(0);
+    expect(quantizeTownMask(1)).toBe(1);
+    expect(quantizeTownMask(2)).toBe(1);
+    expect(quantizeTownMask(0.5)).toBe(0.5);
+    const steps = new Set<number>();
+    for (let i = 0; i <= 1000; i++) steps.add(quantizeTownMask(i / 1000));
+    expect(steps.size).toBeLessThanOrEqual(TOWN_MASK_STEPS + 1);
+  });
+
+  /**
+   * The whole path, built the way the worker builds it: one ground stack, one
+   * town ring, mask from `townClearance`, blend, ratio, bake, read back.
+   *
+   * The palette cap is the reason the mask is quantized at all — a continuous
+   * feather hands `bakeTintField` a new entry per column, overflows 256, and
+   * every overflowing column falls back to entry 0 (the reference tint), which
+   * would draw a hard bright edge exactly where the feather exists to avoid one.
+   */
+  it('paints a town on the volume top without overflowing the palette', () => {
+    const RING = 60;
+    const keepOut = buildTownKeepOut(
+      1,
+      [
+        { x: -RING, z: -RING },
+        { x: RING, z: -RING },
+        { x: RING, z: RING },
+        { x: -RING, z: RING },
+      ],
+      [],
+      TOWN_FLOOR_FEATHER_M,
+    )!;
+    const sample = (x: number, z: number): readonly [number, number, number] => {
+      const mask = quantizeTownMask(1 - townClearance(x, z, [keepOut], TOWN_FLOOR_FEATHER_M));
+      return tintRatio(townFloorTop(GRASS, mask), GRASS);
+    };
+
+    const origin = [-128, 0, -128] as const;
+    const cell = 1;
+    const n = 256;
+    const f = bakeTintField(sample, origin, cell, n);
+    // At most one entry per mask step, plus the reference. Never the 256 cap.
+    expect(f.palette.length / 3).toBeLessThanOrEqual(TOWN_MASK_STEPS + 2);
+
+    const at = tintFromField(f);
+    const inside = at(0, 0);
+    const outside = at(120, 120);
+    // Wilderness is untouched: exactly the reference, so the top surface there
+    // is bit-identical to a bubble built before this existed.
+    expect(Array.from(outside)).toEqual([1, 1, 1]);
+    // The town is browner: green falls, red rises.
+    expect(inside[1]).toBeCloseTo(0.78, 2);
+    expect(inside[0]).toBeGreaterThan(1);
+
+    /* The feather is a RAMP, not a contour. Sampled straight out through the
+     * ring's edge, the green ratio climbs back monotonically to 1. */
+    const walk: number[] = [];
+    for (let d = 0; d <= TOWN_FLOOR_FEATHER_M + 6; d += 2) walk.push(at(RING + d, 0)[1]);
+    expect(walk[0]).toBeLessThan(1);
+    expect(walk[walk.length - 1]).toBeCloseTo(1, 6);
+    for (let i = 1; i < walk.length; i++) expect(walk[i]).toBeGreaterThanOrEqual(walk[i - 1] - 1e-6);
+    // And it really does span the feather rather than snapping at the edge.
+    expect(new Set(walk).size).toBeGreaterThan(4);
   });
 });

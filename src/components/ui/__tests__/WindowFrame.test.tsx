@@ -38,6 +38,21 @@ vi.mock('../../../hooks/useResizableWindow', () => ({
 // able to wrap instead of overflowing the viewport.
 // ============================================================================
 describe('WindowFrame', () => {
+  it('exposes one named dialog without requiring domain content or visual tokens in its API', () => {
+    render(
+      <WindowFrame title="Portable Panel" storageKey="portable-panel-window">
+        <div>Product-owned body</div>
+      </WindowFrame>
+    );
+
+    // The title supplies the accessible name. Product content stays an opaque
+    // child, so consumers do not need to copy Aralia headings or artwork.
+    expect(screen.getByRole('dialog', { name: 'Portable Panel' })).toHaveAttribute(
+      'aria-modal',
+      'true',
+    );
+  });
+
   it('wraps header title and actions so frame controls stay reachable', () => {
     render(
       <WindowFrame

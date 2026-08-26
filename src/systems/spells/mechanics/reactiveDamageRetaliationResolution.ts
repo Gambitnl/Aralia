@@ -45,8 +45,10 @@ import {
 import {
   calculateDamage,
   getCharacterDistance,
-  rollDamage,
 } from '../../../utils/combat/combatUtils';
+import {
+  rollDamage,
+} from '../../dice/rollers';
 import {
   applyDamageAndCheckDowned,
   isIncapacitated,

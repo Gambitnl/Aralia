@@ -2,6 +2,7 @@ import React from "react";
 import { render, screen } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import BattleMap from "../BattleMap";
+import { createBattleMapCombatState } from "./fixtures/battleMapCombatState";
 import type {
   BattleMapData,
   CombatCharacter,
@@ -163,47 +164,28 @@ describe("BattleMap parity proof", () => {
           } as unknown as BattleMapData
         }
         characters={[hero, enemy]}
-        combatState={{
+        combatState={createBattleMapCombatState({
+          turnState: {
+            turnOrder: [hero.id, enemy.id],
+            currentCharacterId: hero.id,
+          },
           turnManager: {
-            turnState: {
-              currentTurn: 0,
-              turnOrder: [hero.id, enemy.id],
-              currentCharacterId: hero.id,
-              phase: "action",
-              actionsThisTurn: [],
-            },
             activeLightSources: [lightSource],
-            reactiveTriggers: [],
-            damageNumbers: [],
-            animations: [],
             spellZones: [
               {
                 id: "zone-1",
                 spellId: "web",
                 casterId: hero.id,
                 position: { x: 0, y: 1 },
-                areaOfEffect: { type: "circle", radius: 1 },
-                direction: "north",
+                areaOfEffect: { shape: "circle", size: 1 },
+                direction: { x: 0, y: -1 },
                 effects: [],
+                triggeredThisTurn: new Set<string>(),
+                triggeredEver: new Set<string>(),
               },
             ],
-            scheduledSpellEffects: [],
-            movementDebuffs: [],
-            spellMovementVisuals: [],
-            spellDeliveryVisuals: [],
             canAffordAction: vi.fn(() => true),
-          } as unknown as React.ComponentProps<
-            typeof BattleMap
-          >["combatState"]["turnManager"],
-          turnState: {
-            currentTurn: 0,
-            turnOrder: [hero.id, enemy.id],
-            currentCharacterId: hero.id,
-            phase: "action",
-            actionsThisTurn: [],
-          } as unknown as React.ComponentProps<
-            typeof BattleMap
-          >["combatState"]["turnState"],
+          },
           abilitySystem: {
             targetingMode: true,
             selectedAbility: {
@@ -217,6 +199,7 @@ describe("BattleMap parity proof", () => {
               ability: { id: "fireball", name: "Fireball", range: 6 } as any,
             },
             teleportDestinationPreview: {
+              origin: { x: 0, y: 0 },
               targetId: enemy.id,
               affectedTiles: [{ x: 1, y: 1 }],
               ability: {
@@ -231,17 +214,9 @@ describe("BattleMap parity proof", () => {
               destinationsByTargetId: {
                 [enemy.id]: { x: 1, y: 1 },
               },
-            },
-            previewAoE: vi.fn(),
-            isValidTarget: vi.fn(),
-            cancelTargeting: vi.fn(),
-            startTargeting: vi.fn(),
-          } as unknown as React.ComponentProps<
-            typeof BattleMap
-          >["combatState"]["abilitySystem"],
-          isCharacterTurn: vi.fn(() => false),
-          onCharacterUpdate: vi.fn(),
-        }}
+            } as any,
+          },
+        })}
       />,
     );
 
@@ -498,48 +473,10 @@ describe("BattleMap parity proof", () => {
       <BattleMap
         mapData={mapData}
         characters={[hero]}
-        combatState={{
-          turnManager: {
-            turnState: {
-              currentTurn: 0,
-              turnOrder: [hero.id],
-              currentCharacterId: hero.id,
-              phase: "action",
-              actionsThisTurn: [],
-            },
-            activeLightSources: [],
-            reactiveTriggers: [],
-            damageNumbers: [],
-            animations: [],
-            spellZones: [],
-            scheduledSpellEffects: [],
-            movementDebuffs: [],
-            spellMovementVisuals: [],
-            spellDeliveryVisuals: [],
-            canAffordAction: vi.fn(() => true),
-          } as unknown as React.ComponentProps<
-            typeof BattleMap
-          >["combatState"]["turnManager"],
-          turnState: {
-            currentTurn: 0,
-            turnOrder: [hero.id],
-            currentCharacterId: hero.id,
-            phase: "action",
-            actionsThisTurn: [],
-          } as unknown as React.ComponentProps<
-            typeof BattleMap
-          >["combatState"]["turnState"],
-          abilitySystem: {
-            targetingMode: false,
-            cancelTargeting: vi.fn(),
-            startTargeting: vi.fn(),
-            isValidTarget: vi.fn(),
-          } as unknown as React.ComponentProps<
-            typeof BattleMap
-          >["combatState"]["abilitySystem"],
-          isCharacterTurn: vi.fn(() => false),
-          onCharacterUpdate: vi.fn(),
-        }}
+        combatState={createBattleMapCombatState({
+          turnState: { turnOrder: [hero.id], currentCharacterId: hero.id },
+          turnManager: { canAffordAction: vi.fn(() => true) },
+        })}
       />,
     );
 

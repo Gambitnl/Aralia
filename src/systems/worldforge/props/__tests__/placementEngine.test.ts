@@ -9,6 +9,7 @@ import {
   DEFILE_SLOPE_THRESHOLD_ENC,
   ORNAMENT_BUILDING_CLEAR_M,
   type PropPlacementContext,
+  type CtxDeadEnd,
 } from '../placementEngine';
 import { PROPS_BY_ID } from '../catalog';
 
@@ -663,5 +664,131 @@ describe('placementEngine — surface gate', () => {
   it('placeProps returns exactly the gated instances', () => {
     const ctx = slopedCtx(20, 'hills');
     expect(placeProps(SEED, ctx)).toEqual(placePropsInstrumented(SEED, ctx).instances);
+  });
+});
+
+// ── Dead-end street dressing (RealmSmith F11 port) ──────────────────────────
+
+const GRAVE_DEF_IDS = new Set(['gravestone', 'tomb', 'stone-cross']);
+
+/** Lane ends spaced far enough apart that no dressing reaches its neighbour. */
+const DEAD_END_SPACING_M = 60;
+
+function deadEndRow(count: number, prefix = 'de'): CtxDeadEnd[] {
+  const out: CtxDeadEnd[] = [];
+  for (let i = 0; i < count; i++) {
+    out.push({
+      id: `${prefix}${i}`,
+      xM: 40 + (i % 10) * DEAD_END_SPACING_M,
+      zM: 40 + Math.floor(i / 10) * DEAD_END_SPACING_M,
+      inwardRad: 0,
+    });
+  }
+  return out;
+}
+
+/** A window big enough to hold a 10 x 10 grid of spaced lane ends. */
+function deadEndCtx(count: number): PropPlacementContext {
+  return emptyCtx({ extentMetersX: 700, extentMetersZ: 700, deadEnds: deadEndRow(count) });
+}
+
+describe('placementEngine — dead-end street dressing', () => {
+  it('dresses a dead end, and does nothing at all without one', () => {
+    const bare = placeProps(SEED, emptyCtx());
+    const dressed = placeProps(SEED, deadEndCtx(1));
+    expect(bare).toEqual([]);
+    expect(dressed.length).toBeGreaterThan(0);
+  });
+
+  it('is deterministic for one seed path', () => {
+    const ctx = deadEndCtx(24);
+    expect(placeProps(SEED, ctx)).toEqual(placeProps(SEED, ctx));
+    expect(placeProps(makeSeedPath(4242, 'cell:3-3'), ctx)).not.toEqual(placeProps(SEED, ctx));
+  });
+
+  it('gives a town at most one cemetery cluster, however many lanes end', () => {
+    for (const seed of [SEED, makeSeedPath(7, 'cell:1-2'), makeSeedPath(88, 'cell:9-9')]) {
+      const ends = deadEndRow(60);
+      const props = placeProps(seed, deadEndCtx(60));
+      // Each dead end's dressing stays inside its own patch, so grave props are
+      // counted by which end they sit nearest.
+      const cemeteryEnds = new Set<string>();
+      for (const p of props) {
+        if (!GRAVE_DEF_IDS.has(p.defId)) continue;
+        let best = '';
+        let bestD = Infinity;
+        for (const e of ends) {
+          const d = (e.xM - p.xM) ** 2 + (e.zM - p.zM) ** 2;
+          if (d < bestD) { bestD = d; best = e.id; }
+        }
+        cemeteryEnds.add(best);
+      }
+      expect(cemeteryEnds.size).toBeLessThanOrEqual(1);
+    }
+  });
+
+  it('places the cemetery at the same lane end whatever order the ends arrive in', () => {
+    const ends = deadEndRow(40);
+    const graves = (ctxEnds: CtxDeadEnd[]): string =>
+      JSON.stringify(
+        placeProps(SEED, emptyCtx({ extentMetersX: 700, extentMetersZ: 700, deadEnds: ctxEnds }))
+          .filter((p) => GRAVE_DEF_IDS.has(p.defId))
+          .map((p) => [p.defId, Math.round(p.xM * 100), Math.round(p.zM * 100)])
+          .sort(),
+      );
+    expect(graves([...ends].reverse())).toEqual(graves(ends));
+  });
+
+  it('keeps its dressing off the pavement and inside the window', () => {
+    const ctx = emptyCtx({
+      deadEnds: [{ id: 'd0', xM: 100, zM: 100, inwardRad: Math.PI }],
+      roads: [{ points: [{ x: 0, z: 100 }, { x: 100, z: 100 }] }],
+    });
+    for (const p of placeProps(SEED, ctx)) {
+      // The road runs along z = 100 up to the tip; nothing may sit on it.
+      const onRoad = p.xM <= 100 && Math.abs(p.zM - 100) < 1.5;
+      expect(onRoad).toBe(false);
+      expect(p.xM).toBeGreaterThanOrEqual(0);
+      expect(p.xM).toBeLessThanOrEqual(ctx.extentMetersX);
+    }
+  });
+
+  it('emits only renderable catalog defs', () => {
+    for (const p of placeProps(SEED, deadEndCtx(40))) {
+      expect(RENDERABLE_DEF_IDS.has(p.defId)).toBe(true);
+      expect(PROPS_BY_ID.has(p.defId)).toBe(true);
+    }
+  });
+
+  it('draws all four features across a town with many lane ends', () => {
+    const ids = new Set(placeProps(SEED, deadEndCtx(60)).map((p) => p.defId));
+    expect([...ids].some((d) => d === 'bush' || d === 'tree-stump' || d === 'fern-clump')).toBe(true); // nature
+    expect([...ids].some((d) => d === 'crate' || d === 'crate-stack' || d === 'tool-rack')).toBe(true); // storage
+    expect([...ids].some((d) => d === 'wayside-shrine' || d === 'cairn' || d === 'standing-stone')).toBe(true); // shrine
+    expect(ids.has('gravestone')).toBe(true); // cemetery
+  });
+});
+
+describe('placementEngine — farmstead crop identity', () => {
+  const farmCtx = (crop?: string): PropPlacementContext =>
+    emptyCtx({ buildings: [{ id: 'f1', xM: 100, zM: 100, role: 'farm', crop }] });
+
+  it('dresses a farm with its crop kit, and a cropless farm with none of it', () => {
+    const CROP_KIT = new Set(['scarecrow', 'plough', 'produce-basket', 'beehive', 'hedge-run', 'net-drying-rack', 'trestle-table']);
+    const bare = placeProps(SEED, farmCtx()).filter((p) => CROP_KIT.has(p.defId));
+    const grain = placeProps(SEED, farmCtx('grain')).filter((p) => CROP_KIT.has(p.defId));
+    expect(bare).toEqual([]);
+    expect(grain.length).toBeGreaterThan(0);
+  });
+
+  it('gives two crops two different yards, and repeats each one exactly', () => {
+    const a = placeProps(SEED, farmCtx('grain'));
+    const b = placeProps(SEED, farmCtx('orchard-fruit'));
+    expect(a).not.toEqual(b);
+    expect(placeProps(SEED, farmCtx('grain'))).toEqual(a);
+  });
+
+  it('dresses an unknown crop as a bare farm rather than inventing one', () => {
+    expect(placeProps(SEED, farmCtx('sky-melon'))).toEqual(placeProps(SEED, farmCtx()));
   });
 });

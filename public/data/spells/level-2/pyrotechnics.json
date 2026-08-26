@@ -178,7 +178,7 @@
                                                                    ]
                                       },
                         "utilityType":  "control",
-                        "description":  "Fireworks: extinguish the 5-foot Cube flame within 60 feet; each creature within 10 feet of it makes a Constitution save or gains the Blinded condition until the end of the caster\u0027s next turn.",
+                        "description":  "Fireworks: extinguish the 5-foot Cube flame within 60 feet; each creature within 10 feet of it makes a Constitution save or gains the Blinded condition until the end of the caster's next turn.",
                         "scaling":  {
                                         "type":  "slot_level",
                                         "bonusPerLevel":  "",
@@ -408,7 +408,7 @@
                                                                  "value":  1
                                                              }
                                             },
-                        "description":  "Fireworks: on a failed Constitution save, a creature within 10 feet of the extinguished flame gains the Blinded condition until the end of the caster\u0027s next turn.",
+                        "description":  "Fireworks: on a failed Constitution save, a creature within 10 feet of the extinguished flame gains the Blinded condition until the end of the caster's next turn.",
                         "conditionalEndings":  [
 
                                                ]
@@ -428,7 +428,7 @@
                        "options":  [
                                        {
                                            "label":  "Fireworks",
-                                           "summary":  "Extinguish the flame in a dazzling burst; creatures within 10 feet make a Constitution save or become Blinded until the end of the caster\u0027s next turn.",
+                                           "summary":  "Extinguish the flame in a dazzling burst; creatures within 10 feet make a Constitution save or become Blinded until the end of the caster's next turn.",
                                            "effectIndices":  [
                                                                  0,
                                                                  2
@@ -437,7 +437,7 @@
                                                                "UTILITY",
                                                                "CONDITION"
                                                            ],
-                                           "duration":  "Instantaneous burst, Blinded until end of caster\u0027s next turn"
+                                           "duration":  "Instantaneous burst, Blinded until end of caster's next turn"
                                        },
                                        {
                                            "label":  "Smoke",

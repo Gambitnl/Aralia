@@ -26,9 +26,8 @@ export function generateLoot(monsters: Monster[]): LootResult {
 
     monsters.forEach(monster => {
       if (!monster) return;
-      // DEBT: Cast monster to any to probe for optional id property on dynamic monster objects.
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const monsterId = (monster as any).id ?? 'unknown_monster';
+      // Encounter entries assembled from a name alone carry no bestiary id.
+      const monsterId = monster.id ?? 'unknown_monster';
 
       // 1. Gold generation based on CR
       let baseGold = 0;

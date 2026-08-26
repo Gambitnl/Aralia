@@ -69,7 +69,7 @@ const mockSpells = {
   getByLevel: vi.fn(() => []),
   getByIds: vi.fn(() => []),
   getBySchool: vi.fn(() => []),
-  // DEBT: Cast to any to allow partial mock of SpellContext without full interface implementation in tests.
+  // Partial test mock for SpellContext providing spell query stubs for character creator testing.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
 } as any;
 

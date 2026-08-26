@@ -8,6 +8,8 @@ import { UtilityCommandObjects } from './objects'
 import { isExecutableControlOption } from '@/types/spells'
 import type { UtilityEffect, ExecutableControlOption } from '@/types/spells'
 import type { Item } from '@/types/items'
+import { ItemType } from '@/types/items'
+import { DamageType, toCanonicalDamageType } from '@/types/spellDamageMetadata'
 import type { CombatState, CombatCharacter, StatusEffect, SelectedSpellTarget, ShapeWaterMode, ThaumaturgyMode, ActiveMinorUtilityEffect } from '@/types/combat'
 import { generateId } from '../../../utils/core'
 
@@ -683,10 +685,10 @@ export abstract class UtilityCommandMinorUtility extends UtilityCommandObjects {
                 id: projectileId,
                 name: projectileName,
                 description: `${sourceName} creates an empowered pebble that can be thrown or slung once before the magic ends.`,
-                type: 'ammunition',
+                type: ItemType.Ammunition,
                 quantity: 1,
                 damageDice: attackAugment?.additionalDamage?.dice || attackAugment?.damageDieOverride?.dice || '1d6',
-                damageType: attackAugment?.additionalDamage?.type || 'bludgeoning',
+                damageType: toCanonicalDamageType(attackAugment?.additionalDamage?.type) ?? DamageType.Bludgeoning,
                 properties: ['thrown', 'sling'],
                 spellId: this.context.spellId
             }

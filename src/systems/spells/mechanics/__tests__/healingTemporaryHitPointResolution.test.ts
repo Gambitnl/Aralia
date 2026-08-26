@@ -58,7 +58,7 @@ function createActors(): CombatCharacter[] {
       name: 'Healer',
       team: 'player',
       position: { x: 5, y: 5 },
-      spellSlots: { level_1: { current: 3, max: 3 } },
+      spellSlots: { level_1: { current: 3, max: 3 } } as unknown as CombatCharacter['spellSlots'],
     }),
     createMockCombatCharacter({
       id: 'ally',
@@ -91,6 +91,12 @@ function healingInput(characters = createActors()) {
     amounts: [20],
   };
 }
+
+const SELF_WARD_ACTION: HitPointActionDefinition = {
+  name: 'Self Ward',
+  targeting: { type: 'self', validTargets: ['self'] },
+  cost: { type: 'bonus' },
+};
 
 // ============================================================================
 // Accepted Transactions
@@ -131,7 +137,7 @@ describe('resolveHitPointAction', () => {
   it('keeps a larger temp pool, replaces it with a larger offer, and pays once', () => {
     const action: HitPointActionDefinition = {
       name: 'Ward',
-      targeting: { type: 'single', range: 60, validTargets: ['creatures'], lineOfSight: true, maxTargets: 1 },
+      targeting: { type: 'single', range: 60, validTargets: ['creatures'], lineOfSight: true },
       cost: { type: 'action', spellSlotLevel: 1 },
     };
     const result = resolveHitPointAction({
@@ -145,6 +151,62 @@ describe('resolveHitPointAction', () => {
     expect(actor(result.characters, 'ally')).toMatchObject({ currentHP: 12, tempHP: 12 });
     expect(actor(result.characters, 'healer').actionEconomy.action.used).toBe(true);
     expect(actor(result.characters, 'healer').spellSlots?.level_1?.current).toBe(2);
+  });
+
+  // ========================================================================
+  // Self-Targeted Transactions
+  // ========================================================================
+  // One creature both pays and changes. The resolver owns that merge, so the
+  // roster entry, casterAfter, and targetAfter must be the same record: a
+  // caller that reads only casterAfter still sees the hit-point change.
+  // ========================================================================
+
+  it('lands a self-targeted temporary-HP grant and its payment on one record', () => {
+    const result = resolveHitPointAction({
+      ...healingInput(),
+      targetId: 'healer',
+      action: SELF_WARD_ACTION,
+      mode: 'temporary_hit_points',
+      amounts: [9],
+    });
+    const warded = actor(result.characters, 'healer');
+
+    expect(result).toMatchObject({ status: 'resolved', appliedAmount: 9 });
+    expect(warded.tempHP).toBe(9);
+    expect(warded.actionEconomy.bonusAction.used).toBe(true);
+    expect(result.casterAfter).toBe(warded);
+    expect(result.targetAfter).toBe(warded);
+  });
+
+  it('lands a self-targeted heal and its slot payment on one record', () => {
+    const characters = createActors();
+    const healer = actor(characters, 'healer');
+    healer.currentHP = 4;
+    const result = resolveHitPointAction({
+      ...healingInput(characters),
+      targetId: 'healer',
+      action: createHitPointSpellAction(HEALING_WORD, healer, 1, {
+        type: 'self',
+        validTargets: ['self'],
+      }),
+      amounts: [3],
+    });
+    const healed = actor(result.characters, 'healer');
+
+    expect(result).toMatchObject({ status: 'resolved', appliedAmount: 3 });
+    expect(healed.currentHP).toBe(7);
+    expect(healed.spellSlots?.level_1?.current).toBe(2);
+    expect(healed.actionEconomy.bonusAction.used).toBe(true);
+    expect(result.casterAfter).toBe(healed);
+    expect(result.targetAfter).toBe(healed);
+  });
+
+  it('keeps cross-target replacement unchanged when caster and target differ', () => {
+    const result = resolveHitPointAction(healingInput());
+
+    expect(result.casterAfter).toBe(actor(result.characters, 'healer'));
+    expect(result.targetAfter).toBe(actor(result.characters, 'ally'));
+    expect(result.casterAfter).not.toBe(result.targetAfter);
   });
 
   // ========================================================================

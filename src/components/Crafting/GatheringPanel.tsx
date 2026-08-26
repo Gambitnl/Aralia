@@ -23,7 +23,7 @@ import React, { useState, useMemo } from 'react';
 import { useGameState } from '../../state/GameContext';
 import { attemptIdentification, attemptHarvest, IdentificationResult, HarvestingResult } from '../../systems/crafting/gatheringSystem';
 import { GatherableResource, Biome } from '../../systems/crafting/gatheringData';
-import { resolveCraftingCrafter } from './crafterAdapter';
+import { resolveCraftingCrafter, NO_CRAFTER_MESSAGE } from './crafterAdapter';
 import './GatheringPanel.css';
 
 // Map location types to biomes (simplified)
@@ -54,13 +54,29 @@ export const GatheringPanel: React.FC<GatheringPanelProps> = ({ onClose }) => {
     const [timeMultiplier, setTimeMultiplier] = useState(1);
 
     const currentBiome = useMemo(() => getBiomeFromLocation(state.currentLocationId), [state.currentLocationId]);
-    const crafter = useMemo(
+    const crafterResolution = useMemo(
         () => resolveCraftingCrafter(state, {
             selectedCharacter: state.characterSheetModal.character,
             allowCharacterSheetSelection: true,
-        }).crafter,
+        }),
         [state.party, state.characterSheetModal.character, state.characterSheetModal.isOpen]
     );
+
+    // No fallbacks: without a party member there is nobody to make the skill
+    // check, so the panel refuses the work instead of faking a flat roll.
+    if (crafterResolution.status === 'no_crafter') {
+        return (
+            <div className="gathering-panel">
+                <div className="gathering-header">
+                    <h2>🌿 Herbalism &amp; Gathering</h2>
+                    {onClose && <button className="close-btn" onClick={onClose}>×</button>}
+                </div>
+                <p className="gathering-empty">{NO_CRAFTER_MESSAGE}</p>
+            </div>
+        );
+    }
+
+    const crafter = crafterResolution.crafter;
 
     const handleIdentify = () => {
         setIsIdentifying(true);

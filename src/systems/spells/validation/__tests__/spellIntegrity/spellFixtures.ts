@@ -10,21 +10,19 @@ import { Spell } from '../../../../../types/spells';
  * job is to make sure that data quality problems introduced by early
  * prototyping don't silently grow unchecked.
  *
- * There are two kinds of tests in this suite:
+ * Nearly every rule is now a HARD FAILURE: if a spell breaks one, the test
+ * fails and blocks the build. `systematicAllSpellValidation.test.ts` hard-gates
+ * Concentration Sync, Ritual Sync, Duration Progression, Mode Choice, Action
+ * Cost Metadata, Light Metadata, Monolithic Effect Formulation, Effect
+ * Description Completeness, and Effect Target Filter Completeness. The
+ * Monolithic Effect rule finished its soft-warning phase: its hit list reached
+ * zero and the assertion is live, so the shared reviewed clearances are the only
+ * way a single-effect spell passes.
  *
- *   HARD FAILURES — rules that are fully fixed and must stay clean. If a spell
- *   breaks one of these, the test fails and blocks the build. Right now, that
- *   covers Concentration Sync and Enchantment Targeting (both were manually
- *   remediated across all affected spells).
- *
- *   SOFT WARNINGS — rules that track known ongoing debt. These print a hit list
- *   to the console on every test run but do NOT fail the test. This lets us see
- *   progress as spells are fixed without breaking CI. The Monolithic Effect
- *   rule lives here during Phase 2 of the spell overhaul.
- *
- * Phase 3 upgrade path: once the monolithic spell hit list reaches zero, the
- * commented-out expect() assertion at the bottom of the Systematic test should
- * be uncommented. That will permanently lock the rule as a hard failure.
+ * Enchantment Targeting and Upcast Scaling Sync now have all-level gates too,
+ * both in `systematicAllSpellValidation.test.ts`, after their corpus hit lists
+ * reached zero. Enchantment Targeting keeps its narrower level-2 gate in
+ * level2Regression.test.ts as well.
  *
  * Called by: `npx vitest` (full suite) or
  *            `npx vitest src/systems/spells/validation/__tests__/spellIntegrity --run`
@@ -54,38 +52,5 @@ export function getSpells(level: number): Spell[] {
     .map(f => JSON.parse(fs.readFileSync(path.join(dir, f), 'utf-8').replace(/^\uFEFF/, '')));
 }
 
-// ---------------------------------------------------------------------------
-// Reviewed monolithic-effect clearances
-// ---------------------------------------------------------------------------
-// These spell IDs were manually checked and confirmed as legitimate single-effect
-// rows. Keeping the list shared prevents the level-specific visibility scan and
-// the all-spell monolithic scan from disagreeing about the same reviewed data.
-const MONOLITHIC_SAFE_LIST: string[] = [
-  // Light is one structured light-emission effect with object targeting, radius
-  // metadata, color choice, cover blocking, and recast ending data. Its long
-  // top-level prose does not imply a missing second combat effect.
-  'light',
-  // Gentle Repose is one structured corpse/remains protection utility. The
-  // target special-identity filter carries the important mechanical gate, so
-  // splitting it would create artificial effects rather than real behavior.
-  'gentle-repose',
-  // See Invisibility is one self-applied sensory utility. Its single effect
-  // already names sensory behavior, duration, and self targeting; there is no
-  // separate damage/status/action payload to extract.
-  'see-invisibility',
-  // Enhance Ability is one advantage-granting utility effect. The important
-  // complexity lives in targeting metadata: scalable target count and a
-  // required per-target ability choice, so splitting the effect would duplicate
-  // that already structured target-side rule.
-  'enhance-ability'
-];
-
-export const filterReviewedMonolithicClearance = (spell: Spell, errors: string[]): string[] => {
-  // Reviewed one-effect spells should stop appearing as monolithic warnings,
-  // but every other integrity rule must remain visible for those rows.
-  if (!MONOLITHIC_SAFE_LIST.includes(spell.id)) {
-    return errors;
-  }
-
-  return errors.filter(error => error !== 'Monolithic Effect Description');
-};
+// The CLI gate and the test suite must apply the same reviewed clearances.
+export { filterReviewedMonolithicClearance } from '../../spellIntegrityClearances';

@@ -177,7 +177,8 @@ export const useTargeting = ({ mapData, characters }: UseTargetingProps) => {
         const aoeParams = resolveAoEParams(
             selectedAbility.areaOfEffect,
             position,
-            caster
+            caster,
+            selectedAbility.name
         );
 
         if (!aoeParams) return;

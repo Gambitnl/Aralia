@@ -33,6 +33,15 @@ export interface BubbleVolume {
   originM: [number, number, number];
   cellM: number;
   cellsPerEdge: number;
+  /**
+   * How many cells TALL the volume is.
+   *
+   * A bubble was a cube until the town-on-LAND pane asked for a wide, thin one
+   * (agora-f452), and everything on this thread that walks a column — the
+   * probe, the slab plan a carve re-meshes, the rebase shift — used to derive
+   * this from `cellsPerEdge`. It is carried now so there is one answer.
+   */
+  cellsY: number;
   /** The pre-carve drawn-ground height per column — the strata datum. */
   originalTopY: Float32Array;
   /** How long the fill took INSIDE the worker, ms. */
@@ -90,6 +99,11 @@ export interface BubbleRequest {
   centerZM: number;
   extentM: number;
   cellM: number;
+  /**
+   * Vertical extent, metres — a FLOOR the worker raises to fit the footprint's
+   * own relief. Omitted keeps the cube, which is every walking bubble.
+   */
+  heightM?: number;
   preCut?: BubblePreCut;
   /** The voxels, once. Arrives before any slab. */
   onFill: (v: BubbleVolume) => void;
@@ -129,6 +143,7 @@ export function createVolumeBubbleClient(
           originM: m.originM,
           cellM: m.cellM,
           cellsPerEdge: m.cellsPerEdge,
+          cellsY: m.cellsY ?? m.cellsPerEdge,
           originalTopY: m.originalTopY,
           fillMs: m.fillMs,
           solidCells: m.solidCells,
@@ -168,6 +183,7 @@ export function createVolumeBubbleClient(
       centerZM: req.centerZM,
       extentM: req.extentM,
       cellM: req.cellM,
+      heightM: req.heightM,
       preCut: req.preCut,
     });
   };

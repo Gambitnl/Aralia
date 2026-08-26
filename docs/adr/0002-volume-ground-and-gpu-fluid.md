@@ -20,8 +20,8 @@ bunch of sheets overlaying each other instead of actual ground and water."
 Two forces made a surface model insufficient rather than merely ugly.
 
 **Spells cut the ground.** `TerrainCommand` already changes tile elevation, and
-the spell list splits in two. Displacement spells — Move Earth, Erupting Earth,
-Mold Earth — a height map can serve. Void spells cannot be represented at all:
+the spell list splits in two. Displacement spells - Move Earth, Erupting Earth,
+Mold Earth - a height map can serve. Void spells cannot be represented at all:
 Passwall, a Stone Shape doorway, an Earthquake fissure. A height map stores one
 height per column, and a tunnel needs ground above and below the same point.
 
@@ -52,7 +52,7 @@ from an estimate.
 ## The measurements that decided it
 
 **Sparse voxel storage is cheap.** A 64 m bubble at 12 cm filled from real
-terrain costs 6.3 MB, against 147 MB dense — a 23× saving. Terrain is a
+terrain costs 6.3 MB, against 147 MB dense - a 23x saving. Terrain is a
 surface, so only the thin band where material changes needs cells. Memory was
 expected to be the constraint on the CPU and is not.
 
@@ -69,7 +69,7 @@ A whole frame at 60 fps is 16.7 ms. The gap at 64 m is an order of magnitude
 and tuning does not close it.
 
 **GPU memory is expensive, and this reverses the CPU result.** A compute pass
-indexes by position, so its buffers must exist everywhere — including the 99%
+indexes by position, so its buffers must exist everywhere - including the 99%
 that is solid rock or open sky. None of the sparse saving survives:
 
 | Bubble | Four dense buffers |
@@ -96,7 +96,7 @@ pattern the staged 3D entry already established for chunk streaming.
 
 **The removal must never precede its replacement.** A cut wall is generated at
 the moment of the cut. Swap the mesh only when the new one is complete, or the
-player sees a one-frame hole into an empty world — the exact fault Remy
+player sees a one-frame hole into an empty world - the exact fault Remy
 anticipated before it was built.
 
 **The kernel must gather, never scatter.** The first kernel pushed mass into
@@ -104,7 +104,7 @@ neighbor cells. On a GPU all cells run at once, so two cells that push into
 the same neighbor race, and the field silently loses water. WGSL has no float
 atomics to lean on. The shipped kernel (2026-08-06) is gather-form: each cell
 recomputes its neighbors' outflows and writes only itself. Velocity gets a
-read and a write buffer for the same reason — that is the fifth buffer and
+read and a write buffer for the same reason - that is the fifth buffer and
 the extra 64 MB. A plain-TypeScript twin (`fluidGather.ts`) proves
 conservation in vitest; the GPU kernel mirrors it node for node, and a
 readback on the proof page confirmed the total is flat.
@@ -125,7 +125,7 @@ different direction.
 
 **Keep the shell and generate cut faces.** Red Faction 1's model, and the route
 this session built first in `groundSolid.ts`. Rejected once real fluid was
-chosen: a shell has no inside for a fluid to query. The work is not wasted —
+chosen: a shell has no inside for a fluid to query. The work is not wasted -
 the layer stack it introduced is what colors a voxel cut.
 
 **Scoped destruction.** Red Faction Guerrilla breaks structures and leaves
@@ -155,7 +155,7 @@ become a local exception for waterfalls, breached edges and tunnel flow.
 
 The arithmetic is decisive and uses this ADR's own measurement. The 3D field
 over the shipped bubble is 16.8 million cells and stepped at 108 ms. The same
-ground in 2D is 256 x 256 = 65,536 cells — 256 times fewer. Measured after the
+ground in 2D is 256 x 256 = 65,536 cells - 256 times fewer. Measured after the
 build: a full 256-grid step runs in **under 16 ms**, and typically far less. The
 wall that drove the whole GPU-compute decision does not exist in 2D.
 
@@ -163,7 +163,7 @@ wall that drove the whole GPU-compute decision does not exist in 2D.
 Untouched hillside stays a heightfield.
 
 **The CPU owns the truth.** The GPU receives a transient working set. Saves hold
-the seed, the edit log and a water mass ledger — never GPU state, because WGSL
+the seed, the edit log and a water mass ledger - never GPU state, because WGSL
 permits floating-point differences between implementations and cross-hardware
 replay was never available.
 
@@ -185,11 +185,11 @@ a limit breach. Roughly 99% of those cells are solid rock or open sky.
 
 ### What survived from the original build
 
-- `voxelVolume.ts` — 8-cubed sparse bricks, which is exactly the recommended
+- `voxelVolume.ts` - 8-cubed sparse bricks, which is exactly the recommended
   storage, and the same brick size AMD Brixelizer uses.
-- `surfaceNets.ts` — named in the research as the best default for natural
+- `surfaceNets.ts` - named in the research as the best default for natural
   terrain, and a variant of what Roblox ships.
-- `fluidGather.ts` — CPU-side, conservation proven in vitest.
+- `fluidGather.ts` - CPU-side, conservation proven in vitest.
 - Every measurement. The numbers were right; the design drawn from them was not.
 
 ### Three bugs the 2D build found, all conservation faults
@@ -233,8 +233,8 @@ Air by luck. The high side did not: `x = n` indexes a real brick in a neighborin
 column, so a mesher sampling past the edge would have sealed against the wrong
 material.
 
-**The test that was missing.** Every existing mesher test asked about contents —
-counts, smoothness, color, determinism — and a surface with no floor passed all
+**The test that was missing.** Every existing mesher test asked about contents -
+counts, smoothness, color, determinism - and a surface with no floor passed all
 of them. The new test asks about topology: every edge must be shared by exactly
 two triangles. One user is a hole, three is a fold. That is the only claim that
 separates a solid from a sheet, which is the point of the file.
@@ -256,7 +256,7 @@ size does at a grazing angle. It skips the empty space before the volume with a
 slab test, so the cost of a pick does not grow with how far back the camera sits.
 
 One bug worth recording. A ray that entered the volume and met rock on its first
-cell was reported as "starts buried" — zero distance, zero normal. That is a
+cell was reported as "starts buried" - zero distance, zero normal. That is a
 shot at a cliff wall, and the caller could not tell which way the wall faced.
 The buried case is now distinguished by whether the ray ORIGIN was inside.
 
@@ -270,7 +270,7 @@ The buried case is now distinguished by whether the ray ORIGIN was inside.
 
 `grounded` is a downward probe, not a memory of whether the last move was cut
 short. Deriving it from the move is wrong on the first frame a body is placed and
-wrong again whenever the vertical delta is zero — which is most frames a body
+wrong again whenever the vertical delta is zero - which is most frames a body
 stands still.
 
 **Proved on the surface, not only in tests.** `?step=volume` now casts a ray
@@ -290,15 +290,15 @@ Three things landed together, because each needed the one before it.
 `materials.ts` replaces the single hardcoded `FOREST_FLOOR_STACK`. Every voxel
 value has a registry entry carrying `densityKgM3`, `hardness`,
 `permeabilityMS`, `angleOfReposeDeg` and `friction`. Those are the questions the
-world actually asks of the ground — how long to dig, does water sink, does a cut
-wall stand — and a color could answer none of them.
+world actually asks of the ground - how long to dig, does water sink, does a cut
+wall stand - and a color could answer none of them.
 
 The `Material` enum grew from 6 members to 18. A test asserts the enum and the
 registry agree, because two hand-kept lists always drift.
 
 `BIOME_GROUND` covers the closed FMG vocabulary 0 to 12 and THROWS on anything
-else, matching `climateForBiomeId`. The old string switch — `'litter'` to
-`Material.Litter`, everything else to bedrock — is gone. That silent default was
+else, matching `climateForBiomeId`. The old string switch - `'litter'` to
+`Material.Litter`, everything else to bedrock - is gone. That silent default was
 what made per-biome stacks impossible: adding sand produced granite and no error.
 
 Permeability spans eight orders of magnitude on purpose. It is the difference
@@ -314,7 +314,7 @@ grade looked straight through the ground at open sky.
 Three changes close it:
 
 - `GROUND_FLOOR_Y = -120` in `WORLD3D_CONFIG`. A GLOBAL constant, not a
-  per-chunk depth — that is what makes the floor continuous, because every
+  per-chunk depth - that is what makes the floor continuous, because every
   chunk's wall reaches the same plane and neighbors cannot leave a gap.
 - Frontier walls drop TO that plane instead of by a per-chunk depth.
 - `WorldUnderside`, one downward-facing plane at that Y, colored granite from
@@ -358,7 +358,7 @@ The two halves now meet. Water ran on a heightfield bed sampled from
 GroundWorld; the volume had no water at all.
 
 **A column of voxels is not one surface.** That is the whole difficulty. Bore a
-tunnel through a hill and the column has two places water can lie — the
+tunnel through a hill and the column has two places water can lie - the
 hillside on top and the tunnel floor beneath, with rock between. Ask it for
 "the ground height" and every answer is wrong: the topmost solid puts water on
 the tunnel's ROOF, the lowest floods the rock.
@@ -382,7 +382,7 @@ Three details earn their place:
   the pit stops leaking, because granite is what the pit floor now is.
 
 **The bed is DERIVED, never kept alongside.** On the heightfield page a carve
-had to be applied twice — once to the mesh, once to the solver — and when I
+had to be applied twice - once to the mesh, once to the solver - and when I
 forgot the mesh, water ran along a trench that was never drawn. That class of
 bug cannot occur here.
 
@@ -415,7 +415,7 @@ Two smaller faults came out of the same review:
 
 - The preview kept its own enum-to-name table for the pointer probe. When the
   enum grew from 6 substances to 18, the table silently mapped value 4 to
-  'bedrock' — and 4 had become topsoil. It reported bedrock while pointing at
+  'bedrock' - and 4 had become topsoil. It reported bedrock while pointing at
   soil, which is worse than reporting nothing. It reads the registry now.
 - Water roughness at 0.22 burned a white flare across the lake under the review
   light, which read as a hole in the surface. It is 0.42.
@@ -458,7 +458,7 @@ from the volume's own column top, with a deadband of three quarters of a cell so
 the top surface reads as the top surface instead of banding.
 
 **The water sheet climbed the bank.** The relief budget was `cellM * 1.4`, which
-permits a quad dropping a whole cell — and a whole cell IS the bank. At 1 m
+permits a quad dropping a whole cell - and a whole cell IS the bank. At 1 m
 voxels every shoreline quad spans exactly one step, so all of them passed and the
 sheet drew over the cut wall behind it. The budget is now `0.7` of a cell:
 below one, so a full step is always rejected.
@@ -488,7 +488,7 @@ Three faults in the water frame, all mine:
 at six, makes a slow frame do MORE solver work and therefore run slower still.
 The cost of one frame fed the cost of the next, which is exactly how a bimodal
 profile is produced. It is a constant now. Water runs at a fixed rate per frame
-rather than per second — the right trade for a sandbox, where a predictable cost
+rather than per second - the right trade for a sandbox, where a predictable cost
 beats wall-clock fidelity.
 
 **`computeVertexNormals` ran every frame.** It walks the entire index buffer,
@@ -499,7 +499,7 @@ water surface is a height field, so its normal is exact from two central
 differences. One pass, no index walk, no allocation.
 
 **The whole index buffer was re-uploaded every frame.** `needsUpdate` alone sends
-all 345,600 entries — 1.4 MB — most of it past the draw range and never read.
+all 345,600 entries - 1.4 MB - most of it past the draw range and never read.
 `addUpdateRange(0, count)` sends only what is drawn.
 
 A note for the next capture: `resetFrames` deliberately keeps span attribution,
@@ -561,7 +561,7 @@ still, a 48 ms p95 while it moves. Intermittent input, intermittent stalls.
 
 The irony is that this page already had a fast ray. `raycastVoxels` marches the
 voxel grid and touches a few hundred cells. No object in the scene carries a
-pointer handler now — hover, brush clicks and the spring drag all run off one
+pointer handler now - hover, brush clicks and the spring drag all run off one
 DDA ray fired from a DOM listener. Grabbing the spring became a ray-versus-sphere
 test, because a handler on the marker alone is enough to re-enable the
 scene-wide raycast.
@@ -573,7 +573,7 @@ React twice a second, at his suggestion. A material readout is something you
 read, not something you watch.
 
 **The lesson about method, not about three.js.** I spent two rounds on garbage
-collection and geometry disposal — both real faults, neither the cause — because
+collection and geometry disposal - both real faults, neither the cause - because
 I read aggregate numbers and never asked what the user was DOING when the
 numbers moved. A capture says what happened. It does not say what triggered it.
 The person holding the mouse knows.
@@ -585,7 +585,7 @@ The person holding the mouse knows.
 This record listed four consequences that were named but not built: two water
 models with no seam, a fluid that collided against a height, a fill that blocked
 the main thread, and a volume that existed only on a sandbox page. All four are
-built, measured and proved on a live surface. Item 5 — sparse compute — is still
+built, measured and proved on a live surface. Item 5 - sparse compute - is still
 open, and is still the correct next step.
 
 **Item 1, the two water models meet.** `waterHandoff.ts` is the contract, and it
@@ -595,12 +595,12 @@ carries the file is that **a particle is a quantum of volume**. The sheet is
 debited in WHOLE particles and never by the amount requested, so a request for
 1.7 quanta moves 1 and leaves 0.7 where it was; rounding the request would
 manufacture or destroy the remainder at frame rate. Every particle carries that
-quantum for its whole life, so the volume a domain holds is `live * quantum` — a
+quantum for its whole life, so the volume a domain holds is `live * quantum` - a
 product, not a sum, and it cannot drift however long the domain runs. Volume
 aimed off the grid is returned as `strandedM3` and booked against the boundary
 ledger, never dropped. `mpmDomain.ts` is the bounded CPU MLS-MPM domain the
 sheet feeds: it runs the same five kernels as the GPU sim and adds the one thing
-the GPU sim does not need — a lifecycle, because a particle at rest hands its
+the GPU sim does not need - a lifecycle, because a particle at rest hands its
 mass back and a resting body of water is the sheet's job. Measured on
 `?step=volume`, the printed identity equalled `poured` at all 24 samples across
 three phases, and a domain parked mid-fall returned every cubic meter:
@@ -612,7 +612,7 @@ per column, which is the heightfield assumption this record exists to break.
 flat array a storage buffer binds directly. A census over every world this repo
 builds gave the width: **one span, plus one more for every void with rock over
 it**, so a vertical shaft adds none and no measured world exceeds two.
-`SPAN_SLOTS = 2` packs a column into exactly one vec4 — the same number of
+`SPAN_SLOTS = 2` packs a column into exactly one vec4 - the same number of
 buffer elements as the single float it replaced. The encoding needs no count: a
 short column pads by REPLICATING its last real pair, so "take the first slot
 whose floor is at or below y, else the last" resolves with no length, no branch
@@ -621,7 +621,7 @@ comes free, because the bilinear floor climbs from a tunnel floor to the
 hillside inside one cell and its tangent plane points back into the passage. Two
 bugs came with it, and the second is the one to remember: **capping the vertical
 lift at one cell is a cliff**, and under a dam head 2,400 of 100,000 particles
-slipped past it into rock. The fix asks the SURFACE, not the depth — `nrm.y`
+slipped past it into rock. The fix asks the SURFACE, not the depth - `nrm.y`
 near 1 is a floor and clamps vertically at any depth, near 0 is a wall and the
 only honest response is to push out of it. Measured on the real GPU: about
 **10,000 particles in a void with rock over it**, held for 35 simulated seconds,
@@ -629,14 +629,14 @@ the adit entered at one mouth and discharging at the other, at **+0.06 ms per
 frame (+2.7%)**.
 
 **Item 3, the fill runs in a worker.** `volumeBubbleCore.ts` holds the whole
-build as pure functions — fill, datum capture, slab plan, slab mesh, rim blend,
-transfer lists — with no worker, no three.js and no `GroundWorld` in it, so
+build as pure functions - fill, datum capture, slab plan, slab mesh, rim blend,
+transfer lists - with no worker, no three.js and no `GroundWorld` in it, so
 vitest exercises all of it. `VoxelVolume.snapshot()` is what makes the crossing
 cheap: the storage is an array of brick objects, which is exactly what
-structured clone is worst at, so it flattens to two `Uint8Array`s — one byte per
+structured clone is worst at, so it flattens to two `Uint8Array`s - one byte per
 brick, then the cells of every allocated brick concatenated in ascending brick
 index. Order is implied, so no index table travels, and **nothing is cloned**:
-every buffer is named in the transfer list. There is ONE owner and never two —
+every buffer is named in the transfer list. There is ONE owner and never two -
 the worker fills, transfers, and is done; the main thread's `fromSnapshot`
 produces the only live copy, so no edit channel and no second source of truth
 can drift. Slabs are delivered in order of distance from the bubble's vertical
@@ -654,7 +654,7 @@ needs nothing from the renderer.** The fill height is offset by radius: inside
 24 m the bubble is lifted 1.2 cells (30 cm), because the fill makes a column
 solid up to `floor(...)` and the drawn surface therefore lands up to one cell
 below the height it was filled from; over the last 8 m the lift ramps down
-through zero to −1.2 m, so the rim and its cut wall finish under the terrain.
+through zero to -1.2 m, so the rim and its cut wall finish under the terrain.
 What the camera sees is the higher of two continuous surfaces, and that is
 continuous. Measured on cell 1240, the hard mountain case: 24,344 core columns,
 mean +0.283 m, worst +0.155 m, **0 columns below the terrain**. The band where a
@@ -666,10 +666,10 @@ about 60 draw calls and 539,000 triangles.
 **Ledger honesty: a term that prints only when it is non-zero teaches the reader
 to stop looking for it.** Every water figure on `?step=volume` prints at all
 times, including the particles term and the unpictured clause, and including
-"0.0" — because "0.0" and "not measured" must not look the same. The same
+"0.0" - because "0.0" and "not measured" must not look the same. The same
 principle caught a subtler fault: the handoff had to run BEFORE the transit
 ledger splits the field, not after, or one frame of particle volume would be
-counted in the sheet AND in the domain — and the printed sum would still have
+counted in the sheet AND in the domain - and the printed sum would still have
 been right, which is exactly what would have let it survive. A picture must be
 honest by the same rule: film-covered cells count as pictured only to two cells
 of depth, so "0.0 m³ unpictured" over a thousand invisible cubic meters is now
@@ -679,7 +679,7 @@ structurally impossible.
 and was garbage. The "before" variant emitted invalid WGSL, every dispatch was
 dropped in silence, and four rounds of ablation chased a cost that did not
 exist. Invalid WGSL produces a silent no-op plus an entry in the device error
-list — never a JS exception. **Never report a GPU number unless the water moved
+list - never a JS exception. **Never report a GPU number unless the water moved
 in the same run and the device error list is empty.** The harness refuses to
 print one otherwise.
 
@@ -690,7 +690,7 @@ differ by mean 0.26 m and up to 1.30 m, so a bubble built from the detail
 surface carries relief the world around it does not have, and tears at its edge.
 `streamedTerrainSurfaceY` reproduces the lattice exactly. The first version of
 it interpolated the lattice quad BILINEARLY, with a comment arguing the error
-was far below the 25 cm quantization — true on a hillside, and wrong on a
+was far below the 25 cm quantization - true on a hillside, and wrong on a
 mountain, where eight meters of relief sit inside one 8 m quad. **The first live
 capture came back perforated**, a lace of holes with pale terrain poking
 through. The sampler picks its triangle by `fx + fz` and evaluates that plane
@@ -714,8 +714,8 @@ water, restores 64 m at 12 cm for roughly 100 MB.
 **The bubble is the wrong color.** The join is geometrically seamless and
 tonally a hard edge: the material's top band is the fixed `DEFAULT_STACK`
 (forest litter) while the streamed terrain is biome-tinted, so a dark disc sits
-on a pale mountain. Either the bubble imitates the heightfield — build the band
-stack per column from `BIOME_GROUND`, which exists for this — or the heightfield
+on a pale mountain. Either the bubble imitates the heightfield - build the band
+stack per column from `BIOME_GROUND`, which exists for this - or the heightfield
 imitates the bubble, because the substance registry is the more honest ground
 description. They point in opposite directions and the second is a look
 decision. Remy's call.
@@ -731,7 +731,7 @@ about 16 m tall.
 within one cell of the boundary, worst case five cells, zero on the CPU twin.
 The options are to leave it (a 25 cm step is already an accepted limit here and
 nothing is visible in any frame), to widen the standoff at the cost of tunnel
-width, or to give the wall a real lateral test — which would be the first place
+width, or to give the wall a real lateral test - which would be the first place
 this design stops being one rule.
 
 **Water inside a tunnel cannot be pictured yet.** The screen-space surface
@@ -751,23 +751,23 @@ surface again (`groundSurfaceY`) and should move onto `voxelCollide`;
 `SPAN_SLOTS` is 2 and stacked passages would want 4; the visual blend where
 particles meet the sheet has never been judged by eye; and the volume sandbox
 loses its carved world to any fleet edit of its import graph, because Vite Fast
-Refresh rebuilds the `useMemo` caches — a tripwire logs the cause now, but
+Refresh rebuilds the `useMemo` caches - a tripwire logs the cause now, but
 persisting the world across a refresh is not built.
 
 ---
 
 ## The Land era (2026-08-10/11)
 
-**One concept, one place; move, alias, delete.** Four consolidations landed in one rhythm. The water page extracted its costume into `waterLook.ts` — the whole nine-round tuning lives in one place, so the sandbox and pane cannot drift (`waterpage-relief.md`). The biomes step moved to the Land page as six tabs over real atlas cells (`biomes-move.md`), and `?step=biomes3d` now redirects to `?step=land&biome=forest`. The Volume Ground step renamed to Land; `?step=volume`, `?step=environment` and `?step=3d` are aliases. The glossary went Agora-live (`glossary-agora.md`), moving 18 material cards to the shared tile service. Every consolidation obeyed the rule: **move the one copy once, cut the rest**.
+**One concept, one place; move, alias, delete.** Four consolidations landed in one rhythm. The water page extracted its costume into `waterLook.ts` - the whole nine-round tuning lives in one place, so the sandbox and pane cannot drift (`waterpage-relief.md`). The biomes step moved to the Land page as six tabs over real atlas cells (`biomes-move.md`), and `?step=biomes3d` now redirects to `?step=land&biome=forest`. The Volume Ground step renamed to Land; `?step=volume`, `?step=environment` and `?step=3d` are aliases. The glossary went Agora-live (`glossary-agora.md`), moving 18 material cards to the shared tile service. Every consolidation obeyed the rule: **move the one copy once, cut the rest**.
 
-**The Land page holds tabs, sizes, types, spells, sky, trees, and water.** Six biome tabs land on real cells at real stacks — each one purity-measured and drawn from `BIOME_GROUND` with no hard-coded defaults. The Width and Height rows (`landsize.md`) yield independent dimensions: the sandbox defaults to 240 × 64 m (a slab), cutting the old cube's triangles by 31 percent with zero interior-surface loss. Land Types (`landtypes.md`) opens a panel of substance cards — each band's name, depth, and registry numbers turned to plain words, with a swatch renderer showing the real material under both presets and sandbox lights. The Mold Earth spell raises or lowers ground through the ordinary carve path, keeping the water ledger exact by construction. The Time slider drives `sunAtHour` in both light modes, anchoring noon to the biome's preset and sweeping dawn and dusk through azimuth alone. The Trees panel (`land-consolidation.md`) edits presets per-level, standing the tree on real ground under real lights. The Water toggle arms the thin layer or droplets in the same scene; the Settling toggle runs the avalanche solver or holds.
+**The Land page holds tabs, sizes, types, spells, sky, trees, and water.** Six biome tabs land on real cells at real stacks - each one purity-measured and drawn from `BIOME_GROUND` with no hard-coded defaults. The Width and Height rows (`landsize.md`) yield independent dimensions: the sandbox defaults to 240 x 64 m (a slab), cutting the old cube's triangles by 31 percent with zero interior-surface loss. Land Types (`landtypes.md`) opens a panel of substance cards - each band's name, depth, and registry numbers turned to plain words, with a swatch renderer showing the real material under both presets and sandbox lights. The Mold Earth spell raises or lowers ground through the ordinary carve path, keeping the water ledger exact by construction. The Time slider drives `sunAtHour` in both light modes, anchoring noon to the biome's preset and sweeping dawn and dusk through azimuth alone. The Trees panel (`land-consolidation.md`) edits presets per-level, standing the tree on real ground under real lights. The Water toggle arms the thin layer or droplets in the same scene; the Settling toggle runs the avalanche solver or holds.
 
-**The carve moved 1,951 ms to 73 ms; 360 m loads in 118 ms instead of 4,929.** The first ground draws in 6.5 seconds instead of 9–12 (`chunkperf.md`, `loadperf.md`). Attribution, by surviving block: the dev bundle compiles once on a cold tab (1.3 seconds, V8 parse, not this page). The substance ground's shader links off the main thread by 0.23 s through a warm set built during the worker's terrain wait. The water's own programs arrive in one 0.17 s block. Everything else resolved under 0.1 s per phase — chunk mounting, water solver steps, re-meshes — because chunk geometry left React, the water rig left the props to a stable pointer, and the ground world moved to the worker (`chunkperf.md` §1, `loadperf.md` §1–2, `hydroworker.md` §3).
+**The carve moved 1,951 ms to 73 ms; 360 m loads in 118 ms instead of 4,929.** The first ground draws in 6.5 seconds instead of 9-12 (`chunkperf.md`, `loadperf.md`). Attribution, by surviving block: the dev bundle compiles once on a cold tab (1.3 seconds, V8 parse, not this page). The substance ground's shader links off the main thread by 0.23 s through a warm set built during the worker's terrain wait. The water's own programs arrive in one 0.17 s block. Everything else resolved under 0.1 s per phase - chunk mounting, water solver steps, re-meshes - because chunk geometry left React, the water rig left the props to a stable pointer, and the ground world moved to the worker (`chunkperf.md` §1, `loadperf.md` §1-2, `hydroworker.md` §3).
 
-**Two solver bugs surface when you run them.** The settle law reads meter-slopes on a non-cubic lattice (`granularSettle.ts` + `settle-hooks.md`); the combat arena's 0.15 m vertical cells were reading 17 degrees as 45 degrees until `cellHM` arrived. A column that sheds its cap over a void used to report its top on the void itself — one cell too high, the exact width of the activation threshold, so a carved arena reported rest while a fresh field found eight unstable columns. Droplets arrive with gravity calibrated per spacing (`voldroplets.md` §1): vendor MPM at 0.5 m spacing throws them at 8.8 *g*, at 2.5 m fires them at 432 m/s². The calibration reads **9.81 m/s²** at every size, proven by integrating a real free fall. Sparse bricks on the GPU (parked, `impl-8-checkpoint`) hold 0.23% of cells at 12.5 cm across 113 MB at full 64 fps — dense would cost 2.5 GB — with the property that an unallocated brick is a solid wall, so mass conserves to the bit whatever the allocator does.
+**Two solver bugs surface when you run them.** The settle law reads meter-slopes on a non-cubic lattice (`granularSettle.ts` + `settle-hooks.md`); the combat arena's 0.15 m vertical cells were reading 17 degrees as 45 degrees until `cellHM` arrived. A column that sheds its cap over a void used to report its top on the void itself - one cell too high, the exact width of the activation threshold, so a carved arena reported rest while a fresh field found eight unstable columns. Droplets arrive with gravity calibrated per spacing (`voldroplets.md` §1): vendor MPM at 0.5 m spacing throws them at 8.8 *g*, at 2.5 m fires them at 432 m/s². The calibration reads **9.81 m/s²** at every size, proven by integrating a real free fall. Sparse bricks on the GPU (parked, `impl-8-checkpoint`) hold 0.23% of cells at 12.5 cm across 113 MB at full 64 fps - dense would cost 2.5 GB - with the property that an unallocated brick is a solid wall, so mass conserves to the bit whatever the allocator does.
 
-**The page broke mid-reload because a lazy chunk appeared after the dep cache was written.** `?step=water`, click Droplets, click Start, and the design preview went blank. No exception, no error boundary trigger — the dev server discovered `three/webgpu` and `three/tsl` at runtime, re-bundled them, and broadcast a full reload. The reload landed while esbuild was still writing, so React never mounted (`waterfix.md`). The fix is one line in `vite.config.ts`: name the two in `optimizeDeps.include` and they join the FIRST optimize pass. The volume page's own mid-carve page loss was the same cause, caught live: an IMPL-1 worker file save forces a full reload; a tripwire logs it and HMR-survival is specced. A per-pane error boundary now wraps each water pane's scene, keeps the page alive, and records the crash on `window.__waterPaneCrash`.
+**The page broke mid-reload because a lazy chunk appeared after the dep cache was written.** `?step=water`, click Droplets, click Start, and the design preview went blank. No exception, no error boundary trigger - the dev server discovered `three/webgpu` and `three/tsl` at runtime, re-bundled them, and broadcast a full reload. The reload landed while esbuild was still writing, so React never mounted (`waterfix.md`). The fix is one line in `vite.config.ts`: name the two in `optimizeDeps.include` and they join the FIRST optimize pass. The volume page's own mid-carve page loss was the same cause, caught live: an IMPL-1 worker file save forces a full reload; a tripwire logs it and HMR-survival is specced. A per-pane error boundary now wraps each water pane's scene, keeps the page alive, and records the crash on `window.__waterPaneCrash`.
 
-**Open calls for Remy — the decision stack.** **D0**: Which water — thin layer at full presentation on relief terrain (the argument: frame 04 shows the legacy grid heaping water at the spring while the thin layer runs the gully, drops the cliff, pools the basin). **D1**: Ground palette direction — the tint shipped at full strength; re-shoot the rim with the winding bug fixed before ruling. **D2**: Particles as splash or fall — coarser quanta carry more but stop reading as droplets. **D3**: The 69% invisible seal — the slab cut 168,960 triangles, 99.85% of them seal; the floor is the next prize. **D4**: Picturing water behind rock — a section cut through the volume, an x-ray silhouette, or accept. **D5**: In-rock particle tolerance — 0.5% sit transiently inside the bore; widen standoff or real lateral test. **D6**: SPAN_SLOTS headroom — stay at 2 until overflow says otherwise. **D7**: Final Fable wow gates — one critic per piece or the record stands. **D8**: W2 grazing skim puff — look pass or accept as honest. **D9**: Registry look collisions — differentiate or accept. **D10**: Snow line unreachable — lower it or accept. **D11**: Preset sky vs sandbox light — keep both, keep one, or retune the presets. **D12**: Side-by-side solver budget — budget the thin solver in split view only, or elsewhere. **D13**: Nothing left under 100 ms except the bundle and the shader, so this is the ceiling for the tab's own work. **World hydrology** — the runoff and permeability model, specced, waiting on the work order. **Sparse-droplet repoint** — the census-sized brick allocation carries to the particle grid (50 MB vs 2 GB dense), the same path whether Remy picks thin layer or droplets. **WebGPU sandbox-port** — a second canvas overlay with shared-depth particles, rejected on the water page and marked as the right shape on a different page.
+**Open calls for Remy - the decision stack.** **D0**: Which water - thin layer at full presentation on relief terrain (the argument: frame 04 shows the legacy grid heaping water at the spring while the thin layer runs the gully, drops the cliff, pools the basin). **D1**: Ground palette direction - the tint shipped at full strength; re-shoot the rim with the winding bug fixed before ruling. **D2**: Particles as splash or fall - coarser quanta carry more but stop reading as droplets. **D3**: The 69% invisible seal - the slab cut 168,960 triangles, 99.85% of them seal; the floor is the next prize. **D4**: Picturing water behind rock - a section cut through the volume, an x-ray silhouette, or accept. **D5**: In-rock particle tolerance - 0.5% sit transiently inside the bore; widen standoff or real lateral test. **D6**: SPAN_SLOTS headroom - stay at 2 until overflow says otherwise. **D7**: Final Fable wow gates - one critic per piece or the record stands. **D8**: W2 grazing skim puff - look pass or accept as honest. **D9**: Registry look collisions - differentiate or accept. **D10**: Snow line unreachable - lower it or accept. **D11**: Preset sky vs sandbox light - keep both, keep one, or retune the presets. **D12**: Side-by-side solver budget - budget the thin solver in split view only, or elsewhere. **D13**: Nothing left under 100 ms except the bundle and the shader, so this is the ceiling for the tab's own work. **World hydrology** - the runoff and permeability model, specced, waiting on the work order. **Sparse-droplet repoint** - the census-sized brick allocation carries to the particle grid (50 MB vs 2 GB dense), the same path whether Remy picks thin layer or droplets. **WebGPU sandbox-port** - a second canvas overlay with shared-depth particles, rejected on the water page and marked as the right shape on a different page.
 
 <!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/adr/0002-volume-ground-and-gpu-fluid.md","sha256WithoutMarker":"3b9fc85c25c0481fe0edc99223afb951e46d75b4b5a1f743909396f7fce0c3db","markedAtUtc":"2026-08-09T20:24:28.240Z"} -->

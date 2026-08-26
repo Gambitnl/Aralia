@@ -4,7 +4,7 @@
  * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
  * Last Sync: 01/07/2026, 17:17:11
- * Dependents: commands/base/BaseEffectCommand.ts, commands/base/SpellCommand.ts, commands/effects/AttackRollModifierCommand.ts, commands/effects/CommandedSummonCommand.ts, commands/effects/ConcentrationCommands.ts, commands/effects/DamageCommand.ts, commands/effects/DefensiveCommand.ts, commands/effects/EnhanceAbilityCommand.ts, commands/effects/FamiliarPocketCommands.ts, commands/effects/FamiliarSharedSensesCommand.ts, commands/effects/GrantedActionCommand.ts, commands/effects/HealingCommand.ts, commands/effects/MovementCommand.ts, commands/effects/ReactiveEffectCommand.ts, commands/effects/RegisterRiderCommand.ts, commands/effects/StatusConditionCommand.ts, commands/effects/SummonDismissCommand.ts, commands/effects/SummonReturnHomeCommand.ts, commands/effects/SummoningCommand.ts, commands/effects/TerrainCommand.ts, commands/effects/UtilityCommand.ts, commands/factory/AbilityCommandFactory.ts, commands/factory/AbilityEffectMapper.ts, commands/factory/SpellCommandFactory.ts, commands/factory/boomingBladeAttackBridge.ts, commands/factory/greenFlameBladeAttackBridge.ts, commands/factory/trueStrikeAttackBridge.ts, components/BattleMap/AISpellInputModal.tsx, components/BattleMap/BattleMapDemo.tsx, components/Combat/CombatView.tsx, components/Combat/ReactionPrompt.tsx, data/adapters/5eTools/index.ts, data/adapters/5eTools/shared.ts, data/adapters/5eTools/spellEffectMapper.ts, data/adapters/5eTools/spellcastingAdapter.ts, data/feats/featsData.ts, data/races/racialTraits.ts, hooks/actionUtils.ts, hooks/combat/engine/useCombatEngine.ts, hooks/combat/useActionExecutor.ts, hooks/combat/useSummons.ts, hooks/combat/useTargetValidator.ts, hooks/data/useSpellRegistry.ts, hooks/movementUtils.ts, hooks/perTargetChoiceUtils.ts, hooks/spellEffectUtils.ts, hooks/teleportUtils.ts, hooks/useAbilitySystem.ts, scripts/audit_enchantment_consistency.ts, systems/creatures/CreatureTaxonomy.ts, systems/environment/EnvironmentSystem.ts, systems/environment/hazards.ts, systems/rituals/RitualManager.ts, systems/spells/ai/AISpellArbitrator.ts, systems/spells/effects/triggerHandler.ts, systems/spells/mechanics/ConcentrationTracker.ts, systems/spells/mechanics/SavingThrowResolver.ts, systems/spells/mechanics/ScalingEngine.ts, systems/spells/targeting/TargetAllocator.ts, systems/spells/targeting/TargetValidationUtils.ts, systems/spells/validation/LegacySpellValidator.ts, systems/spells/validation/SpellIntegrityValidator.ts, systems/spells/validation/TargetingPresets.ts, types/index.ts, types/mechanics.ts, types/spellAttackMetadata.ts, types/spellTargeting.ts, utils/character/savingThrowUtils.ts, utils/combat/combatUtils.ts, utils/combat/createEnemyFromMonster.ts, utils/combat/resistanceUtils.ts, utils/core/factories.ts, utils/validation/spellAuditor.ts, utils/validation/spellConsistencyValidator.ts, utils/visuals/spellVisuals.ts
+ * Dependents: commands/base/BaseEffectCommand.ts, commands/base/SpellCommand.ts, commands/effects/AttackRollModifierCommand.ts, commands/effects/CommandedSummonCommand.ts, commands/effects/ConcentrationCommands.ts, commands/effects/DamageCommand.ts, commands/effects/DefensiveCommand.ts, commands/effects/EnhanceAbilityCommand.ts, commands/effects/FamiliarPocketCommands.ts, commands/effects/FamiliarSharedSensesCommand.ts, commands/effects/GrantedActionCommand.ts, commands/effects/HealingCommand.ts, commands/effects/MovementCommand.ts, commands/effects/ReactiveEffectCommand.ts, commands/effects/RegisterRiderCommand.ts, commands/effects/StatusConditionCommand.ts, commands/effects/SummonDismissCommand.ts, commands/effects/SummonReturnHomeCommand.ts, commands/effects/SummoningCommand.ts, commands/effects/TerrainCommand.ts, commands/effects/UtilityCommand.ts, commands/factory/AbilityCommandFactory.ts, commands/factory/AbilityEffectMapper.ts, commands/factory/SpellCommandFactory.ts, commands/factory/boomingBladeAttackBridge.ts, commands/factory/greenFlameBladeAttackBridge.ts, commands/factory/trueStrikeAttackBridge.ts, components/BattleMap/AISpellInputModal.tsx, components/BattleMap/BattleMapDemo.tsx, components/Combat/CombatView.tsx, components/Combat/ReactionPrompt.tsx, data/adapters/5eTools/index.ts, data/adapters/5eTools/shared.ts, data/adapters/5eTools/spellEffectMapper.ts, data/adapters/5eTools/spellcastingAdapter.ts, data/feats/featsData.ts, data/races/racialTraits.ts, hooks/actionUtils.ts, hooks/combat/engine/useCombatEngine.ts, hooks/combat/useActionExecutor.ts, hooks/combat/useSummons.ts, hooks/combat/useTargetValidator.ts, hooks/data/useSpellRegistry.ts, hooks/movementUtils.ts, hooks/perTargetChoiceUtils.ts, hooks/spellEffectUtils.ts, hooks/teleportUtils.ts, hooks/useAbilitySystem.ts, scripts/audit_enchantment_consistency.ts, systems/creatures/CreatureTaxonomy.ts, systems/environment/EnvironmentSystem.ts, systems/environment/hazards.ts, systems/rituals/RitualManager.ts, systems/spells/ai/AISpellArbitrator.ts, systems/spells/effects/triggerHandler.ts, systems/spells/mechanics/ConcentrationTracker.ts, systems/spells/mechanics/SavingThrowResolver.ts, systems/spells/mechanics/ScalingEngine.ts, systems/spells/targeting/TargetAllocator.ts, systems/spells/targeting/TargetValidationUtils.ts, systems/spells/validation/SpellIntegrityValidator.ts, systems/spells/validation/TargetingPresets.ts, types/index.ts, types/mechanics.ts, types/spellAttackMetadata.ts, types/spellTargeting.ts, utils/character/savingThrowUtils.ts, utils/combat/combatUtils.ts, utils/combat/createEnemyFromMonster.ts, utils/combat/resistanceUtils.ts, utils/core/factories.ts, utils/visuals/spellVisuals.ts
  * Imports: 17 files
  *
  * MULTI-AGENT SAFETY:
@@ -28,6 +28,7 @@
 // @ts-ignore
 import type { SpellVisualSpec } from './visuals';
 import type { SpellAttackType, SpellRarity, SpellSchool } from './spellCoreMetadata';
+import type { RitualBacklash, RitualRequirement } from './rituals';
 import type {
   AreaOfEffect,
   DistanceUnit,
@@ -112,8 +113,10 @@ export type {
   EffectSchedule,
   EffectScheduleEntry,
   EffectScheduleTargeting,
+  GrantedAction,
   ModeChoice,
   ModeChoiceOption,
+  SpellActionCost,
 } from './spellEffectMetadata';
 export type {
   AreaOfEffect,
@@ -140,7 +143,9 @@ export type {
   TargetInstanceAllocation,
 } from './spellTargeting';
 export {
+  countLevelThresholdsReached,
   isScalableNumberObject,
+  resolveByLevelThreshold,
   resolveScalableNumber,
 } from './spellTargeting';
 
@@ -212,6 +217,25 @@ export interface Spell {
    * string.
    */
   ritual?: boolean;
+  /**
+   * Spell-side data the ritual runtime needs: ceremony requirements, the
+   * consequence of a failed ceremony, and a prose casting time for spells whose
+   * header reads "Special".
+   *
+   * Why this is not called `ritual`:
+   * `ritual` above is already the boolean capability flag, in the spell JSON as
+   * well as in the type, so the structured block takes its own key instead of
+   * changing the meaning of a field that dozens of call sites read as a boolean.
+   *
+   * Why `import type`:
+   * `src/types/rituals.ts` imports `Spell` from this file, so a value import
+   * here would close a module cycle. `import type` is erased at compile time.
+   */
+  ritualData?: {
+    requirements?: RitualRequirement[];
+    backlash?: RitualBacklash;
+    castingTimeSpecial?: string;
+  };
   rarity?: SpellRarity;
   attackType?: SpellAttackType;
 

@@ -7,6 +7,7 @@
 import { BaseEffectCommand } from '../../base/BaseEffectCommand'
 import type { UtilityEffect } from '@/types/spells'
 import type { Item } from '@/types/items'
+import { ItemType } from '@/types/items'
 import type { CombatState, CombatCharacter, StatusEffect, Ability, SelectedSpellTarget, Position } from '@/types/combat'
 import { generateId } from '../../../utils/core'
 
@@ -308,7 +309,7 @@ export abstract class UtilityCommandCore extends BaseEffectCommand {
                 id: createdObject.inventoryItemId,
                 name: objName,
                 description: createdObject.notes ?? `Created by ${this.context.spellName}.`,
-                type: 'food_drink',
+                type: ItemType.FoodDrink,
                 quantity: (createdObject.inventoryQuantity ?? createdObject.count) ?? 1,
                 isConsumed: true,
                 perishable: createdObject.perishable ?? createdObject.expiresWithSpell,
@@ -329,7 +330,7 @@ export abstract class UtilityCommandCore extends BaseEffectCommand {
             id: `${this.context.spellId || 'spell'}-${objName.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${generateId()}-${index}`,
             name: objName,
             description: createdObject.notes ?? `Created by ${this.context.spellName}.`,
-            type: 'consumable',
+            type: ItemType.Consumable,
             quantity: 1,
             effect: {
                 type: 'heal',

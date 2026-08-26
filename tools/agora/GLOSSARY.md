@@ -336,3 +336,13 @@ throws.
 **Base mesh** — a licensed whole-body model the Part Lab can show in place of
 the procedural body, for a side-by-side read. Split per model into
 public/references/basemesh/ and listed in baseMeshCatalog.ts.
+
+## Idea Board navigation
+
+**Idea constellation** — the Idea Board's illustrated research view. It groups
+ideas by concept category or relevant project. A connection means research
+relevance; it does not mean adoption, a dependency, or project ownership.
+
+**Recorded relevance** — a project connection supported by an existing research
+assessment. **Suggested relevance** is a tentative connection awaiting a
+project-specific assessment. Both remain separate from implementation status.

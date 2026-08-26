@@ -6,7 +6,9 @@ import {
   compassToMathAngle,
   mathToCompassAngle,
   getAngleBetweenPositions,
-  facingToDegrees
+  facingToDegrees,
+  facingToVector,
+  facingFromPositions
 } from '../geometry';
 
 describe('geometry utils', () => {
@@ -97,5 +99,37 @@ describe('geometry utils', () => {
           expect(facingToDegrees('North')).toBe(0);
           expect(facingToDegrees('NORTH')).toBe(0);
       });
+  });
+});
+
+describe('facing helpers', () => {
+  it('turns each compass facing into a grid-unit vector', () => {
+    expect(facingToVector('north')).toEqual({ x: 0, y: -1 });
+    expect(facingToVector('east')).toEqual({ x: 1, y: 0 });
+    expect(facingToVector('south')).toEqual({ x: 0, y: 1 });
+    expect(facingToVector('west')).toEqual({ x: -1, y: 0 });
+    expect(facingToVector('northeast')).toEqual({ x: 1, y: -1 });
+    expect(facingToVector('southwest')).toEqual({ x: -1, y: 1 });
+  });
+
+  it('reads the facing from a step between two grid positions', () => {
+    const origin = { x: 5, y: 5 };
+    expect(facingFromPositions(origin, { x: 5, y: 3 })).toBe('north');
+    expect(facingFromPositions(origin, { x: 8, y: 5 })).toBe('east');
+    expect(facingFromPositions(origin, { x: 4, y: 6 })).toBe('southwest');
+    expect(facingFromPositions(origin, { x: 9, y: 1 })).toBe('northeast');
+  });
+
+  it('returns undefined for a zero step, because it has no direction', () => {
+    expect(facingFromPositions({ x: 5, y: 5 }, { x: 5, y: 5 })).toBeUndefined();
+  });
+
+  it('agrees with facingToDegrees on every compass facing', () => {
+    const facings = ['north', 'northeast', 'east', 'southeast', 'south', 'southwest', 'west', 'northwest'] as const;
+    for (const facing of facings) {
+      const vector = facingToVector(facing);
+      const degrees = ((Math.atan2(vector.y, vector.x) * 180) / Math.PI + 90 + 360) % 360;
+      expect(degrees).toBeCloseTo(facingToDegrees(facing), 6);
+    }
   });
 });

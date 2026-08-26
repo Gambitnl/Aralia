@@ -8,10 +8,10 @@ Folder deleted; git history is the archive.
 Two intentionally separate craft cores (decision: keep them separate; any
 future migration starts from a new evidence-backed gap):
 
-- `src/systems/crafting/craftingSystem.ts` — legacy callback-based core,
+- `src/systems/crafting/craftingSystem.ts` - legacy callback-based core,
   quality vocabulary `poor/standard/superior/masterwork`, materials checked
   by `itemId`, optional `qualityOutcomes`.
-- `src/systems/crafting/craftingEngine.ts` — enhanced core, quality vocabulary
+- `src/systems/crafting/craftingEngine.ts` - enhanced core, quality vocabulary
   `ruined/flawed/standard/masterwork/legendary` (from `crafterProgression.ts`),
   ingredient/gold/tool/known-recipe craftability checks, location-aware roll
   modifiers, roll metadata + XP + time + gold in results.
@@ -42,7 +42,7 @@ matrix both directions, and intentionally-absent enhanced fields.
 Side-effect translation: `consumedMaterials[]` -> boolean `materialsConsumed`;
 `experienceGained` -> `xpGained`; `recipe.timeMinutes` -> `timeSpentMinutes`;
 `goldSpent` stays `0` (legacy path emits no gold cost); `roll`, `rawRoll`,
-`dc`, `qualityResult`, `modifiersApplied` are not emitted by the legacy path —
+`dc`, `qualityResult`, `modifiersApplied` are not emitted by the legacy path -
 the adapter records provenance for those unmapped fields.
 
 ## Open follow-ups (now planmap features on the topic)

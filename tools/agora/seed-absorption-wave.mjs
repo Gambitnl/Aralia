@@ -175,7 +175,21 @@ async function seed() {
     const res = await fetch(`${baseUrl}/tasks`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ title: t.title, body: t.description, refs: t.refs }),
+      // agora-bf4d.6 / WF-G171: POST /tasks refuses a task that states no
+      // campaign decision. Each plan row already carries the campaign it
+      // belongs to; a row that names none says STANDALONE out loud, with the
+      // reason on the record, rather than leaving the decision unmade.
+      body: JSON.stringify(
+        t.campaign
+          ? { title: t.title, body: t.description, refs: t.refs, campaignId: t.campaign }
+          : {
+            title: t.title,
+            body: t.description,
+            refs: t.refs,
+            standalone: true,
+            standaloneReason: 'absorption-wave plan row names no campaign (agora-bf4d.6)',
+          },
+      ),
     });
     const json = await res.json().catch(() => null);
     if (res.status !== 201 || !json || !json.task) {

@@ -10,7 +10,7 @@ import os from 'node:os';
 import path from 'node:path';
 import crypto from 'node:crypto';
 
-import { createStore } from './store.mjs';
+import { createStore, TASK_DEP_TYPES, isBlockingDepType, inferCampaignForTask } from './store.mjs';
 
 function tmpDir() {
   const d = path.join(os.tmpdir(), 'agora-test', crypto.randomUUID());
@@ -58,7 +58,10 @@ test('tasks: deps gate readiness; done deps unlock; priority orders the ready qu
   assert.deepEqual(ready.map((t) => t.title), ['B: build', 'C: independent']);
 
   // deps + priority + refs persist on the task record.
-  assert.deepEqual(b.deps, [a.id]);
+  // D-T: a bare id is normalized on the way in and stored typed. It still
+  // means what it always meant — a hard gate — so this is the same edge said
+  // precisely rather than a different one.
+  assert.deepEqual(b.deps, [{ id: a.id, type: 'blocks' }]);
   assert.equal(b.priority, 5);
   const withRefs = store.createTask({ agentId: me.id, title: 'refs', refs: ['spells:G12'] });
   assert.deepEqual(withRefs.refs, ['spells:G12']);
@@ -397,6 +400,68 @@ test('tasks: claimNextReady atomically claims the top-priority ready task', () =
   rm(dir);
 });
 
+// WF-G127 (2026-09-09): an unknown lane must not look like an empty one.
+// WF-G130 (2026-09-09): fix a task in place; the id survives, the history remembers.
+test('tasks: editTask rewrites authored fields, keeps the id, and records the old values', () => {
+  const dir = tmpDir();
+  const store = createStore({ dir });
+  const author = store.registerAgent({ petSlug: 'gf-sd', handle: 'author' });
+  const other = store.registerAgent({ petSlug: 'gf-sd', handle: 'bystander' });
+  const t = store.createTask({ agentId: author.id, title: 'data/craftedItems.ts debt', body: 'b', priority: 3 });
+  const r = store.editTask({ agentId: author.id, taskId: t.id, fields: { title: 'src/data/craftedItems.ts debt', priority: 4 }, reason: 'lint: missing src/ prefix' });
+  assert.equal(r.ok, true, r.error);
+  assert.deepEqual(r.changed, ['title', 'priority']);
+  assert.equal(r.task.id, t.id);
+  assert.equal(r.task.title, 'src/data/craftedItems.ts debt');
+  assert.equal(r.task.priority, 4);
+  const last = r.task.history[r.task.history.length - 1];
+  assert.equal(last.action, 'edit');
+  assert.equal(last.from.title, 'data/craftedItems.ts debt');
+  assert.equal(last.from.priority, 3);
+  assert.equal(last.reason, 'lint: missing src/ prefix');
+  assert.equal(store.editTask({ agentId: other.id, taskId: t.id, fields: { title: 'x' } }).ok, false, 'a bystander worker may not edit');
+  assert.equal(store.editTask({ agentId: author.id, taskId: t.id, fields: { state: 'done' } }).ok, false, 'state is not an authored field');
+  assert.equal(store.editTask({ agentId: author.id, taskId: t.id, fields: { title: 'src/data/craftedItems.ts debt' } }).ok, false, 'no-op is refused');
+
+  // WF-G149: an orchestrator who neither created nor claimed the task can annotate it with a note/reason.
+  const orch = store.registerAgent({ petSlug: 'gf-sd', handle: 'fable-orch', role: 'orchestrator', sessionId: 'orch-thread-1' });
+  const orchAnnotate = store.editTask({ agentId: orch.id, taskId: t.id, reason: 'PARKED: waiting for design decision' });
+  assert.equal(orchAnnotate.ok, true, orchAnnotate.error);
+  assert.deepEqual(orchAnnotate.changed, []);
+  const noteEntry = orchAnnotate.task.history[orchAnnotate.task.history.length - 1];
+  assert.equal(noteEntry.action, 'note');
+  assert.equal(noteEntry.reason, 'PARKED: waiting for design decision');
+  assert.equal(noteEntry.by, orch.id);
+
+  // WF-G153: appendBody appends text with a newline.
+  const appendResult = store.editTask({ agentId: author.id, taskId: t.id, fields: { appendBody: 'extra details line' } });
+  assert.equal(appendResult.ok, true, appendResult.error);
+  assert.equal(appendResult.task.body, 'b\nextra details line');
+
+  // The edit survives a journal replay.
+  store.close();
+  const again = createStore({ dir });
+  const replayed = again.listTasks({}).find((x) => x.id === t.id);
+  assert.equal(replayed.title, 'src/data/craftedItems.ts debt');
+  assert.equal(replayed.body, 'b\nextra details line');
+  const replayedNote = replayed.history.find((h) => h.action === 'note');
+  assert.ok(replayedNote, 'note entry survived replay');
+  assert.equal(replayedNote.reason, 'PARKED: waiting for design decision');
+  again.close();
+  rm(dir);
+});
+
+test('tasks: claimNextReady refuses an unknown campaign instead of answering null', () => {
+  const dir = tmpDir();
+  const store = createStore({ dir });
+  const a = store.registerAgent({ petSlug: 'gf-sd', handle: 'lane-worker' });
+  const r = store.claimNextReady({ agentId: a.id, campaignId: 'agora-zzzz' });
+  assert.equal(r.ok, false);
+  assert.match(r.error, /unknown campaign/);
+  store.close();
+  rm(dir);
+});
+
 test('tasks: claimNextReady can stay inside one campaign and category lane', () => {
   const dir = tmpDir();
   const store = createStore({ dir });
@@ -618,7 +683,8 @@ test('campaigns: overlapping leads are refused; a deputy may join the named lead
   });
   assert.equal(blocked.ok, false);
   assert.match(blocked.error, /overlaps active lead campaign/);
-  assert.equal(blocked.conflict.campaign.id, 'ui-playtest');
+  assert.equal(blocked.conflict.campaign.name, 'ui-playtest');
+  assert.match(blocked.conflict.campaign.id, /^agora-[0-9a-f]{4}$/);
 
   // A deputy may explicitly join the lead campaign and declare a bounded lane.
   const joined = store.claimCampaign({
@@ -631,7 +697,8 @@ test('campaigns: overlapping leads are refused; a deputy may join the named lead
   });
   assert.equal(joined.ok, true);
   assert.equal(joined.campaign.role, 'deputy');
-  assert.equal(joined.campaign.leadCampaignId, 'ui-playtest');
+  // The lead is named by its code; the name the caller used still resolves.
+  assert.equal(joined.campaign.leadCampaignId, store.canonicalId('ui-playtest'));
 
   store.close();
   rm(dir);
@@ -702,7 +769,9 @@ test('campaigns: tasks can be namespaced to a claimed campaign and survive resta
     campaignId: 'governance',
     wave: 'governance-wave',
   });
-  assert.equal(task.campaignId, 'governance');
+  // The task stores the campaign CODE; the name still resolves to it.
+  assert.match(task.campaignId, /^agora-[0-9a-f]{4}$/);
+  assert.equal(store.canonicalId('governance'), task.campaignId);
   assert.equal(task.wave, 'governance-wave');
   store.close();
 
@@ -710,9 +779,11 @@ test('campaigns: tasks can be namespaced to a claimed campaign and survive resta
   store = createStore({ dir });
   const campaigns = store.listCampaigns();
   assert.equal(campaigns.length, 1);
-  assert.equal(campaigns[0].id, 'governance');
+  assert.equal(campaigns[0].name, 'governance');
+  assert.match(campaigns[0].id, /^agora-[0-9a-f]{4}$/);
   const restored = store.listTasks().find((t) => t.id === task.id);
-  assert.equal(restored.campaignId, 'governance');
+  assert.match(restored.campaignId, /^agora-[0-9a-f]{4}$/);
+  assert.equal(store.canonicalId('governance'), restored.campaignId);
   assert.equal(restored.wave, 'governance-wave');
   store.close();
   rm(dir);
@@ -789,11 +860,787 @@ test('persistence: orchestration fields and both result dispositions survive sna
   assert.equal(a2.evidence, 'Four focused tests passed.');
   assert.equal(triage2.resultDisposition, 'triage_only');
   assert.equal(triage2.result, 'SKIP TOO-BIG');
-  assert.deepEqual(b2.deps, [a.id]);
+  assert.deepEqual(b2.deps, [{ id: a.id, type: 'blocks' }]);
   assert.equal(b2.priority, 7);
   assert.deepEqual(b2.refs, ['worldforge:G3']);
   // B is ready now that A is done — readiness computed from restored state.
   assert.deepEqual(store.listTasks({ ready: true }).map((t) => t.id), [b.id]);
   store.close();
   rm(dir);
+});
+
+// WF-G88: the listing could not filter by campaign, and it IGNORED a campaignId
+// argument instead of refusing it — so a caller believed it had filtered while
+// it received the whole board. Measured on the live daemon: a filtered request
+// returned all 120 tasks while exactly 1 carried that campaign.
+test('tasks: listTasks filters by campaign and refuses an unknown campaign id', () => {
+  const dir = tmpDir();
+  const store = createStore({ dir });
+  const orch = store.registerAgent({ petSlug: 'gf-sd', handle: 'lane-orch' });
+
+  store.claimCampaign({
+    agentId: orch.id,
+    campaignId: 'lane-a',
+    role: 'lead',
+    scope: 'lane A',
+    paths: ['src/lane-a.ts'],
+  });
+  store.claimCampaign({
+    agentId: orch.id,
+    campaignId: 'lane-b',
+    role: 'lead',
+    scope: 'lane B',
+    paths: ['src/lane-b.ts'],
+  });
+
+  const a1 = store.createTask({ agentId: orch.id, title: 'A one', campaignId: 'lane-a' });
+  const a2 = store.createTask({ agentId: orch.id, title: 'A two', campaignId: 'lane-a' });
+  const b1 = store.createTask({ agentId: orch.id, title: 'B one', campaignId: 'lane-b' });
+  const loose = store.createTask({ agentId: orch.id, title: 'no campaign' });
+
+  // The whole board, when no lane is named.
+  assert.equal(store.listTasks().length, 4);
+
+  // One lane only — not the board.
+  const laneA = store.listTasks({ campaignId: 'lane-a' });
+  assert.deepEqual(laneA.map((t) => t.id).sort(), [a1.id, a2.id].sort());
+  assert.deepEqual(store.listTasks({ campaignId: 'lane-b' }).map((t) => t.id), [b1.id]);
+
+  // A task with no campaign belongs to no lane.
+  assert.ok(!laneA.some((t) => t.id === loose.id));
+
+  // Filters compose rather than replace each other.
+  store.setTaskState({ taskId: a2.id, agentId: orch.id, state: 'blocked', reason: 'test (WF-G86)' });
+  assert.deepEqual(
+    store.listTasks({ campaignId: 'lane-a', state: 'blocked' }).map((t) => t.id),
+    [a2.id],
+  );
+
+  // The defect itself: an unknown id must FAIL, never return everything.
+  assert.throws(
+    () => store.listTasks({ campaignId: 'lane-typo' }),
+    /unknown campaign: lane-typo/,
+  );
+
+  store.close();
+  rm(dir);
+});
+
+// ---------------------------------------------------------------------------
+// D-M / D-T: the ten dependency types
+// ---------------------------------------------------------------------------
+
+test('deps: all ten types are accepted and an unknown type is refused', () => {
+  const dir = tmpDir();
+  const store = createStore({ dir });
+  const orch = store.registerAgent({ petSlug: 'gf-sd', handle: 'dep-orch' });
+  const base = store.createTask({ agentId: orch.id, title: 'base' });
+
+  // Every declared type must be usable. A vocabulary with an unreachable
+  // member is a vocabulary nobody can trust.
+  assert.equal(Object.keys(TASK_DEP_TYPES).length, 10);
+  for (const type of Object.keys(TASK_DEP_TYPES)) {
+    const t = store.createTask({
+      agentId: orch.id,
+      title: 'uses ' + type,
+      deps: [{ id: base.id, type }],
+    });
+    assert.deepEqual(t.deps, [{ id: base.id, type }]);
+  }
+
+  // Exactly four of the ten gate readiness.
+  const blocking = Object.keys(TASK_DEP_TYPES).filter(isBlockingDepType);
+  assert.deepEqual(blocking.sort(), ['blocks', 'conditional-blocks', 'parent-child', 'waits-for']);
+
+  // THE DECISION ITSELF: an unknown type must throw, not fall back to the
+  // default. Silent coercion is what let WF-G80 hold illegal values for days.
+  assert.throws(
+    () => store.createTask({ agentId: orch.id, title: 'bad', deps: [{ id: base.id, type: 'depends-on' }] }),
+    /unknown dependency type: depends-on/,
+  );
+
+  // A bare id still works and means what it always meant: a hard gate.
+  const legacy = store.createTask({ agentId: orch.id, title: 'legacy', deps: [base.id] });
+  assert.deepEqual(legacy.deps, [{ id: base.id, type: 'blocks' }]);
+
+  store.close();
+  rm(dir);
+});
+
+test('deps: only a blocking type holds a task back', () => {
+  const dir = tmpDir();
+  const store = createStore({ dir });
+  const orch = store.registerAgent({ petSlug: 'gf-sd', handle: 'gate-orch' });
+  const open = store.createTask({ agentId: orch.id, title: 'still open' });
+
+  const gated = store.createTask({
+    agentId: orch.id,
+    title: 'gated',
+    deps: [{ id: open.id, type: 'waits-for' }],
+  });
+  const noted = store.createTask({
+    agentId: orch.id,
+    title: 'merely related',
+    deps: [{ id: open.id, type: 'supersedes' }],
+  });
+
+  const rows = store.listTasks();
+  const byId = new Map(rows.map((r) => [r.id, r]));
+  assert.equal(byId.get(gated.id).ready, false, 'a waits-for edge gates');
+  assert.equal(byId.get(noted.id).ready, true, 'a supersedes edge does not gate');
+
+  // gates counts only what is actually held back — one, not two.
+  assert.equal(byId.get(open.id).gates, 1);
+
+  // The type travels with the edge, so a reader never looks it up elsewhere.
+  assert.deepEqual(byId.get(noted.id).depStates, [
+    { id: open.id, type: 'supersedes', blocking: false, state: 'open', title: 'still open' },
+  ]);
+
+  // The refusal to claim names the type as well as the id.
+  const claim = store.claimTask({ taskId: gated.id, agentId: orch.id });
+  assert.equal(claim.ok, false);
+  assert.match(claim.error, /waits-for/);
+
+  store.close();
+  rm(dir);
+});
+
+test('deps: migration types every old edge in ONE event that rewrites no past event', () => {
+  const dir = tmpDir();
+
+  // Build a genuine PRE-MIGRATION journal: a task.create event carrying the
+  // old untyped shape, exactly as the live board holds it today. Reaching in
+  // through a test-only setter would prove the migration against a fixture
+  // rather than against the thing it has to convert.
+  const base = {
+    id: crypto.randomUUID(), title: 'base', body: '', category: '', campaignId: '', wave: '',
+    state: 'done', createdBy: 'seed', creatorAgent: null, claimedBy: null, claimedAgent: null,
+    assignedPet: null, retraceFiles: [], deps: [], priority: 0, refs: [], result: 'done',
+    resultDisposition: null, finding: null, evidence: null,
+    createdAt: 1, updatedAt: 1, history: [{ at: 1, by: 'seed', action: 'created', state: 'open' }],
+  };
+  const child = { ...base, id: crypto.randomUUID(), title: 'child', state: 'open', result: null, deps: [base.id] };
+  fs.writeFileSync(
+    path.join(dir, 'journal.jsonl'),
+    [
+      { seq: 1, type: 'task.create', payload: { task: base }, ts: 1 },
+      { seq: 2, type: 'task.create', payload: { task: child }, ts: 2 },
+    ].map((e) => JSON.stringify(e)).join('\n') + '\n',
+  );
+
+  const store = createStore({ dir });
+
+  // A worker must NOT be able to fire this. One call retypes every dep on the
+  // board, which is a control-plane act, not something to trip over.
+  const worker = store.registerAgent({ petSlug: 'gf-sd', handle: 'mig-worker' });
+  const refused = store.migrateTaskDeps({ agentId: worker.id });
+  assert.equal(refused.ok, false);
+  assert.match(refused.error, /orchestrator, master, human/);
+
+  const orch = store.registerAgent({
+    petSlug: 'gf-sd', handle: 'mig-orch', role: 'orchestrator',
+    type: 'codex', sessionId: 'thread-mig-orch',
+  });
+
+  const result = store.migrateTaskDeps({ agentId: orch.id });
+  assert.equal(result.migrated, 1);
+  assert.deepEqual(result.changes[0].from, [base.id]);
+  assert.deepEqual(result.changes[0].to, [{ id: base.id, type: 'blocks' }]);
+
+  // Idempotent: nothing untyped is left, so no second event is written.
+  assert.equal(store.migrateTaskDeps({ agentId: orch.id }).migrated, 0);
+
+  // The change shows in the task's own history rather than by having quietly
+  // replaced what the record used to say.
+  const after = store.listTasks().find((t2) => t2.id === child.id);
+  assert.deepEqual(after.deps, [{ id: base.id, type: 'blocks' }]);
+  assert.ok(after.history.some((h) => h.action === 'deps-typed'));
+
+  // The old edge still gates, because `blocks` is what it always meant. The
+  // base task is done, so the child is ready either way — check the gate the
+  // other way round, against an open dependency.
+  assert.equal(after.ready, true);
+
+  store.close();
+
+  // Replay reproduces the migrated shape: the migration is an event like any
+  // other, not an edit of the two events that came before it.
+  const reopened = createStore({ dir });
+  const replayed = reopened.listTasks().find((t2) => t2.id === child.id);
+  assert.deepEqual(replayed.deps, [{ id: base.id, type: 'blocks' }]);
+  reopened.close();
+  rm(dir);
+});
+
+// ---------------------------------------------------------------------------
+// D-S: hierarchical ids, and the promise that no written-down id ever breaks
+// ---------------------------------------------------------------------------
+
+test('ids: a task in a campaign carries that campaign in its own name', () => {
+  const dir = tmpDir();
+  const store = createStore({ dir });
+  const orch = store.registerAgent({ petSlug: 'gf-sd', handle: 'id-orch' });
+  store.claimCampaign({
+    agentId: orch.id, campaignId: 'lane-one', scope: 'a lane', paths: ['src/a.ts'],
+  });
+
+  const first = store.createTask({ agentId: orch.id, title: 'one', campaignId: 'lane-one' });
+  const second = store.createTask({ agentId: orch.id, title: 'two', campaignId: 'lane-one' });
+  // D-W: the campaign's CODE is in the task name, the Beads shape.
+  const code = store.canonicalId('lane-one');
+  assert.match(code, /^agora-[0-9a-f]{4}$/);
+  assert.equal(first.id, code + '.1');
+  assert.equal(second.id, code + '.2');
+
+  // Membership cannot be omitted, because it is not a separate box any more.
+  // That box was missed 119 times out of 119, which is the whole point.
+  assert.equal(first.campaignId, store.canonicalId('lane-one'));
+
+  // WF-G85 (2): the creator leads exactly ONE active campaign, so a task
+  // created without a campaign defaults INTO it — the correct value is now
+  // the lazy value. `campaignId: 'none'` is the explicit way to stay loose.
+  const defaulted = store.createTask({ agentId: orch.id, title: 'defaulted' });
+  assert.equal(defaulted.campaignId, code);
+  assert.equal(defaulted.id, code + '.3');
+  const loose = store.createTask({ agentId: orch.id, title: 'loose', campaignId: 'none' });
+  assert.match(loose.id, /^agora-[0-9a-f]{4}$/);
+  assert.equal(loose.campaignId, '');
+  // Two active lead campaigns: no guess, stays standalone.
+  store.claimCampaign({ agentId: orch.id, campaignId: 'lane-two', scope: 'b lane', paths: ['src/b.ts'] });
+  const ambiguous = store.createTask({ agentId: orch.id, title: 'ambiguous' });
+  assert.equal(ambiguous.campaignId, '');
+
+  store.close();
+  rm(dir);
+});
+
+test('ids: migration renames tasks and EVERY old id keeps resolving, forever', () => {
+  const dir = tmpDir();
+
+  // A genuine pre-migration journal: UUID-named tasks, exactly as the live
+  // board holds them today.
+  const oldA = crypto.randomUUID();
+  const oldB = crypto.randomUUID();
+  const base = {
+    title: '', body: '', category: '', campaignId: 'lane-one', wave: '', state: 'open',
+    createdBy: 'seed', creatorAgent: null, claimedBy: null, claimedAgent: null, assignedPet: null,
+    retraceFiles: [], deps: [], priority: 0, refs: [], result: null, resultDisposition: null,
+    finding: null, evidence: null, createdAt: 1, updatedAt: 1,
+    history: [{ at: 1, by: 'seed', action: 'created', state: 'open' }],
+  };
+  const campaign = {
+    id: 'lane-one', role: 'lead', leadCampaignId: '', agentId: 'seed', scope: 'a lane',
+    paths: ['src/a.ts'], globs: [], wave: '', state: 'active', warnings: [],
+    createdAt: 1, updatedAt: 1, history: [],
+  };
+  fs.writeFileSync(
+    path.join(dir, 'journal.jsonl'),
+    [
+      { seq: 1, type: 'campaign.claim', payload: { campaign }, ts: 1 },
+      { seq: 2, type: 'task.create', payload: { task: { ...base, id: oldA, title: 'first' } }, ts: 2 },
+      {
+        seq: 3,
+        type: 'task.create',
+        payload: { task: { ...base, id: oldB, title: 'second', createdAt: 2, deps: [{ id: oldA, type: 'blocks' }] } },
+        ts: 3,
+      },
+    ].map((e) => JSON.stringify(e)).join('\n') + '\n',
+  );
+
+  const store = createStore({ dir });
+
+  // Control-plane only: this renames the whole board.
+  const worker = store.registerAgent({ petSlug: 'gf-sd', handle: 'id-worker' });
+  assert.equal(store.migrateIds({ agentId: worker.id }).ok, false);
+
+  const orch = store.registerAgent({
+    petSlug: 'gf-sd', handle: 'id-orch2', role: 'orchestrator',
+    type: 'codex', sessionId: 'thread-id-orch2',
+  });
+
+  // A dry run changes nothing but shows exactly what would happen.
+  const preview = store.migrateIds({ agentId: orch.id, dryRun: true });
+  // Two tasks and the campaign that owns them.
+  assert.equal(preview.migrated, 3);
+  assert.ok(store.listTasks().some((t) => t.id === oldA), 'dry run must not rename');
+
+  const result = store.migrateIds({ agentId: orch.id });
+  assert.equal(result.migrated, 3);
+
+  // D-W: the campaign takes a code, and its tasks are named from that code.
+  const code = store.canonicalId('lane-one');
+  assert.match(code, /^agora-[0-9a-f]{4}$/);
+  assert.deepEqual(result.campaigns.map((c) => c.to), [code]);
+
+  // Oldest first, so .1 is the campaign's first task rather than whichever the
+  // map happened to yield.
+  assert.deepEqual(result.tasks.map((t) => t.to), [code + '.1', code + '.2']);
+
+  const rows = store.listTasks();
+  assert.deepEqual(rows.map((t) => t.id).sort(), [code + '.1', code + '.2']);
+
+  // The campaign's own name keeps working and is still shown to a person.
+  assert.equal(store.listCampaigns()[0].name, 'lane-one');
+
+  // THE PROMISE: every id ever written down still resolves. Fifteen board
+  // results and four gap rows quote one of these.
+  assert.equal(store.canonicalId(oldA), code + '.1');
+  assert.equal(store.canonicalId(oldB), code + '.2');
+
+  // And it resolves through the real API, not only through the helper.
+  const claimed = store.claimTask({ taskId: oldA, agentId: orch.id });
+  assert.equal(claimed.ok, true, claimed.error);
+  assert.equal(claimed.task.id, code + '.1');
+
+  // What the task used to be called is on the record, not merely inferable.
+  const renamed = store.listTasks().find((t) => t.id === code + '.1');
+  assert.deepEqual(renamed.formerIds, [oldA]);
+  assert.ok(renamed.history.some((h) => h.action === 'id-migrated' && h.from === oldA));
+
+  // A dependency pointing at a renamed task follows it.
+  const dependent = store.listTasks().find((t) => t.id === code + '.2');
+  assert.deepEqual(dependent.deps, [{ id: code + '.1', type: 'blocks' }]);
+
+  // Idempotent: nothing left to rename.
+  assert.equal(store.migrateIds({ agentId: orch.id }).migrated, 0);
+
+  store.close();
+
+  // Aliases are durable. A restart that forgot them would break every written
+  // record that quotes an old id — the exact failure this exists to prevent.
+  const reopened = createStore({ dir });
+  assert.equal(reopened.canonicalId(oldA), code + '.1');
+  // The campaign slug resolves after a restart too.
+  assert.equal(reopened.canonicalId('lane-one'), code);
+  reopened.close();
+  rm(dir);
+});
+
+// ---------------------------------------------------------------------------
+// WF-G103 + membership inference (D-K, D-O, r9q1)
+// ---------------------------------------------------------------------------
+
+test('WF-G103: an effort record moves when its work moves', () => {
+  const dir = tmpDir();
+  const now = makeClock();
+  const store = createStore({ dir, now });
+  const orch = store.registerAgent({ petSlug: 'gf-sd', handle: 'span-orch' });
+  store.claimCampaign({
+    agentId: orch.id, campaignId: 'span-lane', scope: 'x', paths: ['src/a.ts'],
+  });
+
+  const code = store.canonicalId('span-lane');
+  const born = store.listCampaigns().find((c) => c.id === code).updatedAt;
+
+  // Creating work inside it moves the record.
+  now.advance(60000);
+  const t = store.createTask({ agentId: orch.id, title: 'work', campaignId: 'span-lane' });
+  const afterCreate = store.listCampaigns().find((c) => c.id === code).updatedAt;
+  assert.ok(afterCreate > born, 'creating a task must move the campaign');
+
+  // So does that work changing state.
+  now.advance(60000);
+  store.setTaskState({ taskId: t.id, agentId: orch.id, state: 'blocked', reason: 'test (WF-G86)' });
+  const afterState = store.listCampaigns().find((c) => c.id === code).updatedAt;
+  assert.ok(afterState > afterCreate, 'a task state change must move the campaign');
+
+  // THE DEFECT ITSELF: the span must no longer be zero.
+  const c = store.listCampaigns().find((x) => x.id === code);
+  assert.ok(c.updatedAt > c.createdAt, 'an effort must have a real span, not an instant');
+
+  store.close();
+  rm(dir);
+});
+
+test('membership: places the certain, refuses to break a tie, and calls the rest standalone', () => {
+  const dir = tmpDir();
+  const store = createStore({ dir });
+  const orch = store.registerAgent({
+    petSlug: 'gf-sd', handle: 'mem-orch', role: 'orchestrator',
+    type: 'codex', sessionId: 'thread-mem',
+  });
+
+  // Two efforts claiming DIFFERENT files. They cannot claim the same one — an
+  // active lead refuses an overlapping lead — so a tie arises the way it really
+  // does: one job that touched files belonging to both.
+  const a = store.claimCampaign({ agentId: orch.id, campaignId: 'alpha', scope: 'a', paths: ['src/only-a.ts'] });
+  const b = store.claimCampaign({ agentId: orch.id, campaignId: 'beta', scope: 'b', paths: ['src/only-b.ts'] });
+  assert.equal(a.ok, true, a.error);
+  assert.equal(b.ok, true, b.error);
+  const alpha = store.canonicalId('alpha');
+
+  // A task that already names its effort.
+  const recorded = store.createTask({ agentId: orch.id, title: 'recorded', campaignId: 'alpha' });
+
+  // Orphans, given file evidence through a claim.
+  const placeable = store.createTask({ agentId: orch.id, title: 'touches only-a' });
+  const tied = store.createTask({ agentId: orch.id, title: 'touches both' });
+  const nothing = store.createTask({ agentId: orch.id, title: 'touches nothing' });
+  store.claimTask({ taskId: placeable.id, agentId: orch.id });
+  store.checkpointTask({ taskId: placeable.id, agentId: orch.id, did: 'x', files: ['src/only-a.ts'] });
+  store.claimTask({ taskId: tied.id, agentId: orch.id });
+  store.checkpointTask({ taskId: tied.id, agentId: orch.id, did: 'x', files: ['src/only-a.ts', 'src/only-b.ts'] });
+
+  // A worker must not be able to rewrite membership across the whole board.
+  const worker = store.registerAgent({ petSlug: 'gf-sd', handle: 'mem-worker' });
+  assert.equal(store.inferTaskMembership({ agentId: worker.id }).ok, false);
+
+  // A dry run changes nothing.
+  const preview = store.inferTaskMembership({ agentId: orch.id, dryRun: true });
+  assert.ok(preview.changed > 0);
+  assert.equal(store.listTasks().find((t) => t.id === placeable.id).membership, '');
+
+  const out = store.inferTaskMembership({ agentId: orch.id });
+  const by = new Map(store.listTasks().map((t) => [t.id, t]));
+
+  // Already named: nothing is guessed about it.
+  assert.equal(by.get(recorded.id).membership, 'recorded');
+  assert.equal(by.get(recorded.id).campaignId, alpha);
+
+  // One effort matched: placed, and the evidence is on the record.
+  assert.equal(by.get(placeable.id).membership, 'inferred');
+  assert.equal(by.get(placeable.id).campaignId, alpha);
+  assert.match(by.get(placeable.id).inferredFrom, /file/);
+
+  // THE RULE THAT MATTERS: two efforts matched, so NEITHER was chosen.
+  const t = by.get(tied.id);
+  assert.equal(t.membership, 'ambiguous');
+  assert.equal(t.campaignId, '', 'a tie must leave the effort EMPTY, never guessed');
+  assert.equal(t.inferredCandidates.length, 2, 'both candidates must be recorded');
+  assert.match(t.inferredFrom, /2 efforts match/);
+
+  // WF-G170: nothing matched, so the verdict is STANDALONE, not 'unknown'.
+  // 'unknown' read as "the board did not look"; the board looked and found
+  // nothing, and the verdict now names the evidence that was absent.
+  assert.equal(by.get(nothing.id).membership, 'standalone');
+  assert.equal(by.get(nothing.id).campaignId, '');
+  assert.match(by.get(nothing.id).inferredFrom, /no roadmap reference, wave/);
+  assert.equal(out.tally.unknown, 0, 'no task may end as unknown');
+  assert.ok(out.tally.standalone >= 1);
+
+  // Every change is on the task's own history.
+  assert.ok(by.get(tied.id).history.some((h) => h.action === 'membership'));
+  assert.equal(out.tally.ambiguous, 1);
+
+  store.close();
+
+  // One journal event, so replay reproduces every verdict.
+  const again = createStore({ dir });
+  const replayed = again.listTasks().find((x) => x.id === tied.id);
+  assert.equal(replayed.membership, 'ambiguous');
+  assert.equal(replayed.campaignId, '');
+  again.close();
+  rm(dir);
+});
+
+// ---------------------------------------------------------------------------
+// 2026-09-09 sweep: WF-G83 / WF-G86 / WF-G91
+// ---------------------------------------------------------------------------
+test('WF-G86: task and campaign state history carries from + reason; blocked refuses without one', () => {
+  const dir = tmpDir();
+  const store = createStore({ dir });
+  const orch = store.registerAgent({ petSlug: 'gf-sd', handle: 'hist-orch', role: 'orchestrator', sessionId: 'hist-orch-thread' });
+  store.claimCampaign({ agentId: orch.id, campaignId: 'hist-lane', scope: 'x', paths: ['src/h.ts'] });
+  const t = store.createTask({ agentId: orch.id, title: 'h' });
+  store.claimTask({ taskId: t.id, agentId: orch.id });
+
+  const refused = store.setTaskState({ taskId: t.id, agentId: orch.id, state: 'blocked' });
+  assert.equal(refused.ok, false);
+  assert.match(refused.error, /needs a reason/);
+
+  const blocked = store.setTaskState({ taskId: t.id, agentId: orch.id, state: 'blocked', reason: 'waiting on src/h.ts lock' });
+  assert.equal(blocked.ok, true);
+  const entry = blocked.task.history[blocked.task.history.length - 1];
+  assert.equal(entry.action, 'state');
+  assert.equal(entry.from, 'claimed');
+  assert.equal(entry.state, 'blocked');
+  assert.equal(entry.reason, 'waiting on src/h.ts lock');
+
+  const code = store.canonicalId('hist-lane');
+  const noReason = store.setCampaignState({ campaignId: code, agentId: orch.id, state: 'done' });
+  assert.equal(noReason.ok, false);
+  const closed = store.setCampaignState({ campaignId: code, agentId: orch.id, state: 'done', reason: 'all packets landed' });
+  assert.equal(closed.ok, true);
+  const centry = closed.campaign.history[closed.campaign.history.length - 1];
+  assert.equal(centry.from, 'active');
+  assert.equal(centry.state, 'done');
+  assert.equal(centry.reason, 'all packets landed');
+  store.close();
+  rm(dir);
+});
+
+test('WF-G83: the command channel may close an UNATTENDED campaign it does not own, with a reason', () => {
+  const dir = tmpDir();
+  const now = makeClock();
+  const store = createStore({ dir, now, presenceTtlMs: 1000, presenceDropMs: 5000 });
+  const owner = store.registerAgent({ petSlug: 'gf-sd', handle: 'gone-owner' });
+  const worker = store.registerAgent({ petSlug: 'gf-sd', handle: 'a-worker', role: 'worker' });
+  const master = store.registerAgent({ petSlug: 'gf-sd', handle: 'the-master', role: 'orchestrator', sessionId: 'master-thread' });
+  store.claimCampaign({ agentId: owner.id, campaignId: 'abandoned', scope: 'x', paths: ['tmp/abandoned'] });
+  const code = store.canonicalId('abandoned');
+
+  // Owner still live: nobody else may touch it.
+  let r = store.setCampaignState({ campaignId: code, agentId: master.id, state: 'done', reason: 'tidy' });
+  assert.equal(r.ok, false);
+  assert.match(r.error, /owner/);
+
+  now.advance(6000);
+  store.touch(master.id);
+  store.touch(worker.id);
+  assert.equal(store.listCampaigns()[0].ownerStatus, 'gone');
+  assert.equal(store.listCampaigns()[0].attended, false);
+
+  // A worker is not the command channel.
+  r = store.setCampaignState({ campaignId: code, agentId: worker.id, state: 'done', reason: 'tidy' });
+  assert.equal(r.ok, false);
+  // The command channel needs a reason.
+  r = store.setCampaignState({ campaignId: code, agentId: master.id, state: 'done' });
+  assert.equal(r.ok, false);
+  assert.match(r.error, /reason/);
+  // With one, the abandoned campaign finally has a closure path.
+  r = store.setCampaignState({ campaignId: code, agentId: master.id, state: 'done', reason: 'owner session ended 2026-08-28; no tasks; sweep 2026-09-09' });
+  assert.equal(r.ok, true);
+  assert.equal(r.campaign.state, 'done');
+  const entry = r.campaign.history[r.campaign.history.length - 1];
+  assert.equal(entry.adoptedClosure, true);
+  assert.equal(entry.previousOwner, owner.id);
+  assert.equal(entry.from, 'active');
+  store.close();
+  rm(dir);
+});
+
+test('WF-G91: a lock whose path is a suffix of another agent held path IN THE SAME REPO is granted with a warning', () => {
+  const dir = tmpDir();
+  const store = createStore({ dir });
+  const a = store.registerAgent({ petSlug: 'gf-sd', handle: 'prefixed' });
+  const b = store.registerAgent({ petSlug: 'gf-sd', handle: 'bare' });
+  // WF-G119 (2026-09-09) narrowed this warning. It used to fire on
+  // 'entity-forge/src/mesh/sdf.ts' vs 'src/mesh/sdf.ts', which are two files in
+  // two checkouts and never a conflict — the false alarm taught agents to ignore
+  // the warning, which is worse than not having it. The warning now compares
+  // only locks whose repo field matches, so the case it was BUILT for is a
+  // sub-path spelling inside ONE repo, which is what this test now uses.
+  const first = store.acquireLock({ agentId: a.id, paths: ['packages/world/src/mesh/sdf.ts'] });
+  assert.equal(first.ok, true);
+  assert.deepEqual(first.warnings, []);
+  const second = store.acquireLock({ agentId: b.id, paths: ['src/mesh/sdf.ts'] });
+  assert.equal(second.ok, true, 'not a provable conflict, so still granted');
+  assert.equal(second.warnings.length, 1);
+  assert.match(second.warnings[0], /same file/);
+  assert.match(second.warnings[0], /packages\/world\/src\/mesh\/sdf\.ts/);
+  // An unrelated path warns about nothing.
+  const third = store.acquireLock({ agentId: b.id, paths: ['src/mesh/other.ts'] });
+  assert.deepEqual(third.warnings, []);
+  store.close();
+  rm(dir);
+});
+
+test('WF-G119: the same relative path in two different checkouts is not a same-file warning', () => {
+  const dir = tmpDir();
+  const store = createStore({ dir, workspaceRoot: 'F:/Repos/Aralia' });
+  const a = store.registerAgent({ petSlug: 'gf-sd', handle: 'in-generator' });
+  const b = store.registerAgent({ petSlug: 'gf-sd', handle: 'in-aralia' });
+  const REL = 'src/systems/entities3d/three/baseMeshCatalog.ts';
+  const foreign = store.acquireLock({ agentId: a.id, paths: ['Entity-Generator/' + REL] });
+  assert.equal(foreign.ok, true);
+  assert.equal(foreign.lock.repo, 'Entity-Generator');
+  const local = store.acquireLock({ agentId: b.id, paths: [REL] });
+  assert.equal(local.ok, true);
+  assert.equal(local.lock.repo, 'Aralia', "an unprefixed path belongs to the daemon's own workspace");
+  assert.deepEqual(local.warnings, [], 'agora-caea coordinated a non-conflict because of this warning');
+  store.close();
+  rm(dir);
+});
+
+// --- WF-G169 / WF-G170 / WF-G171: campaign membership at intake and after ---
+
+test('WF-G171: a task records WHO decided its campaign and why', () => {
+  const dir = tmpDir();
+  const store = createStore({ dir });
+  const orch = store.registerAgent({
+    petSlug: 'gf-sd', handle: 'intake-orch', role: 'orchestrator',
+    type: 'codex', sessionId: 'thread-intake',
+  });
+  const claimed = store.claimCampaign({ agentId: orch.id, campaignId: 'hull', scope: 's', paths: ['src/hull'] });
+  assert.equal(claimed.ok, true, claimed.error);
+  const hull = store.canonicalId('hull');
+
+  // A named campaign is the decision.
+  const named = store.createTask({ agentId: orch.id, title: 'named', campaignId: 'hull' });
+  assert.equal(named.campaignId, hull);
+  assert.equal(named.campaignDecision.kind, 'campaign');
+  assert.equal(named.membership, 'recorded');
+
+  // WF-G85: the ONE active campaign the creator owns is also a decision, and
+  // the record says it was defaulted rather than typed.
+  const defaulted = store.createTask({ agentId: orch.id, title: 'defaulted' });
+  assert.equal(defaulted.campaignId, hull);
+  assert.equal(defaulted.campaignDecision.kind, 'defaulted');
+  assert.equal(store.defaultCampaignFor(orch.id), hull);
+
+  // An opt-out is a decision too, and it carries its reason.
+  const alone = store.createTask({
+    agentId: orch.id, title: 'alone', standalone: true, standaloneReason: 'one-off repair, no effort owns it',
+  });
+  assert.equal(alone.campaignId, '');
+  assert.equal(alone.campaignDecision.kind, 'standalone');
+  assert.equal(alone.campaignDecision.reason, 'one-off repair, no effort owns it');
+  assert.equal(alone.membership, 'standalone');
+  assert.equal(alone.history[0].campaignDecision, 'standalone');
+  assert.equal(alone.history[0].reason, 'one-off repair, no effort owns it');
+
+  // An opt-out without a reason is not a decision; it is an omission.
+  assert.throws(
+    () => store.createTask({ agentId: orch.id, title: 'silent', standalone: true }),
+    /standalone task needs a reason/,
+  );
+
+  // A creator who owns NO campaign and names none leaves the decision absent,
+  // which the HTTP intake refuses. The store records it plainly.
+  const worker = store.registerAgent({ petSlug: 'gf-sd', handle: 'intake-worker' });
+  const absent = store.createTask({ agentId: worker.id, title: 'absent' });
+  assert.equal(absent.campaignDecision.kind, 'absent');
+  assert.equal(store.defaultCampaignFor(worker.id), '');
+
+  store.close();
+  rm(dir);
+});
+
+test('WF-G169: setTaskCampaign moves a task, records the move, and guards every edge', () => {
+  const dir = tmpDir();
+  const store = createStore({ dir });
+  const orch = store.registerAgent({
+    petSlug: 'gf-sd', handle: 'move-orch', role: 'orchestrator',
+    type: 'codex', sessionId: 'thread-move',
+  });
+  const worker = store.registerAgent({ petSlug: 'gf-sd', handle: 'move-worker' });
+  assert.equal(store.claimCampaign({ agentId: orch.id, campaignId: 'keel', scope: 'k', paths: ['src/keel'] }).ok, true);
+  assert.equal(store.claimCampaign({ agentId: orch.id, campaignId: 'mast', scope: 'm', paths: ['src/mast'] }).ok, true);
+  const keel = store.canonicalId('keel');
+  const mast = store.canonicalId('mast');
+  const task = store.createTask({ agentId: orch.id, title: 'plank', campaignId: 'keel' });
+
+  // A worker may not rewrite membership.
+  const denied = store.setTaskCampaign({ taskId: task.id, agentId: worker.id, campaignId: 'mast', reason: 'because' });
+  assert.equal(denied.ok, false);
+  assert.match(denied.error, /needs one of/);
+
+  // A move needs a reason, a real campaign, and an actual change.
+  assert.match(store.setTaskCampaign({ taskId: task.id, agentId: orch.id, campaignId: 'mast' }).error, /needs a reason/);
+  assert.match(store.setTaskCampaign({ taskId: task.id, agentId: orch.id, campaignId: 'ghost', reason: 'r' }).error, /unknown campaign/);
+  assert.match(store.setTaskCampaign({ taskId: task.id, agentId: orch.id, campaignId: 'keel', reason: 'r' }).error, /already in campaign/);
+  assert.match(store.setTaskCampaign({ taskId: task.id, agentId: orch.id, reason: 'r' }).error, /name a campaign, or say standalone/);
+  assert.match(store.setTaskCampaign({ taskId: 'no-such-task', agentId: orch.id, campaignId: 'mast', reason: 'r' }).error, /task not found/);
+
+  // The move itself.
+  const moved = store.setTaskCampaign({
+    taskId: task.id, agentId: orch.id, campaignId: 'mast', reason: 'review found the right effort',
+  });
+  assert.equal(moved.ok, true, moved.error);
+  assert.equal(moved.from, keel);
+  assert.equal(moved.to, mast);
+  assert.equal(moved.task.campaignId, mast);
+  assert.equal(moved.task.membership, 'recorded');
+  // The id keeps its old spelling on purpose: finished results quote it.
+  assert.equal(moved.task.id, task.id);
+
+  // Both sides now agree, which is the acceptance WF-G169 names.
+  assert.deepEqual(store.campaignView(mast).tasks.map((x) => x.id), [task.id]);
+  assert.deepEqual(store.campaignView(keel).tasks.map((x) => x.id), []);
+
+  // The audit entry holds prior campaign, new campaign, actor and reason.
+  const entry = moved.task.history.find((h) => h.action === 'campaign');
+  assert.ok(entry, 'the move must leave a history entry');
+  assert.equal(entry.from, keel);
+  assert.equal(entry.to, mast);
+  assert.equal(entry.by, orch.id);
+  assert.equal(entry.reason, 'review found the right effort');
+
+  // A finished effort cannot take new work.
+  assert.equal(store.setCampaignState({ campaignId: 'keel', agentId: orch.id, state: 'done', reason: 'finished' }).ok, true);
+  assert.match(
+    store.setTaskCampaign({ taskId: task.id, agentId: orch.id, campaignId: 'keel', reason: 'undo' }).error,
+    /is done/,
+  );
+
+  // Standalone is a supported destination, with its own reason.
+  const loosed = store.setTaskCampaign({
+    taskId: task.id, agentId: orch.id, standalone: true, reason: 'split out of the effort',
+  });
+  assert.equal(loosed.ok, true, loosed.error);
+  assert.equal(loosed.task.campaignId, '');
+  assert.equal(loosed.task.membership, 'standalone');
+  assert.match(loosed.task.inferredFrom, /split out of the effort/);
+  assert.match(
+    store.setTaskCampaign({ taskId: task.id, agentId: orch.id, standalone: true, reason: 'again' }).error,
+    /already standalone/,
+  );
+
+  store.close();
+
+  // The move replays: it travels in the ordinary task.edit journal event.
+  const again = createStore({ dir });
+  const replayed = again.listTasks().find((x) => x.id === task.id);
+  assert.equal(replayed.campaignId, '');
+  assert.ok(replayed.history.some((h) => h.action === 'campaign' && h.to === mast));
+  again.close();
+  rm(dir);
+});
+
+test('WF-G170: the campaign mapping is pure, and a domain label alone never places a task', () => {
+  const campaigns = [
+    { id: 'agora-aa11', name: 'combat', paths: ['src/combat'], globs: [], wave: 'w1' },
+    { id: 'agora-bb22', name: 'spell-rework', paths: ['src/spells'], globs: [], wave: 'w1' },
+    { id: 'agora-cc33', name: 'worldforge/interiors', paths: [], globs: [], wave: '' },
+  ];
+
+  // Rank 0 — already recorded.
+  assert.deepEqual(
+    inferCampaignForTask({ task: { campaignId: 'agora-aa11' }, campaigns }),
+    { membership: 'recorded', campaignId: 'agora-aa11', evidence: '', candidates: [] },
+  );
+
+  // Rank 1 — a Plan Map reference beats every weaker rank.
+  const byRef = inferCampaignForTask({
+    task: { refs: ['planmap:worldforge/interiors'], wave: 'w1', category: 'combat' },
+    campaigns,
+  });
+  assert.equal(byRef.membership, 'inferred');
+  assert.equal(byRef.campaignId, 'agora-cc33');
+
+  // Rank 2 — a shared wave that two campaigns carry is a tie and places
+  // nothing. D-O: never break a tie automatically.
+  const tied = inferCampaignForTask({ task: { wave: 'w1' }, campaigns });
+  assert.equal(tied.membership, 'ambiguous');
+  assert.equal(tied.campaignId, '');
+  assert.equal(tied.candidates.length, 2);
+
+  // Rank 3 — a claimed file.
+  const byFile = inferCampaignForTask({ task: { retraceFiles: ['src/spells/cast.ts'] }, campaigns });
+  assert.equal(byFile.membership, 'inferred');
+  assert.equal(byFile.campaignId, 'agora-bb22');
+
+  // Rank 4 — a campaign NAMED for the category places the task.
+  const byCategory = inferCampaignForTask({ task: { category: 'combat' }, campaigns });
+  assert.equal(byCategory.membership, 'inferred');
+  assert.equal(byCategory.campaignId, 'agora-aa11');
+
+  // THE CATEGORY RULE: a domain label with no campaign of that name is NOT
+  // evidence. The task is standalone, and the verdict says why.
+  const label = inferCampaignForTask({ task: { category: 'races' }, campaigns });
+  assert.equal(label.membership, 'standalone');
+  assert.equal(label.campaignId, '');
+  assert.match(label.evidence, /domain label/);
+
+  // No evidence at all is still a verdict, never 'unknown'.
+  const bare = inferCampaignForTask({ task: { category: 'uncategorized' }, campaigns });
+  assert.equal(bare.membership, 'standalone');
+  assert.match(bare.evidence, /no roadmap reference, wave, claimed file or category/);
+
+  // Pure: the same input always gives the same verdict.
+  assert.deepEqual(
+    inferCampaignForTask({ task: { category: 'combat' }, campaigns }),
+    inferCampaignForTask({ task: { category: 'combat' }, campaigns }),
+  );
 });

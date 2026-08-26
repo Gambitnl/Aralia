@@ -194,7 +194,7 @@ test('POST checkpoint rejects cross-agent, unclaimed, blocked, and done writes',
   // checkpoint until the task returns to an active state.
   await request('POST', `/tasks/${id}/state`, {
     token: owner.json.token,
-    body: { state: 'blocked' },
+    body: { state: 'blocked', reason: 'test: blocked needs a reason (WF-G86)' },
   });
   const blocked = await request('POST', `/tasks/${id}/checkpoint`, {
     token: owner.json.token,

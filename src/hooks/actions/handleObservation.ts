@@ -4,7 +4,7 @@
  * Handles observation actions like 'look_around' and 'analyze_situation'.
  */
 import React from 'react';
-import { GameState, MapTile } from '../../types';
+import { GameState, WorldCellView } from '../../types';
 import { AppAction } from '../../state/actionTypes';
 import { biomeIdForCell } from '../../systems/worldforge/local/biomeForCell';
 import * as OllamaTextService from '../../services/ollamaTextService';
@@ -42,8 +42,23 @@ export async function handleLookAround({
     const worldX = legacy ? Number(legacy[1]) : gameState.playerCell.cellId;
     const worldY = legacy ? Number(legacy[2]) : 0;
     const biomeId = biomeIdForCell(gameState.worldSeed ?? 0, gameState.playerCell.cellId);
-    const synthTile = { x: worldX, y: worldY, biomeId, discovered: true, isPlayerCurrent: true } as MapTile;
-    worldMapTileTooltipForGemini = getTileTooltipText(synthTile);
+    // agora-608b: this is now a real cell-native `WorldCellView` carrying the
+    // canonical cellId — the `as MapTile` cast that papered over the missing
+    // identity is gone.
+    const observedCell: WorldCellView = {
+      cellId: gameState.playerCell.cellId,
+      x: worldX,
+      y: worldY,
+      // `biomeIdForCell` returns undefined for a cell with no biome index. The
+      // old `as MapTile` cast silently let that undefined through; the tooltip
+      // formatter then looked up BIOMES[undefined], missed, and printed its
+      // "biome unknown" wording. An empty id misses the same way, so this
+      // preserves that behavior while making the type honest.
+      biomeId: biomeId ?? '',
+      discovered: true,
+      isPlayerCurrent: true,
+    };
+    worldMapTileTooltipForGemini = getTileTooltipText(observedCell);
   }
 
   const lookContext = `${generalActionContext}${worldMapTileTooltipForGemini ? ` | Tile: ${worldMapTileTooltipForGemini}` : ''}`;

@@ -1,6 +1,6 @@
 # Items / Trade / Inventory
 
-Verified: unknown — predates the verification rule (see AGENTS.md)
+Verified: unknown - predates the verification rule (see AGENTS.md)
 
 ## Purpose
 

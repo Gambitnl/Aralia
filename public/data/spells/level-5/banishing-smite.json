@@ -164,7 +164,7 @@
                                        "dice":  "5d10",
                                        "type":  "Force"
                                    },
-                        "description":  "The next time the caster hits a creature with an attack roll during the spell\u0027s duration, the attack deals an extra 5d10 Force damage.",
+                        "description":  "The next time the caster hits a creature with an attack roll during the spell's duration, the attack deals an extra 5d10 Force damage.",
                         "scaling":  {
                                         "type":  "slot_level",
                                         "bonusPerLevel":  "",

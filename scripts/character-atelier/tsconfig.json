@@ -1,0 +1,6 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": { "noEmit": true, "skipLibCheck": true },
+  "include": ["../../src/devtools/characterAtelier/**/*.tsx", "../../src/devtools/characterAtelier/choices.ts", "../../src/vite-env.d.ts"],
+  "exclude": ["../../node_modules"]
+}

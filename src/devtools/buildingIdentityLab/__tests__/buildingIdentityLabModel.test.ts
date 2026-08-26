@@ -6,6 +6,7 @@
  */
 
 import { describe, expect, it } from 'vitest';
+import { buildBuildingMotifParts } from '../../../systems/worldforge/bridge/buildingMotifParts';
 import {
   blueprintForHarnessPlot,
   buildHarnessTown,
@@ -70,13 +71,17 @@ describe('building identity lab model', () => {
 
   it('projects an occupied multi-storey town hearth through its solved roof', () => {
     const model = buildHarnessTown(OPTIONS);
-    const plot = model.artifactPlan.plots.find((candidate) => candidate.id === 7)!;
+    const plot = model.artifactPlan.plots.find(candidate => candidate.storeys === 2
+      && candidate.pop && blueprintForHarnessPlot(model, candidate.id).floors
+        .find(floor => floor.level === 0)?.furnishings
+        .filter(item => item.kind === 'hearth' || item.kind === 'forge-hearth').length === 1)!;
     const blueprint = blueprintForHarnessPlot(model, plot.id);
     const groundHearths = blueprint.floors
       .find((floor) => floor.level === 0)!
       .furnishings.filter((item) => item.kind === 'hearth' || item.kind === 'forge-hearth');
 
-    // Plot 7 is a deterministic population-backed, two-storey cottage. Its
+    // Select by the occupied two-storey hearth contract, not a plot ordinal
+    // that changes when civic parcels reserve more ground. Its
     // ground hearth must still reach the roof above the sleeping floor.
     expect(plot.pop).toBeDefined();
     expect(plot.storeys).toBe(2);
@@ -86,6 +91,26 @@ describe('building identity lab model', () => {
       x: groundHearths[0].x,
       y: groundHearths[0].y,
     });
+  });
+
+  it('seats the reported keep on a habitable lot with supported stone battlements', () => {
+    const model = buildHarnessTown({ ...OPTIONS, population: 3200 });
+    const plot = model.artifactPlan.plots.find(candidate => candidate.role === 'keep')!;
+    const blueprint = blueprintForHarnessPlot(model, plot.id);
+    expect(blueprint.widthFt).toBeGreaterThanOrEqual(40);
+    expect(blueprint.depthFt).toBeGreaterThanOrEqual(40);
+    expect(blueprint.styleResolved?.construction.wallMaterial).toBe('dressed-stone');
+    expect(blueprint.styleResolved?.roofForm).toBe('flat');
+    const battlements = buildBuildingMotifParts(blueprint, 3).filter(p => p.motifKind === 'battlements');
+    const wallTop = blueprint.floors.filter(f => f.level >= 0).length * 3;
+    const parapets = battlements.filter(p => p.baseY === wallTop);
+    expect(parapets).toHaveLength(4);
+    for (const merlon of battlements.filter(p => p.baseY !== wallTop)) {
+      expect(parapets.some(p => Math.abs((p.baseY! + p.h) - merlon.baseY!) < 1e-6
+        && Math.abs(p.x - merlon.x) <= (p.w + merlon.w) / 2
+        && Math.abs(p.z - merlon.z) <= (p.d + merlon.d) / 2)).toBe(true);
+    }
+    expect(model.factMismatches).toEqual([]);
   });
 
   it('verifies every district by rebuilding sampled production blueprints', () => {

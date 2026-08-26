@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 29/06/2026, 13:19:32
+ * Last Sync: 26/08/2026, 10:38:36
  * Dependents: commands/factory/AbilityCommandFactory.ts, commands/factory/SpellCommandFactory.ts
  * Imports: 5 files
  *
@@ -135,6 +135,37 @@ export const validateBoomingBladeWeaponSnapshot = (
 // WeaponAttackCommand already knows how to roll, hit, miss, damage, and log.
 // ============================================================================
 
+const CANONICAL_DAMAGE_TYPES: Record<string, string> = {
+  acid: 'Acid',
+  bludgeoning: 'Bludgeoning',
+  cold: 'Cold',
+  fire: 'Fire',
+  force: 'Force',
+  lightning: 'Lightning',
+  necrotic: 'Necrotic',
+  piercing: 'Piercing',
+  poison: 'Poison',
+  psychic: 'Psychic',
+  radiant: 'Radiant',
+  slashing: 'Slashing',
+  thunder: 'Thunder',
+  physical: 'Slashing'
+}
+
+// Convert any casing or legacy physical damage type to the standard D&D title-case name.
+const standardizeDamageType = (damageType?: string): string => {
+  if (!damageType) {
+    return 'Slashing'
+  }
+
+  const normalized = damageType.trim().toLowerCase()
+  if (!normalized) {
+    return 'Slashing'
+  }
+
+  return CANONICAL_DAMAGE_TYPES[normalized] ?? (damageType.charAt(0).toUpperCase() + damageType.slice(1))
+}
+
 export const buildBoomingBladeAttack = (
   spell: Spell,
   caster: CombatCharacter,
@@ -152,14 +183,14 @@ export const buildBoomingBladeAttack = (
       type: 'damage' as const,
       value: 0,
       dice: weaponDamageDice,
-      damageType: (weaponSnapshot.damageType || 'slashing') as AbilityEffect['damageType']
+      damageType: standardizeDamageType(weaponSnapshot.damageType) as AbilityEffect['damageType']
     },
     ...(immediateThunderEffect
       ? [{
           type: 'damage' as const,
           value: 0,
           dice: immediateThunderEffect.damage.dice,
-          damageType: immediateThunderEffect.damage.type as AbilityEffect['damageType']
+          damageType: standardizeDamageType(immediateThunderEffect.damage.type) as AbilityEffect['damageType']
         }]
       : [])
   ] satisfies Ability['effects']
@@ -199,7 +230,7 @@ const resolveImmediateThunderEffect = (spell: Spell, casterLevel: number): Damag
   const immediateEffect = spell.effects.find((effect): effect is DamageEffect =>
     isDamageEffect(effect) &&
     effect.trigger?.type === 'immediate' &&
-    effect.damage.type === 'Thunder'
+    effect.damage.type?.toLowerCase() === 'thunder'
   )
 
   if (!immediateEffect) {
@@ -215,7 +246,8 @@ const resolveImmediateThunderEffect = (spell: Spell, casterLevel: number): Damag
     ...immediateEffect,
     damage: {
       ...immediateEffect.damage,
-      dice: scaledDice
+      dice: scaledDice,
+      type: standardizeDamageType(immediateEffect.damage.type) as DamageEffect['damage']['type']
     }
   }
 }
@@ -228,7 +260,8 @@ const resolveMovementEffects = (spell: Spell, casterLevel: number): SpellEffect[
         ...effect,
         damage: {
           ...effect.damage,
-          dice: resolveCustomFormulaDice(effect, casterLevel) ?? effect.damage.dice
+          dice: resolveCustomFormulaDice(effect, casterLevel) ?? effect.damage.dice,
+          type: standardizeDamageType(effect.damage.type) as DamageEffect['damage']['type']
         }
       }
 

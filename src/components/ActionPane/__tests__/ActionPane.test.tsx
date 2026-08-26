@@ -1,4 +1,5 @@
 import React from 'react';
+import { ItemType } from '../../../types';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import ActionPane from '../index';
@@ -123,7 +124,7 @@ describe('ActionPane', () => {
   ];
 
   const itemsInLocation: Item[] = [
-    { id: 'item-1', name: 'Ancient Coin', description: '', type: 'treasure' },
+    { id: 'item-1', name: 'Ancient Coin', description: '', type: ItemType.Treasure },
   ];
 
   const defaultProps = {

@@ -53,7 +53,6 @@ export const useCharacterProficiencies = (character: PlayerCharacter | null): Ch
       }
       
       // Fixed benefits from feats (not choices)
-      // TODO #320: add logic for fixed feat tool/lang benefits if any added to data
     });
 
     // 3. Tools from Class Features

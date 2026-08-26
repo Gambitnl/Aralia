@@ -50,7 +50,10 @@ export type BuildingType =
   // workplaces
   | 'shop' | 'smithy' | 'workshop' | 'inn' | 'tavern' | 'storehouse'
   // grand / civic
-  | 'manor' | 'temple' | 'keep' | 'civic';
+  | 'manor' | 'temple' | 'keep' | 'civic'
+  // named landmarks — capped per town by town/population.ts (see LANDMARK_CAPS)
+  | 'library' | 'guildhall' | 'granary' | 'windmill' | 'lumbermill'
+  | 'school' | 'shrine' | 'barracks' | 'bakery';
 
 export type RoomPurpose =
   | 'hall' | 'common-room' | 'great-hall' | 'nave'
@@ -427,6 +430,13 @@ export interface RoofPlan {
   planes: RoofPlane[];
   ridges: Array<{ x1: Feet; y1: Feet; x2: Feet; y2: Feet; zFt: Feet }>;
   valleys: Array<{ x1: Feet; y1: Feet; x2: Feet; y2: Feet }>;
+  /**
+   * Vertical closures. Where two sections of roof sit at different heights
+   * and their surfaces never meet, the skin steps down and the step is open.
+   * A skirt is the small wall that closes it. Skirts are vertical, so they
+   * have no plan-view area and take no part in roof coverage.
+   */
+  skirts?: RoofPlane[];
   chimneys: RoofChimney[];
   dormers: RoofDormer[];
   towerCaps: RoofTowerCap[];

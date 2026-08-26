@@ -1,4 +1,4 @@
-# Next-generation 2D combat map — design spec
+# Next-generation 2D combat map - design spec
 
 **Date:** 2026-07-06
 **Status:** design approved by Remy (this session); build not started
@@ -33,7 +33,7 @@ Locked with Remy in this session:
   honors the no-fallback directive: the canned site is real cell data,
   pre-picked, not a degraded path.
 
-## Pillar 1 — the renderer
+## Pillar 1 - the renderer
 
 ### Where it sits
 
@@ -68,27 +68,27 @@ default simply becomes "faded out unless planning".
 ### Big maps and crisp zoom
 
 - **Chunked ground.** The ground plate is rasterized in chunks (blocks of
-  tiles, e.g. 16×16) authored at 2× base resolution. Only chunks
-  intersecting the viewport draw. 120×90 at 60fps is the floor, not the
-  ceiling — chunk culling makes map size a memory question, not a frame-rate
+  tiles, e.g. 16x16) authored at 2x base resolution. Only chunks
+  intersecting the viewport draw. 120x90 at 60fps is the floor, not the
+  ceiling - chunk culling makes map size a memory question, not a frame-rate
   question.
 - **Zoom without mush.** Vectors (grid, overlays, text, HP arcs) re-draw at
-  the exact target scale every zoom change — they are never stretched
+  the exact target scale every zoom change - they are never stretched
   bitmaps. Ground chunks re-rasterize at a higher density when zoom crosses
   a threshold, so zooming in reveals real detail instead of bilinear blur.
   Token labels and rings keep a minimum on-screen size at far zoom (the
   critique ledger's "token min-size floor").
-- **Camera.** One world container carries pan/zoom. The existing −/+/Fit
+- **Camera.** One world container carries pan/zoom. The existing -/+/Fit
   controls and ctrl+wheel drive it. Cinematic camera moves (ease to the
   acting combatant) are tweens on the same transform.
 - **Device pixels.** The canvas is sized in device pixels
-  (devicePixelRatio-aware) from day one — the current board's known blur
+  (devicePixelRatio-aware) from day one - the current board's known blur
   cause.
 
 ### Interaction
 
-Pointer events hit-test by arithmetic, not by DOM: pointer position → world
-position → tile index. This is a pure function (same math the grid already
+Pointer events hit-test by arithmetic, not by DOM: pointer position -> world
+position -> tile index. This is a pure function (same math the grid already
 uses) and is unit-tested headless. Hover, click, drag-path preview, and
 keyboard cursor all resolve through it.
 
@@ -105,18 +105,18 @@ Tiles stop being buttons, but the accessibility tree stays real DOM:
 - A live region announces turn events ("Goblin 1's turn", results) so
   screen-reader users get the narrated log's key beats without polling.
 - Keyboard focus moves a virtual cursor over the same meaningful-target set;
-  Enter commits, Escape cancels — matching today's semantics.
+  Enter commits, Escape cancels - matching today's semantics.
 
 Existing Vitest suites migrate deliberately: assertions about tile visuals
 move to the pure view-model functions (what *should* be drawn); assertions
 about interaction and labels move to the DOM mirror. Nothing is silently
-dropped — each retired test is either ported or replaced by an equivalent.
+dropped - each retired test is either ported or replaced by an equivalent.
 
 ### Migration (shippable at every step)
 
 1. **Prototype (deliverable 1).** New Pixi board behind a dev flag
    (`?pixiboard=1`), rendering ground plate + tokens + fog for one real
-   battlefield. This is the eyeball gate — no further build until Remy
+   battlefield. This is the eyeball gate - no further build until Remy
    approves the look.
 2. **Parity.** Overlays, interaction, DOM mirror, zoom/fit controls, and the
    migrated test suites reach feature parity with the DOM board. The game is
@@ -130,7 +130,7 @@ dropped — each retired test is either ported or replaced by an equivalent.
 The combat engine, tile data, movement costs, and visibility model do not
 change at any step. This is a rendering swap.
 
-## Pillar 2 — the battlefield forge
+## Pillar 2 - the battlefield forge
 
 One new pure module. One contract. Golden-tested like the town generator.
 
@@ -149,12 +149,12 @@ Three producers, one consumer:
 
 - **In-place fights** (streamed world live): built from the existing ground
   extraction (`extractLocalTerrainPatch` already derives referee tiles from
-  the live world — the site record formalizes what it already knows).
+  the live world - the site record formalizes what it already knows).
 - **Travel encounters:** built straight from worldforge cell data at the
   route point. The road you traveled is THE road on the map.
 - **Placeless fights** (dev fixture, story encounters without a location
-  yet): a small library of canned sites — real cells, pre-picked for variety
-  (forest, river crossing, shore, road) — through the same generator. The
+  yet): a small library of canned sites - real cells, pre-picked for variety
+  (forest, river crossing, shore, road) - through the same generator. The
   dev fixture (`?dummy=1&dev_combat=1`) uses a canned site, so the map we
   eyeball most always shows the real system.
 
@@ -174,7 +174,7 @@ Two halves from one generator, so they can never disagree:
 
 - Road tiles: normal/fast movement, vegetation cleared, worn-center visual.
   The road crosses the board along the travel heading.
-- River tiles: real water — impassable or swim-cost per the engine's
+- River tiles: real water - impassable or swim-cost per the engine's
   existing rules. Where a road meets a river, the forge generates a **ford**
   (shallow, crossable, visually distinct). This closes the parked plan-map
   node `combat-roads-real-terrain`.
@@ -186,7 +186,7 @@ Two halves from one generator, so they can never disagree:
 Seed = hash(atlas seed, cell id, patch origin). Same place, same
 battlefield, forever. Golden tests pin canonical seeds to full plans.
 
-## Pillar 3 — the living board
+## Pillar 3 - the living board
 
 - **Ambient life:** canopy sway (layer 6), water shimmer (shader on the
   ground plate's water regions), drifting cloud shadows (scrolling noise on
@@ -199,7 +199,7 @@ battlefield, forever. Golden tests pin canonical seeds to full plans.
   and motion trails on the effects layer. Scars (scorch, blood, trampled
   grass) paint into layer 2 and persist for the whole fight.
 - **Narrated log:** every line is generated by templates from data the
-  engine already has — attacker, target, distance, compass direction, cover,
+  engine already has - attacker, target, distance, compass direction, cover,
   result. Pure functions, unit-tested, zero AI calls. Example: "Goblin 1
   creeps 15 ft toward Kaelen, into the treeline."
 - **Sound:** a small effect set keyed to the same events the log emits
@@ -210,15 +210,15 @@ battlefield, forever. Golden tests pin canonical seeds to full plans.
 
 ## Testing and verification
 
-- **Forge:** golden tests (canonical site → identical plan), plus property
+- **Forge:** golden tests (canonical site -> identical plan), plus property
   tests (road continuity edge-to-edge, ford exists where road meets river).
 - **Renderer view-model:** pure functions for hit-testing, overlay geometry
-  (perimeter stroke, threat hatch), and camera fit math — unit-tested.
+  (perimeter stroke, threat hatch), and camera fit math - unit-tested.
 - **Accessibility:** DOM-mirror suites carry the label/role/keyboard
   assertions migrated from the tile suites.
 - **Narration:** template output pinned per event type.
 - **Looks:** headless screenshots (`.agent/scratch/` Playwright scripts, the
-  proven path — `preview_screenshot` hangs on animated canvases) and Remy's
+  proven path - `preview_screenshot` hangs on animated canvases) and Remy's
   eyeball at every deliverable gate.
 - BattleMap suites stay green or are migrated deliberately; touched files
   pass tsc (pre-existing repo-wide errors are background noise).
@@ -226,10 +226,10 @@ battlefield, forever. Golden tests pin canonical seeds to full plans.
 ## Deliverable order (unchanged from the brief)
 
 1. Renderer architecture note (this spec's Pillar 1) + thin visual prototype
-   (one map: ground + tokens + fog on Pixi) → **eyeball gate**.
+   (one map: ground + tokens + fog on Pixi) -> **eyeball gate**.
 2. Battlefield site/plan contract + one derived-battlefield mock (a road
-   cell and a river cell) → **eyeball gate**.
-3. Living-board storyboard (what moves, when, at what zoom) → **eyeball
+   cell and a river cell) -> **eyeball gate**.
+3. Living-board storyboard (what moves, when, at what zoom) -> **eyeball
    gate**.
 4. Only after approvals: migration plan and build, smallest shippable
    slices, the game playable after every slice.
@@ -238,13 +238,13 @@ No estimates. Priority order only.
 
 ## Out of scope
 
-- The 3D combat surfaces (BattleMap3D, fight-in-place in-scene rendering) —
+- The 3D combat surfaces (BattleMap3D, fight-in-place in-scene rendering) -
   untouched. This renderer serves the 2D board only, built so the gridless
   fight-in-place presentation can adopt its overlay/fog/narration pieces
   later.
-- Character portrait art — stays with the parked `svg-combatant-art` track.
+- Character portrait art - stays with the parked `svg-combatant-art` track.
   Tokens keep the current chip look (rings, HP arcs) until that track runs.
-- Terrain-diffusion painted plates — optional future ingredient for the
+- Terrain-diffusion painted plates - optional future ingredient for the
   ground plate; the forge's paint-instruction contract leaves room for it,
   nothing depends on it.
 - Combat engine changes of any kind.

@@ -136,7 +136,7 @@
       },
       "scaling": {
         "type": "slot_level",
-        "bonusPerLevel": "",
+        "bonusPerLevel": "+1d6",
         "customFormula": ""
       },
       "description": "On the triggering weapon hit, the target takes 1d6 Fire damage as the smite damage rider.",
@@ -229,7 +229,7 @@
       ],
       "scaling": {
         "type": "slot_level",
-        "bonusPerLevel": "",
+        "bonusPerLevel": "+1d6",
         "customFormula": ""
       },
       "description": "On the triggering melee weapon hit, the target gains the Ignited condition for up to 1 minute; at the start of each of its turns, it takes 1d6 Fire damage and then makes a Constitution save that ends the spell on a success.",

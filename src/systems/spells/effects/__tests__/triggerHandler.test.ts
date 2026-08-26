@@ -80,6 +80,8 @@ const makeZone = (effects: SpellEffect[]): ActiveSpellZone => ({
   casterId: 'caster',
   position: { x: 0, y: 0 },
   areaOfEffect: { shape: 'cube', size: 5 },
+  // A cube zone extends away from the caster (ruling Q4, 2026-09-22), thus it needs a direction.
+  direction: { x: 1, y: 0 },
   effects,
   triggeredThisTurn: new Set(),
   triggeredEver: new Set()
@@ -139,7 +141,7 @@ describe('isPositionInArea', () => {
     const center = { x: 0, y: 0 }
     const east = { x: 1, y: 0 }
     const cases = [
-      { area: { shape: 'cube', size: 10 }, direction: undefined, samples: [{ x: 0, y: 0 }, { x: 1, y: 1 }, { x: 2, y: 0 }] },
+      { area: { shape: 'cube', size: 10 }, direction: east, samples: [{ x: 0, y: 0 }, { x: 1, y: 1 }, { x: 2, y: 0 }, { x: -1, y: 0 }] },
       { area: { shape: 'sphere', size: 10 }, direction: undefined, samples: [{ x: 0, y: 0 }, { x: 2, y: 2 }, { x: 3, y: 0 }] },
       { area: { shape: 'cone', size: 15 }, direction: east, samples: [{ x: 2, y: 0 }, { x: -2, y: 0 }, { x: 1, y: 1 }] },
       { area: { shape: 'line', size: 15 }, direction: east, samples: [{ x: 1, y: 0 }, { x: 3, y: 0 }, { x: 0, y: 1 }] }

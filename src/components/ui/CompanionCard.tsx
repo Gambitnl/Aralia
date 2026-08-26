@@ -53,7 +53,7 @@ export const CompanionCard: React.FC<CompanionCardProps> = ({ companion, playerI
   const relationship = companion.relationships[playerId] || { level: 'stranger', approval: 0 };
   const { identity, personality, goals } = companion;
   // Normalize at render time because persisted companions can predate the
-  // canonical-data fix and still carry a retired placeholder portrait.
+  // canonical-data fix and still carry a retired fallback portrait.
   const avatarUrl = usableCompanionAvatarUrl(identity.avatarUrl);
 
   // Map the full runtime approval span (-500..500) into the bar width.

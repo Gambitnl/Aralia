@@ -1,19 +1,3 @@
-// @dependencies-start
-/**
- * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
- *
- * Last Sync: 16/08/2026, 13:58:15
- * Dependents: utils/combat/index.ts
- * Imports: 3 files
- *
- * MULTI-AGENT SAFETY:
- * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
- * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
- */
-// @dependencies-end
-
 /**
  * Beast Master (Ranger) Primal Companion binding, scaling, and command economy.
  *
@@ -25,14 +9,30 @@
  *     the `summonMetadata` command economy (Bonus Action command, 1/turn),
  *   - `resolveBeastCommand`, which validates ownership and spends the ranger's
  *     bonus action to grant the beast its commanded action, and
- *   - `resolveBeastsStrike`, the beast's melee attack transaction.
+ *   - `validateBeastsStrike`, the reach and form rules for the beast's melee
+ *     attack. The attack itself is a command, not a transaction here.
  * All of it is gated on the `primal_companion` ability so a non-Beast-Master
  * ranger can never issue a Primal Beast command.
  */
 
-import type { CombatCharacter, CombatState } from '../../types/combat';
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 20/09/2026, 21:00:39
+ * Dependents: hooks/combat/useActionExecutor.ts, utils/combat/combatUtils.ts, utils/combat/index.ts
+ * Imports: 3 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
+import type { AbilityEffect, CombatCharacter, CombatState } from '../../types/combat';
 import { calculateProficiencyBonus } from '../character/savingThrowUtils';
-import { rollDice } from './combatUtils';
 
 export const PRIMAL_COMPANION_FEATURE_ID = 'primal_companion';
 export const PRIMAL_BEAST_STRIKE_ABILITY_ID = 'primal_beast_strike';
@@ -49,11 +49,18 @@ export interface PrimalBeastStatBlock {
   hpBase: number;
   /** Hit points gained per ranger level. */
   hpPerLevel: number;
-  /** Land/swim/fly speed in feet. */
+  /** Walking speed in feet. */
   speedFeet: number;
   movementMode: 'walk' | 'swim' | 'fly';
+  /**
+   * Swim or fly speed in feet for a beast whose movement mode is not walking.
+   * A Beast of the Sea walks 5 feet and swims; a Beast of the Sky walks 10 feet
+   * and flies. Without this the engine would read the single walking speed and
+   * the beast could never leave the ground or the shallows.
+   */
+  extraSpeedFeet?: number;
   strikeDice: string;
-  strikeDamageType: string;
+  strikeDamageType: NonNullable<AbilityEffect['damageType']>;
   /** Flat bonus on Beast's Strike damage beyond proficiency. */
   strikeModifier: number;
   reachFeet: number;
@@ -81,6 +88,7 @@ export const PRIMAL_BEAST_FORMS: Record<PrimalBeastForm, PrimalBeastStatBlock> =
     hpPerLevel: 5,
     speedFeet: 5,
     movementMode: 'swim',
+    extraSpeedFeet: 60,
     strikeDice: '1d8',
     strikeDamageType: 'piercing',
     strikeModifier: 2,
@@ -92,8 +100,9 @@ export const PRIMAL_BEAST_FORMS: Record<PrimalBeastForm, PrimalBeastStatBlock> =
     baseAc: 13,
     hpBase: 4,
     hpPerLevel: 4,
-    speedFeet: 60,
+    speedFeet: 10,
     movementMode: 'fly',
+    extraSpeedFeet: 60,
     strikeDice: '1d6',
     strikeDamageType: 'piercing',
     strikeModifier: 2,
@@ -132,8 +141,8 @@ export function hasPrimalCompanion(character: CombatCharacter): boolean {
 
 /**
  * Binds a constructed beast token to its ranger. The caller supplies a base
- * `CombatCharacter` (from the summon pipeline); this marks ownership, scales HP
- * and speed to the ranger's level, records the chosen form, and attaches the
+ * `CombatCharacter` (from the summon pipeline); this marks ownership, scales HP,
+ * AC, and speed to the ranger's level, records the chosen form, and attaches the
  * Beast's Strike ability.
  */
 export function bindPrimalBeast(
@@ -144,6 +153,17 @@ export function bindPrimalBeast(
   const level = Math.max(1, Math.floor(ranger.level ?? 1));
   const statBlock = PRIMAL_BEAST_FORMS[form];
   const maxHP = calculatePrimalBeastMaxHp(level, form);
+  const armorClass = calculatePrimalBeastAc(level, form);
+
+  // A swimming or flying beast keeps its small walking speed and carries the
+  // real movement speed as an extra speed, which is where the movement engine
+  // reads fly and swim from.
+  const extraMovementSpeeds = statBlock.movementMode === 'walk'
+    ? beast.stats.extraMovementSpeeds
+    : {
+      ...(beast.stats.extraMovementSpeeds ?? {}),
+      [statBlock.movementMode]: statBlock.extraSpeedFeet,
+    };
 
   return {
     ...beast,
@@ -151,11 +171,14 @@ export function bindPrimalBeast(
     level,
     maxHP,
     currentHP: maxHP,
+    armorClass,
+    baseAC: armorClass,
     isSummon: true,
     primalBeastForm: form,
     stats: {
       ...beast.stats,
       speed: statBlock.speedFeet,
+      extraMovementSpeeds,
     },
     summonMetadata: {
       casterId: ranger.id,
@@ -181,7 +204,15 @@ export function bindPrimalBeast(
         cost: { type: 'action' },
         targeting: 'single_enemy',
         range: Math.max(1, Math.round(statBlock.reachFeet / 5)),
-        effects: [],
+        // The strike carries its own damage, so the attack command layer can
+        // resolve it as an ordinary weapon attack: roll against AC, then roll
+        // this damage. An effect-less attack ability would hit for nothing.
+        effects: [{
+          type: 'damage',
+          dice: `${statBlock.strikeDice}+${calculatePrimalBeastStrikeModifier(level, form)}`,
+          damageType: statBlock.strikeDamageType,
+        }],
+        isProficient: true,
       },
     ],
   };
@@ -283,45 +314,72 @@ export type BeastsStrikeFailure =
   | 'target_missing'
   | 'target_out_of_reach';
 
-export interface BeastsStrikeResult {
-  state: CombatState;
+export interface BeastsStrikeValidation {
   resolved: boolean;
   failure?: BeastsStrikeFailure;
-  damageApplied?: number;
 }
 
-export function resolveBeastsStrike(
+/**
+ * Beast's Strike rules, and only the rules: the striker must be a bound Primal
+ * Beast and the target must stand inside the form's reach.
+ *
+ * This deliberately rolls nothing and applies nothing. Beast's Strike is an
+ * attack, so its roll, its AC check, and its damage belong to the attack
+ * command layer, which resolves the beast's own `primal_beast_strike` ability.
+ * `systems/combat/riderExtraStrikes.resolveBeastsStrikeAttack` is the wired
+ * path that pairs this validation with that command.
+ */
+export function validateBeastsStrike(
   state: CombatState,
-  request: { beastId: string; targetId: string; rng?: () => number },
-): BeastsStrikeResult {
+  request: { beastId: string; targetId: string },
+): BeastsStrikeValidation {
   const beast = state.characters.find(character => character.id === request.beastId);
-  if (!beast) return { state, resolved: false, failure: 'beast_missing' };
-  if (beast.primalBeastForm === undefined) return { state, resolved: false, failure: 'not_a_primal_beast' };
+  if (!beast) return { resolved: false, failure: 'beast_missing' };
+  if (beast.primalBeastForm === undefined) return { resolved: false, failure: 'not_a_primal_beast' };
 
   const target = state.characters.find(character => character.id === request.targetId);
-  if (!target) return { state, resolved: false, failure: 'target_missing' };
+  if (!target) return { resolved: false, failure: 'target_missing' };
 
   const statBlock = PRIMAL_BEAST_FORMS[beast.primalBeastForm];
   const reachTiles = Math.max(1, Math.round(statBlock.reachFeet / 5));
   const dx = target.position.x - beast.position.x;
   const dy = target.position.y - beast.position.y;
   if (Math.max(Math.abs(dx), Math.abs(dy)) > reachTiles) {
-    return { state, resolved: false, failure: 'target_out_of_reach' };
+    return { resolved: false, failure: 'target_out_of_reach' };
   }
 
-  const modifier = calculatePrimalBeastStrikeModifier(beast.level ?? 1, beast.primalBeastForm);
-  const damageApplied = Math.max(0, Math.min(target.currentHP, rollDice(statBlock.strikeDice, { rng: request.rng }) + modifier));
+  return { resolved: true };
+}
 
-  const nextTarget: CombatCharacter = { ...target, currentHP: target.currentHP - damageApplied };
+// ============================================================================
+// Turn Reset
+// ============================================================================
+// `commandsUsedThisTurn` is a per-turn tally, so something has to clear it. The
+// turn manager calls this when the ranger's turn begins; without it the beast
+// answers exactly one command per combat instead of one per turn.
+// ============================================================================
 
-  return {
-    state: {
-      ...state,
-      characters: state.characters.map(character => (
-        character.id === target.id ? nextTarget : character
-      )),
-    },
-    resolved: true,
-    damageApplied,
-  };
+/** Clears the per-turn command tally on every Primal Beast bound to this ranger. */
+export function resetPrimalBeastCommands(state: CombatState, rangerId: string): CombatState {
+  const ranger = state.characters.find(character => character.id === rangerId);
+  if (!ranger) return state;
+
+  let changed = false;
+  const characters: CombatCharacter[] = state.characters.map(character => {
+    if (!isBoundPrimalBeast(character, rangerId)) return character;
+    if ((character.summonMetadata?.commandsUsedThisTurn ?? 0) === 0) return character;
+    changed = true;
+    const reset: CombatCharacter = {
+      ...character,
+      summonMetadata: {
+        ...(character.summonMetadata ?? {}),
+        casterId: character.summonMetadata?.casterId ?? rangerId,
+        spellId: character.summonMetadata?.spellId ?? PRIMAL_COMPANION_FEATURE_ID,
+        commandsUsedThisTurn: 0,
+      },
+    };
+    return reset;
+  });
+
+  return changed ? { ...state, characters } : state;
 }

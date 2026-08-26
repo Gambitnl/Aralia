@@ -22,11 +22,11 @@ links and initialize the modal.
 
 ## Primary file map
 
-- `src/components/Glossary/Glossary.tsx` — container modal, fetch lifecycle, open-to-term.
-- `GlossarySidebar.tsx`, `GlossaryEntryPanel.tsx`, `GlossaryEntryTemplate.tsx`, `GlossaryContentRenderer.tsx`, `FullEntryDisplay.tsx` — tree, panes, render + term links.
+- `src/components/Glossary/Glossary.tsx` - container modal, fetch lifecycle, open-to-term.
+- `GlossarySidebar.tsx`, `GlossaryEntryPanel.tsx`, `GlossaryEntryTemplate.tsx`, `GlossaryContentRenderer.tsx`, `FullEntryDisplay.tsx` - tree, panes, render + term links.
 - `hooks/useGlossarySearch.ts`, `hooks/useGlossaryModal.ts`, `hooks/useGlossaryKeyboardNav.ts`.
-- `spellGateChecker/*` — spell checks and issue summaries invoked from `Glossary.tsx`.
-- `glossaryRuleChapters.ts` — chapter wrappers for rule navigation.
+- `spellGateChecker/*` - spell checks and issue summaries invoked from `Glossary.tsx`.
+- `glossaryRuleChapters.ts` - chapter wrappers for rule navigation.
 - Data provider: `src/context/GlossaryContext.tsx` (reads `public/data/glossary_bundle.json`), `AppProviders.tsx`, `DataLoaderGate.tsx`, `GameModals.tsx`.
 
 ## Decision on record (D18, 2026-06-10, Remy)

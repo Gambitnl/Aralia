@@ -5,6 +5,23 @@
  * Defines all class data for the Aralia RPG.
  */
 import { Class as CharClass, FightingStyle, SelectableClass } from '../../types/index.js';
+import { SUBCLASSES } from './subclasses.js';
+// Per-class spell lists are GENERATED from the `classes` array inside every
+// spell JSON under public/data/spells, so a new spell reaches its class without
+// a second hand edit here. Regenerate with:
+//   node scripts/generate-class-spell-lists.mjs
+// Staleness fails `npm run validate:class-spell-lists`.
+import {
+  ARTIFICER_SPELL_LIST,
+  BARD_SPELL_LIST,
+  CLERIC_SPELL_LIST,
+  DRUID_SPELL_LIST,
+  PALADIN_SPELL_LIST,
+  RANGER_SPELL_LIST,
+  SORCERER_SPELL_LIST,
+  WARLOCK_SPELL_LIST,
+  WIZARD_SPELL_LIST,
+} from './spellLists.generated.js';
 
 const FIGHTING_STYLES_DATA: Record<string, FightingStyle> = {
   'archery': { id: 'archery', name: 'Archery', description: '+2 bonus to attack rolls with ranged weapons.', levelAvailable: 1 },
@@ -15,85 +32,6 @@ const FIGHTING_STYLES_DATA: Record<string, FightingStyle> = {
   'druidic_warrior': { id: 'druidic_warrior', name: 'Druidic Warrior', description: 'You learn two cantrips of your choice from the druid spell list. Wisdom is your spellcasting ability for them.', levelAvailable: 1 }
 };
 
-const BARD_SPELL_LIST = [
-  // Cantrips
-  'blade-ward', 'dancing-lights', 'friends', 'light', 'mage-hand', 'mending', 'message', 'minor-illusion', 'prestidigitation', 'starry-wisp', 'thunderclap', 'true-strike', 'vicious-mockery',
-  // Level 1
-  'animal-friendship', 'bane', 'charm-person', 'color-spray', 'command', 'comprehend-languages', 'cure-wounds', 'detect-magic', 'disguise-self', 'dissonant-whispers', 'faerie-fire', 'feather-fall', 'healing-word', 'heroism', 'identify', 'illusory-script', 'longstrider', 'silent-image', 'sleep', 'speak-with-animals', 'tashas-hideous-laughter', 'thunderwave', 'unseen-servant',
-  // Level 3
-  'nondetection',
-];
-const CLERIC_SPELL_LIST = [
-  // Cantrips (Level 0)
-  'guidance', 'light', 'mending', 'resistance', 'sacred-flame', 'spare-the-dying', 'thaumaturgy', 'toll-the-dead', 'word-of-radiance',
-  // Level 1
-  'bane', 'bless', 'command', 'create-or-destroy-water', 'cure-wounds', 'detect-evil-and-good', 'detect-magic', 'detect-poison-and-disease', 'guiding-bolt', 'healing-word', 'inflict-wounds', 'protection-from-evil-and-good', 'purify-food-and-drink', 'sanctuary', 'shield-of-faith',
-  // Level 3
-  'nondetection',
-];
-// TODO: Automate generation of these spell lists from spell JSON 'classes' fields to prevent sync drift.
-const DRUID_SPELL_LIST = [
-  // Cantrips
-  'druidcraft', 'elementalism', 'frostbite', 'guidance', 'magic-stone', 'mending', 'message', 'poison-spray', 'produce-flame', 'resistance', 'shape-water', 'shillelagh', 'spare-the-dying', 'starry-wisp', 'thorn-whip', 'thunderclap',
-  // Level 1
-  'animal-friendship', 'charm-person', 'create-or-destroy-water', 'cure-wounds', 'detect-magic', 'detect-poison-and-disease', 'entangle', 'faerie-fire', 'fog-cloud', 'goodberry', 'healing-word', 'ice-knife', 'jump', 'longstrider', 'protection-from-evil-and-good', 'purify-food-and-drink', 'speak-with-animals', 'thunderwave'
-];
-const PALADIN_SPELL_LIST = [
-  // Level 1
-  'bless', 'command', 'cure-wounds', 'detect-evil-and-good', 'detect-magic', 'divine-favor', 'heroism', 'protection-from-evil-and-good', 'shield-of-faith', 'speak-with-animals',
-  // Level 3
-  'nondetection',
-];
-const RANGER_SPELL_LIST = [
-  // Level 1
-  'alarm', 'animal-friendship', 'cure-wounds', 'detect-magic', 'detect-poison-and-disease', 'ensnaring-strike', 'entangle', 'fog-cloud', 'goodberry', 'hail-of-thorns', 'hunters-mark', 'jump', 'longstrider', 'speak-with-animals',
-  // Level 3
-  'nondetection',
-];
-const SORCERER_SPELL_LIST = [
-  // Cantrips
-  'acid-splash', 'elementalism', 'fire-bolt', 'friends', 'frostbite', 'light', 'mage-hand', 'mending', 'message', 'poison-spray', 'prestidigitation', 'ray-of-frost', 'shape-water', 'shocking-grasp', 'sword-burst', 'thunderclap',
-  // Level 1
-  'burning-hands', 'charm-person', 'color-spray', 'detect-magic', 'disguise-self', 'expeditious-retreat', 'false-life', 'feather-fall', 'fog-cloud', 'jump', 'mage-armor', 'magic-missile', 'shield', 'sleep', 'thunderwave',
-  // Level 2
-  'levitate'
-];
-const WARLOCK_SPELL_LIST = [
-  // Cantrips
-  'blade-ward', 'chill-touch', 'eldritch-blast', 'friends', 'frostbite', 'mage-hand', 'magic-stone', 'mind-sliver', 'minor-illusion', 'poison-spray', 'prestidigitation', 'sword-burst', 'thunderclap', 'toll-the-dead', 'true-strike',
-  // Level 1
-  'armor-of-agathys', 'arms-of-hadar', 'bane', 'charm-person', 'comprehend-languages', 'detect-magic', 'expeditious-retreat', 'hellish-rebuke', 'hex', 'illusory-script', 'protection-from-evil-and-good', 'speak-with-animals', 'tashas-hideous-laughter', 'unseen-servant', 'witch-bolt',
-  // Level 3
-  'nondetection',
-];
-const WIZARD_SPELL_LIST = [
-  // Cantrips
-  'acid-splash', 'chill-touch', 'dancing-lights', 'elementalism', 'fire-bolt', 'friends', 'frostbite', 'light', 'mage-hand',
-  'mending', 'message', 'minor-illusion', 'poison-spray', 'prestidigitation',
-  'ray-of-frost', 'shape-water', 'shocking-grasp', 'sword-burst', 'thunderclap', 'true-strike', 'toll-the-dead',
-  // Level 1
-  'alarm', 'burning-hands', 'charm-person', 'color-spray', 'comprehend-languages',
-  'detect-magic', 'disguise-self', 'expeditious-retreat', 'false-life',
-  'feather-fall', 'find-familiar', 'fog-cloud', 'grease', 'identify',
-  'illusory-script', 'jump', 'longstrider', 'mage-armor', 'magic-missile',
-  'protection-from-evil-and-good', 'shield', 'silent-image', 'sleep', 'thunderwave',
-  'unseen-servant',
-  // Level 2
-  'levitate',
-  // Level 3
-  'nondetection',
-];
-const ARTIFICER_SPELL_LIST = [
-  'acid-splash', 'dancing-lights', 'fire-bolt', 'frostbite', 'guidance', 'light', 'mage-hand',
-  'magic-stone', 'mending', 'message', 'poison-spray', 'prestidigitation', 'ray-of-frost',
-  'resistance', 'shocking-grasp', 'spare-the-dying', 'sword-burst', 'thorn-whip', 'thunderclap', 'alarm',
-  'cure-wounds', 'detect-magic', 'disguise-self', 'expeditious-retreat', 'faerie-fire',
-  'false-life', 'feather-fall', 'grease', 'identify', 'jump', 'longstrider',
-  'sanctuary', 'snare', 'tashas-caustic-brew', 'catapult', 'absorb-elements',
-  'purify-food-and-drink',
-  // Level 2
-  'levitate'
-];
 
 
 export const CLASSES_DATA: Record<string, CharClass> = {
@@ -254,7 +192,12 @@ export const CLASSES_DATA: Record<string, CharClass> = {
     skillProficienciesAvailable: ['arcana', 'deception', 'history', 'intimidation', 'investigation', 'nature', 'religion'],
     numberOfSkillProficiencies: 2,
     armorProficiencies: ['Light armor'], weaponProficiencies: ['Simple weapons'],
-    warlockPatrons: [], // Patrons chosen at level 3, so empty at level 1
+    // The patrons a warlock can swear to. WHEN the choice is made is the
+    // rules-edition question (level 1 under the 2014 PHB, level 3 under 2024),
+    // answered by getSubclassLevel in src/config/rulesEdition.ts — so the
+    // options themselves are listed here unconditionally, sourced from the
+    // same SUBCLASSES table the level-3 path uses.
+    warlockPatrons: (SUBCLASSES.warlock ?? []).map(({ id, name, description }) => ({ id, name, description })),
     features: [{ id: 'pact_magic', name: 'Pact Magic', description: 'Your arcane research and the magic bestowed on you by your patron have given you facility with spells.', levelAvailable: 1 }],
     spellcasting: { ability: 'Charisma', knownCantrips: 2, knownSpellsL1: 2, spellList: WARLOCK_SPELL_LIST },
     statRecommendationFocus: ['Charisma', 'Constitution', 'Dexterity'],

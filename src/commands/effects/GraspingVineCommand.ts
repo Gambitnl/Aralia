@@ -33,7 +33,8 @@ import type { ActionCombatLogData, ActiveSpellForce, CombatCharacter, CombatStat
 import type { DamageEffect, MovementEffect, SpellEffect, StatusConditionEffect } from '@/types/spells'
 import { isDamageEffect } from '@/types/spells'
 import { calculateProficiencyBonus, getAbilityModifierValue } from '@/utils/character'
-import { generateId, resolveAttack, rollD20 } from '@/utils/combat'
+import { generateId, resolveAttack } from '@/utils/combat';
+import { rollD20 } from '@/systems/dice/rollers';
 import { DamageCommand } from './DamageCommand'
 import { MovementCommand } from './MovementCommand'
 import { StatusConditionCommand } from './StatusConditionCommand'

@@ -13,8 +13,11 @@
  *   fit <id>                    pack-skeleton fit with landmark override ->
  *                               <id>.packrig.glb + overlay renders
  *   gate <id|glb>               measured checks -> gate.json (pass/fail)
+ *   sheet <catalogId>           five live Part Lab captures -> contact-sheet.png
  *
  * Run: node tools/rigbench/rigbench.mjs <stage> ...
+ * `sheet` needs the shared Vite dev server up; point it elsewhere with
+ * CAPTURE_ORIGIN (scheme://host:port) or CAPTURE_BASE (full page URL).
  */
 import { spawnSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
@@ -23,6 +26,14 @@ import path from 'node:path';
 const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname.replace(/^\/(?=[A-Za-z]:)/, '')), '..', '..');
 const BENCH = path.join(ROOT, '.agent', 'rigbench');
 const BLENDER_DIR = path.join(ROOT, 'tools', 'blender');
+/**
+ * Tracked home for finished annotation passes (`<id>.2d.json`). The bench
+ * WORKSPACE lives under `.agent/`, which is gitignored whole, so an annotation
+ * left there is one `rm -rf .agent` from gone. `solve` reads the workspace copy
+ * when there is one and this library otherwise, and promotes a workspace copy
+ * into the library after a successful read.
+ */
+const LM_LIB = path.join(ROOT, 'tools', 'rigbench', 'landmarks');
 
 function findBlender() {
   if (process.env.BLENDER_EXE) {
@@ -88,10 +99,33 @@ if (stage === 'intake') {
 } else if (stage === 'solve') {
   const id = rest[0];
   const dir = workspace(id);
+  // An annotation pass is EXPENSIVE (a human or a vision model reading two
+  // ortho renders joint by joint) and the workspace it lands in is under
+  // `.agent/`, which .gitignore drops whole. So a finished pass is kept in the
+  // tracked library beside this tool and a workspace with no annotation falls
+  // back to it: a fresh clone, or a wiped `.agent/`, can re-run intake ->
+  // render -> solve -> fit and get the SAME rig instead of the heuristic one
+  // (agora-a593). The workspace copy still wins, so re-annotating is just
+  // editing the file the renders sit next to.
   const lm2dPath = path.join(dir, 'landmarks.2d.json');
-  if (!existsSync(lm2dPath)) throw new Error(`rigbench solve: missing ${lm2dPath} — annotate the renders first`);
+  const libPath = path.join(LM_LIB, `${id}.2d.json`);
+  const srcPath = existsSync(lm2dPath) ? lm2dPath : libPath;
+  if (!existsSync(srcPath)) {
+    throw new Error(`rigbench solve: no annotation for "${id}" — expected ${lm2dPath} (annotate the renders first) or ${libPath}`);
+  }
+  console.log(`rigbench solve: landmarks from ${srcPath === libPath ? 'the tracked library' : 'the workspace'} — ${srcPath}`);
   const cams = JSON.parse(readFileSync(path.join(dir, 'cameras.json'), 'utf8'));
-  const lm2d = JSON.parse(readFileSync(lm2dPath, 'utf8'));
+  const lm2d = JSON.parse(readFileSync(srcPath, 'utf8'));
+  // Promote a workspace annotation into the library, so the pass survives the
+  // workspace. Only writes when the content actually differs.
+  if (srcPath === lm2dPath) {
+    const body = readFileSync(lm2dPath, 'utf8');
+    if (!existsSync(libPath) || readFileSync(libPath, 'utf8') !== body) {
+      mkdirSync(LM_LIB, { recursive: true });
+      writeFileSync(libPath, body);
+      console.log(`rigbench solve: saved the annotation to ${libPath}`);
+    }
+  }
 
   const project = (view, px, py) => {
     const c = cams[view];
@@ -156,41 +190,63 @@ if (stage === 'intake') {
   const target = rest[0];
   const glb = existsSync(target) ? target : path.join(workspace(target), `${target}.packrig.glb`);
   const { runGate } = await import('./gate.mjs');
-  const result = runGate(glb);
+  // Gating a WORKSPACE id: the intake already measured whether this body has
+  // a head, so hand the gate that answer instead of letting it re-derive one
+  // (agora-ceb7). A bare GLB path has no intake report — the gate measures it.
+  const opts = {};
+  if (!existsSync(target)) {
+    const intakePath = path.join(workspace(target), 'intake.json');
+    if (existsSync(intakePath)) opts.headless = JSON.parse(readFileSync(intakePath, 'utf8')).headless === true;
+  }
+  const result = runGate(glb, opts);
+  console.log(`rigbench gate: ${path.basename(glb)} — ${result.family} skeleton${result.headless ? ', headless body' : ''}`);
   for (const c of result.checks) console.log(`${c.pass ? 'PASS' : 'FAIL'}  ${c.name.padEnd(20)} ${c.detail}`);
   const outPath = existsSync(target) ? glb.replace(/\.glb$/i, '.gate.json') : path.join(workspace(target), 'gate.json');
   writeFileSync(outPath, JSON.stringify(result, null, 1));
   console.log(`rigbench: ${result.pass ? 'GATE PASSED' : 'GATE FAILED'} -> ${outPath}`);
   if (!result.pass) process.exitCode = 1;
 } else if (stage === 'sheet') {
-  // one PNG per body: bind pose, three frozen clips, and the weight map,
-  // captured from the live Part Lab (:3000) with headless system Chrome
+  // One contact PNG per body: bind pose, three frozen clips, and the weight
+  // map, captured from the LIVE Part Lab.
+  //
+  // 2026-09-09 (agora-a593): this stage used to launch its own Playwright
+  // browser against a hard-coded http://localhost:3000 and read pixels with
+  // `locator.screenshot()`. Both are wrong here. :3000 is dead — the shared
+  // dev server is :5174 — and an element screenshot on an animating R3F scene
+  // photographs a stale compositor surface (often the clear color). Every one
+  // of those traps is already solved in the shared capture helper, so the
+  // stage now goes through it: system Chrome with the GPU args stripped, a
+  // preserveDrawingBuffer shim installed at getContext time, an explicit
+  // renderer.render() + canvas.toDataURL() read, and a liveness nonce that
+  // catches an HMR reload mid-capture. Origin comes from CAPTURE_ORIGIN /
+  // CAPTURE_BASE (default 127.0.0.1:5174), so the sheet follows the dev server
+  // instead of being re-pinned by hand every time the port moves.
   const id = rest[0];
   const dir = path.join(BENCH, id, 'sheet');
   mkdirSync(dir, { recursive: true });
-  const { chromium } = await import('playwright');
-  const base = `http://localhost:3000/Aralia/misc/design.html?step=partlab&race=hill_dwarf&class=fighter&seed=1&ink=0&body=${id}`;
+  const cap = await import('../entities3d/capture/captureLib.mjs');
+  const base = `${cap.baseUrl()}?step=partlab&race=hill_dwarf&class=fighter&seed=1&ink=0&body=${id}`;
   const shots = [
     ['rest', '&pose=rest&bones=1'],
     ['idle', '&pose=pack%3AIdle_A&t=0.5'],
     ['walk', '&pose=pack%3AWalk&t=0.3'],
+    // Greeting, not a second Walk frame: the Walk clip's finger tracks are
+    // constant (agora-ff56), so a hand only ever articulates on Greeting.
     ['greeting', '&pose=pack%3AGreeting&t=0.5'],
     ['weights', '&pose=rest&skin=weights'],
   ];
-  const browser = await chromium.launch({ headless: true, executablePath: 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe' });
+  const { browser, context } = await cap.launchCaptureBrowser({ width: 1100, height: 900 });
   try {
-    const page = await browser.newPage({ viewport: { width: 1100, height: 900 } });
+    const { page, errors } = await cap.newCapturePage(context);
     for (const [label, extra] of shots) {
-      await page.goto(base + extra, { waitUntil: 'domcontentloaded', timeout: 45000 });
-      await page.waitForTimeout(9000);
-      await page.evaluate(() => {
-        const style = document.createElement('style');
-        style.textContent = '*{visibility:hidden!important} canvas{visibility:visible!important}';
-        document.head.appendChild(style);
-      });
-      await page.waitForTimeout(300);
-      await page.locator('canvas').first().screenshot({ path: path.join(dir, `${label}.png`), timeout: 20000 });
-      console.log(`rigbench sheet: shot ${label}`);
+      const nonce = await cap.gotoScene(page, base + extra, { hook: 'window.__partlab && window.__partlab.gl', settleMs: 6000 });
+      await cap.assertLive(page, nonce);
+      const ink = await cap.inkFraction(page);
+      cap.writePng(path.join(dir, `${label}.png`), await cap.grabCanvasPng(page));
+      // An empty capture is the failure this stage used to hide behind a
+      // black PNG, so it is reported as a NUMBER on every shot.
+      console.log(`rigbench sheet: shot ${label} (ink ${(ink * 100).toFixed(1)}%)`);
+      if (ink < 0.02) console.log(`rigbench sheet: WARNING — ${label} is nearly empty; page errors: ${errors.slice(-3).join(' | ') || 'none'}`);
     }
   } finally {
     await browser.close();

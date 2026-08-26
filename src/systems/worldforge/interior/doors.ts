@@ -60,11 +60,13 @@ const SCORE_THROUGH_PRIVATE = 500;
  *  ≥ 2). Cheaper than spoiling a fresh one: unavoidable through-traffic
  *  concentrates on as few private rooms as possible. */
 const SCORE_THROUGH_SPOILED_PRIVATE = 300;
-/** Attaching a private room at all — deferred until the public tree is
+/** Attaching a private room at all — delayed in sequence until the public tree is
  *  built, so private rooms land in leaf positions, not on trunk paths. */
 const SCORE_INTO_PRIVATE = 50;
 /** Reaching a private room from a non-corridor (corridors are the ideal feeder). */
 const SCORE_PRIVATE_OFF_CORRIDOR = 10;
+/** Public guest access should not depend on walking through a working kitchen. */
+const SCORE_THROUGH_KITCHEN = 200;
 
 /** A candidate door position: midpoint of one shared cell edge, in feet. */
 interface EdgeSite { x: number; y: number; axis: 'x' | 'y'; }
@@ -196,6 +198,10 @@ export function wireDoors(
   /** Score of adding tree edge from in-tree room `u` to new room `v`. */
   const edgeScore = (u: number, v: number): number => {
     let s = 0;
+    // Attach the kitchen normally, but extend circulation from the hall or
+    // corridor first. A kitchen passage remains legal only when geometry
+    // offers no other way to connect the floor, preserving reachability.
+    if (roomById.get(u)?.purpose === 'kitchen') s += SCORE_THROUGH_KITCHEN;
     if ((isPrivate(u) && isMainRoom(v)) || (isMainRoom(u) && isPrivate(v))) {
       s += SCORE_PRIVATE_MAIN;
     }

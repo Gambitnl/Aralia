@@ -14,8 +14,8 @@
 /**
  * @file MainMenu.tsx
  * This component renders the main menu screen for the Aralia RPG.
- * It provides options to start a new game, load a saved game (placeholder),
- * and view a game compendium (placeholder).
+ * It provides options to start a new game, load a saved game (via LoadGameModal),
+ * and view the game compendium (via Glossary).
  *
  * The 2026-03-25 change removes the standalone "Quick Start (Dev)" button from the
  * main menu and folds that action into the shared Dev Menu modal instead. This keeps
@@ -29,6 +29,7 @@
  * the existing destructive-action safeguards without making cramped players hunt
  * for Confirm and Cancel below the fold.
  */
+import type { RulesEdition } from '../../config/rulesEdition';
 import React from 'react';
 interface MainMenuProps {
     onNewGame: () => void;
@@ -48,6 +49,10 @@ interface MainMenuProps {
     onOpenWorldGeneration?: () => void;
     isWorldGenerationLocked?: boolean;
     worldGenerationLockedReason?: string | null;
+    rulesEdition?: RulesEdition;
+    allowSaveScum?: boolean;
+    onCycleRulesEdition?: () => void;
+    onToggleSaveScum?: () => void;
 }
 /**
  * MainMenu component.

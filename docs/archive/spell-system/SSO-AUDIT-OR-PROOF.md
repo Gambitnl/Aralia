@@ -1,6 +1,6 @@
-> **ARCHIVED 2026-07-01 — SSO historical evidence log (formerly `docs/tasks/spell-system-overhaul/AUDIT_OR_PROOF.md`).**
+> **ARCHIVED 2026-07-01 - SSO historical evidence log (formerly `docs/tasks/spell-system-overhaul/AUDIT_OR_PROOF.md`).**
 > A 2,800-line append-only verification log whose last substantive entry is 2026-06-01; later proofs
-> landed in the child lanes. It honestly marks unexecuted tests — treat "not run" claims as of their
+> landed in the child lanes. It honestly marks unexecuted tests - treat "not run" claims as of their
 > entry dates. Live obligations live in TRACKER and the child lanes under
 > `docs/projects/spells/subprojects/`; start from `docs/projects/spells/SUBPROJECTS.md`.
 
@@ -1334,7 +1334,7 @@ Limits:
 ## 2026-06-01 - Evidence note: execution split status refresh
 
 Question investigated:
-- Is `SSO-EXECUTION-SPLIT-001` still accurately described as “`SpellExecutor` missing and `useAbilitySystem` still relies on legacy factory inference”?
+- Is `SSO-EXECUTION-SPLIT-001` still accurately described as "`SpellExecutor` missing and `useAbilitySystem` still relies on legacy factory inference"?
 
 Finding:
 - The old wording is too broad for current combat execution.

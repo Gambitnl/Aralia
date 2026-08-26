@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
+import { ItemType } from '../../../types';
 import { OpportunityAttackSystem } from '../reactions/OpportunityAttackSystem';
 import { createMockCombatCharacter, createMockItem } from '@/utils/core';
 import { canTakeReaction } from '@/utils/combat';
@@ -34,7 +35,7 @@ describe('OpportunityAttackSystem and Reaction Rules', () => {
       id: `${id}_weapon`,
       name: id,
       description: range === 2 ? 'A reach weapon' : 'A melee weapon',
-      type: 'weapon',
+      type: ItemType.Weapon,
       properties: range === 2 ? ['reach'] : []
     }),
     isProficient: true,
@@ -134,7 +135,7 @@ describe('OpportunityAttackSystem and Reaction Rules', () => {
         id: 'melee_weapon',
         name: 'Melee Weapon',
         description: 'A simple melee weapon',
-        type: 'weapon'
+        type: ItemType.Weapon
       }), isProficient: true,
       // This fixture uses the combat Ability TargetingType string; spell target-filter objects do not type-check here.
       effects: [{ type: 'damage', value: 1, damageType: 'slashing' }],
@@ -167,7 +168,7 @@ describe('OpportunityAttackSystem and Reaction Rules', () => {
         id: 'melee_weapon',
         name: 'Melee Weapon',
         description: 'A simple melee weapon',
-        type: 'weapon'
+        type: ItemType.Weapon
       }), isProficient: true,
       // This fixture uses the combat Ability TargetingType string; spell target-filter objects do not type-check here.
       effects: [{ type: 'damage', value: 1, damageType: 'slashing' }],

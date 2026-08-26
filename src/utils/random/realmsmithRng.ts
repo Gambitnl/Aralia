@@ -110,14 +110,16 @@ export class NoiseGenerator {
         const A = this.perm[X] + Y;
         const B = this.perm[X + 1] + Y;
 
-        // Calculate dot products of gradients
+        // Dot products of the four lattice-corner gradients:
+        // aa = (0,0) at perm[A], ba = (1,0) at perm[B],
+        // ab = (0,1) at perm[A + 1], bb = (1,1) at perm[B + 1].
         const aa = this.grad(this.perm[A], x, y);
-        const ab = this.grad(this.perm[B], x - 1, y);
-        const ba = this.grad(this.perm[B], x, y - 1);
+        const ba = this.grad(this.perm[B], x - 1, y);
+        const ab = this.grad(this.perm[A + 1], x, y - 1);
         const bb = this.grad(this.perm[B + 1], x - 1, y - 1);
 
         // Interpolate
-        const val = this.lerp(v, this.lerp(u, aa, ab), this.lerp(u, ba, bb));
+        const val = this.lerp(v, this.lerp(u, aa, ba), this.lerp(u, ab, bb));
 
         // Normalize to approx [0, 1] (Perlin returns approx [-1, 1])
         return (val + 1) / 2;

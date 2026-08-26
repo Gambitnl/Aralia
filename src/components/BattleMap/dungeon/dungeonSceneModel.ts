@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 04/08/2026, 01:52:45
+ * Last Sync: 09/09/2026, 09:57:05
  * Dependents: components/BattleMap/dungeon/Dungeon3DPreview.tsx
  * Imports: 1 files
  *
@@ -128,6 +128,13 @@ export interface DungeonSceneModel {
   architectureCones: DungeonSceneInstance[];
   architectureSpheres: DungeonSceneInstance[];
   architectureOctahedrons: DungeonSceneInstance[];
+  /**
+   * Small unlit atmosphere motes: cavern spores, frost snow, crypt dust.
+   *
+   * They are a separate batch because they are the only theme geometry that must render
+   * emissively and ignore the scene lights. One extra instanced draw covers all three themes.
+   */
+  themeMotes: DungeonSceneInstance[];
   liquids: DungeonSceneInstance[];
   doors: DungeonSceneDoor[];
   lowProps: DungeonSceneInstance[];
@@ -152,6 +159,82 @@ export interface DungeonSceneModel {
     roomId?: number;
     roomPurpose?: RoomPurpose;
   }>;
+}
+
+/**
+ * Per-theme lighting recipe.
+ *
+ * WHY: before this table every theme rendered with the same hardcoded ambient/hemisphere/sun
+ * intensities and the same torch strength, so only the palette hues separated crypt from cavern
+ * from frost. Colour alone is not an atmosphere: a bioluminescent cavern has to be ambient-lit
+ * and dim-keyed, while a snowfield is high-ambient and low-torch. Intensities now travel with the
+ * palette so the renderer keeps zero theme knowledge.
+ *
+ * PRESERVED: the previous constants remain the crypt row, so crypt renders as it did apart from
+ * the shadow-caster cap described on shadowCasters.
+ */
+export interface DungeonThemeLighting {
+  /** Flat fill for the whole plan. High for glow-lit themes, low for torch-lit ones. */
+  ambientIntensity: number;
+  /** Sky/ground wrap that keeps unlit wall faces from crushing to pure black. */
+  hemisphereIntensity: number;
+  /** Soft directional key giving walls and props form. */
+  sunIntensity: number;
+  /** Point-light strength for each selected torch. */
+  torchIntensity: number;
+  /** Point-light falloff radius in scene cells (one cell = five feet). */
+  torchDistance: number;
+  /**
+   * How many of the selected torches also render a shadow cube map.
+   *
+   * WHY: every shadow-casting point light costs six full scene passes. With all ten torches
+   * casting, a 28-room crypt issued 5,267 draw calls and 13.6M triangles per frame. The nearest
+   * few torches carry effectively all of the perceived contact shadowing, so the rest stay
+   * shadowless. Lights themselves are unchanged; only the shadow pass is budgeted.
+   */
+  shadowCasters: number;
+  /** Multiplier on the footprint-derived exponential fog density. */
+  fogMultiplier: number;
+}
+
+/**
+ * Theme lighting table. Named per the art direction each theme is meant to communicate.
+ */
+export const DUNGEON_3D_LIGHTING: Record<DungeonTheme, DungeonThemeLighting> = {
+  // Dim amber torchlight: the torches are the scene, so ambient stays low and the pools stay hot.
+  crypt: {
+    ambientIntensity: 1.0, hemisphereIntensity: 1.25, sunIntensity: 1.2,
+    torchIntensity: 26, torchDistance: 12, shadowCasters: 3, fogMultiplier: 1.18,
+  },
+  // Bioluminescent blue-green glow: the rock itself emits, so ambient carries the room and the
+  // warm torches are secondary. A weaker key keeps the light feeling like it comes from below.
+  cavern: {
+    ambientIntensity: 1.85, hemisphereIntensity: 1.55, sunIntensity: 0.62,
+    // shadowCasters is 1 here, not 2: the cavern raises a rounded rock mass on every
+    // boundary wall cell, so it carries ~5x the per-pass triangle load of crypt or frost
+    // (4.97M vs 1.02M measured). It is also the theme whose light is ambient-dominant, so a
+    // dropped shadow map costs the least visually and buys the most frame time.
+    torchIntensity: 17, torchDistance: 10, shadowCasters: 1, fogMultiplier: 1.42,
+  },
+  // Cold blue-white: snow bounces light everywhere, so ambient and key are both high and the
+  // torches barely compete. Thinner fog keeps the long icy sightlines readable.
+  frost: {
+    ambientIntensity: 1.65, hemisphereIntensity: 1.7, sunIntensity: 1.75,
+    torchIntensity: 14, torchDistance: 9, shadowCasters: 3, fogMultiplier: 0.92,
+  },
+  // Sewer and fungal keep the historic crypt-shaped budget until they get their own art pass.
+  sewer: {
+    ambientIntensity: 1.05, hemisphereIntensity: 1.25, sunIntensity: 1.1,
+    torchIntensity: 24, torchDistance: 12, shadowCasters: 3, fogMultiplier: 1.24,
+  },
+  fungal: {
+    ambientIntensity: 1.6, hemisphereIntensity: 1.35, sunIntensity: 0.75,
+    torchIntensity: 20, torchDistance: 11, shadowCasters: 2, fogMultiplier: 1.3,
+  },
+};
+
+export function dungeonThemeLighting(theme: DungeonTheme): DungeonThemeLighting {
+  return DUNGEON_3D_LIGHTING[theme];
 }
 
 export interface DungeonSceneOptions {
@@ -559,6 +642,68 @@ function selectAccentLights(candidates: DungeonSceneInstance[], color: string): 
     roomId: light.roomId,
     roomPurpose: light.roomPurpose,
   }));
+}
+
+/** Damp-stone green used only to tint a deterministic subset of crypt wall instances. */
+const CRYPT_MOSS = '#4a6b3c';
+
+/**
+ * Per-theme atmosphere motes.
+ *
+ * Each theme gets a different suspended particulate: bioluminescent spores drifting in a
+ * cavern, snow falling through a frost hall, dust hanging in crypt torchlight. They are drawn
+ * from the already-built floor batch, so a mote can never appear inside rock, and their heights
+ * come from the same deterministic coordinate noise as the rest of the scene. Sewer and fungal
+ * return an empty field until they get their own art pass rather than borrowing a wrong one.
+ */
+function buildThemeMotes(
+  plan: DungeonPlan,
+  palette: DungeonScenePalette,
+  floors: DungeonSceneInstance[],
+): DungeonSceneInstance[] {
+  const recipe = plan.params.theme === 'cavern'
+    ? { stride: 11, size: 0.075, minY: 0.7, spanY: 2.1, color: palette.accent }
+    : plan.params.theme === 'frost'
+      ? { stride: 5, size: 0.055, minY: 0.35, spanY: 3.4, color: '#eaf6ff' }
+      : plan.params.theme === 'crypt'
+        ? { stride: 23, size: 0.045, minY: 0.5, spanY: 1.6, color: mixColor(palette.flame, palette.wallCap, 0.5) }
+        : null;
+  if (!recipe) return [];
+
+  const motes: DungeonSceneInstance[] = [];
+  for (let index = 0; index < floors.length; index += recipe.stride) {
+    const floor = floors[index];
+    const jitterX = coordinateNoise(plan.seed, index, 0, 1301);
+    const jitterZ = coordinateNoise(plan.seed, 0, index, 1409);
+    const lift = coordinateNoise(plan.seed, index, index, 1511);
+    motes.push({
+      x: floor.x + (jitterX - 0.5) * 0.9,
+      y: recipe.minY + lift * recipe.spanY,
+      z: floor.z + (jitterZ - 0.5) * 0.9,
+      sx: recipe.size, sy: recipe.size, sz: recipe.size,
+      rotation: 0,
+      color: recipe.color,
+      detail: true,
+    });
+  }
+  return motes;
+}
+
+/**
+ * The colour the selected accent lights actually cast.
+ *
+ * WHY: every theme used palette.flame, so a bioluminescent cavern and a snowbound frost hall
+ * both pooled the same warm orange and read as a crypt with different walls. The emissive flame
+ * geometry keeps its own colour — only the light the room receives is retinted, which is the
+ * physically sensible reading anyway: in a glowing cave or an ice hall the torch is not the only
+ * emitter, and the surrounding surface glow dominates what the floor actually receives.
+ */
+function accentLightColor(theme: DungeonTheme, palette: DungeonScenePalette): string {
+  // Crypt is genuinely torch-only, so it keeps the unmixed flame.
+  if (theme === 'cavern') return mixColor(palette.flame, palette.accent, 0.74);
+  if (theme === 'frost') return mixColor(palette.flame, palette.accent, 0.62);
+  if (theme === 'fungal') return mixColor(palette.flame, palette.accent, 0.55);
+  return palette.flame;
 }
 
 function sceneBounds(instances: DungeonSceneInstance[]): DungeonSceneBounds {
@@ -1516,6 +1661,7 @@ export function buildDungeonSceneModel(plan: DungeonPlan, options: DungeonSceneO
         }
       } else if (cell === CellKind.Wall) {
         const noise = coordinateNoise(plan.seed, x, y, 211);
+        const mossNoise = coordinateNoise(plan.seed, x, y, 617);
         const boundary = wallBoundaryPlan(plan, x, y);
         const nearbyDepth = Math.max(
           0,
@@ -1543,7 +1689,11 @@ export function buildDungeonSceneModel(plan: DungeonPlan, options: DungeonSceneO
           sy: height,
           sz: boundary.touchesFloor ? 1.2 : 0.9,
           rotation: boundary.rotation,
-          color: mixColor(palette.wall, palette.wallCap, noise * 0.32),
+          // Crypt stone is damp: a deterministic band of exposed wall cells shifts toward moss
+          // green instead of the neutral wall/cap mix. Same instance, same batch, no extra cost.
+          color: plan.params.theme === 'crypt' && boundary.touchesFloor && mossNoise > 0.58
+            ? mixColor(mixColor(palette.wall, palette.wallCap, noise * 0.32), CRYPT_MOSS, (mossNoise - 0.58) * 0.72)
+            : mixColor(palette.wall, palette.wallCap, noise * 0.32),
         });
         wallCaps.push({
           // Caps inherit the same planned tangent, keeping rotated walls legible from the tactical
@@ -1589,6 +1739,24 @@ export function buildDungeonSceneModel(plan: DungeonPlan, options: DungeonSceneO
           });
         }
 
+        // Stalactites hang from the cavern roof over the floor cell each wall touches. An
+        // elongated octahedron is used rather than a cone because instance rotation here is
+        // yaw-only, so a downward cone is not expressible without an inverted scale (which would
+        // flip the winding and cull the whole spike). The bipyramid is symmetric and reads right.
+        if (plan.params.theme === 'cavern' && boundary.touchesFloor && noise > 0.34) {
+          const drop = 0.55 + noise * 1.25;
+          const overhang = localOffset(position, boundary.rotation, 0.62);
+          architectureOctahedrons.push({
+            ...overhang,
+            y: height + 0.55 - drop / 2,
+            sx: 0.2 + noise * 0.16,
+            sy: drop,
+            sz: 0.2 + noise * 0.16,
+            rotation: boundary.rotation,
+            color: mixColor(palette.wallCap, palette.accent, 0.2 + noise * 0.3),
+          });
+        }
+
         // Frost boundaries grow upward into irregular ice fins. These are structural vertical
         // forms rooted on real wall cells, not random floor decoration, so routes and identity stay
         // exact while the fortress stops reading as one flat blue tray.
@@ -1603,6 +1771,23 @@ export function buildDungeonSceneModel(plan: DungeonPlan, options: DungeonSceneO
             rotation: boundary.rotation,
             color: mixColor(palette.wallCap, palette.accent, 0.26 + noise * 0.34),
           });
+
+          // A small crystal cluster at the fin's foot spills onto the adjacent floor cell. The
+          // octahedron batch already carries the slightly metallic material, so these read as the
+          // theme's ice highlight without a new material or draw call.
+          const spill = coordinateNoise(plan.seed, x, y, 733);
+          if (spill > 0.42) {
+            const foot = localOffset(position, boundary.rotation, 0.58);
+            architectureOctahedrons.push({
+              ...foot,
+              y: 0.16 + spill * 0.26,
+              sx: 0.24 + spill * 0.2,
+              sy: 0.34 + spill * 0.52,
+              sz: 0.24 + spill * 0.2,
+              rotation: boundary.rotation + spill * 1.4,
+              color: mixColor(palette.accent, palette.wallCap, 0.24 + spill * 0.28),
+            });
+          }
         }
       }
     }
@@ -1819,6 +2004,7 @@ export function buildDungeonSceneModel(plan: DungeonPlan, options: DungeonSceneO
       label: 'Objective',
     },
   ];
+  const themeMotes = buildThemeMotes(plan, palette, floors);
   const bounds = sceneBounds([...floors, ...walls]);
 
   return {
@@ -1835,6 +2021,7 @@ export function buildDungeonSceneModel(plan: DungeonPlan, options: DungeonSceneO
     architectureCones,
     architectureSpheres,
     architectureOctahedrons,
+    themeMotes,
     liquids,
     doors,
     lowProps,
@@ -1851,6 +2038,6 @@ export function buildDungeonSceneModel(plan: DungeonPlan, options: DungeonSceneO
     spawnHalos,
     lines,
     markers,
-    lights: selectAccentLights(flames, palette.flame),
+    lights: selectAccentLights(flames, accentLightColor(plan.params.theme, palette)),
   };
 }

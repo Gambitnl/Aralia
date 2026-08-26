@@ -864,11 +864,34 @@ describe('solved roof parts (BGv2 Task 5)', () => {
       facade.every(
         (part) =>
           part.colorHex ===
-          dressingContrastTone(style.trimColor, style.wallColor),
+          dressingContrastTone(style.trimColor,
+            style.construction.wallMaterial === 'timber-plaster' ? '#eadcbd' : style.wallColor),
       ),
     ).toBe(true);
     expect(facade.some((part) => part.w > part.d)).toBe(true);
     expect(facade.some((part) => part.d > part.w)).toBe(true);
+  });
+
+  it('gives plain timber-plaster houses framing without covering their window apertures', () => {
+    const blueprint = styled();
+    blueprint.styleResolved = { ...blueprint.styleResolved!, facadePattern: 'plain',
+      construction: { ...blueprint.styleResolved!.construction, wallMaterial: 'timber-plaster' } };
+    const out = buildBlueprintParts(blueprint, 3.048, '#bca581', false);
+    const posts = out.parts.filter(p => p.tag === FACADE_PART_TAG && p.h > 2);
+    expect(posts.length).toBeGreaterThan(0);
+    const panes = out.parts.filter(p => p.lightRole === 'window');
+    expect(panes.length).toBeGreaterThan(0);
+    for (const post of posts) for (const pane of panes) {
+      const alongX = pane.w > pane.d;
+      if ((post.w > post.d) !== alongX) continue;
+      const normalDistance = Math.abs(alongX ? post.z - pane.z : post.x - pane.x);
+      if (normalDistance > 0.7) continue;
+      const overlapHeight = (post.baseY ?? 0) < (pane.baseY ?? 0) + pane.h
+        && (post.baseY ?? 0) + post.h > (pane.baseY ?? 0);
+      if (!overlapHeight) continue;
+      const alongDistance = Math.abs(alongX ? post.x - pane.x : post.z - pane.z);
+      expect(alongDistance).toBeGreaterThanOrEqual(((alongX ? post.w + pane.w : post.d + pane.d) / 2) - 0.001);
+    }
   });
 
   it('projects the resolved construction kit into material-tagged 3D evidence', () => {

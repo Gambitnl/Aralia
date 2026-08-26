@@ -1,4 +1,4 @@
-﻿# Acid Splash Scenarios
+# Acid Splash Scenarios
 
 Source references:
 - `docs/spells/reference/level-0/acid-splash.md`

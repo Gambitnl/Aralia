@@ -13,6 +13,8 @@ import {
   roadGateCandidates,
   segmentCross,
   TIER_WIDTH_RATIO,
+  polylineDeadEnds,
+  streetDeadEnds,
   type StreetNetworkInput,
   type TownStreet,
 } from '../townStreetNetwork';
@@ -270,5 +272,45 @@ describe('halfWidthByWardEdge', () => {
       { centerline: [[0, 0], [10, 0]], tier: 'avenue', role: 'approach', width: 22 },
     ], 0.01);
     expect(map.size).toBe(0);
+  });
+});
+
+describe('townStreetNetwork — terminal (dead-end) nodes', () => {
+  it('finds the tip of a stub and no node of a closed loop', () => {
+    const loop: Pt[][] = [[[0, 0], [10, 0]], [[10, 0], [10, 10]], [[10, 10], [0, 10]], [[0, 10], [0, 0]]];
+    expect(polylineDeadEnds(loop, 1e-6)).toEqual([]);
+    const withStub: Pt[][] = [...loop, [[10, 0], [18, 0]]];
+    const ends = polylineDeadEnds(withStub, 1e-6);
+    expect(ends).toHaveLength(1);
+    expect(ends[0].point).toEqual([18, 0]);
+    // The stub's heading points back up its own line, toward the junction.
+    expect(Math.cos(ends[0].inwardRad)).toBeCloseTo(-1, 6);
+    expect(ends[0].lineIndex).toBe(4);
+  });
+
+  it('reads a mid-polyline vertex as a junction, not an end', () => {
+    const ends = polylineDeadEnds([[[0, 0], [5, 0], [10, 0]]], 1e-6);
+    expect(ends.map((e) => e.point)).toEqual([[0, 0], [10, 0]]);
+  });
+
+  it('ignores the extramural approach, whose tip is the map edge', () => {
+    const streets: TownStreet[] = [
+      { centerline: [[0, 0], [10, 0]], tier: 'lane', role: 'ward', width: 4 },
+      { centerline: [[10, 0], [30, 0]], tier: 'avenue', role: 'approach', width: 8 },
+    ];
+    const ends = streetDeadEnds(streets, 1e-6);
+    expect(ends.map((e) => e.point)).toEqual([[0, 0], [10, 0]]);
+    for (const e of ends) expect(e.role).toBe('ward');
+  });
+
+  it('gives a generated town its lane ends, each carrying the street tier', () => {
+    const streets = buildStreetNetwork(makeInput());
+    const ends = streetDeadEnds(streets, 1e-6);
+    for (const e of ends) {
+      expect(e.role).not.toBe('approach');
+      expect(['plaza', 'avenue', 'street', 'lane']).toContain(e.tier);
+    }
+    // Deterministic: the same network yields the same ends, in the same order.
+    expect(streetDeadEnds(buildStreetNetwork(makeInput()), 1e-6)).toEqual(ends);
   });
 });

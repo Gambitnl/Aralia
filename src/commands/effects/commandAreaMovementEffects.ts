@@ -15,7 +15,7 @@
 // @dependencies-end
 
 import { CombatState, Position, StatusEffect } from '@/types/combat'
-import { rollDice } from '../../utils/combat'
+import { rollDice } from '../../systems/dice/rollers';
 import { generateId } from '../../utils/core'
 import {
     ActiveSpellZone,

@@ -73,7 +73,7 @@ repeatedly.
 
 **Surfaces need their own maintenance.** A judgment surface is code. It rots.
 A future task must evaluate staleness and drift across all preview surfaces,
-because a stale surface is worse than a missing one — a reader trusts it.
+because a stale surface is worse than a missing one - a reader trusts it.
 
 **Some judgments will be batched.** Fifteen material stacks are fifteen cut
 faces. They belong on one surface reviewed in one sitting, not fifteen asks.

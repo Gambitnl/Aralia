@@ -11,7 +11,8 @@ import { buildRacialTraitLibrary } from '../../../../../data/races';
 import type { RacialBreathWeapon, RacialFeatureTrait } from '../../../../../data/races/racialTraits';
 import { applyRacialSpellGrantsByLevel, resolveRacialResourceId } from '../../../../../utils/character/characterUtils';
 import { calculateSaveDamage, rollSavingThrow } from '../../../../../utils/character/savingThrowUtils';
-import { calculateDamage, createPlayerCombatCharacter, rollDice } from '../../../../../utils/combat/combatUtils';
+import { calculateDamage, createPlayerCombatCharacter } from '../../../../../utils/combat/combatUtils';
+import { rollDice } from '../../../../../systems/dice/rollers';
 import { canAffordActionCost, consumeActionCost, resetEconomy } from '../../../../../utils/combat/actionEconomyUtils';
 import { createQuickCharacter, createQuickCombatCharacter } from '../../../../../utils/sandbox/quickCharacterGenerator';
 import { Button } from '../../../../ui/Button';
@@ -284,10 +285,9 @@ function createCopperDragonbornActor(race: Race): {
     };
   }
 
-  // DEBT: Shared assembly currently reads the globally cached linked-text Race
-  // row, so this narrow adapter re-applies only parsed resistance, resource,
-  // and breath facts. The durable fix is shared link normalization in the
-  // racial library; the combat bridge remains authoritative here.
+  // Normalizing display links before caching in shared racial trait library is tracked in Agora task agora-1525.
+  // Shared assembly currently reads globally cached linked-text Race rows; this narrow adapter re-applies
+  // parsed resistance, resource, and breath facts while the combat bridge remains authoritative.
   const resourceMax = typeof resourceDefinition.maxUses === 'number'
     ? resourceDefinition.maxUses
     : parserAssembledCharacter.proficiencyBonus ?? 2;
@@ -322,9 +322,8 @@ function createCopperDragonbornActor(race: Race): {
     };
   }
 
-  // DEBT: The bridge does not preserve this racial limited-use entry on every
-  // path. Carry the parser-produced value across this boundary so the preview
-  // spends the same PB-scaled long-rest resource that assembly created.
+  // Preserving racial limited-use entries on the combat bridge is tracked in Agora task agora-0ad6.
+  // Carries the parser-produced value across this boundary so preview spends the PB-scaled long-rest resource.
   const actor = resetEconomy({
     ...generatedActor,
     id: COPPER_DRAGONBORN_ACTOR_ID,

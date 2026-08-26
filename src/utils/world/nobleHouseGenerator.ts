@@ -23,7 +23,7 @@
  */
 
 import { Faction, FactionRank } from '../../types/factions';
-import { NobleHouse, NobleMember, NobleRole } from '../../types/noble';
+import { Heraldry, NobleHouse, NobleMember, NobleRole } from '../../types/noble';
 import { Secret } from '../../types/identity';
 import { SeededRandom } from '../random/seededRandom';
 import { SecretGenerator } from '../../systems/intrigue/SecretGenerator';
@@ -149,8 +149,11 @@ const SPECIALTIES = [
   'Arcane Research', 'Banking', 'Livestock', 'Fishing', 'Logging', 'Smithing'
 ];
 
-const SIGILS = ['wolf', 'lion', 'tower', 'sword', 'shield', 'dragon', 'ship', 'tree', 'sun', 'moon', 'star', 'skull'];
-const PATTERNS = ['solid', 'party_per_pale', 'party_per_fess', 'quarterly', 'chevron', 'bend', 'saltire'];
+// Typed against the Heraldry contract so the compiler rejects a sigil or pattern
+// that the renderer cannot draw. Widening a table here now requires widening the
+// union in types/noble.ts, which is the intended coupling.
+const SIGILS: Heraldry['sigil'][] = ['wolf', 'lion', 'tower', 'sword', 'shield', 'dragon', 'ship', 'tree', 'sun', 'moon', 'star', 'skull'];
+const PATTERNS: Heraldry['pattern'][] = ['solid', 'party_per_pale', 'party_per_fess', 'quarterly', 'chevron', 'bend', 'saltire'];
 
 // -----------------------------------------------------------------------------
 // Generator Logic
@@ -220,14 +223,14 @@ function generateColors(rng: SeededRandom): { primary: string; secondary: string
   return { primary, secondary };
 }
 
-export function generateHeraldry(rng: SeededRandom): import('../../types/noble').Heraldry {
+export function generateHeraldry(rng: SeededRandom): Heraldry {
   const { primary, secondary } = generateColors(rng);
   // Ensure contrast? The seeded random naturally picks distinct ones in generateColors, but let's be safe visually.
   return {
     fieldColor: primary,
     chargeColor: secondary,
-    sigil: rng.pick(SIGILS) as any,
-    pattern: rng.pick(PATTERNS) as any
+    sigil: rng.pick(SIGILS),
+    pattern: rng.pick(PATTERNS)
   };
 }
 
