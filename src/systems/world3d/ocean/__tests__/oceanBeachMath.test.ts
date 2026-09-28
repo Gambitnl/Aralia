@@ -10,6 +10,7 @@ import { describe, expect, it } from 'vitest';
 import { Material } from '../../../worldforge/terrain/voxelVolume';
 import { SUBSTANCES } from '../../../worldforge/terrain/materials';
 import {
+  BEACH_MATCH_SWASH,
   BEACH_SAND,
   BeachClock,
   BeachDebris,
@@ -20,6 +21,7 @@ import {
   SWASH_TILE_N,
   buildSwashFoamTile,
   conductivity,
+  createBeachSim,
   equilibriumSaturation,
   stockdonRunup2,
   suction,
@@ -288,4 +290,26 @@ describe('the swash foam tile (round 2)', () => {
     expect(Array.from(again.slice(0, 4096))).toEqual(Array.from(tile.slice(0, 4096)));
     expect(SWASH_TILE_N).toBeGreaterThanOrEqual(256);
   });
+});
+
+describe("the match look's swash (round 16)", () => {
+  // The match runs the same sea with BEACH_MATCH_SWASH: a larger height at the
+  // grid's edge and a faster-draining sand. The default must be unchanged,
+  // and the match's ledger must close as the default's does.
+  const cascades = oceanSeaState('shallow');
+  it('leaves the default beach bit for bit unchanged, and closes its own ledger', () => {
+    const a = createBeachSim({ cascades, n: 64, seed: 7 });
+    const b = createBeachSim({ cascades, n: 64, seed: 7, match: undefined });
+    const m = createBeachSim({ cascades, n: 64, seed: 7, match: BEACH_MATCH_SWASH });
+    const v0 = m.field.sheetVolume() + m.field.soakedVolume();
+    a.clock.advanceTo(12); b.clock.advanceTo(12); m.clock.advanceTo(12);
+    expect(Array.from(b.field.h)).toEqual(Array.from(a.field.h));
+    const l = m.field.ledger;
+    const lhs = m.field.sheetVolume() + m.field.soakedVolume() - v0 + l.drained + l.evaporated;
+    expect(Math.abs(lhs - l.arrived)).toBeLessThan(1e-9 * Math.max(1, Math.abs(l.inflow)));
+    expect(l.clipped).toBe(0);
+    // A larger swash brings more water in, and the faster sand soaks more of it.
+    expect(l.inflow).toBeGreaterThan(a.field.ledger.inflow);
+    expect(l.infiltrated).toBeGreaterThan(a.field.ledger.infiltrated);
+  }, 120000);
 });

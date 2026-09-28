@@ -25,7 +25,8 @@
  * - HUDControlPanel: dropdown menu with "Open Map", "Exit to Menu"
  * - ViewModeToggle: switch between 3D/Atlas modes
  * - DebugHUD: dev-only technical readout (chunk count, FPS, coords, streamer
- *   stats) — hosted inside the "3D World View" title dropdown when dev mode is on
+ *   stats) — hosted inside the "3D World View" title dropdown when dev mode is on.
+ *   Its FPS comes from the shared performance session 'world3d', not a prop.
  * - Controls Hint: subtle bottom-center pill reminding players of WASD/hotkey controls
  */
 
@@ -49,8 +50,6 @@ interface InWorldHUDProps {
   worldGen?: WorldGenDiagnostics | null;
   /** Current chunk count loaded (for DebugHUD). */
   chunkCount?: number;
-  /** FPS counter value (for DebugHUD). */
-  fps?: number;
   /** Player world position (for DebugHUD and minimap). */
   playerPos?: PlayerWorldPosition | null;
   /** Streamer stats (for DebugHUD). */
@@ -196,7 +195,6 @@ const InWorldHUD: React.FC<InWorldHUDProps> = ({
   worldData,
   worldGen,
   chunkCount,
-  fps,
   playerPos,
   streamerStats,
   onOpenMap,
@@ -257,7 +255,6 @@ const InWorldHUD: React.FC<InWorldHUDProps> = ({
         >
           <DebugHUD
             chunkCount={chunkCount ?? 0}
-            fps={fps ?? 0}
             playerPos={playerPos ?? null}
             streamerStats={streamerStats}
             worldGen={worldGen}

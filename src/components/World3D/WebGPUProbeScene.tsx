@@ -1017,28 +1017,27 @@ const CrateStack: React.FC<{ p: Placed; mat: SolidMat }> = ({ p, mat }) => (
   </group>
 );
 
-// ── Instrument: FPS + backend + MISSING reporter ─────────────────────────────
+// ── Instrument: backend + MISSING reporter ───────────────────────────────────
+//
+// This also counted frames until 2026-09-29 and published the count as
+// window.__webgpuProbeFps and in the host badge. Nothing read the global (no
+// rig in tools/, scripts/ or .agent/), and the badge now shows the shared
+// perf session 'webgpu-probe' (the PerfProbe below), so the count is gone.
+// What is left reports only when the backend changes, instead of every 500 ms.
 
 const ProbeInstrument: React.FC<{
   onStatus: (s: ProbeStatus) => void;
   missing: string[];
   backendRef: React.RefObject<ProbeStatus['backend']>;
 }> = ({ onStatus, missing, backendRef }) => {
-  const frames = useRef(0);
-  const last = useRef(performance.now());
-  const fps = useRef(0);
+  const reported = useRef<ProbeStatus['backend'] | null>(null);
   useFrame(() => {
-    frames.current += 1;
-    const now = performance.now();
-    if (now - last.current >= 500) {
-      fps.current = Math.round((frames.current * 1000) / (now - last.current));
-      (window as unknown as { __webgpuProbeFps?: number }).__webgpuProbeFps = fps.current;
-      frames.current = 0;
-      last.current = now;
-      // Read the renderer result live because the memoized scene deliberately
-      // does not rerender for each host badge update.
-      onStatus({ backend: backendRef.current, fps: fps.current, missing });
-    }
+    // Read the renderer result live because the memoized scene deliberately
+    // does not rerender for each host update.
+    const backend = backendRef.current;
+    if (backend === reported.current) return;
+    reported.current = backend;
+    onStatus({ backend, missing });
   });
   return null;
 };
@@ -1225,7 +1224,7 @@ const WebGPUProbeScene: React.FC<Props> = ({ loader, ground, start, startSurface
           renderer.toneMappingExposure = 1.05;
           backendRef.current = 'webgpu';
           w.__webgpuProbeBackend = 'webgpu';
-          onStatus({ backend: 'webgpu', fps: 0, missing });
+          onStatus({ backend: 'webgpu', missing });
           // eslint-disable-next-line no-console
           console.info(
             `[webgpuProbe] renderer backend = webgpu; visibility=${document.visibilityState}; focused=${document.hasFocus()}`,
@@ -1276,7 +1275,7 @@ const WebGPUProbeScene: React.FC<Props> = ({ loader, ground, start, startSurface
   );
 };
 
-// The host updates its FPS badge from ProbeInstrument. Those badge updates do
-// not change the world, loader or camera, so keep them from reconciling the
-// entire streamed scene every half second.
+// The host updates its status badge from ProbeInstrument. Those updates do not
+// change the world, loader or camera, so keep them from reconciling the entire
+// streamed scene. (The badge's fps number reads the shared perf session.)
 export default React.memo(WebGPUProbeScene);

@@ -17,7 +17,7 @@ const baseProps = {
   onOpenMap: () => {},
   onExitToMenu: () => {},
   chunkCount: 81,
-  fps: 26,
+  // No `fps` prop: the Debug HUD reads the shared 'world3d' perf session now.
   streamerStats: { chunksLoaded: 81, chunksUnloaded: 0, pendingRequests: 0 },
 };
 

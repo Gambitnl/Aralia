@@ -1,6 +1,6 @@
 # Idea Board
 
-Verified: 2026-09-22
+Verified: 2026-09-30
 
 The Idea Board is a standalone, read-only research browser at
 `public/idea-board/index.html`. `records.json` owns the assessments, sources,
@@ -19,7 +19,11 @@ One idea can be relevant to several projects. Each connection has a reason,
 evidence reference, and either `recorded` or `suggested` relevance. Neither means
 adoption, an implementation dependency, or project ownership.
 
-The initial projects are Aralia, Entity Studio, and D&D Character Generator.
+The projects are Aralia, Entity Studio, D&D Character Generator, and Crimson Ledger.
+Crimson Ledger has separate Character creation and Campaigns & play
+scopes. Its portrait and image-to-3D links are suggested research relevance,
+not adopted features or copied mechanics; the campaign scope currently has no
+mapped ideas. Its project launch opens the published Crimson Ledger site.
 Aralia's browsing tree loads campaigns and non-superseded initiatives directly
 from `public/planmap/topics.json`. Every listed initiative belongs under Aralia
 for navigation, including standalone projects and agent tooling. Separate project

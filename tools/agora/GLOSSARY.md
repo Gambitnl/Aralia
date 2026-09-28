@@ -346,3 +346,40 @@ relevance; it does not mean adoption, a dependency, or project ownership.
 **Recorded relevance** — a project connection supported by an existing research
 assessment. **Suggested relevance** is a tentative connection awaiting a
 project-specific assessment. Both remain separate from implementation status.
+
+## Live river editor (river scene, 2026-09-29)
+
+Terms from `src/systems/world3d/river/riverLive.ts` and the domain doc
+`docs/architecture/domains/world3d-river-water.md`.
+
+**Live river** — the river scene in a browser: the flow solver runs without
+end in a worker, and the page draws the running water a few times a second.
+The captures still draw the steady field.
+
+**Design s** — the distance along an edited course line that keeps each
+segment's judged length. A moved control point stretches its segments in
+space but not in design s, so the pools and riffles downstream keep their
+places.
+
+**Bed patch** — the change that one edit makes to the ground, the rocks and
+the solver's bed, near the change only. The page applies it in place.
+
+**Carve band** — the part of the valley that an edit shapes again: the edited
+channel and the judged channel, each with 10 m of floodplain, and a 14 m blend
+back to the judged valley.
+
+**Path handle** — a blue handle on a control point of the course line. A drag
+moves the river's path.
+
+**Bank handle** — an amber handle on a bank at a control point. A drag widens
+or narrows the channel there.
+
+**Field frame** — the live solver's smoothed mean field (depth and velocity)
+since the last frame, sent to the flow mapper.
+
+**Flow mapper** — the second worker. It turns each field frame into the flow
+map, the water sheet and the textures that the page draws.
+
+**Top up** — fill the channel to its design water level at once. It replaces
+the water that a narrowed channel lost; the inflow alone needs about 20
+minutes of flow for that.

@@ -22,7 +22,6 @@ import React from 'react';
 export interface ProbeStatus {
     /** 'webgpu' only ever appears when the renderer reports a real WebGPU backend. */
     backend: 'webgpu' | 'unknown';
-    fps: number;
     /** Ordered list of things the probe could not render on the node path. */
     missing: string[];
 }

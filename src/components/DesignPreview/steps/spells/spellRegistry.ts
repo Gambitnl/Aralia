@@ -54,8 +54,8 @@ export const SPELL_SCENARIO_REGISTRY = [
     scenarioComponent: FireBoltScenario,
     canonicalEvidence: {
       catalogPaths: [
-        'src/data/spells/level-0/fire-bolt.json',
-        'src/data/spells_manifest.json',
+        'public/data/spells/level-0/fire-bolt.json',
+        'public/data/spells_manifest.json',
       ],
       resolverPaths: [
         'src/commands/factory/SpellCommandFactory.ts',
@@ -74,8 +74,8 @@ export const SPELL_SCENARIO_REGISTRY = [
     scenarioComponent: ThunderwaveScenario,
     canonicalEvidence: {
       catalogPaths: [
-        'src/data/spells/level-1/thunderwave.json',
-        'src/data/spells_manifest.json',
+        'public/data/spells/level-1/thunderwave.json',
+        'public/data/spells_manifest.json',
       ],
       resolverPaths: [
         'src/systems/spells/mechanics/directDamageSpellCastResolution.ts',
@@ -96,8 +96,8 @@ export const SPELL_SCENARIO_REGISTRY = [
     scenarioComponent: CureWoundsScenario,
     canonicalEvidence: {
       catalogPaths: [
-        'src/data/spells/level-1/cure-wounds.json',
-        'src/data/spells_manifest.json',
+        'public/data/spells/level-1/cure-wounds.json',
+        'public/data/spells_manifest.json',
       ],
       resolverPaths: [
         'src/systems/spells/mechanics/healingTemporaryHitPointResolution.ts',
@@ -118,8 +118,8 @@ export const SPELL_SCENARIO_REGISTRY = [
     scenarioComponent: ShieldScenario,
     canonicalEvidence: {
       catalogPaths: [
-        'src/data/spells/level-1/shield.json',
-        'src/data/spells_manifest.json',
+        'public/data/spells/level-1/shield.json',
+        'public/data/spells_manifest.json',
       ],
       resolverPaths: [
         'src/commands/factory/AbilityCommandFactory.ts',

@@ -29,7 +29,7 @@
  * fall dice, damage defenses, HP/downing, and paired condition helpers.
  */
 
-import featherFallData from '../../data/spells/level-1/feather-fall.json';
+import featherFallData from '@/data/spells/level-1/feather-fall.json';
 import type {
   BattleMapData,
   CombatCharacter,

@@ -4,6 +4,9 @@
  */
 import React, { useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
+// The shared performance tool: fps pill, Alt+P panel, the atelier's canvas
+// measured with no probe in the scene. First, before CharacterScene loads.
+import '../perf/staple';
 import { Check, ChevronLeft, ChevronRight, RotateCcw, RotateCw, Shuffle, ZoomIn, ZoomOut, X, Heart, Shield, Sparkles, Leaf, Swords, UserRound, BookOpen, Sun, Download, Settings2 } from 'lucide-react';
 import { CLASSES_DATA } from '../../data/classes';
 import { CharacterScene, type Appearance } from './CharacterScene';

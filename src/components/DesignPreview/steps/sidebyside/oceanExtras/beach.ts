@@ -48,6 +48,15 @@ export default async function mount(ctx: OceanExtraContext): Promise<OceanExtra>
     overcast: ctx.sky.uOvercast,
     skyClouds: ctx.sky.cloudReflTexture,
     seed: ctx.seed,
+    // `&beachhide=1` builds the sea-crest hide (the beach round-10 fix, off by
+    // default since round 11; see `OceanBeachOptions.crestHide`).
+    crestHide: new URLSearchParams(window.location.search).get('beachhide') === '1',
+    // `&beachlevers=1` builds the look's levers of rounds 9 to 11 (the tunes
+    // `v*`; off by default since round 11; see `OceanBeachOptions.levers`).
+    levers: new URLSearchParams(window.location.search).get('beachlevers') === '1',
+    // `&beachmatch=1` builds round 12's look, matched by measure to the Manly
+    // frames (see `OceanBeachOptions.match`; off by default).
+    match: new URLSearchParams(window.location.search).get('beachmatch') === '1',
   });
   surface.setSeabed(beach.seabed.reader);
   ctx.scene.add(beach.seabed.mesh);

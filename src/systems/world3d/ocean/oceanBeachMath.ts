@@ -1158,6 +1158,13 @@ export class IncidentWaves {
     /** World X and Z of each point. */
     px: Float64Array;
     pz: Float64Array;
+    /**
+     * Round 19 (the beach's match): turn each mode's wave vector toward the
+     * line through (x, z), keeping its length and its side, by `share` (0 keeps
+     * the sea's directions, 1 makes every crest parallel to the shore). See
+     * BEACH_MATCH_SWASH.alignShare.
+     */
+    alignTo?: { x: number; z: number; share: number };
   }) {
     const picked: { h0r: number; h0i: number; hcr: number; hci: number; w: number; kx: number; kz: number }[] = [];
     opts.cascades.forEach((c, ci) => {
@@ -1200,8 +1207,22 @@ export class IncidentWaves {
     picked.forEach((q, k) => {
       this.h0[k * 4] = q.h0r; this.h0[k * 4 + 1] = q.h0i; this.h0[k * 4 + 2] = q.hcr; this.h0[k * 4 + 3] = q.hci;
       this.omega[k] = q.w;
+      let kx = q.kx;
+      let kz = q.kz;
+      const al = opts.alignTo;
+      if (al && al.share > 0) {
+        const km = Math.hypot(kx, kz);
+        if (km > 0) {
+          const sg = kx * al.x + kz * al.z >= 0 ? 1 : -1;
+          const dx = (1 - al.share) * (kx / km) + al.share * sg * al.x;
+          const dz = (1 - al.share) * (kz / km) + al.share * sg * al.z;
+          const dm = Math.hypot(dx, dz) || 1;
+          kx = (km * dx) / dm;
+          kz = (km * dz) / dm;
+        }
+      }
       for (let j = 0; j < p; j += 1) {
-        const ph = q.kx * opts.px[j] + q.kz * opts.pz[j];
+        const ph = kx * opts.px[j] + kz * opts.pz[j];
         this.cosKP[k * p + j] = Math.cos(ph);
         this.sinKP[k * p + j] = Math.sin(ph);
       }
@@ -1733,6 +1754,14 @@ export class BeachDebris {
 export const BEACH_GRID: SwashGridSpec = { s0: -7, ds: 0.125, ns: 248, a0: -24, da: 0.5, na: 96 };
 /** The foam's age is capped here, s (round 7): past it the look draws it all as old. */
 export const FOAM_AGE_MAX_S = 30;
+/**
+ * ROUND 8: THE BEACH'S LACE MIX, the weights of the wake image's four
+ * channels (raft, clumps, streaks, patches) in the beach's coverage noise.
+ * With the wake's own mix (WAKE_LACE_WEIGHTS, 0.24 on the clumps) round 7
+ * drew the swash's foam as "opaque, clipped pure-white blobs". The beach
+ * reads no clumps. The worker builds the coverage table for this mix.
+ */
+export const BEACH_LACE_WEIGHTS: readonly [number, number, number, number] = [0.62, 0, 0.26, 0.12];
 
 export const BEACH_DT = 1 / 100;
 
@@ -1826,6 +1855,62 @@ export const BEACH_DEBRIS_COUNTS: Readonly<Record<DebrisKind, number>> = { shell
 export const WRACK_CLUMPS = 14;
 export const WRACK_CLUMP_M = 1.4;
 
+/**
+ * ROUND 16: THE SWASH OF THE MATCH LOOK. Round 15's motion strips (six frames
+ * 1 s apart, `beach/measure-motion.md`) found that Manly's run-ups cover the
+ * whole sheet band within 2 s and its edge moves 0.5 to 4.4 m/s both ways,
+ * while ours reached only the band's lower half and left a millimeter film on
+ * the upper face that drained for tens of seconds (0.04 to 0.1 m/s, always
+ * downhill). A still of that reads as standing water. The match (and only the
+ * match; the default beach is unchanged) runs the swash with:
+ *   waveGain  the sea's height at the grid's edge times this (round 16: 1.2; round
+ *             19: 1.6, since turning the crests toward the shore, alignShare,
+ *             cut the run-up's mean reach from 9.9 to 7.5 m): a larger swash
+ *             (Stockdon et al. 2006: R2% grows as sqrt(H L), so the run-up
+ *             reach grows with the height);
+ *   ksMS      the sand's saturated conductivity: a medium to coarse beach sand
+ *             (Freeze and Cherry 1979 give 1e-5 to 1e-3 m/s for clean sand;
+ *             the registry's 1e-4 is a fine sand), so a thin film soaks away
+ *             in seconds;
+ *   manningN  the bed friction (Chow 1959: 0.016 to 0.020 for clean sand);
+ *   foamGain, foamThinLifeS  the bore's foam and its life in a thin sheet
+ *             (BEACH_SWASH's 5 and 7 s): Manly's run-up carries its lace over
+ *             the whole band and leaves it as a broken line at the top; ours
+ *             faded out halfway up.
+ * Each value is fitted to the motion measure, `beach/measure-swash.md`.
+ */
+export interface BeachMatchSwash {
+  readonly waveGain: number;
+  readonly ksMS: number;
+  readonly manningN: number;
+  readonly foamGain: number;
+  readonly foamThinLifeS: number;
+  /**
+   * Round 19: each mode's wave vector turned this far toward the shore's
+   * normal (IncidentWaves.alignTo): the default sea's short, oblique crests
+   * swung the swash line 0.058 to 0.065 of the frame off a straight fit
+   * whatever the cay's cusps (`beach/r16/shoreStudy.ts`); Manly's swell
+   * arrives near normal to its beach.
+   */
+  readonly alignShare: number;
+}
+export const BEACH_MATCH_SWASH: BeachMatchSwash = { waveGain: 1.6, ksMS: 1e-3, manningN: 0.018, foamGain: 6, foamThinLifeS: 14, alignShare: 0.5 };
+
+/**
+ * ROUND 19: THE MATCH'S CAY, WITH MANLY'S STRAIGHT SHORELINE. The default
+ * cay's shoreline wanders 4 m over 45 m (`shoreWarpM`) and carries 12 m cusps
+ * 5 cm high; at the judged frame the swash line swung 0.055 of the frame's
+ * height off a straight fit, Manly's 0.006 to 0.033 (`beach/r12/shape.py`,
+ * `beach/measure-shoreline.md`), so the run-up met dry sand on one side and
+ * left a bay on the other. The match's cay keeps the default's shape but for
+ * these two values (BEACH_MATCH_SHORE); the default is unchanged.
+ */
+export const BEACH_MATCH_SHORE = { shoreWarpM: 0.8, cuspHeightM: 0.015 };
+export const BEACH_MATCH_SEABED: SeabedParams = {
+  ...LAGOON_CAY_SEABED,
+  island: { ...LAGOON_CAY_SEABED.island!, ...BEACH_MATCH_SHORE },
+};
+
 export function createBeachSim(opts: {
   cascades: readonly CascadeParams[];
   n: number;
@@ -1838,8 +1923,15 @@ export function createBeachSim(opts: {
   maxModes?: number;
   /** Seconds between two forcing samples (linear between them). */
   forcingEveryS?: number;
+  /**
+   * ROUND 16 (the beach's match look, `&beachmatch=1`): the swash matched to
+   * the Manly frames' motion (see BEACH_MATCH_SWASH). Absent, the beach runs
+   * as before, bit for bit.
+   */
+  match?: BeachMatchSwash;
 }): BeachSim {
-  const site = buildBeachSite(opts.params, opts.grid);
+  // Round 16/19: the match runs on its own cay (BEACH_MATCH_SEABED) unless the caller names one.
+  const site = buildBeachSite(opts.params ?? (opts.match ? BEACH_MATCH_SEABED : undefined), opts.grid);
   const waves = new IncidentWaves({
     cascades: opts.cascades,
     n: opts.n,
@@ -1849,13 +1941,21 @@ export function createBeachSim(opts: {
     maxModes: opts.maxModes ?? 700,
     px: site.edgeX,
     pz: site.edgeZ,
+    // Round 19: the match's crests nearer parallel to the shore (the beach's s axis).
+    ...(opts.match ? { alignTo: { x: site.frame.sX, z: site.frame.sZ, share: opts.match.alignShare } } : {}),
   });
+  const inc0 = sampledIncident(waves, opts.forcingEveryS ?? 0.05);
+  const m = opts.match;
+  // Round 16: the match's forcing is the same sea's height at the edge times
+  // `waveGain` (the ledger books what crosses the edge, so it stays exact).
+  const incident: IncidentFn = m ? (t, out) => { inc0(t, out); for (let j = 0; j < out.length; j += 1) out[j] *= m.waveGain; } : inc0;
   const field = new SwashField({
     grid: site.grid,
     bed: site.bed,
     shoreDist: site.shoreDist,
     dt: opts.dt ?? BEACH_DT,
-    incident: sampledIncident(waves, opts.forcingEveryS ?? 0.05),
+    incident,
+    ...(m ? { soil: { ...BEACH_SAND, ksMS: m.ksMS }, params: { ...BEACH_SWASH, manningN: m.manningN, foamGain: m.foamGain, foamThinLifeS: m.foamThinLifeS } } : {}),
   });
   const g = site.grid;
   const debris = new BeachDebris({
