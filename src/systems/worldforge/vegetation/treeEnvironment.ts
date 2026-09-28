@@ -1,81 +1,75 @@
-/**
- * @file treeEnvironment.ts — the environment axes a tree grows against.
+﻿/**
+ * ============================================================================
+ * TREE ENVIRONMENT ADAPTATION MODEL
+ * ============================================================================
  *
- * WHY THIS EXISTS
+ * WHAT THIS FILE DOES:
+ * This file translates in-game biomes and geography (like elevation, latitude, and moisture)
+ * into five fundamental environmental axes that dictate how trees grow: light, wind,
+ * aridity, chill, and vigor.
  *
- * The world's trees come from ez-tree PRESETS. A preset is a fixed answer: the
- * same six silhouettes stand in a taiga, a rainforest and a dune field, and only
- * the canopy tint tells them apart. The forests campaign wants forests that
- * differ BY BIOME. A preset cannot give that.
+ * WHY IT EXISTS:
+ * Rather than using static tree models, Aralia uses procedural tree genomes that adapt
+ * to their climate. Trees growing on high, cold ridges grow short and sturdy against
+ * strong winds, while trees in sheltered tropical rainforests grow tall and broad to reach
+ * sunlight. This file calculates those environmental stress factors.
  *
- * The method (published botany, written here from scratch — see
- * `docs/reports/owenyuwono-procgen-suite-eval.md` section 5) is that the
- * ENVIRONMENT BIASES A GENOME. The same seed then grows a different tree in a
- * different place. This file is the environment half.
+ * SAFETY INVARIANTS:
+ * - Treeless biomes (like 'Marine', 'Glacier', 'ocean', 'water') intentionally THROW errors.
+ *   There is no silent fallback to default trees on open ocean or glaciers.
+ * - Standard terrestrial biomes (both FMG names and ground IDs) map cleanly to environmental axes.
  *
- * ARALIA IS NOT A PLANET SIMULATOR
- *
- * The evaluated method carries a planet envelope with a GRAVITY axis. Aralia has
- * one world and therefore one gravity, so a gravity input would be a dial that
- * is always set to the same number. It is a documented CONSTANT in the grower,
- * not an input here.
- *
- * Aralia's real inputs are the ones the atlas already carries: the FMG biome,
- * elevation, latitude and moisture. Those map onto five axes:
- *
- * - `light`    canopy light reaching a sapling. Open ground is bright, a
- *              rainforest understory is dim.
- * - `wind`     sustained exposure. Rises with elevation and latitude.
- * - `aridity`  water stress. 0 is standing water, 1 is a dune field.
- * - `chill`    cold stress. Rises with elevation and latitude.
- * - `vigor`    growing-season length and soil. Sets absolute size.
- *
- * NO FALLBACK
- *
- * An unmapped biome THROWS. A silent default preset is exactly the fault this
- * module removes, so it must never reappear as a silent default environment.
- * Marine and Glacier are absent on purpose: no tree grows there.
+ * HOW IT CONNECTS:
+ * - Called by: grownTreeVariants.ts and grownTreeWiring.ts to supply climate parameters to growTree().
+ * ============================================================================
  */
 
-/** The five axes a genome is biased against. All are clamped to 0..1. */
+// ============================================================================
+// TYPES & INTERFACES
+// ============================================================================
+
+/** The five environmental axes a tree genome is biased against. All values are clamped between 0 and 1. */
 export interface TreeEnvironment {
-  /** Canopy light reaching the sapling. 1 = open ground, 0 = deep understory. */
+  /** Canopy light reaching the sapling. 1 = bright open ground, 0 = dense dark understory. */
   light: number;
-  /** Sustained wind exposure. 1 = an unsheltered ridge. */
+  /** Sustained wind exposure. 1 = an unsheltered high mountain ridge, 0 = calm valley. */
   wind: number;
-  /** Water stress. 0 = standing water, 1 = a dune field. */
+  /** Water stress. 0 = standing wetland water, 1 = arid desert sand dune. */
   aridity: number;
-  /** Cold stress. 1 = permafrost. */
+  /** Cold temperature stress. 1 = arctic permafrost, 0 = equatorial warmth. */
   chill: number;
-  /** Growing-season length and soil. 1 = rainforest, 0 = bare rock. */
+  /** Growing-season length and soil richness. 1 = lush rainforest, 0 = barren rock. */
   vigor: number;
 }
 
-/** The atlas facts a caller can supply on top of the biome. All optional. */
+/** Atlas and geographic site conditions that callers can optionally supply on top of biome names. */
 export interface TreeSiteInputs {
   /**
-   * Ground elevation in FEET (feet are canon in Worldforge). Raises wind and
-   * chill, lowers vigor.
+   * Ground elevation in FEET (feet are canon in Worldforge).
+   * Higher elevation raises wind and chill, and lowers vigor.
    */
   elevationFt?: number;
   /**
-   * Latitude in degrees, signed or not — only the magnitude is read. Raises
-   * chill, and raises wind past the temperate belt.
+   * Latitude in degrees (0 = equator, 90 = pole). Sign is ignored.
+   * Higher latitude raises chill and exposure.
    */
   latitudeDeg?: number;
   /**
-   * Cell moisture, 0..1, as the atlas climate pass reports it. Overrides most
-   * of the biome's own aridity when supplied.
+   * Cell moisture (0 = bone dry, 1 = saturated).
+   * Overrides the default biome aridity when supplied.
    */
   moisture01?: number;
 }
 
+// ============================================================================
+// BIOME BASE CLIMATE TABLES
+// ============================================================================
+
 /**
- * Base axes per FMG biome name.
+ * Base environmental axes per Fantasy Map Generator (FMG) biome name.
  *
- * The name list is the 13-entry vocabulary in `fmg/biomes.ts`. Marine (0) and
- * Glacier (11) are deliberately absent: asking for a tree there is a caller
- * fault, and it must fail loudly rather than grow an oak on an ice sheet.
+ * Marine (0) and Glacier (11) are intentionally omitted: asking to grow trees on
+ * open water or ice sheets is invalid and must throw.
  */
 const BIOME_BASE: Readonly<Record<string, TreeEnvironment>> = {
   'Hot desert': { light: 0.95, wind: 0.55, aridity: 0.95, chill: 0.05, vigor: 0.12 },
@@ -92,13 +86,8 @@ const BIOME_BASE: Readonly<Record<string, TreeEnvironment>> = {
 };
 
 /**
- * The streamed ground world names biomes with a coarser vocabulary than the
- * atlas does (`chunkData.biomeIds` — see `world3d/vegetationScatter.ts`). These
- * are aliases onto the FMG names above, not a second table: one source of truth
- * for the axes, two names for the same place.
- *
- * Ground ids with no tree (`ocean`, `water`, `ice`, `paved`, `floor`) are absent
- * on purpose, for the same reason Marine and Glacier are.
+ * Aliases mapping 3D ground world IDs onto canonical FMG biome names.
+ * Water, ocean, ice, and pavement are omitted on purpose.
  */
 const GROUND_ALIAS: Readonly<Record<string, string>> = {
   desert: 'Hot desert',
@@ -112,46 +101,55 @@ const GROUND_ALIAS: Readonly<Record<string, string>> = {
   swamp: 'Wetland',
 };
 
-/** Every biome key this module answers to, atlas names and ground ids alike. */
+/** Every valid biome key recognized by this module (atlas names and ground IDs). */
 export const TREE_BIOME_KEYS: readonly string[] = [
   ...Object.keys(BIOME_BASE),
   ...Object.keys(GROUND_ALIAS),
 ];
 
+// ============================================================================
+// ENVIRONMENTAL CONSTANTS & CALCULATIONS
+// ============================================================================
+
+/** Clamps a numeric value to the standard 0.0 to 1.0 range. */
 function clamp01(v: number): number {
   return v < 0 ? 0 : v > 1 ? 1 : v;
 }
 
-/**
- * Elevation reference heights, in feet.
- *
- * Wind saturates first, then vigor, then chill: a ridge is windy long before it
- * is cold, and it is barren before it is frozen.
- */
+/** Elevation reference heights in feet for environmental calculations. */
 const WIND_SATURATION_FT = 6000;
 const VIGOR_SATURATION_FT = 12000;
 const CHILL_SATURATION_FT = 10000;
-/** Latitude at which polar cooling starts, and where exposure starts. */
+
+/** Latitude thresholds in degrees where cooling and wind exposure begin. */
 const CHILL_LATITUDE_START_DEG = 30;
 const CHILL_LATITUDE_SPAN_DEG = 60;
 const WIND_LATITUDE_START_DEG = 40;
 const WIND_LATITUDE_SPAN_DEG = 50;
-/** How much of the final aridity a supplied moisture reading owns. */
+
+/** How strongly supplied moisture readings influence final aridity (60% authority). */
 const MOISTURE_AUTHORITY = 0.6;
 
+// ============================================================================
+// ENVIRONMENT RESOLUTION EXPORTS
+// ============================================================================
+
 /**
- * Resolve the environment for one site. THROWS on an unmapped biome.
+ * Resolves the 5-axis growing environment for a specific biome and location.
  *
- * @param biome An FMG biome name (`'Taiga'`) or a ground biome id (`'jungle'`).
- * @param site Optional atlas facts. Omit them and the biome base is returned.
+ * THROWS an error on an unmapped or treeless biome by design (e.g. 'Marine').
+ *
+ * @param biome An FMG biome name ('Taiga') or ground ID ('jungle')
+ * @param site Optional local geographic facts (elevation, latitude, moisture)
+ * @returns Clamped TreeEnvironment axes
  */
 export function environmentForBiome(biome: string, site: TreeSiteInputs = {}): TreeEnvironment {
+  // Resolve alias if needed
   const canonical = BIOME_BASE[biome] ? biome : GROUND_ALIAS[biome];
   const base = canonical ? BIOME_BASE[canonical] : undefined;
+
+  // Enforce safety invariant: fail loudly on treeless biomes
   if (!base) {
-    // NO FALLBACK. A quiet default here would be the preset fault again, one
-    // layer down: every unknown place would grow the same tree and nobody would
-    // ever learn that the mapping is missing.
     throw new Error(
       `treeEnvironment: no environment mapped for biome "${biome}". `
       + `Known: ${TREE_BIOME_KEYS.join(', ')}. `
@@ -162,6 +160,7 @@ export function environmentForBiome(biome: string, site: TreeSiteInputs = {}): T
   const elevationFt = Math.max(0, site.elevationFt ?? 0);
   const absLat = Math.abs(site.latitudeDeg ?? 0);
 
+  // Compute elevation modifiers: higher elevation increases wind and cold, decreases vigor
   const windFromElevation = clamp01(elevationFt / WIND_SATURATION_FT) * 0.35;
   const windFromLatitude =
     clamp01((absLat - WIND_LATITUDE_START_DEG) / WIND_LATITUDE_SPAN_DEG) * 0.20;
@@ -170,6 +169,7 @@ export function environmentForBiome(biome: string, site: TreeSiteInputs = {}): T
     clamp01((absLat - CHILL_LATITUDE_START_DEG) / CHILL_LATITUDE_SPAN_DEG) * 0.45;
   const vigorLoss = clamp01(elevationFt / VIGOR_SATURATION_FT) * 0.55;
 
+  // Blend moisture reading with biome baseline aridity
   const aridity = site.moisture01 === undefined
     ? base.aridity
     : base.aridity * (1 - MOISTURE_AUTHORITY)
@@ -184,7 +184,12 @@ export function environmentForBiome(biome: string, site: TreeSiteInputs = {}): T
   };
 }
 
-/** True when this biome can grow a tree at all. Cheap pre-check for callers. */
+/**
+ * Checks whether a given biome key can support tree growth at all.
+ *
+ * @param biome Biome name or ground ID to test
+ * @returns True if trees can grow in this biome, false for water/glaciers/etc.
+ */
 export function biomeGrowsTrees(biome: string): boolean {
   return Boolean(BIOME_BASE[biome] ?? (GROUND_ALIAS[biome] && BIOME_BASE[GROUND_ALIAS[biome]]));
 }

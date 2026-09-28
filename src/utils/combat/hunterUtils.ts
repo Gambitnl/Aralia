@@ -1,19 +1,3 @@
-// @dependencies-start
-/**
- * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
- *
- * Last Sync: 16/08/2026, 13:53:37
- * Dependents: utils/combat/index.ts
- * Imports: 2 files
- *
- * MULTI-AGENT SAFETY:
- * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
- * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
- */
-// @dependencies-end
-
 /**
  * Hunter (Ranger) Hunter's Prey choice and combat contracts.
  *
@@ -31,8 +15,24 @@
  * non-Hunter ranger can never trigger one of these riders.
  */
 
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 20/09/2026, 21:00:39
+ * Dependents: hooks/combat/useActionExecutor.ts, utils/combat/combatUtils.ts, utils/combat/index.ts
+ * Imports: 2 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import type { CombatCharacter, CombatState } from '../../types/combat';
-import { rollDice } from './combatUtils';
+import { rollDice } from '../../systems/dice/rollers';
 
 // ============================================================================
 // Choice Catalog
@@ -253,4 +253,131 @@ export function resolveHordeBreaker(
   }
 
   return { state, resolved: true, secondaryTargetId: secondary.id };
+}
+
+// ============================================================================
+// Once-Per-Turn Ledger
+// ============================================================================
+// Colossus Slayer and Horde Breaker are both "once on each of your turns". The
+// engine already carries a per-turn usage ledger on the character
+// (`featUsageThisTurn`, the same list Sneak Attack and Slasher use), so the
+// Hunter riders record themselves there instead of asking every caller to
+// invent a flag. Hunter's Prey is one exclusive choice, so one key covers both
+// options: a Hunter can never hold Colossus Slayer and Horde Breaker at once.
+// ============================================================================
+
+export const HUNTER_PREY_TURN_USAGE_KEY = 'hunters_prey';
+
+export function hasUsedHunterPreyThisTurn(character: CombatCharacter): boolean {
+  return character.featUsageThisTurn?.includes(HUNTER_PREY_TURN_USAGE_KEY) === true;
+}
+
+export function markHunterPreyUsedThisTurn<T extends CombatCharacter>(character: T): T {
+  if (hasUsedHunterPreyThisTurn(character)) return character;
+  return {
+    ...character,
+    featUsageThisTurn: [...(character.featUsageThisTurn ?? []), HUNTER_PREY_TURN_USAGE_KEY],
+  };
+}
+
+/** Clears the ledger entry at the start of the Hunter's turn. */
+export function clearHunterPreyTurnUsage<T extends CombatCharacter>(character: T): T {
+  if (!hasUsedHunterPreyThisTurn(character)) return character;
+  return {
+    ...character,
+    featUsageThisTurn: (character.featUsageThisTurn ?? [])
+      .filter(key => key !== HUNTER_PREY_TURN_USAGE_KEY),
+  };
+}
+
+// ============================================================================
+// State-Level Transactions
+// ============================================================================
+// `resolveColossusSlayer` and `resolveHordeBreaker` above are the pure rules and
+// stay callable on their own. The two entries below are what attack resolution
+// calls: they read the Hunter and the target out of `CombatState`, derive the
+// once-per-turn flag from the ledger, and write the ledger back on success.
+// Colossus Slayer returns its bonus damage rather than subtracting hit points,
+// because the damage engine owns resistance, immunity, and logging.
+// ============================================================================
+
+export interface ColossusSlayerTransaction {
+  state: CombatState;
+  resolved: boolean;
+  /** Extra damage the caller adds to the triggering hit. Zero when not resolved. */
+  bonusDamage: number;
+  failure?:
+    | 'ranger_missing'
+    | 'target_missing'
+    | 'missing_hunters_prey'
+    | 'wrong_choice'
+    | 'already_used_this_turn'
+    | 'target_not_below_max';
+}
+
+export function resolveColossusSlayerOnHit(
+  state: CombatState,
+  request: { rangerId: string; targetId: string; rng?: () => number },
+): ColossusSlayerTransaction {
+  const ranger = state.characters.find(character => character.id === request.rangerId);
+  if (!ranger) return { state, resolved: false, bonusDamage: 0, failure: 'ranger_missing' };
+
+  const target = state.characters.find(character => character.id === request.targetId);
+  if (!target) return { state, resolved: false, bonusDamage: 0, failure: 'target_missing' };
+
+  const outcome = resolveColossusSlayer(
+    ranger,
+    target,
+    hasUsedHunterPreyThisTurn(ranger),
+    request.rng,
+  );
+  if (!outcome.eligible) {
+    return { state, resolved: false, bonusDamage: 0, failure: outcome.reason };
+  }
+
+  const spentRanger = markHunterPreyUsedThisTurn(ranger);
+  return {
+    state: {
+      ...state,
+      characters: state.characters.map(character => (
+        character.id === ranger.id ? spentRanger : character
+      )),
+    },
+    resolved: true,
+    bonusDamage: outcome.bonusDamage,
+  };
+}
+
+/**
+ * Horde Breaker against live combat state. The caller supplies the two target
+ * ids; this derives the once-per-turn flag from the ledger, validates reach,
+ * and spends the ledger entry so a second extra attack cannot follow in the
+ * same turn. The returned `secondaryTargetId` is the attack the caller then
+ * resolves through the ordinary attack path.
+ */
+export function resolveHordeBreakerAttack(
+  state: CombatState,
+  request: { rangerId: string; originalTargetId: string; secondaryTargetId: string },
+): HordeBreakerResult {
+  const ranger = state.characters.find(character => character.id === request.rangerId);
+  if (!ranger) return { state, resolved: false, failure: 'ranger_missing' };
+
+  const outcome = resolveHordeBreaker(state, {
+    rangerId: request.rangerId,
+    originalTargetId: request.originalTargetId,
+    secondaryTargetId: request.secondaryTargetId,
+    alreadyUsedThisTurn: hasUsedHunterPreyThisTurn(ranger),
+  });
+  if (!outcome.resolved) return outcome;
+
+  const spentRanger = markHunterPreyUsedThisTurn(ranger);
+  return {
+    ...outcome,
+    state: {
+      ...outcome.state,
+      characters: outcome.state.characters.map(character => (
+        character.id === ranger.id ? spentRanger : character
+      )),
+    },
+  };
 }

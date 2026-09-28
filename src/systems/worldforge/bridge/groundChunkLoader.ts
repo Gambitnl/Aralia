@@ -4767,6 +4767,90 @@ function projectWorldforgeOccupants(
   return projected;
 }
 
+/**
+ * How far the water-surface fallback will look for a bank, in ground cells.
+ *
+ * Only used when a wet tile has no resolved run over it. Eight cells is ~12 m —
+ * wide enough to find the shore of a town river or a small pond from its middle,
+ * narrow enough that an open sea tile finds nothing and keeps its own reading
+ * instead of inventing a surface from a coastline hundreds of meters away.
+ */
+const WATER_SURFACE_BANK_SEARCH_CELLS = 8;
+
+/**
+ * The WATER SURFACE height in world meters at a point, or null when the point
+ * has no water over it.
+ *
+ * Why this exists: `groundSurfaceY` samples the terrain heightfield, which under
+ * water is the SEABED. A referee tile that reports the bed is telling the player
+ * a river bottom is the floor they are standing on — elevation deltas, cover
+ * math, and the 2D height readout all then describe a drained channel. Water
+ * tiles must report the sheet the player would swim on.
+ *
+ * Two sources, in the order they are trustworthy:
+ *   1. `ground.waterRuns` — the resolved per-body surface the renderer draws.
+ *      This is the SAME number the 3D water quad uses, so the referee grid and
+ *      the visible sheet agree by construction.
+ *   2. A bank-derived fallback, for a world baked before `waterRuns` existed (the
+ *      field is optional) or a wet cell the run pass did not cover. It mirrors
+ *      `findWaterRegions`' rule — a body sits `WATER_SURFACE_DROP_M` below the
+ *      LOWEST land around it — but reads only a bounded neighborhood instead of
+ *      flood-filling the whole grid per tile.
+ *
+ * Returns null rather than guessing when neither source answers; the caller then
+ * keeps the terrain reading, which is still the best fact available.
+ */
+function groundWaterSurfaceY(
+  ground: GroundWorld,
+  wxM: number,
+  wzM: number,
+): number | null {
+  for (const run of ground.waterRuns ?? []) {
+    if (
+      wxM >= run.minX &&
+      wxM < run.maxX &&
+      wzM >= run.minZ &&
+      wzM < run.maxZ
+    ) {
+      return heightToMeters(run.surfaceEnc);
+    }
+  }
+
+  // Bank fallback. Scan a bounded square of the biome grid for the lowest DRY
+  // cell; the spill point of the body is that bank minus the surface drop.
+  const { cols, rows, heights, biomeIds } = ground;
+  const cx = Math.round(wxM / GROUND_METERS_PER_CELL);
+  const cy = Math.round(wzM / GROUND_METERS_PER_CELL);
+  let lowestBankEnc = Number.POSITIVE_INFINITY;
+  for (
+    let dy = -WATER_SURFACE_BANK_SEARCH_CELLS;
+    dy <= WATER_SURFACE_BANK_SEARCH_CELLS;
+    dy++
+  ) {
+    const yy = cy + dy;
+    if (yy < 0 || yy >= rows) continue;
+    for (
+      let dx = -WATER_SURFACE_BANK_SEARCH_CELLS;
+      dx <= WATER_SURFACE_BANK_SEARCH_CELLS;
+      dx++
+    ) {
+      const xx = cx + dx;
+      if (xx < 0 || xx >= cols) continue;
+      const idx = yy * cols + xx;
+      const biome = biomeIds[idx];
+      if (biome === "water" || biome === "ocean") continue;
+      const enc = heights[idx];
+      if (typeof enc !== "number") continue;
+      if (enc < lowestBankEnc) lowestBankEnc = enc;
+    }
+  }
+  if (!Number.isFinite(lowestBankEnc)) return null;
+
+  return heightToMeters(
+    Math.max(0, lowestBankEnc - metersToHeight(WATER_SURFACE_DROP_M)),
+  );
+}
+
 /** Optional extraction facts beyond the referee patch dimensions. */
 export interface ExtractLocalTerrainPatchOptions {
   width?: number;
@@ -4870,7 +4954,10 @@ export function extractLocalTerrainPatch(
         ? battlePads.deltaAt(wx / FEET_TO_METERS, wz / FEET_TO_METERS) * FEET_TO_METERS
         : 0;
       const realHeightM = groundSurfaceY(ground, wx, wz) + padDeltaM;
-      const elevation = realHeightM / BATTLE_MAP_ELEVATION_METERS_PER_UNIT;
+      // `elevation` is `let` because a WET tile corrects it below (step 2b) to
+      // the water surface. The dry reading is kept as the fallback and as the
+      // bed reference the correction never drops beneath.
+      let elevation = realHeightM / BATTLE_MAP_ELEVATION_METERS_PER_UNIT;
 
       // 2. Biome lookup: Sample the nearest biome from the GroundWorld grid.
       const bx = Math.max(
@@ -4893,6 +4980,26 @@ export function extractLocalTerrainPatch(
         terrain = "mud";
       } else if (groundBiome === "mountain" || groundBiome === "tundra") {
         terrain = "rock";
+      }
+
+      // 2b. WATER SURFACE correction. Step 1 sampled the heightfield, which under
+      // water is the SEABED — so a river tile used to report the channel bottom
+      // as the referee's floor height. A wet tile must carry the surface the
+      // player would swim on, the same sheet the 3D renderer draws.
+      //
+      // Kept as a MAX against the bed reading: a resolved surface should always
+      // stand above its bed, and if a stale or coarse source ever says otherwise
+      // the tile falls back to the terrain rather than reporting a floor that
+      // sits inside the ground. The dry branch is untouched, so land tiles keep
+      // exactly the elevation they had before this correction existed.
+      if (terrain === "water") {
+        const waterSurfaceM = groundWaterSurfaceY(ground, wx, wz);
+        if (waterSurfaceM !== null) {
+          elevation = Math.max(
+            elevation,
+            waterSurfaceM / BATTLE_MAP_ELEVATION_METERS_PER_UNIT,
+          );
+        }
       }
 
       // Roads are source-backed surfaces laid over the base material. Ordinary

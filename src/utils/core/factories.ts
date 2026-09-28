@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 19/07/2026, 08:32:34
- * Dependents: utils/core/index.ts, utils/factories.ts
- * Imports: 10 files
+ * Last Sync: 26/08/2026, 10:38:35
+ * Dependents: components/DesignPreview/steps/PreviewEconCraft.tsx, utils/core/index.ts
+ * Imports: 11 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -43,6 +43,7 @@ import {
   Faction
 } from '@/types/index';
 import type { Quest, QuestDefinition } from '@/types/quests';
+import type { SpellSlots } from '@/types/combat';
 import { adaptQuestDefinitionToQuest } from '@/systems/quests/questAdapter';
 
 import {
@@ -249,7 +250,7 @@ export function createMockFaction(overrides: Partial<Faction> = {}): Faction {
       tradeGoodPriorities: [],
 
       ...overrides,
-    // DEBT: Cast to any to allow dynamic property assignment in object factory.
+    // Dynamic property assignment in object factory defaults
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any;
 
@@ -653,6 +654,7 @@ export function createMockGameState(overrides: Partial<GameState> = {}): GameSta
       // MUST be mirrored here so the test factory matches a real fresh GameState.
       // Guarded by factories.parity.test.ts (every initialGameState key exists here).
       autoSaveEnabled: true,
+      combatDifficulty: 'normal',
       isLongRestModalVisible: false,
       isShortRestModalVisible: false,
       isThreeDVisible: false,
@@ -675,9 +677,14 @@ export function createMockGameState(overrides: Partial<GameState> = {}): GameSta
       selectedGlossaryTermForModal: undefined,
       saveVersion: undefined,
       saveTimestamp: undefined,
+      isSalvageModalVisible: false,
+      isBankModalVisible: false,
+      isRealEstateModalVisible: false,
+      isShopModalVisible: false,
+      isTradeRouteModalVisible: false,
 
       ...overrides,
-    // DEBT: Cast to any to allow dynamic property assignment in object factory.
+    // Dynamic property assignment in object factory defaults
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any;
 
@@ -841,11 +848,25 @@ export function createMockGameState(overrides: Partial<GameState> = {}): GameSta
   }
 }
 
+// ============================================================================
+// Combat Character Mock Factory
+// ============================================================================
+// Creates a combat participant for tests and simulations.
+// In the game, combatants are either player characters, friendly summons, or
+// hostile monsters. This factory provides a clean, fully-formed actor with
+// sensible baseline stats (level 1 humanoid player) and empty lists for status
+// effects, active conditions, and spell slots so tests don't crash when
+// iterating over these collections.
+// ============================================================================
+
 /**
  * Creates a mock CombatCharacter object with sensible defaults.
+ * Sets safe default collections (statusEffects: [], conditions: [], creatureTypes: ['Humanoid'],
+ * team: 'player', level: 1, spellSlots: {}) and preserves nested defaults when partial overrides are provided.
  */
 export function createMockCombatCharacter(overrides: Partial<CombatCharacter> = {}): CombatCharacter {
   try {
+    // Default class definition for the mock combatant (Wizard archetype)
     const mockClass: Class = {
       id: "wizard",
       name: "Wizard",
@@ -866,11 +887,13 @@ export function createMockCombatCharacter(overrides: Partial<CombatCharacter> = 
       }
     };
 
+    // Baseline combat participant properties
     const defaults: CombatCharacter = {
       id: `combat-char-${safeUuid()}`,
       name: "Mock Combatant",
       level: 1,
       team: 'player',
+      creatureTypes: ['Humanoid'],
       currentHP: 10,
       maxHP: 10,
       initiative: 10,
@@ -888,6 +911,7 @@ export function createMockCombatCharacter(overrides: Partial<CombatCharacter> = 
       },
       abilities: [],
       statusEffects: [],
+      spellSlots: {} as unknown as SpellSlots,
       actionEconomy: {
         action: { used: false, remaining: 1 },
         bonusAction: { used: false, remaining: 1 },
@@ -897,7 +921,7 @@ export function createMockCombatCharacter(overrides: Partial<CombatCharacter> = 
         freeActions: 1
       },
       class: mockClass,
-      // Add missing fields that are commonly needed
+      // Add missing fields that are commonly needed across combat and command engines
       concentratingOn: undefined,
       conditions: [],
       activeEffects: [],
@@ -910,16 +934,59 @@ export function createMockCombatCharacter(overrides: Partial<CombatCharacter> = 
       healingDone: []
     };
 
-    return { ...defaults, ...overrides };
+    // Merge nested structures gracefully so partial stats or action economy overrides do not wipe defaults
+    const stats = overrides.stats ? { ...defaults.stats, ...overrides.stats } : defaults.stats;
+    const position = overrides.position ? { ...defaults.position, ...overrides.position } : defaults.position;
+    const actionEconomy = overrides.actionEconomy
+      ? {
+          ...defaults.actionEconomy,
+          ...overrides.actionEconomy,
+          ...(overrides.actionEconomy.action ? { action: { ...defaults.actionEconomy.action, ...overrides.actionEconomy.action } } : {}),
+          ...(overrides.actionEconomy.bonusAction ? { bonusAction: { ...defaults.actionEconomy.bonusAction, ...overrides.actionEconomy.bonusAction } } : {}),
+          ...(overrides.actionEconomy.reaction ? { reaction: { ...defaults.actionEconomy.reaction, ...overrides.actionEconomy.reaction } } : {}),
+          ...(overrides.actionEconomy.legendary ? { legendary: { ...defaults.actionEconomy.legendary, ...overrides.actionEconomy.legendary } } : {}),
+          ...(overrides.actionEconomy.movement ? { movement: { ...defaults.actionEconomy.movement, ...overrides.actionEconomy.movement } } : {}),
+        }
+      : defaults.actionEconomy;
+    const spellSlots = overrides.spellSlots ? { ...defaults.spellSlots, ...overrides.spellSlots } : defaults.spellSlots;
+    const classObj = overrides.class
+      ? {
+          ...defaults.class,
+          ...overrides.class,
+          ...(overrides.class.spellcasting ? { spellcasting: { ...defaults.class.spellcasting, ...overrides.class.spellcasting } } : {}),
+        }
+      : defaults.class;
+
+    return {
+      ...defaults,
+      ...overrides,
+      position,
+      stats,
+      actionEconomy,
+      spellSlots,
+      class: classObj,
+      statusEffects: overrides.statusEffects ?? defaults.statusEffects,
+      conditions: overrides.conditions ?? defaults.conditions,
+      // An explicit stats.creatureTypes wins over the Humanoid default, so a
+      // fixture that says "Undead" is not also a Humanoid to the type gates.
+      creatureTypes: overrides.creatureTypes ?? overrides.stats?.creatureTypes ?? defaults.creatureTypes,
+    };
   } catch (error) {
     console.error("Warden: createMockCombatCharacter failed", error);
     return {
       id: 'error-combat-char',
       name: 'Error Combatant',
-      level: 1, team: 'enemy', currentHP: 1, maxHP: 1,
-      initiative: 0, position: { x: 0, y: 0 },
+      level: 1,
+      team: 'player',
+      creatureTypes: ['Humanoid'],
+      currentHP: 1,
+      maxHP: 1,
+      initiative: 0,
+      position: { x: 0, y: 0 },
       stats: { strength: 10, dexterity: 10, constitution: 10, intelligence: 10, wisdom: 10, charisma: 10, baseInitiative: 0, speed: 0, cr: "0" },
-      abilities: [], statusEffects: [],
+      abilities: [],
+      statusEffects: [],
+      spellSlots: {} as unknown as SpellSlots,
       actionEconomy: {
         action: { used: true, remaining: 0 },
         bonusAction: { used: true, remaining: 0 },
@@ -947,8 +1014,16 @@ export function createMockCombatCharacter(overrides: Partial<CombatCharacter> = 
           spellList: []
         }
       },
-      conditions: [], activeEffects: [], riders: [], savePenaltyRiders: [], resistances: [], immunities: [], vulnerabilities: [], damageDealt: [], healingDone: []
-    } as CombatCharacter;
+      conditions: [],
+      activeEffects: [],
+      riders: [],
+      savePenaltyRiders: [],
+      resistances: [],
+      immunities: [],
+      vulnerabilities: [],
+      damageDealt: [],
+      healingDone: []
+    } as unknown as CombatCharacter;
   }
 }
 

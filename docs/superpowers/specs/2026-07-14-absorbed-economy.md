@@ -10,7 +10,7 @@ A live, partial gameplay system coupling world simulation, merchants,
 factions, and UI. It models route viability/disruption/boom, regional wealth
 and inflation drift, player and NPC business simulation, investments,
 speculation, loans, market intel delivery (courier delays), and merchant
-pricing. Treat it as a live system with multiple daily loops — never rewrite
+pricing. Treat it as a live system with multiple daily loops - never rewrite
 it as a single isolated feature.
 
 ## Concrete file map

@@ -33,10 +33,14 @@ export interface SpeciesProfile {
   features: PartInstance[];
   skinTones: string[];
   eyeTones: string[];
+  /** Typical hair colors for this species. Used for biped heads, beards,
+   * and crests. When absent, the palette falls back to skinHex. */
+  hairTones?: string[];
 }
 
 const HUMAN_SKINS = ['#8d5524', '#c68642', '#e0ac69', '#f1c27d', '#ffdbac', '#ffe0bd'];
 const COMMON_EYES = ['#3b2f2a', '#4a5e2e', '#33506e', '#6e5433'];
+const HUMAN_HAIR = ['#1a1009', '#3b2314', '#6b3a1f', '#a0522d', '#c8a060', '#d4c4a0'];
 
 function profile(p: SpeciesProfile): SpeciesProfile {
   return p;
@@ -64,6 +68,7 @@ export const SPECIES_PROFILES: Record<string, SpeciesProfile> = Object.fromEntri
       ],
       skinTones: HUMAN_SKINS,
       eyeTones: COMMON_EYES,
+      hairTones: HUMAN_HAIR,
     }),
     profile({
       id: 'elf',

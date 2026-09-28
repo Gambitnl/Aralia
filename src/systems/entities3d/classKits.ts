@@ -14,6 +14,10 @@ export interface ClassKit {
   gear: PartInstance[];
   accentHex: string;
   secondaryHex: string;
+  /** Leather / strap / belt color — warm browns, tans, dark hides. */
+  leatherHex?: string;
+  /** Metal fittings, helmet ridges, weapon hilts — cool silvers, warm golds. */
+  metalHex?: string;
 }
 
 const KITS: Record<string, ClassKit> = {
@@ -26,6 +30,8 @@ const KITS: Record<string, ClassKit> = {
     ],
     accentHex: '#8a3333',
     secondaryHex: '#b9c2cc',
+    leatherHex: '#4a3525',
+    metalHex: '#8a8a94',
   },
   barbarian: {
     gear: [
@@ -34,6 +40,8 @@ const KITS: Record<string, ClassKit> = {
     ],
     accentHex: '#b05c3a',
     secondaryHex: '#6e4a32',
+    leatherHex: '#4a3020',
+    metalHex: '#5a5a60',
   },
   bard: {
     gear: [
@@ -44,6 +52,8 @@ const KITS: Record<string, ClassKit> = {
     ],
     accentHex: '#6e3a8a',
     secondaryHex: '#d9a828',
+    leatherHex: '#3a2a1e',
+    metalHex: '#c8a040',
   },
   cleric: {
     gear: [
@@ -54,6 +64,8 @@ const KITS: Record<string, ClassKit> = {
     ],
     accentHex: '#d9c46a',
     secondaryHex: '#e8e0cf',
+    leatherHex: '#d8c4a0',
+    metalHex: '#c8a040',
   },
   druid: {
     gear: [
@@ -63,6 +75,8 @@ const KITS: Record<string, ClassKit> = {
     ],
     accentHex: '#4a7a44',
     secondaryHex: '#8a6742',
+    leatherHex: '#a08060',
+    metalHex: '#c8b898',
   },
   ranger: {
     gear: [
@@ -73,6 +87,8 @@ const KITS: Record<string, ClassKit> = {
     ],
     accentHex: '#3e5e3a',
     secondaryHex: '#6e4a32',
+    leatherHex: '#5a4030',
+    metalHex: '#4a4a52',
   },
   rogue: {
     gear: [
@@ -83,6 +99,8 @@ const KITS: Record<string, ClassKit> = {
     ],
     accentHex: '#3a3a46',
     secondaryHex: '#6e4a32',
+    leatherHex: '#2a2228',
+    metalHex: '#4a4a56',
   },
   paladin: {
     gear: [
@@ -94,6 +112,8 @@ const KITS: Record<string, ClassKit> = {
     ],
     accentHex: '#d9a828',
     secondaryHex: '#e8e0cf',
+    leatherHex: '#d8c8b0',
+    metalHex: '#c8a040',
   },
   monk: {
     gear: [
@@ -102,6 +122,8 @@ const KITS: Record<string, ClassKit> = {
     ],
     accentHex: '#b05c3a',
     secondaryHex: '#e8ddc8',
+    leatherHex: '#c8b898',
+    metalHex: '#5a5a60',
   },
   sorcerer: {
     gear: [
@@ -111,6 +133,8 @@ const KITS: Record<string, ClassKit> = {
     ],
     accentHex: '#a2382e',
     secondaryHex: '#d9a828',
+    leatherHex: '#6a3020',
+    metalHex: '#c8a040',
   },
   warlock: {
     gear: [
@@ -121,6 +145,8 @@ const KITS: Record<string, ClassKit> = {
     ],
     accentHex: '#4a2e5e',
     secondaryHex: '#7ad9d9',
+    leatherHex: '#1e1820',
+    metalHex: '#3a3848',
   },
   wizard: {
     gear: [
@@ -131,6 +157,8 @@ const KITS: Record<string, ClassKit> = {
     ],
     accentHex: '#33506e',
     secondaryHex: '#d9a828',
+    leatherHex: '#5a4030',
+    metalHex: '#c8a040',
   },
   artificer: {
     gear: [
@@ -141,6 +169,8 @@ const KITS: Record<string, ClassKit> = {
     ],
     accentHex: '#8a6742',
     secondaryHex: '#7ad9d9',
+    leatherHex: '#6a5040',
+    metalHex: '#b87840',
   },
 };
 

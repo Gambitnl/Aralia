@@ -1,4 +1,4 @@
-﻿# Environmental Change
+# Environmental Change
 
 Bucket id: `environmental_change`
 Total findings: 156

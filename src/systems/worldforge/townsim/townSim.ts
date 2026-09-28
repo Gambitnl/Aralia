@@ -53,6 +53,7 @@ import {
 } from './disasters';
 import { festivalsOnDayOfYear } from './festivals';
 import { newbornName } from './naming';
+import { resolveHeirs, splitEstate } from './inheritance';
 import { fnv1a, makeSeedPath, seedFromPath } from '../seedPath';
 import {
   appendBuildingEvent,
@@ -442,33 +443,28 @@ function livingIdsSorted(state: TownSimState): number[] {
     .sort((a, b) => a - b);
 }
 
-/** Distribute a deceased's wealth to living children (equally) or living spouse. */
+/**
+ * Distribute a deceased's wealth down the succession ladder in `inheritance.ts`
+ * (spouse > child > sibling > unrelated housemate). The ladder used to live
+ * inline here as "children, else spouse"; it moved out so the rule is unit
+ * testable and so the two rungs it was missing (siblings, housemates) stop
+ * silently deleting a childless widower's estate from the town economy.
+ * Splitting behavior is unchanged: equal shares within one tier, remainder to
+ * the eldest first.
+ */
 function applyInheritance(state: TownSimState, deceased: LivingVillager, day: number): void {
   const amount = deceased.wealth;
   deceased.wealth = 0;
   if (amount <= 0) return;
 
-  const livingChildren = deceased.childIds
-    .map((id) => state.villagers[id])
-    .filter((c) => c && isAlive(c))
-    .sort((a, b) => a.bornDay - b.bornDay); // eldest first
+  const claims = resolveHeirs(state.villagers, deceased);
+  if (claims.length === 0) return; // line ended with nobody in the house — wealth lost
 
-  let recipients: LivingVillager[] = livingChildren;
-  if (recipients.length === 0 && deceased.spouseId !== undefined) {
-    const spouse = state.villagers[deceased.spouseId];
-    if (spouse && isAlive(spouse)) recipients = [spouse];
-  }
-  if (recipients.length === 0) return; // wealth lost (no heirs)
-
-  const share = Math.floor(amount / recipients.length);
-  let remainder = amount - share * recipients.length;
-  for (const r of recipients) {
-    r.wealth += share;
-    if (remainder > 0) {
-      r.wealth += 1; // remainder to eldest first
-      remainder -= 1;
-    }
-  }
+  const shares = splitEstate(amount, claims.length);
+  const recipients = claims.map((c) => state.villagers[c.heirId]);
+  recipients.forEach((r, i) => {
+    r.wealth += shares[i];
+  });
   addEvent(
     state.chronicle,
     day,

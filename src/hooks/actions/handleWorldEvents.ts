@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 27/02/2026, 09:28:21
- * Dependents: handleGeminiCustom.ts, handleMovement.ts, handleResourceActions.ts
- * Imports: 8 files
+ * Last Sync: 09/09/2026, 10:35:53
+ * Dependents: hooks/actions/handleGeminiCustom.ts, hooks/actions/handleResourceActions.ts
+ * Imports: 9 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -25,10 +25,222 @@ import * as OllamaTextService from '../../services/ollamaTextService';
 import { AddGeminiLogFn } from './actionHandlerTypes';
 import { NPCS, LOCATIONS } from '../../constants';
 import * as NpcBehaviorConfig from '../../config/npcBehaviorConfig';
-import { formatGameTime } from '../../utils/core';
+import { formatGameTime, getGameDay } from '../../utils/core';
+import {
+  buildPropagationRoster,
+  duePropagatedFacts,
+  isPropagatableFact,
+  propagateFact,
+} from '../../systems/memory/factPropagation';
 import { generateId } from '../../utils/core/idGenerator';
+import { occupantLocationAt, type ScheduleBlock } from '../../systems/worldforge/roster/occupantSchedule';
+import { burgIdForLocation } from '../../systems/worldforge/townsim/chronicleForLocation';
+import type { TownRoster } from '../../systems/worldforge/roster/types';
 
-// TODO: Add NPC daily routines and faction-driven schedules to world events.
+// ============================================================================
+// NPC daily routines (Worldforge bridge)
+// ============================================================================
+// Worldforge already owns the routine substrate: `roster/occupantSchedule`
+// answers "where is occupant O, doing what, at hour H?" deterministically from
+// the occupant's static record. Nothing in the game loop read it. The pass
+// below is the bridge: on a world-time advance it diffs each occupant's block
+// between the hour the clock left and the hour it arrived at, and emits the
+// transitions as world events for the town the player is standing in.
+//
+// FACTIONS: there is no faction half to bridge. A schedule entry cannot name a
+// faction — `roster/types.Occupant` carries only id/name/ageBand/home/work/
+// occupation (its own comment defers factions to "a later pass"), and
+// `systems/world/FactionManager` exposes only reputation application, no
+// schedule concept. So no FactionManager hook is wired here.
+// ============================================================================
+
+/** One occupant's routine transition across a world-time advance. */
+export interface NpcRoutineChange {
+  occupantId: number;
+  name: string;
+  /** Where/what they were at the hour the clock left. */
+  from: ScheduleBlock;
+  /** Where/what they are at the hour the clock arrived at. */
+  to: ScheduleBlock;
+}
+
+/** Player-facing phrasing for the block an occupant moved into. */
+const ROUTINE_PHRASE: Record<ScheduleBlock['activity'], string> = {
+  sleeping: 'turns in for the night',
+  home: 'heads home',
+  working: 'starts their day’s work',
+  out: 'goes out into the town',
+};
+
+/** How many routine events one advance may surface (keeps the log bounded). */
+const MAX_ROUTINE_EVENTS_PER_ADVANCE = 4;
+
+/**
+ * Pure: which occupants changed routine block between `fromHour` and `toHour`.
+ *
+ * A change is a different plot OR a different activity, so both "walked across
+ * town" and "stopped working but stayed put" count. Occupant order is the
+ * roster's, so the capped result is deterministic — no RNG, no clock read.
+ */
+export function townRoutineChanges(
+  roster: TownRoster,
+  fromHour: number,
+  toHour: number,
+  max: number = MAX_ROUTINE_EVENTS_PER_ADVANCE
+): NpcRoutineChange[] {
+  if (fromHour === toHour) return [];
+  const changes: NpcRoutineChange[] = [];
+  for (const occupant of roster.occupants) {
+    if (changes.length >= max) break;
+    const from = occupantLocationAt(occupant, fromHour);
+    const to = occupantLocationAt(occupant, toHour);
+    if (from.activity === to.activity && from.plotId === to.plotId) continue;
+    changes.push({ occupantId: occupant.id, name: occupant.name, from, to });
+  }
+  return changes;
+}
+
+export interface TownRoutineEventOptions {
+  /** Hours the clock just advanced by (the ADVANCE_TIME payload / 3600). */
+  hoursAdvanced: number;
+  /**
+   * Roster source. Defaults to the canonical Worldforge roster for the burg the
+   * player stands in; tests (and any caller that already holds a roster) pass
+   * their own instead of paying for atlas + town generation.
+   */
+  resolveRoster?: (worldSeed: number, burgId: number) => TownRoster | undefined;
+  /** Cap on emitted events. */
+  max?: number;
+}
+
+/**
+ * Emit NPC location changes as world events for the town the player is in.
+ *
+ * Called on a world-time advance. Returns [] when the player is not standing in
+ * a burg, or when the advance did not cross an hour boundary — both legitimate
+ * "nothing moved" cases, not swallowed errors (no-fallback directive: a roster
+ * that fails to build throws).
+ */
+export async function handleTownRoutineEvents(
+  gameState: GameState,
+  dispatch: React.Dispatch<AppAction>,
+  options: TownRoutineEventOptions
+): Promise<NpcRoutineChange[]> {
+  const burgId = burgIdForLocation({
+    worldSeed: gameState.worldSeed,
+    cellId: gameState.playerCell?.cellId,
+  });
+  if (burgId === undefined) return []; // not standing in a town
+
+  const arrived = new Date(gameState.gameTime);
+  const left = new Date(arrived.getTime() - options.hoursAdvanced * 3600 * 1000);
+  const fromHour = left.getHours();
+  const toHour = arrived.getHours();
+  if (fromHour === toHour) return []; // advance stayed inside one hour
+
+  const resolveRoster =
+    options.resolveRoster ??
+    (await import('../../systems/worldforge/townsim/townSimRegistration')).townRosterForBurg;
+  const roster = resolveRoster(gameState.worldSeed, burgId);
+  if (!roster) return [];
+
+  const changes = townRoutineChanges(roster, fromHour, toHour, options.max);
+
+  for (const change of changes) {
+    dispatch({
+      type: 'ADD_DISCOVERY_ENTRY',
+      payload: {
+        id: generateId(),
+        gameTime: formatGameTime(arrived, { hour: '2-digit', minute: '2-digit' }),
+        type: DiscoveryType.MISC_EVENT,
+        title: 'Town Routine',
+        content: `${change.name} ${ROUTINE_PHRASE[change.to.activity]}.`,
+        source: { type: 'SYSTEM', id: `burg_${burgId}`, name: 'Town Routine' },
+        flags: [
+          { key: 'burgId', value: burgId },
+          { key: 'occupantId', value: change.occupantId, label: change.name },
+          { key: 'plotId', value: change.to.plotId },
+          { key: 'activity', value: change.to.activity },
+        ],
+      },
+    });
+  }
+
+  return changes;
+}
+
+/**
+ * The deterministic half of the daily social tick (DIAL-002).
+ *
+ * `handleGossipEvent` below is the flavour lane: it picks a random speaker and
+ * listener in one room and pays for an LLM rephrase. This pass is the rules
+ * lane. It re-resolves every public first-hand fact through
+ * `systems/memory/factPropagation`, which is what makes the DELAYED channels
+ * work: same-town recipients already landed inside the reducer on the day the
+ * fact was learned, so the only thing a later day adds is faction-aligned NPCs
+ * (1-day delay) and strangers the rumor mill has reached.
+ *
+ * No model call, no randomness, no new state: recipients are de-duplicated by
+ * fact text in the reducer, so running this every day is idempotent.
+ */
+export function handleFactPropagationEvent(
+  gameState: GameState,
+  dispatch: React.Dispatch<AppAction>
+): void {
+  const currentDay = gameState.gameTime instanceof Date ? getGameDay(gameState.gameTime) : 0;
+
+  const roster = buildPropagationRoster({
+    npcs: { ...NPCS, ...(gameState.dynamicNPCs ?? {}) },
+    locations: { ...LOCATIONS, ...(gameState.dynamicLocations ?? {}) },
+    extraTownMembers: gameState.currentLocationActiveDynamicNpcIds
+      ? { [gameState.currentLocationId]: gameState.currentLocationActiveDynamicNpcIds }
+      : undefined,
+  });
+
+  // Strangers hear a fact only through talk the rumor mill already carried.
+  // `activeRumors` is the world-level projection of that spread, so an NPC is
+  // only stranger-reachable while a rumor naming them is live.
+  const rumorReachedNpcIds = Array.from(
+    new Set(
+      (gameState.activeRumors ?? [])
+        .flatMap(rumor => (rumor.locationId ? LOCATIONS[rumor.locationId]?.npcIds ?? [] : []))
+    )
+  );
+
+  for (const [originNpcId, memory] of Object.entries(gameState.npcMemory)) {
+    for (const fact of memory.knownFacts) {
+      if (!isPropagatableFact(fact)) continue;
+
+      // The fact's own timestamp is a wall-clock ms value on most writers, so
+      // the delay clock is anchored to the day it entered memory where that is
+      // recoverable, and to today otherwise (a same-day fact then only reaches
+      // the same town, which is the conservative outcome).
+      const learnedOnDay = fact.timestamp > 1_000_000
+        ? getGameDay(new Date(fact.timestamp))
+        : fact.timestamp;
+
+      const arrivals = duePropagatedFacts(
+        propagateFact(fact, {
+          originNpcId,
+          npcs: roster,
+          learnedOnDay,
+          rumorReachedNpcIds,
+        }),
+        currentDay
+      );
+
+      for (const arrival of arrivals) {
+        const recipient = gameState.npcMemory[arrival.npcId];
+        if (!recipient) continue;
+        if (recipient.knownFacts.some(known => known.text === arrival.fact.text)) continue;
+        dispatch({
+          type: 'ADD_NPC_KNOWN_FACT',
+          payload: { npcId: arrival.npcId, fact: arrival.fact },
+        });
+      }
+    }
+  }
+}
 
 /**
  * Simulates the spread of information (gossip) between NPCs.

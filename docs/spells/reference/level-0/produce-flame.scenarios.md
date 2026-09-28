@@ -1,4 +1,4 @@
-﻿# Produce Flame Scenarios
+# Produce Flame Scenarios
 
 Source references:
 - `docs/spells/reference/level-0/produce-flame.md`

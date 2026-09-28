@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 26/08/2026, 14:23:42
+ * Dependents: components/DesignPreview/steps/sidebyside/SideBySideOcean.tsx, systems/world3d/ocean/index.ts
+ * Imports: 6 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file oceanField.ts — the one object a caller needs.
  *
@@ -23,6 +39,14 @@ import { createOceanSurface, type OceanSurface } from './oceanSurface';
 import { significantWaveHeightM } from './oceanSpectrum';
 import { oceanFeetFromMeters } from './oceanUnits';
 
+/**
+ * A TSL node expression. See `oceanSurface.ts` for why this is `any`: three
+ * 0.172 ships no type that names every concrete node class an expression can
+ * produce.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type TslNode = any;
+
 export interface OceanFieldOptions {
   readonly seed?: number;
   readonly n?: number;
@@ -30,6 +54,21 @@ export interface OceanFieldOptions {
   readonly meshSide?: number;
   readonly radiusM?: number;
   readonly sunDir?: THREE.Vector3;
+  /**
+   * Weather, passed straight through to the surface. `overcast` is the sky's
+   * own `uniform(number)` node (`OceanSky.uOvercast`), 0 fair to 1 storm
+   * deck, so one value drives the deck and the water under it.
+   * `rainSlopeVariance` is a `uniform(number)` of the mean-square slope rain
+   * adds (`rainSlopeVariance` in oceanRainMath.ts). Both omitted, the sea is
+   * fair weather and the shader is unchanged.
+   */
+  readonly overcast?: TslNode;
+  readonly rainSlopeVariance?: TslNode;
+  /**
+   * The baked clouds the water reflects: `OceanSky.cloudReflTexture`, the
+   * blurred copy. Omitted, the water reflects the clear-sky gradient only.
+   */
+  readonly skyClouds?: THREE.Texture;
 }
 
 export interface OceanField {
@@ -96,7 +135,42 @@ export async function createOceanField(
     side: opts.meshSide,
     radiusM: opts.radiusM,
     sunDir: opts.sunDir,
+    overcast: opts.overcast,
+    rainSlopeVariance: opts.rainSlopeVariance,
+    skyClouds: opts.skyClouds,
+    // The FFT's own clock, so the surface's far texture drifts with the sea.
+    time: kernels.uTime,
   });
+
+  /* ONE COMPUTE CALL PER FRAME (performance pass, 2026-09-25).
+   *
+   * Every dispatch of the step goes to ONE `renderer.compute(list)` call:
+   * the FFT (pack, 8 + 8 Stockham stages, unpack), then the surface's normal
+   * mip chain. three 0.172 opens one compute pass for the list, dispatches
+   * each node in order, and submits once. It used to be one call per node,
+   * 27 a frame, and each call pays its own command encoder, pass and submit
+   * on the CPU: the spray piece measured about half a millisecond a call.
+   *
+   * WHY THIS IS SAFE. The hazard `oceanCompute.ts` documents is a uniform
+   * written between dispatches of one submit: every write lands before the
+   * submit runs, so all dispatches see the last value. Nothing here writes a
+   * uniform between dispatches. Each Stockham stage and each mip level is its
+   * own compiled kernel with its constants baked in, and the one per-frame
+   * uniform, the clock, is written once before the call. WebGPU makes each
+   * dispatch's storage writes visible to the next dispatch in the same pass,
+   * so the stage order is kept. The GPU work is the same; the CPU work is not.
+   */
+  const stepNodes = [
+    ...kernels.dispatches.map((d) => d.node),
+    // The surface's own passes, after the FFT has written the normal: the
+    // mip chain the fragment shader reads at range. See oceanNormalMip.ts.
+    ...surface.dispatches,
+  ] as unknown as Parameters<THREE.WebGPURenderer['compute']>[0];
+  // Measured in the viewer's A/B rig, the old path against this one, in the
+  // same minutes (perf iteration 1): the sea's step went from 6.9 ms to 0.2 ms
+  // of CPU a frame in the open-sea scene, overall frame time fell 16.7%
+  // across five scenes, and the pinned frames did not change (0 pixels over
+  // 8/255). The frame now waits on the GPU, not on this call.
 
   return {
     buffers,
@@ -105,12 +179,10 @@ export async function createOceanField(
     cascades,
     significantWaveHeightFt: oceanFeetFromMeters(hsM),
     significantWaveHeightM: hsM,
-    dispatchesPerFrame: kernels.dispatches.length,
+    dispatchesPerFrame: kernels.dispatches.length + surface.dispatches.length,
     step(renderer: THREE.WebGPURenderer, tSeconds: number) {
       kernels.uTime.value = tSeconds;
-      for (const d of kernels.dispatches) {
-        renderer.compute(d.node as Parameters<THREE.WebGPURenderer['compute']>[0]);
-      }
+      renderer.compute(stepNodes);
     },
   };
 }

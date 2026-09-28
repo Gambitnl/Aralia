@@ -29,6 +29,7 @@ import {
   transfersOfFill,
   transfersOfSlab,
   slabsForEdit,
+  slabHeightForFootprint,
   slabKey,
   tintSlab,
   tintRatio,
@@ -340,6 +341,96 @@ describe('the per-vertex top tint', () => {
 
   it('is exactly 1 for a column that matches its reference', () => {
     expect(tintRatio([0.2, 0.3, 0.4], [0.2, 0.3, 0.4])).toEqual([1, 1, 1]);
+  });
+});
+
+/**
+ * THE BUBBLE STOPPED BEING A CUBE (agora-f452).
+ *
+ * A cube is affordable at 64 m across and ruinous at 560 m, and the whole cost
+ * is vertical — a town bubble is a lid over terrain whose relief is tens of
+ * metres, not hundreds. The town-on-LAND pane paid for that cube in CELL SIZE,
+ * which is what capped its footprint at 480 m and left Hafting's 244 m envelope
+ * half standing on flat sheets. These pin the slab path and, just as much, that
+ * omitting the height still builds exactly the cube every walking bubble is.
+ */
+describe('a bubble with its own height', () => {
+  it('is still a cube when no height is asked for', () => {
+    const f = fillBubble(slope, 0, 0, 16, 0.5);
+    expect(f.cellsY).toBe(f.cellsPerEdge);
+    expect(planSlabs(f.cellsPerEdge, f.cellsY)).toEqual(planSlabs(f.cellsPerEdge));
+    expect(slabCounts(f.cellsPerEdge)).toEqual(slabCounts(f.cellsPerEdge, f.cellsPerEdge));
+  });
+
+  it('builds a wide, thin volume and still meshes its whole surface', () => {
+    const EXTENT = 64;
+    const HEIGHT = 16;
+    const CELL = 0.5;
+    const f = fillBubble(slope, 0, 0, EXTENT, CELL, undefined, HEIGHT);
+    expect(f.cellsPerEdge).toBe(128);
+    expect(f.cellsY).toBe(32);
+    // The saving, stated: a cube of this footprint is four times the cells.
+    expect(f.cellsPerEdge * f.cellsPerEdge * f.cellsY).toBeLessThan(f.cellsPerEdge ** 3 / 3);
+
+    const vol = VoxelVolume.fromSnapshot(f.snapshot);
+    expect(vol.cellsY).toBe(f.cellsY);
+
+    /* THE FAULT A DERIVED HEIGHT CAUSES. `planSlabs(cellsPerEdge)` alone would
+     * name four rows of slabs where only one exists — three of them pure air,
+     * meshed and thrown away every rebuild. */
+    const plan = planSlabs(f.cellsPerEdge, f.cellsY);
+    expect(plan.length).toBeLessThan(planSlabs(f.cellsPerEdge).length);
+    expect(Math.max(...plan.map((s) => s.cy))).toBe(slabCounts(f.cellsPerEdge, f.cellsY).y - 1);
+
+    /* And the ground is all there: every column's datum sits strictly inside
+     * the slab, so nothing was clamped into a mesa or dropped into a hole. */
+    const lo = f.originM[1];
+    const hi = f.originM[1] + f.cellsY * CELL;
+    let clipped = 0;
+    for (const y of f.originalTopY) if (y <= lo + CELL || y >= hi - CELL) clipped++;
+    expect(clipped).toBe(0);
+
+    const datum = depthDatumFor(f.originalTopY, f.originM, f.cellM, f.cellsPerEdge);
+    const drawn = plan
+      .map((p) => meshSlab(vol, f.cellM, f.originM, (d) => materialAtDepth(d), datum, p))
+      .filter((m) => m !== null);
+    expect(drawn.length).toBeGreaterThan(0);
+    expect(drawn.reduce((a, m) => a + m!.triangles, 0)).toBeGreaterThan(1000);
+  });
+
+  it('measures how tall the footprint needs the slab to be', () => {
+    /* A flat world needs only the margin, each way. */
+    const flat = slabHeightForFootprint(groundSource(() => 7), 0, 0, 64, 10);
+    expect(flat).toBeCloseTo(20, 6);
+
+    /* The slope rises 0.08 m per metre in x and 0.05 in z, so 32 m out from the
+     * centre the far corner is 0.08*32 + 0.05*32 = 4.16 m above it. The slab is
+     * centred on the CENTRE column, so it must reach that far in both
+     * directions: 2 * (4.16 + margin). */
+    const tilted = slabHeightForFootprint(slope, 0, 0, 64, 10);
+    expect(tilted).toBeCloseTo(2 * (4.16 + 10), 6);
+
+    /* And the height it reports really does hold the ground: filled at that
+     * height, no column is clipped at either face. */
+    const CELL = 0.5;
+    const f = fillBubble(slope, 0, 0, 64, CELL, undefined, tilted);
+    const lo = f.originM[1];
+    const hi = f.originM[1] + f.cellsY * CELL;
+    let clipped = 0;
+    for (const y of f.originalTopY) if (y <= lo + CELL || y >= hi - CELL) clipped++;
+    expect(clipped).toBe(0);
+  });
+
+  it('names the right slabs for an edit in a slab bubble', () => {
+    /* `slabsForEdit` defaulted its vertical count from `cellsPerEdge` for its
+     * whole life. In a slab bubble that default invents rows the volume does
+     * not have, and a carve then re-meshes coordinates that cannot exist. */
+    const withY = slabsForEdit(128, [60, 20, 60], [70, 24, 70], 2, 32);
+    expect(withY.length).toBeGreaterThan(0);
+    expect(Math.max(...withY.map((s) => s.cy))).toBeLessThan(slabCounts(128, 32).y);
+    expect(withY.length).toBeLessThanOrEqual(
+      slabsForEdit(128, [60, 20, 60], [70, 24, 70], 2).length,
+    );
   });
 });
 

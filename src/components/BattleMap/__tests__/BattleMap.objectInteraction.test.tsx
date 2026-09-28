@@ -3,6 +3,7 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import BattleMap from '../BattleMap';
 import type { BattleMapData, CombatCharacter, Position } from '../../../types/combat';
+import { createBattleMapCombatState } from './fixtures/battleMapCombatState';
 
 /**
  * These tests protect the optional object-interaction layer on the 2D battle map.
@@ -151,56 +152,16 @@ function renderObjectMap(
         onObjectSelect,
         onObjectMove
       }}
-      combatState={{
-        turnManager: {
-          turnState: {
-            currentTurn: 0,
-            turnOrder: [hero.id],
-            currentCharacterId: hero.id,
-            phase: 'action',
-            actionsThisTurn: []
-          },
-          activeLightSources: [],
-          reactiveTriggers: [],
-          damageNumbers: [],
-          animations: [],
-          spellZones: [],
-          scheduledSpellEffects: [],
-          movementDebuffs: [],
-          spellMovementVisuals: [],
-          canAffordAction: vi.fn(() => false)
-        // DEBT: BattleMap currently expects the full turn-manager return
-        // shape. This test only needs the object interaction path, so this
-        // compact fixture fills the fields BattleMap reads instead of building
-        // the full combat hook. A shared BattleMap fixture should replace this.
-        } as any,
+      combatState={createBattleMapCombatState({
+        // Shared typed fixture (agora-a180). Only the fields this suite
+        // actually exercises are named; the builder supplies the rest of the
+        // real turnManager/turnState/abilitySystem surface, so a new field on
+        // either hook fails to compile instead of arriving as undefined.
         turnState: {
-          currentTurn: 0,
           turnOrder: [hero.id],
-          currentCharacterId: hero.id,
-          phase: 'action',
-          actionsThisTurn: []
-        // DEBT: This mirrors the minimal turn-state shape used by nearby
-        // BattleMap tests. A typed fixture would make this safer once the map
-        // tests are consolidated.
-        } as any,
-        abilitySystem: {
-          targetingMode: false,
-          selectedAbility: null,
-          aoePreview: null,
-          teleportDestinationPreview: null,
-          pendingTeleportAssignment: null,
-          previewAoE: vi.fn(),
-          isValidTarget: vi.fn(),
-          cancelTargeting: vi.fn(),
-          startTargeting: vi.fn()
-        // DEBT: The real ability-system hook has a broad surface. Object
-        // movement does not use it, so this test supplies only the fields that
-        // BattleMap reads during rendering.
-        } as any,
-        isCharacterTurn: vi.fn(() => false),
-        onCharacterUpdate: vi.fn()
-      }}
+          currentCharacterId: hero.id
+        }
+      })}
     />
   );
 

@@ -43,6 +43,7 @@ import { initTownSimState } from './townSim';
 import { advanceTown } from './townSimRegistry';
 import type { TownSimState } from './types';
 import type { TownPlan } from '../artifacts';
+import type { TownRoster } from '../roster/types';
 import { blueprintForPlot } from '../interior/generateInterior';
 import { planBuildingExtensionCandidates } from '../interior/buildingExtensions';
 import type { SeedPath } from '../seedPath';
@@ -124,6 +125,23 @@ export function buildingEvolutionForBurg(
     cultureType: getBurgCultureType(worldSeed, burgId),
     climate: climateForBiomeId(biomeId),
   });
+}
+
+/**
+ * The canonical occupant roster for a burg — the SAME roster the 3D town and
+ * the living-world sim are built from (getCanonicalTownPlan → toArtifactPlan →
+ * generateTownRoster with the burg's culture namer), so any consumer asking
+ * "who lives here?" gets one deterministic answer.
+ *
+ * Extracted so the world-event lane can read occupant routines
+ * (`roster/occupantSchedule`) without rebuilding a whole TownSimState.
+ */
+export function townRosterForBurg(worldSeed: number, burgId: number): TownRoster {
+  const atlas = getBridgeAtlas(worldSeed);
+  const enginePlan = getCanonicalTownPlan(atlas, worldSeed, burgId);
+  const { plan } = toArtifactPlan(enginePlan, burgId);
+  const nameFor = getBurgNamer(worldSeed, burgId);
+  return generateTownRoster(plan, canonicalTownSeedPath(worldSeed, burgId), { nameFor });
 }
 
 /**

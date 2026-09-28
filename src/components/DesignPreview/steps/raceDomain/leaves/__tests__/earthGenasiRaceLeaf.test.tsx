@@ -164,6 +164,6 @@ describe('Earth Genasi Race domain leaf', () => {
     expect(screen.getByTestId('earth-genasi-actor-facts')).toHaveTextContent('Position 0,0');
     expect(screen.getByTestId('earth-genasi-actor-facts')).toHaveTextContent('Move 0/30 (30 remaining)');
     expect(screen.getByTestId('earth-genasi-spell-boundary')).toHaveTextContent('does not cast Blade Ward');
-    expect(screen.getByTestId('earth-genasi-movement-boundary')).toHaveTextContent('canonical-derived adapter only around the difficult-terrain multiplier');
+    expect(screen.getByTestId('earth-genasi-movement-boundary')).toHaveTextContent('production race-aware terrain policy (earth-walk)');
   });
 });

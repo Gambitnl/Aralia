@@ -1,7 +1,7 @@
 /**
  * ARCHITECTURAL CONTEXT:
  * This component manages the 'Warlock Feature' selection (Cantrips and
- * Level 1 Spells). Patron selection is deferred to Level 3 in the current
+ * Level 1 Spells). Patron selection is deferred to Level 3 in the current (tracked in Agora task agora-18ab),
  * implementation, focusing on core Pact Magic initialization at Level 1.
  *
  * Recent updates focus on 'Accessibility' and 'State Visualization'.
@@ -15,11 +15,14 @@
  * @file src/components/CharacterCreator/Class/WarlockFeatureSelection.tsx
  */
 import React from 'react';
-import { Spell, Class as CharClass } from '../../../types';
+import { Spell, Class as CharClass, WarlockPatronOption } from '../../../types';
+import { type RulesEdition } from '../../../config/rulesEdition';
 interface WarlockFeatureSelectionProps {
     spellcastingInfo: NonNullable<CharClass['spellcasting']>;
+    patrons: WarlockPatronOption[];
+    rulesEdition: RulesEdition;
     allSpells: Record<string, Spell>;
-    onWarlockFeaturesSelect: (cantrips: Spell[], spellsL1: Spell[]) => void;
+    onWarlockFeaturesSelect: (cantrips: Spell[], spellsL1: Spell[], patronId?: string) => void;
     onBack: () => void;
 }
 declare const WarlockFeatureSelection: React.FC<WarlockFeatureSelectionProps>;

@@ -10,11 +10,11 @@
 
 **Spec:** `docs/superpowers/specs/2026-07-14-planning-surface-freshness-design.md`
 
-> **REVISION 2 (2026-07-14, Remy):** full absorption — the tracker is merged into planmap and `docs/projects/` is deleted per project by a subagent wave. Tasks 5 and 9 are CANCELED (no doc layer to mirror or audit). Task 4's health step reads planmap only (no docset/GAPS fields). Task 10 is REPLACED by Task 10R below. Task 12 is REPLACED by Task 12R. Task 1 additionally adds feature-level `decision` (boolean) to the schema, and does NOT add `docset`.
+> **REVISION 2 (2026-07-14, Remy):** full absorption - the tracker is merged into planmap and `docs/projects/` is deleted per project by a subagent wave. Tasks 5 and 9 are CANCELED (no doc layer to mirror or audit). Task 4's health step reads planmap only (no docset/GAPS fields). Task 10 is REPLACED by Task 10R below. Task 12 is REPLACED by Task 12R. Task 1 additionally adds feature-level `decision` (boolean) to the schema, and does NOT add `docset`.
 
 ## Global Constraints
 
-- NEVER `git commit` or branch — the external 2am task snapshots the tree (repo rule). Plans' usual commit steps are intentionally absent.
+- NEVER `git commit` or branch - the external 2am task snapshots the tree (repo rule). Plans' usual commit steps are intentionally absent.
 - Work in `master`, in place. Acquire the Agora lock before editing `public/planmap/topics.json` when other agents are live: `node tools/agora/client.mjs lock public/planmap/topics.json` (release after).
 - Status vocabulary everywhere: `parked` · `specced` · `active` · `done` · `superseded`. No other words.
 - The sync program must be idempotent: running twice on the same state produces byte-identical files.
@@ -22,7 +22,7 @@
 - If `node tools/agora/validate-planmap.mjs` exits non-zero, the sync program must refuse ALL writes.
 - Never write `.agent/roadmap-local/processing_manifest.json` (roadmap-session-close regenerates it from sqlite and clobbers outside edits).
 - Duplicate roadmap node ids crash the whole graph (`id-validation.ts` throws). Planmap-born ids use prefix `planmap_` + topic id, which the planmap schema guarantees unique.
-- UI copy in plain English, US spelling (ASD-STE100 Simplified Technical English — repo writing rule).
+- UI copy in plain English, US spelling (ASD-STE100 Simplified Technical English - repo writing rule).
 - Tests for `tools/agora/*` use node:test (`node --test <file>`), matching `tools/agora/server.test.mjs`.
 
 ---
@@ -84,7 +84,7 @@ test('rejects bad tier and malformed updated', () => {
 - [ ] **Step 2: Run to verify it fails**
 
 Run: `node --test tools/agora/validate-planmap.test.mjs`
-Expected: FAIL — the validator has no `--file` flag yet and does not check the new fields.
+Expected: FAIL - the validator has no `--file` flag yet and does not check the new fields.
 
 - [ ] **Step 3: Implement**
 
@@ -120,8 +120,8 @@ Add `status_note` (string) to the feature properties object too. Update the `_re
 
 - [ ] **Step 4: Run tests + the real map**
 
-Run: `node --test tools/agora/validate-planmap.test.mjs` — Expected: PASS
-Run: `node tools/agora/validate-planmap.mjs` — Expected: `plan-map validation: clean` (88 topics), exit 0.
+Run: `node --test tools/agora/validate-planmap.test.mjs` - Expected: PASS
+Run: `node tools/agora/validate-planmap.mjs` - Expected: `plan-map validation: clean` (88 topics), exit 0.
 
 ### Task 2: `planmap-add` stamps `updated`
 
@@ -162,7 +162,7 @@ test('new topic gets an updated stamp', () => {
 - [ ] **Step 2: Run to verify it fails**
 
 Run: `node --test tools/agora/planmap-add.test.mjs`
-Expected: FAIL — no `--file`/`--no-validate` flags, no stamp.
+Expected: FAIL - no `--file`/`--no-validate` flags, no stamp.
 
 - [ ] **Step 3: Implement**
 
@@ -175,10 +175,10 @@ In `tools/agora/planmap-add.mjs`:
 
 - [ ] **Step 4: Run tests**
 
-Run: `node --test tools/agora/planmap-add.test.mjs` — Expected: PASS
-Run: `node tools/agora/validate-planmap.mjs` — Expected: exit 0 (real map untouched).
+Run: `node --test tools/agora/planmap-add.test.mjs` - Expected: PASS
+Run: `node tools/agora/validate-planmap.mjs` - Expected: exit 0 (real map untouched).
 
-### Task 3: Extract the board→planmap reconcile into an importable library
+### Task 3: Extract the board->planmap reconcile into an importable library
 
 **Files:**
 - Create: `tools/agora/planmap-reconcile-lib.mjs`
@@ -186,7 +186,7 @@ Run: `node tools/agora/validate-planmap.mjs` — Expected: exit 0 (real map unto
 - Test: `tools/agora/planmap-reconcile-lib.test.mjs` (create)
 
 **Interfaces:**
-- Produces: `reconcileBoardToPlanmap(data, tasks) -> { changes: string[], disconnected: {id, status}[] }` — mutates `data` in place (same rules as today: RANK upgrade only), plus `featureSlugs(features) -> string[]` re-exported.
+- Produces: `reconcileBoardToPlanmap(data, tasks) -> { changes: string[], disconnected: {id, status}[] }` - mutates `data` in place (same rules as today: RANK upgrade only), plus `featureSlugs(features) -> string[]` re-exported.
 - Consumes: nothing from other tasks.
 
 - [ ] **Step 1: Write the failing test**
@@ -237,11 +237,11 @@ test('idempotent: second run yields zero changes', () => {
 - [ ] **Step 2: Run to verify it fails**
 
 Run: `node --test tools/agora/planmap-reconcile-lib.test.mjs`
-Expected: FAIL — module does not exist.
+Expected: FAIL - module does not exist.
 
 - [ ] **Step 3: Implement**
 
-Create `tools/agora/planmap-reconcile-lib.mjs` by moving the pure logic out of `planmap-reconcile.mjs` lines 29–123 verbatim (slug, featureSlugs, RANK, the seen-map build, the change loop). Export:
+Create `tools/agora/planmap-reconcile-lib.mjs` by moving the pure logic out of `planmap-reconcile.mjs` lines 29-123 verbatim (slug, featureSlugs, RANK, the seen-map build, the change loop). Export:
 
 ```js
 export const featureSlugs = (features) => { /* moved verbatim */ };
@@ -259,10 +259,10 @@ Rewrite `planmap-reconcile.mjs` to: fetch `/tasks`, read topics.json, call the l
 
 - [ ] **Step 4: Run tests + dry-run parity**
 
-Run: `node --test tools/agora/planmap-reconcile-lib.test.mjs` — Expected: PASS
-Run: `node tools/agora/planmap-reconcile.mjs` (daemon up) — Expected: same output style as before the refactor.
+Run: `node --test tools/agora/planmap-reconcile-lib.test.mjs` - Expected: PASS
+Run: `node tools/agora/planmap-reconcile.mjs` (daemon up) - Expected: same output style as before the refactor.
 
-### Task 4: `sync-surfaces.mjs` core — steps, guard, health.json, run-twice golden
+### Task 4: `sync-surfaces.mjs` core - steps, guard, health.json, run-twice golden
 
 **Files:**
 - Create: `tools/agora/sync-surfaces.mjs`
@@ -351,7 +351,7 @@ test('invalid topics.json refuses all writes', async () => {
 - [ ] **Step 2: Run to verify it fails**
 
 Run: `node --test tools/agora/sync-surfaces.test.mjs`
-Expected: FAIL — module does not exist.
+Expected: FAIL - module does not exist.
 
 - [ ] **Step 3: Implement the core**
 
@@ -359,7 +359,7 @@ Expected: FAIL — module does not exist.
 
 ```js
 #!/usr/bin/env node
-// sync-surfaces.mjs — the one program that keeps every planning surface in
+// sync-surfaces.mjs - the one program that keeps every planning surface in
 // line with planmap. Idempotent by contract: run it twice, get identical files.
 import fs from 'node:fs';
 import path from 'node:path';
@@ -489,10 +489,10 @@ Note for the health test: `ageDays` for `updated: 2026-07-01` at now `2026-07-14
 
 - [ ] **Step 4: Run tests**
 
-Run: `node --test tools/agora/sync-surfaces.test.mjs` — Expected: PASS (the run-twice golden passes because board/docs steps are no-ops or upgrade-only and health output depends only on inputs + `now`).
-Run: `node tools/agora/sync-surfaces.mjs --steps health` on the real repo — Expected: `ok health: 88 topics`, `public/planmap/health.json` appears, validator still clean.
+Run: `node --test tools/agora/sync-surfaces.test.mjs` - Expected: PASS (the run-twice golden passes because board/docs steps are no-ops or upgrade-only and health output depends only on inputs + `now`).
+Run: `node tools/agora/sync-surfaces.mjs --steps health` on the real repo - Expected: `ok health: 88 topics`, `public/planmap/health.json` appears, validator still clean.
 
-### Task 5: Doc mirror step — 3 machine lines + roll-up rule
+### Task 5: Doc mirror step - 3 machine lines + roll-up rule
 
 **Files:**
 - Modify: `tools/agora/sync-surfaces.mjs` (replace the `docs` stub)
@@ -529,7 +529,7 @@ test('docs step writes the 3 machine lines and nothing else changes', async () =
 - [ ] **Step 2: Run to verify it fails**
 
 Run: `node --test tools/agora/sync-surfaces.test.mjs`
-Expected: FAIL — `rollUpStatus` not exported; docs step is a stub.
+Expected: FAIL - `rollUpStatus` not exported; docs step is a stub.
 
 - [ ] **Step 3: Implement**
 
@@ -548,7 +548,7 @@ Replace the `docs` step:
 
 ```js
 docs: async () => {
-  // Group topics by docset — several topics may share one doc folder.
+  // Group topics by docset - several topics may share one doc folder.
   const bySlug = new Map();
   for (const t of map.topics) {
     if (!t.docset) continue;
@@ -564,7 +564,7 @@ docs: async () => {
     const owner = topics.find((t) => t.tier !== 'component') ?? topics[0];
     const raw = fs.readFileSync(nsPath, 'utf8');
     const m = /^---\r?\n([\s\S]*?)\r?\n---/.exec(raw);
-    if (!m) continue; // no frontmatter — the audit (Task 6 of projects:audit) reports it; never invent one
+    if (!m) continue; // no frontmatter - the audit (Task 6 of projects:audit) reports it; never invent one
     let fm = m[1];
     const setLine = (key, value) => {
       const line = `${key}: ${value}`;
@@ -587,9 +587,9 @@ docs: async () => {
 
 - [ ] **Step 4: Run tests, including the golden**
 
-Run: `node --test tools/agora/sync-surfaces.test.mjs` — Expected: PASS including the run-twice golden (second run rewrites nothing, so `last_synced` does not churn).
+Run: `node --test tools/agora/sync-surfaces.test.mjs` - Expected: PASS including the run-twice golden (second run rewrites nothing, so `last_synced` does not churn).
 
-### Task 6: Board tidying — archive, handoff liveness, dead-owner flags
+### Task 6: Board tidying - archive, handoff liveness, dead-owner flags
 
 **Files:**
 - Modify: `tools/agora/store.mjs`
@@ -598,11 +598,11 @@ Run: `node --test tools/agora/sync-surfaces.test.mjs` — Expected: PASS includi
 - Test: extend `tools/agora/server.test.mjs`
 
 **Interfaces:**
-- Produces (store): `store.archiveDoneTasks({ olderThanDays = 14, now }) -> { archived: number }` — moves qualifying done tasks to `.agent/agora/archive/tasks-YYYY-MM.jsonl` (append, one JSON line each) and deletes them from live state via a journaled `task_archived` event so replay stays consistent.
+- Produces (store): `store.archiveDoneTasks({ olderThanDays = 14, now }) -> { archived: number }` - moves qualifying done tasks to `.agent/agora/archive/tasks-YYYY-MM.jsonl` (append, one JSON line each) and deletes them from live state via a journaled `task_archived` event so replay stays consistent.
 - Produces (server): `POST /tasks/:id/handoff` returns 422 when the target agent id is not in the live roster; `GET /campaigns` rows gain `ownerAlive: boolean`.
-- Produces (server): `POST /admin/tidy` (authed) runs `archiveDoneTasks` and returns its result — the sync program's `tidy` step calls this instead of touching store files directly.
+- Produces (server): `POST /admin/tidy` (authed) runs `archiveDoneTasks` and returns its result - the sync program's `tidy` step calls this instead of touching store files directly.
 
-- [ ] **Step 1: Write the failing tests** (same harness style as existing `server.test.mjs`, lines 70–239: boot `createAgoraServer` on a temp dir, register, use fetch)
+- [ ] **Step 1: Write the failing tests** (same harness style as existing `server.test.mjs`, lines 70-239: boot `createAgoraServer` on a temp dir, register, use fetch)
 
 ```js
 test('handoff to unknown agent -> 422; task stays with holder', async () => {
@@ -612,7 +612,7 @@ test('handoff to unknown agent -> 422; task stays with holder', async () => {
 
 test('archiveDoneTasks files old done tasks and survives replay', async () => {
   // create a task, walk it to done, backdate its updatedAt in the store (test seam:
-  // store.__setTaskUpdatedAt(id, isoDate) — add this tiny test-only export),
+  // store.__setTaskUpdatedAt(id, isoDate) - add this tiny test-only export),
   // call POST /admin/tidy, assert { archived: 1 }, GET /tasks no longer lists it,
   // the archive JSONL file contains it, and rebooting the server (createAgoraServer
   // again on the same dir) still does not list it.
@@ -655,7 +655,7 @@ function archiveDoneTasks({ olderThanDays = 14, now = Date.now() } = {}) {
 }
 ```
 
-Wire `task_archived` into the journal replay switch (delete the task id) and expose `archiveDoneTasks` on the returned store object. Match the file's existing journal helper names exactly (read the neighboring `sweepExpired` for the local idioms — event append helper, `state.tasks` shape).
+Wire `task_archived` into the journal replay switch (delete the task id) and expose `archiveDoneTasks` on the returned store object. Match the file's existing journal helper names exactly (read the neighboring `sweepExpired` for the local idioms - event append helper, `state.tasks` shape).
 
 In `server.mjs`:
 - handoff route: before reassigning, `if (!store.getAgent(body.toAgentId)) return json(res, 422, { error: 'unknown or dead target agent' });` (use the store's existing roster lookup; check the actual helper name near the reap logic).
@@ -668,7 +668,7 @@ In `sync-surfaces.mjs`, replace the `tidy` stub:
 tidy: async () => {
   if (dryRun) return { changed: false, detail: 'dry run' };
   const res = await fetch(`${agoraUrl}/admin/tidy`, { method: 'POST', headers: authHeaders() }).catch(() => null);
-  if (!res || !res.ok) return { changed: false, detail: 'daemon unreachable or refused — skipped' };
+  if (!res || !res.ok) return { changed: false, detail: 'daemon unreachable or refused - skipped' };
   const body = await res.json();
   return { changed: body.archived > 0, detail: `${body.archived} task(s) archived` };
 },
@@ -678,18 +678,18 @@ tidy: async () => {
 
 - [ ] **Step 4: Run the whole agora suite**
 
-Run: `node --test tools/agora/server.test.mjs tools/agora/sync-surfaces.test.mjs` — Expected: ALL PASS, including every pre-existing test (the reaper and replay behavior must not regress).
+Run: `node --test tools/agora/server.test.mjs tools/agora/sync-surfaces.test.mjs` - Expected: ALL PASS, including every pre-existing test (the reaper and replay behavior must not regress).
 
 ### Task 7: Daemon debounce trigger + nightly wiring
 
 **Files:**
 - Modify: `tools/agora/server.mjs`
 - Modify: `package.json` (scripts)
-- Human step: one line in `C:\Users\Gambit\.claude\scripts\aralia-daily-commit.ps1` (outside the repo — Remy edits or explicitly authorizes the edit)
+- Human step: one line in `C:\Users\Gambit\.claude\scripts\aralia-daily-commit.ps1` (outside the repo - Remy edits or explicitly authorizes the edit)
 
 **Interfaces:**
 - Produces: after any task-mutating route succeeds, the daemon schedules ONE `sync-surfaces` child run 60s later (new events inside the window coalesce). Exported for tests: `scheduleSyncSoon()` on the server object with `syncDelayMs` option.
-- Produces: `npm run sync` → `node tools/agora/sync-surfaces.mjs`; `npm run sync:dry` → `... --dry-run`.
+- Produces: `npm run sync` -> `node tools/agora/sync-surfaces.mjs`; `npm run sync:dry` -> `... --dry-run`.
 
 - [ ] **Step 1: Write the failing test**
 
@@ -700,7 +700,7 @@ test('task mutations coalesce into one scheduled sync', async () => {
 });
 ```
 
-- [ ] **Step 2: Run to verify it fails** — `node --test tools/agora/server.test.mjs`
+- [ ] **Step 2: Run to verify it fails** - `node --test tools/agora/server.test.mjs`
 
 - [ ] **Step 3: Implement**
 
@@ -720,7 +720,7 @@ const scheduleSyncSoon = () => {
 };
 ```
 
-Call `scheduleSyncSoon()` at the end of every successful task-mutating handler (create/claim/state-change/handoff/done). Match the file's existing `options`/ESM import style (use `import { spawn }` at top, not require, if the file is pure ESM — it is).
+Call `scheduleSyncSoon()` at the end of every successful task-mutating handler (create/claim/state-change/handoff/done). Match the file's existing `options`/ESM import style (use `import { spawn }` at top, not require, if the file is pure ESM - it is).
 
 In `package.json` scripts:
 
@@ -729,7 +729,7 @@ In `package.json` scripts:
 "sync:dry": "node tools/agora/sync-surfaces.mjs --dry-run"
 ```
 
-Nightly (human step for Remy — the ps1 lives outside the repo): add before the commit step of `aralia-daily-commit.ps1`:
+Nightly (human step for Remy - the ps1 lives outside the repo): add before the commit step of `aralia-daily-commit.ps1`:
 
 ```powershell
 & node F:\Repos\Aralia\tools\agora\sync-surfaces.mjs *> F:\Repos\Aralia\.agent\scratch\sync-nightly.txt
@@ -737,10 +737,10 @@ Nightly (human step for Remy — the ps1 lives outside the repo): add before the
 
 - [ ] **Step 4: Run tests + live smoke**
 
-Run: `node --test tools/agora/server.test.mjs` — Expected: PASS.
+Run: `node --test tools/agora/server.test.mjs` - Expected: PASS.
 Smoke: with the daemon running, `node tools/agora/client.mjs` task create/done, wait ~70s, confirm `health.json` `generatedAt` moved.
 
-### Task 8: Roadmap revival — planmap topics as first-class nodes
+### Task 8: Roadmap revival - planmap topics as first-class nodes
 
 **Files:**
 - Create: `.agent/roadmap-local/campaign-homes.json` (data)
@@ -750,9 +750,9 @@ Smoke: with the daemon running, `node tools/agora/client.mjs` task create/done, 
 
 **Interfaces:**
 - Consumes: `public/planmap/topics.json` (all fields), `MAIN_PILLARS` ids from `pillars.ts`.
-- Produces: nodes `planmap_<topicId>` (type 'milestone', category 'feature', `planmapTopic` set) under `pillar_<slug(home)>`, and `planmap_<topicId>__<featureSlug>` children (same featureSlugs scheme as `planmap-reconcile-lib.mjs` — copy the function into the engine file with a comment naming the source of truth). Exported: `buildPlanmapNodes(topicsDoc, homes, pillarNodeIds) -> { nodes, edges }`.
-- `campaign-homes.json` shape: `{ "world": "world-exploration", "combat": "combat-systems", "tooling": "dev-tools", ... }` — one entry per planmap campaign, value is a `MainPillarId`. Unmapped campaigns fall back to `"technical-foundation-tooling"` and are listed in the node description so the gap is visible.
-- `planmap-bindings.json` shape: `{ "sub_pillar_x_label": "topic-id", ... }` — replaces the in-code `PLANMAP_TOPIC_BY_NODE_ID`; loaded at generate time; missing file = empty map.
+- Produces: nodes `planmap_<topicId>` (type 'milestone', category 'feature', `planmapTopic` set) under `pillar_<slug(home)>`, and `planmap_<topicId>__<featureSlug>` children (same featureSlugs scheme as `planmap-reconcile-lib.mjs` - copy the function into the engine file with a comment naming the source of truth). Exported: `buildPlanmapNodes(topicsDoc, homes, pillarNodeIds) -> { nodes, edges }`.
+- `campaign-homes.json` shape: `{ "world": "world-exploration", "combat": "combat-systems", "tooling": "dev-tools", ... }` - one entry per planmap campaign, value is a `MainPillarId`. Unmapped campaigns fall back to `"technical-foundation-tooling"` and are listed in the node description so the gap is visible.
+- `planmap-bindings.json` shape: `{ "sub_pillar_x_label": "topic-id", ... }` - replaces the in-code `PLANMAP_TOPIC_BY_NODE_ID`; loaded at generate time; missing file = empty map.
 
 - [ ] **Step 1: Write the failing test**
 
@@ -802,7 +802,7 @@ test('no duplicate ids across topics and features', () => {
 - [ ] **Step 2: Run to verify it fails**
 
 Run: `npx tsx --test devtools/roadmap/scripts/roadmap-engine/planmap-nodes.test.ts`
-Expected: FAIL — `buildPlanmapNodes` not exported.
+Expected: FAIL - `buildPlanmapNodes` not exported.
 
 - [ ] **Step 3: Implement in `generate.ts`**
 
@@ -853,7 +853,7 @@ export function buildPlanmapNodes(
 }
 ```
 
-`planmapFeatureSlugs`: copy the counted-duplicate scheme from `tools/agora/planmap-reconcile-lib.mjs` verbatim, with the comment `// SHARED SCHEME with tools/agora/planmap-reconcile-lib.mjs — must stay identical`.
+`planmapFeatureSlugs`: copy the counted-duplicate scheme from `tools/agora/planmap-reconcile-lib.mjs` verbatim, with the comment `// SHARED SCHEME with tools/agora/planmap-reconcile-lib.mjs - must stay identical`.
 3. In `generateRoadmapData()`, after the pillar loop and before `relaxNodeCollisions(nodes)`:
 
 ```ts
@@ -870,12 +870,12 @@ if (fs.existsSync(topicsPath)) {
 ```
 
 Position note: leave `initialX/initialY` 0 and let `relaxNodeCollisions` spread them; saved `layout.json` positions override client-side anyway.
-4. Seed `.agent/roadmap-local/campaign-homes.json` with the 10 real campaigns (from `topics.json` `campaigns` keys) mapped to pillar ids — propose: world→world-exploration, combat→combat-systems, travel→world-exploration, character→character-systems, spells→combat-systems, sim→world-exploration, rendering→technical-foundation-tooling, ui→ui-player-surfaces, agents→dev-tools, tooling→dev-tools. This seeding is REVIEWED at the Task 10 gate before it is treated as final.
+4. Seed `.agent/roadmap-local/campaign-homes.json` with the 10 real campaigns (from `topics.json` `campaigns` keys) mapped to pillar ids - propose: world->world-exploration, combat->combat-systems, travel->world-exploration, character->character-systems, spells->combat-systems, sim->world-exploration, rendering->technical-foundation-tooling, ui->ui-player-surfaces, agents->dev-tools, tooling->dev-tools. This seeding is REVIEWED at the Task 10 gate before it is treated as final.
 5. Seed `.agent/roadmap-local/planmap-bindings.json` as `{}`.
 
 - [ ] **Step 4: Run tests + live graph smoke**
 
-Run: `npx tsx --test devtools/roadmap/scripts/roadmap-engine/planmap-nodes.test.ts` — Expected: PASS.
+Run: `npx tsx --test devtools/roadmap/scripts/roadmap-engine/planmap-nodes.test.ts` - Expected: PASS.
 Smoke: start the roadmap server (preview config `dev:roadmap`, port 3010), fetch `/Aralia/api/roadmap/data`, assert HTTP 200 (no id-collision 500) and that `nodes` contains `planmap_forests`. Then load the page and screenshot it (visual rule).
 
 ### Task 9: `projects:audit` checks the machine lines
@@ -884,9 +884,9 @@ Smoke: start the roadmap server (preview config `dev:roadmap`, port 3010), fetch
 - Modify: `scripts/audit-living-project-docs.cjs`
 - Test: run against a fixture folder
 
-- [ ] **Step 1: Add the check.** In the per-project audit section (where frontmatter fields are validated), load `public/planmap/topics.json` once; for each project slug, find topics with `docset === slug`; when at least one exists, compute the roll-up (same rule as Task 5 — inline the 8-line function with a comment naming `sync-surfaces.mjs` as the source of truth) and report a finding when `status` in NORTH_STAR frontmatter differs, when `planmap_topic` names a topic that does not exist, or when `last_synced` is malformed. Follow the script's existing findings format (it emits JSON).
+- [ ] **Step 1: Add the check.** In the per-project audit section (where frontmatter fields are validated), load `public/planmap/topics.json` once; for each project slug, find topics with `docset === slug`; when at least one exists, compute the roll-up (same rule as Task 5 - inline the 8-line function with a comment naming `sync-surfaces.mjs` as the source of truth) and report a finding when `status` in NORTH_STAR frontmatter differs, when `planmap_topic` names a topic that does not exist, or when `last_synced` is malformed. Follow the script's existing findings format (it emits JSON).
 
-- [ ] **Step 2: Verify both directions.** Run `npm run projects:audit` — expected: combat (and any docset-linked project) passes once Task 5's sync has run; hand-edit a `status:` line to a wrong word, re-run, expected: the new finding appears; revert the hand edit.
+- [ ] **Step 2: Verify both directions.** Run `npm run projects:audit` - expected: combat (and any docset-linked project) passes once Task 5's sync has run; hand-edit a `status:` line to a wrong word, re-run, expected: the new finding appears; revert the hand edit.
 
 ### Task 10R: The absorption wave (replaces Task 10)
 
@@ -933,7 +933,7 @@ Project folder: docs/projects/<SLUG>/. Acquire the Agora lock on public/planmap/
 - [ ] Confirm `docs/projects/` holds no project folders. Then delete `misc/project_tracker.html`, `misc/project_tracker.js`, `misc/project_detail*.js`, `misc/project_ui*.js`, `misc/project_filter_ui*.js`, `docs/projects/PROJECT_TRACKER.md`, `scripts/audit-living-project-docs.cjs`; remove the `projects:audit` npm script; remove the `/api/projects/*` handlers in `scripts/vite-plugins/devhub/projectRoutes.ts` (leave the file exporting a no-op if other routes import it). Grep for `project_tracker` and `projects/dashboard` to catch stragglers; fix references.
 - [ ] Verify: main dev server boots clean; planmap page loads; `npm run typecheck` if routes were TypeScript.
 
-### Task 10 (SUPERSEDED by Task 10R — kept for reference): The gated one-time migration
+### Task 10 (SUPERSEDED by Task 10R - kept for reference): The gated one-time migration
 
 **Files:**
 - Create: `tools/agora/planmap-migrate.mjs`
@@ -944,27 +944,27 @@ Project folder: docs/projects/<SLUG>/. Acquire the Agora lock on public/planmap/
 - Produces: `--dry-run` (default) prints 3 tables to stdout and writes `.agent/scratch/planmap-migration-plan.json`; `--apply` executes exactly that plan file (refuses if it is missing or stale by content hash).
 
 **Behavior (all from the spec):**
-1. Fold table: every docs/projects folder with no matching topic (by `docset` link or id match) becomes `{ id: <slug>, title: <from NORTH_STAR project field>, campaign: <mapped from main_category via a small in-file table>, tier: 'component', docset: <slug>, status: <converted> }`. Status conversion table (verbatim from spec): active→active; complete/complete_for_current_gap_set/"complete for World-owned scope"→done (+status_note); idle→parked; partial→active; review-required→active; merged-reference/reference-only/linked-support→superseded (+status_note original label); missing→listed as NEEDS-HUMAN in the table.
+1. Fold table: every docs/projects folder with no matching topic (by `docset` link or id match) becomes `{ id: <slug>, title: <from NORTH_STAR project field>, campaign: <mapped from main_category via a small in-file table>, tier: 'component', docset: <slug>, status: <converted> }`. Status conversion table (verbatim from spec): active->active; complete/complete_for_current_gap_set/"complete for World-owned scope"->done (+status_note); idle->parked; partial->active; review-required->active; merged-reference/reference-only/linked-support->superseded (+status_note original label); missing->listed as NEEDS-HUMAN in the table.
 2. Link table: the 32 matched topics get `docset` set (match by exact id=slug first, then the fuzzy title match; print match basis).
 3. Stamp pass: every existing topic without `updated` gets it backfilled from the last git commit date that changed its entry (fallback: file's last commit date); every topic without `tier` gets `strategic`.
 4. Close `planmap-roadmap-sync`: `status: 'superseded'`, `killed: 'superseded by planning-surface-freshness (2026-07-14 design)'`.
 5. After `--apply`: run the validator; non-zero exit = restore the pre-apply backup it wrote to `.agent/scratch/topics.pre-migration.json` and report.
 
-- [ ] **Step 1: Write failing tests** — fixture repo (reuse the Task 4 `mkRepo` pattern, plus 2 extra project folders: one with `status: idle` and no topic, one whose slug matches an existing topic id). Assert: dry-run writes the plan JSON with a fold row (`idle→parked`), a link row, and stamps; apply produces a validator-clean topics.json with the new component topic; apply twice = second apply reports "nothing to do".
+- [ ] **Step 1: Write failing tests** - fixture repo (reuse the Task 4 `mkRepo` pattern, plus 2 extra project folders: one with `status: idle` and no topic, one whose slug matches an existing topic id). Assert: dry-run writes the plan JSON with a fold row (`idle->parked`), a link row, and stamps; apply produces a validator-clean topics.json with the new component topic; apply twice = second apply reports "nothing to do".
 
 - [ ] **Step 2: Run to verify they fail.** `node --test tools/agora/planmap-migrate.test.mjs`
 
-- [ ] **Step 3: Implement** exactly the behaviors above. Table printing: plain aligned columns (`slug | new topic id | seeded status | note`). Campaign mapping from `main_category` (in-file map: "Game & Simulation"→world, "Combat & Encounters"→combat, UI categories→ui, tooling/docs categories→tooling; anything unmapped→tooling with a NEEDS-HUMAN note in the table).
+- [ ] **Step 3: Implement** exactly the behaviors above. Table printing: plain aligned columns (`slug | new topic id | seeded status | note`). Campaign mapping from `main_category` (in-file map: "Game & Simulation"->world, "Combat & Encounters"->combat, UI categories->ui, tooling/docs categories->tooling; anything unmapped->tooling with a NEEDS-HUMAN note in the table).
 
 - [ ] **Step 4: Run tests.** Expected: PASS.
 
 - [ ] **Step 5: THE GATE (human).** Run `node tools/agora/planmap-migrate.mjs` on the real repo (lock topics.json first). Present the 3 printed tables to Remy via AskUserQuestion. Only on explicit approval run `--apply`, re-run the validator, run `npm run sync` once, then release the lock. If Remy edits mappings, regenerate the dry-run and re-present.
 
-### Task 11: Planmap page — age, health, tier filter, last-run banner
+### Task 11: Planmap page - age, health, tier filter, last-run banner
 
 **Files:**
 - Modify: `public/planmap/index.html`
-- Verify: screenshots (visual rule) — no unit tests for this task
+- Verify: screenshots (visual rule) - no unit tests for this task
 
 **Interfaces:**
 - Consumes: `public/planmap/health.json` (Task 4 shape) fetched alongside topics.json.
@@ -978,7 +978,7 @@ Promise.all([
 ]).then(([data, health]) => {
 ```
 
-Keep the existing error banner path working (health may be null — every use below must tolerate that).
+Keep the existing error banner path working (health may be null - every use below must tolerate that).
 
 - [ ] **Step 2: Badges.** Add a helper near `renderTopicDetail` (line ~1397):
 
@@ -997,7 +997,7 @@ const healthBadges = (t) => {
 
 Insert `${healthBadges(t)}` into the topic tile template (find the tile HTML construction; it is the map over `data.topics` that builds the board) and into `renderTopicDetail`. Add CSS classes `.hbadge` (small pill, muted), `.hbadge.stale` (amber), `.hbadge.warn` (amber), `.hbadge.decide` (red) beside the page's existing badge styles.
 
-- [ ] **Step 3: Tier filter + banner.** Add a checkbox control next to the existing hint bar: `show detail topics` (default OFF hides `tier === 'component'` topics from the board; detail pane unaffected). Add a top-right banner div: `synced <n>h ago` from `health.generatedAt`, red text `sync has not run for <n> days` when older than 48 hours, and `health.json missing — run npm run sync` when health is null.
+- [ ] **Step 3: Tier filter + banner.** Add a checkbox control next to the existing hint bar: `show detail topics` (default OFF hides `tier === 'component'` topics from the board; detail pane unaffected). Add a top-right banner div: `synced <n>h ago` from `health.generatedAt`, red text `sync has not run for <n> days` when older than 48 hours, and `health.json missing - run npm run sync` when health is null.
 
 - [ ] **Step 4: Eyeball with screenshots.** Serve via the `planmap` launch config (port 5183), screenshot: (a) board with badges, (b) detail pane, (c) tier filter off/on, (d) the banner with a hand-aged health.json. Fix what looks wrong before calling it done. Present the screenshots to Remy.
 
@@ -1016,7 +1016,7 @@ Insert `${healthBadges(t)}` into the topic tile template (find the tile HTML con
 
 ## Self-Review (done at write time)
 
-- Spec coverage: schema fields (T1), stamps (T2), board→planmap (T3/T4), health (T4), doc mirrors + roll-up (T5), audit check (T9), board tidying WF-G15/G17 (T6), triggers live+nightly (T7), roadmap revival + bindings + campaign homes (T8), migration + gates (T10), UI + stale visibility (T11), tracker forward (T12). Chronicle/atlas visibility = `surfaces` block in health.json (T4). Spec's "refuse on invalid map" = T4 guard.
+- Spec coverage: schema fields (T1), stamps (T2), board->planmap (T3/T4), health (T4), doc mirrors + roll-up (T5), audit check (T9), board tidying WF-G15/G17 (T6), triggers live+nightly (T7), roadmap revival + bindings + campaign homes (T8), migration + gates (T10), UI + stale visibility (T11), tracker forward (T12). Chronicle/atlas visibility = `surfaces` block in health.json (T4). Spec's "refuse on invalid map" = T4 guard.
 - No placeholders: every code step carries real code or an exact verbatim-move instruction with line ranges.
 - Type consistency: `runSync`/`rollUpStatus`/`reconcileBoardToPlanmap`/`buildPlanmapNodes` signatures match across tasks; `planmap_<topicId>__<featureSlug>` used consistently; health.json shape identical in T4 and T11.
 - Repo rules honored: no commit steps anywhere; Agora lock called out where topics.json is written (T10 gate); external ps1 edit marked as a human step (T7).

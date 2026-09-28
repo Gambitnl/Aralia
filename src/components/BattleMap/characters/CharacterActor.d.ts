@@ -3,7 +3,7 @@
  * 3D character representation for the combat map.
  *
  * Each CombatCharacter is rendered as a CharacterActor containing:
- * - Humanoid procedural model (placeholder until glTF models via Pixal3D pipeline)
+ * - Humanoid procedural model (transition to glTF/EntityModel tracked in Agora task agora-b8b9)
  * - Animation state machine (idle sway, walk bob, attack, hit react, death)
  * - BG3-style selection decal (cyan/red ground ring)
  * - Active turn golden ring with pulse animation

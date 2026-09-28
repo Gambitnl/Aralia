@@ -115,6 +115,39 @@ export default tseslint.config(
             "it already wraps motion.button with a spring-tap animation. " +
             "If intentionally custom, add the file to EXEMPT_FILES in buttonAudit.test.ts.",
         },
+        {
+          selector:
+            'CallExpression[callee.type="MemberExpression"][callee.object.name="crypto"][callee.property.name="randomUUID"]',
+          message:
+            'Direct crypto.randomUUID() call detected. Use generateId() from src/utils/core/idGenerator.ts ' +
+            '(it wraps crypto.randomUUID and falls back where the API is unavailable). ' +
+            'idGenerator.ts itself is exempt.',
+        },
+      ],
+    },
+  },
+  {
+    // idGenerator.ts is the single sanctioned caller of crypto.randomUUID().
+    // Re-declare the rule here WITHOUT the crypto selector so the two button
+    // selectors still apply to this file.
+    files: ['src/utils/core/idGenerator.ts'],
+    rules: {
+      'no-restricted-syntax': [
+        'warn',
+        {
+          selector: 'JSXOpeningElement[name.name="button"]',
+          message:
+            "Raw <button> detected. Prefer <Button variant='...' size='...'> from 'ui/Button', " +
+            "or apply BTN_BASE + BTN_* constants from 'styles/buttonStyles'. " +
+            "If intentionally custom, add the file to EXEMPT_FILES in buttonAudit.test.ts.",
+        },
+        {
+          selector: 'JSXOpeningElement[name.object.name="motion"][name.property.name="button"]',
+          message:
+            "Raw <motion.button> detected. Prefer <Button variant='...' size='...'> from 'ui/Button' — " +
+            "it already wraps motion.button with a spring-tap animation. " +
+            "If intentionally custom, add the file to EXEMPT_FILES in buttonAudit.test.ts.",
+        },
       ],
     },
   },

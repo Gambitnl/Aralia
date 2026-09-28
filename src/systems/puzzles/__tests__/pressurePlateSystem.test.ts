@@ -9,6 +9,7 @@ import { PressurePlate, Trap } from '../types';
 import { PlayerCharacter } from '../../../types/character';
 import { CharacterStats } from '../../../types/core'; // Added to type the stats helper explicitly.
 import { createMockPlayerCharacter } from '../../../utils/core';
+import * as rollers from '../../dice/rollers';
 
 // Mock character factory
 // Was an inline stats literal per character; extracted to ensure required fields are always present.
@@ -129,9 +130,10 @@ describe('Pressure Plate System', () => {
     });
 
     it('fails to detect on a low perception roll (pinned random)', () => {
-      // Pin the random source to a natural 1 so the failure branch is exercised
-      // deterministically instead of being left to intermittent low rolls.
-      const randomSpy = vi.spyOn(Math, 'random').mockReturnValue(0);
+      // Pin the die to a natural 1 so the failure branch is exercised
+      // deterministically. Since agora-f821.4 the puzzle rolls through the
+      // audited contract, not Math.random, so the pin goes on the roller.
+      const randomSpy = vi.spyOn(rollers, 'rollDice').mockReturnValue(1);
       try {
         const char = createMockCharacter(); // Wisdom 10 → +0 modifier
         const result = detectPressurePlate(char, { ...plate, detectionDC: 2 });

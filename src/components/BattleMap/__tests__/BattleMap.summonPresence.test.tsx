@@ -2,6 +2,7 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import BattleMap from '../BattleMap';
+import { createBattleMapCombatState } from './fixtures/battleMapCombatState';
 import { SummoningCommand } from '../../../commands/effects/SummoningCommand';
 import type { CommandContext } from '../../../commands/base/SpellCommand';
 import type { BattleMapData, CombatCharacter, CombatLogEntry, CombatState } from '../../../types/combat';
@@ -153,47 +154,14 @@ describe('BattleMap summon presence proof', () => {
       <BattleMap
         mapData={mapData}
         characters={[caster, summoned!]}
-        combatState={{
-          turnManager: {
-            turnState: {
-              currentTurn: 1,
-              turnOrder: [caster.id, summoned!.id],
-              currentCharacterId: caster.id,
-              phase: 'action',
-              actionsThisTurn: []
-            },
-            activeLightSources: [],
-            reactiveTriggers: [],
-            damageNumbers: [],
-            animations: [],
-            spellZones: [],
-            scheduledSpellEffects: [],
-            movementDebuffs: [],
-            spellMovementVisuals: [],
-            spellDeliveryVisuals: [],
-            canAffordAction: vi.fn(() => true)
-          } as never,
+        combatState={createBattleMapCombatState({
           turnState: {
             currentTurn: 1,
             turnOrder: [caster.id, summoned!.id],
-            currentCharacterId: caster.id,
-            phase: 'action',
-            actionsThisTurn: []
-          } as never,
-          abilitySystem: {
-            targetingMode: false,
-            selectedAbility: null,
-            aoePreview: null,
-            teleportDestinationPreview: null,
-            pendingTeleportAssignment: null,
-            previewAoE: vi.fn(),
-            isValidTarget: vi.fn(),
-            cancelTargeting: vi.fn(),
-            startTargeting: vi.fn()
-          } as never,
-          isCharacterTurn: vi.fn(() => false),
-          onCharacterUpdate: vi.fn()
-        }}
+            currentCharacterId: caster.id
+          },
+          turnManager: { canAffordAction: vi.fn(() => true) }
+        })}
       />
     );
 

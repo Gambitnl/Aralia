@@ -21,7 +21,7 @@
  */
 import { TargetAllocation, ScalingFormula } from '../../../types/spells';
 import { CombatCharacter } from '../../../types/combat';
-import { rollDice } from '../../../utils/combat';
+import { rollDice } from '../../dice/rollers';
 
 export interface AllocationResult {
   /** The subset of candidates that were selected */
@@ -154,7 +154,7 @@ export class TargetAllocator {
 
   private static getResourceValue(character: CombatCharacter, resource: 'hp' | 'hit_dice'): number {
     if (resource === 'hp') {
-      // Some callers provide a loose combat stub with `hp`; fall back to `currentHP`.
+      // Some callers provide a loose combat shape with `hp`; fall back to `currentHP`.
       const stubHp = (character as { hp?: number }).hp
       return stubHp ?? character.currentHP ?? 0;
     }

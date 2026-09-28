@@ -26,6 +26,7 @@
  */
 import React from 'react';
 import {
+  DoorOpen,
   Footprints,
   PanelRightOpen,
   Shield,
@@ -47,6 +48,16 @@ interface CompactTurnStripProps {
   isCharactersTurn: boolean;
   onEndTurn: () => void | Promise<void>;
   onRestoreCommands: () => void;
+  /**
+   * Edge-of-map escape (9B). Optional so every existing caller keeps working
+   * unchanged: a surface that never wires escape simply never shows the button.
+   * When the active actor stands at the battlefield rim with a full movement
+   * action, the parent passes `canEscape` and the strip offers the way out.
+   */
+  canEscape?: boolean;
+  /** Tooltip explaining the escape option (or why it is unavailable). */
+  escapeReason?: string;
+  onEscape?: () => void;
 }
 
 // ============================================================================
@@ -96,6 +107,9 @@ const CompactTurnStrip: React.FC<CompactTurnStripProps> = ({
   isCharactersTurn,
   onEndTurn,
   onRestoreCommands,
+  canEscape = false,
+  escapeReason,
+  onEscape,
 }) => {
   // No active actor can occur briefly while combat initializes. Keeping the
   // restore command available lets the player recover the full command rail.
@@ -198,6 +212,25 @@ const CompactTurnStrip: React.FC<CompactTurnStripProps> = ({
       >
         <PanelRightOpen size={17} />
       </button>
+
+      {/* Edge-of-map escape (9B). Only rendered when the referee says this actor
+          may flee, so its presence IS the signal that an exit is in reach. It
+          sits beside End Turn because both are turn-ending decisions. */}
+      {isPlayerActor && canEscape && onEscape && (
+        /* eslint-disable-next-line no-restricted-syntax -- The surrounding compact HUD is already a keyboard-accessible, fixed-height control surface. */
+        <button
+          type="button"
+          data-testid="compact-turn-strip-escape"
+          onClick={onEscape}
+          disabled={!isCharactersTurn}
+          className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-md border border-amber-500/70 bg-amber-800 px-2.5 text-xs font-bold text-amber-50 shadow hover:bg-amber-700 disabled:cursor-not-allowed disabled:border-slate-700 disabled:bg-slate-800 disabled:text-slate-500"
+          aria-label={`Escape combat with ${character.name}`}
+          title={escapeReason ?? 'Flee the battlefield for your full movement'}
+        >
+          <DoorOpen size={15} />
+          <span className="hidden sm:inline">Escape</span>
+        </button>
+      )}
 
       {/* Ending a turn is the only tactical command duplicated from the full
           rail. It remains visible because hiding a panel must never trap play. */}

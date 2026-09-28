@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 13/08/2026, 08:00:59
+ * Last Sync: 26/08/2026, 18:58:53
  * Dependents: components/DesignPreview/steps/scenarioControls/fallingGroundImpactScenarioControls.ts, components/DesignPreview/steps/scenarioControls/flyingAerialMovementScenarioControls.ts, hooks/combat/useActionExecutor.ts
- * Imports: 9 files
+ * Imports: 10 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -38,9 +38,11 @@ import type {
 import {
   calculateDamage,
   getCharacterDistance,
-  rollDamage,
   validateCharacterPlacement,
 } from '../../utils/combat/combatUtils';
+import {
+  rollDamage,
+} from '../dice/rollers';
 import {
   canAffordActionCost,
   consumeActionCost,
@@ -53,6 +55,7 @@ import {
   resolveAerialSupportLoss,
 } from '../../utils/combat/aerialMovementUtils';
 import { hasLineOfSight } from '../../utils/spatial/lineOfSight';
+import { assessVoluntaryDescent } from '../../utils/spatial/elevationSemantics';
 
 // ============================================================================
 // Public Transaction Contract
@@ -522,5 +525,68 @@ export function resolveAerialSupportLossImpact(
     ...input,
     character,
     fallDistanceFeet,
+  });
+}
+
+// ============================================================================
+// Voluntary Descent Bridge (G14 combat-elevation)
+// ============================================================================
+// Walking off a face taller than two contour bands is never legal movement,
+// so an attempted edge step becomes a canonical fall event. This bridge
+// derives the drop purely from map altitudes so callers cannot inflate
+// damage, rejects ascents and ordinary walks (pathfinding owns those), and
+// then reuses resolveAerialLandingImpact unchanged — Feather Fall, defense
+// application, prone, and idempotent receipts behave exactly like any other
+// fall. Climbers descending under control bypass this bridge entirely.
+// ============================================================================
+
+export interface VoluntaryDescentImpactInput {
+  eventId: string;
+  character: CombatCharacter;
+  sourcePosition: Position;
+  landingPosition: Position;
+  mapData: BattleMapData;
+  characters: CombatCharacter[];
+  damageRng?: () => number;
+}
+
+export function resolveVoluntaryDescentImpact(
+  input: VoluntaryDescentImpactInput,
+): FallingGroundImpactResult {
+  const baseReceipt = {
+    eventId: input.eventId,
+    fallerId: input.character.id,
+    landingPosition: input.landingPosition,
+    mapData: input.mapData,
+    characters: input.characters,
+  };
+  const sourceTile = input.mapData.tiles.get(
+    `${input.sourcePosition.x}-${input.sourcePosition.y}`,
+  );
+  const landingTile = input.mapData.tiles.get(
+    `${input.landingPosition.x}-${input.landingPosition.y}`,
+  );
+  if (!sourceTile || !landingTile) {
+    return emptyResult(baseReceipt, 'rejected', 'Voluntary descent leaves the battle map.');
+  }
+  const assessment = assessVoluntaryDescent(sourceTile, landingTile);
+  if (!assessment.walkableWithoutFalling && assessment.fallDistanceFeet <= 0) {
+    return emptyResult(baseReceipt, 'rejected', 'A voluntary descent cannot ascend a step.');
+  }
+  if (assessment.walkableWithoutFalling) {
+    return emptyResult(
+      baseReceipt,
+      'repeat',
+      'The step-down stays ordinary walking; no fall event applies.',
+    );
+  }
+  return resolveAerialLandingImpact({
+    eventId: input.eventId,
+    character: input.character,
+    landingPosition: input.landingPosition,
+    mapData: input.mapData,
+    characters: input.characters,
+    fallDistanceFeet: assessment.fallDistanceFeet,
+    damageRng: input.damageRng,
   });
 }

@@ -22,7 +22,7 @@ import type { Spell } from '@/types/spells';
 import { isHealingEffect } from '@/types/spells';
 import { getAbilityModifierValue } from '@/utils/character/statUtils';
 import { createMockCombatCharacter } from '@/utils/core';
-import { rollDamage } from '@/utils/combat/combatUtils';
+import { rollDamage } from '@/systems/dice/rollers';
 import { ScalingEngine } from '@/systems/spells/mechanics/ScalingEngine';
 import {
   createHitPointSpellAction,

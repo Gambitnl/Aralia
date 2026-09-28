@@ -35,19 +35,26 @@ describe('calculateDamage Logic Fixes', () => {
 
     const caster = createTestChar('Caster');
 
-    it('should correctly cancel Resistance and Vulnerability (XGtE Rule)', () => {
-        // According to Xanathar's Guide to Everything:
-        // "If you have resistance and vulnerability to the same type of damage, they cancel each other out."
-        // Previous faulty logic: floor(D / 2) * 2.
-        // For odd numbers (e.g., 25), this resulted in 24 (loss of 1).
-        // Correct logic: Return D.
-
+    it('should sequence Resistance before Vulnerability, not cancel them', () => {
+        // WHAT CHANGED (2026-09-09): this case previously asserted the 2014
+        // Xanathar's optional rule, "resistance and vulnerability to the same
+        // type cancel each other out", so 25 stayed 25.
+        // WHY IT CHANGED: the project follows the 2024 order - ordinary
+        // modifiers, then Resistance, then Vulnerability - and asserted exactly
+        // that in resistanceUtils.test.ts ("should apply resistance before
+        // vulnerability when both match", floor(25 / 2) * 2 = 24). The two
+        // committed tests contradicted each other, so calculateDamage could not
+        // satisfy both; the 2024 sequencing wins because ResistanceCalculator,
+        // the shared implementation both call, documents it in source.
+        // WHAT IS PRESERVED: the even-damage sanity check still shows the two
+        // operations returning 10 to 10, which is what made the cancellation
+        // reading look correct in the first place.
         const target = createTestChar('Conflicted', ['fire'], ['fire']);
 
-        // Test Odd Number (Crucial for verifying fix)
-        expect(calculateDamage(25, caster, target, 'fire')).toBe(25);
+        // Odd damage is what exposes the sequencing: 25 -> floor(25/2)=12 -> 24.
+        expect(calculateDamage(25, caster, target, 'fire')).toBe(24);
 
-        // Test Even Number (Sanity check)
+        // Even damage round-trips, so it cannot distinguish the two readings.
         expect(calculateDamage(10, caster, target, 'fire')).toBe(10);
     });
 

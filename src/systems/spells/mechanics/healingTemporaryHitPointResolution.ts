@@ -52,6 +52,9 @@ import { TargetResolver } from '../targeting/TargetResolver';
 // A successful receipt includes the paid caster and changed target in one
 // roster. Every rejection returns the original roster by identity, making it
 // straightforward for callers to prove that validation happened before cost.
+// When the caster targets itself, the payment and the hit-point transition land
+// on a single record, so casterAfter, targetAfter, and the roster entry are the
+// same object and callers never merge the two halves themselves.
 // ============================================================================
 
 export type HitPointActionMode = 'healing' | 'temporary_hit_points';
@@ -168,6 +171,21 @@ function replaceResolvedActors(
   });
 }
 
+/**
+ * Replaces the one creature that both paid for and received a self-targeted
+ * action. Caster-first replacement cannot serve this case: it would return the
+ * paid caster and drop the hit-point change, so self-targeting gets its own
+ * branch instead of a caller-side merge.
+ */
+function replaceSelfResolvedActor(
+  characters: CombatCharacter[],
+  resolvedActor: CombatCharacter,
+): CombatCharacter[] {
+  return characters.map(character => (
+    character.id === resolvedActor.id ? resolvedActor : character
+  ));
+}
+
 // ============================================================================
 // Atomic Hit-Point Action Resolution
 // ============================================================================
@@ -227,24 +245,32 @@ export function resolveHitPointAction(
   }
 
   const paidCaster = consumeActionCost(caster, input.action.cost);
+  // A self-targeting action pays and changes hit points on the same creature,
+  // so the transition starts from the paid caster. The action-economy helpers
+  // and the hit-point helpers both copy the whole record, which keeps the
+  // payment and the new pool on one object rather than on two rival copies.
+  const isSelfTarget = caster.id === target.id;
+  const hitPointBefore = isSelfTarget ? paidCaster : target;
   const temporaryHitPointSteps: number[] = [];
   const resolvedTarget = input.mode === 'healing'
-    ? applyHealingAndRestore(target, input.amounts[0] ?? 0)
+    ? applyHealingAndRestore(hitPointBefore, input.amounts[0] ?? 0)
     : input.amounts.reduce((currentTarget, offer) => {
         const nextTarget = applyTemporaryHitPoints(currentTarget, offer);
         temporaryHitPointSteps.push(nextTarget.tempHP ?? 0);
         return nextTarget;
-      }, target);
+      }, hitPointBefore);
   const appliedAmount = input.mode === 'healing'
-    ? resolvedTarget.currentHP - target.currentHP
-    : (resolvedTarget.tempHP ?? 0) - (target.tempHP ?? 0);
+    ? resolvedTarget.currentHP - hitPointBefore.currentHP
+    : (resolvedTarget.tempHP ?? 0) - (hitPointBefore.tempHP ?? 0);
 
   return {
     status: 'resolved',
     reason: 'resolved',
-    characters: replaceResolvedActors(input.characters, paidCaster, resolvedTarget),
+    characters: isSelfTarget
+      ? replaceSelfResolvedActor(input.characters, resolvedTarget)
+      : replaceResolvedActors(input.characters, paidCaster, resolvedTarget),
     casterBefore: caster,
-    casterAfter: paidCaster,
+    casterAfter: isSelfTarget ? resolvedTarget : paidCaster,
     targetBefore: target,
     targetAfter: resolvedTarget,
     appliedAmount,

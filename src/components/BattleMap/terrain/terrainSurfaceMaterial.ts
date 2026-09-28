@@ -509,20 +509,32 @@ const TERRAIN_COLOR_FRAGMENT = /* glsl */ `
   // ---- Slope-exposed rock: steep ground breaks into rock faces (GOAL #28) ----
   // Geometric world normal drives a rock blend on grass/dirt/sand so hillsides
   // and carved banks read as terrain relief instead of tinted flat ground.
-  // Gentle hills (<~20°) stay untouched; erosion streaking breaks up the band.
+  // Gentle hills stay untouched; erosion streaking breaks up the band.
   {
     int _sType = int(_terrainIdx + 0.5);
     if (_sType == 0 || _sType == 2 || _sType == 3) {
       float _slope = 1.0 - clamp(vTerrainNormal.y, 0.0, 1.0);
-      // Onset ~24° / full ~40°: calibrated to the generator's bluff faces
-      // (gap #28 — the original 0.12/0.30 band asked for near-cliffs the
-      // generator never produces, so rock faces stayed invisible).
-      float _rocky = smoothstep(0.09, 0.24, _slope);
+      // slope_threshold / edge_sharpness (G12, 2026-09-09). Measured over the
+      // whole playable rect at seed 424242 (.agent/scratch/combat-proofs/
+      // g12-probe.mjs): slope over grass/dirt/sand has median 0.015, flat tiles
+      // average 0.0095, and tiles beside a >=2-step elevation change average
+      // 0.133. The previous 0.09/0.24 band therefore only lit ~31% of real
+      // slope ground — gap #28 lowered the band once (0.12/0.30 -> 0.09/0.24)
+      // but still asked for cliffs this generator does not build. 0.04/0.16
+      // raises steep-ground coverage to ~58% while flat ground stays at ~1.5%,
+      // so hillsides read as rock and level grass is untouched. The band is
+      // deliberately still 0.12 wide, and the streak FBM below breaks it up,
+      // so the grass->rock edge stays a gradient rather than a contour line.
+      float _rocky = smoothstep(0.04, 0.16, _slope);
       if (_rocky > 0.001) {
-        vec3 _rockC = getRockColor(vTerrainWorldPos.xz) * 0.92;
+        // rock_color_mix (G12): grass and rock sit at almost the same luminance,
+        // so a slope painted at 0.85 rock over lit grass read as a tint. The
+        // tone drop darkens the exposed face and the mix ceiling lets a fully
+        // steep face actually become rock instead of 85% of the way there.
+        vec3 _rockC = getRockColor(vTerrainWorldPos.xz) * 0.86;
         float _streak = fbm4(vTerrainWorldPos.xz * vec2(0.9, 2.6) + vec2(31.0, 5.0));
         _rocky *= 0.55 + 0.45 * smoothstep(0.35, 0.65, _streak);
-        _terrainColor = mix(_terrainColor, _rockC, clamp(_rocky, 0.0, 1.0) * 0.85);
+        _terrainColor = mix(_terrainColor, _rockC, clamp(_rocky, 0.0, 1.0) * 0.95);
       }
     }
   }

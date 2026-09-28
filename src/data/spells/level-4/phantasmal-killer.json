@@ -193,7 +193,7 @@
                                         "bonusPerLevel":  "+1d10",
                                         "customFormula":  ""
                                     },
-                        "description":  "The target makes an initial Wisdom save, taking 4d10 Psychic damage and gaining the spell\u0027s disadvantage rider on a failed save, or taking half damage and ending the spell on a success.",
+                        "description":  "The target makes an initial Wisdom save, taking 4d10 Psychic damage and gaining the spell's disadvantage rider on a failed save, or taking half damage and ending the spell on a success.",
                         "conditionalEndings":  [
                                                    {
                                                        "trigger":  "initial_save_success",
@@ -299,7 +299,7 @@
                                         "bonusPerLevel":  "+1d10",
                                         "customFormula":  ""
                                     },
-                        "description":  "At the end of each of the target\u0027s turns, it makes a Wisdom saving throw. On a failed save, it takes the Psychic damage again; on a successful save, the spell ends.",
+                        "description":  "At the end of each of the target's turns, it makes a Wisdom saving throw. On a failed save, it takes the Psychic damage again; on a successful save, the spell ends.",
                         "conditionalEndings":  [
                                                    {
                                                        "trigger":  "repeat_save_success",
@@ -322,7 +322,7 @@
                 ],
     "arbitrationType":  "mechanical",
     "aiContext":  {
-                      "prompt":  "Resolve the initial Wisdom save; on failure, apply Psychic damage plus Disadvantage on the target\u0027s attack rolls and ability checks, then repeat the Wisdom save at each turn end for recurring damage or spell ending.",
+                      "prompt":  "Resolve the initial Wisdom save; on failure, apply Psychic damage plus Disadvantage on the target's attack rolls and ability checks, then repeat the Wisdom save at each turn end for recurring damage or spell ending.",
                       "playerInputRequired":  true
                   },
     "description":  "You tap into the nightmares of a creature you can see within range and create an illusion of its deepest fears, visible only to that creature. The target makes a Wisdom saving throw. On a failed save, the target takes 4d10 Psychic damage and has Disadvantage on ability checks and attack rolls for the duration. On a successful save, the target takes half as much damage, and the spell ends. For the duration, the target makes a Wisdom saving throw at the end of each of its turns. On a failed save, it takes the Psychic damage again. On a successful save, the spell ends.",

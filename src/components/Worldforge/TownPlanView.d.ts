@@ -16,6 +16,7 @@ import { type Pt } from '../../systems/worldforge/submap/submapEngine';
 import type { TownPlan } from '../../systems/worldforge/town/townEngine';
 import { type ClimateClass, type StyleFamily } from '../../systems/worldforge/town/architectureStyle';
 import { type SeedPath } from '../../systems/worldforge/seedPath';
+import type { VillageIntegrationProfile } from '../../data/villagePersonalityProfiles';
 export interface TownPlanViewProps {
     plan: TownPlan;
     width?: number;
@@ -46,6 +47,12 @@ export interface TownPlanViewProps {
      * water-gates the generator seats against them are visibly IN water.
      */
     water?: Pt[][];
+    /**
+     * The settlement's authored FLAVOR — tagline, cultural signature and encounter
+     * hooks — resolved by `getCanonicalTownPersonality` from the same
+     * (atlas, worldSeed, burgId) that produced `plan`.
+     */
+    personality?: VillageIntegrationProfile;
 }
 /**
  * SP3/SP-T leaf renderer: draws a generated `TownPlan` — footprint, Voronoi

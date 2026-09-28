@@ -22,7 +22,8 @@
 import React from 'react';
 import { PlayerCharacter, Skill as SkillType } from '../../../types';
 import { SKILLS_DATA } from '../../../data/skills';
-import { getAbilityModifierValue } from '../../../utils/character';
+import { getAbilityModifierValue, getCheckAdvantageSources } from '../../../utils/character';
+import { calculateExpertiseBonus, getExpertiseSkillIds } from '../../../utils/character/skillModifierUtils';
 import { SkillIcon } from '../../../utils/skillIcons';
 import { ProficiencyIcon } from '../../../utils/proficiencyIcons';
 import Tooltip from '../../ui/Tooltip';
@@ -40,16 +41,24 @@ const SkillsTab: React.FC<SkillsTabProps> = ({ character, onNavigateToGlossary }
     const tableHeaderClass = "px-3 py-2.5 text-left text-xs font-medium text-sky-300 uppercase tracking-wider border-b-2 border-gray-600";
     const tableCellClass = "px-3 py-2.5 text-sm text-gray-200 whitespace-nowrap";
     const alternatingRowClass = "even:bg-gray-700/50 odd:bg-gray-700/20 hover:bg-sky-700/30 transition-colors";
+    // Expertise doubles the proficiency bonus on the skills the character chose it
+    // for. The picks are read once per render and shared by every row.
+    const expertiseSkillIds = getExpertiseSkillIds(character);
     const skillRows = allGameSkills.map(skill => {
         const baseAbilityScore = character.finalAbilityScores[skill.ability];
         const abilityModifier = getAbilityModifierValue(baseAbilityScore);
         const isProficient = character.skills.some(profSkill => profSkill.id === skill.id);
         const proficiencyBonusApplied = isProficient ? profBonus : 0;
-        const expertiseBonus = 0; // Placeholder for expertise
+        const hasExpertise = expertiseSkillIds.includes(skill.id);
+        const expertiseBonus = calculateExpertiseBonus({
+            hasProficiency: isProficient,
+            hasExpertise,
+            proficiencyBonus: profBonus,
+        });
         const totalBonus = abilityModifier + proficiencyBonusApplied + expertiseBonus;
 
-        let advantageNotes = '-';
-        let advantageTooltip = '';
+        const notes: string[] = [];
+        const tooltipParts: string[] = [];
 
         // Check for race-specific advantages
         if (skill.id === 'stealth' && character.race.id === 'deep_gnome') {
@@ -57,10 +66,26 @@ const SkillsTab: React.FC<SkillsTabProps> = ({ character, onNavigateToGlossary }
                 trait.toLowerCase().includes('svirfneblin camouflage')
             );
             if (svirfneblinCamouflageTrait) {
-                advantageNotes = 'Advantage (Racial)';
-                advantageTooltip = 'Advantage on Dexterity (Stealth) checks due to Svirfneblin Camouflage.';
+                notes.push('Advantage (Racial)');
+                tooltipParts.push('Advantage on Dexterity (Stealth) checks due to Svirfneblin Camouflage.');
             }
         }
+
+        // Active status riders, such as the divine blessing Scales of Justice, carry
+        // their own advantage scope. Read the same source the check resolver reads so
+        // the sheet cannot promise an advantage the roll will not grant.
+        const structuredAdvantage = getCheckAdvantageSources(character, skill.ability, skill.name);
+        structuredAdvantage.advantage.forEach(source => {
+            notes.push(`Advantage (${source})`);
+            tooltipParts.push(`${source} grants advantage on ${skill.name} checks.`);
+        });
+        structuredAdvantage.disadvantage.forEach(source => {
+            notes.push(`Disadvantage (${source})`);
+            tooltipParts.push(`${source} imposes disadvantage on ${skill.name} checks.`);
+        });
+
+        const advantageNotes = notes.length > 0 ? notes.join(', ') : '-';
+        const advantageTooltip = tooltipParts.join(' ');
 
         return {
             skill,
@@ -91,6 +116,9 @@ const SkillsTab: React.FC<SkillsTabProps> = ({ character, onNavigateToGlossary }
                                         <SkillIcon name={skill.id} className="w-4 h-4 text-amber-300 shrink-0" />
                                         {skill.name} <span className="text-xs text-gray-400">({skill.ability.substring(0, 3)})</span>
                                     </p>
+                                    {skill.description && (
+                                        <p className="mt-0.5 text-[11px] leading-snug text-gray-400">{skill.description}</p>
+                                    )}
                                     {advantageTooltip ? (
                                         <Tooltip content={advantageTooltip}>
                                             <span className="text-xs text-sky-300 underline decoration-dotted cursor-help">
@@ -157,11 +185,17 @@ const SkillsTab: React.FC<SkillsTabProps> = ({ character, onNavigateToGlossary }
                             {skillRows.map(({ skill, abilityModifier, isProficient, expertiseBonus, totalBonus, advantageNotes, advantageTooltip }) => (
                                 <tr key={skill.id} className={alternatingRowClass}>
                                     <td className={`${tableCellClass} font-medium text-amber-200`}>
-                                        <span className="inline-flex items-center gap-1.5">
-                                            <SkillIcon name={skill.id} className="w-4 h-4 text-amber-300 shrink-0" />
-                                            <span>{skill.name}</span>
-                                            <span className="text-xs text-gray-400">({skill.ability.substring(0, 3)})</span>
-                                        </span>
+                                        <Tooltip content={skill.description ?? skill.name}>
+                                            <span className="inline-flex items-center gap-1.5 cursor-help" data-testid={`skill-name-${skill.id}`}>
+                                                <SkillIcon name={skill.id} className="w-4 h-4 text-amber-300 shrink-0" />
+                                                <span className="underline decoration-dotted decoration-amber-300/50 underline-offset-2">{skill.name}</span>
+                                                <span className="text-xs text-gray-400">({skill.ability.substring(0, 3)})</span>
+                                            </span>
+                                        </Tooltip>
+                                        {/* First sentence inline: what the skill covers. The tooltip carries both sentences (agora-d1c7.7). */}
+                                        <div className="mt-0.5 max-w-[22rem] whitespace-normal text-[11px] font-normal leading-snug text-gray-400">
+                                            {(skill.description ?? '').split('. ')[0]}{skill.description ? '.' : ''}
+                                        </div>
                                     </td>
                                     <td className={`${tableCellClass} text-center`}>
                                         {abilityModifier >= 0 ? '+' : ''}{abilityModifier}

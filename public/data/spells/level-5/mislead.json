@@ -178,17 +178,17 @@
                                                {
                                                    "name":  "Move and perform",
                                                    "effect":  "move_illusory_double",
-                                                   "details":  "Use an action to move the illusory double up to twice the caster\u0027s Speed and choose its gestures, speech, and behavior."
+                                                   "details":  "Use an action to move the illusory double up to twice the caster's Speed and choose its gestures, speech, and behavior."
                                                },
                                                {
                                                    "name":  "Use double senses",
                                                    "effect":  "switch_to_double_senses",
-                                                   "details":  "Use a Bonus Action to see and hear through the illusory double, becoming Blinded and Deafened to the caster\u0027s own surroundings."
+                                                   "details":  "Use a Bonus Action to see and hear through the illusory double, becoming Blinded and Deafened to the caster's own surroundings."
                                                },
                                                {
                                                    "name":  "Return to own senses",
                                                    "effect":  "switch_to_own_senses",
-                                                   "details":  "Use a Bonus Action to stop using the double\u0027s senses and return to the caster\u0027s own sight and hearing."
+                                                   "details":  "Use a Bonus Action to stop using the double's senses and return to the caster's own sight and hearing."
                                                }
                                            ],
                         "misleadState":  {
@@ -294,7 +294,7 @@
                 ],
     "arbitrationType":  "mechanical",
     "aiContext":  {
-                      "prompt":  "Choose how the illusory double moves, gestures, speaks, and behaves whenever you use the action to control it. On each turn, choose whether your Bonus Action switches to the double\u0027s senses or back to your own.",
+                      "prompt":  "Choose how the illusory double moves, gestures, speaks, and behaves whenever you use the action to control it. On each turn, choose whether your Bonus Action switches to the double's senses or back to your own.",
                       "playerInputRequired":  true
                   },
     "description":  "You become invisible at the same time that an illusory double of you appears where you are standing. The double lasts for the duration, but the invisibility ends if you attack or cast a spell. You can use your action to move your illusory double up to twice your Speed and make it gesture, speak, and behave in whatever way you choose. You can see through its eyes and hear through its ears as if you were located where it is. On each of your turns as a bonus action, you can switch from using its senses to using your own, or back again. While you are using its senses, you are blinded and deafened in regard to your own surroundings.",

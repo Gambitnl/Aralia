@@ -39,9 +39,15 @@ import { useCallback, useEffect, useRef } from 'react';
  * calling this hook. Array order IS the Escape priority: index 0 is the
  * topmost modal and is dismissed first.
  *
+ * ORDER IS THE STACK, INCLUDING CLOSE-LESS ENTRIES. A modal that handles its
+ * own Escape still has to be listed in its true stacking position: the hook
+ * reads the array to decide whether such a modal is sitting above the entry it
+ * was about to close, and stands down if so. Registering a nested overlay below
+ * its parent makes one Escape dismiss both.
+ *
  * BEHAVIOR PRESERVED (verbatim from GameModals.tsx)
- * - Escape is handled on a capture-phase `document` listener, topmost-first,
- *   and defers to any child that already called `preventDefault()`.
+ * - Escape is handled on a `document` listener, topmost-first, and defers to
+ *   any child that already called `preventDefault()`.
  * - Opening any scroll-locking modal sets `body.overflow: hidden` and
  *   `overscroll-behavior: contain`, and restores them on close.
  * - The background scroll position is captured when the lock activates and
@@ -70,6 +76,11 @@ export interface ModalEntry {
  * Returns the topmost (highest-priority) open modal that participates in the
  * fallback Escape chain, or `undefined` when none is open. Priority is array
  * order: the first matching entry wins.
+ *
+ * This looks PAST open entries that carry no `close` — it answers "which modal
+ * would the fallback close", not "which modal is on top". `useModalOrchestration`
+ * additionally refuses to act when a close-less entry is above the result,
+ * because that modal owns Escape for itself.
  */
 export function resolveTopmostOpenModal(
   entries: readonly ModalEntry[],
@@ -108,19 +119,58 @@ export function backgroundLockKey(entries: readonly ModalEntry[]): string {
  * @param entries Ordered modal registry (index 0 = topmost Escape priority).
  */
 export function useModalOrchestration(entries: readonly ModalEntry[]): void {
-  // ---- Fallback Escape (capture phase, topmost-first) ----
+  // ---- Fallback Escape (bubble phase, topmost-first) ----
+  //
+  // WHY BUBBLE AND NOT CAPTURE (UI-2 audit, 2026-09-09). The listener used to
+  // run in the capture phase, which made its own `defaultPrevented` guard
+  // unreachable: capture runs BEFORE every child handler, so a child that
+  // closed itself and called `preventDefault()` was always too late to be
+  // deferred to. Concretely, `useFocusTrap(isOpen, onClose)` — which backs
+  // every `ModalDialog` (Missing Choice, Long Rest, Short Rest, Reaction
+  // Prompt) — listens on `document` and does exactly that. With the capture
+  // listener, one Escape both closed the dialog through its focus trap AND
+  // fired the fallback for whatever modal sat under it, dismissing two
+  // overlays at once.
+  //
+  // React runs child effects before parent effects, so a child focus trap
+  // registers its `document` listener BEFORE this hook registers its own.
+  // In the bubble phase that means the child is heard first and its
+  // `preventDefault()` is visible here, which is what the contract above
+  // always claimed. Modals that self-handle Escape therefore need no entry in
+  // the priority chain, and modals that rely on the fallback are unaffected:
+  // nothing else in the tree marks Escape as handled.
   const handleFallbackEscape = useCallback(
     (event: KeyboardEvent) => {
       if (event.key !== 'Escape' || event.defaultPrevented) return;
-      resolveTopmostOpenModal(entries)?.close?.();
+      const topmost = resolveTopmostOpenModal(entries);
+      if (!topmost) return;
+
+      // A self-handling modal sitting ON TOP of the fallback's target owns this
+      // key press. `resolveTopmostOpenModal` looks past close-less entries — it
+      // answers "which modal would the fallback close" — so on its own it would
+      // reach under an open Long Rest dialog and dismiss the Party Overlay
+      // behind it, closing two overlays with one Escape.
+      //
+      // Listener order cannot decide this. Every modal here is behind
+      // `React.lazy`, so a child's own listener is registered LONG after this
+      // hook's, and `defaultPrevented` is therefore not yet set when we run.
+      // The registry knows the stack, so ask it: if anything open sits above
+      // our target, stand down and let that overlay handle its own Escape.
+      const stackTop = entries.find((entry) => entry.isOpen);
+      if (stackTop && stackTop !== topmost) return;
+
+      topmost.close?.();
+      // Mark the key consumed so any listener still further out (the few
+      // components that bind Escape on `window` rather than `document`) can
+      // stand down instead of closing a second overlay.
+      event.preventDefault();
     },
     [entries],
   );
 
   useEffect(() => {
-    document.addEventListener('keydown', handleFallbackEscape, true);
-    return () =>
-      document.removeEventListener('keydown', handleFallbackEscape, true);
+    document.addEventListener('keydown', handleFallbackEscape);
+    return () => document.removeEventListener('keydown', handleFallbackEscape);
   }, [handleFallbackEscape]);
 
   // ---- Background scroll lock ----

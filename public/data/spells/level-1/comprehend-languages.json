@@ -17,6 +17,30 @@
 
                    ],
     "ritual":  true,
+    "ritualData": {
+      "requirements": [
+        {
+          "type": "custom",
+          "value": "component:verbal",
+          "description": "The ritual must be chanted aloud from start to finish."
+        },
+        {
+          "type": "custom",
+          "value": "component:somatic",
+          "description": "The ritual needs a free hand for its gestures throughout."
+        },
+        {
+          "type": "custom",
+          "value": "component:material",
+          "description": "The ritual needs a pinch of soot and salt; it is held throughout the casting."
+        },
+        {
+          "type": "custom",
+          "value": "uninterrupted_casting",
+          "description": "Ritual casting adds 10 minutes to the casting time and must run uninterrupted."
+        }
+      ]
+    },
     "rarity":  "common",
     "attackType":  "",
     "castingTime":  {
@@ -256,7 +280,7 @@
                       "prompt":  "",
                       "playerInputRequired":  false
                   },
-    "description":  "For the duration, you understand the literal meaning of any language that you hear or see signed. You also understand any written language that you see, but you must be touching the surface on which the words are written. It takes about 1 minute to read one page of text. This spell doesn\u0027t decode symbols or secret messages.",
+    "description":  "For the duration, you understand the literal meaning of any language that you hear or see signed. You also understand any written language that you see, but you must be touching the surface on which the words are written. It takes about 1 minute to read one page of text. This spell doesn't decode symbols or secret messages.",
     "higherLevels":  "",
     "tags":  [
                  "ritual",

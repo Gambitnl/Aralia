@@ -90,9 +90,8 @@ export function getFallbackEncounterWithSeed(
 
   // 2. Sort candidates by XP (descending) to try and fill budget efficiently
   // We need to look up XP by CR.
-  // DEBT: Cast baseStats to any to probe optional CR property without full schema mapping.
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const getXp = (m: MonsterData) => XP_BY_CR[(m?.baseStats as any)?.cr as keyof typeof XP_BY_CR] || 0;
+  // baseStats.cr is typed as string on CharacterStats and indexes XP_BY_CR directly.
+  const getXp = (m: MonsterData) => XP_BY_CR[(m?.baseStats?.cr ?? '') as keyof typeof XP_BY_CR] || 0;
 
   // Sort by XP descending, but filter out monsters that are too strong (XP > budget)
   const validCandidates = candidates
@@ -104,6 +103,7 @@ export function getFallbackEncounterWithSeed(
       const weakest = sortedByWeakest[0];
       if (weakest) {
          return [{
+             id: weakest.id,
              name: weakest.name,
              quantity: 1,
              cr: weakest.baseStats.cr,
@@ -150,6 +150,7 @@ export function getFallbackEncounterWithSeed(
       }
     } else {
       encounter.push({
+        id: nextMonster.id,
         name: nextMonster.name,
         quantity: 1,
         cr: nextMonster.baseStats.cr,
@@ -165,6 +166,7 @@ export function getFallbackEncounterWithSeed(
        const sortedByWeakest = [...validCandidates].sort((a, b) => getXp(a) - getXp(b));
        const weakest = sortedByWeakest[0];
        encounter.push({
+          id: weakest.id,
           name: weakest.name,
           quantity: 1,
           cr: weakest.baseStats.cr,

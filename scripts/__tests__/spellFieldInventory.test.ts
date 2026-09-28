@@ -64,4 +64,39 @@ describe('querySpellFieldInventory', () => {
     expect(result.occurrences.length).toBeGreaterThan(0);
     expect(result.distinctValues.some((entry) => entry.value === '100')).toBe(true);
   });
+
+  // ==========================================================================
+  // Negative lookups
+  // ==========================================================================
+  // The two cases above prove the query returns the right rows when the corpus
+  // holds a match. The strict paired mode also has to be able to say "no". The
+  // failure this guards against is a strict query silently degrading back into
+  // the loose browse path when the exact pair is absent, which would hand the
+  // validation page confident-looking rows that never satisfied the query.
+  // ==========================================================================
+
+  it('returns no occurrences when a real field is paired with a value the corpus does not hold', () => {
+    const result = querySpellFieldInventory(inventory, {
+      fieldPath: 'targeting.spatialDetails.measuredDetails[].value',
+      value: '99991',
+      limit: 200,
+    });
+
+    expect(result.occurrences).toHaveLength(0);
+    expect(result.distinctValues).toHaveLength(0);
+    expect(result.totalMatches).toBe(0);
+  });
+
+  it('returns no occurrences for a field path that does not exist in the inventory', () => {
+    const result = querySpellFieldInventory(inventory, {
+      fieldPath: 'targeting.thisFieldDoesNotExist.value',
+      value: '10',
+      limit: 200,
+    });
+
+    // A misspelled field must not fall back to the loose value browse; that
+    // fallback is exactly what made a `10` search return `100` before.
+    expect(result.occurrences).toHaveLength(0);
+    expect(result.fieldMatches).toHaveLength(0);
+  });
 });

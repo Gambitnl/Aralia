@@ -1,6 +1,29 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { createMockCombatCharacter, WeaponAttackCommand } from './AbilityCommandFactory.testHelpers';
+import { WeaponAttackCommand, createMockCombatCharacter, createMockCombatState } from './AbilityCommandFactory.testHelpers';
 import type { Ability, ActiveRider, GameState } from './AbilityCommandFactory.testHelpers';
+
+// agora-f821.4: this file pins Math.random to make a roll deterministic. Game rolls now
+// run on the audit log's own seed stream, so the pin only reaches them
+// through the roller's supported injected-source seam. Feeding
+// Math.random in as that source keeps every pin below meaning what it
+// meant before the migration.
+vi.mock('../../../systems/dice/rollers', async importOriginal => {
+  const actual = await importOriginal<typeof import('../../../systems/dice/rollers')>()
+  return {
+    ...actual,
+    rollDice: (notation: string, options: { rng?: () => number } = {}) =>
+      actual.rollDice(notation, { ...options, rng: options.rng ?? Math.random }),
+    rollD20: (options: { rng?: () => number } = {}) =>
+      actual.rollD20({ ...options, rng: options.rng ?? Math.random }),
+    rollDamage: (
+      notation: string,
+      isCritical: boolean,
+      minRoll = 1,
+      rng?: () => number,
+    ) => actual.rollDamage(notation, isCritical, minRoll, rng ?? Math.random),
+  }
+})
+
 
 describe('WeaponAttackCommand: Lightning Arrow-style hit-or-miss riders', () => {
   afterEach(() => {
@@ -144,10 +167,7 @@ describe('WeaponAttackCommand: Lightning Arrow-style hit-or-miss riders', () => 
       gameState: { characters: [ranger, primaryTarget, nearbyTarget, farTarget], combatLog: [] } as unknown as GameState
     });
 
-    const newState = await command.execute({
-      characters: [ranger, primaryTarget, nearbyTarget, farTarget],
-      combatLog: []
-    } as any);
+    const newState = await command.execute(createMockCombatState({ characters: [ranger, primaryTarget, nearbyTarget, farTarget] }));
 
     const updatedRanger = newState.characters.find(character => character.id === ranger.id);
     const updatedPrimary = newState.characters.find(character => character.id === primaryTarget.id);
@@ -217,10 +237,7 @@ describe('WeaponAttackCommand: Lightning Arrow-style hit-or-miss riders', () => 
       gameState: { characters: [ranger, primaryTarget], combatLog: [] } as unknown as GameState
     });
 
-    const newState = await command.execute({
-      characters: [ranger, primaryTarget],
-      combatLog: []
-    } as any);
+    const newState = await command.execute(createMockCombatState({ characters: [ranger, primaryTarget] }));
 
     const updatedPrimary = newState.characters.find(character => character.id === primaryTarget.id);
 
@@ -278,10 +295,7 @@ describe('WeaponAttackCommand: Lightning Arrow-style hit-or-miss riders', () => 
       gameState: { characters: [ranger, primaryTarget, nearbyTarget, farTarget], combatLog: [] } as unknown as GameState
     });
 
-    const newState = await command.execute({
-      characters: [ranger, primaryTarget, nearbyTarget, farTarget],
-      combatLog: []
-    } as any);
+    const newState = await command.execute(createMockCombatState({ characters: [ranger, primaryTarget, nearbyTarget, farTarget] }));
 
     const updatedRanger = newState.characters.find(character => character.id === ranger.id);
     const updatedPrimary = newState.characters.find(character => character.id === primaryTarget.id);
@@ -343,10 +357,7 @@ describe('WeaponAttackCommand: Lightning Arrow-style hit-or-miss riders', () => 
       gameState: { characters: [ranger, primaryTarget, nearbyTarget], combatLog: [] } as unknown as GameState
     });
 
-    const stateAfterFirstAttack = await firstCommand.execute({
-      characters: [ranger, primaryTarget, nearbyTarget],
-      combatLog: []
-    } as any);
+    const stateAfterFirstAttack = await firstCommand.execute(createMockCombatState({ characters: [ranger, primaryTarget, nearbyTarget] }));
     const rangerAfterFirstAttack = stateAfterFirstAttack.characters.find(character => character.id === ranger.id)!;
     const primaryAfterFirstAttack = stateAfterFirstAttack.characters.find(character => character.id === primaryTarget.id)!;
     const nearbyAfterFirstAttack = stateAfterFirstAttack.characters.find(character => character.id === nearbyTarget.id)!;
@@ -359,10 +370,7 @@ describe('WeaponAttackCommand: Lightning Arrow-style hit-or-miss riders', () => 
       gameState: { characters: [rangerAfterFirstAttack, primaryAfterFirstAttack, nearbyAfterFirstAttack], combatLog: [] } as unknown as GameState
     });
 
-    const stateAfterSecondAttack = await secondCommand.execute({
-      characters: [rangerAfterFirstAttack, primaryAfterFirstAttack, nearbyAfterFirstAttack],
-      combatLog: []
-    } as any);
+    const stateAfterSecondAttack = await secondCommand.execute(createMockCombatState({ characters: [rangerAfterFirstAttack, primaryAfterFirstAttack, nearbyAfterFirstAttack] }));
     const primaryAfterSecondAttack = stateAfterSecondAttack.characters.find(character => character.id === primaryTarget.id);
     const nearbyAfterSecondAttack = stateAfterSecondAttack.characters.find(character => character.id === nearbyTarget.id);
 
@@ -410,10 +418,7 @@ describe('WeaponAttackCommand: Lightning Arrow-style hit-or-miss riders', () => 
       gameState: { characters: [ranger, primaryTarget], combatLog: [] } as unknown as GameState
     });
 
-    const newState = await command.execute({
-      characters: [ranger, primaryTarget],
-      combatLog: []
-    } as any);
+    const newState = await command.execute(createMockCombatState({ characters: [ranger, primaryTarget] }));
 
     const updatedRanger = newState.characters.find(character => character.id === ranger.id);
     const updatedPrimary = newState.characters.find(character => character.id === primaryTarget.id);
@@ -466,10 +471,7 @@ describe('WeaponAttackCommand: Lightning Arrow-style hit-or-miss riders', () => 
       gameState: { characters: [ranger, primaryTarget], combatLog: [] } as unknown as GameState
     });
 
-    const newState = await command.execute({
-      characters: [ranger, primaryTarget],
-      combatLog: []
-    } as any);
+    const newState = await command.execute(createMockCombatState({ characters: [ranger, primaryTarget] }));
 
     const updatedRanger = newState.characters.find(character => character.id === ranger.id);
     const updatedPrimary = newState.characters.find(character => character.id === primaryTarget.id);

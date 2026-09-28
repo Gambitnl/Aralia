@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 26/08/2026, 14:22:35
+ * Dependents: components/DesignPreview/steps/sidebyside/SideBySideOcean.tsx, systems/world3d/ocean/index.ts, systems/world3d/ocean/oceanCompute.ts, systems/world3d/ocean/oceanField.ts, systems/world3d/ocean/oceanFieldReference.ts
+ * Imports: 1 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file oceanSpectrum.ts — JONSWAP + TMA, cosine-2s spreading, and the
  * deterministic initial spectrum the GPU transform consumes.
@@ -15,8 +31,14 @@
  *     Kitaigorodskii et al. (1975).
  *   - cosine-2s spreading with a frequency-dependent power: Mitsuyasu et al.
  *     (1975), as restated by Hasselmann et al. (1980).
+ *   - sech^2 spreading with a frequency-dependent width: Donelan, Hamilton
+ *     and Hui (1985), extended above 1.6 fp by Banner (1990). A cascade picks
+ *     one of the two by its `spreading` field.
+ *   - Swell decay away from its storm: Snodgrass et al. (1966), carried as a
+ *     cascade's `energyScale`.
  *   - The complex-amplitude construction and the displacement/derivative
  *     spectra: Tessendorf, "Simulating Ocean Water" (SIGGRAPH course notes).
+ *     The displacement SIGN is not his: see oceanCompute.ts.
  *
  * WHY THE SPECTRUM IS BUILT ON THE CPU
  *
@@ -147,6 +169,8 @@ export function jonswapS(
   omega: number,
   windSpeedMs: number,
   fetchM: number,
+  tailPower = 5,
+  taper = false,
 ): number {
   if (omega <= 1e-6) return 0;
   const alpha = jonswapAlpha(windSpeedMs, fetchM);
@@ -160,7 +184,62 @@ export function jonswapS(
   const d = omega - omegaP;
   const r = Math.exp(-(d * d) / (2 * sigma * sigma * omegaP * omegaP));
 
-  return pm * Math.pow(JONSWAP_GAMMA, r);
+  const s = pm * Math.pow(JONSWAP_GAMMA, r);
+
+  /*
+   * THE TAIL ABOVE THE PEAK. JONSWAP's omega^-5 is Phillips's 1958
+   * saturation range. Toba (1973), Donelan et al. (1985) and Phillips
+   * himself (1985) measured omega^-4 in the field: the equilibrium range
+   * holds twice JONSWAP's energy one octave above the peak and four times
+   * two octaves above. `tailPower` is that exponent; 5 keeps JONSWAP
+   * exactly, and the factor below is 1 at the peak so the spectrum stays
+   * continuous there. Only the high side is touched: the low side is set by
+   * the exp(-1.25 (wp/w)^4) cutoff, which every fit shares.
+   */
+  if (omega <= omegaP) return s;
+  let tail = tailPower !== 5 ? Math.pow(omega / omegaP, 5 - tailPower) : 1;
+  // The taper is off unless a cascade asks for it; see `elfouhailyTaper`.
+  if (taper) tail *= elfouhailyTaper(omega, omegaP, windSpeedMs);
+  return s * tail;
+}
+
+/**
+ * The Elfouhaily taper on the equilibrium range, dimensionless, in (0, 1].
+ *
+ * Elfouhaily, Chapron, Katsaros and Vandemark (1997), "A unified directional
+ * spectrum for long and short wind-driven waves", J. Geophys. Res. 102(C7),
+ * write the long-wave curvature spectrum as the omega^-4 equilibrium range
+ * times
+ *
+ *   exp(-(Omega / sqrt(10)) (sqrt(k / kp) - 1)),   Omega = U10 / cp,
+ *
+ * and sqrt(k / kp) is omega / omegaP in deep water. The factor is 1 at the
+ * peak, so the peak and Hs are kept, and it takes the equilibrium range back
+ * down toward JONSWAP's omega^-5 level by a few peak frequencies, where
+ * their short-wave curvature term takes over. For the Water Pro sea (15 m/s,
+ * 47 m peak, Omega = 1.75) it is 0.87 at 30 m, 0.61 at 13 m and 0.39 at
+ * 6.5 m, so omega^-4 with the taper sits 1.09, 1.15 and 1.05 times JONSWAP
+ * there, where omega^-4 alone sits 1.25, 1.90 and 2.69 times it.
+ *
+ * WHY IT EXISTS. Without it an omega^-4 band that meets an omega^-5 band
+ * steps down at the seam: the Water Pro chop ends at its 6.5 m edge 2.7
+ * times above the ripple band it meets, and its slope variance per octave
+ * rises toward that edge. Round 4 of the gauntlet suspected that step of the
+ * dark bands 8 m apart the critics named, and built this to test it.
+ *
+ * WHAT THE TEST FOUND, so no sea uses it today: the bands were the chop's
+ * back slopes at every wavelength of the band, not its 6.5-13 m end (a CPU
+ * copy of the judged frame kept them with the taper on, and with the whole
+ * chop on omega^-5), and on the GPU the taper took the middle distance's
+ * wave contrast and glints further from the reference. It stays because it
+ * is the published shape of the equilibrium range, and a sea state that
+ * joins an omega^-4 band to a shorter one without a step can ask for it.
+ * See oceanSeaStates.ts, ROUND 4.
+ */
+export function elfouhailyTaper(omega: number, omegaP: number, windSpeedMs: number): number {
+  if (omega <= omegaP) return 1;
+  const omegaInv = (windSpeedMs * omegaP) / GRAVITY_MS2;
+  return Math.exp(-(omegaInv / Math.sqrt(10)) * (omega / omegaP - 1));
 }
 
 /**
@@ -283,6 +362,182 @@ export function cosine2sSpread(
   return cosine2sNormalization(s) * Math.pow(c * c, s);
 }
 
+/**
+ * The Donelan-Banner spreading width beta, which VARIES WITH FREQUENCY.
+ *
+ * Donelan, Hamilton and Hui (1985), from wave-staff arrays on Lake Ontario,
+ * with Banner (1990) for the short waves those arrays could not resolve:
+ *
+ *   f/fp <  0.95 -> beta = 2.61 (f/fp)^ 1.3      long side of the peak
+ *   f/fp <  1.6  -> beta = 2.28 (f/fp)^-1.3      short side of the peak
+ *   f/fp >= 1.6  -> beta = 10^(-0.4 + 0.8393 exp(-0.567 ln((f/fp)^2)))
+ *
+ * beta is the width of sech^2(beta theta): the half-width at half height is
+ * 0.88 / beta radians. At the peak that is 22 degrees, at 1.6 fp it is 41
+ * degrees, at 3 fp it is 73 degrees. The two short-side branches meet at
+ * 1.6 fp, where both give 1.24.
+ *
+ * WHY THIS AND NOT MITSUYASU FOR A YOUNG SEA. Mitsuyasu's peak power goes
+ * as (c_p / U)^2.5, so a 47 m peak under a 15 m/s wind (c_p / U = 0.57) gets
+ * s = 2.8, a half-width of 56 degrees, and crests about one wavelength long.
+ * Donelan found no such wave-age dependence at the peak, and the reference
+ * sea, seen from above, shows crests three to five wavelengths long. The
+ * Donelan peak gives that; the Banner tail then widens the short chop until
+ * it crosses the peak crests at an angle, which is the scaly pattern a wind
+ * sea shows from above and the cross-hatched chop it shows at eye level.
+ *
+ * Below 0.56 fp Donelan had no data. The long-side power law is kept; it
+ * sends beta toward zero and that tail toward isotropic, where the JONSWAP
+ * low side carries almost nothing anyway.
+ */
+export function donelanBeta(omega: number, omegaP: number): number {
+  const r = omega / Math.max(omegaP, 1e-6);
+  if (r < 0.95) return 2.61 * Math.pow(r, 1.3);
+  if (r < 1.6) return 2.28 * Math.pow(r, -1.3);
+  return Math.pow(10, -0.4 + 0.8393 * Math.exp(-0.567 * Math.log(r * r)));
+}
+
+/**
+ * sech^2 directional spreading D(theta), 1/rad, normalized on the full turn.
+ *
+ *   D = beta sech^2(beta (theta - thetaMean)) / (2 tanh(beta pi))
+ *
+ * Donelan's form is 0.5 beta sech^2, which integrates to 1 only over an
+ * infinite line. On [-pi, pi] it integrates to tanh(beta pi): 0.90 at the
+ * Banner short-wave width, so a tenth of the energy would go missing from
+ * the chop. The denominator puts it back, and the energy-conservation test
+ * in oceanSpectrum.test.ts is what holds it there.
+ *
+ * The angle is wrapped to [-pi, pi] first, so the lobe is centered on the
+ * mean direction wherever on the circle that direction lies.
+ */
+export function sech2Spread(theta: number, thetaMean: number, beta: number): number {
+  // beta -> 0 is the uniform distribution; the ratio below would be 0/0.
+  if (beta < 1e-6) return 1 / TWO_PI;
+  let d = theta - thetaMean;
+  d -= TWO_PI * Math.round(d / TWO_PI);
+  const c = Math.cosh(beta * d);
+  return beta / (c * c) / (2 * Math.tanh(beta * Math.PI));
+}
+
+/**
+ * The Hasselmann spreading power s, which VARIES WITH FREQUENCY, for the
+ * cosine-2s form.
+ *
+ * Hasselmann, Dunckel and Ewing (1980), "Directional wave spectra observed
+ * during JONSWAP 1973", J. Phys. Oceanogr. 10, from pitch-roll buoys in the
+ * North Sea:
+ *
+ *   s = 9.77 (f/fp)^mu
+ *   f <  fp -> mu = 4.06
+ *   f >= fp -> mu = -2.33 - 1.45 (U/cp - 1.17)
+ *
+ * with cp = g / omegaP the phase speed at the peak. At the peak s = 9.77 for
+ * every wave age: a half-width at half height of 30 degrees (cosine-2s of
+ * the half angle), wider than Donelan's 22. Above the peak the power falls
+ * as the sea gets younger: at U/cp = 1.75 (the 15 m/s, 47 m Water Pro sea)
+ * mu = -3.17, so s = 2.7 at 1.5 fp (57 degrees) and 1.1 at 2 fp (85).
+ *
+ * WHY A THIRD UNIMODAL FORM. Donelan at the peak gives crests three to five
+ * wavelengths long; at eye level, 60 degrees off square, those crests ran
+ * across the whole judged frame as parallel bands, which two critics read
+ * as brushed metal. Mitsuyasu's power at this wave age is 2.8 (56 degrees,
+ * crests about a wavelength) and was rejected in round 1 as too short from
+ * above. Hasselmann's peak sits between the two and is the other published
+ * measurement that found no wave-age dependence at the peak; its short-wave
+ * branch widens faster than Donelan's, which is what breaks the chop into
+ * crossing crests of different lengths.
+ */
+export function hasselmannPower(
+  omega: number,
+  omegaP: number,
+  windSpeedMs: number,
+): number {
+  const ratio = omega / Math.max(omegaP, 1e-6);
+  const cp = GRAVITY_MS2 / Math.max(omegaP, 1e-6);
+  const mu = ratio < 1 ? 4.06 : -2.33 - 1.45 * (windSpeedMs / cp - 1.17);
+  const s = 9.77 * Math.pow(ratio, mu);
+  // The same clamp as `spreadingPower`, for the same float32 reason.
+  return Math.min(Math.max(s, 0.1), 40);
+}
+
+/**
+ * The Ewans bimodal lobe half-separation, RADIANS, which VARIES WITH
+ * FREQUENCY.
+ *
+ * Ewans (1998), "Observations of the directional spectrum of fetch-limited
+ * waves", J. Phys. Oceanogr. 28, from a wave-staff array off Maui, New
+ * Zealand: above the peak the directional distribution is BIMODAL. The energy
+ * sits in two lobes on either side of the wind, and their separation grows
+ * with frequency, because the short waves are generated by the nonlinear
+ * transfer from the peak, which sends them out at an angle to it. His fit:
+ *
+ *   f/fp <= 1 -> 14.93 degrees
+ *   f/fp >  1 -> exp(5.453 - 2.750 (fp/f)) degrees
+ *
+ * 14.9 degrees at the peak, 26 at 1.25 fp, 37 at 1.5 fp, 59 at 2 fp. The two
+ * branches meet at the peak. Capped at 60 degrees: the array resolved the
+ * lobes to about 2 fp, the fit keeps growing past what it measured, and a
+ * lobe past 60 degrees sends short waves across the wind, which the
+ * reference chop does not show.
+ *
+ * WHY THIS AND NOT ONLY DONELAN-BANNER. Donelan's sech^2 widens the chop
+ * into one broad fan, and a broad fan of short waves reads as isotropic
+ * speckle. Ewans's two lobes put the same energy into two crossing
+ * families, which is the cross-hatched chop a wind sea shows at eye level
+ * and the oblique second family the gauntlet critics asked for.
+ */
+export const EWANS_MAX_LOBE_RAD = Math.PI / 3;
+
+export function ewansLobeRad(omega: number, omegaP: number): number {
+  const r = omega / Math.max(omegaP, 1e-6);
+  // The published 14.93 is exp(5.453 - 2.75) rounded; the exact value keeps
+  // the two branches continuous at the peak.
+  const deg = r <= 1 ? Math.exp(5.453 - 2.75) : Math.exp(5.453 - 2.75 / r);
+  return Math.min(deg, EWANS_MAX_LOBE_RAD * (180 / Math.PI)) * (Math.PI / 180);
+}
+
+/**
+ * The Ewans lobe width, the sech^2 beta of ONE lobe.
+ *
+ * Ewans fits each lobe above the peak as a wrapped normal of standard
+ * deviation
+ *
+ *   f/fp >= 1 -> 11.38 + 5.357 (f/fp)^-7.929 degrees
+ *
+ * 16.7 degrees at the peak, falling to 11.6 by 1.5 fp. His low side is a
+ * constant 11.38, which would make the width JUMP at the peak; the fit's
+ * peak value is held on the low side instead, where the two lobes merge
+ * into one hump anyway. A wrapped normal of
+ * standard deviation sigma has its half height at 1.177 sigma; sech^2(beta
+ * theta) has it at 0.881 / beta. Matching the half-widths gives
+ * beta = 0.749 / sigma, so the lobe shape here is the same family the
+ * Donelan branch uses and one normalization serves both.
+ */
+export function ewansLobeBeta(omega: number, omegaP: number): number {
+  const r = omega / Math.max(omegaP, 1e-6);
+  const sigmaDeg = 11.38 + 5.357 * Math.pow(Math.max(r, 1), -7.929);
+  return 0.749 / (sigmaDeg * (Math.PI / 180));
+}
+
+/**
+ * Ewans bimodal directional spreading D(theta), 1/rad, normalized on the
+ * full turn: half the energy in a sech^2 lobe at thetaMean + lobe, half in
+ * one at thetaMean - lobe. Each lobe is `sech2Spread`, which already
+ * integrates to exactly 1 on [-pi, pi], so the pair does too.
+ */
+export function ewansSpread(
+  theta: number,
+  thetaMean: number,
+  omega: number,
+  omegaP: number,
+): number {
+  const lobe = ewansLobeRad(omega, omegaP);
+  const beta = ewansLobeBeta(omega, omegaP);
+  return 0.5 * sech2Spread(theta, thetaMean + lobe, beta)
+    + 0.5 * sech2Spread(theta, thetaMean - lobe, beta);
+}
+
 /* ------------------------------------------------------------------ */
 /* The two-dimensional wavenumber spectrum                             */
 /* ------------------------------------------------------------------ */
@@ -313,15 +568,23 @@ export function directionalSpectrum(
   if (omega < 1e-9) return 0;
 
   const omegaP = jonswapPeakOmega(p.windSpeedMs, p.fetchM);
-  const s = spreadingPower(omega, omegaP, p.windSpeedMs);
   const theta = Math.atan2(kz, kx);
 
-  const sOmega = jonswapS(omega, p.windSpeedMs, p.fetchM);
+  const sOmega = jonswapS(omega, p.windSpeedMs, p.fetchM, p.tailPower ?? 5, p.tailTaper ?? false);
   const tma = tmaFactor(omega, p.depthM);
-  const d = cosine2sSpread(theta, p.windDirRad, s);
+  // Four spreading models, chosen per cascade. An absent field is the
+  // shipped Mitsuyasu form, so every existing sea state keeps its shape.
+  const d = p.spreading === 'donelan'
+    ? sech2Spread(theta, p.windDirRad, donelanBeta(omega, omegaP))
+    : p.spreading === 'ewans'
+      ? ewansSpread(theta, p.windDirRad, omega, omegaP)
+      : p.spreading === 'hasselmann'
+        ? cosine2sSpread(theta, p.windDirRad, hasselmannPower(omega, omegaP, p.windSpeedMs))
+        : cosine2sSpread(theta, p.windDirRad, spreadingPower(omega, omegaP, p.windSpeedMs));
   const dOmegaDk = dispersionDerivative(k, p.depthM);
 
-  return (sOmega * tma * d * dOmegaDk) / k;
+  // `energyScale` is a swell's decay away from its storm; 1 for a local sea.
+  return (sOmega * tma * d * dOmegaDk * (p.energyScale ?? 1)) / k;
 }
 
 /* ------------------------------------------------------------------ */

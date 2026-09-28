@@ -1,0 +1,496 @@
+{
+  "generatedAt": "2026-09-23T00:12:33.180Z",
+  "counts": {
+    "NAME-REFERENCED": 6,
+    "BUILD-ENTRY": 7,
+    "SALVAGE-CANDIDATE": 35,
+    "GLOB-LOADED": 73,
+    "total": 121
+  },
+  "entries": {
+    "src/App.tsx": {
+      "disposition": "NAME-REFERENCED",
+      "evidence": "basename 'App' appears as a quoted module token 5x elsewhere"
+    },
+    "src/agent-docs-entry.tsx": {
+      "disposition": "BUILD-ENTRY",
+      "evidence": "basename declared in vite.config.ts rollup input"
+    },
+    "src/atlas-entry.tsx": {
+      "disposition": "BUILD-ENTRY",
+      "evidence": "basename declared in vite.config.ts rollup input"
+    },
+    "src/building-identity-lab.tsx": {
+      "disposition": "BUILD-ENTRY",
+      "evidence": "basename declared in vite.config.ts rollup input"
+    },
+    "src/components/BattleMap/PlayerSprite.tsx": {
+      "disposition": "SALVAGE-CANDIDATE",
+      "evidence": "no static importer, no glob coverage, not a build entry, basename unreferenced"
+    },
+    "src/components/DesignPreview/LiveSurface.tsx": {
+      "disposition": "SALVAGE-CANDIDATE",
+      "evidence": "no static importer, no glob coverage, not a build entry, basename unreferenced"
+    },
+    "src/components/DesignPreview/steps/PreviewCombat.tsx": {
+      "disposition": "SALVAGE-CANDIDATE",
+      "evidence": "no static importer, no glob coverage, not a build entry, basename unreferenced"
+    },
+    "src/components/DesignPreview/steps/landVolumeWorker.ts": {
+      "disposition": "NAME-REFERENCED",
+      "evidence": "basename 'landVolumeWorker' appears as a quoted module token 2x elsewhere"
+    },
+    "src/components/DesignPreview/steps/sidebyside/sideBySideTerrainWorker.ts": {
+      "disposition": "SALVAGE-CANDIDATE",
+      "evidence": "no static importer, no glob coverage, not a build entry, basename unreferenced"
+    },
+    "src/components/Glossary/GlossarySummaryTable.tsx": {
+      "disposition": "SALVAGE-CANDIDATE",
+      "evidence": "no static importer, no glob coverage, not a build entry, basename unreferenced"
+    },
+    "src/components/Glossary/spellGateChecker/GateBucketCard.tsx": {
+      "disposition": "SALVAGE-CANDIDATE",
+      "evidence": "no static importer, no glob coverage, not a build entry, basename unreferenced"
+    },
+    "src/components/Party/RelationshipsPane.tsx": {
+      "disposition": "SALVAGE-CANDIDATE",
+      "evidence": "no static importer, no glob coverage, not a build entry, basename unreferenced"
+    },
+    "src/components/Religion/DivineFavorPanel.tsx": {
+      "disposition": "SALVAGE-CANDIDATE",
+      "evidence": "no static importer, no glob coverage, not a build entry, basename unreferenced"
+    },
+    "src/components/ThreeDModal/Experimental/DeformableTerrain.tsx": {
+      "disposition": "SALVAGE-CANDIDATE",
+      "evidence": "no static importer, no glob coverage, not a build entry, basename unreferenced"
+    },
+    "src/components/ThreeDModal/Experimental/OverlayMesh.tsx": {
+      "disposition": "SALVAGE-CANDIDATE",
+      "evidence": "no static importer, no glob coverage, not a build entry, basename unreferenced"
+    },
+    "src/components/ThreeDModal/Experimental/ProceduralScatter.tsx": {
+      "disposition": "SALVAGE-CANDIDATE",
+      "evidence": "no static importer, no glob coverage, not a build entry, basename unreferenced"
+    },
+    "src/components/ThreeDModal/Experimental/SimpleControls.tsx": {
+      "disposition": "SALVAGE-CANDIDATE",
+      "evidence": "no static importer, no glob coverage, not a build entry, basename unreferenced"
+    },
+    "src/components/Town/Intrigue/LeverageUI.tsx": {
+      "disposition": "SALVAGE-CANDIDATE",
+      "evidence": "no static importer, no glob coverage, not a build entry, basename unreferenced"
+    },
+    "src/components/World3D/chunkWorker.ts": {
+      "disposition": "SALVAGE-CANDIDATE",
+      "evidence": "no static importer, no glob coverage, not a build entry, basename unreferenced"
+    },
+    "src/components/World3D/groundChunkWorker.ts": {
+      "disposition": "NAME-REFERENCED",
+      "evidence": "basename 'groundChunkWorker' appears as a quoted module token 1x elsewhere"
+    },
+    "src/components/World3D/sky/lighting.ts": {
+      "disposition": "SALVAGE-CANDIDATE",
+      "evidence": "no static importer, no glob coverage, not a build entry, basename unreferenced"
+    },
+    "src/components/World3D/volumeBubbleWorker.ts": {
+      "disposition": "NAME-REFERENCED",
+      "evidence": "basename 'volumeBubbleWorker' appears as a quoted module token 1x elsewhere"
+    },
+    "src/components/World3D/worldGenWorker.ts": {
+      "disposition": "SALVAGE-CANDIDATE",
+      "evidence": "no static importer, no glob coverage, not a build entry, basename unreferenced"
+    },
+    "src/components/Worldforge/responsiveAtlasWorker.ts": {
+      "disposition": "SALVAGE-CANDIDATE",
+      "evidence": "no static importer, no glob coverage, not a build entry, basename unreferenced"
+    },
+    "src/components/dice/TrollScaleSlider.tsx": {
+      "disposition": "SALVAGE-CANDIDATE",
+      "evidence": "no static importer, no glob coverage, not a build entry, basename unreferenced"
+    },
+    "src/data/adapters/5eToolsAdapter.ts": {
+      "disposition": "NAME-REFERENCED",
+      "evidence": "basename '5eToolsAdapter' appears as a quoted module token 1x elsewhere"
+    },
+    "src/data/glossaryData.ts": {
+      "disposition": "SALVAGE-CANDIDATE",
+      "evidence": "no static importer, no glob coverage, not a build entry, basename unreferenced"
+    },
+    "src/data/monsters.generated.ts": {
+      "disposition": "SALVAGE-CANDIDATE",
+      "evidence": "no static importer, no glob coverage, not a build entry, basename unreferenced"
+    },
+    "src/data/races/abyssal_tiefling.ts": {
+      "disposition": "GLOB-LOADED",
+      "evidence": "import.meta.glob('./*.ts') in src/data/races/index.ts"
+    },
+    "src/data/races/air_genasi.ts": {
+      "disposition": "GLOB-LOADED",
+      "evidence": "import.meta.glob('./*.ts') in src/data/races/index.ts"
+    },
+    "src/data/races/beastborn_human.ts": {
+      "disposition": "GLOB-LOADED",
+      "evidence": "import.meta.glob('./*.ts') in src/data/races/index.ts"
+    },
+    "src/data/races/blue_dragonborn.ts": {
+      "disposition": "GLOB-LOADED",
+      "evidence": "import.meta.glob('./*.ts') in src/data/races/index.ts"
+    },
+    "src/data/races/brass_dragonborn.ts": {
+      "disposition": "GLOB-LOADED",
+      "evidence": "import.meta.glob('./*.ts') in src/data/races/index.ts"
+    },
+    "src/data/races/bronze_dragonborn.ts": {
+      "disposition": "GLOB-LOADED",
+      "evidence": "import.meta.glob('./*.ts') in src/data/races/index.ts"
+    },
+    "src/data/races/changeling.ts": {
+      "disposition": "GLOB-LOADED",
+      "evidence": "import.meta.glob('./*.ts') in src/data/races/index.ts"
+    },
+    "src/data/races/copper_dragonborn.ts": {
+      "disposition": "GLOB-LOADED",
+      "evidence": "import.meta.glob('./*.ts') in src/data/races/index.ts"
+    },
+    "src/data/races/earth_genasi.ts": {
+      "disposition": "GLOB-LOADED",
+      "evidence": "import.meta.glob('./*.ts') in src/data/races/index.ts"
+    },
+    "src/data/races/eladrin.ts": {
+      "disposition": "GLOB-LOADED",
+      "evidence": "import.meta.glob('./*.ts') in src/data/races/index.ts"
+    },
+    "src/data/races/elf.ts": {
+      "disposition": "GLOB-LOADED",
+      "evidence": "import.meta.glob('./*.ts') in src/data/races/index.ts"
+    },
+    "src/data/races/fairy.ts": {
+      "disposition": "GLOB-LOADED",
+      "evidence": "import.meta.glob('./*.ts') in src/data/races/index.ts"
+    },
+    "src/data/races/gold_dragonborn.ts": {
+      "disposition": "GLOB-LOADED",
+      "evidence": "import.meta.glob('./*.ts') in src/data/races/index.ts"
+    },
+    "src/data/races/green_dragonborn.ts": {
+      "disposition": "GLOB-LOADED",
+      "evidence": "import.meta.glob('./*.ts') in src/data/races/index.ts"
+    },
+    "src/data/races/half_elf.ts": {
+      "disposition": "GLOB-LOADED",
+      "evidence": "import.meta.glob('./*.ts') in src/data/races/index.ts"
+    },
+    "src/data/races/half_elf_aquatic.ts": {
+      "disposition": "GLOB-LOADED",
+      "evidence": "import.meta.glob('./*.ts') in src/data/races/index.ts"
+    },
+    "src/data/races/half_elf_high.ts": {
+      "disposition": "GLOB-LOADED",
+      "evidence": "import.meta.glob('./*.ts') in src/data/races/index.ts"
+    },
+    "src/data/races/half_elf_wood.ts": {
+      "disposition": "GLOB-LOADED",
+      "evidence": "import.meta.glob('./*.ts') in src/data/races/index.ts"
+    },
+    "src/data/races/half_orc.ts": {
+      "disposition": "GLOB-LOADED",
+      "evidence": "import.meta.glob('./*.ts') in src/data/races/index.ts"
+    },
+    "src/data/races/hearthkeeper_halfling.ts": {
+      "disposition": "GLOB-LOADED",
+      "evidence": "import.meta.glob('./*.ts') in src/data/races/index.ts"
+    },
+    "src/data/races/high_elf.ts": {
+      "disposition": "GLOB-LOADED",
+      "evidence": "import.meta.glob('./*.ts') in src/data/races/index.ts"
+    },
+    "src/data/races/hill_dwarf.ts": {
+      "disposition": "GLOB-LOADED",
+      "evidence": "import.meta.glob('./*.ts') in src/data/races/index.ts"
+    },
+    "src/data/races/hill_giant_goliath.ts": {
+      "disposition": "GLOB-LOADED",
+      "evidence": "import.meta.glob('./*.ts') in src/data/races/index.ts"
+    },
+    "src/data/races/hobgoblin.ts": {
+      "disposition": "GLOB-LOADED",
+      "evidence": "import.meta.glob('./*.ts') in src/data/races/index.ts"
+    },
+    "src/data/races/human.ts": {
+      "disposition": "GLOB-LOADED",
+      "evidence": "import.meta.glob('./*.ts') in src/data/races/index.ts"
+    },
+    "src/data/races/infernal_tiefling.ts": {
+      "disposition": "GLOB-LOADED",
+      "evidence": "import.meta.glob('./*.ts') in src/data/races/index.ts"
+    },
+    "src/data/races/kalashtar.ts": {
+      "disposition": "GLOB-LOADED",
+      "evidence": "import.meta.glob('./*.ts') in src/data/races/index.ts"
+    },
+    "src/data/races/kender.ts": {
+      "disposition": "GLOB-LOADED",
+      "evidence": "import.meta.glob('./*.ts') in src/data/races/index.ts"
+    },
+    "src/data/races/kenku.ts": {
+      "disposition": "GLOB-LOADED",
+      "evidence": "import.meta.glob('./*.ts') in src/data/races/index.ts"
+    },
+    "src/data/races/kobold.ts": {
+      "disposition": "GLOB-LOADED",
+      "evidence": "import.meta.glob('./*.ts') in src/data/races/index.ts"
+    },
+    "src/data/races/leonin.ts": {
+      "disposition": "GLOB-LOADED",
+      "evidence": "import.meta.glob('./*.ts') in src/data/races/index.ts"
+    },
+    "src/data/races/lightfoot_halfling.ts": {
+      "disposition": "GLOB-LOADED",
+      "evidence": "import.meta.glob('./*.ts') in src/data/races/index.ts"
+    },
+    "src/data/races/longtooth_shifter.ts": {
+      "disposition": "GLOB-LOADED",
+      "evidence": "import.meta.glob('./*.ts') in src/data/races/index.ts"
+    },
+    "src/data/races/lotusden_halfling.ts": {
+      "disposition": "GLOB-LOADED",
+      "evidence": "import.meta.glob('./*.ts') in src/data/races/index.ts"
+    },
+    "src/data/races/loxodon.ts": {
+      "disposition": "GLOB-LOADED",
+      "evidence": "import.meta.glob('./*.ts') in src/data/races/index.ts"
+    },
+    "src/data/races/mender_halfling.ts": {
+      "disposition": "GLOB-LOADED",
+      "evidence": "import.meta.glob('./*.ts') in src/data/races/index.ts"
+    },
+    "src/data/races/minotaur.ts": {
+      "disposition": "GLOB-LOADED",
+      "evidence": "import.meta.glob('./*.ts') in src/data/races/index.ts"
+    },
+    "src/data/races/mountain_dwarf.ts": {
+      "disposition": "GLOB-LOADED",
+      "evidence": "import.meta.glob('./*.ts') in src/data/races/index.ts"
+    },
+    "src/data/races/orc.ts": {
+      "disposition": "GLOB-LOADED",
+      "evidence": "import.meta.glob('./*.ts') in src/data/races/index.ts"
+    },
+    "src/data/races/pallid_elf.ts": {
+      "disposition": "GLOB-LOADED",
+      "evidence": "import.meta.glob('./*.ts') in src/data/races/index.ts"
+    },
+    "src/data/races/pathfinder_half_orc.ts": {
+      "disposition": "GLOB-LOADED",
+      "evidence": "import.meta.glob('./*.ts') in src/data/races/index.ts"
+    },
+    "src/data/races/plasmoid.ts": {
+      "disposition": "GLOB-LOADED",
+      "evidence": "import.meta.glob('./*.ts') in src/data/races/index.ts"
+    },
+    "src/data/races/red_dragonborn.ts": {
+      "disposition": "GLOB-LOADED",
+      "evidence": "import.meta.glob('./*.ts') in src/data/races/index.ts"
+    },
+    "src/data/races/rock_gnome.ts": {
+      "disposition": "GLOB-LOADED",
+      "evidence": "import.meta.glob('./*.ts') in src/data/races/index.ts"
+    },
+    "src/data/races/runeward_dwarf.ts": {
+      "disposition": "GLOB-LOADED",
+      "evidence": "import.meta.glob('./*.ts') in src/data/races/index.ts"
+    },
+    "src/data/races/satyr.ts": {
+      "disposition": "GLOB-LOADED",
+      "evidence": "import.meta.glob('./*.ts') in src/data/races/index.ts"
+    },
+    "src/data/races/sea_elf.ts": {
+      "disposition": "GLOB-LOADED",
+      "evidence": "import.meta.glob('./*.ts') in src/data/races/index.ts"
+    },
+    "src/data/races/seersight_half_elf.ts": {
+      "disposition": "GLOB-LOADED",
+      "evidence": "import.meta.glob('./*.ts') in src/data/races/index.ts"
+    },
+    "src/data/races/shadar_kai.ts": {
+      "disposition": "GLOB-LOADED",
+      "evidence": "import.meta.glob('./*.ts') in src/data/races/index.ts"
+    },
+    "src/data/races/shadowveil_elf.ts": {
+      "disposition": "GLOB-LOADED",
+      "evidence": "import.meta.glob('./*.ts') in src/data/races/index.ts"
+    },
+    "src/data/races/silver_dragonborn.ts": {
+      "disposition": "GLOB-LOADED",
+      "evidence": "import.meta.glob('./*.ts') in src/data/races/index.ts"
+    },
+    "src/data/races/simic_hybrid.ts": {
+      "disposition": "GLOB-LOADED",
+      "evidence": "import.meta.glob('./*.ts') in src/data/races/index.ts"
+    },
+    "src/data/races/spring_eladrin.ts": {
+      "disposition": "GLOB-LOADED",
+      "evidence": "import.meta.glob('./*.ts') in src/data/races/index.ts"
+    },
+    "src/data/races/stone_giant_goliath.ts": {
+      "disposition": "GLOB-LOADED",
+      "evidence": "import.meta.glob('./*.ts') in src/data/races/index.ts"
+    },
+    "src/data/races/storm_giant_goliath.ts": {
+      "disposition": "GLOB-LOADED",
+      "evidence": "import.meta.glob('./*.ts') in src/data/races/index.ts"
+    },
+    "src/data/races/stormborn_half_elf.ts": {
+      "disposition": "GLOB-LOADED",
+      "evidence": "import.meta.glob('./*.ts') in src/data/races/index.ts"
+    },
+    "src/data/races/stout_halfling.ts": {
+      "disposition": "GLOB-LOADED",
+      "evidence": "import.meta.glob('./*.ts') in src/data/races/index.ts"
+    },
+    "src/data/races/summer_eladrin.ts": {
+      "disposition": "GLOB-LOADED",
+      "evidence": "import.meta.glob('./*.ts') in src/data/races/index.ts"
+    },
+    "src/data/races/swiftstride_shifter.ts": {
+      "disposition": "GLOB-LOADED",
+      "evidence": "import.meta.glob('./*.ts') in src/data/races/index.ts"
+    },
+    "src/data/races/thri_kreen.ts": {
+      "disposition": "GLOB-LOADED",
+      "evidence": "import.meta.glob('./*.ts') in src/data/races/index.ts"
+    },
+    "src/data/races/tortle.ts": {
+      "disposition": "GLOB-LOADED",
+      "evidence": "import.meta.glob('./*.ts') in src/data/races/index.ts"
+    },
+    "src/data/races/triton.ts": {
+      "disposition": "GLOB-LOADED",
+      "evidence": "import.meta.glob('./*.ts') in src/data/races/index.ts"
+    },
+    "src/data/races/vedalken.ts": {
+      "disposition": "GLOB-LOADED",
+      "evidence": "import.meta.glob('./*.ts') in src/data/races/index.ts"
+    },
+    "src/data/races/verdan.ts": {
+      "disposition": "GLOB-LOADED",
+      "evidence": "import.meta.glob('./*.ts') in src/data/races/index.ts"
+    },
+    "src/data/races/warforged.ts": {
+      "disposition": "GLOB-LOADED",
+      "evidence": "import.meta.glob('./*.ts') in src/data/races/index.ts"
+    },
+    "src/data/races/water_genasi.ts": {
+      "disposition": "GLOB-LOADED",
+      "evidence": "import.meta.glob('./*.ts') in src/data/races/index.ts"
+    },
+    "src/data/races/wayfarer_human.ts": {
+      "disposition": "GLOB-LOADED",
+      "evidence": "import.meta.glob('./*.ts') in src/data/races/index.ts"
+    },
+    "src/data/races/white_dragonborn.ts": {
+      "disposition": "GLOB-LOADED",
+      "evidence": "import.meta.glob('./*.ts') in src/data/races/index.ts"
+    },
+    "src/data/races/wildhunt_shifter.ts": {
+      "disposition": "GLOB-LOADED",
+      "evidence": "import.meta.glob('./*.ts') in src/data/races/index.ts"
+    },
+    "src/data/races/winter_eladrin.ts": {
+      "disposition": "GLOB-LOADED",
+      "evidence": "import.meta.glob('./*.ts') in src/data/races/index.ts"
+    },
+    "src/data/races/wood_elf.ts": {
+      "disposition": "GLOB-LOADED",
+      "evidence": "import.meta.glob('./*.ts') in src/data/races/index.ts"
+    },
+    "src/data/races/wordweaver_gnome.ts": {
+      "disposition": "GLOB-LOADED",
+      "evidence": "import.meta.glob('./*.ts') in src/data/races/index.ts"
+    },
+    "src/data/races/yuan_ti.ts": {
+      "disposition": "GLOB-LOADED",
+      "evidence": "import.meta.glob('./*.ts') in src/data/races/index.ts"
+    },
+    "src/data/spellCoverageAnnotations.ts": {
+      "disposition": "SALVAGE-CANDIDATE",
+      "evidence": "no static importer, no glob coverage, not a build entry, basename unreferenced"
+    },
+    "src/design-preview.tsx": {
+      "disposition": "BUILD-ENTRY",
+      "evidence": "basename declared in vite.config.ts rollup input"
+    },
+    "src/hooks/data/useSpellRegistry.ts": {
+      "disposition": "SALVAGE-CANDIDATE",
+      "evidence": "no static importer, no glob coverage, not a build entry, basename unreferenced"
+    },
+    "src/md-library-entry.tsx": {
+      "disposition": "BUILD-ENTRY",
+      "evidence": "basename declared in vite.config.ts rollup input"
+    },
+    "src/scripts/audit_spell_components.ts": {
+      "disposition": "SALVAGE-CANDIDATE",
+      "evidence": "no static importer, no glob coverage, not a build entry, basename unreferenced"
+    },
+    "src/services/wfcService.ts": {
+      "disposition": "SALVAGE-CANDIDATE",
+      "evidence": "no static importer, no glob coverage, not a build entry, basename unreferenced"
+    },
+    "src/spell-pipeline-atlas.tsx": {
+      "disposition": "BUILD-ENTRY",
+      "evidence": "basename declared in vite.config.ts rollup input"
+    },
+    "src/state/actions/crimeActions.ts": {
+      "disposition": "SALVAGE-CANDIDATE",
+      "evidence": "no static importer, no glob coverage, not a build entry, basename unreferenced"
+    },
+    "src/systems/crafting/craftingAchievements.ts": {
+      "disposition": "SALVAGE-CANDIDATE",
+      "evidence": "no static importer, no glob coverage, not a build entry, basename unreferenced"
+    },
+    "src/systems/crafting/data/recipes.ts": {
+      "disposition": "SALVAGE-CANDIDATE",
+      "evidence": "no static importer, no glob coverage, not a build entry, basename unreferenced"
+    },
+    "src/systems/naval/NavalLogic.ts": {
+      "disposition": "SALVAGE-CANDIDATE",
+      "evidence": "no static importer, no glob coverage, not a build entry, basename unreferenced"
+    },
+    "src/systems/puzzles/mechanism.ts": {
+      "disposition": "SALVAGE-CANDIDATE",
+      "evidence": "no static importer, no glob coverage, not a build entry, basename unreferenced"
+    },
+    "src/systems/spells/validation/TargetingPresets.ts": {
+      "disposition": "SALVAGE-CANDIDATE",
+      "evidence": "no static importer, no glob coverage, not a build entry, basename unreferenced"
+    },
+    "src/systems/worldforge/interior/types.ts": {
+      "disposition": "NAME-REFERENCED",
+      "evidence": "basename 'types' appears as a quoted module token 1x elsewhere"
+    },
+    "src/systems/worldforge/terrain/fluidSolver.ts": {
+      "disposition": "SALVAGE-CANDIDATE",
+      "evidence": "no static importer, no glob coverage, not a build entry, basename unreferenced"
+    },
+    "src/systems/worldforge/town/townDiagnostics.ts": {
+      "disposition": "SALVAGE-CANDIDATE",
+      "evidence": "no static importer, no glob coverage, not a build entry, basename unreferenced"
+    },
+    "src/test/setup.ts": {
+      "disposition": "SALVAGE-CANDIDATE",
+      "evidence": "no static importer, no glob coverage, not a build entry, basename unreferenced"
+    },
+    "src/url-directory-entry.ts": {
+      "disposition": "BUILD-ENTRY",
+      "evidence": "basename declared in vite.config.ts rollup input"
+    },
+    "src/utils/createOllamaLogEntry.ts": {
+      "disposition": "SALVAGE-CANDIDATE",
+      "evidence": "no static importer, no glob coverage, not a build entry, basename unreferenced"
+    },
+    "src/utils/memoryUtils.ts": {
+      "disposition": "SALVAGE-CANDIDATE",
+      "evidence": "no static importer, no glob coverage, not a build entry, basename unreferenced"
+    }
+  }
+}

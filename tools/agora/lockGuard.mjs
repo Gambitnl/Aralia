@@ -26,7 +26,18 @@ function identityAgentId(env = process.env) {
     : '';
   const file = path.join(dir, key ? `client-identity.${key}.json` : 'client-identity.json');
   try {
-    return JSON.parse(fs.readFileSync(file, 'utf8')).agentId ?? null;
+    const all = JSON.parse(fs.readFileSync(file, 'utf8'));
+    // client.mjs keys the file by daemon URL ({ "http://localhost:4319": { agentId, ... } }).
+    // PM-G1 (2026-09-13): reading a top-level agentId always yielded null, so the guard
+    // refused the caller's OWN lock. Prefer the entry for the configured daemon URL,
+    // fall back to the only/first keyed entry, and still accept a flat legacy file.
+    if (all && typeof all === 'object') {
+      if (typeof all.agentId === 'string') return all.agentId;
+      const base = (env.AGORA_URL || 'http://localhost:4319').replace(/\/+$/, '');
+      const entry = all[base] || Object.values(all).find((v) => v && typeof v === 'object' && typeof v.agentId === 'string');
+      if (entry && typeof entry.agentId === 'string') return entry.agentId;
+    }
+    return null;
   } catch {
     return null;
   }
@@ -82,7 +93,8 @@ export async function guardWriteOrDie(file, { toolName = 'planmap tool', force =
   console.error(
     `${toolName}: REFUSING to write ${file} — Agora lock held by agent ${r.holderAgentId}` +
     (r.lockReason ? ` (reason: ${r.lockReason})` : '') +
-    `\n  If this is YOUR lock: your AGORA_AGENT_ID prefix probably went missing (guard read identity: ${r.identityRead ?? 'none'}).` +
+    `\n  If this is YOUR lock: this command ran without your identity (guard read identity: ${r.identityRead ?? 'none'}).` +
+    `\n  Re-run it with the SAME prefix you give client.mjs: AGORA_AGENT_ID=<your-handle> node tools/agora/<tool>.mjs ... (WF-G120).` +
     `\n  Safe self-service: export AGORA_HELD_LOCK=<your lockId> (printed by the lock call) and re-run.` +
     `\n  Otherwise coordinate via \`node tools/agora/client.mjs say\`, wait for the release, or pass --force-no-lock if you are CERTAIN.`,
   );

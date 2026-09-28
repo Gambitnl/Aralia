@@ -16,6 +16,34 @@
 
                    ],
     "ritual":  true,
+    "ritualData": {
+      "requirements": [
+        {
+          "type": "location",
+          "value": [
+            "outdoors",
+            "indoors",
+            "underground"
+          ],
+          "description": "The ritual needs a stone object or surface large enough to hold the caster."
+        },
+        {
+          "type": "custom",
+          "value": "component:verbal",
+          "description": "The ritual must be chanted aloud from start to finish."
+        },
+        {
+          "type": "custom",
+          "value": "component:somatic",
+          "description": "The ritual needs a free hand for its gestures throughout."
+        },
+        {
+          "type": "custom",
+          "value": "uninterrupted_casting",
+          "description": "Ritual casting adds 10 minutes to the casting time and must run uninterrupted."
+        }
+      ]
+    },
     "rarity":  "common",
     "attackType":  "",
     "castingTime":  {
@@ -310,7 +338,7 @@
                       "prompt":  "Track the caster as merged into the touched stone with equipment, unable to move except by spending 5 feet to exit where they entered. If the stone is partially destroyed or reshaped so the caster no longer fits, expel them to the nearest unoccupied entry-point space, deal 6d6 Force damage, and apply Prone; if it is destroyed or transmuted, deal 50 Force damage and apply the same Prone expulsion.",
                       "playerInputRequired":  true
                   },
-    "description":  "You step into a stone object or surface large enough to fully contain your body, merging yourself and your equipment with the stone for the duration. You must touch the stone to do so. Nothing of your presence remains visible or otherwise detectable by nonmagical senses. While merged with the stone, you can\u0027t see what occurs outside it, and any Wisdom (Perception) checks you make to hear sounds outside it are made with Disadvantage. You remain aware of the passage of time and can cast spells on yourself while merged in the stone. You can use 5 feet of movement to leave the stone where you entered it, which ends the spell. You otherwise can\u0027t move. Minor physical damage to the stone doesn\u0027t harm you, but its partial destruction or a change in its shape (to the extent that you no longer fit within it) expels you and deals 6d6 Force damage to you. The stone\u0027s complete destruction (or transmutation into a different substance) expels you and deals 50 Force damage to you. If expelled, you move into an unoccupied space closest to where you first entered and have the Prone condition.",
+    "description":  "You step into a stone object or surface large enough to fully contain your body, merging yourself and your equipment with the stone for the duration. You must touch the stone to do so. Nothing of your presence remains visible or otherwise detectable by nonmagical senses. While merged with the stone, you can't see what occurs outside it, and any Wisdom (Perception) checks you make to hear sounds outside it are made with Disadvantage. You remain aware of the passage of time and can cast spells on yourself while merged in the stone. You can use 5 feet of movement to leave the stone where you entered it, which ends the spell. You otherwise can't move. Minor physical damage to the stone doesn't harm you, but its partial destruction or a change in its shape (to the extent that you no longer fit within it) expels you and deals 6d6 Force damage to you. The stone's complete destruction (or transmutation into a different substance) expels you and deals 50 Force damage to you. If expelled, you move into an unoccupied space closest to where you first entered and have the Prone condition.",
     "higherLevels":  "",
     "tags":  [
                  "utility",

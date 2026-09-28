@@ -69,6 +69,16 @@ export async function resolveAndRegisterEntities(
               type: 'REGISTER_DYNAMIC_ENTITY',
               payload: { entityType: 'npc', entity: result.entity as NPC }
             });
+            // A newly invented NPC belongs somewhere: put it on the current
+            // location's roster and seed a neutral player relationship, so it
+            // is a resident the world can reach rather than an orphan record.
+            dispatch({
+              type: 'LINK_NPC_TO_LOCATION',
+              payload: {
+                locationId: gameState.currentLocationId,
+                npcId: (result.entity as NPC).id,
+              }
+            });
             break;
         }
 

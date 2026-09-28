@@ -26,6 +26,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import { Location, Action, NPC, Item } from '../../types';
+import type { RulesEdition } from '../../config/rulesEdition';
 import { ActionButton } from './ActionButton';
 import { useActionGeneration } from './useActionGeneration';
 import { SystemMenu } from './SystemMenu';
@@ -104,6 +105,9 @@ interface ActionPaneProps {
   isDevModeEnabled: boolean;
   unreadDiscoveryCount: number;
   autoSaveEnabled?: boolean;
+  combatDifficulty?: 'easy' | 'normal' | 'hard';
+  rulesEdition?: RulesEdition;
+  allowSaveScum?: boolean;
 
   hasNewRateLimitError: boolean;
 }
@@ -118,6 +122,9 @@ const ActionPane: React.FC<ActionPaneProps> = ({
   isDevModeEnabled,
   unreadDiscoveryCount,
   autoSaveEnabled = true,
+  combatDifficulty = 'normal',
+  rulesEdition,
+  allowSaveScum,
 
   hasNewRateLimitError,
 }) => {
@@ -305,6 +312,9 @@ const ActionPane: React.FC<ActionPaneProps> = ({
         hasNewRateLimitError={hasNewRateLimitError}
         isDevModeEnabled={isDevModeEnabled}
         autoSaveEnabled={autoSaveEnabled}
+        combatDifficulty={combatDifficulty}
+        rulesEdition={rulesEdition}
+        allowSaveScum={allowSaveScum}
       />
 
     </div>

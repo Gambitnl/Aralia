@@ -46,9 +46,11 @@ import {
 import {
   getCharacterDistance,
   resolveAttack,
-  rollDamage,
   type AttackResult,
 } from '../../../utils/combat/combatUtils';
+import {
+  rollDamage,
+} from '../../dice/rollers';
 import { applyDamageAndCheckDowned } from '../../../utils/combat/deathSaveUtils';
 import { hasLineOfSight } from '../../../utils/spatial/lineOfSight';
 

@@ -39,7 +39,7 @@
                        "verbal":  true,
                        "somatic":  false,
                        "material":  true,
-                       "materialDescription":  "a snake\u0027s tongue",
+                       "materialDescription":  "a snake's tongue",
                        "isConsumed":  false,
                        "materialCost":  0
                    },
@@ -177,7 +177,7 @@
                                                    {
                                                        "trigger":  "caster_or_ally_damages_target",
                                                        "scope":  "effect",
-                                                       "description":  "The spell ends for a target if the caster or the caster\u0027s allies deal damage to that target."
+                                                       "description":  "The spell ends for a target if the caster or the caster's allies deal damage to that target."
                                                    },
                                                    {
                                                        "trigger":  "suggested_activity_completed",
@@ -269,8 +269,14 @@
                         "scaling":  {
                                         "type":  "slot_level",
                                         "bonusPerLevel":  "",
-                                        "customFormula":  ""
-                                    },
+                                        "customFormula":  "",
+                                        "scalingTiers":  {
+                                                        "6":  "24 hours",
+                                                        "7":  "10 days",
+                                                        "8":  "30 days",
+                                                        "9":  "366 days"
+                                        }
+                        },
                         "grantedActions":  [
 
                                            ],
@@ -328,7 +334,7 @@
                                                    {
                                                        "trigger":  "caster_or_ally_damages_target",
                                                        "scope":  "effect",
-                                                       "description":  "The suggestion effect ends for a target if the caster or the caster\u0027s allies deal damage to that target."
+                                                       "description":  "The suggestion effect ends for a target if the caster or the caster's allies deal damage to that target."
                                                    },
                                                    {
                                                        "trigger":  "suggested_activity_completed",

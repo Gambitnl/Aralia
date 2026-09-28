@@ -30,7 +30,8 @@ import { ALL_RACES_DATA } from '../../data/races';
 import { createPlayerCombatCharacter } from '../combat/combatUtils';
 import { SKILLS_DATA } from '../../data/skills';
 import { getAbilityModifierValue } from '../character/statUtils';
-import { buildHitPointDicePools } from '../character/characterUtils';
+import { buildHitPointDicePools, calculateCharacterSpeedFromRace } from '../character/characterUtils';
+import { calculateCharacterDarkvisionFromRace } from '../character/stats';
 
 // ============================================================================
 // Configuration Types
@@ -45,6 +46,8 @@ export interface QuickCharacterConfig {
     stats?: [number, number, number, number, number, number];
     /** Use class-recommended stat priorities if stats not provided */
     useRecommendedStats?: boolean;
+    /** Lineage/legacy picks that can change derived values such as walking speed. */
+    racialSelections?: PlayerCharacter['racialSelections'];
 }
 
 // ============================================================================
@@ -183,6 +186,7 @@ export function createQuickCharacter(config: QuickCharacterConfig): PlayerCharac
         xp: 0,
         proficiencyBonus,
         race,
+        racialSelections: config.racialSelections,
         class: charClass,
         classLevels,
         abilityScores: base,
@@ -194,8 +198,15 @@ export function createQuickCharacter(config: QuickCharacterConfig): PlayerCharac
         // Hit Dice pools are computed after assembly to include class levels.
         hitPointDice: undefined,
         armorClass: baseAc,
-        speed: race.id === 'dwarf' || race.id === 'gnome' ? 25 : 30,
-        darkvisionRange: race.traits?.some(t => t.toLowerCase().includes('darkvision')) ? 60 : 0,
+        // Speed comes from the race's own `Speed:` trait through the shared
+        // derivation used by the full character creator, so every selectable
+        // race (Centaur 40 ft, Frost Giant Goliath 35 ft, Wood Elf 35 ft) is
+        // correct here without a per-leaf override.
+        speed: calculateCharacterSpeedFromRace(race, config.racialSelections),
+        // Darkvision range comes from the race's own trait text through the
+        // same derivation the full character creator uses, so a 120 ft race
+        // (Deep Gnome, Duergar, Drow) is not flattened to 60 ft here.
+        darkvisionRange: calculateCharacterDarkvisionFromRace(race, config.racialSelections),
         transportMode: 'foot',
         spellcastingAbility,
         statusEffects: [],

@@ -37,6 +37,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from './Button';
 import { Checkbox, Input } from './Input';
 import { GeminiFallbackSettings } from './GeminiFallbackSettings';
+import { OllamaModelPicker } from './OllamaModelPicker';
 import { Z_INDEX } from '../../styles/zIndex';
 import { UI_ID } from '../../styles/uiIds';
 import {
@@ -594,6 +595,8 @@ export const OllamaDependencyModal: React.FC<OllamaDependencyModalProps> = ({
                                     <li>Make sure it is running (it serves on <code className="bg-gray-800 px-1 rounded">localhost:11434</code>), then retry.</li>
                                   </ol>
                                 </div>
+
+                                <OllamaModelPicker />
                               </div>
                         )}
                       </div>

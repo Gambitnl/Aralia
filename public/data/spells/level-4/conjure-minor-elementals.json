@@ -269,7 +269,7 @@
                                          "type":  "minutes",
                                          "value":  10
                                      },
-                        "description":  "The ground in the Emanation is Difficult Terrain for the caster\u0027s enemies.",
+                        "description":  "The ground in the Emanation is Difficult Terrain for the caster's enemies.",
                         "scaling":  {
                                         "type":  "slot_level",
                                         "bonusPerLevel":  "",

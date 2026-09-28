@@ -903,6 +903,30 @@
     ],
     "subClasses": [],
     "ritual": true,
+    "ritualData": {
+      "requirements": [
+        {
+          "type": "custom",
+          "value": "component:verbal",
+          "description": "The ritual must be chanted aloud from start to finish."
+        },
+        {
+          "type": "custom",
+          "value": "component:somatic",
+          "description": "The ritual needs a free hand for its gestures throughout."
+        },
+        {
+          "type": "custom",
+          "value": "component:material",
+          "description": "The ritual needs a bell and silver wire; it is held throughout the casting."
+        },
+        {
+          "type": "custom",
+          "value": "uninterrupted_casting",
+          "description": "Ritual casting adds 10 minutes to the casting time and must run uninterrupted."
+        }
+      ]
+    },
     "rarity": "common",
     "attackType": "",
     "castingTime": {
@@ -1885,6 +1909,30 @@
     ],
     "subClasses": [],
     "ritual": true,
+    "ritualData": {
+      "requirements": [
+        {
+          "type": "custom",
+          "value": "component:verbal",
+          "description": "The ritual must be chanted aloud from start to finish."
+        },
+        {
+          "type": "custom",
+          "value": "component:somatic",
+          "description": "The ritual needs a free hand for its gestures throughout."
+        },
+        {
+          "type": "custom",
+          "value": "component:material",
+          "description": "The ritual needs a morsel of food; it is held throughout the casting."
+        },
+        {
+          "type": "custom",
+          "value": "uninterrupted_casting",
+          "description": "Ritual casting adds 10 minutes to the casting time and must run uninterrupted."
+        }
+      ]
+    },
     "rarity": "common",
     "attackType": "",
     "castingTime": {
@@ -6013,6 +6061,30 @@
     ],
     "subClasses": [],
     "ritual": true,
+    "ritualData": {
+      "requirements": [
+        {
+          "type": "custom",
+          "value": "component:verbal",
+          "description": "The ritual must be chanted aloud from start to finish."
+        },
+        {
+          "type": "custom",
+          "value": "component:somatic",
+          "description": "The ritual needs a free hand for its gestures throughout."
+        },
+        {
+          "type": "custom",
+          "value": "component:material",
+          "description": "The ritual needs specially marked sticks, bones, cards, or other divinatory tokens worth 25+ GP; it is held throughout the casting."
+        },
+        {
+          "type": "custom",
+          "value": "uninterrupted_casting",
+          "description": "Ritual casting adds 10 minutes to the casting time and must run uninterrupted."
+        }
+      ]
+    },
     "rarity": "common",
     "attackType": "",
     "castingTime": {
@@ -9006,6 +9078,20 @@
     ],
     "subClasses": [],
     "ritual": true,
+    "ritualData": {
+      "requirements": [
+        {
+          "type": "custom",
+          "value": "component:somatic",
+          "description": "The ritual needs a free hand for its gestures throughout."
+        },
+        {
+          "type": "custom",
+          "value": "uninterrupted_casting",
+          "description": "Ritual casting adds 10 minutes to the casting time and must run uninterrupted."
+        }
+      ]
+    },
     "rarity": "common",
     "attackType": "",
     "castingTime": {
@@ -17878,6 +17964,30 @@
       "Paladin - Oath of Devotion"
     ],
     "ritual": true,
+    "ritualData": {
+      "requirements": [
+        {
+          "type": "custom",
+          "value": "component:verbal",
+          "description": "The ritual must be chanted aloud from start to finish."
+        },
+        {
+          "type": "custom",
+          "value": "component:somatic",
+          "description": "The ritual needs a free hand for its gestures throughout."
+        },
+        {
+          "type": "custom",
+          "value": "component:material",
+          "description": "The ritual needs incense; it is held throughout the casting."
+        },
+        {
+          "type": "custom",
+          "value": "uninterrupted_casting",
+          "description": "Ritual casting adds 10 minutes to the casting time and must run uninterrupted."
+        }
+      ]
+    },
     "rarity": "common",
     "attackType": "",
     "castingTime": {
@@ -18080,6 +18190,33 @@
       "Paladin - Oath of the Ancients"
     ],
     "ritual": true,
+    "ritualData": {
+      "requirements": [
+        {
+          "type": "location",
+          "value": [
+            "outdoors",
+            "indoors"
+          ],
+          "description": "Commune with Nature fails underground; the caster must be able to reach the natural world."
+        },
+        {
+          "type": "custom",
+          "value": "component:verbal",
+          "description": "The ritual must be chanted aloud from start to finish."
+        },
+        {
+          "type": "custom",
+          "value": "component:somatic",
+          "description": "The ritual needs a free hand for its gestures throughout."
+        },
+        {
+          "type": "custom",
+          "value": "uninterrupted_casting",
+          "description": "Ritual casting adds 10 minutes to the casting time and must run uninterrupted."
+        }
+      ]
+    },
     "rarity": "common",
     "attackType": "",
     "castingTime": {
@@ -18759,6 +18896,30 @@
     ],
     "subClasses": [],
     "ritual": true,
+    "ritualData": {
+      "requirements": [
+        {
+          "type": "custom",
+          "value": "component:verbal",
+          "description": "The ritual must be chanted aloud from start to finish."
+        },
+        {
+          "type": "custom",
+          "value": "component:somatic",
+          "description": "The ritual needs a free hand for its gestures throughout."
+        },
+        {
+          "type": "custom",
+          "value": "component:material",
+          "description": "The ritual needs a pinch of soot and salt; it is held throughout the casting."
+        },
+        {
+          "type": "custom",
+          "value": "uninterrupted_casting",
+          "description": "Ritual casting adds 10 minutes to the casting time and must run uninterrupted."
+        }
+      ]
+    },
     "rarity": "common",
     "attackType": "",
     "castingTime": {
@@ -21983,6 +22144,28 @@
     ],
     "subClasses": [],
     "ritual": true,
+    "ritualData": {
+      "requirements": [
+        {
+          "type": "custom",
+          "value": "component:verbal",
+          "description": "The ritual must be chanted aloud from start to finish."
+        },
+        {
+          "type": "custom",
+          "value": "uninterrupted_casting",
+          "description": "Ritual casting adds 10 minutes to the casting time and must run uninterrupted."
+        }
+      ],
+      "backlash": {
+        "type": "damage",
+        "value": "6d6",
+        "damageType": "psychic",
+        "saveDC": 15,
+        "minProgress": 0.5,
+        "description": "The alien mind on the far end of the contact tears free: DC 15 Intelligence save or take 6d6 psychic damage and go insane until the caster finishes a long rest."
+      }
+    },
     "rarity": "common",
     "attackType": "",
     "castingTime": {
@@ -29942,6 +30125,25 @@
     ],
     "subClasses": [],
     "ritual": true,
+    "ritualData": {
+      "requirements": [
+        {
+          "type": "custom",
+          "value": "component:verbal",
+          "description": "The ritual must be chanted aloud from start to finish."
+        },
+        {
+          "type": "custom",
+          "value": "component:somatic",
+          "description": "The ritual needs a free hand for its gestures throughout."
+        },
+        {
+          "type": "custom",
+          "value": "uninterrupted_casting",
+          "description": "Ritual casting adds 10 minutes to the casting time and must run uninterrupted."
+        }
+      ]
+    },
     "rarity": "common",
     "attackType": "",
     "castingTime": {
@@ -30161,6 +30363,30 @@
     ],
     "subClasses": [],
     "ritual": true,
+    "ritualData": {
+      "requirements": [
+        {
+          "type": "custom",
+          "value": "component:verbal",
+          "description": "The ritual must be chanted aloud from start to finish."
+        },
+        {
+          "type": "custom",
+          "value": "component:somatic",
+          "description": "The ritual needs a free hand for its gestures throughout."
+        },
+        {
+          "type": "custom",
+          "value": "component:material",
+          "description": "The ritual needs a yew leaf; it is held throughout the casting."
+        },
+        {
+          "type": "custom",
+          "value": "uninterrupted_casting",
+          "description": "Ritual casting adds 10 minutes to the casting time and must run uninterrupted."
+        }
+      ]
+    },
     "rarity": "common",
     "attackType": "",
     "castingTime": {
@@ -32267,6 +32493,30 @@
     ],
     "subClasses": [],
     "ritual": true,
+    "ritualData": {
+      "requirements": [
+        {
+          "type": "custom",
+          "value": "component:verbal",
+          "description": "The ritual must be chanted aloud from start to finish."
+        },
+        {
+          "type": "custom",
+          "value": "component:somatic",
+          "description": "The ritual needs a free hand for its gestures throughout."
+        },
+        {
+          "type": "custom",
+          "value": "component:material",
+          "description": "The ritual needs incense worth 25+ GP; the casting consumes it."
+        },
+        {
+          "type": "custom",
+          "value": "uninterrupted_casting",
+          "description": "Ritual casting adds 10 minutes to the casting time and must run uninterrupted."
+        }
+      ]
+    },
     "rarity": "common",
     "attackType": "",
     "castingTime": {
@@ -35245,6 +35495,30 @@
     ],
     "subClasses": [],
     "ritual": true,
+    "ritualData": {
+      "requirements": [
+        {
+          "type": "custom",
+          "value": "component:verbal",
+          "description": "The ritual must be chanted aloud from start to finish."
+        },
+        {
+          "type": "custom",
+          "value": "component:somatic",
+          "description": "The ritual needs a free hand for its gestures throughout."
+        },
+        {
+          "type": "custom",
+          "value": "component:material",
+          "description": "The ritual needs a sapphire worth 1,000+ GP; it is held throughout the casting."
+        },
+        {
+          "type": "custom",
+          "value": "uninterrupted_casting",
+          "description": "Ritual casting adds 10 minutes to the casting time and must run uninterrupted."
+        }
+      ]
+    },
     "rarity": "common",
     "attackType": "",
     "castingTime": {
@@ -43938,6 +44212,30 @@
     ],
     "subClasses": [],
     "ritual": true,
+    "ritualData": {
+      "requirements": [
+        {
+          "type": "custom",
+          "value": "component:verbal",
+          "description": "The ritual must be chanted aloud from start to finish."
+        },
+        {
+          "type": "custom",
+          "value": "component:somatic",
+          "description": "The ritual needs a free hand for its gestures throughout."
+        },
+        {
+          "type": "custom",
+          "value": "component:material",
+          "description": "The ritual needs a pinch of graveyard dirt; it is held throughout the casting."
+        },
+        {
+          "type": "custom",
+          "value": "uninterrupted_casting",
+          "description": "Ritual casting adds 10 minutes to the casting time and must run uninterrupted."
+        }
+      ]
+    },
     "rarity": "common",
     "attackType": "",
     "castingTime": {
@@ -44221,6 +44519,30 @@
     ],
     "subClasses": [],
     "ritual": true,
+    "ritualData": {
+      "requirements": [
+        {
+          "type": "custom",
+          "value": "component:verbal",
+          "description": "The ritual must be chanted aloud from start to finish."
+        },
+        {
+          "type": "custom",
+          "value": "component:somatic",
+          "description": "The ritual needs a free hand for its gestures throughout."
+        },
+        {
+          "type": "custom",
+          "value": "component:material",
+          "description": "The ritual needs burning incense worth 10+ GP, which the spell consumes; the casting consumes it."
+        },
+        {
+          "type": "custom",
+          "value": "uninterrupted_casting",
+          "description": "Ritual casting adds 10 minutes to the casting time and must run uninterrupted."
+        }
+      ]
+    },
     "rarity": "common",
     "attackType": "",
     "castingTime": {
@@ -49107,6 +49429,30 @@
     ],
     "subClasses": [],
     "ritual": true,
+    "ritualData": {
+      "requirements": [
+        {
+          "type": "custom",
+          "value": "component:verbal",
+          "description": "The ritual must be chanted aloud from start to finish."
+        },
+        {
+          "type": "custom",
+          "value": "component:somatic",
+          "description": "The ritual needs a free hand for its gestures throughout."
+        },
+        {
+          "type": "custom",
+          "value": "component:material",
+          "description": "The ritual needs ruby dust worth 1,000+ GP; it is held throughout the casting."
+        },
+        {
+          "type": "custom",
+          "value": "uninterrupted_casting",
+          "description": "Ritual casting adds 10 minutes to the casting time and must run uninterrupted."
+        }
+      ]
+    },
     "rarity": "common",
     "attackType": "",
     "castingTime": {
@@ -51235,6 +51581,30 @@
     ],
     "subClasses": [],
     "ritual": true,
+    "ritualData": {
+      "requirements": [
+        {
+          "type": "custom",
+          "value": "component:verbal",
+          "description": "The ritual must be chanted aloud from start to finish."
+        },
+        {
+          "type": "custom",
+          "value": "component:somatic",
+          "description": "The ritual needs a free hand for its gestures throughout."
+        },
+        {
+          "type": "custom",
+          "value": "component:material",
+          "description": "The ritual needs a fragment of stone, wood, or other building material; it is held throughout the casting."
+        },
+        {
+          "type": "custom",
+          "value": "uninterrupted_casting",
+          "description": "Ritual casting adds 10 minutes to the casting time and must run uninterrupted."
+        }
+      ]
+    },
     "rarity": "common",
     "attackType": "",
     "castingTime": {
@@ -52464,6 +52834,30 @@
     ],
     "subClasses": [],
     "ritual": true,
+    "ritualData": {
+      "requirements": [
+        {
+          "type": "custom",
+          "value": "component:verbal",
+          "description": "The ritual must be chanted aloud from start to finish."
+        },
+        {
+          "type": "custom",
+          "value": "component:somatic",
+          "description": "The ritual needs a free hand for its gestures throughout."
+        },
+        {
+          "type": "custom",
+          "value": "component:material",
+          "description": "The ritual needs 2 Copper Pieces, which the spell consumes; the casting consumes it."
+        },
+        {
+          "type": "custom",
+          "value": "uninterrupted_casting",
+          "description": "Ritual casting adds 10 minutes to the casting time and must run uninterrupted."
+        }
+      ]
+    },
     "rarity": "common",
     "attackType": "",
     "castingTime": {
@@ -59346,6 +59740,30 @@
     ],
     "subClasses": [],
     "ritual": true,
+    "ritualData": {
+      "requirements": [
+        {
+          "type": "custom",
+          "value": "component:verbal",
+          "description": "The ritual must be chanted aloud from start to finish."
+        },
+        {
+          "type": "custom",
+          "value": "component:somatic",
+          "description": "The ritual needs a free hand for its gestures throughout."
+        },
+        {
+          "type": "custom",
+          "value": "component:material",
+          "description": "The ritual needs a gem-encrusted bowl worth 1,000+ GP, which the spell consumes; the casting consumes it."
+        },
+        {
+          "type": "custom",
+          "value": "uninterrupted_casting",
+          "description": "Ritual casting adds 10 minutes to the casting time and must run uninterrupted."
+        }
+      ]
+    },
     "rarity": "common",
     "attackType": "",
     "castingTime": {
@@ -63204,6 +63622,30 @@
     ],
     "subClasses": [],
     "ritual": true,
+    "ritualData": {
+      "requirements": [
+        {
+          "type": "custom",
+          "value": "component:verbal",
+          "description": "The ritual must be chanted aloud from start to finish."
+        },
+        {
+          "type": "custom",
+          "value": "component:somatic",
+          "description": "The ritual needs a free hand for its gestures throughout."
+        },
+        {
+          "type": "custom",
+          "value": "component:material",
+          "description": "The ritual needs a pearl worth 100+ GP; it is held throughout the casting."
+        },
+        {
+          "type": "custom",
+          "value": "uninterrupted_casting",
+          "description": "Ritual casting adds 10 minutes to the casting time and must run uninterrupted."
+        }
+      ]
+    },
     "rarity": "common",
     "attackType": "",
     "castingTime": {
@@ -63890,6 +64332,25 @@
     ],
     "subClasses": [],
     "ritual": true,
+    "ritualData": {
+      "requirements": [
+        {
+          "type": "custom",
+          "value": "component:somatic",
+          "description": "The ritual needs a free hand for its gestures throughout."
+        },
+        {
+          "type": "custom",
+          "value": "component:material",
+          "description": "The ritual needs ink worth 10+ GP, which the spell consumes; the casting consumes it."
+        },
+        {
+          "type": "custom",
+          "value": "uninterrupted_casting",
+          "description": "Ritual casting adds 10 minutes to the casting time and must run uninterrupted."
+        }
+      ]
+    },
     "rarity": "common",
     "attackType": "",
     "castingTime": {
@@ -70322,6 +70783,30 @@
     ],
     "subClasses": [],
     "ritual": true,
+    "ritualData": {
+      "requirements": [
+        {
+          "type": "custom",
+          "value": "component:verbal",
+          "description": "The ritual must be chanted aloud from start to finish."
+        },
+        {
+          "type": "custom",
+          "value": "component:somatic",
+          "description": "The ritual needs a free hand for its gestures throughout."
+        },
+        {
+          "type": "custom",
+          "value": "component:material",
+          "description": "The ritual needs a crystal bead; it is held throughout the casting."
+        },
+        {
+          "type": "custom",
+          "value": "uninterrupted_casting",
+          "description": "Ritual casting adds 10 minutes to the casting time and must run uninterrupted."
+        }
+      ]
+    },
     "rarity": "common",
     "attackType": "",
     "castingTime": {
@@ -72142,6 +72627,30 @@
     ],
     "subClasses": [],
     "ritual": true,
+    "ritualData": {
+      "requirements": [
+        {
+          "type": "custom",
+          "value": "component:verbal",
+          "description": "The ritual must be chanted aloud from start to finish."
+        },
+        {
+          "type": "custom",
+          "value": "component:somatic",
+          "description": "The ritual needs a free hand for its gestures throughout."
+        },
+        {
+          "type": "custom",
+          "value": "component:material",
+          "description": "The ritual needs fur from a bloodhound; it is held throughout the casting."
+        },
+        {
+          "type": "custom",
+          "value": "uninterrupted_casting",
+          "description": "Ritual casting adds 10 minutes to the casting time and must run uninterrupted."
+        }
+      ]
+    },
     "rarity": "common",
     "attackType": "",
     "castingTime": {
@@ -74024,6 +74533,30 @@
     ],
     "subClasses": [],
     "ritual": true,
+    "ritualData": {
+      "requirements": [
+        {
+          "type": "custom",
+          "value": "component:verbal",
+          "description": "The ritual must be chanted aloud from start to finish."
+        },
+        {
+          "type": "custom",
+          "value": "component:somatic",
+          "description": "The ritual needs a free hand for its gestures throughout."
+        },
+        {
+          "type": "custom",
+          "value": "component:material",
+          "description": "The ritual needs salt and powdered silver worth 100+ GP, which the spell consumes; the casting consumes it."
+        },
+        {
+          "type": "custom",
+          "value": "uninterrupted_casting",
+          "description": "Ritual casting adds 10 minutes to the casting time and must run uninterrupted."
+        }
+      ]
+    },
     "rarity": "common",
     "attackType": "",
     "castingTime": {
@@ -74939,6 +75472,30 @@
     ],
     "subClasses": [],
     "ritual": true,
+    "ritualData": {
+      "requirements": [
+        {
+          "type": "custom",
+          "value": "component:verbal",
+          "description": "The ritual must be chanted aloud from start to finish."
+        },
+        {
+          "type": "custom",
+          "value": "component:somatic",
+          "description": "The ritual needs a free hand for its gestures throughout."
+        },
+        {
+          "type": "custom",
+          "value": "component:material",
+          "description": "The ritual needs jade dust worth 10+ GP, which the spell consumes; the casting consumes it."
+        },
+        {
+          "type": "custom",
+          "value": "uninterrupted_casting",
+          "description": "Ritual casting adds 10 minutes to the casting time and must run uninterrupted."
+        }
+      ]
+    },
     "rarity": "common",
     "attackType": "",
     "castingTime": {
@@ -77495,6 +78052,34 @@
     ],
     "subClasses": [],
     "ritual": true,
+    "ritualData": {
+      "requirements": [
+        {
+          "type": "location",
+          "value": [
+            "outdoors",
+            "indoors",
+            "underground"
+          ],
+          "description": "The ritual needs a stone object or surface large enough to hold the caster."
+        },
+        {
+          "type": "custom",
+          "value": "component:verbal",
+          "description": "The ritual must be chanted aloud from start to finish."
+        },
+        {
+          "type": "custom",
+          "value": "component:somatic",
+          "description": "The ritual needs a free hand for its gestures throughout."
+        },
+        {
+          "type": "custom",
+          "value": "uninterrupted_casting",
+          "description": "Ritual casting adds 10 minutes to the casting time and must run uninterrupted."
+        }
+      ]
+    },
     "rarity": "common",
     "attackType": "",
     "castingTime": {
@@ -88461,6 +89046,25 @@
     ],
     "subClasses": [],
     "ritual": true,
+    "ritualData": {
+      "requirements": [
+        {
+          "type": "custom",
+          "value": "component:verbal",
+          "description": "The ritual must be chanted aloud from start to finish."
+        },
+        {
+          "type": "custom",
+          "value": "component:somatic",
+          "description": "The ritual needs a free hand for its gestures throughout."
+        },
+        {
+          "type": "custom",
+          "value": "uninterrupted_casting",
+          "description": "Ritual casting adds 10 minutes to the casting time and must run uninterrupted."
+        }
+      ]
+    },
     "rarity": "common",
     "attackType": "",
     "castingTime": {
@@ -96359,6 +96963,25 @@
     ],
     "subClasses": [],
     "ritual": true,
+    "ritualData": {
+      "requirements": [
+        {
+          "type": "custom",
+          "value": "component:verbal",
+          "description": "The ritual must be chanted aloud from start to finish."
+        },
+        {
+          "type": "custom",
+          "value": "component:somatic",
+          "description": "The ritual needs a free hand for its gestures throughout."
+        },
+        {
+          "type": "custom",
+          "value": "uninterrupted_casting",
+          "description": "Ritual casting adds 10 minutes to the casting time and must run uninterrupted."
+        }
+      ]
+    },
     "rarity": "common",
     "attackType": "",
     "castingTime": {
@@ -97189,6 +97812,30 @@
     ],
     "subClasses": [],
     "ritual": true,
+    "ritualData": {
+      "requirements": [
+        {
+          "type": "custom",
+          "value": "component:verbal",
+          "description": "The ritual must be chanted aloud from start to finish."
+        },
+        {
+          "type": "custom",
+          "value": "component:somatic",
+          "description": "The ritual needs a free hand for its gestures throughout."
+        },
+        {
+          "type": "custom",
+          "value": "component:material",
+          "description": "The ritual needs pieces of eggshell from two different kinds of creatures; it is held throughout the casting."
+        },
+        {
+          "type": "custom",
+          "value": "uninterrupted_casting",
+          "description": "Ritual casting adds 10 minutes to the casting time and must run uninterrupted."
+        }
+      ]
+    },
     "rarity": "common",
     "attackType": "",
     "castingTime": {
@@ -105945,6 +106592,25 @@
     ],
     "subClasses": [],
     "ritual": true,
+    "ritualData": {
+      "requirements": [
+        {
+          "type": "custom",
+          "value": "component:verbal",
+          "description": "The ritual must be chanted aloud from start to finish."
+        },
+        {
+          "type": "custom",
+          "value": "component:somatic",
+          "description": "The ritual needs a free hand for its gestures throughout."
+        },
+        {
+          "type": "custom",
+          "value": "uninterrupted_casting",
+          "description": "Ritual casting adds 10 minutes to the casting time and must run uninterrupted."
+        }
+      ]
+    },
     "rarity": "common",
     "attackType": "",
     "castingTime": {
@@ -107149,6 +107815,25 @@
     ],
     "subClasses": [],
     "ritual": true,
+    "ritualData": {
+      "requirements": [
+        {
+          "type": "custom",
+          "value": "component:verbal",
+          "description": "The ritual must be chanted aloud from start to finish."
+        },
+        {
+          "type": "custom",
+          "value": "component:somatic",
+          "description": "The ritual needs a free hand for its gestures throughout."
+        },
+        {
+          "type": "custom",
+          "value": "uninterrupted_casting",
+          "description": "Ritual casting adds 10 minutes to the casting time and must run uninterrupted."
+        }
+      ]
+    },
     "rarity": "common",
     "attackType": "",
     "castingTime": {
@@ -109159,6 +109844,25 @@
       "Paladin - Oath of the Ancients"
     ],
     "ritual": true,
+    "ritualData": {
+      "requirements": [
+        {
+          "type": "custom",
+          "value": "component:verbal",
+          "description": "The ritual must be chanted aloud from start to finish."
+        },
+        {
+          "type": "custom",
+          "value": "component:somatic",
+          "description": "The ritual needs a free hand for its gestures throughout."
+        },
+        {
+          "type": "custom",
+          "value": "uninterrupted_casting",
+          "description": "Ritual casting adds 10 minutes to the casting time and must run uninterrupted."
+        }
+      ]
+    },
     "rarity": "common",
     "attackType": "",
     "castingTime": {
@@ -110375,6 +111079,68 @@
           "response": "2d4_piercing_damage_per_5_feet_moved",
           "detection": "creature_that_could_not_see_casting_area_must_Search_and_succeed_to_notice_hazard"
         }
+      },
+      {
+        "type": "DAMAGE",
+        "trigger": {
+          "type": "on_move_in_area",
+          "frequency": "every_time",
+          "consumption": "unlimited",
+          "attackFilter": {
+            "weaponType": "any",
+            "attackType": "any"
+          },
+          "movementType": "any",
+          "sustainCost": {
+            "actionType": "action",
+            "optional": false
+          }
+        },
+        "condition": {
+          "type": "always",
+          "targetFilter": {
+            "creatureTypes": [],
+            "excludeCreatureTypes": [],
+            "sizes": [],
+            "alignments": [],
+            "hasCondition": [],
+            "isNativeToPlane": false,
+            "willing": "not_applicable",
+            "objectEligibility": {
+              "wornOrCarried": "not_applicable",
+              "magicalStatus": "not_applicable",
+              "fixedToSurface": "not_applicable",
+              "maxSize": "not_applicable",
+              "maxWeightPounds": "not_applicable",
+              "maxWeightScaling": "not_applicable"
+            },
+            "communicationPrerequisites": {
+              "canHearCaster": "not_applicable",
+              "canUnderstandCaster": "not_applicable",
+              "canSeeCaster": "not_applicable"
+            },
+            "abilityThreshold": {
+              "ability": "not_applicable",
+              "operator": "not_applicable",
+              "value": "not_applicable"
+            },
+            "selfRelation": "not_applicable"
+          },
+          "requiresStatus": [],
+          "saveModifiers": [],
+          "saveOutcomeOverrides": []
+        },
+        "damage": {
+          "dice": "2d4",
+          "type": "Piercing"
+        },
+        "scaling": {
+          "type": "slot_level",
+          "bonusPerLevel": "",
+          "customFormula": ""
+        },
+        "description": "A creature takes 2d4 Piercing damage for every 5 feet it moves into or within the 20-foot-radius Sphere; the runtime fires this row once per 5-foot step traveled inside the area.",
+        "conditionalEndings": []
       }
     ],
     "arbitrationType": "mechanical",
@@ -121756,6 +122522,30 @@
     ],
     "subClasses": [],
     "ritual": true,
+    "ritualData": {
+      "requirements": [
+        {
+          "type": "custom",
+          "value": "component:verbal",
+          "description": "The ritual must be chanted aloud from start to finish."
+        },
+        {
+          "type": "custom",
+          "value": "component:somatic",
+          "description": "The ritual needs a free hand for its gestures throughout."
+        },
+        {
+          "type": "custom",
+          "value": "component:material",
+          "description": "The ritual needs a drop of mercury; it is held throughout the casting."
+        },
+        {
+          "type": "custom",
+          "value": "uninterrupted_casting",
+          "description": "Ritual casting adds 10 minutes to the casting time and must run uninterrupted."
+        }
+      ]
+    },
     "rarity": "common",
     "attackType": "",
     "castingTime": {
@@ -127795,6 +128585,30 @@
     ],
     "subClasses": [],
     "ritual": true,
+    "ritualData": {
+      "requirements": [
+        {
+          "type": "custom",
+          "value": "component:verbal",
+          "description": "The ritual must be chanted aloud from start to finish."
+        },
+        {
+          "type": "custom",
+          "value": "component:somatic",
+          "description": "The ritual needs a free hand for its gestures throughout."
+        },
+        {
+          "type": "custom",
+          "value": "component:material",
+          "description": "The ritual needs a bit of string and of wood; it is held throughout the casting."
+        },
+        {
+          "type": "custom",
+          "value": "uninterrupted_casting",
+          "description": "Ritual casting adds 10 minutes to the casting time and must run uninterrupted."
+        }
+      ]
+    },
     "rarity": "common",
     "attackType": "",
     "castingTime": {
@@ -132587,6 +133401,30 @@
     ],
     "subClasses": [],
     "ritual": true,
+    "ritualData": {
+      "requirements": [
+        {
+          "type": "custom",
+          "value": "component:verbal",
+          "description": "The ritual must be chanted aloud from start to finish."
+        },
+        {
+          "type": "custom",
+          "value": "component:somatic",
+          "description": "The ritual needs a free hand for its gestures throughout."
+        },
+        {
+          "type": "custom",
+          "value": "component:material",
+          "description": "The ritual needs a short reed; it is held throughout the casting."
+        },
+        {
+          "type": "custom",
+          "value": "uninterrupted_casting",
+          "description": "Ritual casting adds 10 minutes to the casting time and must run uninterrupted."
+        }
+      ]
+    },
     "rarity": "common",
     "attackType": "",
     "castingTime": {
@@ -132787,6 +133625,30 @@
     ],
     "subClasses": [],
     "ritual": true,
+    "ritualData": {
+      "requirements": [
+        {
+          "type": "custom",
+          "value": "component:verbal",
+          "description": "The ritual must be chanted aloud from start to finish."
+        },
+        {
+          "type": "custom",
+          "value": "component:somatic",
+          "description": "The ritual needs a free hand for its gestures throughout."
+        },
+        {
+          "type": "custom",
+          "value": "component:material",
+          "description": "The ritual needs a piece of cork; it is held throughout the casting."
+        },
+        {
+          "type": "custom",
+          "value": "uninterrupted_casting",
+          "description": "Ritual casting adds 10 minutes to the casting time and must run uninterrupted."
+        }
+      ]
+    },
     "rarity": "common",
     "attackType": "",
     "castingTime": {

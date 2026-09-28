@@ -9,6 +9,10 @@ import { render, screen } from '@testing-library/react';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import CharacterActor from '../CharacterActor';
 import type { CombatCharacter } from '../../../../types/combat';
+import {
+  DEFAULT_CONDITION_VISUAL,
+  resolveConditionVisual,
+} from '../../../../utils/visuals/conditionPalette';
 
 vi.mock('@react-three/fiber', () => ({
   useFrame: () => undefined
@@ -47,6 +51,12 @@ const buildCharacter = (overrides: Partial<CombatCharacter> = {}): CombatCharact
   },
   ...overrides
 } as unknown as CombatCharacter);
+
+/** jsdom reports `style.color` as `rgb(r, g, b)`, so compare in that form. */
+const asRgb = (hex: string): string => {
+  const n = parseInt(hex.slice(1), 16);
+  return `rgb(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255})`;
+};
 
 const renderActor = (character: CombatCharacter) =>
   render(
@@ -98,6 +108,34 @@ describe('CharacterActor condition badges', () => {
       })
     );
     expect(screen.getByTestId('condition-badge-Hexed').textContent).toBe('HE');
+  });
+
+  it('takes its chip colors from the shared palette, not a local table', () => {
+    renderActor(
+      buildCharacter({
+        conditions: [
+          { name: 'Poisoned', duration: { type: 'permanent' }, appliedTurn: 0 },
+          { name: 'Charmed', duration: { type: 'permanent' }, appliedTurn: 0 },
+          { name: 'Hexed', duration: { type: 'permanent' }, appliedTurn: 0 },
+        ] as CombatCharacter['conditions'],
+      })
+    );
+
+    // Poisoned is one of the six colors Remy ruled (Set C, 2026-09-21).
+    expect(screen.getByTestId('condition-badge-Poisoned').style.color).toBe(
+      asRgb(resolveConditionVisual('Poisoned').chipColor)
+    );
+    expect(resolveConditionVisual('Poisoned').chipColor).toBe('#56d364');
+
+    // Charmed has NO ruled color yet, so it must sit on the one shared
+    // neutral default rather than a color someone guessed locally.
+    expect(screen.getByTestId('condition-badge-Charmed').style.color).toBe(
+      asRgb(DEFAULT_CONDITION_VISUAL.chipColor)
+    );
+    // ...and an unknown name lands on exactly the same neutral.
+    expect(screen.getByTestId('condition-badge-Hexed').style.color).toBe(
+      asRgb(DEFAULT_CONDITION_VISUAL.chipColor)
+    );
   });
 
   it('renders nothing when the character has no active conditions', () => {

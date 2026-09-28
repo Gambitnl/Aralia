@@ -23,6 +23,7 @@ import {
   OLLAMA_TASK_MODELS,
   COMPANION_GENERATION_MODEL,
   BIOME_GENERATION_MODELS,
+  OLLAMA_CATEGORY_DEFAULT_MODEL,
   DEFAULT_LLM_PROVIDER,
 } from '../llmProviderConfig';
 import { DEFAULT_OLLAMA_CONFIG } from '../../types/ollama';
@@ -133,15 +134,17 @@ describe('llmProviderConfig — re-pointed sites resolve to canonical values (be
     expect(DEFAULT_OLLAMA_CONFIG.preferredModels).toEqual(PRE_GLOBAL_FALLBACK);
   });
 
-  it('task profiles resolve to the canonical per-category lists (spot-check per category)', () => {
-    // Dialogue category
-    expect(DEFAULT_TASK_PROFILES.companion_banter.preferredModels).toEqual(PRE_DIALOGUE);
-    expect(DEFAULT_TASK_PROFILES.npc_dialogue.preferredModels).toEqual(PRE_DIALOGUE);
-    // Judgment category
-    expect(DEFAULT_TASK_PROFILES.oracle_response.preferredModels).toEqual(PRE_JUDGMENT);
-    // Utility category
-    expect(DEFAULT_TASK_PROFILES.name_generation.preferredModels).toEqual(PRE_UTILITY);
-    // Prose category
-    expect(DEFAULT_TASK_PROFILES.location_description.preferredModels).toEqual(PRE_PROSE);
+  it('task profiles name their category, whose ONE default model is the head of the canonical list (agora-d1c7.1)', () => {
+    // Profiles no longer carry a walked list; they name a category and the
+    // router resolves it to one model (player choice or category default).
+    expect(DEFAULT_TASK_PROFILES.companion_banter.category).toBe('dialogue');
+    expect(DEFAULT_TASK_PROFILES.npc_dialogue.category).toBe('dialogue');
+    expect(DEFAULT_TASK_PROFILES.oracle_response.category).toBe('judgment');
+    expect(DEFAULT_TASK_PROFILES.name_generation.category).toBe('utility');
+    expect(DEFAULT_TASK_PROFILES.location_description.category).toBe('prose');
+    expect(OLLAMA_CATEGORY_DEFAULT_MODEL.dialogue).toBe(PRE_DIALOGUE[0]);
+    expect(OLLAMA_CATEGORY_DEFAULT_MODEL.judgment).toBe(PRE_JUDGMENT[0]);
+    expect(OLLAMA_CATEGORY_DEFAULT_MODEL.utility).toBe(PRE_UTILITY[0]);
+    expect(OLLAMA_CATEGORY_DEFAULT_MODEL.prose).toBe(PRE_PROSE[0]);
   });
 });

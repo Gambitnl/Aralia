@@ -1,0 +1,208 @@
+Agora client — drive the peer-agent coordination daemon.
+
+Usage: node tools/agora/client.mjs <command> [args] [--flags]
+
+Global flags:
+  --url <baseUrl>        daemon base URL (default http://localhost:4319, or AGORA_URL)
+  --token <token>        bearer token override (default: stored identity)
+
+Env:
+  AGORA_AGENT_ID         required for new registrations by default; unique per-agent
+                         key that scopes the stored identity file
+  AGORA_DIR              identity dir override (default .agent/agora)
+  AGORA_URL              daemon base URL override
+  AGORA_OWNER_PID        optional owner process; heartbeat stops when it exits
+
+Commands:
+  onboard <handle> --pet <slug> [--session <id>] [--note "..."] [--gaps [root]]
+                                          START HERE if you are new: register + one-shot
+                                          briefing (peers, locks, ready tasks, rules;
+                                          --gaps adds the project-tracker open-gap summary)
+  pets                                   list valid pet identities required for presence
+  register <handle> --pet <slug> [--note "..."] [--model <m>] [--reasoning <effort>] [--session <id>] [--role worker|orchestrator|master|human]
+                                          register, store identity, print agentId+handle
+                                          (409 if a live agent already holds <handle>);
+                                          --model = which model you are (orchestrator stamps it),
+                                          --session/--thread/--conversation = your own task/thread id
+                                          (required for Codex and orchestrator/master presence);
+                                          --seat <name> takes a lasting identity as you sign in, so a
+                                          campaign you claim keeps its owner after your session ends.
+                                          Without it, every campaign you claim reads UNATTENDED forever.
+  register --random [base] --pet <slug> [--note "..."] auto-claim a free unique handle (solo agents)
+  register/onboard --legacy-unscoped      explicit single-agent compatibility mode;
+                                          keep AGORA_AGENT_ID unset on every later call
+  heartbeat [--every <sec>] [--count N | --for <min> | --forever] [--owner-pid <pid>] [--daemonize]
+                                          each beat also renews every lock you hold (WF-G91); --no-renew-locks disables
+                                          bounded presence bridge (default: 30 min);
+                                          --daemonize survives harness background cleanup;
+                                          --forever is explicit opt-in only
+  retire [--note "..."]                   clean exit: release claims and invalidate identity
+  whoami [--live]                         print token-free stored identity; --live verifies it
+                                          against the daemon without renewing presence
+  agents                                  list agents (status, handle, note, last-seen)
+  agents --retire-stale <agentId|handle>  orchestrator-safe pet recovery for a stale idle presence
+
+  lock <path...> [--glob g...] [--reason "..."] [--ttl <minutes>]
+                                          atomic advisory lock; a 409 acquires NOTHING
+  lock <path...> [--glob g...] --partial  acquire each target separately; report each result
+                                          incomplete batches exit 1 but retain acquired locks
+  lock --renew <lockId> [--ttl <minutes>] renew one lock you hold
+  unlock <lockId|path>                    release a lock you hold (by id OR file path)
+  unlock --mine                           release ALL locks you hold
+  unlock <lockId> --force                 release a STALE/GONE holder's lock (refused if online)
+  locks                                   list active locks, each with its repo and how long
+                                          the holder has been idle (WF-G116/WF-G119)
+  reserve <path...> [--glob g...] [--reason "..."]
+                                          claim FIFO dibs for future lock access
+  unreserve <reservationId|path> [--force] leave your queue entry; force releases only a stale/gone holder
+  reservations                            list active file-access reservation queues
+
+  campaign list [--state s] [--mine]      list campaigns with lead/deputy structure, attended status and task counts
+  campaign claim <id> [--role lead|deputy] [--lead <id>] [--scope "..."] [--path <p>...] [--glob <g>...] [--wave <name>] [--planmap <topic>[/<feature>]]
+                                          declare an orchestrator campaign before seeding a wave;
+                                          overlapping lead domains fail before tasks are created
+                                          --planmap states the Plan Map topic this effort serves; it is
+                                          rank 1 evidence for task membership (WF-G207)
+  campaign state <id> <active|blocked|done> [--reason "..."]
+                                          update a campaign lifecycle state; blocked/done need --reason (WF-G86).
+                                          orchestrator/master/human may close an UNATTENDED campaign (WF-G83)
+  campaign charter <id> --file <charter.json> --summary "..."
+                                          attach or revise a charter; a charter that misses a field for its
+                                          tier, understates its tier, carries a time estimate, or names a bad
+                                          Plan Map reference is refused with every problem listed
+  campaign approve <id> --note "..."      approve a charter (small/standard: master or human; large: human)
+  campaign show <id>                      charter, validity, tasks by state, deputies, attended status and progress
+  campaign triage report <id>             READ-ONLY triage report with per-task advice (changes nothing)
+  campaign triage start|finish <id> --reason "..."
+                                          start triage on an adoptable campaign; finish once every task
+                                          has exactly one disposition (the caller then adopts it)
+  campaign triage apply <id> <taskId> <disposition> --reason "..." [--to <agentId>] [--blocker "..."]
+                         [--superseded-by <taskId>] [--approval "..."] [--evidence "..."]
+                                          one disposition for one task; supersede and close-obsolete
+                                          need a caller registered as human plus the approval quote
+  campaigns [--state active|blocked|done] list campaign governance records
+
+  task categories                        list the categories in use on the board with counts (WF-G194).
+                                          task new --category <name> warns when the name is new.
+  task dep-types                         list the ten dependency types (four block, six do not)
+  task infer-membership [--dry]          work out which effort each job belongs to; ties are never broken
+  sweep [--days N] [--apply]             close campaigns that hold NO work and that nobody
+                                          is on, and that are older than N days (default 30).
+                                          Prints the list and writes nothing unless --apply.
+                                          Every campaign left alone says why it was kept.
+
+  seat list                              who the lasting owners are, and who is on each
+  seat new <name> [--note "..."]         create a lasting identity that owns campaigns.
+                                          A seat outlives your session, so a campaign it
+                                          owns keeps its owner when you stop. The name may
+                                          NOT say the job and may NOT name a model.
+  seat release [<name>] [--why "..."]    hand your seat back deliberately
+  seat rename <name> <new> [--why "..."] rename it; the old name is kept, never overwritten
+  seat diary <text> [--seat <name>]      leave what you learned for the next holder
+
+  task migrate-deps [--dry]              give every untyped dependency its type
+  task migrate-ids [--dry]               give every task a hierarchical id (old ids keep working)
+  task migrate-dep-ids [--dry]           point each dependency at its target's CURRENT id
+                                          RUN ORDER: infer-membership, migrate-deps, migrate-ids.
+                                          The rename must run LAST, or it cannot follow an edge
+                                          and every edge keeps a stale id (WF-G104)
+  task new <title> (--campaign <id> | --standalone --reason "...") [--body "..." | --body-file <path>] [--dep <taskId>[:<type>]...] [--priority N] [--ref <reference>...] [--deliverable <output-path>] [--category <name>] [--wave <name>]
+                                          WF-G171: name a campaign, or say --standalone and WHY.
+                                          --campaign defaults to the lead campaign you own (WF-G85),
+                                          which also counts as the decision;
+                                          a path-shaped --ref absent from the checkout prints a WARNING (WF-G81)
+                                          --deliverable records the expected output path under refs in task show (WF-G179)
+                                          --body-file reads the complete UTF-8 task body from a file (WF-G236);
+                                          extra bare words are refused instead of silently losing them
+                                          create a task; lower priority numbers run first;
+                                          Plan Map refs use planmap:<topicId>/<feature-slug>
+                                          (see PLANMAP-AGENT-GUIDE section 3)
+  task campaign <taskId> (<campaignId> | --standalone) --reason "..."
+                                          WF-G169: move a task to another campaign, or make it
+                                          standalone. Orchestrator, master or human only. The
+                                          history entry records the old campaign, the new one,
+                                          who moved it and why; task show and campaign show
+                                          agree straight away
+  task claim <taskId>                     claim a task
+  task next [--id-only] [--campaign <id>] [--category <name>]
+                                          claim the highest-priority READY task, optionally
+                                          restricted to one campaign and/or category
+  task edit <taskId> [--title "..."] [--body "..."] [--priority N] [--ref r...] [--deliverable <output-path>] [--wave w] [--reason "..."]
+                                          fix authored fields in place, then lint (WF-G130)
+  task design <taskId> (--text "..." | --file <path>) [--reason "..."]
+                                          store a multiline design handoff in its own durable
+                                          field; --file reads UTF-8 without trimming (WF-G304)
+  task state <taskId> <state> [--result "..." | --result-file <path>] [--reason "..." | --reason-file <path>]
+                                          set state and preserve evidence;
+                                          blocked needs --reason; the history entry records from/reason (WF-G86)
+  task start <taskId> [--result "..." | --result-file <path>]
+                                          alias for state <taskId> in_progress
+  task checkpoint <taskId> --did "..." --next "..." [--files a,b | --files a --files b]
+                                          leave a resumable note (latest wins); folded into the
+                                          retrace dossier if you are later reaped mid-task
+  task done <taskId> [--result "..." | --result-file <path>] [--reason "..." | --reason-file <path>]
+                                          mark done; file flags preserve shell-sensitive evidence
+                                          and the reply confirms stored UTF-8 bytes (WF-G234/WF-G322)
+  task show <taskId>                      the FULL record: body, refs, deps, claimant,
+                                          design, result, blocked reason and the last 5 history
+                                          entries (WF-G118). Short-id prefixes resolve.
+  task lint <taskId>                      pre-dispatch freshness check (WF-G111): every
+                                          path-shaped token in the body that is not in
+                                          the checkout, and every backticked identifier
+                                          that does not grep in src/. Exits 1 on findings.
+                                          BODY MARKERS the lint reads (one path per line, or
+                                          comma-separated on the marker line):
+                                            CREATES: <path>          this task creates the file. The
+                                              lint reports a NEW PATH, not a defect, and FAILS when
+                                              the file already exists (a stale claim, WF-G191).
+                                            EXPECTED-ABSENT: <path>  this task asserts the file is
+                                              gone. The lint is clean while the path is absent and
+                                              FAILS the day it comes back (WF-G193).
+  task handoff <taskId> <toAgentId>       reassign a task
+  tasks [--id <taskId>] [--state s] [--ready] [--category <name>] [--group-by-category]
+                                          show the board (--ready: open tasks whose deps are done);
+                                          --id selects one exact/unique-prefix task before other filters;
+                                          tasks --state done --id <taskId> is a safe dependency poll;
+                                          --state blocked also prints each blocked reason (WF-G118);
+                                          --group-by-category shows optional visual sections by category
+  retrace <taskId>                        recover a reaped worker's trail: prints its dossier
+                                          (identity, durable files, checkpoint, say-tail) plus
+                                          unstaged, staged, and untracked/new Git evidence
+
+  gap add --project <p> --gap "..." --evidence "..." --why "..." --next "..." --proof "..."
+          --suggested-agent <agents.json key|human-operator>
+          [--severity s] [--classification c] [--surface <repair-location>]
+          [--detected-during <task-id>] [--force]
+                                          file ONE row in a gap registry through the daemon
+                                          (WF-G113). --project is 'global', 'workflow', or a
+                                          docs/projects/<dir> name. The daemon allocates the
+                                          next id and serializes the append, so NO lock on
+                                          GLOBAL_GAPS.md is needed. Your handle, agent UUID
+                                          and task/thread are stamped from your identity.
+                                          --suggested-agent is REQUIRED and must be an
+                                          agents.json key (WF-G205). The command refuses when
+                                          Surface is a board task id; put that id in
+                                          --detected-during instead (WF-G253). It refuses when
+                                          an OPEN row already overlaps your text (WF-G200);
+                                          --force files it anyway.
+  gap update <id> [--project <p>] --status <s> --note "..."
+  gap resolve <id> [--project <p>] --note "..."   (= --status resolved)
+                                          repair or close ONE row. --project selects the
+                                          registry; a WF-G<n> id needs --project workflow.
+  gap pending-restart <id> [--project <p>] --note "..."
+                                          mark a daemon repair done in source but NOT live;
+                                          keep it open until restart and live verification
+  gap pending-restart [--project <p>]     list repairs waiting for a daemon restart
+  gap search "<text>" [--project <p>]     list the open rows that overlap your text (WF-G200)
+
+  say <body>                              broadcast a message to all (e.g. "WORKFLOW: ...")
+  say --to <agentId|handle> <body>        direct message
+  say --channel command <body>            post on the command channel (orchestrator/master/human
+                                          roles only — register with --role <r> to qualify)
+  inbox [--since <seq>] [--mine] [--channel main|command|all]
+                                          read messages (default channel: main; prints max seq
+                                          for next --since)
+
+  watch                                   stream the live SSE event feed (Ctrl-C to stop)
+  health                                  probe the daemon
+  help                                    this message

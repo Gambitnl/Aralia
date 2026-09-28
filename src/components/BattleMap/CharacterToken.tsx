@@ -1,19 +1,3 @@
-// @dependencies-start
-/**
- * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
- *
- * Last Sync: 12/08/2026, 03:23:13
- * Dependents: components/BattleMap/BattleMap.tsx, components/BattleMap/index.ts
- * Imports: 7 files
- *
- * MULTI-AGENT SAFETY:
- * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
- * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
- */
-// @dependencies-end
-
 /**
  * @file CharacterToken.tsx
  * Component to display a character's token on the battle map.
@@ -33,6 +17,23 @@
  * - CSS transforms recalculated even for static positions
  * - Tooltip creation overhead for every token
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 09/09/2026, 15:21:24
+ * Dependents: components/BattleMap/BattleMapTokens.tsx, components/BattleMap/index.ts
+ * Imports: 8 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import React, { useMemo } from "react";
 import type {
   CombatCharacter,
@@ -48,7 +49,9 @@ import {
 } from "../../utils/combat";
 import { Z_INDEX } from "../../styles/zIndex";
 import { getCreatureTokenVisual } from "../../utils/visuals/combatIconVisuals";
+import { resolveConditionVisual } from "../../utils/visuals/conditionPalette";
 import { resolveControlPose } from "./controlOptionPose";
+import { resolveActorBodyShading } from "./characters/actorStatusShading";
 
 interface CharacterTokenProps {
   character: CombatCharacter;
@@ -58,7 +61,48 @@ interface CharacterTokenProps {
   targetingMode: boolean;
   isTurn: boolean;
   onCharacterClick: (char: CombatCharacter) => void;
+  /**
+   * VIZ-3 (agora-75ed.3): the live CSS scale of the board frame, so the token
+   * can pick a level of detail. The board is scaled by one CSS transform on an
+   * ancestor, so a 32 px token is 4.8 px on screen at the 0.15 minimum zoom —
+   * every perimeter badge there is sub-pixel noise and the disc itself is
+   * unfindable. Geometry stays tile-locked; only decoration DENSITY and ring
+   * WEIGHT respond to this.
+   *
+   * Optional and undefined-means-full on purpose: every existing caller (tests,
+   * scenario harnesses, the design labs) keeps the pre-VIZ-3 full-detail token
+   * until it opts in by passing a real scale.
+   */
+  boardScale?: number;
 }
+
+/**
+ * Detail tiers (VIZ-3). Measured in EFFECTIVE on-screen pixels of the token
+ * square, i.e. `TILE_SIZE_PX * sizeMultiplier * boardScale`.
+ *
+ * - `full`    — the perimeter cluster is legible; render every badge.
+ * - `minimal` — badges would be illegible AND would collide with the neighbors
+ *               they overhang, so the token falls back to cues that cost no
+ *               layout space at all: the status/defeat body wash and a
+ *               counter-weighted keyline that keeps the disc findable.
+ *
+ * 30 px is the boundary because the perimeter slots below are laid out against
+ * the 32 px tile: at the default 100% zoom every badge still shows.
+ */
+const FULL_DETAIL_MIN_PX = 30;
+
+/**
+ * Ring/keyline weight multiplier for a shrunken board. Pure LOD: at 0.15 zoom
+ * the shipped 4 px faction band and 4 px white keyline render at 0.6 px each
+ * and disappear into the painted terrain (proof:
+ * `.agent/scratch/agora-75ed.3/before-zoom-min-tokens.png` contains no findable
+ * combatant). Counter-weighting turns the token into a saturated dot with a
+ * white halo instead. Capped so the band never eats the whole disc.
+ */
+const ringWeight = (boardScale: number | undefined) =>
+  boardScale && boardScale > 0 && boardScale < 1
+    ? Math.min(3.2, 1 / boardScale)
+    : 1;
 
 type DefenseBadgeKind = "resistance" | "vulnerability" | "immunity";
 
@@ -105,8 +149,14 @@ const buildDefenseBadges = (
       kind: "resistance",
       label: "R",
       tooltip: resistanceTooltip,
-      // The badges stay on the token perimeter so the center icon, status row,
-      // and concentration marker keep their current spacing.
+      // VIZ-3 slotting (agora-75ed.3). The three badges used to be pinned
+      // `left-0 top-0` / `left-0 top-1/2` / `left-0 bottom-0` at 14 px each on a
+      // 32 px token, so their vertical ranges were 0-14, 9-23 and 18-32: any
+      // creature with all three damage traits drew them 5 px on top of each
+      // other. They are now a 10 px LEFT COLUMN at three disjoint offsets
+      // (0-10, 11-21, 22-32) that stays entirely inside the token square, which
+      // also frees the right column for the concentration and temporary-HP
+      // cues and the strip below for the status row.
       positionClass: "left-0 top-0",
       toneClass:
         "border-emerald-200/70 bg-emerald-950/90 text-emerald-100 shadow-[0_0_10px_rgba(16,185,129,0.24)]",
@@ -122,7 +172,7 @@ const buildDefenseBadges = (
       kind: "vulnerability",
       label: "V",
       tooltip: vulnerabilityTooltip,
-      positionClass: "left-0 top-1/2 -translate-y-1/2",
+      positionClass: "left-0 top-[11px]",
       toneClass:
         "border-rose-200/70 bg-rose-950/90 text-rose-100 shadow-[0_0_10px_rgba(244,63,94,0.24)]",
     });
@@ -138,13 +188,79 @@ const buildDefenseBadges = (
       kind: "immunity",
       label: "I",
       tooltip: immunityTooltip,
-      positionClass: "left-0 bottom-0",
+      positionClass: "left-0 top-[22px]",
       toneClass:
         "border-sky-200/70 bg-sky-950/90 text-sky-100 shadow-[0_0_10px_rgba(56,189,248,0.24)]",
     });
   }
 
   return badges;
+};
+
+/**
+ * How many status icons the row draws before collapsing the rest into a "+N"
+ * chip. Three 14 px chips plus the overflow chip fit inside 46 px, which keeps
+ * the strip from overhanging the neighboring tiles the way the old uncapped
+ * 24 px row did.
+ */
+const STATUS_ROW_MAX = 3;
+
+interface StatusMarker {
+  key: string;
+  name: string;
+  icon: string;
+  tooltip: string;
+  /** Chip border color from the shared palette (agora-f821.29). */
+  color: string;
+}
+
+/**
+ * The 2D token's status row, merged from BOTH status sources.
+ *
+ * `statusEffects[]` is what spells and abilities push; `conditions[]` is the
+ * rules-level 5e condition list the combat engine maintains. The token used to
+ * read only the first, so a Poisoned or Restrained creature showed no marker at
+ * all on the board while the 3D actor (which reads both, via
+ * `actorStatusShading.statusNames`) shaded its body. Conditions come first and
+ * win the dedupe because the rules condition is the stronger statement.
+ */
+const buildStatusMarkers = (character: CombatCharacter): StatusMarker[] => {
+  const seen = new Set<string>();
+  const out: StatusMarker[] = [];
+
+  for (const condition of character.conditions ?? []) {
+    const name = String(condition.name);
+    const key = name.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    // Conditions carry no `icon` field, so the old synthetic-StatusEffect call
+    // fell straight through to the type switch and returned the SAME skull for
+    // every condition on the board. The palette keys off the name instead.
+    const visual = resolveConditionVisual(name);
+    out.push({
+      key: `condition-${key}`,
+      name,
+      icon: visual.icon,
+      color: visual.chipColor,
+      tooltip: condition.source ? `${name} (${condition.source})` : name,
+    });
+  }
+
+  character.statusEffects.forEach((effect, index) => {
+    const key = String(effect.name).toLowerCase();
+    if (seen.has(key)) return;
+    seen.add(key);
+    out.push({
+      key: `status-${effect.id}-${index}`,
+      name: effect.name,
+      // Keeps an explicit `effect.icon` when the effect carries one.
+      icon: getStatusEffectIcon(effect),
+      color: resolveConditionVisual(effect.name).chipColor,
+      tooltip: `${effect.name} (${effect.duration}t)`,
+    });
+  });
+
+  return out;
 };
 
 const DefenseBadge: React.FC<DefenseBadgeConfig> = ({
@@ -157,7 +273,7 @@ const DefenseBadge: React.FC<DefenseBadgeConfig> = ({
   <Tooltip content={tooltip}>
     <span
       data-testid={`defense-badge-${kind}`}
-      className={`absolute flex h-3.5 w-3.5 items-center justify-center rounded-full border text-[6px] font-black uppercase leading-none tracking-tight ${positionClass} ${toneClass}`}
+      className={`absolute flex h-2.5 w-2.5 items-center justify-center rounded-full border text-[6px] font-black uppercase leading-none tracking-tight ${positionClass} ${toneClass}`}
       style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.45)" }}
       aria-label={tooltip}
     >
@@ -540,9 +656,42 @@ const CharacterToken: React.FC<CharacterTokenProps> = React.memo(
     targetingMode,
     isTurn,
     onCharacterClick,
+    boardScale,
   }) => {
     const multiplier = getCharacterSizeMultiplier(character.stats.size);
     const defenseBadges = buildDefenseBadges(character);
+    // VIZ-3 level of detail. `undefined` scale = caller has not opted in, so
+    // nothing about the pre-VIZ-3 token changes for it.
+    const effectivePx =
+      boardScale === undefined
+        ? Number.POSITIVE_INFINITY
+        : TILE_SIZE_PX * multiplier * boardScale;
+    const fullDetail = effectivePx >= FULL_DETAIL_MIN_PX;
+    const weight = ringWeight(boardScale);
+
+    // VIZ-3 body cue. `resolveActorBodyShading` is the SAME table the 3D actor
+    // shades its body with (agora-8aa9); reusing it is what makes a poisoned or
+    // burning creature read the same in both renderers instead of only in 3D.
+    // Before this, the 2D token read `character.statusEffects` alone, so every
+    // actor carrying a 5e `conditions[]` entry — which is what the combat
+    // engine and the `?actorstatus=1` fixture actually populate — rendered as a
+    // healthy token (proof: `.agent/scratch/agora-75ed.3/before-probe.json`,
+    // where Poisoned Skulker / Burning Magus / Frozen Brute all report
+    // `parts: []`). The wash costs no layout space, so unlike a badge it
+    // survives every zoom level.
+    const bodyShading = resolveActorBodyShading(character);
+    const isDowned = character.currentHP <= 0 && character.maxHP > 0;
+    const tintCss =
+      bodyShading.tintColor === null
+        ? null
+        : `#${bodyShading.tintColor.toString(16).padStart(6, "0")}`;
+
+    // The merged, deduplicated marker list the capped icon row draws from.
+    // `conditions` first because the rules-level condition is the stronger
+    // statement when a spell also left a same-named status behind.
+    const statusMarkers = useMemo(() => buildStatusMarkers(character), [
+      character,
+    ]);
     // G7 shared pose contract: an active control-option directive (approach /
     // flee / drop / grovel / halt) poses the token. Resolution is cached per
     // statusEffects array; null = base look (fallback), and status expiry
@@ -601,31 +750,67 @@ const CharacterToken: React.FC<CharacterTokenProps> = React.memo(
       // Layered outward from the token edge: dark hairline hugs the faction
       // band, a bold white ring guarantees contrast on dark foliage, and a
       // faint dark edge separates the white from any bright patch behind it.
+      // VIZ-3: every radius is multiplied by `weight` (1 at 100% zoom and
+      // above, up to 3.2 as the board shrinks) so the halo survives the board's
+      // CSS downscale instead of collapsing to a sub-pixel line.
+      const r = (px: number) => `${(px * weight).toFixed(2)}px`;
       const keyline =
-        "0 0 0 1.5px rgba(0,0,0,0.92), 0 0 0 4px rgba(255,255,255,0.95), 0 0 0 5.5px rgba(0,0,0,0.5)";
+        `0 0 0 ${r(1.5)} rgba(0,0,0,0.92), 0 0 0 ${r(4)} rgba(255,255,255,0.95), 0 0 0 ${r(5.5)} rgba(0,0,0,0.5)`;
       const drop = "0 3px 8px 2px rgba(0,0,0,0.65)";
+      // A status wash needs an outer ring too, or it is invisible the moment
+      // the disc is small enough that the portrait is a smudge.
+      const statusRing = tintCss ? `, 0 0 0 ${r(7.5)} ${tintCss}` : "";
 
       return {
         width: "92%",
         height: "92%",
         borderRadius: openingRole?.tokenRadius ?? "50%",
-        border: `4px solid ${borderColor}`,
+        border: `${(4 * weight).toFixed(2)}px solid ${borderColor}`,
         backgroundColor: "#111827",
         overflow: "hidden",
         boxShadow: isSelected
-          ? `${keyline}, ${drop}, 0 0 12px 3px #FBBF24`
+          ? `${keyline}, ${drop}, 0 0 12px 3px #FBBF24${statusRing}`
           : isTargetable
-            ? `${keyline}, ${drop}, 0 0 12px 3px #EF4444`
-            : `${keyline}, ${drop}`,
+            ? `${keyline}, ${drop}, 0 0 12px 3px #EF4444${statusRing}`
+            : `${keyline}, ${drop}${statusRing}`,
         // Control-option pose (G7): composed after the selection scale so both
         // read together; the transition makes apply AND restore smooth without
-        // blocking anything.
-        transform: `${isSelected ? "scale(1.12)" : "scale(1.0)"}${controlPose ? ` ${controlPose.token2d.transform}` : ""}`,
-        filter: controlPose && controlPose.token2d.filter !== "none" ? controlPose.token2d.filter : undefined,
+        // blocking anything. VIZ-3 appends the defeat slump last so a downed
+        // creature is not just a recolor — it lies over.
+        transform:
+          `${isSelected ? "scale(1.12)" : "scale(1.0)"}` +
+          `${controlPose ? ` ${controlPose.token2d.transform}` : ""}` +
+          `${isDowned ? " rotate(14deg) scaleY(0.74)" : ""}`,
+        // Desaturation is the shared 3D number, so 2D and 3D agree on how far
+        // a defeated or petrified body drops out of the living palette.
+        filter:
+          [
+            controlPose && controlPose.token2d.filter !== "none"
+              ? controlPose.token2d.filter
+              : null,
+            bodyShading.desaturate > 0
+              ? `saturate(${(1 - bodyShading.desaturate).toFixed(2)})`
+              : null,
+            isDowned ? "brightness(0.72)" : null,
+          ]
+            .filter(Boolean)
+            .join(" ") || undefined,
         transition: "transform 0.3s ease, filter 0.3s ease",
-        animation: isTurn ? "pulseTurn 2s infinite" : "none",
+        // A corpse does not take turns; the pulse read as "still active".
+        animation: isTurn && !isDowned ? "pulseTurn 2s infinite" : "none",
       };
-    }, [character.team, isSelected, isTargetable, isTurn, openingRole, controlPose]);
+    }, [
+      character.team,
+      isSelected,
+      isTargetable,
+      isTurn,
+      openingRole,
+      controlPose,
+      weight,
+      tintCss,
+      bodyShading.desaturate,
+      isDowned,
+    ]);
 
     // HP arc around the token rim: state-at-a-glance without opening a sheet.
     const hpPct = Math.max(
@@ -671,7 +856,10 @@ const CharacterToken: React.FC<CharacterTokenProps> = React.memo(
           ) : (
             <div
               style={tokenStyle}
-              className="flex items-center justify-center font-bold text-white text-lg"
+              className="relative flex items-center justify-center font-bold text-white text-lg"
+              /* Stable handle for the VIZ-3 tests, which assert the ring weight
+                 and the defeat slump that the token's inline style carries. */
+              data-testid="token-disc"
               data-control-pose={controlPose?.id}
               aria-label={controlPose ? controlPose.label : undefined}
             >
@@ -696,9 +884,42 @@ const CharacterToken: React.FC<CharacterTokenProps> = React.memo(
               ) : (
                 tokenVisual.fallbackContent
               )}
+              {/* VIZ-3 status wash. Same hue and strength the 3D body takes, so
+                a Poisoned actor is green in both renderers. It sits over the
+                portrait rather than beside it, which is why it survives the
+                board downscale that erases every perimeter badge. */}
+              {tintCss && (
+                <span
+                  data-testid="token-status-wash"
+                  data-token-status={isDowned ? "defeated" : "condition"}
+                  aria-hidden="true"
+                  className="pointer-events-none absolute inset-0 rounded-[inherit]"
+                  style={{
+                    backgroundColor: tintCss,
+                    opacity: bodyShading.tintStrength,
+                  }}
+                />
+              )}
             </div>
           )}
         </Tooltip>
+
+        {/* VIZ-3 defeat marker. A combatant at 0 HP used to render an ordinary
+          faction ring plus a ZERO-LENGTH HP arc, i.e. nothing at all: the
+          `?actorstatus=1` Fallen Reaver was pixel-identical to a healthy enemy
+          at 300% zoom (proof: before-zoom-max-tokens.png). The slump and wash
+          above carry the state at any size; this glyph names it when the token
+          is large enough to read one. */}
+        {isDowned && !openingBodySource && fullDetail && (
+          <span
+            data-testid="downed-token-marker"
+            aria-label={`${character.name} is down`}
+            className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-[13px] leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]"
+            style={{ zIndex: Z_INDEX.CONTENT_OVERLAY_MEDIUM }}
+          >
+            💀
+          </span>
+        )}
 
         {/* HP arc hugging the ring: green → amber → red as the combatant drops,
           starting at 12 o'clock and sweeping clockwise. */}
@@ -726,11 +947,11 @@ const CharacterToken: React.FC<CharacterTokenProps> = React.memo(
           Keeping it above the token makes a flying creature's vertical square
           readable on the flat 2D board while its horizontal footprint remains
           anchored to the same selectable cell. Grounded creatures add nothing. */}
-        {character.aerialMovement?.isFlying && (
+        {character.aerialMovement?.isFlying && fullDetail && (
           <span
             data-testid="aerial-altitude-badge"
             aria-label={`${character.name} flying at ${character.aerialMovement.altitudeFeet} feet`}
-            className="pointer-events-none absolute left-1/2 top-[-14px] -translate-x-1/2 whitespace-nowrap rounded-full border border-sky-200 bg-sky-950/95 px-1.5 py-0.5 text-[8px] font-black leading-none text-sky-100 shadow-md"
+            className="pointer-events-none absolute left-1/2 top-[-16px] -translate-x-1/2 whitespace-nowrap rounded-full border border-sky-200 bg-sky-950/95 px-1.5 py-0.5 text-[8px] font-black leading-none text-sky-100 shadow-md"
             style={{ zIndex: Z_INDEX.CONTENT_OVERLAY_MEDIUM }}
           >
             ↟ {character.aerialMovement.altitudeFeet} ft
@@ -740,11 +961,15 @@ const CharacterToken: React.FC<CharacterTokenProps> = React.memo(
         {/* Temporary HP is a separate cyan buffer rather than extra green HP.
           Keep its exact value beside the token so absorption and replacement
           remain readable without opening an inspector or inferring from an arc. */}
-        {(character.tempHP ?? 0) > 0 && (
+        {/* VIZ-3 re-slot: this used to sit at `right-[-8px] top-1/2`, which put
+          its 14 px box across the concentration orb's `-top-1 -right-1` corner
+          whenever a caster also held a buffer. The right column is now split —
+          concentration owns the upper half, this owns the lower. */}
+        {(character.tempHP ?? 0) > 0 && fullDetail && (
           <span
             data-testid="temporary-hit-points-badge"
             aria-label={`${character.tempHP} temporary hit points`}
-            className="pointer-events-none absolute right-[-8px] top-1/2 -translate-y-1/2 rounded-full border border-cyan-200 bg-cyan-950/95 px-1 py-0.5 text-[8px] font-black leading-none text-cyan-100 shadow-md"
+            className="pointer-events-none absolute right-[-7px] bottom-0 rounded-full border border-cyan-200 bg-cyan-950/95 px-1 py-0.5 text-[8px] font-black leading-none text-cyan-100 shadow-md"
             style={{ zIndex: Z_INDEX.CONTENT_OVERLAY_MEDIUM }}
           >
             +{character.tempHP}
@@ -755,37 +980,74 @@ const CharacterToken: React.FC<CharacterTokenProps> = React.memo(
           the important damage traits without growing the token footprint or
           colliding with the center icon. The 3D renderer still needs a separate
           parity pass, so this slice deliberately stops at the 2D token layer. */}
-        {defenseBadges.map((badge) => (
-          <DefenseBadge key={badge.kind} {...badge} />
-        ))}
+        {fullDetail &&
+          defenseBadges.map((badge) => (
+            <DefenseBadge key={badge.kind} {...badge} />
+          ))}
 
-        {/* Status effect badges hover near the token to visualize buffs/debuffs without opening a sheet. */}
-        {character.statusEffects.length > 0 && (
-          <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
-            {character.statusEffects.map((effect, idx) => (
-              <Tooltip
-                key={`${effect.id}-${idx}`}
-                content={`${effect.name} (${effect.duration}t)`}
-              >
+        {/* Status effect badges hover near the token to visualize buffs/debuffs
+          without opening a sheet.
+
+          VIZ-3 (agora-75ed.3) changed three things and preserved the rest:
+          (1) the row is CAPPED. It was an uncapped `flex gap-1` of 24 px chips
+              centered under a 32 px token, so four effects drew an 108 px strip
+              that ran a full tile into BOTH neighbors. Three 14 px chips plus a
+              "+N" overflow chip keep the strip inside 46 px.
+          (2) the chips sit lower (`bottom-[-17px]`) so they clear the defense
+              column, which now ends at the token's bottom edge.
+          (3) it is a MERGED row: 5e `conditions[]` join `statusEffects[]`, so a
+              condition applied by the combat engine finally shows on the 2D
+              token. Only the icon row is capped — the wash on the disc always
+              carries the highest-severity cue, at any zoom. */}
+        {statusMarkers.length > 0 && fullDetail && (
+          <div
+            data-testid="status-effect-row"
+            className="absolute bottom-[-17px] left-1/2 flex -translate-x-1/2 items-center gap-[2px]"
+            style={{ zIndex: Z_INDEX.CONTENT_OVERLAY_MEDIUM }}
+          >
+            {statusMarkers.slice(0, STATUS_ROW_MAX).map((marker) => (
+              <Tooltip key={marker.key} content={marker.tooltip}>
                 <span
-                  className="w-6 h-6 rounded-full bg-gray-900 border border-white/40 flex items-center justify-center text-xs"
-                  style={{ boxShadow: "0 2px 6px rgba(0,0,0,0.45)" }}
-                  aria-label={`${effect.name} status marker`}
+                  data-testid={`status-marker-${marker.name}`}
+                  className="flex h-3.5 w-3.5 items-center justify-center rounded-full border bg-gray-900 text-[8px] leading-none"
+                  style={{
+                    boxShadow: "0 2px 6px rgba(0,0,0,0.45)",
+                    // Ruled conditions ring themselves in their own color; the
+                    // rest share the palette's one neutral until sheet q4.
+                    borderColor: marker.color,
+                  }}
+                  aria-label={`${marker.name} status marker`}
                 >
-                  {getStatusEffectIcon(effect)}
+                  {marker.icon}
                 </span>
               </Tooltip>
             ))}
+            {statusMarkers.length > STATUS_ROW_MAX && (
+              <Tooltip
+                content={statusMarkers
+                  .slice(STATUS_ROW_MAX)
+                  .map((marker) => marker.name)
+                  .join(", ")}
+              >
+                <span
+                  data-testid="status-effect-overflow"
+                  className="flex h-3.5 items-center justify-center rounded-full border border-white/40 bg-gray-900 px-[3px] text-[7px] font-black leading-none text-white"
+                  aria-label={`${statusMarkers.length - STATUS_ROW_MAX} more status markers`}
+                >
+                  +{statusMarkers.length - STATUS_ROW_MAX}
+                </span>
+              </Tooltip>
+            )}
           </div>
         )}
 
         {/* Concentration Indicator: Shows a pulsing crystal orb if the character is maintaining a spell. */}
-        {character.concentratingOn && (
+        {character.concentratingOn && fullDetail && (
           <Tooltip
             content={`Concentrating on ${character.concentratingOn.spellName}`}
           >
             <div
-              className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-purple-900 border border-purple-400 flex items-center justify-center text-xs shadow-md"
+              className="absolute top-0 right-[-7px] h-3.5 w-3.5 rounded-full bg-purple-900 border border-purple-400 flex items-center justify-center text-[8px] shadow-md"
               style={{
                 animation: "pulse 2s infinite",
                 zIndex: Z_INDEX.CONTENT_OVERLAY_MEDIUM,

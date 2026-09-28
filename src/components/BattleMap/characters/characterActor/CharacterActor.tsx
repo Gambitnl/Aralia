@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 12/08/2026, 03:22:42
+ * Last Sync: 09/09/2026, 10:01:40
  * Dependents: components/BattleMap/characters/CharacterActor.tsx
- * Imports: 12 files
+ * Imports: 17 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -16,63 +16,50 @@
 
 /**
  * @file characters/characterActor/CharacterActor.tsx
- * The CharacterActor component: composes the procedural models, selection /
- * turn indicators, defense + condition badges, HP pip, and nameplate into one
- * 3D combat-map actor with position interpolation and animation state.
- * Extracted verbatim from the original CharacterActor.tsx (now a facade).
+ * The CharacterActor component — CONTAINER: state, hooks, and scene-graph
+ * mounting for one 3D combat-map actor.
+ *
+ * SPLIT (task agora-b70d, 2026-09-09): the rendering body moved into three
+ * sibling components; this file keeps the derived state and the mount order.
+ *
+ * - `./CharacterBody`           the scaled, facing-rotated EntityModel group
+ * - `./CharacterSelectionRing`  ground ring, facing wedge, turn ring, glows
+ * - `./CharacterStatusBadges`   HP pip, defeat marker, temp-HP, nameplate
+ * - `./actorTheme`              TEAM_COLORS + scale/tile constants (leaf)
+ *
+ * Pre-existing siblings that were already split and are unchanged:
+ * `./defenseBadges`, `./conditionBadges`, `./models`, `./EntityModel`.
+ *
+ * Child order in the returned <group> is the pre-split order exactly. Scene
+ * order is draw order for the transparent ground decals and the Html layers,
+ * so it is behavior, not formatting — which is why the target reticle is still
+ * mounted after the body rather than folded into the ring cluster.
  */
 import React, { useMemo, useRef, useState, useEffect } from 'react';
 import { useFrame, ThreeEvent } from '@react-three/fiber';
-import { Html } from '@react-three/drei';
 import * as THREE from 'three';
 import { CombatCharacter } from '../../../../types/combat';
 import { getDistance } from '../../../../utils/combat/combatUtils';
 import { DefenseBadgeRow } from './defenseBadges';
 import { ConditionBadgeRow } from './conditionBadges';
-import { type AnimationState, SelectionDecal, TurnIndicator } from './models';
-import { EntityModel } from './EntityModel';
+import { type AnimationState } from './models';
+// G9/G10 (agora-8aa9): silhouette rim + defeat/status body tint. Both ride on
+// one shader patch applied to `modelGroupRef` — the ref already existed for
+// exactly this and had no consumer until now.
+import { useFresnelRim } from '../useFresnelRim';
+import { resolveActorBodyShading } from '../actorStatusShading';
 import { registerAllParts } from '@/systems/entities3d/parts';
 import { generateEntityBlueprint } from '@/systems/entities3d/generateEntityBlueprint';
 import { recipeFromCombatant } from '@/systems/entities3d/recipeFromCombatant';
 import { heightM } from '@/systems/entities3d/types';
 import { resolveControlPose } from '../../controlOptionPose';
 import { elevationUnitsToFeet } from '../../elevationPresentation';
+import { ELEVATION_SCALE, MODEL_SCALE, TEAM_COLORS, TILE_SIZE } from './actorTheme';
+import { CharacterBody } from './CharacterBody';
+import { CharacterSelectionRing, CharacterTargetReticle } from './CharacterSelectionRing';
+import { CharacterStatusBadges } from './CharacterStatusBadges';
 
 registerAllParts();
-
-/** Combat map: 1 tile = 5 ft = 1 unit → 0.656 units per meter, plus the same
- * mild readability oversize the primitive models used (~1.25×). */
-const UNITS_PER_M = 1 / 1.524;
-const MODEL_SCALE = UNITS_PER_M * 1.25;
-
-// ---------------------------------------------------------------------------
-// Constants
-// ---------------------------------------------------------------------------
-
-const TILE_SIZE = 1.0;
-const ELEVATION_SCALE = 0.3;
-
-// Team colors — warm/heroic for players, cold/hostile for enemies
-const TEAM_COLORS = {
-  player: {
-    primary: 0xd4a017,    // Gold armor
-    selection: 0xfbbf24,  // Bright amber ring
-    nameAccent: '#d4a017',
-    groundGlow: 0xffd060, // Warm amber ground light
-  },
-  enemy: {
-    primary: 0xcc1111,    // Vivid crimson armor
-    selection: 0xff2020,  // Bright red ring
-    nameAccent: '#ff4444',
-    groundGlow: 0xff1100, // Intense red ground light
-  },
-  neutral: {
-    primary: 0xeab308,    // Yellow
-    selection: 0xfbbf24,  // Light yellow
-    nameAccent: '#eab308',
-    groundGlow: 0xffcc00,
-  },
-};
 
 // ---------------------------------------------------------------------------
 // Types
@@ -136,6 +123,18 @@ const CharacterActor: React.FC<CharacterActorProps> = ({
   // G7 shared pose contract — the SAME resolver the 2D token uses. Cached per
   // statusEffects array; null = base look; expiry restores via easeActorPose.
   const controlPose = resolveControlPose(character.statusEffects);
+
+  // G9 (silhouette pop) + G10 (defeat/status readability). One pure lookup
+  // drives one shader patch; see characters/actorStatusShading.ts for the
+  // palette and characters/useFresnelRim.ts for the injection. Recomputed only
+  // when life state or status names change — the hook writes uniforms, so this
+  // never triggers a shader recompile.
+  const bodyShading = useMemo(
+    () => resolveActorBodyShading(character),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [character.currentHP, character.conditions, character.statusEffects],
+  );
+  useFresnelRim(modelGroupRef, [blueprint], bodyShading);
 
   const activeCharacter = useMemo(() => {
     if (!activeCharacterId) return undefined;
@@ -251,43 +250,15 @@ const CharacterActor: React.FC<CharacterActorProps> = ({
       }}
       onPointerLeave={() => setHovered(false)}
     >
-      {/* Selection decal — always-on BG3 style ground ring for team identity */}
-      <SelectionDecal
-        color={showTargetHighlight ? 0xff4444 : teamColors.selection}
-        visible={isSelected || isTurn || showTargetHighlight}
-        pulse={showTargetHighlight || isTurn}
-        baseOpacity={isSelected || isTurn ? 0.90 : 0.50}
-      />
-
-      {/* Facing wedge — small ground pointer on the team ring showing which way
-          the unit faces (GOAL #9); rotates with the model's facing. */}
-      {isAlive && (
-        <group rotation={[0, facingRotation, 0]}>
-          <mesh position={[0, 0.03, 0.60]} rotation={[-Math.PI / 2, 0, 0]}>
-            {/* thetaStart -π/2 puts the triangle's point outward (+Z = forward) */}
-            <circleGeometry args={[0.19, 3, -Math.PI / 2]} />
-            <meshStandardMaterial
-              color={teamColors.selection}
-              emissive={teamColors.selection}
-              emissiveIntensity={1.5}
-              transparent
-              opacity={0.9}
-              side={THREE.DoubleSide}
-              depthWrite={false}
-            />
-          </mesh>
-        </group>
-      )}
-
-      {/* Active turn golden ring */}
-      <TurnIndicator active={isTurn} />
-
-      {/* Team-colored ground glow — most readable team indicator at tactical distance */}
-      <pointLight
-        color={teamColors.groundGlow}
-        intensity={isPlayer ? 0.7 : 1.0}
-        distance={3.2}
-        position={[0, 0.05, 0]}
+      {/* Ground ring, facing wedge, turn ring, team glow */}
+      <CharacterSelectionRing
+        teamColors={teamColors}
+        isPlayer={isPlayer}
+        isAlive={isAlive}
+        isSelected={isSelected}
+        isTurn={isTurn}
+        showTargetHighlight={showTargetHighlight}
+        facingRotation={facingRotation}
       />
 
       {/* Defense badges stay on the actor itself so the 3D map exposes the
@@ -298,159 +269,33 @@ const CharacterActor: React.FC<CharacterActorProps> = ({
           status story, below the HP pip. */}
       <ConditionBadgeRow character={character} />
 
-      {/* Character body — a generated entity at true world proportions
-          (Remy 2026-07-01: "characters shouldn't be almost as big as a
-          tree"). At 1 tile = 5 ft, MODEL_SCALE puts a human at ~1.4 units
-          ≈ 7 ft; size categories are already in the blueprint's frame, so
-          a Huge dragon towers without a separate multiplier. Readability
-          is carried by the team rings, ink outlines, and indicators. */}
-      <group ref={modelGroupRef} scale={MODEL_SCALE} rotation={[0, facingRotation, 0]}>
-        <EntityModel
-          blueprint={blueprint}
-          animState={isAlive ? animState : 'death'}
-          animTimeRef={animTimeRef}
-          controlPose={controlPose}
-        />
-      </group>
+      {/* Character body. The ref is forwarded so useFresnelRim above can patch
+          this exact group's materials. */}
+      <CharacterBody
+        ref={modelGroupRef}
+        blueprint={blueprint}
+        animState={isAlive ? animState : 'death'}
+        animTimeRef={animTimeRef}
+        controlPose={controlPose}
+        facingRotation={facingRotation}
+      />
 
       {/* Target reticle glow when targetable */}
-      {showTargetHighlight && (
-        <pointLight
-          color={0xef4444}
-          intensity={0.5}
-          distance={2}
-          position={[0, 0.5, 0]}
-        />
-      )}
+      {showTargetHighlight && <CharacterTargetReticle />}
 
-      {/* Always-visible HP pip — sphere + team ring, riding above the real head */}
-      <group position={[0, pipY, 0]}>
-        {/* HP color sphere — glows team-appropriate health color (sized down
-            for the generated bodies; readability still carried by the glow) */}
-        <mesh>
-          <sphereGeometry args={[0.14, 10, 8]} />
-          <meshStandardMaterial
-            color={hpColor}
-            emissive={hpColor}
-            emissiveIntensity={1.0}
-            transparent
-            opacity={0.95}
-          />
-        </mesh>
-        {/* Team ring — larger for visibility at 20+ unit distance */}
-        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.03, 0]}>
-          <ringGeometry args={[0.16, 0.29, 20]} />
-          <meshStandardMaterial
-            color={teamColors.selection}
-            emissive={teamColors.selection}
-            emissiveIntensity={1.2}
-            transparent
-            opacity={0.95}
-            side={THREE.DoubleSide}
-            depthWrite={false}
-          />
-        </mesh>
-      </group>
-
-      {/* Temporary HP is not part of the green health percentage. This cyan
-          value stays visible beside the HP pip in 3D so a camera orbit cannot
-          hide whether damage still has a separate buffer to consume first. */}
-      {(character.tempHP ?? 0) > 0 && (
-        <Html
-          position={[0.34, pipY, 0]}
-          center
-          distanceFactor={10}
-          style={{ pointerEvents: 'none' }}
-        >
-          <span
-            data-testid="temporary-hit-points-badge-3d"
-            aria-label={`${character.tempHP} temporary hit points`}
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              minWidth: '22px',
-              padding: '2px 4px',
-              borderRadius: '999px',
-              border: '1px solid #a5f3fc',
-              background: 'rgba(8, 51, 68, 0.95)',
-              color: '#cffafe',
-              fontSize: '8px',
-              fontWeight: 900,
-              lineHeight: 1,
-              boxShadow: '0 0 10px rgba(34, 211, 238, 0.42)',
-            }}
-          >
-            +{character.tempHP}
-          </span>
-        </Html>
-      )}
-
-      {/* The detailed nameplate appears on hover, selection, or active turn.
-          It repeats the temporary buffer beside current and maximum HP so the
-          focused actor exposes all three health values in one place. */}
-      {(isSelected || isTurn || hovered) && (
-        <Html
-          position={[0, pipY + 0.3, 0]}
-          center
-          distanceFactor={10}
-          style={{ pointerEvents: 'none' }}
-        >
-          <div style={{
-            background: 'rgba(0,0,0,0.85)',
-            padding: '3px 8px',
-            borderRadius: '4px',
-            whiteSpace: 'nowrap',
-            fontSize: '11px',
-            color: '#e6edf3',
-            textAlign: 'center',
-            borderLeft: `3px solid ${teamColors.nameAccent}`,
-            minWidth: '70px',
-          }}>
-            <div style={{
-              fontWeight: 600,
-              fontSize: '10px',
-              marginBottom: '2px',
-              letterSpacing: '0.5px',
-            }}>
-              {character.name}
-            </div>
-            <div style={{
-              width: '65px',
-              height: '5px',
-              background: '#1a1a2e',
-              borderRadius: '3px',
-              overflow: 'hidden',
-            }}>
-              <div style={{
-                width: `${hpPercent * 100}%`,
-                height: '100%',
-                background: hpColor,
-                borderRadius: '3px',
-                transition: 'width 0.3s ease',
-              }} />
-            </div>
-            <div style={{ fontSize: '8px', color: '#9ca3af', marginTop: '1px' }}>
-              {character.currentHP}/{character.maxHP}
-              {(character.tempHP ?? 0) > 0 ? ` + ${character.tempHP} temp` : ''}
-            </div>
-            {character.aerialMovement?.isFlying && (
-              <div
-                data-testid="aerial-altitude-nameplate"
-                style={{ fontSize: '9px', color: '#7dd3fc', marginTop: '2px', fontWeight: 'bold' }}
-              >
-                Flying · {character.aerialMovement.altitudeFeet} ft
-                {character.aerialMovement.canHover ? ' · hover' : ''}
-              </div>
-            )}
-            {distanceToActive !== null && (
-              <div style={{ fontSize: '9px', color: '#facc15', marginTop: '2px', fontWeight: 'bold' }}>
-                Distance: {distanceToActive} ft
-              </div>
-            )}
-          </div>
-        </Html>
-      )}
+      {/* HP pip, defeat marker, temporary HP, and the hover nameplate */}
+      <CharacterStatusBadges
+        character={character}
+        teamColors={teamColors}
+        pipY={pipY}
+        isAlive={isAlive}
+        isSelected={isSelected}
+        isTurn={isTurn}
+        hovered={hovered}
+        hpPercent={hpPercent}
+        hpColor={hpColor}
+        distanceToActive={distanceToActive}
+      />
     </group>
   );
 };

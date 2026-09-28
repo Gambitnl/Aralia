@@ -15,7 +15,7 @@
 // @dependencies-end
 
 import { Lock, LockpickResult, Trap } from '../../types/mechanics';
-import { rollDice } from './combatUtils';
+import { rollDice } from '../../systems/dice/rollers';
 
 // ------------------------------------------------------------------
 // LOCK MECHANICS

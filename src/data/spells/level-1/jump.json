@@ -40,7 +40,7 @@
                        "verbal":  true,
                        "somatic":  true,
                        "material":  true,
-                       "materialDescription":  "a grasshopper\u0027s hind leg",
+                       "materialDescription":  "a grasshopper's hind leg",
                        "isConsumed":  false,
                        "materialCost":  0
                    },
@@ -181,7 +181,7 @@
                                                                    ]
                                       },
                         "utilityType":  "other",
-                        "description":  "Once on each of the willing target\u0027s turns until the spell ends, it can jump up to 30 feet by spending 10 feet of movement.",
+                        "description":  "Once on each of the willing target's turns until the spell ends, it can jump up to 30 feet by spending 10 feet of movement.",
                         "scaling":  {
                                         "type":  "slot_level",
                                         "bonusPerLevel":  "",

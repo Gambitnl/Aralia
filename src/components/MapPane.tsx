@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 17/07/2026, 22:34:53
+ * Last Sync: 09/09/2026, 11:30:56
  * Dependents: components/layout/GameModals.tsx
- * Imports: 51 files
+ * Imports: 55 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -19,12 +19,14 @@
  * World map modal surface. Worldforge native renderers (SVG/canvas) are the sole
  * cartography system. The Azgaar iframe has been retired (2026-06-24).
  *
- * The pane receives legacy `MapData` for player position/discovery tracking.
- * These reads pass through the World geography adapter, preserving travel,
- * discovery, and 3D-entry contracts during the Submap → Worldforge transition.
+ * Grid retirement (agora-608b): the pane takes NO `MapData`. It renders the
+ * cell-native Worldforge atlas (`getBridgeAtlas(worldSeed)`), resolves every pick
+ * by cellId, and hands travel / 3D-entry callbacks a `WorldCellView`. The old
+ * claim that it receives a legacy grid and reads it through a geography adapter
+ * was already false when the adapter was deleted; the contract type now says so.
  */
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { MapTile as MapTileType } from '../types';
+import { WorldCellView } from '../types';
 import type { Item } from '@/types/items';
 import {
   daysOfFood,
@@ -63,7 +65,7 @@ import { atlasCellToSubmapContext } from '@/systems/worldforge/submap/l0Adapter'
 import { buildAtlasNeighbourhood, type AtlasNeighbourhood } from '@/systems/worldforge/submap/neighbourhood';
 import { generateSubmap, submapCellToChildContext, polygonBounds, pointInPolygon, type SubmapModel, type SubmapParentContext, type Pt } from '@/systems/worldforge/submap/submapEngine';
 import { type TownPlan } from '@/systems/worldforge/town/townEngine';
-import { getCanonicalTownPlan, getCanonicalTownWaterFeatures } from '@/systems/worldforge/town/canonicalTown';
+import { getCanonicalTownPlan, getCanonicalTownWaterFeatures, getCanonicalTownPersonality } from '@/systems/worldforge/town/canonicalTown';
 import { rootSeedPath } from '@/systems/worldforge/seedPath';
 import { spreadColocatedPoints, entry3DAnchorForCell } from '@/systems/worldforge/local/gridAtlasBridge';
 import { describeCell } from '@/systems/worldforge/cellInfo';
@@ -80,6 +82,7 @@ import { passNameOnRoute } from '@/systems/worldforge/mountains/rangeForCell';
 import { buildMultiModalAtlasGraph, routeSeaDanger } from '@/systems/worldforge/travel/multiModalAtlasGraph';
 import { buildSubmapTravelGraph } from '@/systems/worldforge/travel/submapTravelGraph';
 import { planRoutesFrom, routeHaltIndex, transportSpeedMph } from '@/systems/travel/routePlanning';
+import { exhaustedSpeedMph, partyExhaustionLevel } from '@/systems/travel/forcedMarch';
 import type { RoutePlan } from '@/systems/travel/routePlanning';
 import { segmentRoute } from '@/systems/travel/multiModalRoute';
 import type { MultiModalRoute, TenderOptions } from '@/systems/travel/multiModalRoute';
@@ -122,9 +125,9 @@ interface MapPaneProps {
   // atlas (getBridgeAtlas(worldSeed)) and uses MAP_GRID_SIZE for legacy tx,ty
   // bookkeeping. worldSeed is the world identity.
   worldSeed?: number;
-  onTileClick: (x: number, y: number, tile: MapTileType, travelMeta?: TravelMeta) => void;
+  onTileClick: (x: number, y: number, cell: WorldCellView, travelMeta?: TravelMeta) => void;
   /** When set, clicking a discovered cell in Enter 3D mode starts streamed world entry. */
-  onEnter3DAtCell?: (x: number, y: number, tile: MapTileType, anchor?: Entry3DAnchor) => void;
+  onEnter3DAtCell?: (x: number, y: number, cell: WorldCellView, anchor?: Entry3DAnchor) => void;
   /** Last known 3D position — draws AtlasPlayerMarker on the Worldforge atlas. */
   playerWorldPos?: PlayerWorldPosition | null;
   /** SP4 discovered hidden places — pinned on the World Forge atlas. */
@@ -171,7 +174,7 @@ interface MapPaneProps {
    * (ability scores, skill proficiencies, proficiency bonus) off the SAME
    * array; transport-only callers stay valid because those fields are optional.
    */
-  transportParty?: Array<{ transportMode?: 'foot' | 'mounted' } & TripEventPartyMember>;
+  transportParty?: Array<{ transportMode?: 'foot' | 'mounted'; conditions?: string[] } & TripEventPartyMember>;
   /** Persisted atlas cells reached by this party, derived from discovery entries. */
   exploredCellIds?: number[];
   /**
@@ -240,6 +243,9 @@ function normalizeCtxScale(ctx: SubmapParentContext): SubmapParentContext {
     polygon: ctx.polygon.map(sc),
     features: ctx.features?.map((f) => ({ ...f, x: (f.x - cx) * k + cx, y: (f.y - cy) * k + cy })),
     polylines: ctx.polylines?.map((pl) => ({ ...pl, points: pl.points.map(sc) })),
+    // Neighbour centroids live in the context's own frame, so they scale with
+    // the polygon — otherwise the deeper tier's blend points the wrong way.
+    neighbourBiomes: ctx.neighbourBiomes?.map((n) => ({ ...n, centroid: sc(n.centroid) })),
   };
 }
 
@@ -261,20 +267,24 @@ function playerSubCellIndex(model: SubmapModel): number | null {
 // Grid retirement: the legacy "project mapData.tiles through the geography snapshot"
 // read adapter is removed — MapPane reads atlas cells directly (synthCellTile).
 
-// Grid retirement: a click/travel target tile synthesized from an atlas CELL (its
-// biome), treated as explored — replaces reading the legacy 30x20 mapData.tiles.
-// The x,y are bookkeeping coords carried for the still-present coord_X_Y interface.
+// Grid retirement: a click/travel target built from an atlas CELL (its biome) —
+// replaces reading the legacy 30x20 mapData.tiles.
+// agora-608b: this now returns a cell-native `WorldCellView` that CARRIES its
+// `cellId` instead of a `MapTile` that threw the cell identity away and left
+// x,y at 0. Downstream handlers no longer have to recover the cell from
+// travelMeta/Entry3DAnchor. The x,y are still carried as display bookkeeping for
+// the still-present coord_X_Y interface, and the unchecked cast is gone.
 function synthCellTile(
   atlas: { pack: { cells: { biome?: ArrayLike<number> } } },
   cellId: number,
   x: number,
   y: number,
   discovered = true,
-): MapTileType {
+): WorldCellView {
   // Callers now choose the knowledge flag: travel targets may be unknown until
   // arrival, while 3D entry is gated by the party's persisted explored cells.
   const biomeIdx = (atlas.pack.cells as unknown as { biome?: ArrayLike<number> }).biome?.[cellId];
-  return { x, y, biomeId: wfBiomeIndexToLegacyId(biomeIdx), discovered, isPlayerCurrent: false } as MapTileType;
+  return { cellId, x, y, biomeId: wfBiomeIndexToLegacyId(biomeIdx), discovered, isPlayerCurrent: false };
 }
 
 const PreparedMapPane: React.FC<PreparedMapPaneProps> = ({
@@ -487,6 +497,19 @@ const PreparedMapPane: React.FC<PreparedMapPaneProps> = ({
   // the Dijkstra fields only recompute when the season actually flips.
   const seasonTravelMultiplier = gameTime ? getSeasonalTravelCostMultiplier(gameTime) : 1;
 
+  // ── Exhaustion's travel cost (travel G1) ──────────────────────────────────
+  // A forced march that bites leaves the party carrying the 'exhaustion'
+  // condition; 5e docks −5 ft of speed per exhaustion level. Previously that
+  // toll stopped at the condition chip: routes were still priced at the rested
+  // walking speed, so a worn-out party arrived just as fast. This memo applies
+  // the penalty ONCE, and the three route fields below read it instead of the
+  // raw transport speed. A rested party (level 0) gets the identical number it
+  // got before, so nothing changes for the common case.
+  const partyTravelSpeedMph = useMemo(() => exhaustedSpeedMph(
+    transportSpeedMph(selectedTransport.option),
+    partyExhaustionLevel(transportParty),
+  ), [selectedTransport, transportParty]);
+
   const travelField = useMemo(() => {
     if (interactionMode !== 'travel' || !worldforgeAtlas || playerAtlasCell == null) return null;
     const graph = buildAtlasTravelGraph(worldforgeAtlas, { mobility: transportMobility(selectedTransport.option) });
@@ -495,10 +518,10 @@ const PreparedMapPane: React.FC<PreparedMapPaneProps> = ({
     const origin = nearestLandCell(worldforgeAtlas, playerAtlasCell);
     return planRoutesFrom(graph, origin, {
       milesPerUnit: atlasMilesPerUnit(worldforgeAtlas),
-      speedMph: transportSpeedMph(selectedTransport.option),
+      speedMph: partyTravelSpeedMph,
       timeCostMultiplier: seasonTravelMultiplier,
     });
-  }, [interactionMode, worldforgeAtlas, playerAtlasCell, selectedTransport, seasonTravelMultiplier]);
+  }, [interactionMode, worldforgeAtlas, playerAtlasCell, selectedTransport, partyTravelSpeedMph, seasonTravelMultiplier]);
   const planAtlasRoute = useCallback((toCell: number) => travelField?.to(toCell) ?? null, [travelField]);
 
   // Provisioning rings (R1): the contour of cells reachable before the binding
@@ -585,16 +608,16 @@ const PreparedMapPane: React.FC<PreparedMapPaneProps> = ({
       seaOption = { kind: 'ferry', speedMph: 8 };
     }
     const graph = buildMultiModalAtlasGraph(worldforgeAtlas, {
-      landSpeedMph: transportSpeedMph(selectedTransport.option),
+      landSpeedMph: partyTravelSpeedMph,
       sea: seaOption,
     });
     const origin = nearestLandCell(worldforgeAtlas, playerAtlasCell);
     return planRoutesFrom(graph, origin, {
       milesPerUnit: atlasMilesPerUnit(worldforgeAtlas),
-      speedMph: transportSpeedMph(selectedTransport.option),
+      speedMph: partyTravelSpeedMph,
       timeCostMultiplier: seasonTravelMultiplier,
     });
-  }, [interactionMode, seaPref, worldforgeAtlas, playerAtlasCell, selectedTransport, activeShip, seasonTravelMultiplier]);
+  }, [interactionMode, seaPref, worldforgeAtlas, playerAtlasCell, selectedTransport, partyTravelSpeedMph, activeShip, seasonTravelMultiplier]);
 
   const isAtlasLandCell = useCallback((cell: number): boolean => {
     const height = (worldforgeAtlas?.pack as unknown as { cells?: { h?: ArrayLike<number> } } | undefined)
@@ -835,7 +858,7 @@ const PreparedMapPane: React.FC<PreparedMapPaneProps> = ({
     if (burgIdx < 0) return null;
     const cell = regionTier.model.cells[burgIdx];
     if (!cell || cell.feature?.kind !== 'burg' || cell.feature.id == null) return null;
-    const childCtx = normalizeCtxScale(submapCellToChildContext(cell, regionTier.ctx));
+    const childCtx = normalizeCtxScale(submapCellToChildContext(cell, regionTier.ctx, regionTier.model.cells));
     if (childCtx.polygon.length < 3) return null;
     const town = getCanonicalTownPlan(worldforgeAtlas, worldforgeSeed, cell.feature.id);
     return [regionTier, { ctx: childCtx, town, playerCellIndex: 0, burgId: cell.feature.id }];
@@ -1239,7 +1262,9 @@ const PreparedMapPane: React.FC<PreparedMapPaneProps> = ({
       // The drill stays on the player's path only if they drilled INTO the very
       // sub-cell they occupy. Then the child's player sub-cell is re-derived.
       const onPlayerPath = top.playerCellIndex != null && cellIdx === top.playerCellIndex;
-      const childRaw = submapCellToChildContext(cell, top.ctx);
+      // The parent submap's own cells are the child's adjacency source, so the
+      // deeper tier blends toward its neighbouring sub-biomes too.
+      const childRaw = submapCellToChildContext(cell, top.ctx, top.model.cells);
       if (childRaw.polygon.length < 3) return stack;
       // Normalize the sub-cell to a canonical span so each tier has healthy
       // geometry (a sub-cell is tiny → sliver wards/cells otherwise). Fit-to-view
@@ -1289,6 +1314,16 @@ const PreparedMapPane: React.FC<PreparedMapPaneProps> = ({
     return { rivers: wf.rivers, coast: wf.coast, riverWidth: wf.riverWidthCanon };
   }, [topTownBurgId, worldforgeAtlas, worldforgeSeed]);
 
+  // The burg's SETTLEMENT FLAVOR — tagline, cultural signature, encounter hooks —
+  // derived from the same burg the plan above was generated from. Until this
+  // wiring the authored profiles in `villagePersonalityProfiles` had exactly one
+  // caller, the retired 2D village generator, so no player ever read a line of
+  // them (deepdive village-generator-vs-worldforge-town.md finding 7).
+  const topTownPersonality = useMemo(() => {
+    if (topTownBurgId == null || !worldforgeAtlas) return undefined;
+    return getCanonicalTownPersonality(worldforgeAtlas, worldforgeSeed, topTownBurgId).profile;
+  }, [topTownBurgId, worldforgeAtlas, worldforgeSeed]);
+
   // Submap-tier travel: a route field over the drilled tier's Voronoi cells from
   // the player's sub-cell, so the same route preview works inside the drill.
   const submapTravelField = useMemo(() => {
@@ -1297,10 +1332,10 @@ const PreparedMapPane: React.FC<PreparedMapPaneProps> = ({
     if (!top?.model || top.playerCellIndex == null) return null;
     return planRoutesFrom(buildSubmapTravelGraph(top.model), top.playerCellIndex, {
       milesPerUnit: 0.02, // ~20 miles across a normalized region tier
-      speedMph: transportSpeedMph(selectedTransport.option),
+      speedMph: partyTravelSpeedMph,
       timeCostMultiplier: seasonTravelMultiplier,
     });
-  }, [interactionMode, submapStack, selectedTransport, seasonTravelMultiplier]);
+  }, [interactionMode, submapStack, selectedTransport, partyTravelSpeedMph, seasonTravelMultiplier]);
   const planSubmapRoute = useCallback((idx: number) => submapTravelField?.to(idx) ?? null, [submapTravelField]);
 
   const prepareAndRegenerate = useCallback((nextSeed: number) => {
@@ -1527,6 +1562,7 @@ const PreparedMapPane: React.FC<PreparedMapPaneProps> = ({
                     water={topTownWater?.rivers}
                     coast={topTownWater?.coast}
                     riverWidth={topTownWater?.riverWidth}
+                    personality={topTownPersonality}
                   />
                 ) : submapStack[submapStack.length - 1].neighbourhood ? (
                   <NeighbourhoodSvgView

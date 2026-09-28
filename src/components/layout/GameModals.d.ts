@@ -37,14 +37,14 @@
  * developer-only launch button.
  */
 import React from 'react';
-import { GameState, Action, Location, NPC, Item, PlayerCharacter, MissingChoice, MapTile } from '../../types';
+import { GameState, Action, Location, NPC, Item, PlayerCharacter, MissingChoice, WorldCellView } from '../../types';
 import { AppAction } from '../../state/actionTypes';
 interface GameModalsProps {
     gameState: GameState;
     dispatch: React.Dispatch<AppAction>;
     onAction: (action: Action) => void;
-    onTileClick: (x: number, y: number, tile: MapTile, travelMeta?: import('../../types/travelMeta').TravelMeta) => void;
-    onEnter3DAtCell?: (x: number, y: number, tile: MapTile) => void;
+    onTileClick: (x: number, y: number, cell: WorldCellView, travelMeta?: import('../../types/travelMeta').TravelMeta) => void;
+    onEnter3DAtCell?: (x: number, y: number, cell: WorldCellView) => void;
     playerWorldPos?: GameState['playerWorldPos'];
     allow3DEntry?: boolean;
     currentLocation: Location;

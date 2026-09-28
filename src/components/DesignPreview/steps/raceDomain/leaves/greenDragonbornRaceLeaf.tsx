@@ -31,8 +31,10 @@ import {
 import {
   calculateDamage,
   createPlayerCombatCharacter,
-  rollDice,
 } from '../../../../../utils/combat/combatUtils';
+import {
+  rollDice,
+} from '../../../../../systems/dice/rollers';
 import { applyDamageAndCheckDowned } from '../../../../../utils/combat/deathSaveUtils';
 import {
   canAffordActionCost,
@@ -364,10 +366,9 @@ function createGreenDragonbornActor(race: Race): {
     };
   }
 
-  // DEBT: The shared assembly cache can receive linked race rows from callers
-  // that did not normalize display links first. This leaf-local projection
-  // carries only proven resistance, resource, and breath facts across that
-  // boundary; the native combat bridge still resolves the transaction.
+  // Normalizing display links before caching in shared racial trait library is tracked in Agora task agora-1525.
+  // The shared assembly cache can receive linked race rows from callers; this leaf-local projection
+  // carries proven resistance, resource, and breath facts while the combat bridge resolves the transaction.
   const resourceMax = typeof resourceDefinition.maxUses === 'number'
     ? resourceDefinition.maxUses
     : parserAssembledCharacter.proficiencyBonus ?? 2;

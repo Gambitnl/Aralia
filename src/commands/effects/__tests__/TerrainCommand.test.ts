@@ -10,6 +10,8 @@ const makeCharacter = (id: string, position: { x: number, y: number }): any => (
   id,
   name: id,
   position,
+  // A cube cast on the caster tile extends along the caster facing (ruling Q4, 2026-09-22).
+  facing: 'east',
   hp: 10,
   maxHp: 10,
   initiative: 0,
@@ -25,7 +27,7 @@ const makeState = (characters: ReturnType<typeof makeCharacter>[]): CombatState 
   const tiles = new Map()
   for (let x = 0; x < 5; x++) {
     for (let y = 0; y < 5; y++) {
-      tiles.set(`${x}-${y}`, { position: { x, y }, terrain: 'grass', elevation: 0, movementCost: 1, environmentalEffects: [] })
+      tiles.set(`${x}-${y}`, { position: { x, y }, coordinates: { x, y }, terrain: 'grass', elevation: 0, movementCost: 1, environmentalEffects: [] })
     }
   }
 

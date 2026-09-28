@@ -258,7 +258,9 @@ it('migrates a legacy (pre-v2) save to v2 worldData while keeping legacy tiles r
   // (climate/relief); the worldGeography snapshot field is gone entirely.
   expect(after.worldData).toBeDefined();
   expect(after.gridSize).toEqual(before.gridSize);
-  expect(after.tiles[0][0]).toMatchObject({
+  // agora-608b: `tiles` is now optional on MapData, so this reads defensively.
+  // The assertion is unchanged — a legacy grid handed in must come back intact.
+  expect(after.tiles?.[0]?.[0]).toMatchObject({
     x: 0,
     y: 0,
     biomeId: 'plains',

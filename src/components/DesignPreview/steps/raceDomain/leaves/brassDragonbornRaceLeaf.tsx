@@ -31,8 +31,10 @@ import {
 import {
   calculateDamage,
   createPlayerCombatCharacter,
-  rollDice,
 } from '../../../../../utils/combat/combatUtils';
+import {
+  rollDice,
+} from '../../../../../systems/dice/rollers';
 import {
   canAffordActionCost,
   consumeActionCost,
@@ -314,10 +316,9 @@ function createBrassDragonbornActor(race: Race): {
     };
   }
 
-  // DEBT: The shared assembly cache still reads linked-text Race rows on one
-  // path. This adapter carries only Brass facts already proven by the parser;
-  // the native combat bridge and resolvers remain authoritative. The durable
-  // fix belongs in shared racial-library normalization outside this leaf.
+  // Normalizing display links before caching in shared racial trait library is tracked in Agora task agora-1525.
+  // The shared assembly cache reads linked-text Race rows on one path; this adapter carries proven Brass facts
+  // into the assembled character while the native combat bridge and resolvers remain authoritative.
   const resourceMax = typeof resourceDefinition.maxUses === 'number'
     ? resourceDefinition.maxUses
     : parserAssembledCharacter.proficiencyBonus ?? 2;

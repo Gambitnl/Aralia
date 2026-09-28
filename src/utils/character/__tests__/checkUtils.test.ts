@@ -9,10 +9,10 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { rollAbilityCheck } from '../checkUtils';
 import { CombatCharacter } from '../../../types/combat';
-import { rollDice } from '../../combat/combatUtils';
+import { rollDice } from '../../../systems/dice/rollers';
 import { rollSavingThrow } from '../savingThrowUtils';
 
-vi.mock('../../combat/combatUtils', () => ({
+vi.mock('../../../systems/dice/rollers', () => ({
   rollDice: vi.fn()
 }));
 

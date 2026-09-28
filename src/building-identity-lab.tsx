@@ -18,6 +18,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
 import BuildingIdentityLab from './devtools/buildingIdentityLab/BuildingIdentityLab';
+import { applyZIndexCssVariables } from './styles/zIndex';
 
 /**
  * This is the standalone browser entry for the procedural building identity workbench.
@@ -27,6 +28,14 @@ import BuildingIdentityLab from './devtools/buildingIdentityLab/BuildingIdentity
 
 // Mount the workbench only when its dedicated HTML entry supplied a root.
 // StrictMode helps expose accidental non-determinism during development.
+
+/* The game app defines the --z-index-* variables in App.tsx, which this page
+ * never mounts. Without them every `z-[var(--z-index-*)]` class computes
+ * `z-index: auto`, so a layered element silently sits under the content it
+ * should cover. Cheap and idempotent, so it runs whether or not this page's
+ * tree happens to use one today (Remy 2026-08-31). */
+applyZIndexCssVariables();
+
 const rootElement = document.getElementById('root');
 if (rootElement) {
   ReactDOM.createRoot(rootElement).render(

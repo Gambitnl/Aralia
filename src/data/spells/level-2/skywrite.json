@@ -17,6 +17,25 @@
 
                    ],
     "ritual":  true,
+    "ritualData": {
+      "requirements": [
+        {
+          "type": "custom",
+          "value": "component:verbal",
+          "description": "The ritual must be chanted aloud from start to finish."
+        },
+        {
+          "type": "custom",
+          "value": "component:somatic",
+          "description": "The ritual needs a free hand for its gestures throughout."
+        },
+        {
+          "type": "custom",
+          "value": "uninterrupted_casting",
+          "description": "Ritual casting adds 10 minutes to the casting time and must run uninterrupted."
+        }
+      ]
+    },
     "rarity":  "common",
     "attackType":  "",
     "castingTime":  {
@@ -230,7 +249,7 @@
                       "prompt":  "",
                       "playerInputRequired":  false
                   },
-    "description":  "You cause up to ten words to form in a part of the sky you can see. The words appear to be made of cloud and remain in place for the spell\u0027s duration. The words dissipate when the spell ends. A strong wind can disperse the clouds and end the spell early.",
+    "description":  "You cause up to ten words to form in a part of the sky you can see. The words appear to be made of cloud and remain in place for the spell's duration. The words dissipate when the spell ends. A strong wind can disperse the clouds and end the spell early.",
     "higherLevels":  "None",
     "tags":  [
                  "utility",

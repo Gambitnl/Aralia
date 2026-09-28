@@ -1,10 +1,18 @@
+/**
+ * Copyright (c) 2024 Aralia RPG
+ * Licensed under the MIT License
+ *
+ * @file src/systems/puzzles/skillChallengeSystem.ts
+ * Logic for running structured Skill Challenges (4e style).
+ */
+
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
- * This file appears to be an ISOLATED UTILITY or ORPHAN.
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 04/08/2026, 02:04:14
- * Dependents: None (Orphan)
+ * Last Sync: 09/09/2026, 15:02:05
+ * Dependents: systems/puzzles/dialogueBridge.ts
  * Imports: 4 files
  *
  * MULTI-AGENT SAFETY:
@@ -14,20 +22,17 @@
  */
 // @dependencies-end
 
-/**
- * Copyright (c) 2024 Aralia RPG
- * Licensed under the MIT License
- *
- * @file src/systems/puzzles/skillChallengeSystem.ts
- * Logic for running structured Skill Challenges (4e style).
- */
-
 import { PlayerCharacter, AbilityScoreName } from '../../types/index';
-import { rollDice } from '../../utils/combat';
+import { rollDice } from '../dice/rollers';
 import { getAbilityModifierValue } from '../../utils/character';
 import { SkillChallenge, SkillChallengeResult, ChallengeSkill } from './types';
 
-// TODO #912(Lockpick): Integrate Skill Challenges into the Dialogue System for social boss fights.
+// #912 resolved (2026-09-09): social boss fights now have a home. See
+// ./dialogueBridge.ts, which builds a challenge from an NPC's authored
+// conversation topics and returns each round in the ProcessTopicResult shape the
+// dialogue outcome handler already consumes. The remaining step is a field on
+// DialogueSession to hold the live challenge between rounds; that belongs to the
+// dialogue package and is tracked as GG-216.
 
 /**
  * Creates a new skill challenge instance.
@@ -91,6 +96,27 @@ function getAbilityForSkill(skillName: string): AbilityScoreName {
 }
 
 /**
+ * Reports whether a character is proficient in the named challenge skill.
+ *
+ * Resolves #916. `PlayerCharacter.skills` is the assembled proficiency list
+ * (class picks, background, and racial grants), so a challenge skill counts as
+ * proficient when it matches an entry by snake_case id or by display name. The
+ * matching rules are copied from `rollAbilityCheck` in
+ * `utils/character/checkUtils` on purpose: a skill challenge and an ordinary
+ * ability check must agree about who is proficient. The class-name heuristics
+ * used by the older puzzle files are deliberately NOT reused here because the
+ * character sheet already carries the real answer.
+ */
+function isProficientInChallengeSkill(character: PlayerCharacter, skillName: string): boolean {
+  const skillId = skillName.toLowerCase().replace(/\s+/g, '_');
+  const lowerName = skillName.toLowerCase();
+
+  return (character.skills ?? []).some(
+    skill => skill.id === skillId || skill.name.toLowerCase() === lowerName
+  );
+}
+
+/**
  * Attempts a step in the skill challenge.
  * @param challenge The current challenge state (mutated or cloned).
  * @param character The character performing the action.
@@ -149,11 +175,15 @@ export function attemptSkillChallenge(
   const score = character.abilityScores[abilityName];
   const mod = getAbilityModifierValue(score);
 
-  // TODO #916: Add proficiency bonus if character is proficient in the skill.
-  // For now, we rely on ability mod.
+  // #916 resolved: a proficient character adds their proficiency bonus, the
+  // same way lock, trap, and glyph checks already do. Non-proficient characters
+  // keep the previous ability-only total, so existing challenge DCs stay
+  // calibrated for untrained approaches.
+  const isProficient = isProficientInChallengeSkill(character, skillName);
+  const proficiencyBonus = isProficient ? (character.proficiencyBonus ?? 0) : 0;
 
   const d20 = rollDice('1d20');
-  const total = d20 + mod;
+  const total = d20 + mod + proficiencyBonus;
 
   const isSuccess = total >= dc;
 

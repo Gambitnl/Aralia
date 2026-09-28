@@ -15,7 +15,8 @@
  * (`inSceneMovement`), so an in-scene click is ruled by the SAME lattice the 2D
  * board uses. Abilities/attacks still resolve on the existing machinery; for this
  * slice their full in-scene TARGETING is deferred to the 2D-board toggle (the
- * honest cut line documented in the spec), while movement + turn flow are live
+ * honest cut line documented in the spec, tracked in Agora task agora-1224),
+ * while movement + turn flow are live
  * in-scene.
  */
 import React from 'react';

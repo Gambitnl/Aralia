@@ -12,7 +12,7 @@ import { isGroqActive, routeGenerateForTask } from './ai/textProviderRouter';
 import { parseJsonRobustly } from './ollama/jsonParser';
 import { CompanionSoulSchema, CompanionSoul } from '../types/companion';
 import { generateNPC, NPCGenerationConfig } from './npcGenerator';
-import { COMPANION_GENERATION_MODEL } from '../config/llmProviderConfig';
+import { resolveOllamaModel } from './ai/aiProviderSettings';
 
 /**
  * Configuration for generating a companion's skeleton.
@@ -29,15 +29,39 @@ export interface CompanionSkeletonConfig {
 /**
  * Generates the "skeleton" of a companion.
  * This function is responsible for creating a mechanically valid PlayerCharacter
- * with all the necessary stats, skills, and equipment, but with placeholder
- * narrative details. Also generates rich NPC data for biography/family info.
+ * with all the necessary stats, skills, and equipment, and with a real seeded
+ * name, biography, family and physical description drawn from the NPC generator.
+ *
+ * WHAT CHANGED (agora-4c53): the skeleton used to be built with the literal
+ * name "Generated Character", and `generateNPC` was only called afterwards, for
+ * biography data. The NPC is now generated FIRST and its name seeds the
+ * character config, so a skeleton is a named person even before (or without) a
+ * soul. The name comes from `src/data/names/raceNames.ts` via `generateNPC`, so
+ * it matches the companion's race and the gender the same call chose — no second
+ * name bank, and no new naming system.
+ *
+ * WHAT IS PRESERVED: `generateCompanion` still overwrites `name` with the soul's
+ * name when a soul is generated, and the family-surname alignment there still
+ * runs. The seeded name is what a soul-less skeleton now shows instead of a
+ * placeholder, and it is what the skeleton's family surnames already agree with.
  *
  * @param config The configuration for the skeleton.
  * @returns A PlayerCharacter object or null if generation fails.
  */
 export function generateSkeleton(config: CompanionSkeletonConfig): PlayerCharacter | null {
+  // Generate rich NPC data FIRST: its name is the companion's default name seed,
+  // and its family surnames are generated against that same name.
+  const npcConfig: NPCGenerationConfig = {
+    role: 'unique',
+    raceId: config.raceId,
+    classId: config.classId,
+    level: config.level,
+    gender: config.gender,
+  };
+  const richNpc = generateNPC(npcConfig);
+
   const characterConfig: CharacterGenerationConfig = {
-    name: "Generated Character", // Placeholder name, will be overwritten by soul
+    name: richNpc.name, // Race- and gender-appropriate seed name; a soul may rename later.
     raceId: config.raceId,
     classId: config.classId,
   };
@@ -45,16 +69,6 @@ export function generateSkeleton(config: CompanionSkeletonConfig): PlayerCharact
   const skeleton = generateCharacterFromConfig(characterConfig);
 
   if (skeleton) {
-    // Generate rich NPC data for biography, family, and physical description
-    const npcConfig: NPCGenerationConfig = {
-      role: 'unique',
-      raceId: config.raceId,
-      classId: config.classId,
-      level: config.level,
-      gender: config.gender,
-    };
-    const richNpc = generateNPC(npcConfig);
-
     // Attach rich NPC data to the skeleton
     skeleton.richNpcData = {
       age: richNpc.biography.age,
@@ -123,9 +137,9 @@ export async function generateSoul(skeleton: PlayerCharacter): Promise<Companion
   // sink. When Groq is not active, use the local Ollama path unchanged.
   const useGroq = isGroqActive();
 
-  // Use mistral:instruct specifically for character generation (better at structured JSON output).
-  // Sourced from the canonical LLM provider config — value unchanged. See src/config/llmProviderConfig.ts.
-  const model = COMPANION_GENERATION_MODEL;
+  // The 'companion' category's one model: the player's choice or the default
+  // (mistral:instruct, reliable structured JSON). No fallback (agora-d1c7.1).
+  const model = resolveOllamaModel('companion');
 
   const client = useGroq ? null : new OllamaClient();
   if (client) {

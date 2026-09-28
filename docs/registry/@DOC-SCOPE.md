@@ -42,7 +42,7 @@ Excluded roots with the heaviest markdown volume in the current snapshot:
 - `.agent`: `319`
 - `.uplink`: `227`
 - `.jules`: `159`
-- `conductor`: `50`
+- `conductor`: removed 2026-08-31 - the folder was deleted. See docs/projects/CONDUCTOR_RETIRED.md.
 - `dist`: `37`
 - `.gemini`: `15`
 - `devtools`: `13`

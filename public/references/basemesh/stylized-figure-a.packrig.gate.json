@@ -14,7 +14,7 @@
   {
    "name": "symmetry",
    "pass": true,
-   "detail": "all _l/_r pairs mirror within 0.025"
+   "detail": "all 29 side pairs mirror within 0.025"
   },
   {
    "name": "bone-lengths",
@@ -31,5 +31,7 @@
    "pass": true,
    "detail": "every torso band owned by an allowed bone"
   }
- ]
+ ],
+ "family": "pack",
+ "headless": false
 }

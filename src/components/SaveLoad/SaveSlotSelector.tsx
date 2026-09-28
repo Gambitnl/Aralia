@@ -92,8 +92,10 @@ const SaveSlotSelector: React.FC<SaveSlotSelectorProps> = ({
   };
 
   useEffect(() => {
-    // TODO: Add automated accessibility tests (axe) to verify focus trap and keyboard
-    // navigation in SaveSlotSelector; the dev-only runAxe call below only covers manual runs.
+    // Automated coverage lives in __tests__/SaveSlotSelector.test.tsx: the focus
+    // trap and keyboard navigation are asserted there, and axe-core runs for
+    // real against both dialogs. This probe is the live-browser convenience on
+    // top of that, not the only check.
     // The dependency axe-core is large, so we only want to load it in development.
     // NOTE: We explicitly use import.meta.env.DEV here instead of ENV.DEV.
     // ENV.DEV is an object property and cannot be statically analyzed by Vite for tree-shaking,

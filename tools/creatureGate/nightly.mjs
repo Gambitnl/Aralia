@@ -6,6 +6,12 @@
 // part-review roster:
 //   1. silhouette-sweep every library plan (sweep.mjs, 4 views) + gate floors
 //   2. part-sweep the fixed roster (partSweep.mjs)
+//   2b. MOTION gate (motionGate.mjs, 2026-09-09): per body a T-pose capture AND
+//      a pack:Walk t=0.5 capture, with finger-interpenetration and
+//      silhouette-break floors. Everything above this line is a frozen pose, so
+//      nothing above it can catch a defect that only exists under a clip — the
+//      2026-08-24 standing lesson. Diffed against its own motion-baseline.json;
+//      a NEW flag is a regression that reopens the owning part campaign.
 //   3. diff the gate report against the stored baseline
 //      (.agent/part-quality/baseline.json) — NEW floor flags are regressions,
 //      resolved flags are wins
@@ -66,6 +72,27 @@ execFileSync('node', ['tools/creatureGate/partSweep.mjs', partDir, ...roster], {
 // (partGate.mjs --score once a context-free reader fills blind-reads.json)
 execFileSync('node', ['tools/creatureGate/partGate.mjs', partDir], { stdio: 'inherit' });
 
+// 2b. MOTION gate — a clip frame beside every T-pose capture (2026-09-09).
+// THE STANDING LESSON (2026-08-24, GOAL doc): "a still T-pose proof alone ships
+// nothing" — two clean stills hid crossed chains and scissored curls in one
+// night. Every capture above is a frozen pose, so none of them can see a defect
+// that only exists while a clip drives the bones. motionGate.mjs captures the
+// bind pose AND pack:Walk at t=0.5 per body and measures both.
+//
+// It EXITS NON-ZERO when a floor fires, which is the point — but a failing
+// motion gate must not abort the nightly before it writes its report, so the
+// exit code is caught and the flags are read from the report instead.
+const motionDir = join(outRoot, `motion-${date}`);
+let motionFailed = false;
+try {
+  execFileSync('node', ['tools/creatureGate/motionGate.mjs', motionDir], { stdio: 'inherit' });
+} catch {
+  motionFailed = true;
+}
+const motionPath = join(motionDir, 'motion-report.json');
+const motion = existsSync(motionPath) ? JSON.parse(readFileSync(motionPath, 'utf8')) : null;
+if (!motion) console.log(`nightly: motion gate produced no report at ${motionPath} — motion NOT measured this run`);
+
 // 3. diff against the baseline
 const report = JSON.parse(readFileSync(join(sweepDir, 'report.json'), 'utf8'));
 const baselinePath = join(outRoot, 'baseline.json');
@@ -94,6 +121,39 @@ if (existsSync(baselinePath)) {
   copyFileSync(join(sweepDir, 'report.json'), baselinePath);
   lines.push('No baseline found — this run IS the new baseline.', '');
 }
+// 3b. the motion gate's own baseline diff. Kept in a SEPARATE baseline file
+// from the silhouette sweep because the two measure different things on
+// different rosters; folding them into one file would make a roster change
+// look like a wave of regressions.
+if (motion) {
+  const motionBaselinePath = join(outRoot, 'motion-baseline.json');
+  const motionLines = [];
+  if (existsSync(motionBaselinePath)) {
+    const base = JSON.parse(readFileSync(motionBaselinePath, 'utf8'));
+    for (const [body, r] of Object.entries(motion.bodies)) {
+      if (!(body in (base.bodies ?? {}))) {
+        motionLines.push(`- ${body}: NEW BODY, ${r.flags.length} flag(s) on first measurement`);
+        continue;
+      }
+      const before = new Set((base.bodies[body].flags ?? []).map((f) => f.split(' (')[0]));
+      const after = new Set(r.flags.map((f) => f.split(' (')[0]));
+      for (const f of after) if (!before.has(f)) motionLines.push(`- ${body}: REGRESSION — NEW ${f}  → reopen the owning part campaign`);
+      for (const f of before) if (!after.has(f)) motionLines.push(`- ${body}: resolved ${f}`);
+    }
+  } else {
+    writeFileSync(motionBaselinePath, JSON.stringify(motion, null, 1));
+    motionLines.push('- No motion baseline found — this run IS the new motion baseline.');
+  }
+  lines.push(`## Motion gate (T-pose + pack:${motion.clip} t=${motion.t}) — ${motionFailed ? 'FAILED' : 'passed'}`, ...(motionLines.length ? motionLines : ['- no change against the motion baseline']), '');
+  lines.push('### Motion flags now');
+  for (const [body, r] of Object.entries(motion.bodies)) {
+    lines.push(`- ${body}: ${r.flags.length ? r.flags.join(' | ') : 'clean at the bind pose AND under the clip'}`);
+  }
+  lines.push('', `Motion captures: ${motionDir}`, '');
+} else {
+  lines.push('## Motion gate', '- NOT MEASURED this run (no report). An unmeasured gate is not a passed gate.', '');
+}
+
 lines.push('## Current flags');
 for (const [id, r] of Object.entries(report)) {
   lines.push(`- ${id}: ${r.flags.length ? r.flags.join(' | ') : 'clean'}`);

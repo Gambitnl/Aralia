@@ -16,12 +16,14 @@
  * World map modal surface. Worldforge native renderers (SVG/canvas) are the sole
  * cartography system. The Azgaar iframe has been retired (2026-06-24).
  *
- * The pane receives legacy `MapData` for player position/discovery tracking.
- * These reads pass through the World geography adapter, preserving travel,
- * discovery, and 3D-entry contracts during the Submap → Worldforge transition.
+ * Grid retirement (agora-608b): the pane takes NO `MapData`. It renders the
+ * cell-native Worldforge atlas (`getBridgeAtlas(worldSeed)`), resolves every pick
+ * by cellId, and hands travel / 3D-entry callbacks a `WorldCellView`. The old
+ * claim that it receives a legacy grid and reads it through a geography adapter
+ * was already false when the adapter was deleted; the contract type now says so.
  */
 import React from 'react';
-import { MapTile as MapTileType } from '../types';
+import { WorldCellView } from '../types';
 import type { Item } from '@/types/items';
 import type { TravelMeta } from '@/types/travelMeta';
 import type { PlayerWorldPosition, DiscoveredHiddenSite } from '../types';
@@ -30,9 +32,9 @@ import { type TripEventPartyMember } from '@/systems/travel/tripEvents';
 import type { Ship } from '@/types/naval';
 interface MapPaneProps {
     worldSeed?: number;
-    onTileClick: (x: number, y: number, tile: MapTileType, travelMeta?: TravelMeta) => void;
+    onTileClick: (x: number, y: number, cell: WorldCellView, travelMeta?: TravelMeta) => void;
     /** When set, clicking a discovered cell in Enter 3D mode starts streamed world entry. */
-    onEnter3DAtCell?: (x: number, y: number, tile: MapTileType, anchor?: Entry3DAnchor) => void;
+    onEnter3DAtCell?: (x: number, y: number, cell: WorldCellView, anchor?: Entry3DAnchor) => void;
     /** Last known 3D position — draws AtlasPlayerMarker on the Worldforge atlas. */
     playerWorldPos?: PlayerWorldPosition | null;
     /** SP4 discovered hidden places — pinned on the World Forge atlas. */

@@ -30,7 +30,7 @@ import type { CombatCharacter, CombatState } from '../../types/combat';
 import type { LimitedUses } from '../../types/character';
 import type { Skill } from '../../types/core';
 import { SKILLS_DATA } from '../../data/skills';
-import { rollDice } from './combatUtils';
+import { rollDice } from '../../systems/dice/rollers';
 
 export const BARDIC_INSPIRATION_KEY = 'bardic_inspiration';
 export const CUTTING_WORDS_ABILITY_ID = 'cutting_words';

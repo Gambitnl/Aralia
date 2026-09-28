@@ -22,15 +22,84 @@
  * Everything else keeps its bone-heat weights. Run AFTER rigBaseMeshes
  * --pack; re-run whenever the rigs rebuild. Bump BASE_MESH_RIG_VERSION.
  *
- * Run: node tools/entities3d/bandWeights.mjs <id> [...]
+ * ---------------------------------------------------------------------------
+ * WHICH RIG THIS APPLIES TO (measured 2026-09-09, board task agora-ff56).
+ * ---------------------------------------------------------------------------
+ * Three skeletons ship per lowpoly body and only ONE of them can carry bands:
+ *
+ *   <id>.packrig.glb   74-bone Mesh2Motion pack armature — THE ONLY TARGET.
+ *                      Three phalanges per finger (index_01_l..03_l) plus the
+ *                      synthesized metacarpals this pass ramps into. Every
+ *                      bone name below is a pack name; the file hard-fails on
+ *                      anything else because `jIdx` throws on a missing joint.
+ *   <id>.authorrig.glb the pack's OWN author armature folded onto our 39-bone
+ *                      contract (agora-2560, 2026-09-09, now the DEFAULT for
+ *                      lowpoly-male/female). It carries TWO links per finger
+ *                      (fingerL0a/fingerL0b) and NO metacarpals — there is no
+ *                      third phalanx to band and no below-bone to ramp into,
+ *                      so this pass is structurally inapplicable to it. It
+ *                      also does not need it: those weights are hand-painted
+ *                      by the pack's author, which is what banding imitates.
+ *   <id>.rigged.glb    39-bone bone-heat rig, same two-link fingers. Same
+ *                      verdict, and it is now only kept for the A/B (?rig=heat).
+ *
+ * So R2 is a PACK-RIG-lane change. The author-rig replacement did not consume
+ * it and did not obsolete it; the two lanes are independent.
+ *
+ * ---------------------------------------------------------------------------
+ * WHY IT IS STILL PARKED. The bands are innocent (see the A/B below) but they
+ * ride the finger CHAINS, and the traced chains that motivated them are parked
+ * behind `centerlineFit --fingers` because splayed chains give splayed flexion
+ * axes and the pack clips scissor the fingers (2026-08-24, version 24f). Bands
+ * go live together with R1's STRAIGHTENED chains, not before, and the live
+ * flip is what bumps BASE_MESH_RIG_VERSION — the browser fetches
+ * `<id>.packrig.glb?v=<BASE_MESH_RIG_VERSION>`, so a rewritten GLB under an
+ * unchanged version is invisible to any warm tab. Judge the pair with
+ * `tools/entities3d/digitBandGate.mjs`.
+ *
+ * LESSONS BANKED (each one cost a wrong result):
+ *   - never put the below-bone in the family vote: every palm vertex is
+ *     hand-weighted, so the thumb family won every palm vote and the palm
+ *     curled with the thumb.
+ *   - membership from bone HEAT, not a distance Voronoi: at a zero finger gap
+ *     the nearest chain steals the crack-side vertices of its neighbor and the
+ *     curl crumples. Heat already solved connectivity; the band only
+ *     redistributes ALONG the chain it is given.
+ *   - static-perfect is not the bar. Remy's spec is "natural when ANIMATED":
+ *     the 24e crumple was invisible in every T-pose proof. Never ship a
+ *     fitter/weight change on a rest render.
+ *   - ...but `pack:Walk` is NOT the animated proof, despite the standing
+ *     instruction to use it. Measured 2026-09-09 in the pack animation GLBs:
+ *     of the eight Part Lab clips only `Greeting` rotates the digit bones
+ *     (quaternion range 0.644); Walk, Idle_A, Jog, Dance_Simple, Bow, Victory
+ *     and Head Nod are all exactly 0. They carry finger channels with CONSTANT
+ *     tracks, so a Walk capture shows the bind hand travelling through space
+ *     and can never show a flexion failure. Curl proofs go on `pack:Greeting`.
+ *
+ * ---------------------------------------------------------------------------
+ * Run: node tools/entities3d/bandWeights.mjs [--dry-run] [--out <dir>] <id> [...]
+ *
+ *   (no flag)    rewrites public/references/basemesh/<id>.packrig.glb IN PLACE.
+ *                That is the live flip — bump BASE_MESH_RIG_VERSION with it.
+ *   --dry-run    reports the band/palm counts and writes nothing. Use this to
+ *                prove the post-pass still runs without going live.
+ *   --out <dir>  writes the banded GLB to <dir>/<id>.packrig.glb and leaves the
+ *                published file alone. Use a .agent/scratch/ dir; this is how
+ *                the A/B capture gets a banded body to photograph.
  */
-import { readFileSync, writeFileSync, existsSync } from 'node:fs';
+import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
 import path from 'node:path';
 
 const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname.replace(/^\/(?=[A-Za-z]:)/, '')), '..', '..');
 const BASE_DIR = path.join(ROOT, 'public', 'references', 'basemesh');
-const ids = process.argv.slice(2);
-if (!ids.length) throw new Error('usage: node tools/entities3d/bandWeights.mjs <id> [...]');
+const argv = process.argv.slice(2);
+const dryRun = argv.includes('--dry-run');
+const outIdx = argv.indexOf('--out');
+const outDir = outIdx >= 0 ? path.resolve(ROOT, argv[outIdx + 1] ?? '') : null;
+if (outIdx >= 0 && !argv[outIdx + 1]) throw new Error('--out needs a directory');
+const ids = argv.filter((a, i) => !a.startsWith('--') && !(outIdx >= 0 && i === outIdx + 1));
+if (!ids.length) throw new Error('usage: node tools/entities3d/bandWeights.mjs [--dry-run] [--out <dir>] <id> [...]');
+if (outDir) mkdirSync(outDir, { recursive: true });
 
 const qMul = (a, b) => [a[3] * b[0] + a[0] * b[3] + a[1] * b[2] - a[2] * b[1], a[3] * b[1] - a[0] * b[2] + a[1] * b[3] + a[2] * b[0], a[3] * b[2] + a[0] * b[1] - a[1] * b[0] + a[2] * b[3], a[3] * b[3] - a[0] * b[0] - a[1] * b[1] - a[2] * b[2]];
 const qRot = (q, v) => {
@@ -227,6 +296,10 @@ for (const id of ids) {
       }
     }
   }
-  writeFileSync(file, buf);
-  console.log(`${id}: banded ${banded} digit vertices, cleaned ${palmed} palm vertices -> ${path.relative(ROOT, file)}`);
+  // WHERE the result lands is the only difference between a rehearsal and the
+  // live flip; the banding above is identical in all three modes.
+  const dest = outDir ? path.join(outDir, `${id}.packrig.glb`) : file;
+  if (!dryRun) writeFileSync(dest, buf);
+  const where = dryRun ? '(dry run — nothing written)' : `-> ${path.relative(ROOT, dest)}`;
+  console.log(`${id}: banded ${banded} digit vertices, cleaned ${palmed} palm vertices ${where}`);
 }

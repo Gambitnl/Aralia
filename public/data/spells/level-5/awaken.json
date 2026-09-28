@@ -172,7 +172,7 @@
                                                              },
                                                 "level":  0
                                             },
-                        "description":  "The awakened Beast or Plant is Charmed for 30 days or until the caster or the caster\u0027s allies damage it, then chooses its attitude when the condition ends.",
+                        "description":  "The awakened Beast or Plant is Charmed for 30 days or until the caster or the caster's allies damage it, then chooses its attitude when the condition ends.",
                         "scaling":  {
                                         "type":  "slot_level",
                                         "bonusPerLevel":  "",
@@ -182,7 +182,7 @@
                                                    {
                                                        "trigger":  "caster_or_ally_damages_target",
                                                        "scope":  "effect",
-                                                       "description":  "The Charmed condition ends early if the caster or the caster\u0027s allies deal damage to the awakened target."
+                                                       "description":  "The Charmed condition ends early if the caster or the caster's allies deal damage to the awakened target."
                                                    }
                                                ],
                         "socialEffect":  {
@@ -350,10 +350,10 @@
                 ],
     "arbitrationType":  "mechanical",
     "aiContext":  {
-                      "prompt":  "Choose the eligible Beast, Plant creature, or natural plant touched at the end of the 8-hour casting. Choose one language the caster knows for the awakened target; if a natural plant becomes a creature, record the DM-chosen stat profile such as Awakened Shrub or Awakened Tree, and record the awakened creature\u0027s attitude when the Charmed condition ends.",
+                      "prompt":  "Choose the eligible Beast, Plant creature, or natural plant touched at the end of the 8-hour casting. Choose one language the caster knows for the awakened target; if a natural plant becomes a creature, record the DM-chosen stat profile such as Awakened Shrub or Awakened Tree, and record the awakened creature's attitude when the Charmed condition ends.",
                       "playerInputRequired":  true
                   },
-    "description":  "You spend the casting time tracing magical pathways within a precious gemstone, and then touch the target. The target must be either a Beast or Plant creature with an Intelligence of 3 or less or a natural plant that isn\u0027t a creature. The target gains an Intelligence of 10 and the ability to speak one language you know. If the target is a natural plant, it becomes a Plant creature and gains the ability to move its limbs, roots, vines, creepers, and so forth, and it gains senses similar to a human\u0027s. The DM chooses statistics appropriate for the awakened Plant, such as the statistics for the Awakened Shrub or Awakened Tree in the Monster Manual . The awakened target has the Charmed condition for 30 days or until you or your allies deal damage to it. When that condition ends, the awakened creature chooses its attitude toward you.",
+    "description":  "You spend the casting time tracing magical pathways within a precious gemstone, and then touch the target. The target must be either a Beast or Plant creature with an Intelligence of 3 or less or a natural plant that isn't a creature. The target gains an Intelligence of 10 and the ability to speak one language you know. If the target is a natural plant, it becomes a Plant creature and gains the ability to move its limbs, roots, vines, creepers, and so forth, and it gains senses similar to a human's. The DM chooses statistics appropriate for the awakened Plant, such as the statistics for the Awakened Shrub or Awakened Tree in the Monster Manual . The awakened target has the Charmed condition for 30 days or until you or your allies deal damage to it. When that condition ends, the awakened creature chooses its attitude toward you.",
     "higherLevels":  "",
     "tags":  [
 

@@ -65,7 +65,7 @@ Each `Biome` object has the following properties:
 *   **`MapPane.tsx`**: Uses `BIOMES` data to get the color, icon, and name for rendering each map tile based on its `biomeId`.
 *   **`App.tsx`**: Uses `BIOMES` data (specifically `passable` and `impassableReason`) in `handleTileClick` to determine if travel to a clicked map tile is allowed and to provide feedback.
 *   **`src/constants.ts`**: Imports and re-exports `BIOMES` for global access.
-*   **`villageGenerator.ts`**: Infers biome style/architecture from biome family/magic to theme towns.
+*   **`systems/worldforge/town/cultureStructures.ts`**: Infers a settlement's biome style and culture accent from biome family/magic to theme towns. (It replaced `villageGenerator.ts`, deleted 2026-09-20 with the 2D village view.)
 
 ## Adding a New Biome
 

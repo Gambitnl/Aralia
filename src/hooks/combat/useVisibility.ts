@@ -21,7 +21,7 @@
  */
 
 import { useMemo } from 'react';
-import { CombatState, LightLevel } from '../../types/combat';
+import { BattleMapData, CombatState, LightLevel } from '../../types/combat';
 import { VisibilitySystem } from '../../systems/visibility';
 import { isPositionInArea } from '../../systems/spells/effects/triggerHandler';
 
@@ -72,6 +72,12 @@ function applyMagicalDarknessZones(
   return nextLevels;
 }
 
+/** Board ambient light: explicit field first, theme inference as the legacy default. */
+export const resolveAmbientLight = (mapData: BattleMapData): Exclude<LightLevel, 'magical_darkness'> => {
+  if (mapData.ambientLight) return mapData.ambientLight;
+  return mapData.theme === 'cave' || mapData.theme === 'dungeon' ? 'darkness' : 'bright';
+};
+
 export const useVisibility = ({ combatState, activeCharacterId, viewerId }: UseVisibilityProps): UseVisibilityResult => {
   const { mapData, activeLightSources, characters } = combatState;
 
@@ -81,9 +87,10 @@ export const useVisibility = ({ combatState, activeCharacterId, viewerId }: UseV
   const lightLevels = useMemo(() => {
     if (!mapData) return new Map<string, LightLevel>();
 
-    // Determine ambient light based on theme (or default to darkness for Underdark)
-    // TODO: Add `ambientLight` to BattleMapData schema properly. For now, infer or default.
-    const ambient = mapData.theme === 'cave' || mapData.theme === 'dungeon' ? 'darkness' : 'bright';
+    // Ambient light comes from the board itself when the generator set it
+    // (mapData.ambientLight, agora-a46a.3); the theme inference is the default
+    // for boards that predate the field.
+    const ambient = resolveAmbientLight(mapData);
 
     // If ambient is bright, we can skip calculation unless we have magical darkness (future proofing)
     if (ambient === 'bright') {
@@ -96,7 +103,7 @@ export const useVisibility = ({ combatState, activeCharacterId, viewerId }: UseV
     // My implementation signature is: calculateLightLevels(mapData, lightSources)
     // The previous code passed 'ambient'. I need to fix this call.
     return applyMagicalDarknessZones(
-      VisibilitySystem.calculateLightLevels(mapData, activeLightSources),
+      VisibilitySystem.calculateLightLevels(mapData, activeLightSources, ambient),
       combatState
     );
   }, [mapData, activeLightSources, combatState]);

@@ -1,6 +1,8 @@
 /**
  * This file proves the Beast Master Primal Companion binding, stat scaling,
- * Bonus Action command economy, and Beast's Strike transaction.
+ * Bonus Action command economy, and Beast's Strike reach rules. The strike's
+ * attack roll and damage belong to the command layer and are proved in
+ * systems/combat/__tests__/riderExtraStrikes.test.ts.
  */
 
 import { describe, expect, it } from 'vitest';
@@ -12,7 +14,7 @@ import {
   calculatePrimalBeastMaxHp,
   PRIMAL_COMPANION_FEATURE_ID,
   resolveBeastCommand,
-  resolveBeastsStrike,
+  validateBeastsStrike,
 } from '../beastMasterUtils';
 
 function createRanger(): CombatCharacter {
@@ -94,8 +96,8 @@ describe('resolveBeastCommand', () => {
   });
 });
 
-describe('resolveBeastsStrike', () => {
-  it('applies scaled strike damage to an adjacent target', () => {
+describe('validateBeastsStrike', () => {
+  it('accepts an adjacent target and carries the strike damage on the ability', () => {
     const ranger = createRanger();
     const beast = bindPrimalBeast(ranger, createBeastToken(), 'land');
     const target = createMockCombatCharacter({
@@ -103,13 +105,14 @@ describe('resolveBeastsStrike', () => {
     });
     const state = createMockCombatState({ characters: [ranger, beast, target] });
 
-    const result = resolveBeastsStrike(state, {
-      beastId: 'beast', targetId: 'goblin', rng: () => 0.999, // pins 1d8 at 8
-    });
-    expect(result.resolved).toBe(true);
-    // 1d8 (8) + strikeModifier (2) + PB (2) = 12, floored at target HP 12
-    expect(result.damageApplied).toBe(12);
-    expect(result.state.characters.find(c => c.id === 'goblin')?.currentHP).toBe(0);
+    expect(validateBeastsStrike(state, { beastId: 'beast', targetId: 'goblin' }).resolved).toBe(true);
+
+    // The validation rolls nothing. The damage the strike will deal rides on the
+    // beast's own attack ability, which is what lets the command layer resolve
+    // it as an ordinary weapon attack: 1d8 + strikeModifier (2) + PB (2).
+    const strike = beast.abilities.find(ability => ability.id === 'primal_beast_strike');
+    expect(strike?.type).toBe('attack');
+    expect(strike?.effects[0]).toMatchObject({ type: 'damage', dice: '1d8+4', damageType: 'piercing' });
   });
 
   it('rejects a non-beast or out-of-reach target', () => {
@@ -120,7 +123,7 @@ describe('resolveBeastsStrike', () => {
     });
     const state = createMockCombatState({ characters: [ranger, notBeast, target] });
 
-    expect(resolveBeastsStrike(state, { beastId: 'beast', targetId: 'goblin' }).failure)
+    expect(validateBeastsStrike(state, { beastId: 'beast', targetId: 'goblin' }).failure)
       .toBe('not_a_primal_beast');
 
     const beast = bindPrimalBeast(ranger, createBeastToken(), 'land');
@@ -128,7 +131,7 @@ describe('resolveBeastsStrike', () => {
       id: 'goblin', name: 'Goblin', team: 'enemy', position: { x: 5, y: 0 }, currentHP: 10, maxHP: 10,
     });
     const farState = createMockCombatState({ characters: [ranger, beast, farTarget] });
-    expect(resolveBeastsStrike(farState, { beastId: 'beast', targetId: 'goblin' }).failure)
+    expect(validateBeastsStrike(farState, { beastId: 'beast', targetId: 'goblin' }).failure)
       .toBe('target_out_of_reach');
   });
 });

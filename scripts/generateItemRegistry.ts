@@ -8,6 +8,39 @@ const EQUIPMENT_DIR = path.join(ENTRIES_BASE, 'equipment');
 const MAGIC_ITEMS_DIR = path.join(ENTRIES_BASE, 'magic_items');
 const OUT_FILE = path.join(process.cwd(), 'src/data/items/generatedGlossaryItems.ts');
 
+
+/** 5etools single-letter damage codes, plus the canonical names themselves. */
+const DAMAGE_TYPE_BY_CODE: Record<string, string> = {
+  a: 'Acid',
+  b: 'Bludgeoning',
+  c: 'Cold',
+  f: 'Fire',
+  o: 'Force',
+  l: 'Lightning',
+  n: 'Necrotic',
+  p: 'Piercing',
+  i: 'Poison',
+  y: 'Psychic',
+  r: 'Radiant',
+  s: 'Slashing',
+  t: 'Thunder',
+};
+
+const CANONICAL_DAMAGE_TYPES = Object.values(DAMAGE_TYPE_BY_CODE);
+
+/**
+ * Resolves a 5etools damage token to a canonical damage-type name. Returns
+ * undefined when the token names no damage type, so the item is written with no
+ * damage type rather than with a code the game cannot read.
+ */
+function resolveDamageType(token: string): string | undefined {
+  const value = token.trim();
+  const full = CANONICAL_DAMAGE_TYPES.find((name) => name.toLowerCase() === value.toLowerCase());
+  if (full) return full;
+  if (value.length === 1) return DAMAGE_TYPE_BY_CODE[value.toLowerCase()];
+  return undefined;
+}
+
 function getAllFiles(dirPath: string, arrayOfFiles: string[] = []): string[] {
   if (!fs.existsSync(dirPath)) return arrayOfFiles;
   const files = fs.readdirSync(dirPath);
@@ -184,16 +217,15 @@ export function convertEntryToItem(data: any): { id: string; item: Record<string
   if (slot) item.slot = slot;
   if (armorCategory) item.armorCategory = armorCategory;
 
-  // Damage parsing: "1d8 S" -> damageDice: "1d8", damageType: "Slashing"
+  // Damage parsing: "1d8 S" -> damageDice: "1d8", damageType: "Slashing".
+  // 5etools writes the damage type as a single-letter code; the whole table is
+  // mapped here so no code leaks into the registry as a damage type of its own.
   if (meta.damage) {
     const parts = meta.damage.split(' ');
     if (parts.length > 0) item.damageDice = parts[0];
     if (parts.length > 1) {
-      const dType = parts[1].toLowerCase();
-      if (dType.startsWith('s')) item.damageType = 'Slashing';
-      else if (dType.startsWith('p')) item.damageType = 'Piercing';
-      else if (dType.startsWith('b')) item.damageType = 'Bludgeoning';
-      else item.damageType = parts[1]; // fallback
+      const canonical = resolveDamageType(parts[1]);
+      if (canonical) item.damageType = canonical;
     }
   }
 

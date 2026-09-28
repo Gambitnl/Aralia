@@ -35,7 +35,7 @@ import { REFINING_RECIPES } from '../../systems/crafting/data/refiningRecipes';
 import { ENCHANTING_RECIPES } from '../../systems/crafting/data/enchantingRecipes';
 import { processRefiningBatch, RefiningRecipe } from '../../systems/crafting/RefiningSystem';
 import { attemptEnchant } from '../../systems/crafting/EnchantingSystem';
-import { resolveCraftingCrafter } from './crafterAdapter';
+import { resolveCraftingCrafter, NO_CRAFTER_MESSAGE } from './crafterAdapter';
 import {
     buildCrafterInventory,
     buildEnchantActions,
@@ -98,10 +98,12 @@ export const RefiningEnchantingPanel: React.FC<RefiningEnchantingPanelProps> = (
     const [isWorking, setIsWorking] = useState(false);
     const [workLog, setWorkLog] = useState<WorkLogEntry[]>([]);
 
-    const { crafter, sourceCharacter } = useMemo(
+    const crafterResolution = useMemo(
         () => resolveCraftingCrafter({ party: state.party, characterSheetModal: state.characterSheetModal }),
         [state.party, state.characterSheetModal],
     );
+    const sourceCharacter = crafterResolution.sourceCharacter;
+    const hasCrafter = crafterResolution.status === 'resolved';
 
     const recipes: Recipe[] = activeTab === 'refine' ? REFINING_RECIPES : ENCHANTING_RECIPES;
     const selectedRecipe = recipes.find(r => r.id === selectedId) ?? null;
@@ -148,6 +150,10 @@ export const RefiningEnchantingPanel: React.FC<RefiningEnchantingPanelProps> = (
     // records the yield or loss that the crafting system returned.
     const handleRefine = () => {
         if (!selectedRecipe || !readiness?.canCraft || isWorking) return;
+        // No fallbacks: no crafter means no roll. The button is already disabled
+        // in that state; this guard is the type-level proof of the same rule.
+        if (crafterResolution.status !== 'resolved') return;
+        const { crafter } = crafterResolution;
         setIsWorking(true);
 
         setTimeout(() => {
@@ -187,6 +193,8 @@ export const RefiningEnchantingPanel: React.FC<RefiningEnchantingPanelProps> = (
     // base-item loss, before forwarding the resulting inventory actions.
     const handleEnchant = () => {
         if (!selectedRecipe || !readiness?.canCraft || isWorking) return;
+        if (crafterResolution.status !== 'resolved') return;
+        const { crafter } = crafterResolution;
         setIsWorking(true);
 
         setTimeout(() => {
@@ -276,7 +284,7 @@ export const RefiningEnchantingPanel: React.FC<RefiningEnchantingPanelProps> = (
                         <UserRound className="h-3.5 w-3.5 text-sky-400" aria-hidden="true" />
                         {sourceCharacter
                             ? <>Working hands: <strong className="font-medium text-stone-200">{sourceCharacter.name}</strong></>
-                            : 'No party member available — rolls are unmodified.'}
+                            : NO_CRAFTER_MESSAGE}
                     </span>
                     <span className="inline-flex items-center gap-2">
                         <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" aria-hidden="true" />
@@ -463,9 +471,9 @@ export const RefiningEnchantingPanel: React.FC<RefiningEnchantingPanelProps> = (
 
                                 <button
                                     onClick={activeTab === 'refine' ? handleRefine : handleEnchant}
-                                    disabled={!readiness.canCraft || isWorking}
+                                    disabled={!readiness.canCraft || isWorking || !hasCrafter}
                                     className={`flex min-h-12 w-full items-center justify-center gap-2 rounded-lg border font-cinzel text-sm transition-colors ${
-                                        readiness.canCraft && !isWorking
+                                        readiness.canCraft && !isWorking && hasCrafter
                                             ? activeTab === 'refine'
                                                 ? 'border-orange-500 bg-orange-700 text-orange-50 hover:bg-orange-600'
                                                 : 'border-violet-500 bg-violet-700 text-violet-50 hover:bg-violet-600'

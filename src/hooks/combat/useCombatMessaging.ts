@@ -15,8 +15,16 @@ import type {
   UseCombatMessagingReturn
 } from '../../types/combatMessages';
 import * as messageFactory from '../../utils/combat/messageFactory';
+// useOptionalGameState is used instead of useGameState so this hook still works in the
+// messaging demo and in tests that render it without a GameProvider: no provider simply
+// means no toast surface to dispatch to, which is not an error.
+import { useOptionalGameState } from '../../state/GameContext';
 
 export function useCombatMessaging(): UseCombatMessagingReturn {
+  // Toast surface for the NOTIFICATION channel (CMB-GAP-004/005). May be null.
+  const gameState = useOptionalGameState();
+  const dispatch = gameState?.dispatch;
+
   // State
   const [messages, setMessages] = useState<CombatMessage[]>([]);
   const [config, setConfig] = useState<CombatMessagingConfig>({
@@ -58,7 +66,21 @@ export function useCombatMessaging(): UseCombatMessagingReturn {
       }
       return updated;
     });
-  }, [config.maxLogEntries]);
+
+    // WHAT CHANGED (2026-09-09, CMB-GAP-005): MessageChannel.NOTIFICATION used to be recorded
+    // on messages and read by nothing. Messages that declare that channel and clear the
+    // priority floor are now forwarded to the app's existing toast surface, which
+    // components/ui/NotificationSystem.tsx already renders from state.notifications.
+    // WHY HERE: CombatView is the natural bridge point but is owned by another workstream;
+    // every rich message already passes through this hook, so this covers the adapter path
+    // and the messageFactory convenience methods alike.
+    if (dispatch && config.enableNotifications) {
+      const draft = messageFactory.toNotificationDraft(newMessage);
+      if (draft) {
+        dispatch({ type: 'ADD_NOTIFICATION', payload: draft });
+      }
+    }
+  }, [config.maxLogEntries, config.enableNotifications, dispatch]);
 
   const removeMessage = useCallback((messageId: string) => {
     setMessages(prev => prev.filter(msg => msg.id !== messageId));

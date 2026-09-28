@@ -28,8 +28,16 @@
  * math is UNTOUCHED — the rest pose below mirrors its hardcoded proportions
  * (gaits.ts BipedDriver) constant for constant, and at runtime the driver's
  * own buildBody(sink) emissions drive the bones, so the skeleton can never
- * drift from the driver. Deferred: creature/plan skeletons (slice 4), smooth
- * weights (slice 3), clip playback (slice 2).
+ * drift from the driver.
+ *
+ * Nothing here is deferred any more (agora-6816 audited this header on
+ * 2026-09-20): clip playback shipped as skinnedClipPlayer.ts, smooth biped
+ * weights as smoothBipedGeometry.ts (reached through skinnedBody's
+ * `weights: 'smooth'`), and creature/species skeletons as planSkeleton.ts,
+ * speciesSkeleton.ts and chainSkeleton.ts — each with its own rest pose and
+ * pose sink, so this file stays the BIPED builder and does not grow a
+ * second topology. Smooth joint weights on those creature bodies landed in
+ * skinnedBody.ts under agora-bc64.
  *
  * Three parts:
  *   1. bipedRestPose(frame)      — pure data: the exact segments + balls the

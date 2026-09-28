@@ -11,7 +11,6 @@
  */
 // @dependencies-end
 
-// TODO #1334: Add an ESLint rule (no-restricted-syntax or similar) to globally prevent direct calls to crypto.randomUUID(), enforcing the use of generateId() to prevent regressions.
 /**
  * Generates a unique identifier.
  * Uses `crypto.randomUUID()` where available for stronger uniqueness,

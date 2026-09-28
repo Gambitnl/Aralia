@@ -111,6 +111,11 @@ export interface SegmentBodyOptions {
    * head ball) never show through. Floating mist (the ghost) omits this and
    * keeps its layered see-through look. */
   oneSurface?: boolean;
+  /** When 'skinned', the main body deforms smoothly via bones — joint spheres
+   * would be redundant mannequin balls. The segment renderer still draws
+   * plan decorations (snouts, cilia, toes, fingers) on the anchor path, but
+   * those are short chain links where joint spheres are also unnecessary. */
+  bodyTech?: 'segments' | 'skinned';
 }
 
 export interface SegmentBody {
@@ -475,15 +480,22 @@ export function createSegmentBody(options: SegmentBodyOptions): SegmentBody {
           : bodyGeometry(`c:${q(r1)}:${q(r0)}`, () => new CylinderGeometry(r1, r0, 1, 10, 1));
         node = makeNode(id, cyl.geometry, cyl.key);
         if (!wire) {
-          for (const [endId, r] of [
-            [`${id}.jointA`, r0],
-            [`${id}.jointB`, r1],
-          ] as const) {
-            if (digit && endId.endsWith('.jointB')) continue;
-            const sph = digit
-              ? bodyGeometry(`jd:${q(r)}`, () => new SphereGeometry(r * 0.98, 6, 4))
-              : bodyGeometry(`j:${q(r)}`, () => new SphereGeometry(r * 0.98, 8, 6));
-            makeNode(endId, sph.geometry, sph.key);
+          // When bodyTech is 'skinned', the main body deforms smoothly via
+          // bones — joint spheres would be redundant mannequin balls. In
+          // skinned mode the segment renderer only draws plan decorations
+          // (snouts, cilia, toes, fingers) which are short chain links where
+          // joint spheres are also unnecessary.
+          if (options.bodyTech !== 'skinned') {
+            for (const [endId, r] of [
+              [`${id}.jointA`, r0],
+              [`${id}.jointB`, r1],
+            ] as const) {
+              if (digit && endId.endsWith('.jointB')) continue;
+              const sph = digit
+                ? bodyGeometry(`jd:${q(r)}`, () => new SphereGeometry(r * 0.98, 6, 4))
+                : bodyGeometry(`j:${q(r)}`, () => new SphereGeometry(r * 0.98, 8, 6));
+              makeNode(endId, sph.geometry, sph.key);
+            }
           }
         }
         }

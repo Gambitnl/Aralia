@@ -274,6 +274,29 @@
   .agent-note { color: var(--text-dim); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .agent-thread { color: #9fd0ff; font-family: var(--mono); }
   .agent-seen { color: var(--text-faint); font-size: 11px; font-family: var(--mono); white-space: nowrap; }
+  /* Holdings line: what this live agent is actually holding right now — the
+     campaigns it owns (joined by seat, falling back to the owner id) and the
+     file locks it holds. Presence without holdings answered "who is here" but
+     not "who is standing on the file I want", which is the question the roster
+     is read for. */
+  .agent-holdings { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 3px; }
+  .hold {
+    font-size: 11px; font-family: var(--mono); line-height: 1.6;
+    padding: 0 5px; border-radius: 4px; border: 1px solid #2b4160; background: #101a27;
+    color: var(--text-dim); max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .hold.campaign { color: #c4b5fd; border-color: #3d3466; background: #171432; }
+  .hold.campaign .hold-seat { color: #7dd3fc; }
+  .hold.lock { color: #ffd9a0; border-color: #553f1d; background: #221a0c; }
+  .hold.task { color: #a7f3d0; border-color: #1f4d3a; background: #0c2219; }
+  /* A claim with no real action for STALE_CLAIM_MS: owned, but nobody is at it. */
+  .hold.task.stale { color: #fcd34d; border-color: #6b4f12; background: #241a06; }
+  .hold .hold-note { color: var(--text-faint); font-weight: 400; }
+  /* LAST ACTION is real work only. The seen time on the right is the heartbeat,
+     which a script can send with nobody at work (Remy, 2026-09-13). */
+  .agent-action b { font-weight: 600; }
+  .agent-action.stale b { color: #fcd34d; }
+  .hold.none { color: var(--text-faint); border-style: dashed; }
   .assigned-pet {
     --pet-end-x: -228px;
     --pet-duration: 1100ms;
@@ -474,6 +497,18 @@
     border: 1px dashed var(--border); border-radius: 8px; cursor: pointer; text-align: center;
   }
   .archive-toggle:hover { color: var(--cyan, #67e8f9); border-color: var(--cyan, #67e8f9); }
+  .count-link { text-decoration: none; color: inherit; }
+  .count-link:hover .n { color: var(--cyan, #67e8f9); }
+  /* Tiered reveal: each button opens the archive back to that age. The live
+     tier is filled so the row says what is shown, not only what can be. */
+  .archive-tiers { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin: -2px 0 8px; }
+  .archive-tier {
+    font-size: 11px; padding: 3px 9px; border-radius: 999px; cursor: pointer;
+    color: var(--text-dim); background: rgba(148,163,184,.06); border: 1px dashed var(--border);
+  }
+  .archive-tier:hover { color: var(--cyan, #67e8f9); border-color: var(--cyan, #67e8f9); }
+  .archive-tier.on { color: #0b1020; background: var(--cyan, #67e8f9); border-color: var(--cyan, #67e8f9); border-style: solid; }
+  .archive-tier .n { opacity: .7; margin-left: 4px; }
 
   /* ---------- Messages ---------- */
   .msg { padding: 6px 10px; border-radius: 8px; margin-bottom: 3px; }
@@ -690,6 +725,47 @@
   .inspector-person-role { color: var(--text-faint); font-size: 10px; font-weight: 700; text-transform: uppercase; }
   .inspector-person-name { margin-top: 2px; color: var(--text); font-size: 13px; font-weight: 700; overflow-wrap: anywhere; }
   .inspector-person-meta { margin-top: 3px; color: var(--text-faint); font: 10px/1.4 var(--mono); overflow-wrap: anywhere; }
+  .inspector-pet-profile {
+    display: grid; grid-template-columns: 132px minmax(0, 1fr); gap: 14px;
+    align-items: center; padding: 14px;
+  }
+  .inspector-pet-stage {
+    display: grid; place-items: center; min-height: 132px;
+    border: 1px solid var(--border-soft); border-radius: 6px;
+    background:
+      linear-gradient(45deg, rgba(255,255,255,.035) 25%, transparent 25%),
+      linear-gradient(-45deg, rgba(255,255,255,.035) 25%, transparent 25%),
+      linear-gradient(45deg, transparent 75%, rgba(255,255,255,.035) 75%),
+      linear-gradient(-45deg, transparent 75%, rgba(255,255,255,.035) 75%);
+    background-size: 16px 16px;
+    background-position: 0 0, 0 8px, 8px -8px, -8px 0;
+  }
+  .assigned-pet.inspector-hero, .assigned-pet.inspector-preview { image-rendering: auto; }
+  .assigned-pet.inspector-hero { box-shadow: 0 8px 18px rgba(0, 0, 0, .38); }
+  .inspector-pet-name { color: var(--text); font-size: 18px; font-weight: 750; overflow-wrap: anywhere; }
+  .inspector-pet-slug { margin-top: 3px; color: #9fd0ff; font: 11px/1.45 var(--mono); overflow-wrap: anywhere; }
+  .inspector-pet-meta { margin-top: 10px; color: var(--text-dim); font-size: 12px; line-height: 1.5; }
+  .inspector-pet-actions-disclosure { border-top: 1px solid var(--border-soft); }
+  .inspector-pet-actions-disclosure > summary {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    padding: 10px 14px; color: var(--text-dim); cursor: pointer;
+    font-size: 10px; font-weight: 700; text-transform: uppercase;
+    list-style-position: inside;
+  }
+  .inspector-pet-actions-disclosure > summary:hover { background: rgba(116,181,255,.06); }
+  .inspector-pet-actions-count {
+    min-width: 22px; padding: 1px 6px; border: 1px solid #31527a; border-radius: 999px;
+    color: #9fd0ff; text-align: center;
+  }
+  .inspector-pet-actions {
+    display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px 8px;
+    margin: 0; padding: 4px 14px 14px;
+  }
+  .inspector-pet-action { min-width: 0; margin: 0; text-align: center; }
+  .inspector-pet-action .assigned-pet { display: block; margin: 0 auto 5px; }
+  .inspector-pet-action figcaption {
+    color: var(--text-dim); font-size: 10px; line-height: 1.3; overflow-wrap: anywhere;
+  }
   details.inspector-raw > summary { padding: 9px 11px; cursor: pointer; color: var(--text-dim); font-size: 11px; font-weight: 700; text-transform: uppercase; background: rgba(116,181,255,.05); }
   .inspector-json {
     margin: 0; padding: 10px; color: #c9d7f8; font: 11px/1.45 var(--mono);
@@ -697,6 +773,8 @@
   }
   @media (max-width: 560px) {
     .inspector-facts, .inspector-people { grid-template-columns: minmax(0, 1fr); }
+    .inspector-pet-profile { grid-template-columns: minmax(0, 1fr); }
+    .inspector-pet-actions { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   }
   .docs-head { display: flex; align-items: center; justify-content: space-between;
     padding: 12px 14px; border-bottom: 1px solid var(--border, #232a3a); }
@@ -899,6 +977,7 @@
     <button id="docs-btn" title="Coordination reference docs — protocol & orchestrator playbook">📚 Docs</button>
     <nav class="view-tabs" aria-label="Dashboard views">
       <button class="view-tab active" id="board-tab" type="button" data-view-tab="board">Board</button>
+      <a class="view-tab" href="/dashboard/wildkin.html" style="text-decoration:none" aria-label="Wildkin repo board">Wildkin</a>
       <button class="view-tab" id="pets-tab" type="button" data-view-tab="pets">Pets <span class="view-tab-count" id="pets-tab-count">0</span></button>
     </nav>
     <div class="counts" id="counts">
@@ -908,6 +987,7 @@
       <div class="count"><span class="n" id="c-reservations">–</span><span class="l">reservations</span></div>
       <div class="count"><span class="n" id="c-tasks">–</span><span class="l">tasks</span></div>
       <div class="count"><span class="n" id="c-messages">–</span><span class="l">messages</span></div>
+      <a class="count count-link" href="/docs/WORKFLOW_GAPS.md" target="_blank" rel="noopener" title="Open workflow gaps in tools/agora/WORKFLOW_GAPS.md (status open, blocked, or in progress)"><span class="n" id="c-gaps">–</span><span class="l">open gaps</span></a>
     </div>
   </header>
 
@@ -1037,7 +1117,8 @@ import {
     health: null,
     seenMsgSeq: 0,
     autoScroll: true,
-    showArchived: false,
+    archiveTierMs: 0,       // main feed: 0 = archived hidden; else reveal those newer than now - tier; Infinity = all
+    cmdArchiveTierMs: 0,    // command feed, same rule
     categoryFilter: "all", // Optional task view filter.
     // High-volume task buckets start closed but remain normal per-session
     // toggles for operators who need to inspect the backlog.
@@ -1392,16 +1473,26 @@ import {
   // Assigned pets render directly from the fixed nine-row Codex atlas. Callers
   // opt into animation: the Presence roster deliberately keeps a still first
   // frame, while tasks and the finite sign-in stage retain expressive motion.
-  function assignedPetAvatar(pet, { action = "idle", extraClass = "", animated = true } = {}) {
+  function assignedPetAvatar(pet, { action = "idle", extraClass = "", animated = true, size = "regular" } = {}) {
     if (!pet || !pet.localSpritesheet) return "";
     const sprite = `/dashboard/${pet.localSpritesheet}`;
     const atlas = PET_ACTIONS[action] || PET_ACTIONS.idle;
     const petName = pet.displayName || pet.slug;
     const mini = String(extraClass).split(/\s+/).includes("mini");
-    const cellWidth = mini ? 22 : 38;
-    const cellHeight = mini ? 24 : 42;
+    // Inspector portraits reuse the same atlas cells at larger display sizes.
+    // Explicit dimensions keep every action row aligned without changing the
+    // small Presence and task avatars that already depend on this helper.
+    const dimensions = mini
+      ? { width: 22, height: 24 }
+      : size === "hero"
+        ? { width: 96, height: 104 }
+        : size === "preview"
+          ? { width: 52, height: 58 }
+          : { width: 38, height: 42 };
+    const cellWidth = dimensions.width;
+    const cellHeight = dimensions.height;
     extraClass = [animated ? "is-animated" : "", extraClass].filter(Boolean).join(" ");
-    return `<span class="assigned-pet ${esc(extraClass)}" role="img" data-pet-action="${esc(action)}" aria-label="${esc(petName)}: ${esc(atlas.label)}" title="${esc(petName)} · ${esc(atlas.label)}" style="background-image:url('${esc(sprite)}');background-position-y:${-atlas.row * cellHeight}px;--pet-frames:${atlas.frames};--pet-end-x:${-atlas.frames * cellWidth}px;--pet-duration:${atlas.durationMs}ms"></span>`;
+    return `<span class="assigned-pet ${esc(extraClass)}" role="img" data-pet-action="${esc(action)}" aria-label="${esc(petName)}: ${esc(atlas.label)}" title="${esc(petName)} · ${esc(atlas.label)}" style="width:${cellWidth}px;height:${cellHeight}px;background-image:url('${esc(sprite)}');background-size:${cellWidth * 8}px ${cellHeight * 9}px;background-position-y:${-atlas.row * cellHeight}px;--pet-frames:${atlas.frames};--pet-end-x:${-atlas.frames * cellWidth}px;--pet-duration:${atlas.durationMs}ms"></span>`;
   }
 
   // The presence tile reflects durable board state after any short SSE reaction
@@ -1674,10 +1765,40 @@ import {
       + esc(meta || agent.note || "No additional identity details") + '</div></div></div>';
   }
 
+  // Agent identity deserves a visual reading path, not only a pet name and a
+  // collapsed JSON record. Every preview is a still from the canonical atlas,
+  // so inspectors can compare all authored poses without becoming animated or
+  // distracting while the operator reads the surrounding coordination data.
+  function petInspectorProfile(pet) {
+    if (!pet || !pet.localSpritesheet) {
+      return proseBlock("Assigned pet", "", "No visual pet identity is registered.");
+    }
+    const name = pet.displayName || pet.slug;
+    const actionPreviews = Object.entries(PET_ACTIONS).map(([action, atlas]) =>
+      '<figure class="inspector-pet-action">'
+        + assignedPetAvatar(pet, { action, animated: false, size: "preview", extraClass: "inspector-preview" })
+        + '<figcaption>' + esc(atlas.label) + '</figcaption></figure>'
+    ).join("");
+    const submittedBy = pet.submittedBy ? ' · added by ' + esc(pet.submittedBy) : '';
+    return '<section class="inspector-block inspector-pet-block"><h3>Assigned pet</h3>'
+      + '<div class="inspector-pet-profile"><div class="inspector-pet-stage">'
+      + assignedPetAvatar(pet, { action: "idle", animated: false, size: "hero", extraClass: "inspector-hero" })
+      + '</div><div><div class="inspector-pet-name">' + esc(name) + '</div>'
+      + '<div class="inspector-pet-slug">' + esc(pet.slug) + '</div>'
+      + '<div class="inspector-pet-meta">' + esc(pet.kind || "humanoid") + submittedBy
+      + '<br>Canonical 8 x 9 Codex pet atlas</div></div></div>'
+      + '<details class="inspector-pet-actions-disclosure"><summary>Action poses'
+      + '<span class="inspector-pet-actions-count">' + Object.keys(PET_ACTIONS).length + '</span></summary>'
+      + '<div class="inspector-pet-actions">' + actionPreviews + '</div></details></section>';
+  }
+
   function agentInspector(agentId) {
     const agent = ST.agents.find((a) => a.id === agentId);
     if (!agent) return null;
     const locks = ST.locks.filter((l) => l.agentId === agentId);
+    // Same seat-first join the roster row uses, so the drill-down never
+    // disagrees with the line that was clicked.
+    const campaigns = campaignsOwnedBy(agent);
     const tasks = ST.tasks.filter((t) => t.createdBy === agentId || t.claimedBy === agentId);
     const messages = ST.messages.filter((m) => m.from === agentId || m.to === agentId);
     return {
@@ -1693,13 +1814,17 @@ import {
           ["note", agent.note],
           ["assigned pet", agent.pet ? agent.pet.displayName : "missing registration pet"],
           ["last seen", clockTime(agent.lastSeen)],
+          ["seat", agent.seatId || ""],
+          ["campaigns owned", campaigns.length ? campaigns.map((c) => c.id).join(", ") : 0],
           ["locks", locks.length],
           ["tasks", tasks.length],
           ["messages", messages.length],
         ]),
+        petInspectorProfile(agent.pet),
         jsonBlock("agent record", agent),
         jsonBlock("assigned pet", agent.pet || null),
         jsonBlock("locks held", locks),
+        jsonBlock("campaigns owned", campaigns),
         jsonBlock("created or claimed tasks", tasks),
         jsonBlock("messages from or to agent", messages),
       ].join(""),
@@ -1939,6 +2064,22 @@ import {
     const p = (n) => String(n).padStart(2, "0");
     return p(dt.getHours()) + ":" + p(dt.getMinutes()) + ":" + p(dt.getSeconds());
   }
+  // WF-G139 (2026-09-09): the command channel is durable, so the feed replays
+  // broadcasts from weeks ago. With only a clock time on each row, a July
+  // "Codex is assigning tasks" order read as a live event in September. A
+  // message from another day shows its date and an age pill; today's keeps
+  // the short clock. The ISO timestamp sits in the title for the hover.
+  function messageStamp(ms) {
+    if (!ms) return "";
+    const dt = new Date(ms);
+    const now = new Date();
+    const sameDay = dt.getFullYear() === now.getFullYear() && dt.getMonth() === now.getMonth() && dt.getDate() === now.getDate();
+    if (sameDay) return clockTime(ms);
+    const p = (n) => String(n).padStart(2, "0");
+    const days = Math.floor((now - dt) / 86400000);
+    const age = days >= 1 ? `${days}d ago` : "yesterday";
+    return `${dt.getFullYear()}-${p(dt.getMonth() + 1)}-${p(dt.getDate())} ${p(dt.getHours())}:${p(dt.getMinutes())} · ${age}`;
+  }
   function fmtDuration(ms) {
     if (ms <= 0) return "expired";
     const s = Math.floor(ms / 1000);
@@ -1951,6 +2092,117 @@ import {
   }
 
   // ----------------------------- renderers -----------------------------
+
+  // Campaign ownership is a SEAT join first and an agent-id join second.
+  // A campaign records the seat that claimed it (`seatId`), and a seat outlives
+  // the individual presence that holds it, so a successor sitting in the same
+  // seat still shows as the owner. Campaigns whose `seatId` is empty (claimed
+  // before seats existed, or by a seatless worker) fall back to the raw owner
+  // id so nothing silently disappears from the roster.
+  function campaignsOwnedBy(agent) {
+    if (!agent) return [];
+    return (ST.campaigns || []).filter((c) => {
+      if (c.state === "done") return false;
+      if (c.seatId && agent.seatId && c.seatId === agent.seatId) return true;
+      return c.agentId === agent.id;
+    });
+  }
+  function locksHeldBy(agent) {
+    if (!agent) return [];
+    return (ST.locks || []).filter((l) => l.agentId === agent.id);
+  }
+  // Tasks the agent has claimed and not finished. A held task IS work: without
+  // it, a row read "idle" while its pet line read "working" (Remy, 2026-09-13).
+  function tasksHeldBy(agent) {
+    if (!agent) return [];
+    return (ST.tasks || []).filter((t) => t.claimedBy === agent.id
+      && (t.state === "claimed" || t.state === "in_progress" || t.state === "blocked"));
+  }
+  // A claimed task with no real action for this long reads as stale.
+  const STALE_CLAIM_MS = 2 * 60 * 60 * 1000;
+  // The newest REAL action by an agent. Heartbeats never count: a script sends
+  // them with nobody at work, so "seen just now" proves only that a session is
+  // open. Counted: a task history entry by the agent (create, claim, state), a
+  // checkpoint it left, a lock it holds, and a board message it posted.
+  // Released locks are gone from /locks, so an old lock cannot count.
+  function lastActionOf(agent) {
+    if (!agent) return null;
+    let best = null;
+    const take = (at, what) => { if (at && (!best || at > best.at)) best = { at, what }; };
+    for (const task of ST.tasks || []) {
+      for (const h of task.history || []) {
+        if (h.by !== agent.id) continue;
+        take(h.at, (h.action === "state" ? "set " + (h.state || "state") + " on" : h.action) + " " + task.id);
+      }
+      if (task.checkpoint && task.checkpoint.by === agent.id) take(task.checkpoint.at, "checkpoint on " + task.id);
+    }
+    for (const l of ST.locks || []) {
+      if (l.agentId === agent.id) take(l.createdAt, "locked " + String((l.paths || [])[0] || "files").split("/").pop());
+    }
+    for (const m of ST.messages || []) {
+      if (m.from === agent.id) take(m.createdAt, "posted a message");
+    }
+    return best;
+  }
+  // The newest real action ON ONE TASK by its claimant: history or checkpoint.
+  function taskActivityAt(task) {
+    let at = 0;
+    for (const h of task.history || []) if (h.by === task.claimedBy && h.at > at) at = h.at;
+    if (task.checkpoint && task.checkpoint.at > at) at = task.checkpoint.at;
+    return at;
+  }
+  function lastActionHtml(agent) {
+    const act = lastActionOf(agent);
+    const holds = tasksHeldBy(agent).length > 0;
+    const tip = "Real work only: a task change, a checkpoint, a lock or a board message. The seen time on the right is only the heartbeat.";
+    if (!act) {
+      return '<div class="agent-note agent-action' + (holds ? " stale" : "") + '" title="' + esc(tip) + '">last action: <b>none on the board</b></div>';
+    }
+    const stale = holds && Date.now() - act.at > STALE_CLAIM_MS;
+    return '<div class="agent-note agent-action' + (stale ? " stale" : "") + '" title="' + esc(tip) + '">last action: <b>'
+      + esc(act.what) + " · " + relTime(act.at) + "</b></div>";
+  }
+  // One compact line per agent. Path tokens are truncated rather than dropped:
+  // the count stays exact so a busy holder is never under-reported.
+  function holdingsHtml(agent) {
+    const campaigns = campaignsOwnedBy(agent);
+    const locks = locksHeldBy(agent);
+    const tasks = tasksHeldBy(agent);
+    if (!campaigns.length && !locks.length && !tasks.length) {
+      return '<div class="agent-holdings"><span class="hold none" title="no tasks held, no campaigns owned, no files locked">idle · no tasks, no campaigns, no locks</span></div>';
+    }
+    // The chip names the most recently worked held task and its latest
+    // checkpoint note. It turns amber when a held task had no real action for
+    // STALE_CLAIM_MS: a claim alone does not prove anyone is at work.
+    let taskChip = [];
+    if (tasks.length) {
+      const lead = [...tasks].sort((a, b) => taskActivityAt(b) - taskActivityAt(a))[0];
+      const staleTasks = tasks.filter((x) => Date.now() - taskActivityAt(x) > STALE_CLAIM_MS);
+      const cp = lead.checkpoint && lead.checkpoint.did ? lead.checkpoint : null;
+      const lines = tasks.map((x) => x.id + " · " + x.state + " · " + (x.title || "") + " · last action " + relTime(taskActivityAt(x)));
+      if (staleTasks.length) lines.push("No checkpoint or state change for over 2h on " + staleTasks.map((x) => x.id).join(", "));
+      const note = cp
+        ? ' <span class="hold-note">· "' + esc(cp.did.length > 40 ? cp.did.slice(0, 39) + "…" : cp.did) + '" · ' + relTime(cp.at) + "</span>"
+        : ' <span class="hold-note">· no checkpoint</span>';
+      taskChip = ['<span class="hold task' + (staleTasks.length ? " stale" : "") + '" title="' + esc(lines.join("\n")) + '">▸ '
+        + tasks.length + " task" + (tasks.length === 1 ? "" : "s") + " · " + esc(lead.id)
+        + (tasks.length > 1 ? " +" + (tasks.length - 1) : "") + note
+        + (staleTasks.length ? ' <span class="hold-note">· stale</span>' : "") + "</span>"];
+    }
+    const chips = taskChip.concat(campaigns.map((c) => {
+      const seat = c.seatId ? `<span class="hold-seat"> seat:${esc(c.seatName || c.seatId.replace(/^seat-/, ""))}</span>` : "";
+      const label = c.name || c.wave || "";
+      return `<span class="hold campaign" title="campaign ${esc(c.id)}${c.scope ? " — " + esc(c.scope) : ""}">▣ ${esc(c.id)}${label ? " " + esc(label) : ""}${seat}</span>`;
+    }));
+    if (locks.length) {
+      const paths = locks.flatMap((l) => [...(l.paths || []), ...(l.globs || [])]);
+      const shown = paths.slice(0, 2).map((p) => p.split("/").pop()).join(", ");
+      const more = paths.length > 2 ? ` +${paths.length - 2}` : "";
+      chips.push(`<span class="hold lock" title="${esc(paths.join("\n"))}">🔒 ${locks.length} lock${locks.length === 1 ? "" : "s"}${paths.length ? " · " + esc(shown) + more : ""}</span>`);
+    }
+    return `<div class="agent-holdings">${chips.join("")}</div>`;
+  }
+
   function renderPresence() {
     const el = $("presence");
     $("b-agents").textContent = ST.agents.length;
@@ -1975,6 +2227,8 @@ import {
           ${a.sessionId || a.threadIdRequired ? `<div class="agent-note agent-thread">task/thread: ${esc(a.sessionId || "MISSING (legacy registration)")}</div>` : ""}
           ${a.capacityRecoverable ? `<div class="agent-note">stale and idle · an orchestrator can retire this presence to free its pet</div>` : ""}
           ${a.pet ? `<div class="agent-note">pet: ${esc(a.pet.displayName || a.pet.slug)} · ${esc(PET_ACTIONS[petAction].label)}</div>` : ""}
+          ${lastActionHtml(a)}
+          ${holdingsHtml(a)}
         </div>
         <span class="agent-seen">${relTime(a.lastSeen)}</span>
       </div>`;
@@ -2174,6 +2428,13 @@ import {
   // Feed shows NEWEST FIRST. Messages older than the live window "expire" into
   // an archived state: retained on the daemon (and revealable), just not shown.
   const MSG_ARCHIVE_MS = 60 * 60 * 1000; // 1h live window
+  // Reveal tiers for the archive. Each button shows archived messages no
+  // older than its age. Asked for by Remy on 2026-09-13: 6h, 12h, 24h, 48h, 7d.
+  const H = 60 * 60 * 1000;
+  const ARCHIVE_TIERS = [
+    { label: "6h", ms: 6 * H }, { label: "12h", ms: 12 * H }, { label: "24h", ms: 24 * H },
+    { label: "48h", ms: 48 * H }, { label: "7d", ms: 7 * 24 * H }, { label: "all", ms: Infinity },
+  ];
 
   function msgHtml(m, archived) {
     const broadcast = m.to === "all" || !m.to;
@@ -2190,10 +2451,47 @@ import {
         <span class="arrow">→</span>
         ${target}
         ${human ? '<span class="directive-pill">★ directive</span>' : ""}
-        <span class="msg-time">${clockTime(m.createdAt)}</span>
+        <span class="msg-time" title="${esc(m.createdAt ? new Date(m.createdAt).toISOString() : "")}">${messageStamp(m.createdAt)}</span>
       </div>
       <div class="msg-body">${mentionize(esc(m.body))}</div>
     </div>`;
+  }
+
+  // Both feeds keep the last hour live and fold the rest behind tiers. One
+  // helper draws the fold line and the tier row; the state key names the feed.
+  function splitArchive(msgs) {
+    const cutoff = Date.now() - MSG_ARCHIVE_MS;
+    return {
+      live: msgs.filter((m) => (m.createdAt || 0) >= cutoff),
+      archived: msgs.filter((m) => (m.createdAt || 0) < cutoff),
+    };
+  }
+
+  function archiveHtml(archived, stateKey) {
+    if (!archived.length) return "";
+    const now = Date.now();
+    const tier = ST[stateKey] || 0;
+    const shown = tier ? archived.filter((m) => (m.createdAt || 0) >= now - tier) : [];
+    const tierName = ARCHIVE_TIERS.find((x) => x.ms === tier);
+    let html = `<button class="archive-toggle" data-archive="${stateKey}">📦 ${archived.length} archived message(s) older than 1h — ${tier ? "hide (showing " + shown.length + " up to " + (tierName ? tierName.label : "?") + ")" : "show"}</button>`;
+    html += '<div class="archive-tiers">' + ARCHIVE_TIERS.map((x) => {
+      const n = x.ms === Infinity ? archived.length : archived.filter((m) => (m.createdAt || 0) >= now - x.ms).length;
+      const all = x.ms === Infinity;
+      return `<button class="archive-tier${tier === x.ms ? " on" : ""}" data-archive="${stateKey}" data-tier="${all ? "all" : x.ms}" title="${all ? "Show every archived message" : "Show archived messages up to " + x.label + " old"}">${all ? "all archived" : "older than 1h, up to " + x.label}<span class="n">${n}</span></button>`;
+    }).join("") + '</div>';
+    if (shown.length) html += shown.map((m) => msgHtml(m, true)).join("");
+    else if (tier) html += '<div class="empty">No archived messages in that window</div>';
+    return html;
+  }
+
+  function wireArchive(el, stateKey, rerender) {
+    const t = el.querySelector(`.archive-toggle[data-archive="${stateKey}"]`);
+    if (t) t.addEventListener("click", () => { ST[stateKey] = ST[stateKey] ? 0 : ARCHIVE_TIERS[0].ms; rerender(); });
+    el.querySelectorAll(`.archive-tier[data-archive="${stateKey}"]`).forEach((b) => b.addEventListener("click", () => {
+      const v = b.dataset.tier === "all" ? Infinity : Number(b.dataset.tier);
+      ST[stateKey] = ST[stateKey] === v ? 0 : v; // press the live tier again to hide
+      rerender();
+    }));
   }
 
   function renderFeed() {
@@ -2203,21 +2501,14 @@ import {
     const mainMsgs = ST.messages.filter((m) => (m.channel || "main") === "main");
     $("b-messages").textContent = mainMsgs.length;
     if (!mainMsgs.length) { el.innerHTML = '<div class="empty">No messages yet</div>'; return; }
-    const cutoff = Date.now() - MSG_ARCHIVE_MS;
-    const msgs = [...mainMsgs].sort((a, b) => (b.seq || 0) - (a.seq || 0)); // newest first
-    const live = msgs.filter((m) => (m.createdAt || 0) >= cutoff);
-    const archived = msgs.filter((m) => (m.createdAt || 0) < cutoff);
+    const { live, archived } = splitArchive([...mainMsgs].sort((a, b) => (b.seq || 0) - (a.seq || 0))); // newest first
 
     let html = live.map((m) => msgHtml(m, false)).join("");
     if (!live.length) html += '<div class="empty">No messages in the last hour</div>';
-    if (archived.length) {
-      html += `<button class="archive-toggle" id="archive-toggle">📦 ${archived.length} archived message(s) older than 1h — ${ST.showArchived ? "hide" : "show"}</button>`;
-      if (ST.showArchived) html += archived.map((m) => msgHtml(m, true)).join("");
-    }
+    html += archiveHtml(archived, "archiveTierMs");
     el.innerHTML = html;
     wireEntryInspectors(el);
-    const t = $("archive-toggle");
-    if (t) t.addEventListener("click", () => { ST.showArchived = !ST.showArchived; renderFeed(); });
+    wireArchive(el, "archiveTierMs", renderFeed);
     if (ST.autoScroll) el.scrollTop = 0; // newest at top — pin to top
   }
 
@@ -2241,8 +2532,13 @@ import {
       el.innerHTML = '<div class="empty">No command traffic — orchestrators, the master, and the human post here (say --channel command)</div>';
       return;
     }
-    el.innerHTML = msgs.map((m) => msgHtml(m, false)).join("");
+    const { live, archived } = splitArchive(msgs);
+    let html = live.map((m) => msgHtml(m, false)).join("");
+    if (!live.length) html += '<div class="empty">No command traffic in the last hour</div>';
+    html += archiveHtml(archived, "cmdArchiveTierMs");
+    el.innerHTML = html;
     wireEntryInspectors(el);
+    wireArchive(el, "cmdArchiveTierMs", renderCommandFeed);
   }
 
   // ---- campaigns panel: who leads which file domain, and is the owner alive ----
@@ -2348,6 +2644,8 @@ import {
         $("c-reservations").textContent = h.counts.reservations || 0;
         $("c-tasks").textContent = h.counts.tasks;
         $("c-messages").textContent = h.counts.messages;
+        // Open workflow gaps, from the daemon's gap index (WORKFLOW_GAPS.md registry table).
+        $("c-gaps").textContent = typeof h.counts.gapsOpen === "number" ? h.counts.gapsOpen : "–";
       }
     } else {
       // derive counts from local state if /health unavailable
@@ -2519,17 +2817,19 @@ import {
     catch (e) { /* keep last good */ }
   }
   async function refreshCampaigns() {
-    try { ST.campaigns = (await getJSON("/campaigns")).campaigns || []; renderCampaigns(); } catch (e) {}
+    // Presence re-renders too: each roster row carries the campaigns its agent owns.
+    try { ST.campaigns = (await getJSON("/campaigns")).campaigns || []; renderCampaigns(); renderPresence(); } catch (e) {}
   }
   async function refreshLocks() {
-    try { ST.locks = (await getJSON("/locks")).locks || []; renderLocks(); } catch (e) {}
+    // Presence re-renders too: each roster row carries the locks its agent holds.
+    try { ST.locks = (await getJSON("/locks")).locks || []; renderLocks(); renderPresence(); } catch (e) {}
   }
   async function refreshReservations() {
     try { ST.reservations = (await getJSON("/reservations")).reservations || []; renderReservations(); } catch (e) {}
   }
   async function refreshTasks() {
     // Pact strip re-renders too: the identity-verified marker is board-derived.
-    try { ST.tasks = (await getJSON("/tasks")).tasks || []; renderTasks(); renderPactStrip(); } catch (e) {}
+    try { ST.tasks = (await getJSON("/tasks")).tasks || []; renderTasks(); renderPactStrip(); renderPresence(); } catch (e) {}
   }
   async function refreshHealth() {
     try { ST.health = await getJSON("/health"); renderHeader(); } catch (e) {}
@@ -2816,7 +3116,9 @@ import {
   initPanelCollapse();
 
   // ----------------------------- boot -----------------------------
-  setDashboardView("board");
+  const launchParams = new URLSearchParams(window.location.search);
+  setDashboardView(launchParams.get("view") === "pets" ? "pets" : "board");
+  if (launchParams.get("docs") === "1") toggleDocs(true);
   fullRefresh();   // REST seed on load (also a fallback if SSE is slow)
   loadPets();      // lightweight local manifest for the separate Codex Pets tab
   loadGapIndex();  // tracker bridge (task categorization); refreshed with the poll
@@ -2831,7 +3133,11 @@ import {
   ST.nextPollAt = Date.now() + POLL_MS;
   setInterval(() => {
     ST.nextPollAt = Date.now() + POLL_MS;
-    refreshHealth(); refreshAgents(); refreshCampaigns();
+    // The presence panel is a join over three routes, so the poll refreshes all
+    // three. /locks is polled (not left to SSE alone) because a lock that simply
+    // EXPIRES emits no event: without this the roster would keep showing a dead
+    // hold until the next unrelated lock event arrived.
+    refreshHealth(); refreshAgents(); refreshCampaigns(); refreshLocks();
     renderFeed(); // advance the 1h archive boundary even on a quiet board
     loadGapIndex(); // tracker bridge stays fresh (server caches the walk)
   }, POLL_MS); // presence freshness (agent.stale isn't emitted); SSE covers everything else live

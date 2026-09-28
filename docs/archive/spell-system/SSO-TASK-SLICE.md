@@ -1,4 +1,4 @@
-> **ARCHIVED 2026-07-01 — exhausted SSO slice log (formerly `docs/tasks/spell-system-overhaul/TASK_SLICE.md`).**
+> **ARCHIVED 2026-07-01 - exhausted SSO slice log (formerly `docs/tasks/spell-system-overhaul/TASK_SLICE.md`).**
 > The 2026-05-31 slice named in the header completed long ago and the 2026-06-25 tail already
 > self-annotated this file as "not the current execution queue". Live obligations live in
 > `docs/tasks/spell-system-overhaul/TRACKER.md` (historical index) and the child lanes under

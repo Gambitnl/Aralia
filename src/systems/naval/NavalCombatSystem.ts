@@ -32,7 +32,7 @@ import {
     NavalCombatLogEntry
 } from '../../types/navalCombat';
 import { NAVAL_MANEUVERS } from '../../data/navalManeuvers';
-import { rollDice, rollDamage } from '../../utils/combat';
+import { rollDice, rollDamage } from '../dice/rollers';
 import { calculateShipStats } from '../../utils/naval';
 
 // Range Thresholds in feet

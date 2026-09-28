@@ -93,7 +93,7 @@ Acceptance signal for this folder pass:
 - Voyage Management: the owned-ship lifecycle was built end-to-end 2026-06-30 (`src/components/Naval/ShipPane.tsx`, `navalReducer` wiring); remaining scope is the sea-encounter roll for ship voyages, a visual proof, and Plans 4-6 (see `docs/superpowers/plans/2026-06-30-maritime-travel-status.md` and G4 in `GAPS.md`).
 - URL sync currently has verified hook-level behavior; rendered transition assertions are still open.
 
-(The former Character Creator navigation-intent item is closed: G1 in `GAPS.md` was resolved 2026-06-25 — permissive sidebar navigation is the intentional design.)
+(The former Character Creator navigation-intent item is closed: G1 in `GAPS.md` was resolved 2026-06-25 - permissive sidebar navigation is the intentional design.)
 
 ## Next Checks
 

@@ -33,9 +33,8 @@ import type {
  * resistance transaction inside the Tactical Sandbox Race domain.
  *
  * The parent Race shell supplies the canonical Race record and the event
- * callback. This leaf creates a production combat actor, translates the
- * canonical trait text into the combat actor's native resistance field where
- * the existing character bridge cannot yet do so, and sends a poison or cold
+ * callback. This leaf creates a production combat actor, reads the resistance
+ * the shared racial parser projects onto that actor, and sends a poison or cold
  * packet through calculateDamage and ResistanceCalculator.
  *
  * Called by: RaceDomainShell.tsx through automatic ./leaves discovery.
@@ -78,11 +77,10 @@ export function hasCanonicalAbyssalResistance(race: Race): boolean {
 // Production Combat Actor And Damage Transaction
 // ============================================================================
 // The quick-character generator is the same production construction seam used
-// by the wider Design Preview sandbox. Its current persistent-to-combat bridge
-// reads an optional legacy race.resistance field, while this canonical Race
-// only exposes the rule as trait text. This small adapter materializes the
-// parsed canonical result into CombatCharacter.resistances so the native
-// resistance boundary can evaluate it without UI-only or manual damage math.
+// by the wider Design Preview sandbox. Its persistent-to-combat bridge now
+// carries the Poison Resistance the shared racial parser reads out of the
+// canonical trait row, so this leaf reads that defense instead of
+// materializing one of its own before the native resistance boundary runs.
 // ============================================================================
 
 export interface AbyssalResistanceScenarioState {
@@ -101,22 +99,13 @@ const ABYSSAL_ACTOR_CONFIG: QuickCharacterConfig = {
   stats: [10, 12, 12, 10, 10, 10],
 };
 
-function materializeCanonicalResistances(
+/** Does the production actor already carry every canonical defense? */
+function hasProductionAbyssalResistances(
   character: CombatCharacter,
   race: Race,
-): CombatCharacter {
-  const canonicalResistances = getCanonicalDamageResistances(race);
-
-  // Preserve any defenses already projected by the production bridge, then
-  // add only the damage types actually named by the supplied canonical Race.
-  return {
-    ...character,
-    id: ABYSSAL_TIEFLING_ACTOR_ID,
-    resistances: [...new Set([
-      ...(character.resistances ?? []),
-      ...canonicalResistances,
-    ])],
-  };
+): boolean {
+  const projected = new Set((character.resistances ?? []).map(type => type.toLowerCase()));
+  return getCanonicalDamageResistances(race).every(type => projected.has(type));
 }
 
 export function createAbyssalResistanceScenario(
@@ -133,7 +122,19 @@ export function createAbyssalResistanceScenario(
     };
   }
 
-  const actor = materializeCanonicalResistances(generatedActor, race);
+  const actor: CombatCharacter = { ...generatedActor, id: ABYSSAL_TIEFLING_ACTOR_ID };
+  if (!hasProductionAbyssalResistances(actor, race)) {
+    // The shared racial parser owns this projection. If it stops supplying the
+    // canonical defense, say so rather than quietly re-adding it here.
+    return {
+      actor: null,
+      damageType: 'poison',
+      rawDamage: ABYSSAL_RESISTANCE_DAMAGE,
+      finalDamage: null,
+      outcome: 'Resistance boundary unavailable: the production racial parser did not project the canonical Abyssal resistance.',
+    };
+  }
+
   const canonicalResistanceReady = hasCanonicalAbyssalResistance(race);
   return {
     actor,
@@ -245,7 +246,7 @@ const AbyssalTieflingRaceLeafContent: React.FC<RaceDomainLeafProps> = ({
 
       {/* The adapter is explicit so future character-assembly work can move this projection upstream without hiding the current boundary. */}
       <p data-testid="abyssal-assembly-boundary">
-        Assembly boundary: canonical trait text is materialized into CombatCharacter.resistances in this leaf because the shared character bridge only reads legacy race.resistance data.
+        Assembly boundary: CombatCharacter.resistances is projected by the shared racial parser at the persistent-to-combat bridge; this leaf reads that defense and holds no resistance adapter of its own.
       </p>
     </section>
   );

@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 17/08/2026, 14:10:04
+ * Last Sync: 09/09/2026, 08:36:57
  * Dependents: hooks/combat/useTurnManager.ts
  * Imports: 14 files
  *
@@ -26,6 +26,7 @@ import {
     CombatLogEntry,
     CombatState,
     BattleMapData,
+    LightSource,
     ReactiveTrigger,
     Position
 } from '../../../types/combat';
@@ -40,8 +41,12 @@ import {
 } from '../../../systems/spells/effects';
 import { AreaEffectTracker } from '../../../systems/spells/effects/AreaEffectTracker';
 import { MovementCommand } from '../../../commands/effects/MovementCommand';
-import { generateId, rollDice, calculateDamage, rollD20, getDistance } from '../../../utils/combat';
-import { calculateSpellDC, rollSavingThrow } from '../../../utils/character';
+// A failed concentration save runs the same cleanup the command path runs, by
+// running the command the command path runs (agora-f821.43).
+import { BreakConcentrationCommand } from '../../../commands/effects/ConcentrationCommands';
+import { generateId, calculateDamageWithDefense, getDistance } from '../../../utils/combat';
+import { rollDice, rollD20 } from '../../../systems/dice/rollers';
+import { calculateSpellDC, rollSavingThrow, checkConcentration } from '../../../utils/character';
 import { SavePenaltySystem } from '../../../systems/combat/SavePenaltySystem';
 import type { SavePenaltyExpiryState } from '../../../systems/combat/SavePenaltySystem';
 import { getAbilityModifierValue } from '../../../utils/character';
@@ -51,6 +56,7 @@ import { applyDamageAndCheckDowned, applyHealingAndRestore } from '../../../util
 import { applyRuntimeStatusCondition } from '../../../utils/combat/statusConditionUtils';
 import { resolveOnDamageSpellEffect } from '../../../systems/spells/effects/onDamageSpellEffects';
 import { removeRepeatSaveLinkedEffects } from '../../../utils/combat/repeatSaveUtils';
+import { getStatusDiscriminator } from '../../../types/combatMessages';
 
 // Repeat-save metadata now lives on StatusEffect, but not every repeat-save
 // shape is a saving throw. Some spell data asks for ability checks such as
@@ -271,6 +277,16 @@ interface UseCombatEngineProps {
      * shared saving-throw utility still owns modifiers, proficiency, and DC.
      */
     scheduledEffectSaveRng?: ScheduledEffectSaveRng;
+    /**
+     * Light sources currently on the board, owned by the composing hook.
+     *
+     * Concentration cleanup ends the lights a concentration spell created, and
+     * the engine is where hook-path damage breaks concentration, so the owner
+     * lends the list and takes back whatever survives.
+     */
+    activeLightSources?: LightSource[];
+    /** Publishes the light sources that survive a concentration break. */
+    onActiveLightSourcesUpdate?: (lightSources: LightSource[]) => void;
 }
 
 export interface ScheduledEffectDiceRollContext {
@@ -304,6 +320,8 @@ export const useCombatEngine = ({
     addDamageNumber,
     scheduledEffectDiceRoller,
     scheduledEffectSaveRng,
+    activeLightSources,
+    onActiveLightSourcesUpdate,
 }: UseCombatEngineProps) => {
 
     // --- Engine State ---
@@ -652,6 +670,75 @@ export const useCombatEngine = ({
         return removeRepeatSaveLinkedEffects(character, ownedStatusIds).character;
     }, []);
 
+    /**
+   * Ends one creature's concentration through `BreakConcentrationCommand`, the
+   * same command `DamageCommand` runs when a command-path packet breaks
+   * concentration. Running the command rather than a second hand-written
+   * cleanup is what keeps the two paths from drifting: riders, status effects,
+   * conditions, light sources, spell zones, emanations and every other
+   * concentration-owned record are ended by one implementation.
+   *
+   * Returns the concentrator as the command left it. Every other combatant the
+   * cleanup touched is published, and the surviving zones and lights are handed
+   * back to their owners.
+   */
+    const breakConcentrationThroughCommandLayer = useCallback((
+        concentrator: CombatCharacter,
+    ): CombatCharacter => {
+        const concentration = concentrator.concentratingOn;
+        if (!concentration) return concentrator;
+
+        const stateCharacters = characters.map(candidate => (
+            candidate.id === concentrator.id ? concentrator : candidate
+        ));
+        const commandState: CombatState = {
+            isActive: true,
+            characters: stateCharacters,
+            turnState: {
+                currentTurn: 0,
+                turnOrder: stateCharacters.map(candidate => candidate.id),
+                currentCharacterId: concentrator.id,
+                phase: 'planning',
+                actionsThisTurn: []
+            },
+            selectedCharacterId: null,
+            selectedAbilityId: null,
+            actionMode: 'select',
+            validTargets: [],
+            validMoves: [],
+            combatLog: [],
+            reactiveTriggers: [],
+            activeLightSources: activeLightSources ?? [],
+            spellZones,
+            mapData: mapData || undefined
+        };
+
+        const nextState = new BreakConcentrationCommand({
+            spellId: concentration.spellId,
+            spellName: concentration.spellName,
+            castAtLevel: concentration.spellLevel ?? 0,
+            caster: concentrator,
+            targets: [],
+        }).execute(commandState);
+
+        nextState.characters.forEach((character, index) => {
+            if (character === stateCharacters[index]) return;
+            if (character.id === concentrator.id) return;
+            onCharacterUpdate(character);
+        });
+
+        nextState.combatLog.forEach(entry => onLogEntry(entry));
+
+        if (nextState.spellZones !== spellZones) {
+            setSpellZones((nextState.spellZones ?? []) as ActiveSpellZone[]);
+        }
+        if (onActiveLightSourcesUpdate && nextState.activeLightSources !== commandState.activeLightSources) {
+            onActiveLightSourcesUpdate(nextState.activeLightSources ?? []);
+        }
+
+        return nextState.characters.find(candidate => candidate.id === concentrator.id) ?? concentrator;
+    }, [activeLightSources, characters, mapData, onActiveLightSourcesUpdate, onCharacterUpdate, onLogEntry, spellZones]);
+
     const handleDamage = useCallback((
         character: CombatCharacter,
         amount: number,
@@ -666,10 +753,17 @@ export const useCombatEngine = ({
         // The same defense calculator serves immediate, environmental, and
         // scheduled packets. A known owner is passed through for source feats;
         // environmental callers remain source-less through the optional field.
-        const triggeringDamage = calculateDamage(amount, sourceCharacter ?? null, character, damageType, {
+        // CMB-GAP-002 (2026-09-09): switched from `calculateDamage` to
+        // `calculateDamageWithDefense`. Both call the same ResistanceCalculator
+        // breakdown, so `finalDamage` is identical and behavior is preserved;
+        // the wider return also carries the resistance/vulnerability/immunity
+        // flags and structured tags that used to be computed and thrown away
+        // here, leaving the combat log with no defense metadata to show.
+        const triggeringDefense = calculateDamageWithDefense(amount, sourceCharacter ?? null, character, damageType, {
             spellZones,
             characters
         });
+        const triggeringDamage = triggeringDefense.finalDamage;
         const onDamageResolution = resolveOnDamageSpellEffect(
             character,
             damageType,
@@ -684,12 +778,17 @@ export const useCombatEngine = ({
         // Elemental Bane suppress resistance and lets vulnerability or immunity
         // affect both the triggering and extra damage consistently.
         updatedCharacter = onDamageResolution.character;
-        const finalAmount = extraDamage > 0
-            ? calculateDamage(amount + extraDamage, sourceCharacter ?? null, updatedCharacter, damageType, {
+        // The rider-folded recomputation is the packet actually applied, so its
+        // breakdown is the one the log should describe. When no rider fired we
+        // reuse the triggering breakdown rather than recomputing it.
+        const finalDefense = extraDamage > 0
+            ? calculateDamageWithDefense(amount + extraDamage, sourceCharacter ?? null, updatedCharacter, damageType, {
                 spellZones,
                 characters
             })
-            : triggeringDamage;
+            : triggeringDefense;
+        const finalAmount = finalDefense.finalDamage;
+        const defenseTagSuffix = finalDefense.tags.length > 0 ? ` ${finalDefense.tags.join(' ')}` : '';
 
         const updatedTarget = applyDamageAndCheckDowned(updatedCharacter, finalAmount);
         updatedCharacter = {
@@ -712,7 +811,11 @@ export const useCombatEngine = ({
             id: generateId(),
             timestamp: Date.now(),
             type: 'damage',
-            message: `${character.name} takes ${finalAmount} ${damageType || ''} damage from ${source}${isDeath ? ' and is defeated!' : ''}`,
+            // CMB-GAP-002: defense tags are appended to the text so the legacy
+            // (non-rich) log still renders "[Resisted: Fire (-50%)]" pills via
+            // the existing tokenizer. The suffix is empty when no defense
+            // applied, so ordinary damage lines are unchanged.
+            message: `${character.name} takes ${finalAmount} ${damageType || ''} damage from ${source}${defenseTagSuffix}${isDeath ? ' and is defeated!' : ''}`,
             characterId: character.id,
             data: {
                 damage: amount,
@@ -720,6 +823,19 @@ export const useCombatEngine = ({
                 source,
                 damageDealt: finalAmount,
                 trigger: damageTrigger,
+                // CMB-GAP-002: structured defense metadata. The adapter copies
+                // these into DamageMessageData, and CombatLog renders them as
+                // Resisted / Vulnerable / Immune badges in rich display mode.
+                isResisted: finalDefense.effectiveResistance,
+                resistanceApplied: finalDefense.effectiveResistance,
+                resistedDamageType: finalDefense.effectiveResistance ? damageType : undefined,
+                isVulnerable: finalDefense.isVulnerable,
+                vulnerabilityApplied: finalDefense.isVulnerable,
+                vulnerableDamageType: finalDefense.isVulnerable ? damageType : undefined,
+                isImmune: finalDefense.isImmune,
+                immunityApplied: finalDefense.isImmune,
+                immuneDamageType: finalDefense.isImmune ? damageType : undefined,
+                defenseTags: finalDefense.tags.length > 0 ? finalDefense.tags : undefined,
                 // Delayed and area-phase callers pass the owning spell id as
                 // `source`. Preserve that provenance even when no on-damage
                 // rider fired during this packet.
@@ -730,10 +846,44 @@ export const useCombatEngine = ({
             }
         });
 
+        // --- Concentration ---
+        // Any damage can break concentration, not only damage a command
+        // delivered. The DC is 10 or half the damage actually taken, whichever
+        // is higher, measured after defenses exactly as the command path
+        // measures it.
+        //
+        // The 0 HP case is deliberately NOT handled here. `useTurnManager`
+        // already ends concentration for a creature that drops, and it logs and
+        // cleans as it does so; rolling here as well would clean twice and log
+        // twice for one packet.
+        if (character.concentratingOn && finalAmount > 0 && updatedCharacter.currentHP > 0) {
+            const check = checkConcentration(updatedCharacter, finalAmount);
+
+            onLogEntry({
+                id: generateId(),
+                timestamp: Date.now(),
+                type: 'status',
+                message: check.success
+                    ? `${character.name} maintains concentration (${check.roll} vs DC ${check.dc})`
+                    : `${character.name} fails concentration save (${check.roll} vs DC ${check.dc})`,
+                characterId: character.id,
+                data: {
+                    spellId: character.concentratingOn.spellId,
+                    saveDC: check.dc,
+                    rollResult: check.roll,
+                    saveResult: check.success,
+                },
+            });
+
+            if (!check.success) {
+                updatedCharacter = breakConcentrationThroughCommandLayer(updatedCharacter);
+            }
+        }
+
         updatedCharacter = processRepeatSaves(updatedCharacter, 'on_damage');
 
         return updatedCharacter;
-    }, [addDamageNumber, characters, onLogEntry, processRepeatSaves, spellZones]);
+    }, [addDamageNumber, breakConcentrationThroughCommandLayer, characters, onLogEntry, processRepeatSaves, spellZones]);
 
     const shouldKeepScheduledEffectAfterTrigger = useCallback((
         scheduledEffect: ScheduledSpellEffect,
@@ -1030,6 +1180,10 @@ export const useCombatEngine = ({
                             type: 'status',
                             message: `${character.name} gains ${effect.statusName} from ${scheduledEffect.spellId}.`,
                             characterId: character.id,
+                            // agora-db71.10: the emitter knows which status it just applied, so it says so.
+                            // The adapter's live lookup can only classify a record whose named effect is still
+                            // on the character when the record is converted; a stamp survives that.
+                            eventClass: getStatusDiscriminator(statusEffect.type)?.eventClass,
                             data: { trigger: timing, spellId: scheduledEffect.spellId, statusName: effect.statusName, statusId: applied.appliedStatus.id }
                         });
                     }
@@ -1198,7 +1352,11 @@ export const useCombatEngine = ({
                 timestamp: Date.now(),
                 type: 'status',
                 message: `${character.name} is affected by ${env.effect.name}.`,
-                characterId: character.id
+                characterId: character.id,
+                // agora-db71.10: the emitter knows which status it just applied, so it says so.
+                // The adapter's live lookup can only classify a record whose named effect is still
+                // on the character when the record is converted; a stamp survives that.
+                eventClass: getStatusDiscriminator(env.effect.type)?.eventClass
             });
         }
 

@@ -1,4 +1,4 @@
-> **ARCHIVED 2026-07-01 — CLOSED (formerly `docs/tasks/spell-system-overhaul/gaps/GAP-UNSPLIT-SPELL-EFFECTS.md`).**
+> **ARCHIVED 2026-07-01 - CLOSED (formerly `docs/tasks/spell-system-overhaul/gaps/GAP-UNSPLIT-SPELL-EFFECTS.md`).**
 > All 3 phases of the unsplit-effects plan are implemented, and the closure is hard-locked in code:
 > `expect(monolithicFailures).toHaveLength(0)` at
 > `src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts:5368` fails the corpus test if any

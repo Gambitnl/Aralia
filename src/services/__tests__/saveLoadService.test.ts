@@ -363,6 +363,11 @@ describe('SaveLoadService', () => {
              expect(result.message).toContain("integrity check failed");
              expect(mockNotify).toHaveBeenCalledWith({ message: expect.stringContaining("integrity check failed"), type: 'error' });
         });
+        // migrateMapDataToWorldDataV2 is ORPHANED — no production load path calls it
+        // since Grid Retirement dropped mapData from the save format. Kept here as a
+        // v1-shape regression guard; the canonical unit coverage lives in
+        // src/state/migrations/__tests__/worldDataMigration.test.ts. (An exact copy of
+        // this case sat further down the file and was removed as a duplicate.)
 
         it('migrateMapDataToWorldDataV2 backfills worldData when applied to a v1 mapData', () => {
             const cols = 6;
@@ -798,29 +803,6 @@ describe('SaveLoadService', () => {
         it('should return false if save does not exist', () => {
             expect(SaveLoadService.hasSaveGame('ghost_slot')).toBe(false);
         });
-    });
-
-    it('migrateMapDataToWorldDataV2 backfills worldData when applied to a v1 mapData', () => {
-      const cols = 6;
-      const rows = 4;
-      const legacyMap = {
-        gridSize: { rows, cols },
-        tiles: new Array(rows).fill(0).map((_, y) =>
-          new Array(cols).fill(0).map((__, x) => ({
-            x, y, biomeId: 'plains', discovered: false, isPlayerCurrent: false,
-          })),
-        ),
-        azgaarWorld: {
-          version: 1 as const,
-          templateId: 'continents',
-          heights: new Array(cols * rows).fill(30),
-          temperatures: new Array(cols * rows).fill(15),
-          moisture: new Array(cols * rows).fill(20),
-          rivers: new Array(cols * rows).fill(false),
-        },
-      };
-      const migrated = migrateMapDataToWorldDataV2(legacyMap as any, 42);
-      expect(migrated.worldData?.version).toBe(2);
     });
 
     // ------------------------------------------------------------------------

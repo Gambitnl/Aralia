@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { generateSkeleton, generateSoul, generateCompanion } from '../CompanionGenerator';
 import { PlayerCharacter } from '../../types';
 import * as characterGenerator from '../characterGenerator';
+import { RACE_NAMES } from '../../data/names/raceNames';
 
 const mockSoul = {
     name: 'Kaelen',
@@ -42,18 +43,28 @@ describe('CompanionGenerator', () => {
     });
 
     describe('generateSkeleton', () => {
-        it('should call generateCharacterFromConfig and return its result', () => {
+        // agora-4c53: the skeleton is no longer built with the literal name
+        // "Generated Character". generateNPC runs first and its race/gender-aware
+        // name seeds the character config, so this asserts a real name from the
+        // human name bank instead of the retired placeholder.
+        it('should seed generateCharacterFromConfig with a race-appropriate name', () => {
             const mockSkeleton = { id: 'test-skeleton' } as PlayerCharacter;
             const spy = vi.spyOn(characterGenerator, 'generateCharacterFromConfig').mockReturnValue(mockSkeleton);
 
             const config = { level: 1, classId: 'fighter', raceId: 'human' };
             const result = generateSkeleton(config);
 
-            expect(spy).toHaveBeenCalledWith({
-                name: "Generated Character",
-                raceId: 'human',
-                classId: 'fighter'
-            });
+            expect(spy).toHaveBeenCalledTimes(1);
+            const passedConfig = spy.mock.calls[0][0];
+            expect(passedConfig.raceId).toBe('human');
+            expect(passedConfig.classId).toBe('fighter');
+            expect(passedConfig.name).not.toBe('Generated Character');
+
+            const humanNames = RACE_NAMES.human;
+            const [firstName, ...rest] = (passedConfig.name ?? '').split(' ');
+            expect([...humanNames.male, ...humanNames.female]).toContain(firstName);
+            expect(humanNames.surnames).toContain(rest.join(' '));
+
             expect(result).toBe(mockSkeleton);
         });
     });

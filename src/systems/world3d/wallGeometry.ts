@@ -11,7 +11,8 @@ import { WORLD3D_CONFIG, heightToMeters } from './config';
 import { gridPointToLocal } from './coords';
 
 const M = WORLD3D_CONFIG.METERS_PER_CELL;
-const WALL_HEIGHT_M = 3.2;   // a touch over two storeys — reads as a town rampart
+const WALL_HEIGHT_M = 5.2;   // includes the buried footing: 4.8 m above ground
+const WALL_HALF_WIDTH_M = 1.2;
 const WALL_BASE_SINK_M = 0.4; // sink the footing so it meets sloped ground cleanly
 
 /** Legacy weathered-stone tint for wall runs that carry no style-family color. */
@@ -66,16 +67,30 @@ export function buildWallMesh(data: ChunkData): WallMesh {
       const nx = -dz / len;
       const nz = dx / len;
 
-      const base = positions.length / 3;
-      // 4 verts: a-bottom, a-top, b-bottom, b-top.
-      positions.push(la.x, ya, la.z);                  normals.push(nx, 0, nz); colors.push(cr, cg, cb);
-      positions.push(la.x, ya + WALL_HEIGHT_M, la.z);  normals.push(nx, 0, nz); colors.push(cr, cg, cb);
-      positions.push(lb.x, yb, lb.z);                  normals.push(nx, 0, nz); colors.push(cr, cg, cb);
-      positions.push(lb.x, yb + WALL_HEIGHT_M, lb.z);  normals.push(nx, 0, nz); colors.push(cr, cg, cb);
-      // Two triangles, emitted both windings so the barrier shows from inside
-      // and outside the ring without back-face culling artifacts.
-      indices.push(base, base + 1, base + 2, base + 2, base + 1, base + 3);
-      indices.push(base + 2, base + 1, base, base + 3, base + 1, base + 2);
+      // A rampart is a solid volume, including the exposed ends at gates.
+      // Independent face normals light its inside correctly; reversing a
+      // sheet's indices alone left the inward face almost black.
+      const h = WALL_HALF_WIDTH_M;
+      const vertices = [
+        [la.x + nx*h, ya, la.z + nz*h], [la.x - nx*h, ya, la.z - nz*h],
+        [lb.x + nx*h, yb, lb.z + nz*h], [lb.x - nx*h, yb, lb.z - nz*h],
+        [la.x + nx*h, ya + WALL_HEIGHT_M, la.z + nz*h], [la.x - nx*h, ya + WALL_HEIGHT_M, la.z - nz*h],
+        [lb.x + nx*h, yb + WALL_HEIGHT_M, lb.z + nz*h], [lb.x - nx*h, yb + WALL_HEIGHT_M, lb.z - nz*h],
+      ];
+      for (const face of [[0,4,6,2], [3,7,5,1], [4,5,7,6], [1,0,2,3], [1,5,4,0], [2,6,7,3]]) {
+        face.reverse();
+        const base = positions.length / 3;
+        const [a,b,c] = face.map(v => vertices[v]);
+        const u = b.map((v,j) => v-a[j]), v = c.map((n,j) => n-a[j]);
+        const n = [u[1]*v[2]-u[2]*v[1], u[2]*v[0]-u[0]*v[2], u[0]*v[1]-u[1]*v[0]];
+        const length = Math.hypot(...n) || 1;
+        for (const index of face) {
+          positions.push(...vertices[index]);
+          normals.push(...n.map(value => value/length));
+          colors.push(cr,cg,cb);
+        }
+        indices.push(base,base+1,base+2,base,base+2,base+3);
+      }
     }
   }
 

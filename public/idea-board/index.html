@@ -1,0 +1,48 @@
+<!doctype html>
+<!--
+  This standalone page hosts Aralia's permanent Idea Board.
+
+  It is deliberately served from public/ rather than mounted in the game. That
+  boundary makes research visible and shareable without adding research code or
+  listed third-party tools to the production gameplay dependency graph.
+-->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Aralia Idea Board: dated external research and project comparisons.">
+    <title>Idea Board · Aralia</title>
+    <script>
+      // Apply a saved theme before the stylesheet paints the page. When the user
+      // has not made a choice, the Idea Board follows their operating-system theme.
+      // This early step prevents a bright flash before the dashboard module loads.
+      (() => {
+        const storageKey = 'aralia-idea-board-theme';
+        try {
+          const savedTheme = localStorage.getItem(storageKey);
+          const palette = localStorage.getItem('aralia-idea-board-palette');
+          if (['charcoal', 'parchment', 'slate'].includes(palette)) document.documentElement.dataset.palette = palette;
+          const preferredTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+          document.documentElement.dataset.theme = savedTheme === 'dark' || savedTheme === 'light'
+            ? savedTheme
+            : preferredTheme;
+        } catch {
+          // Storage can be unavailable in privacy-restricted browser contexts.
+          // The system preference still gives those sessions a usable first theme.
+          document.documentElement.dataset.theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        }
+      })();
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,400&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+    <link rel="stylesheet" href="./styles.css">
+    <link rel="stylesheet" href="./constellation.css">
+  </head>
+  <body>
+    <div id="idea-board-root" aria-live="polite">
+      <p class="loading">Loading Idea Board…</p>
+    </div>
+    <script type="module" src="./app.mjs"></script>
+  </body>
+</html>

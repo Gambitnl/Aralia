@@ -844,6 +844,50 @@ if PACK:
             cg.remove([v.index])
         moved += 1
     print(f'rig_basemesh --pack: moved clavicle weight to spine_03 on {moved} midline chest vertices')
+else:
+    # THE SAME REPAIR ON THE 39-BONE CONTRACT RIG (Rig Bench finding, board
+    # task agora-ceb7, 2026-09-09). It only ever ran on the pack path, so the
+    # three bodies that still ship a bone-heat contract rig — the headless
+    # no-gender base and stylized figures A and B — kept the skew. The gate
+    # now measures it (gate.mjs learned both skeleton families): the neck
+    # bone owned the 0.58-0.78h ribcage and the clavicles owned the sternum
+    # on all three.
+    #
+    # WHY THE NECK IS INVOLVED HERE AND NOT ON THE PACK PATH. The pack
+    # skeleton spends six links on the spine, so `spine_03` already sits at
+    # the ribcage. The contract spends three (pelvis / chest / neck), and the
+    # engine's rest spec (bipedBoneSpec.json) puts the chest tail at ~0.72h —
+    # so the NEAREST bone to upper-ribcage flesh is the neck, and bone heat
+    # hands it over. That placement is the contract and is not changed here;
+    # the weights are. This is the same correction the pack author's painted
+    # weights already make (see baseMeshCatalog.ts: "bone heat handed the
+    # ribcage to the neck bone and painted weights do not"), which is why
+    # lowpoly-male/female pass the gate on their author rig and their
+    # bone-heat A/B copy did not.
+    #
+    # Ceiling 0.80 of the FULL figure height (HR, so a headless body converts
+    # correctly): that is where the author armatures actually root the neck
+    # (measured 0.812h on lowpoly-male.authorrig). Above it the neck keeps
+    # its flesh; below it, near the midline, the chest owns the column.
+    chest_g = body.vertex_groups.get('chest')
+    if chest_g is None:
+        raise RuntimeError('rig_basemesh: no chest vertex group')
+    steal = [body.vertex_groups[n] for n in ('clavicleL', 'clavicleR', 'neck') if n in body.vertex_groups]
+    steal_idx = {g.index for g in steal}
+    moved = 0
+    for v in body.data.vertices:
+        g = to_gltf(v.co)
+        yf = (g.y - y_min) / HR
+        if yf < 0.56 or yf > 0.80 or abs(g.x - cx) > 0.15 * HR:
+            continue
+        w = sum(e.weight for e in v.groups if e.group in steal_idx)
+        if w <= 0.0:
+            continue
+        chest_g.add([v.index], w, 'ADD')
+        for sg in steal:
+            sg.remove([v.index])
+        moved += 1
+    print(f'rig_basemesh: moved clavicle/neck weight to chest on {moved} midline ribcage vertices')
 
 # ---------------------------------------------------------------- proof for Remy
 # 1. the .blend, so the rig can be opened in Blender and inspected by hand

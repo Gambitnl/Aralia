@@ -114,9 +114,8 @@ export const useSpellGateChecks = (
 
               const parsed = SpellValidator.safeParse(spell);
               if (parsed.success) {
-                // DEBT: Cast to any to probe optional legacy property on generic Spell type.
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                isLegacySpell = (spell as any)?.legacy === true;
+                // Read optional legacy flag directly from validated Spell schema payload
+                isLegacySpell = parsed.data.legacy === true;
               } else {
                 schemaIssues = parsed.error.issues.map((issue) => {
                   const pathLabel = issue.path.length > 0 ? issue.path.join('.') : '(root)';

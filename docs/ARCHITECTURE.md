@@ -14,6 +14,7 @@ This document provides a high-level map of the Aralia codebase, organized by pro
 |--------|-------------|-------------|
 | [Glossary](./architecture/domains/glossary.md) | In-game reference system for rules, spells, items | `Glossary.tsx` |
 | [World Map](./architecture/domains/world-map.md) | Region-level navigation and exploration | `MapPane.tsx` |
+| [Overland Travel](./architecture/domains/overland-travel.md) | Route planning, ferries and fares, getting lost, forced marches | `systems/travel` |
 | [Submap](./architecture/domains/submap.md) | Tile-based exploration within regions | `SubmapPane.tsx` |
 | [Town Map](./architecture/domains/town-map.md) | Village/town interior navigation | `TownCanvas.tsx` |
 | [Battle Map](./architecture/domains/battle-map.md) | Tactical combat grid and tokens | `BattleMap.tsx` |
@@ -26,6 +27,7 @@ This document provides a high-level map of the Aralia codebase, organized by pro
 | [Items / Trade / Inventory](./architecture/domains/items-trade-inventory.md) | Item management and economy | `InventoryList.tsx` |
 | [Planes / Travel](./architecture/domains/planes-travel.md) | Planar mechanics and travel systems | Planar systems |
 | [Data Pipelines](./architecture/domains/data-pipelines.md) | Scripts, generators, validators | `scripts/` |
+| [Nightly Git Save](./architecture/domains/nightly-git-save.md) | The 02:00 whole-tree commit and push to GitHub, and the Agora guard that holds back locked files | `scripts/git/commit-msg-agora-guard.cjs` |
 | [Monster Data Pipeline](./architecture/MONSTER_DATA_PIPELINE.md) | 5eTools ingestion and bestiary adapter | `5eToolsAdapter.ts` |
 
 ---

@@ -19,6 +19,28 @@ import {
   registrationThreadRequirement,
   validateRegistrationThreadIdentity,
 } from './identity-policy.mjs';
+// The reducers and the state helpers they need live in their own module, so the
+// read-only surface replays the journal with the SAME rules (WF-G168).
+import {
+  applyJournalText,
+  clonePet,
+  createReducers,
+  createStateHelpers,
+  loadSnapshotInto,
+  normalizeCategoryInput,
+  normalizeCategoryList,
+} from './store-reducers.mjs';
+// The charter, Plan Map contract, and triage rules live in one pure module,
+// because the read-only surface must apply the SAME rules without the store.
+import {
+  DISPOSITIONS,
+  approverRolesFor,
+  buildTriageReport,
+  campaignProgress,
+  taskTimes,
+  validateCharter,
+  planMapHealth,
+} from './campaign-model.mjs';
 
 const TASK_STATES = new Set(['open', 'claimed', 'in_progress', 'blocked', 'done']);
 // Result disposition is deliberately smaller than task state. A size-declined
@@ -29,6 +51,49 @@ const CAMPAIGN_STATES = new Set(['active', 'blocked', 'done']);
 const CAMPAIGN_ROLES = new Set(['lead', 'deputy']);
 
 const UNCATEGORIZED_TASK_CATEGORY = 'uncategorized';
+
+// ===========================================================================
+// Seat naming rules (D-N) — EXPORTED, because more than one thing enforces them
+// ===========================================================================
+//
+//  These left the store's closure on 2026-09-08. A name suggester has to apply
+//  exactly these rules before it offers a name, and a COPY of a rule list is a
+//  rule list that drifts. One definition, imported by everything that checks.
+
+export const SEAT_NAME_RE = /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/;
+
+// A seat named for the job is a role wearing a person's clothes. A seat named
+// for a model dies the day the model changes. Both are refused by name.
+export const SEAT_NAME_FORBIDDEN = [
+  'orch', 'orchestrator', 'master', 'worker', 'agent', 'lead', 'deputy',
+  'admin', 'bot', 'scout', 'fixer', 'reviewer', 'builder',
+  'claude', 'opus', 'sonnet', 'haiku', 'fable', 'gpt', 'codex', 'gemini',
+  'kimi', 'llama', 'mistral', 'anthropic', 'openai', 'google',
+];
+
+export function seatIdFor(name) {
+  return 'seat-' + String(name).trim().toLowerCase();
+}
+
+/** Refuse a seat name that breaks one of the four D-N constraints. */
+export function assertSeatName(raw) {
+  const name = String(raw || '').trim().toLowerCase();
+  if (!name) return { ok: false, error: 'a seat needs a name' };
+  if (!SEAT_NAME_RE.test(name)) {
+    return { ok: false, error: `seat name "${name}" must be lowercase words joined by hyphens` };
+  }
+  for (const part of name.split('-')) {
+    if (SEAT_NAME_FORBIDDEN.includes(part)) {
+      return {
+        ok: false,
+        error: `seat name "${name}" contains "${part}", which names a job or a model. `
+          + 'A seat is a lasting identity: naming it for the job recreates the role it replaces, '
+          + 'and naming it for a model kills it when the model changes (D-N).',
+      };
+    }
+  }
+  return { ok: true, name };
+}
 
 // The pet gallery is also Agora's assignment catalog. Loading it beside the
 // store keeps task claims and dashboard rendering on one authoritative list;
@@ -71,11 +136,6 @@ function loadPetCatalog() {
   }
 }
 
-// Pet snapshots are stored in several records; cloning prevents one reducer
-// from accidentally changing an agent, task, and history view at once.
-function clonePet(pet) {
-  return pet ? JSON.parse(JSON.stringify(pet)) : null;
-}
 
 // Structured, provenance-encoding handle grammar: lowercase role.domain[/child...],
 // e.g. "master.desktop", "orch.planmap/glossary". Opaque auto-names ("agent-16d417")
@@ -96,25 +156,95 @@ export function validateHandle(handle) {
   return { ok: true };
 }
 
-function normalizeCategoryInput(category) {
-  if (typeof category !== 'string') return '';
-  const v = category.trim().toLowerCase();
-  if (!v) return '';
-  return v.replace(/[^a-z0-9:_-]/g, ' ').replace(/\s+/g, '-');
+
+/** D-S: hierarchical task ids, so membership cannot be left out.
+ *
+ *  A task id is `<campaignId>.<n>` — the effort it belongs to is part of its
+ *  name rather than a separate box someone has to remember. That box was
+ *  missed 119 times out of 119, which is what this shape removes.
+ *
+ *  A task with no campaign gets a standalone `agora-<hash>`, because there is
+ *  no membership to encode.
+ *
+ *  EVERY id an object has ever had keeps working, forever, as an alias.
+ *  Fifteen finished board results and four WORKFLOW_GAPS rows quote a UUID
+ *  prefix; rewriting those quotes would be editing the past, which D-E
+ *  forbids outright. So the migration ADDS a name, it never removes one.
+ */
+const SHORT_ID_ALPHABET = '0123456789abcdef';
+
+function shortHash(seed, length = 4) {
+  const digest = crypto.createHash('sha256').update(String(seed)).digest();
+  let out = '';
+  for (let i = 0; i < length; i += 1) out += SHORT_ID_ALPHABET[digest[i] % 16];
+  return out;
 }
 
-function normalizeCategoryList(categories = []) {
-  const input = Array.isArray(categories) ? categories : [categories];
+/** D-M / D-T: the ten dependency types, taken whole from Beads.
+ *
+ *  The four BLOCKING types gate readiness. The six non-blocking ones record a
+ *  relationship the board can read and reason about without holding any task
+ *  back — which is the point of naming them at all. Before this, one untyped
+ *  arrow carried every meaning at once, so "X replaced Y" and "X cannot start
+ *  until Y lands" were the same edge.
+ *
+ *  The store REFUSES an unknown type. That refusal is the whole decision, not
+ *  a detail of it: a declared vocabulary that nothing enforces is exactly how
+ *  WF-G80 held three illegal values for two days without a single complaint.
+ */
+export const TASK_DEP_TYPES = Object.freeze({
+  // Blocking — the dependency must complete before the holder is ready.
+  blocks: { blocking: true, summary: 'the dependency must finish first' },
+  'parent-child': { blocking: true, summary: 'the holder is part of the dependency' },
+  'waits-for': { blocking: true, summary: 'the holder waits on the dependency, without owning it' },
+  'conditional-blocks': { blocking: true, summary: 'blocking only while a stated condition holds' },
+  // Non-blocking — recorded meaning, no gate.
+  related: { blocking: false, summary: 'the two touch the same ground' },
+  tracks: { blocking: false, summary: 'the holder follows the dependency without depending on it' },
+  'discovered-from': { blocking: false, summary: 'the holder was found while working the dependency' },
+  'caused-by': { blocking: false, summary: 'the dependency produced the holder' },
+  validates: { blocking: false, summary: 'the holder proves the dependency landed' },
+  supersedes: { blocking: false, summary: 'the holder replaces the dependency' },
+});
+
+/** What an untyped dependency always meant in practice: a hard gate. Every
+ *  pre-migration dep gated readiness, so this is a restatement rather than a
+ *  guess about intent. */
+export const DEFAULT_TASK_DEP_TYPE = 'blocks';
+
+export function isBlockingDepType(type) {
+  const spec = TASK_DEP_TYPES[type];
+  return Boolean(spec && spec.blocking);
+}
+
+/** Accept a plain id (legacy shape) or { id, type }, and return the typed
+ *  shape. An unknown type throws — silently coercing it to the default would
+ *  reproduce the failure this decision exists to remove. */
+export function normalizeTaskDeps(deps) {
+  const input = Array.isArray(deps) ? deps : deps ? [deps] : [];
   const out = [];
   const seen = new Set();
   for (const raw of input) {
-    const n = normalizeCategoryInput(raw);
-    if (!n || seen.has(n)) continue;
-    seen.add(n);
-    out.push(n);
+    if (!raw) continue;
+    const id = typeof raw === 'string' ? raw.trim() : String(raw.id || '').trim();
+    if (!id) continue;
+    const type = typeof raw === 'string'
+      ? DEFAULT_TASK_DEP_TYPE
+      : String(raw.type || DEFAULT_TASK_DEP_TYPE).trim();
+    if (!Object.prototype.hasOwnProperty.call(TASK_DEP_TYPES, type)) {
+      throw new Error(
+        'unknown dependency type: ' + type
+        + ' (expected one of ' + Object.keys(TASK_DEP_TYPES).join(', ') + ')',
+      );
+    }
+    const key = id + '\u0000' + type;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push({ id, type });
   }
   return out;
 }
+
 
 function normalizeTaskPath(raw) {
   if (!raw) return '';
@@ -261,6 +391,26 @@ function canonicalCoordinationToken(value, workspaceRoot = process.cwd()) {
   return token;
 }
 
+// WF-G119: coordination tokens are repo-relative strings, so the SAME relative
+// path in two checkouts used to read as one file. A lock on
+// `src/systems/entities3d/three/baseMeshCatalog.ts` in Aralia raised the WF-G91
+// same-file warning against Entity-Generator's prefixed lock on a different
+// file. These are the sibling checkouts an agent in this tree may legitimately
+// name with a root prefix; a token starting with one of them belongs to THAT
+// repo, and everything else belongs to the daemon's own workspace.
+export const DEFAULT_SIBLING_REPO_ROOTS = ['entity-forge', 'Entity-Generator', 'Aralia-operator-dashboard'];
+
+/** The repo a set of coordination tokens names, or `fallback` for this checkout. */
+export function repoForTokens(tokens = [], fallback = "", siblingRoots = DEFAULT_SIBLING_REPO_ROOTS) {
+  for (const token of tokens) {
+    const first = String(token || '').replace(/\\/g, '/').split('/')[0];
+    if (!first) continue;
+    const hit = siblingRoots.find((root) => root.toLowerCase() === first.toLowerCase());
+    if (hit) return hit;
+  }
+  return fallback;
+}
+
 function normalizePathList(raw = [], workspaceRoot = process.cwd()) {
   const input = Array.isArray(raw) ? raw : [raw];
   const out = [];
@@ -279,6 +429,135 @@ function normalizePathList(raw = [], workspaceRoot = process.cwd()) {
 // orchestrator-supervision level instead of the worker-edit level.
 function campaignTokens(campaign) {
   return [...(campaign.paths || []), ...(campaign.globs || [])];
+}
+
+/** Does this file sit inside a claimed path or glob? */
+function fileMatchesToken(file, token) {
+  if (!file || !token) return false;
+  const f = String(file).replace(/\\/g, '/').toLowerCase();
+  const t = String(token).replace(/\\/g, '/').toLowerCase();
+  if (t.includes('*')) {
+    const base = t.split('*')[0].replace(/\/$/, '');
+    return base ? f.startsWith(base) : true;
+  }
+  return f === t || f.startsWith(t.replace(/\/$/, '') + '/');
+}
+
+/** Compare a planmap reference regardless of ':' or '/' separators. */
+function planKey(value) {
+  return String(value).toLowerCase().replace(/^planmap[:/]/, '').replace(/[:/]+/g, '/');
+}
+
+/** WF-G170: the authoritative mapping from the evidence a task carries to a
+ *  campaign id. It is a PURE function: give it a task and a candidate list and
+ *  it always gives the same verdict. `inferTaskMembership` is the only caller,
+ *  so the mapping the documentation states and the mapping the board applies
+ *  cannot drift apart.
+ *
+ *  THE RANKS, strongest first. The first rank that matches decides; a later
+ *  rank never runs.
+ *
+ *    1 roadmap  the task and the campaign name the same Plan Map topic or
+ *               feature (`planmap:<topic>/<feature>`). A reference is a
+ *               deliberate link, so it is the strongest evidence.
+ *    2 wave     the task and the campaign carry the same wave name.
+ *    3 files    the task touched a file the campaign claims.
+ *    4 category ONLY when the campaign's own name or code is that exact
+ *               category token. See the rule below.
+ *
+ *  THE CATEGORY RULE. A category is a DOMAIN LABEL, not a campaign assignment.
+ *  `combat`, `spells`, `races` and `worldforge` say what a task is about; they
+ *  do not say which effort owns it. Many campaigns share one domain, so a
+ *  category on its own would attach a task to an effort that never asked for
+ *  it. Category evidence therefore counts only when a campaign is NAMED for
+ *  that category, which is an explicit choice a person made. In every other
+ *  case category evidence is INSUFFICIENT and the task is standalone.
+ *
+ *  THE VERDICTS:
+ *    recorded    the task already names its campaign. Nothing is guessed.
+ *    inferred    exactly one campaign matched a rank. `campaignId` is filled.
+ *    ambiguous   two or more matched. `campaignId` stays EMPTY and every
+ *                candidate is listed. Never break a tie automatically.
+ *    standalone  no rank matched. The task belongs to no campaign, and the
+ *                verdict says which evidence was absent. There is no
+ *                `unknown` verdict: silence about a task is not a verdict.
+ */
+export function inferCampaignForTask({ task = {}, campaigns = [] } = {}) {
+  if (task.campaignId) {
+    return { membership: 'recorded', campaignId: task.campaignId, evidence: '', candidates: [] };
+  }
+
+  let matches = [];
+  let evidence = '';
+
+  // RANK 1 — a planmap reference the task and the campaign share.
+  //
+  // WF-G207: this rank used to compare the task ref against the campaign
+  // NAME, and a campaign name is chosen by a person: the live board held
+  // board-drain-20260920-gaps, -w1 and -deepdives, none of which is a Plan
+  // Map key, so rank 1 could almost never fire and more tasks ended
+  // ambiguous than the evidence warranted. A campaign now STATES its
+  // reference in `planmapRef`, and that field is compared first. The name
+  // is still compared after it, so a campaign named for a topic keeps
+  // working without a migration.
+  const refs = (task.refs || []).filter((r) => /^planmap[:/]/i.test(r)).map(planKey);
+  if (refs.length) {
+    const sharesKey = (key) => Boolean(key)
+      && refs.some((r) => r === key || r.startsWith(key + '/') || key.startsWith(r + '/'));
+    matches = campaigns.filter((c) => sharesKey(planKey(c.planmapRef || '')));
+    if (matches.length) evidence = 'shares a roadmap reference: ' + refs.join(', ');
+    if (!matches.length) {
+      matches = campaigns.filter((c) => sharesKey(planKey(c.name || c.id)));
+      if (matches.length) evidence = 'shares a roadmap reference: ' + refs.join(', ') + ' (matched on the effort name, not a stated planmapRef)';
+    }
+  }
+
+  // RANK 2 — a shared wave name.
+  if (!matches.length && task.wave) {
+    matches = campaigns.filter((c) => c.wave && c.wave === task.wave);
+    if (matches.length) evidence = 'shares the wave name ' + task.wave;
+  }
+
+  // RANK 3 — a shared file. Weaker, so it runs after the two named links.
+  if (!matches.length && (task.retraceFiles || []).length) {
+    matches = campaigns.filter((c) => {
+      const claimed = [...(c.paths || []), ...(c.globs || [])];
+      return (task.retraceFiles || []).some((f) => claimed.some((tok) => fileMatchesToken(f, tok)));
+    });
+    if (matches.length) evidence = 'touches a file that effort claims';
+  }
+
+  // RANK 4 — a campaign NAMED for the task's category. The category rule above
+  // says why an ordinary domain label stops here.
+  const category = String(task.category || '').trim().toLowerCase();
+  if (!matches.length && category && category !== UNCATEGORIZED_TASK_CATEGORY) {
+    matches = campaigns.filter((c) => {
+      const name = String(c.name || '').trim().toLowerCase();
+      const code = String(c.id || '').trim().toLowerCase();
+      return name === category || code === category;
+    });
+    if (matches.length) evidence = 'an effort is named for the category ' + category;
+  }
+
+  if (matches.length === 1) {
+    return { membership: 'inferred', campaignId: matches[0].id, evidence, candidates: [] };
+  }
+  if (matches.length > 1) {
+    return {
+      membership: 'ambiguous',
+      campaignId: '',
+      evidence: evidence + ' — but ' + matches.length + ' efforts match, so none was chosen',
+      candidates: matches.map((c) => ({ id: c.id, name: c.name || c.id, why: evidence })),
+    };
+  }
+  return {
+    membership: 'standalone',
+    campaignId: '',
+    evidence: category && category !== UNCATEGORIZED_TASK_CATEGORY
+      ? `no roadmap reference, wave or claimed file links this task to an effort; the category "${category}" is a domain label and no effort is named for it`
+      : 'no roadmap reference, wave, claimed file or category link this task to an effort',
+    candidates: [],
+  };
 }
 
 // Find the first requested token that collides with a claimed campaign domain.
@@ -359,7 +638,9 @@ function lockTokens(lock) {
 }
 
 /** Does a set of requested tokens overlap a held lock? Returns the first offending path/token or null. */
-function lockOverlap(requestTokens, heldLock, workspaceRoot) {
+// Shared with the read-only packet preflight so it predicts the same lock
+// conflicts the daemon will enforce when a worker actually calls `lock`.
+export function lockOverlap(requestTokens, heldLock, workspaceRoot) {
   const held = lockTokens(heldLock);
   for (const r of requestTokens) {
     for (const h of held) {
@@ -369,19 +650,40 @@ function lockOverlap(requestTokens, heldLock, workspaceRoot) {
   return null;
 }
 
+const defaultGenId = () => crypto.randomUUID();
+
 export function createStore({
   dir,
   now = Date.now,
-  genId = () => crypto.randomUUID(),
+  genId = defaultGenId,
   presenceTtlMs = 600000,
   presenceDropMs = 3600000,
   heartbeatOnlyLeaseMs = 7200000,
   lockTtlMs = 1800000,
+  // WF-G121: a head reservation on a FREE file is released after this grace
+  // when a different agent asks for the lock, so an idle reserver cannot
+  // deadlock a path nobody holds.
+  reservationGraceMs = 120000,
+  lockExpiringWarnMs = 300000, // WF-G75: warn the holder 5 min before lapse
   snapshotEveryEvents = 200,
   petCatalog = DEFAULT_PET_CATALOG,
   workspaceRoot = process.cwd(),
+  // WF-G119: sibling checkouts an agent here may name with a root prefix. A
+  // test overrides the list; production takes the documented default.
+  siblingRepoRoots = DEFAULT_SIBLING_REPO_ROOTS,
+  // D-R: the seat roster's tracked mirror. A test passes its own path, or
+  // null to switch the mirror off entirely.
+  seatRosterPath = path.join(workspaceRoot, 'tools', 'agora', 'seat-roster.json'),
+  // §7: charters are checked against the Plan Map. A test passes its own
+  // topics; production reads the tracked file at the moment of the check, so
+  // a reference that went stale since the last check is caught, not trusted.
+  readPlanmap = () => JSON.parse(fs.readFileSync(path.join(workspaceRoot, 'public', 'planmap', 'topics.json'), 'utf8')),
 } = {}) {
   if (!dir) throw new Error('createStore requires a { dir }');
+
+  // WF-G119: the name a lock or campaign carries when its paths name no
+  // sibling checkout — the daemon's own workspace, by its directory name.
+  const defaultRepo = path.basename(path.resolve(workspaceRoot)) || '';
 
   fs.mkdirSync(dir, { recursive: true });
   const journalPath = path.join(dir, 'journal.jsonl');
@@ -389,16 +691,30 @@ export function createStore({
 
   // ---- in-memory state ----
   const state = {
+    // Every id any task or campaign has ever carried, pointing at the id it
+    // carries now. Never pruned: a name that once appeared in a written record
+    // has to keep resolving, or that record silently becomes wrong.
+    aliases: new Map(), // formerId -> canonical id
     agents: new Map(), // id -> Agent (raw stored fields)
     locks: new Map(), // id -> Lock
     reservations: new Map(), // id -> Reservation, FIFO dibs for future lock access
     reservationSeq: 0, // last assigned reservation queue number
     tasks: new Map(), // id -> Task
     campaigns: new Map(), // id -> Campaign, the active governance domains claimed by orchestrators
+    // D-B/D-L/D-AB: a SEAT is a durable identity that owns a campaign. A
+    // session is a day; a seat is a person. A campaign belongs to a seat, so
+    // it keeps its owner when the session that opened it ends. Locks,
+    // reservations, task claims and presence still belong to the session,
+    // correctly — those are about work in progress, not about responsibility.
+    seats: new Map(), // seatId -> Seat
     messages: [], // Message[] (ordered by seq)
     seq: 0, // last assigned event seq
     messageSeq: 0, // last assigned message seq
   };
+  const {
+    canonicalId, getTask, getCampaign, hasTask, hasCampaign,
+    touchCampaign, mergeRetraceFiles, lockTokensForAgent,
+  } = createStateHelpers(state);
 
   // Tests may inject a tiny catalog, while production uses the same 50-pet
   // manifest served by the dashboard. Only the public assignment fields above
@@ -496,33 +812,7 @@ export function createStore({
     };
   }
 
-  // Retrace file evidence must outlive the advisory locks that first exposed it.
-  // Locks expire after 30 minutes, while an active task gets up to 120 minutes
-  // before reap, so the task keeps a small union of every path/glob token seen
-  // from its claimant's locks and checkpoints. This is candidate work scope,
-  // not proof that every listed file was modified.
-  function mergeRetraceFiles(task, ...groups) {
-    const files = new Set(Array.isArray(task.retraceFiles) ? task.retraceFiles : []);
-    for (const group of groups) {
-      for (const file of Array.isArray(group) ? group : []) {
-        if (typeof file === 'string' && file.trim()) files.add(file.trim());
-      }
-    }
-    task.retraceFiles = [...files];
-    return task.retraceFiles;
-  }
 
-  // A claim can happen before or after locks are acquired. Reading the current
-  // lock set at claim/handoff time covers the lock-first order; the lock reducer
-  // below covers locks acquired after the task already became active.
-  function lockTokensForAgent(agentId) {
-    const files = [];
-    for (const lock of state.locks.values()) {
-      if (lock.agentId !== agentId) continue;
-      files.push(...(lock.paths || []), ...(lock.globs || []));
-    }
-    return files;
-  }
 
   const subscribers = new Set();
   let eventsSinceSnapshot = 0;
@@ -541,150 +831,8 @@ export function createStore({
     fs.writeSync(journalFd, JSON.stringify(event) + '\n');
   }
 
-  // ---------------------------------------------------------------------------
-  // Mutation reducers — pure(ish): given an event payload, mutate in-memory state.
-  // Keyed by event type. Used both for live mutations and journal replay so that
-  // replay is guaranteed to reconstruct identical state.
-  // ---------------------------------------------------------------------------
-  const reducers = {
-    'agent.register'(p) {
-      state.agents.set(p.agent.id, { ...p.agent });
-    },
-    'agent.touch'(p) {
-      const a = state.agents.get(p.agentId);
-      if (!a) return;
-      a.lastSeen = p.lastSeen;
-      if (Number.isFinite(p.lastMeaningfulAt)) a.lastMeaningfulAt = p.lastMeaningfulAt;
-      if (Number.isFinite(p.lastHeartbeatAt)) a.lastHeartbeatAt = p.lastHeartbeatAt;
-    },
-    'agent.drop'(p) {
-      state.agents.delete(p.agentId);
-    },
-    'lock.acquire'(p) {
-      state.locks.set(p.lock.id, { ...p.lock });
-      // Remember this scope on every active task owned by the lock holder.
-      // The association remains durable after `lock.expired` deletes the lock.
-      const lockFiles = [...(p.lock.paths || []), ...(p.lock.globs || [])];
-      for (const task of state.tasks.values()) {
-        if (task.claimedBy !== p.lock.agentId || !['claimed', 'in_progress'].includes(task.state)) continue;
-        mergeRetraceFiles(task, lockFiles);
-      }
-    },
-    'lock.renew'(p) {
-      const lock = state.locks.get(p.lockId);
-      if (lock) lock.expiresAt = p.expiresAt;
-    },
-    'lock.release'(p) {
-      state.locks.delete(p.lockId);
-    },
-    'lock.expired'(p) {
-      state.locks.delete(p.lockId);
-    },
-    'reservation.create'(p) {
-      state.reservations.set(p.reservation.id, { ...p.reservation });
-      if (p.reservation.queueSeq > state.reservationSeq) state.reservationSeq = p.reservation.queueSeq;
-    },
-    'reservation.release'(p) {
-      state.reservations.delete(p.reservationId);
-    },
-    'reservation.fulfill'(p) {
-      state.reservations.delete(p.reservationId);
-    },
-    'task.create'(p) {
-      state.tasks.set(p.task.id, JSON.parse(JSON.stringify(p.task)));
-    },
-    'task.claim'(p) {
-      const t = state.tasks.get(p.taskId);
-      if (!t) return;
-      t.state = 'claimed';
-      t.claimedBy = p.agentId;
-      t.claimedAgent = p.claimedAgent ? JSON.parse(JSON.stringify(p.claimedAgent)) : null;
-      t.assignedPet = clonePet(p.pet);
-      const agent = state.agents.get(p.agentId);
-      if (agent && p.pet) agent.pet = clonePet(p.pet);
-      mergeRetraceFiles(t, p.retraceFiles || lockTokensForAgent(p.agentId));
-      t.updatedAt = p.ts;
-      t.history.push(p.entry);
-    },
-    'task.state'(p) {
-      const t = state.tasks.get(p.taskId);
-      if (!t) return;
-      t.state = p.state;
-      if (p.result !== undefined) t.result = p.result;
-      // These fields travel in the same journal event as the state change so a
-      // crash cannot restore the prose while losing how that prose should be read.
-      if (p.resultDisposition !== undefined) t.resultDisposition = p.resultDisposition;
-      if (p.finding !== undefined) t.finding = p.finding;
-      if (p.evidence !== undefined) t.evidence = p.evidence;
-      t.updatedAt = p.ts;
-      t.history.push(p.entry);
-    },
-    'task.release'(p) {
-      // Reopen a claimed/in-progress task (dead-agent reap or explicit release).
-      const t = state.tasks.get(p.taskId);
-      if (!t) return;
-      t.state = 'open';
-      t.claimedBy = null;
-      t.claimedAgent = null;
-      t.assignedPet = null;
-      t.updatedAt = p.ts;
-      t.history.push(p.entry);
-      // A reap carries a retrace dossier (agent-retrace, Wave 2). A clean retire
-      // does not, so it neither stamps a crash dossier nor bumps reapCount.
-      if (p.retrace) {
-        t.retrace = p.retrace;
-        t.reapCount = (t.reapCount || 0) + 1;
-      }
-    },
-    'task.checkpoint'(p) {
-      const t = state.tasks.get(p.taskId);
-      if (!t) return;
-      t.checkpoint = p.checkpoint; // latest-wins resumable note
-      // Checkpoint file lists are self-reported evidence and remain part of the
-      // task's recoverable scope even when a later checkpoint omits them.
-      mergeRetraceFiles(t, p.checkpoint && p.checkpoint.files);
-      t.updatedAt = p.ts;
-    },
-    'task.archived'(p) {
-      // Board tidying: the task's full record lives in the archive JSONL; live
-      // state (and therefore snapshot + replay) only needs the deletion.
-      state.tasks.delete(p.taskId);
-    },
-    'task.handoff'(p) {
-      const t = state.tasks.get(p.taskId);
-      if (!t) return;
-      t.claimedBy = p.toAgentId;
-      t.claimedAgent = p.claimedAgent ? JSON.parse(JSON.stringify(p.claimedAgent)) : null;
-      t.assignedPet = clonePet(p.pet);
-      const agent = state.agents.get(p.toAgentId);
-      if (agent && p.pet) agent.pet = clonePet(p.pet);
-      mergeRetraceFiles(t, p.retraceFiles || lockTokensForAgent(p.toAgentId));
-      t.updatedAt = p.ts;
-      t.history.push(p.entry);
-    },
-    'task.categories'(p) {
-      const t = state.tasks.get(p.taskId);
-      if (!t) return;
-      t.category = normalizeCategoryInput(p.category || '');
-      t.categories = normalizeCategoryList(p.categories);
-      t.updatedAt = p.ts;
-      t.history.push(p.entry);
-    },
-    'campaign.claim'(p) {
-      state.campaigns.set(p.campaign.id, JSON.parse(JSON.stringify(p.campaign)));
-    },
-    'campaign.state'(p) {
-      const c = state.campaigns.get(p.campaignId);
-      if (!c) return;
-      c.state = p.state;
-      c.updatedAt = p.ts;
-      c.history.push(p.entry);
-    },
-    'message.post'(p) {
-      state.messages.push({ ...p.message });
-      if (p.message.seq > state.messageSeq) state.messageSeq = p.message.seq;
-    },
-  };
+
+  const reducers = createReducers(state, { canonicalId, getTask, getCampaign, touchCampaign, mergeRetraceFiles, lockTokensForAgent });
 
   /**
    * The single mutation path. Assigns the event seq, applies the reducer to
@@ -692,6 +840,53 @@ export function createStore({
    * During replay only the reducer runs (no journal append, no fan-out, seq is
    * driven by the replayed event).
    */
+  // ---------------------------------------------------------------------------
+  // Id minting and resolution
+  // ---------------------------------------------------------------------------
+
+
+  /** Mint a task id. With a campaign, the id says so: `<campaign>.<n>`, where
+   *  n counts that campaign's existing tasks and skips anything already taken.
+   *  Without one there is no membership to encode, so it is a standalone hash. */
+  /** D-W: a campaign's id is a short code, `agora-a3f8`. Its tasks are then
+   *  `agora-a3f8.1`, which is the Beads shape Remy chose.
+   *
+   *  The code is derived from the NAME, deliberately. Claiming
+   *  "living-interiors-live-clock" twice must reach the same campaign, and a
+   *  derived code does that with no lookup table to keep in step. The name
+   *  itself becomes a permanent alias, so every route, document, and finished
+   *  result that already quotes it keeps working, forever.
+   */
+  function mintCampaignId(name) {
+    for (let width = 4; width <= 12; width += 2) {
+      const candidate = 'agora-' + shortHash(name, width);
+      const holder = state.campaigns.get(candidate);
+      if (!holder || holder.name === name) return candidate;
+    }
+    return 'agora-' + shortHash(name + ':' + crypto.randomUUID(), 12);
+  }
+
+  function mintTaskId(campaignId) {
+    if (campaignId) {
+      let n = 0;
+      for (const t of state.tasks.values()) if (t.campaignId === campaignId) n += 1;
+      let candidate = campaignId + '.' + (n + 1);
+      let bump = n + 1;
+      while (hasTask(candidate) || state.aliases.has(candidate)) {
+        bump += 1;
+        candidate = campaignId + '.' + bump;
+      }
+      return candidate;
+    }
+    // Standalone. Seed on the clock plus a random value so two tasks minted in
+    // the same millisecond cannot collide, then widen on the rare clash.
+    for (let width = 4; width <= 12; width += 2) {
+      const candidate = 'agora-' + shortHash(now() + ':' + crypto.randomUUID(), width);
+      if (!hasTask(candidate) && !state.aliases.has(candidate)) return candidate;
+    }
+    return 'agora-' + crypto.randomUUID();
+  }
+
   function emit(type, payload) {
     const reducer = reducers[type];
     if (!reducer) throw new Error('Unknown event type: ' + type);
@@ -733,15 +928,25 @@ export function createStore({
       reservationSeq: state.reservationSeq,
       tasks: [...state.tasks.values()],
       campaigns: [...state.campaigns.values()],
+      seats: [...state.seats.values()],
+      aliases: [...state.aliases.entries()],
       messages: state.messages,
     };
   }
 
+  // WF-G147 (2026-09-09): the snapshot is the one synchronous write on the
+  // request path that grows with the board (2.9 MB today). Its cost is
+  // measured and published through /health, so a stall can be attributed to
+  // it (or ruled out) instead of guessed at from a failed probe.
+  let lastSnapshot = null;
   function snapshot() {
+    const t0 = Date.now();
     const snap = serializeState();
     const tmp = snapshotPath + '.' + process.pid + '.tmp';
-    fs.writeFileSync(tmp, JSON.stringify(snap));
+    const body = JSON.stringify(snap);
+    fs.writeFileSync(tmp, body);
     fs.renameSync(tmp, snapshotPath); // atomic replace
+    lastSnapshot = { at: t0, ms: Date.now() - t0, bytes: body.length, events: eventsSinceSnapshot };
 
     // Journal now only needs post-snapshot events. Close, truncate, reopen.
     if (journalFd !== null) {
@@ -760,15 +965,7 @@ export function createStore({
     } catch {
       return 0; // corrupt snapshot — fall back to pure journal replay
     }
-    state.seq = snap.lastSeq || 0;
-    state.messageSeq = snap.messageSeq || 0;
-    for (const a of snap.agents || []) state.agents.set(a.id, a);
-    for (const l of snap.locks || []) state.locks.set(l.id, l);
-    for (const r of snap.reservations || []) state.reservations.set(r.id, r);
-    state.reservationSeq = snap.reservationSeq || Math.max(0, ...[...state.reservations.values()].map((r) => r.queueSeq || 0));
-    for (const t of snap.tasks || []) state.tasks.set(t.id, t);
-    for (const c of snap.campaigns || []) state.campaigns.set(c.id, c);
-    state.messages = snap.messages || [];
+    loadSnapshotInto(state, snap);
     return state.seq;
   }
 
@@ -777,20 +974,7 @@ export function createStore({
     const raw = fs.readFileSync(journalPath, 'utf8');
     if (!raw) return;
     replaying = true;
-    const lines = raw.split('\n');
-    for (const line of lines) {
-      if (!line.trim()) continue;
-      let event;
-      try {
-        event = JSON.parse(line);
-      } catch {
-        continue; // skip a torn last line from a crash mid-write
-      }
-      if (event.seq <= snapshotSeq) continue; // already folded into snapshot
-      const reducer = reducers[event.type];
-      if (reducer) reducer(event.payload);
-      if (event.seq > state.seq) state.seq = event.seq;
-    }
+    applyJournalText(state, reducers, raw, snapshotSeq);
     replaying = false;
   }
 
@@ -869,7 +1053,7 @@ export function createStore({
   const AGENT_ROLES = ['worker', 'orchestrator', 'master', 'human'];
   // Roles allowed to post on (and expected to read) the command channel.
   const COMMAND_CHANNEL_ROLES = ['orchestrator', 'master', 'human'];
-  function registerAgent({ handle, note, model, reasoningEffort, sessionId, role, type, spawnedBy, campaign, cwd, petSlug } = {}) {
+  function registerAgent({ handle, note, model, reasoningEffort, sessionId, role, type, spawnedBy, campaign, cwd, petSlug, seat } = {}) {
     const ts = now();
     const normalizedRole = AGENT_ROLES.includes(role) ? role : 'worker';
     const threadIdentity = validateRegistrationThreadIdentity({ handle, model, sessionId, role: normalizedRole, type });
@@ -916,8 +1100,30 @@ export function createStore({
       cwd: typeof cwd === 'string' ? cwd : '',
       // Whether the handle follows the structured grammar. A flag, not a block.
       handleValid: validateHandle(handle || '').ok,
+      // D-AB: which durable identity this session is sitting in, if any.
+      seatId: '',
     };
     emit('agent.register', { agent });
+
+    // D-AB: the seat is taken AT SIGN-IN, not when a campaign is claimed. A
+    // seat that could only be held while claiming would be dropped the moment
+    // its holder paused to read or review, which is most of the work.
+    if (seat) {
+      const seatId = resolveSeatId(seat); // WF-G140: a renamed seat answers to every name it carried
+      const took = holdSeat({ seatId, agentId: agent.id });
+      if (!took.ok) {
+        // Registration already happened and must stand: refusing it here would
+        // strand an agent with a token it cannot use. The refusal is reported
+        // instead, so the caller sees exactly why the seat is not theirs.
+        return { ...agent, seatError: took.error };
+      }
+      // The link must reach the STORED agent, not only the returned copy.
+      // Setting it on the local object left claimCampaign and retireAgent
+      // reading an empty seat, so the campaign lost its durable owner at the
+      // moment it was claimed. It is its own event, so replay reproduces it.
+      emit('agent.seat', { agentId: agent.id, seatId, at: now() });
+      return { ...agent, seatId };
+    }
     return { ...agent };
   }
 
@@ -963,6 +1169,17 @@ export function createStore({
         const entry = { at: t, by: agentId, action: 'retired', state: 'open' };
         if (typeof note === 'string' && note) entry.note = note;
         emit('task.release', { taskId: task.id, ts: t, entry });
+      }
+    }
+    // D-AB: a dropped session frees its seat by OBSERVATION — `seatIsHeld`
+    // asks whether the holder is live, so no timer and no sweep is needed. A
+    // clean exit still says so out loud, because the roster should record a
+    // deliberate hand-back differently from a session that simply stopped.
+    if (agent.seatId && state.seats.has(agent.seatId)) {
+      const seat = state.seats.get(agent.seatId);
+      if (seat.holder === agentId) {
+        emit('seat.release', { seatId: agent.seatId, agentId, at: t, why: 'retired' });
+        writeSeatRoster();
       }
     }
     emit('agent.drop', { agentId, retired: true });
@@ -1162,19 +1379,55 @@ export function createStore({
       };
     }
 
+    // WF-G91: lock paths are free strings, so one wave held `src/mesh/sdf.ts`
+    // beside `entity-forge/src/mesh/sdf.ts` — the same file, never a conflict.
+    // The daemon cannot prove two spellings are one file, so it does not
+    // refuse; it reports every held path that is a path-boundary suffix of a
+    // requested one (or the reverse) as a warning the client prints.
+    // WF-G119: which checkout THIS request is about. A first path segment that
+    // names a known sibling root (entity-forge/, Entity-Generator/, ...) wins;
+    // otherwise the lock belongs to the daemon's own workspace.
+    const requestRepo = repoForTokens(requestTokens, defaultRepo, siblingRepoRoots);
+
+    const warnings = [];
+    const suffixOf = (shorter, longer) => longer.toLowerCase().endsWith('/' + shorter.toLowerCase());
+    for (const held of activeLocks(t)) {
+      if (held.agentId === agentId) continue;
+      // WF-G119: two spellings of one file in ONE repo still warn; the same
+      // relative path in two DIFFERENT repos is not a conflict and must not.
+      const heldRepo = held.repo || repoForTokens([...(held.paths || []), ...(held.globs || [])], defaultRepo, siblingRepoRoots);
+      if (heldRepo !== requestRepo) continue;
+      for (const mine of normalizedPaths) {
+        for (const theirs of held.paths || []) {
+          if (mine === theirs) continue;
+          if (suffixOf(mine, theirs) || suffixOf(theirs, mine)) {
+            warnings.push(`"${mine}" may be the same file as "${theirs}" held by ${held.agentId} under another root prefix`);
+          }
+        }
+      }
+    }
+
     const ttl = typeof ttlMs === 'number' ? ttlMs : lockTtlMs;
     const lock = {
       id: genId(),
       paths: normalizedPaths,
       globs: normalizedGlobs,
       agentId,
+      // WF-G119: the checkout this lock is about, so a cross-repo wave stops
+      // producing false same-file warnings (and a real one stays visible).
+      repo: requestRepo,
       reason: reason || '',
       createdAt: t,
       expiresAt: t + ttl,
+      // WF-G110: remember the span the holder asked for, so a renew that names
+      // no ttl extends by THIS span and not by the 30-minute default.
+      ttlMs: ttl,
+      // WF-G75: one-shot T-minus warning flag; reset by renewLock.
+      expiringWarned: false,
     };
     emit('lock.acquire', { lock });
     fulfillHeadReservations(agentId, requestTokens);
-    return { ok: true, lock: { ...lock } };
+    return { ok: true, lock: { ...lock }, warnings };
   }
 
   function releaseLock({ lockId, agentId, force } = {}) {
@@ -1197,14 +1450,38 @@ export function createStore({
     const lock = state.locks.get(lockId);
     if (!lock) return { ok: false, error: 'lock not found' };
     if (lock.agentId !== agentId) return { ok: false, error: 'only the holder may renew' };
-    const ttl = typeof ttlMs === 'number' && ttlMs > 0 ? ttlMs : lockTtlMs;
+    // WF-G110 (2026-09-09): the heartbeat helper renews every lock it holds with
+    // no ttl. That used to reset a 180-minute lock to the 30-minute default on
+    // the first beat, so two workers lost their locks mid-edit an hour in. A
+    // renew without a ttl now keeps the holder's original span (legacy locks
+    // without `ttlMs` fall back to the default as before).
+    const ttl = typeof ttlMs === 'number' && ttlMs > 0
+      ? ttlMs
+      : (typeof lock.ttlMs === 'number' && lock.ttlMs > 0 ? lock.ttlMs : lockTtlMs);
+    lock.expiringWarned = false; // WF-G75: fresh TTL, re-arm the T-minus warning
     const expiresAt = now() + ttl;
+    lock.expiresAt = expiresAt;
     emit('lock.renew', { lockId, agentId, expiresAt });
     return { ok: true, lock: { ...state.locks.get(lockId) } };
   }
 
+  // WF-G116: a heartbeat-renewed lock told a waiter nothing about whether the
+  // holder was still working. Every listed lock now carries the holder's last
+  // meaningful check-in, how long it has been idle, and its presence status, so
+  // a queued agent can tell live work from a hold that is merely renewing.
   function listLocks() {
-    return activeLocks().map((l) => ({ ...l }));
+    const t = now();
+    return activeLocks(t).map((l) => {
+      const holder = state.agents.get(l.agentId);
+      const lastSeen = holder && Number.isFinite(holder.lastSeen) ? holder.lastSeen : null;
+      return {
+        ...l,
+        holderHandle: holder ? holder.handle : '',
+        holderLastSeen: lastSeen,
+        holderIdleMs: lastSeen === null ? null : Math.max(0, t - lastSeen),
+        holderStatus: holder ? computeStatus(holder, t) : 'gone',
+      };
+    });
   }
 
   // ===========================================================================
@@ -1241,11 +1518,54 @@ export function createStore({
   }
 
   function reservationConflictFor(agentId, requestTokens) {
-    const queue = activeReservationsFor(requestTokens);
-    if (!queue.length) return null;
-    const head = queue[0];
-    if (head.agentId === agentId) return null;
-    return { path: reservationOverlap(requestTokens, head), reservation: withReservationPosition(head) };
+    const t = now();
+    for (;;) {
+      const queue = activeReservationsFor(requestTokens);
+      if (!queue.length) return null;
+      const head = queue[0];
+      if (head.agentId === agentId) return null;
+      // WF-G121 (2026-09-09): two workers each burned a 10-minute poll on a file
+      // NOBODY held, because an earlier reserver never came back to lock it.
+      // FIFO dibs only make sense while the file is held. When no active lock
+      // covers the request and the head reservation is older than the grace
+      // window, that reservation is released (journaled, with why) and the
+      // next in line is evaluated. A reservation on a HELD file keeps its place.
+      const covered = activeLocks(t).some((held) => lockOverlap(requestTokens, held, workspaceRoot));
+      if (covered) {
+        // The file is held again: any earlier free window no longer counts.
+        if (head.freeSince) emit('reservation.freeSince', { reservationId: head.id, at: null });
+      } else if (!head.freeSince) {
+        // First request that finds the file free while this reservation heads
+        // the queue: start the grace clock (journaled, so replay agrees).
+        emit('reservation.freeSince', { reservationId: head.id, at: t });
+      } else if (t - head.freeSince > reservationGraceMs) {
+        emit('reservation.release', { reservationId: head.id, agentId: head.agentId, idleGraceMs: t - head.freeSince, requestedBy: agentId });
+        continue;
+      }
+      return { path: reservationOverlap(requestTokens, head), reservation: withReservationPosition(head) };
+    }
+  }
+
+  /** WF-G122: drop some tokens from a lock without releasing the rest.
+   *  `unlock <path>` used to resolve the path to its lock id and DELETE the
+   *  whole record, so a worker asked to release one shared file lost the locks
+   *  on its other files. When nothing remains the lock is released outright. */
+  function shrinkLock({ lockId, agentId, paths = [], globs = [] } = {}) {
+    const lock = state.locks.get(lockId);
+    if (!lock) return { ok: false, error: 'lock not found' };
+    if (lock.agentId !== agentId) return { ok: false, error: 'only the holder may shrink' };
+    const dropPaths = new Set(normalizePathList(paths, workspaceRoot));
+    const dropGlobs = new Set(normalizePathList(globs, workspaceRoot));
+    const keepPaths = (lock.paths || []).filter((p) => !dropPaths.has(p));
+    const keepGlobs = (lock.globs || []).filter((g) => !dropGlobs.has(g));
+    const removed = (lock.paths || []).length + (lock.globs || []).length - keepPaths.length - keepGlobs.length;
+    if (!removed) return { ok: false, error: 'none of those tokens are on this lock' };
+    if (!keepPaths.length && !keepGlobs.length) {
+      emit('lock.release', { lockId, agentId });
+      return { ok: true, released: true, lock: null };
+    }
+    emit('lock.shrink', { lockId, agentId, paths: keepPaths, globs: keepGlobs, removed });
+    return { ok: true, released: false, lock: { ...state.locks.get(lockId) } };
   }
 
   function fulfillHeadReservations(agentId, requestTokens) {
@@ -1328,7 +1648,7 @@ export function createStore({
   }
 
   function activeLeadCampaign(id) {
-    const campaign = state.campaigns.get(id);
+    const campaign = getCampaign(id);
     if (!campaign || campaign.role !== 'lead' || campaign.state !== 'active') return null;
     return isLiveAgent(campaign.agentId) ? campaign : null;
   }
@@ -1342,9 +1662,26 @@ export function createStore({
     paths = [],
     globs = [],
     wave,
+    // WF-G207: the Plan Map topic or feature this effort serves,
+    // "planmap:<topic>[/<feature>]". Optional, and validated against
+    // public/planmap/topics.json the way a charter reference is.
+    planmapRef,
   } = {}) {
-    const id = normalizeCampaignId(campaignId || '');
-    if (!id) return { ok: false, error: 'campaign id is required' };
+    const name = normalizeCampaignId(campaignId || '');
+    if (!name) return { ok: false, error: 'campaign id is required' };
+    // WF-G207: a reference that names nothing is worse than no reference,
+    // because rank 1 would then match on a topic that does not exist.
+    const wantedPlanmapRef = typeof planmapRef === 'string' ? planmapRef.trim() : '';
+    if (wantedPlanmapRef) {
+      const health = planMapHealth(wantedPlanmapRef, planmapTopics());
+      if (!health.ok) {
+        return { ok: false, error: `planmapRef refused: ${health.problems.join("; ")}` };
+      }
+    }
+    // The caller may pass the name or the code; both must reach the same
+    // campaign. A name never seen before mints a new code.
+    const id = state.campaigns.has(canonicalId(name)) ? canonicalId(name) : mintCampaignId(name);
+    const isNewCampaign = !state.campaigns.has(id);
     const normalizedRole = CAMPAIGN_ROLES.has(role) ? role : 'lead';
     const claimPaths = normalizePathList(paths);
     const claimGlobs = normalizePathList(globs);
@@ -1352,7 +1689,7 @@ export function createStore({
     if (!requestTokens.length) return { ok: false, error: 'campaign must declare at least one path or glob' };
 
     const t = now();
-    const existing = state.campaigns.get(id);
+    const existing = getCampaign(id);
     if (existing && existing.agentId !== agentId && existing.state === 'active' && isLiveAgent(existing.agentId, t)) {
       return {
         ok: false,
@@ -1361,7 +1698,8 @@ export function createStore({
       };
     }
 
-    const normalizedLeadId = normalizeCampaignId(leadCampaignId || '');
+    // A deputy names its lead by name or by code; both must find it.
+    const normalizedLeadId = canonicalId(normalizeCampaignId(leadCampaignId || ''));
     if (normalizedRole === 'deputy' && !activeLeadCampaign(normalizedLeadId)) {
       return { ok: false, error: 'deputy campaign must name an active lead campaign' };
     }
@@ -1406,13 +1744,29 @@ export function createStore({
 
     const campaign = {
       id,
+      // The name a person chose. The code is the id; this is what it is called.
+      name: (existing && existing.name) || name,
       role: normalizedRole,
       leadCampaignId: normalizedRole === 'deputy' ? normalizedLeadId : '',
+      // The SESSION that claimed it. Kept, because the history should say who
+      // was actually at the keyboard.
       agentId,
+      // D-B: the DURABLE owner. Taken from the seat this session is sitting
+      // in, so the campaign keeps its owner after the session ends. A session
+      // with no seat leaves this empty, and the campaign then reads as
+      // unattended forever — which is the honest reading, not a defect.
+      seatId: (state.agents.get(agentId) || {}).seatId || (existing && existing.seatId) || '',
       scope: typeof scope === 'string' ? scope.trim() : '',
+      // WF-G119: campaigns carry the same repo field as locks, so an
+      // orchestrator domain in a sibling checkout is not confused with one here.
+      repo: repoForTokens(requestTokens, defaultRepo, siblingRepoRoots),
       paths: claimPaths,
       globs: claimGlobs,
       wave: typeof wave === 'string' ? wave.trim() : '',
+      // WF-G207: kept on the record, so rank 1 of the membership mapping has
+      // something to compare against that a person did not have to encode in
+      // the campaign name. An omitted value never erases one already stored.
+      planmapRef: wantedPlanmapRef || (existing && existing.planmapRef) || '',
       state: 'active',
       warnings,
       createdAt: existing ? existing.createdAt : t,
@@ -1433,16 +1787,42 @@ export function createStore({
     return { ok: true, campaign: JSON.parse(JSON.stringify(campaign)), warnings };
   }
 
-  function setCampaignState({ campaignId, agentId, state: newState } = {}) {
-    const id = normalizeCampaignId(campaignId || '');
-    const campaign = state.campaigns.get(id);
+  function setCampaignState({ campaignId, agentId, state: newState, reason } = {}) {
+    const id = canonicalId(normalizeCampaignId(campaignId || ''));
+    const campaign = getCampaign(id);
     if (!campaign) return { ok: false, error: 'campaign not found' };
     if (!CAMPAIGN_STATES.has(newState)) return { ok: false, error: 'invalid campaign state: ' + newState };
-    if (campaign.agentId !== agentId) return { ok: false, error: 'only the campaign owner may change state' };
-    const ts = now();
-    const entry = { at: ts, by: agentId, action: 'state', state: newState };
+    const why = typeof reason === 'string' ? reason.trim() : '';
+    const t = now();
+    // WF-G83: `setCampaignState` accepted the owner only, and every owner is a
+    // session that ends, so an abandoned campaign had no closure path short of
+    // re-claiming its whole file scope. The command channel (orchestrator,
+    // master, human) may now move an UNATTENDED campaign — nobody in its seat,
+    // owner session gone — and must say why. An attended campaign, or one whose
+    // owner session is still live, is still the owner's alone.
+    let adoptedClosure = false;
+    if (campaign.agentId !== agentId) {
+      const requester = state.agents.get(agentId);
+      const commandChannel = Boolean(requester && COMMAND_CHANNEL_ROLES.includes(requester.role));
+      const attended = Boolean(campaign.seatId && seatIsHeld(campaign.seatId, t));
+      if (!commandChannel || attended || isLiveAgent(campaign.agentId, t)) {
+        return { ok: false, error: 'only the campaign owner may change state' };
+      }
+      if (!why) return { ok: false, error: 'closing or moving an unattended campaign you do not own needs a reason' };
+      adoptedClosure = true;
+    }
+    // WF-G86: blocked and done are the transitions an audit asks about.
+    if ((newState === 'blocked' || newState === 'done') && !why && campaign.state !== newState) {
+      return { ok: false, error: `campaign state ${newState} needs a reason` };
+    }
+    const ts = t;
+    // WF-G86: `from` and `reason` make the entry reconstructible; readers of
+    // legacy entries must tolerate their absence.
+    const entry = { at: ts, by: agentId, action: 'state', from: campaign.state, state: newState };
+    if (why) entry.reason = why;
+    if (adoptedClosure) { entry.adoptedClosure = true; entry.previousOwner = campaign.agentId; }
     emit('campaign.state', { campaignId: id, agentId, state: newState, ts, entry });
-    return { ok: true, campaign: JSON.parse(JSON.stringify(state.campaigns.get(id))) };
+    return { ok: true, campaign: JSON.parse(JSON.stringify(getCampaign(id))) };
   }
 
   function listCampaigns({ state: filterState } = {}) {
@@ -1451,36 +1831,322 @@ export function createStore({
       .filter((campaign) => !filterState || campaign.state === filterState)
       .map((campaign) => {
         const ownerStatus = agentPresenceStatus(campaign.agentId, t);
+        // D-AA: "has the owner gone?" was a broken question. A session always
+        // ends, so on 2026-09-07 all 27 campaigns answered "gone" for the
+        // trivial reason that no session outlives itself. ATTENDED asks
+        // something answerable instead: is a live session in this seat now?
+        //
+        // A campaign with no seat has no durable owner at all, so it can never
+        // be attended. That is stated rather than hidden: `seatId` is empty and
+        // `attended` is false, which is the truth about every campaign claimed
+        // before seats existed.
+        const seat = campaign.seatId ? state.seats.get(campaign.seatId) : null;
+        const attended = Boolean(seat && seatIsHeld(seat.id, t));
         return {
           ...JSON.parse(JSON.stringify(campaign)),
           // Ownership remains authoritative through the stale window. Only a
           // gone owner may be replaced; stale is a warning, not permission.
           ownerStatus,
           ownerLive: ownerStatus !== 'gone',
+          seatName: seat ? seat.name : '',
+          attended,
+          // §9: adoptable is now OBSERVED — active and nobody on it — rather
+          // than inferred from a session that was always going to end.
+          adoptable: campaign.state === 'active' && !attended,
         };
       });
   }
 
   // ===========================================================================
+  // Charters, the campaign read model, and triage (design §6, §7, §10, §72)
+  // ===========================================================================
+
+  /** Topics for a Plan Map check, or null when the file cannot be read. A null
+   *  makes every reference fail its check loudly, rather than pass unchecked. */
+  function planmapTopics() {
+    try {
+      return readPlanmap();
+    } catch {
+      return null;
+    }
+  }
+
+  function isCommandChannel(agentId) {
+    const agent = state.agents.get(agentId);
+    return Boolean(agent && COMMAND_CHANNEL_ROLES.includes(agent.role));
+  }
+
+  function isAttended(campaign, t = now()) {
+    return Boolean(campaign && campaign.seatId && seatIsHeld(campaign.seatId, t));
+  }
+
+  function campaignTasks(campaignId) {
+    return [...state.tasks.values()].filter((task) => task.campaignId === campaignId);
+  }
+
+  /** §6: attach or replace a campaign's charter. A charter that fails its tier
+   *  rules or its Plan Map check is REFUSED with every problem named. */
+  function putCharter({ campaignId, agentId, body, summary } = {}) {
+    const campaign = getCampaign(canonicalId(normalizeCampaignId(campaignId || '')));
+    if (!campaign) return { ok: false, error: 'campaign not found' };
+    if (campaign.agentId !== agentId && !isCommandChannel(agentId)) {
+      return { ok: false, error: 'only the campaign owner or the command channel may write its charter' };
+    }
+    const why = typeof summary === 'string' ? summary.trim() : '';
+    if (!why) return { ok: false, error: 'a charter revision needs a summary' };
+    const validation = validateCharter(body, { topics: planmapTopics(), campaignState: campaign.state });
+    if (!validation.ok) {
+      return { ok: false, error: 'charter refused', errors: validation.errors, warnings: validation.warnings, validation };
+    }
+    emit('campaign.charter', { campaignId: campaign.id, by: agentId, at: now(), body, summary: why });
+    return { ok: true, charter: JSON.parse(JSON.stringify(getCampaign(campaign.id).charter)), warnings: validation.warnings, validation };
+  }
+
+  /** §11: small and standard charters need a master or a human; a large one
+   *  needs a human. The charter is re-checked at approval, because the Plan Map
+   *  may have moved since it was written. */
+  function approveCharter({ campaignId, agentId, note } = {}) {
+    const campaign = getCampaign(canonicalId(normalizeCampaignId(campaignId || '')));
+    if (!campaign) return { ok: false, error: 'campaign not found' };
+    if (!campaign.charter) return { ok: false, error: 'campaign has no charter to approve' };
+    const agent = state.agents.get(agentId);
+    const role = agent ? agent.role : '';
+    const tier = campaign.charter.body.tier;
+    const allowed = approverRolesFor(tier);
+    if (!allowed.includes(role)) {
+      return { ok: false, error: `a ${tier} charter needs approval from: ${allowed.join(' or ')} (you are "${role || 'unregistered'}")` };
+    }
+    // §5: the creator drafts; the creator does not approve. A human may.
+    if (role !== 'human' && campaign.charter.submittedBy === agentId) {
+      return { ok: false, error: 'the agent that submitted a charter may not approve it' };
+    }
+    const why = typeof note === 'string' ? note.trim() : '';
+    if (!why) return { ok: false, error: 'an approval needs a note saying what was read' };
+    const validation = validateCharter(campaign.charter.body, { topics: planmapTopics(), campaignState: campaign.state });
+    if (!validation.ok) return { ok: false, error: 'charter no longer validates', errors: validation.errors };
+    emit('campaign.charter.approve', { campaignId: campaign.id, by: agentId, role, at: now(), note: why });
+    return { ok: true, charter: JSON.parse(JSON.stringify(getCampaign(campaign.id).charter)) };
+  }
+
+  /** §13/§25: one read that joins the campaign, its charter and live validity,
+   *  its tasks with computed times, and progress. Stores nothing. */
+  function campaignView(campaignId) {
+    const id = canonicalId(normalizeCampaignId(campaignId || ''));
+    const listed = listCampaigns().find((c) => c.id === id);
+    if (!listed) return { ok: false, error: 'campaign not found' };
+    const tasks = campaignTasks(id).map((task) => ({ ...JSON.parse(JSON.stringify(task)), ...taskTimes(task) }));
+    const validation = listed.charter
+      ? validateCharter(listed.charter.body, { topics: planmapTopics(), campaignState: listed.state })
+      : null;
+    return {
+      ok: true,
+      campaign: listed,
+      legacy: !listed.charter,
+      validation,
+      progress: campaignProgress(tasks, listed.charter && listed.charter.body),
+      tasks,
+    };
+  }
+
+  /** §10 step 2. A pure read: it never emits, so no record can change. */
+  function triageReport(campaignId) {
+    const id = canonicalId(normalizeCampaignId(campaignId || ''));
+    const campaign = getCampaign(id);
+    if (!campaign) return { ok: false, error: 'campaign not found' };
+    const t = now();
+    return buildTriageReport({
+      campaign: JSON.parse(JSON.stringify(campaign)),
+      tasks: campaignTasks(id).map((task) => JSON.parse(JSON.stringify(task))),
+      topics: planmapTopics(),
+      isAgentLive: (agent) => isLiveAgent(agent, t),
+      attended: isAttended(campaign, t),
+      generatedAt: t,
+    });
+  }
+
+  /** §10 step 3: an explicit start by the command channel, on an adoptable
+   *  campaign only, with a reason. There is no implicit start. */
+  function startTriage({ campaignId, agentId, reason } = {}) {
+    const campaign = getCampaign(canonicalId(normalizeCampaignId(campaignId || '')));
+    if (!campaign) return { ok: false, error: 'campaign not found' };
+    if (!isCommandChannel(agentId)) return { ok: false, error: 'only the command channel may start triage' };
+    const why = typeof reason === 'string' ? reason.trim() : '';
+    if (!why) return { ok: false, error: 'starting triage needs a reason' };
+    const t = now();
+    if (campaign.state !== 'active' || isAttended(campaign, t)) {
+      return { ok: false, error: 'only an adoptable campaign (active, nobody in its seat) may be triaged' };
+    }
+    if (campaign.agentId !== agentId && isLiveAgent(campaign.agentId, t)) {
+      return { ok: false, error: 'the owning session is still live; it is not abandoned' };
+    }
+    if (campaign.triage && campaign.triage.state === 'in-review') {
+      return { ok: false, error: 'triage is already in review for this campaign' };
+    }
+    emit('campaign.triage.start', { campaignId: campaign.id, by: agentId, at: t, reason: why });
+    return { ok: true, report: triageReport(campaign.id) };
+  }
+
+  /** §10 steps 6-8: one explicit disposition for ONE task. Bulk approval does
+   *  not exist, by construction: there is no call that takes two tasks. */
+  function applyDisposition({ campaignId, taskId, agentId, disposition, reason, toAgentId, blocker, supersededBy, approvalQuote, evidence } = {}) {
+    const campaign = getCampaign(canonicalId(normalizeCampaignId(campaignId || '')));
+    if (!campaign) return { ok: false, error: 'campaign not found' };
+    if (!campaign.triage || campaign.triage.state !== 'in-review') return { ok: false, error: 'triage has not been started for this campaign' };
+    if (!isCommandChannel(agentId)) return { ok: false, error: 'only the command channel may apply a disposition' };
+    const spec = DISPOSITIONS[disposition];
+    if (!spec) return { ok: false, error: `unknown disposition: ${disposition}; one of ${Object.keys(DISPOSITIONS).join(', ')}` };
+    const t = getTask(taskId);
+    if (!t || t.campaignId !== campaign.id) return { ok: false, error: 'task not found in this campaign' };
+    if (campaign.triage.dispositions[t.id]) return { ok: false, error: `task ${t.id} already has a disposition: ${campaign.triage.dispositions[t.id].disposition}` };
+    const why = typeof reason === 'string' ? reason.trim() : '';
+    if (!why) return { ok: false, error: 'a disposition needs a reason' };
+    const agent = state.agents.get(agentId);
+    const quote = typeof approvalQuote === 'string' ? approvalQuote.trim() : '';
+    // §10 step 7 and §11: work that is destroyed or hidden needs the human.
+    // The daemon cannot see a person; it can refuse every caller that is not
+    // registered as one, and keep the words of the approval on the record.
+    if (spec.human && (agent.role !== 'human' || !quote)) {
+      return { ok: false, error: `${disposition} needs recorded human approval: a caller registered as human, and the approval quote` };
+    }
+    const at = now();
+    const patch = {};
+    const record = { disposition, risk: spec.risk, by: agentId, role: agent.role, at, reason: why, from: t.state };
+    if (disposition === 'reopen') {
+      if (!['claimed', 'in_progress', 'blocked'].includes(t.state)) return { ok: false, error: `nothing to reopen: task is ${t.state}` };
+      Object.assign(patch, { state: 'open', claimedBy: null, claimedAgent: null, assignedPet: null });
+    } else if (disposition === 'reassign') {
+      if (t.state === 'done') return { ok: false, error: 'a done task cannot be reassigned' };
+      if (!toAgentId || !state.agents.has(toAgentId) || !isLiveAgent(toAgentId, at)) return { ok: false, error: 'reassign needs a live toAgentId' };
+      const pet = choosePetForAgent(toAgentId);
+      if (!pet) return { ok: false, error: 'pet catalog unavailable; a reassignment needs an assigned pet' };
+      Object.assign(patch, { state: 'claimed', claimedBy: toAgentId, claimedAgent: taskClaimantSnapshot(toAgentId, pet), assignedPet: pet });
+      record.toAgentId = toAgentId;
+    } else if (disposition === 'block') {
+      if (t.state === 'done') return { ok: false, error: 'a done task cannot be blocked' };
+      const named = typeof blocker === 'string' ? blocker.trim() : '';
+      if (!named) return { ok: false, error: 'block needs a named blocker' };
+      Object.assign(patch, { state: 'blocked' });
+      record.blocker = named;
+    } else if (disposition === 'escalate') {
+      Object.assign(patch, { escalated: true });
+    } else if (disposition === 'supersede') {
+      const survivor = getTask(supersededBy);
+      if (!survivor || survivor.id === t.id) return { ok: false, error: 'supersede needs a different, existing surviving task' };
+      Object.assign(patch, { state: 'done', closedReason: `superseded by ${survivor.id}`, supersededBy: survivor.id });
+      record.supersededBy = survivor.id;
+    } else if (disposition === 'close-obsolete') {
+      Object.assign(patch, { state: 'done', closedReason: `obsolete: ${why}` });
+    }
+    if (spec.human) record.approval = { by: agentId, quote };
+    if (typeof evidence === 'string' && evidence.trim()) record.evidence = evidence.trim();
+    record.to = patch.state || t.state;
+    const entry = { at, by: agentId, action: 'disposition', disposition, from: t.state, state: record.to, reason: why };
+    if (record.evidence) entry.evidence = record.evidence;
+    emit('campaign.disposition', { campaignId: campaign.id, taskId: t.id, by: agentId, at, patch, record, entry });
+    return { ok: true, record, task: JSON.parse(JSON.stringify(getTask(t.id))) };
+  }
+
+  /** §10: triage ends only when every task has exactly one disposition. The
+   *  successor then owns the campaign, recorded as an adoption with its reason. */
+  function finishTriage({ campaignId, agentId, reason } = {}) {
+    const campaign = getCampaign(canonicalId(normalizeCampaignId(campaignId || '')));
+    if (!campaign) return { ok: false, error: 'campaign not found' };
+    if (!campaign.triage || campaign.triage.state !== 'in-review') return { ok: false, error: 'triage has not been started for this campaign' };
+    if (!isCommandChannel(agentId)) return { ok: false, error: 'only the command channel may finish triage' };
+    const why = typeof reason === 'string' ? reason.trim() : '';
+    if (!why) return { ok: false, error: 'finishing triage needs a reason' };
+    const missing = campaignTasks(campaign.id).filter((task) => !campaign.triage.dispositions[task.id]).map((task) => task.id);
+    if (missing.length) return { ok: false, error: `every task needs a disposition first; missing: ${missing.join(', ')}`, missing };
+    const seatId = (state.agents.get(agentId) || {}).seatId || '';
+    emit('campaign.triage.finish', { campaignId: campaign.id, by: agentId, at: now(), reason: why, seatId });
+    return { ok: true, campaign: JSON.parse(JSON.stringify(getCampaign(campaign.id))) };
+  }
+
+  // ===========================================================================
   // Task board
   // ===========================================================================
-  function createTask({ agentId, title, body, deps, priority, refs, category, campaignId, wave } = {}) {
+  /** WF-G85: the campaign a new task inherits when the caller names none —
+   *  the ONE active campaign the creator owns, or nothing. WF-G171: the HTTP
+   *  intake asks the same question before it refuses a campaignless task, so
+   *  the default and the gate can never disagree. */
+  function defaultCampaignFor(agentId) {
+    if (!agentId) return '';
+    const owned = [...state.campaigns.values()].filter((c) => c.state === 'active' && c.agentId === agentId);
+    return owned.length === 1 ? owned[0].id : '';
+  }
+
+  function normalizeDeliverable(raw) {
+    if (typeof raw !== 'string') throw new Error('deliverable must be a string path');
+    const value = raw.trim();
+    if (!value) throw new Error('deliverable must be a non-empty path');
+    if (/[\r\n]/.test(value)) throw new Error('deliverable must be one line');
+    return value;
+  }
+
+  function createTask({ agentId, title, body, deps, priority, refs, deliverable, category, campaignId, wave, standalone = false, standaloneReason } = {}) {
     const ts = now();
     const creatorAgent = taskCreatorSnapshot(agentId);
-    const depIds = Array.isArray(deps) ? deps.filter(Boolean) : [];
-    for (const d of depIds) {
-      if (!state.tasks.has(d)) throw new Error('unknown dep: ' + d);
+    const depEdges = normalizeTaskDeps(deps);
+    for (const d of depEdges) {
+      if (!hasTask(d.id)) throw new Error('unknown dep: ' + d.id);
     }
-    const normalizedCampaignId = normalizeCampaignId(campaignId || '');
-    if (normalizedCampaignId && !state.campaigns.has(normalizedCampaignId)) {
+    // A caller may name a campaign by its code or by the name a person chose.
+    // Resolve to the code, so a task stores and filters on one value.
+    // `campaignId: "none"` is the explicit opt-out for a standalone task.
+    const askedStandalone = standalone === true
+      || (typeof campaignId === 'string' && /^(none|standalone)$/i.test(campaignId.trim()));
+    // WF-G171: an opt-out is a DECISION, so it carries the reason for it. A
+    // task that says only "no campaign" tells a later reviewer nothing.
+    const why = typeof standaloneReason === 'string' ? standaloneReason.trim() : '';
+    if (standalone === true && !why) {
+      throw new Error('a standalone task needs a reason: say why it belongs to no campaign');
+    }
+    let normalizedCampaignId = askedStandalone ? '' : canonicalId(normalizeCampaignId(campaignId || ''));
+    if (normalizedCampaignId && !hasCampaign(normalizedCampaignId)) {
       throw new Error('unknown campaign: ' + normalizedCampaignId);
     }
+    // WF-G85 (2): 0 of 119 tasks carried a campaignId because the correct value
+    // was the extra-work value. When the creator is the live owner of exactly
+    // one ACTIVE campaign, that campaign is the default. Two or more, or none,
+    // and the task stays standalone as before — no guessing.
+    let defaulted = false;
+    if (!normalizedCampaignId && !askedStandalone) {
+      const fallbackCampaign = defaultCampaignFor(agentId);
+      if (fallbackCampaign) {
+        normalizedCampaignId = fallbackCampaign;
+        defaulted = true;
+      }
+    }
+    // WF-G171: the intake decision, kept with the task forever.
+    //   campaign    a campaign was named.
+    //   defaulted   the creator's one active campaign supplied it (WF-G85).
+    //   standalone  the creator said this work belongs to no campaign, and why.
+    //   absent      nobody decided. The HTTP intake refuses this; the store
+    //               still records it, so a legacy caller is VISIBLE instead of
+    //               looking the same as a deliberate standalone task.
+    let decisionKind = 'absent';
+    if (askedStandalone) decisionKind = 'standalone';
+    else if (defaulted) decisionKind = 'defaulted';
+    else if (normalizedCampaignId) decisionKind = 'campaign';
+    const campaignDecision = {
+      kind: decisionKind,
+      campaignId: normalizedCampaignId,
+      reason: why,
+      by: agentId || '',
+      at: ts,
+    };
     const task = {
-      id: genId(),
+      // D-S: the campaign is IN the name, so it cannot be left out. genId
+      // stays injectable for tests that need a fixed id.
+      id: genId === defaultGenId ? mintTaskId(normalizedCampaignId) : genId(),
       title: title || '',
       body: body || '',
       category: normalizeCategoryInput(category),
       campaignId: normalizedCampaignId,
+      // WF-G171: WHO decided the membership, and why. It never changes shape
+      // after creation; a later move writes its own history entry instead.
+      campaignDecision,
+      membership: decisionKind === 'standalone' ? 'standalone' : (normalizedCampaignId ? 'recorded' : ''),
       wave: typeof wave === 'string' ? wave.trim() : '',
       state: 'open',
       createdBy: agentId,
@@ -1493,9 +2159,15 @@ export function createStore({
       retraceFiles: [],
       // Orchestration metadata: deps gate readiness, priority orders the ready
       // queue, refs link out to tracker artifacts (gap IDs, doc paths).
-      deps: depIds,
+      deps: depEdges,
       priority: typeof priority === 'number' && Number.isFinite(priority) ? priority : 0,
       refs: Array.isArray(refs) ? refs.filter((r) => typeof r === 'string') : [],
+      // WF-G179: refs name inputs; this names the artifact a claimant must
+      // produce. A legacy task with no deliverable keeps the empty value.
+      deliverable: deliverable === undefined ? '' : normalizeDeliverable(deliverable),
+      // WF-G304: a design-then-build handoff is authored separately from the
+      // original task body and from a one-step checkpoint.
+      design: '',
       result: null,
       // A missing disposition remains the backward-compatible shape for old
       // board records. Once a result is classified, finding and evidence stay
@@ -1505,10 +2177,606 @@ export function createStore({
       evidence: null,
       createdAt: ts,
       updatedAt: ts,
-      history: [{ at: ts, by: agentId, action: 'created', state: 'open' }],
+      history: [{
+        at: ts,
+        by: agentId,
+        action: 'created',
+        state: 'open',
+        // WF-G171: the campaign decision is part of the creation record, so it
+        // survives every later edit and cannot be reconstructed wrongly.
+        campaignDecision: decisionKind,
+        campaignId: normalizedCampaignId,
+        ...(why ? { reason: why } : {}),
+      }],
     };
     emit('task.create', { task });
     return JSON.parse(JSON.stringify(task));
+  }
+
+  /** Work out which campaign an old task belonged to, and SAY it is a guess.
+   *
+   *  MEASURED FIRST, BUILT SECOND. A read-only probe ran the full D-O evidence
+   *  ladder against the live board on 2026-09-07 and placed 0 of 189 orphan
+   *  tasks. The cause was WF-G103: every campaign's active period was a single
+   *  instant, so the time half of the third rank could never be satisfied.
+   *
+   *  Remy then chose (r9q1) to place what CAN be placed, record what cannot,
+   *  and never write a guess as a fact. So:
+   *
+   *    recorded   the task already names its campaign. Nothing is guessed.
+   *    inferred   exactly one campaign matched. campaignId is filled, and
+   *               inferredFrom says what the evidence was.
+   *    ambiguous  several matched. campaignId stays EMPTY and every candidate
+   *               is listed. D-O: never break a tie automatically.
+   *    standalone WF-G170: nothing matched, so the task belongs to no effort.
+   *               The verdict names the evidence that was absent. The old
+   *               `unknown` verdict is gone: it told a reader that the board
+   *               had not looked, when the board HAD looked and found nothing.
+   *
+   *  The ranks themselves are `inferCampaignForTask`, a pure function at the
+   *  top of this file. PROTOCOL.md documents the same ladder (WF-G170).
+   *
+   *  File overlap now counts on its own, which D-O forbade. That prohibition
+   *  existed to stop a guess being recorded as a fact; the pick-none rule and
+   *  the candidate list do that job directly, so its purpose is kept while its
+   *  wording is not. Recorded in the design doc.
+   */
+  function inferTaskMembership({ agentId, note, dryRun = false } = {}) {
+    const requester = state.agents.get(agentId);
+    if (!requester || !COMMAND_CHANNEL_ROLES.includes(requester.role)) {
+      return { ok: false, error: 'membership inference needs one of: ' + COMMAND_CHANNEL_ROLES.join(', ') };
+    }
+
+    // WF-G106: a campaign the SWEEP closed cannot be any task's home.
+    //
+    // The sweep closes a campaign for holding ZERO tasks, so offering one as a
+    // candidate proposes a home that was proved empty. Excluding them refuses
+    // no true answer, which is why this filter is `closedReason` rather than
+    // `state !== 'active'` — a campaign that held real work and then finished
+    // is still a legitimate answer, and must stay in the pool.
+    //
+    // MEASURED 2026-09-08, right after the first sweep closed 9 empty
+    // campaigns. Offering them as candidates: 0 placed, 40 tied. Excluding
+    // them: 28 placed, 12 tied. The same 40 tasks, the same evidence — the
+    // ties were against homes that had already been proved empty.
+    const campaigns = [...state.campaigns.values()].filter((c) => !c.closedReason);
+    const changes = [];
+    // WF-G170: `standalone` replaces the old `unknown`. `unknown` stays in the
+    // tally at zero so a reader of an old report sees the key did not vanish.
+    const tally = { recorded: 0, inferred: 0, ambiguous: 0, standalone: 0, unknown: 0 };
+
+    for (const t of state.tasks.values()) {
+      if (t.campaignId) {
+        changes.push({ taskId: t.id, membership: 'recorded', inferredFrom: '' });
+        tally.recorded += 1;
+        continue;
+      }
+
+      // WF-G170: the ranks live in ONE pure function, so the mapping the
+      // PROTOCOL states and the mapping the board applies are the same code.
+      const verdict = inferCampaignForTask({ task: withCategory(t), campaigns });
+      const change = { taskId: t.id, membership: verdict.membership, inferredFrom: verdict.evidence };
+      if (verdict.campaignId) change.campaignId = verdict.campaignId;
+      if (verdict.candidates.length) change.candidates = verdict.candidates;
+      changes.push(change);
+      tally[verdict.membership] += 1;
+    }
+
+    if (!changes.length) return { ok: true, changed: 0, tally, changes: [] };
+    if (dryRun) return { ok: true, changed: changes.length, tally, changes, dryRun: true };
+
+    const at = now();
+    emit('task.membership', {
+      at,
+      by: agentId,
+      note: note || 'D-K/D-O/r9q1: place what can be placed, list every tie, never write a guess as a fact',
+      changes,
+    });
+    return { ok: true, changed: changes.length, tally, changes };
+  }
+
+  /** D-S: give every task a hierarchical id, in ONE journal event.
+   *
+   *  A task in a campaign becomes `<campaign>.<n>`, so its membership is part
+   *  of its name and cannot be omitted the way it was omitted 119 times.
+   *
+   *  THE OLD ID KEEPS WORKING FOREVER. Fifteen finished board results and four
+   *  WORKFLOW_GAPS rows quote a UUID prefix. Rewriting those quotes would be
+   *  editing the past, which D-E forbids, so the migration adds a name rather
+   *  than replacing one. `formerIds` records what each object used to be
+   *  called, and the alias table keeps resolving it.
+   *
+   *  Campaigns are NOT renamed here: their ids are already short, meaningful,
+   *  human-chosen names. Only tasks, whose ids are opaque UUIDs, gain from a
+   *  new shape.
+   *
+   *  Idempotent: a task that already carries a hierarchical id is left alone.
+   */
+  function migrateIds({ agentId, note, dryRun = false } = {}) {
+    const requester = state.agents.get(agentId);
+    if (!requester || !COMMAND_CHANNEL_ROLES.includes(requester.role)) {
+      return { ok: false, error: 'id migration needs one of: ' + COMMAND_CHANNEL_ROLES.join(', ') };
+    }
+
+    // Campaigns first. A campaign whose id is already a code is left alone;
+    // the rest take one, keep their current name, and keep resolving by it.
+    const campaigns = [];
+    const campaignTaken = new Set([...state.campaigns.keys(), ...state.aliases.keys()]);
+    for (const c of [...state.campaigns.values()].sort((x, y) => x.createdAt - y.createdAt)) {
+      if (/^agora-[0-9a-f]+$/.test(c.id)) continue;
+      let width = 4;
+      let to = 'agora-' + shortHash(c.id, width);
+      while (campaignTaken.has(to) && width <= 12) {
+        width += 2;
+        to = 'agora-' + shortHash(c.id, width);
+      }
+      campaignTaken.add(to);
+      campaigns.push({ from: c.id, to, name: c.id });
+    }
+
+    // Count per campaign as we go, so numbering is dense and stable rather
+    // than dependent on how many tasks happened to exist when each was minted.
+    const counters = new Map();
+    const taken = new Set([...state.tasks.keys(), ...state.aliases.keys()]);
+    const tasks = [];
+
+    // Oldest first, so task .1 is the campaign's first task rather than
+    // whichever one the map happened to yield first.
+    const campaignRenames = new Map(campaigns.map((c) => [c.from, c.to]));
+    const ordered = [...state.tasks.values()].sort((x, y) => x.createdAt - y.createdAt);
+    for (const t of ordered) {
+      // Already hierarchical, or already a minted standalone id: leave it.
+      if (t.campaignId && !campaignRenames.has(t.campaignId)
+        && t.id.startsWith(t.campaignId + '.')) continue;
+      if (!t.campaignId && t.id.startsWith('agora-')) continue;
+
+      let to;
+      if (t.campaignId) {
+        // Use the code the campaign is ABOUT to get, so the task is named
+        // agora-a3f8.1 rather than after a slug that is being retired.
+        const owner = campaignRenames.get(t.campaignId) || t.campaignId;
+        const n = (counters.get(owner) || 0) + 1;
+        counters.set(owner, n);
+        to = owner + '.' + n;
+        let bump = n;
+        while (taken.has(to)) {
+          bump += 1;
+          counters.set(owner, bump);
+          to = owner + '.' + bump;
+        }
+      } else {
+        let width = 4;
+        to = 'agora-' + shortHash(t.id, width);
+        while (taken.has(to) && width <= 12) {
+          width += 2;
+          to = 'agora-' + shortHash(t.id, width);
+        }
+      }
+      taken.add(to);
+      tasks.push({ from: t.id, to });
+    }
+
+    if (!tasks.length && !campaigns.length) {
+      return { ok: true, migrated: 0, tasks: [], campaigns: [] };
+    }
+    const migrated = tasks.length + campaigns.length;
+    if (dryRun) return { ok: true, migrated, tasks, campaigns, dryRun: true };
+
+    const at = now();
+    emit('ids.migrate', {
+      at,
+      by: agentId,
+      note: note || 'D-S: hierarchical task ids; every old id kept forever as an alias',
+      campaigns,
+      tasks,
+    });
+    return { ok: true, migrated, tasks, campaigns };
+  }
+
+  /** Give every untyped dependency its type, in ONE journal event.
+   *
+   *  Each pre-migration dep gated readiness, so each becomes `blocks` — a
+   *  restatement of what the board already did, not a new claim about intent.
+   *  The event names every change it made, so the record says what happened
+   *  rather than quietly showing a different past.
+   *
+   *  Idempotent: a second run finds nothing untyped and emits no event.
+   */
+  // ===========================================================================
+  // Seats — durable identity for campaign ownership (D-B, D-L, D-AA, D-AB)
+  // ===========================================================================
+  //
+  //  WHY THIS EXISTS. A campaign's owner was a SESSION. A session ends every
+  //  day, so on 2026-09-07 all 27 live campaigns reported "owner gone" — not
+  //  because anyone abandoned them, but because no session outlives itself.
+  //  "Has the owner gone?" was therefore not a hard question, it was a broken
+  //  one, and every answer to it was invented (D-AA).
+  //
+  //  A seat replaces it with a question that has a real answer: is any live
+  //  session holding this seat right now? That is observed, not inferred.
+  //
+  //  WHAT A SEAT IS NOT. It is not a role and it is not a job title (D-L
+  //  rejected both). Encoding the job in the name recreates the role model, so
+  //  `assertSeatName` refuses a name that reads as one. It also refuses a model
+  //  or vendor name, because a seat must survive a model change unchanged.
+
+  /** D-R/D-X: mirror the roster into the tracked tree, on every change.
+   *
+   *  A seat is supposed to outlive everything, but all coordination state
+   *  lives in `.agent/`, which is git-ignored on purpose and which
+   *  `git clean -fdx` can erase. So the roster gets a second home that version
+   *  control can see. Remy chose the automatic write over a manual export.
+   *
+   *  FOUR CONSTRAINTS, and each answers a real cost:
+   *    1. ONE path only. A program writing into the working tree is what has
+   *       caused trouble here before, so it may touch exactly this file.
+   *    2. A PROJECTION, never truth. Nothing reads it back. The daemon is the
+   *       record; this is a copy, the same relation gapIndex JSON has to
+   *       GAPS.md. A second EDITABLE home is how status rot starts.
+   *    3. ATOMIC. Write a temp file and rename, so a crash cannot leave half a
+   *       roster that looks whole.
+   *    4. NO COMMIT. Writing the working tree was decided; committing was not.
+   *
+   *  It also holds SEATS ONLY, never a campaign list. A roster that grew a
+   *  campaign list would become the local campaign tracker that the
+   *  dashboard-only rule forbids.
+   */
+  function writeSeatRoster() {
+    if (!seatRosterPath) return { ok: false, skipped: 'no roster path' };
+    try {
+      const rows = [...state.seats.values()]
+        .sort((a, b) => a.name.localeCompare(b.name))
+        .map((s) => ({
+          id: s.id,
+          name: s.name,
+          note: s.note || '',
+          createdAt: s.createdAt,
+          formerNames: s.formerNames || [],
+          renames: (s.renames || []).map((r) => ({ at: r.at, from: r.from, to: r.to, why: r.why || '' })),
+          diaryEntries: (s.diary || []).length,
+        }));
+      const doc = {
+        _readme: 'A COPY. The Agora daemon holds the truth; this file is written by it and never read back. '
+          + 'Do not edit by hand — an edit here changes nothing and will be overwritten. '
+          + 'It exists because .agent/ is git-ignored, so a seat would otherwise not survive a clean (D-R).',
+        writtenAt: new Date(now()).toISOString(),
+        seats: rows,
+      };
+      fs.mkdirSync(path.dirname(seatRosterPath), { recursive: true });
+      const tmp = seatRosterPath + '.' + process.pid + '.tmp';
+      fs.writeFileSync(tmp, JSON.stringify(doc, null, 2) + '\n');
+      fs.renameSync(tmp, seatRosterPath); // atomic replace
+      return { ok: true, path: seatRosterPath, seats: rows.length };
+    } catch (e) {
+      // The mirror is a convenience, not the record. A failure here must never
+      // take down a coordination call that already succeeded.
+      return { ok: false, error: String((e && e.message) || e) };
+    }
+  }
+
+
+  /** Create a seat. Deliberate, and never a side effect of a typo.
+   *
+   *  A seat carries a diary and a history, so conjuring one by misspelling a
+   *  name at sign-in would leave junk identities that look like people. The
+   *  cost is one extra step the first time; the error message names it.
+   */
+  function createSeat({ agentId, name, note } = {}) {
+    const requester = state.agents.get(agentId);
+    if (!requester || !COMMAND_CHANNEL_ROLES.includes(requester.role)) {
+      return { ok: false, error: 'creating a seat needs one of: ' + COMMAND_CHANNEL_ROLES.join(', ') };
+    }
+    const checked = assertSeatName(name);
+    if (!checked.ok) return checked;
+    const id = seatIdFor(checked.name);
+    if (state.seats.has(id)) {
+      return { ok: false, error: `seat "${checked.name}" already exists`, seat: readSeat(id) };
+    }
+    // WF-G140: a former name still resolves to its seat, so a new seat may not
+    // reuse it; two seats answering to one name would make the lookup ambiguous.
+    const taken = resolveSeatId(checked.name);
+    if (taken !== id && state.seats.has(taken)) {
+      return { ok: false, error: `"${checked.name}" is already a name of seat ${taken} (current or former); pick another name`, seat: readSeat(taken) };
+    }
+    const at = now();
+    const seat = {
+      id,
+      name: checked.name,
+      note: note || '',
+      createdAt: at,
+      updatedAt: at,
+      createdBy: agentId,
+      holder: null,
+      heldSince: null,
+      formerNames: [],
+      renames: [],
+      // D-L: the seat's own memory, so a successor inherits what was learned
+      // rather than an empty job.
+      diary: [],
+      history: [{ at, action: 'created', by: agentId }],
+    };
+    emit('seat.create', { seat });
+    writeSeatRoster();
+    return { ok: true, seat: readSeat(id) };
+  }
+
+  function readSeat(id) {
+    const seat = state.seats.get(id);
+    return seat ? JSON.parse(JSON.stringify(seat)) : null;
+  }
+
+  /** Is a LIVE session holding this seat right now? Observed, not inferred. */
+  function seatIsHeld(seatId, t = now()) {
+    const seat = state.seats.get(seatId);
+    if (!seat || !seat.holder) return false;
+    return isLiveAgent(seat.holder, t);
+  }
+
+  /** Take a seat as a session signs in. One holder at a time (D-AB).
+   *
+   *  The obvious worry is a crashed agent locking a seat nobody can take. That
+   *  is answered rather than traded away: the seat is free the moment the
+   *  HOLDER's presence drops, and presence is already measured every few
+   *  minutes. No seat-level timer is invented, and none has to be argued over.
+   */
+  function holdSeat({ seatId, agentId, force = false } = {}) {
+    const seat = state.seats.get(seatId);
+    if (!seat) {
+      return {
+        ok: false,
+        error: `no seat "${seatId}". Create it first: seat new <name>`,
+      };
+    }
+    const t = now();
+    if (seat.holder && seat.holder !== agentId && seatIsHeld(seatId, t) && !force) {
+      const holder = state.agents.get(seat.holder);
+      return {
+        ok: false,
+        error: `seat "${seat.name}" is held by a live session (${(holder && holder.handle) || seat.holder})`,
+        holder: seat.holder,
+      };
+    }
+    if (seat.holder === agentId) return { ok: true, seat: readSeat(seatId), already: true };
+    emit('seat.hold', { seatId, agentId, at: t });
+    writeSeatRoster();
+    return { ok: true, seat: readSeat(seatId) };
+  }
+
+  function releaseSeat({ seatId, agentId, why } = {}) {
+    const seat = state.seats.get(seatId);
+    if (!seat) return { ok: false, error: `no seat "${seatId}"` };
+    if (!seat.holder) return { ok: true, seat: readSeat(seatId), already: true };
+    if (seat.holder !== agentId) {
+      return { ok: false, error: `seat "${seat.name}" is not held by this session` };
+    }
+    emit('seat.release', { seatId, agentId, at: now(), why: why || '' });
+    writeSeatRoster();
+    return { ok: true, seat: readSeat(seatId) };
+  }
+
+  /** Rename a seat. The old name is KEPT, never overwritten (D-N). */
+  /** WF-G140 (2026-09-09): a seat by its CURRENT name, any FORMER name, or its id.
+   *  `seatIdFor` derives the id from the name at creation and the id never
+   *  changes, so after a rename every by-name lookup computed `seat-<newname>`,
+   *  which does not exist, and the seat was unreachable by the only name people
+   *  still used for it. The id stays immutable; only the lookup learned names. */
+  function resolveSeatId(nameOrId) {
+    const raw = String(nameOrId || '').trim();
+    if (!raw) return raw;
+    if (raw.startsWith('seat-')) return raw;
+    const wanted = raw.toLowerCase();
+    for (const seat of state.seats.values()) {
+      if (String(seat.name).toLowerCase() === wanted) return seat.id;
+    }
+    for (const seat of state.seats.values()) {
+      if ((seat.formerNames || []).some((n) => String(n).toLowerCase() === wanted)) return seat.id;
+    }
+    return seatIdFor(raw);
+  }
+
+  function renameSeat({ seatId, agentId, name, why } = {}) {
+    const requester = state.agents.get(agentId);
+    if (!requester || !COMMAND_CHANNEL_ROLES.includes(requester.role)) {
+      return { ok: false, error: 'renaming a seat needs one of: ' + COMMAND_CHANNEL_ROLES.join(', ') };
+    }
+    const seat = state.seats.get(seatId);
+    if (!seat) return { ok: false, error: `no seat "${seatId}"` };
+    const checked = assertSeatName(name);
+    if (!checked.ok) return checked;
+    if (checked.name === seat.name) return { ok: true, seat: readSeat(seatId), already: true };
+    // WF-G142 (2026-09-09): the same gate createSeat has. Without it a rename
+    // could give two seats one name; resolveSeatId then answered with the
+    // first, and the renamed seat could never be taken by its own name.
+    const taken = resolveSeatId(checked.name);
+    if (taken !== seatId && state.seats.has(taken)) {
+      return { ok: false, error: `"${checked.name}" is already a name of seat ${taken} (current or former); pick another name`, seat: readSeat(taken) };
+    }
+    emit('seat.rename', { seatId, name: checked.name, from: seat.name, by: agentId, at: now(), why: why || '' });
+    writeSeatRoster();
+    return { ok: true, seat: readSeat(seatId) };
+  }
+
+  /** Add a line to a seat's diary — what this seat learned, for its successor. */
+  function seatDiary({ seatId, agentId, text } = {}) {
+    const seat = state.seats.get(seatId);
+    if (!seat) return { ok: false, error: `no seat "${seatId}"` };
+    if (!String(text || '').trim()) return { ok: false, error: 'a diary entry needs text' };
+    emit('seat.diary', { seatId, agentId, at: now(), text: String(text).trim() });
+    writeSeatRoster();
+    return { ok: true, seat: readSeat(seatId) };
+  }
+
+  function listSeats() {
+    const t = now();
+    return [...state.seats.values()].map((seat) => {
+      const held = seatIsHeld(seat.id, t);
+      const holder = seat.holder ? state.agents.get(seat.holder) : null;
+      return {
+        ...JSON.parse(JSON.stringify(seat)),
+        // ATTENDED means a live session is on it right now. UNATTENDED means
+        // nobody is, which is a fact rather than a guess about abandonment.
+        attended: held,
+        holderHandle: held && holder ? holder.handle : '',
+        campaigns: [...state.campaigns.values()]
+          .filter((c) => c.seatId === seat.id)
+          .map((c) => c.id),
+      };
+    });
+  }
+
+  /** D-AC: close campaigns that hold no work and that nobody is on.
+   *
+   *  MEASURED 2026-09-07: 20 of 27 campaigns hold zero tasks, and each still
+   *  reserves its files against the overlap check, so an empty campaign blocks
+   *  real work from claiming the ground it sits on. Closing one destroys
+   *  nothing, because there is nothing in it.
+   *
+   *  THE RISK, and the two limits that answer it. Someone may open a campaign
+   *  deliberately to reserve ground, with work planned but not yet written
+   *  down. So:
+   *    1. A campaign must be BOTH empty AND older than a STATED age. A freshly
+   *       reserved campaign is days old, not two months.
+   *    2. The list is printed before anything closes. `dryRun` is the default
+   *       for the CLI, and the caller has to drop it deliberately.
+   *  A third limit falls out of seats: an ATTENDED campaign is never touched,
+   *  whatever its age. Somebody is on it.
+   *
+   *  WHY THIS EXISTS AT ALL. `setCampaignState` allows only the owner to
+   *  close a campaign, and every owner is a session that has ended — so the
+   *  cleanup was literally impossible to perform. This is the control-plane
+   *  path, and it refuses everything the owner path would refuse plus more.
+   */
+  function sweepEmptyCampaigns({ agentId, minAgeDays = 30, dryRun = true, note } = {}) {
+    const requester = state.agents.get(agentId);
+    if (!requester || !COMMAND_CHANNEL_ROLES.includes(requester.role)) {
+      return { ok: false, error: 'closing campaigns needs one of: ' + COMMAND_CHANNEL_ROLES.join(', ') };
+    }
+    const t = now();
+    const minAgeMs = Math.max(0, Number(minAgeDays)) * 86400000;
+    const taskCount = new Map();
+    for (const task of state.tasks.values()) {
+      const cid = task.campaignId;
+      if (cid) taskCount.set(cid, (taskCount.get(cid) || 0) + 1);
+    }
+
+    const closing = [];
+    const kept = [];
+    for (const c of state.campaigns.values()) {
+      const tasks = taskCount.get(c.id) || 0;
+      const ageMs = t - (c.createdAt || t);
+      const attended = Boolean(c.seatId && seatIsHeld(c.seatId, t));
+      const row = { id: c.id, name: c.name || c.id, tasks, ageDays: Math.round(ageMs / 86400000 * 10) / 10, attended };
+      if (c.state !== 'active') { kept.push({ ...row, why: 'not active' }); continue; }
+      if (attended) { kept.push({ ...row, why: 'somebody is on it' }); continue; }
+      if (tasks > 0) { kept.push({ ...row, why: `holds ${tasks} task(s)` }); continue; }
+      if (ageMs < minAgeMs) { kept.push({ ...row, why: `only ${row.ageDays} days old, under the ${minAgeDays}-day limit` }); continue; }
+      closing.push(row);
+    }
+
+    if (dryRun) return { ok: true, closed: 0, wouldClose: closing.length, closing, kept, dryRun: true, minAgeDays };
+    if (!closing.length) return { ok: true, closed: 0, closing: [], kept, minAgeDays };
+
+    emit('campaign.sweep', {
+      at: t,
+      by: agentId,
+      note: note || `D-AC: closed empty campaigns untouched for ${minAgeDays}+ days; each held zero tasks and nobody was on it`,
+      minAgeDays,
+      closing,
+    });
+    return { ok: true, closed: closing.length, closing, kept, minAgeDays };
+  }
+
+  /** WF-G104: point every dependency at the id its target carries NOW.
+   *
+   *  The 2026-09-07 migration ran in the order the design doc stated: infer,
+   *  rename, then type. That order cannot work. `ids.migrate` follows a rename
+   *  into an edge by reading `d.id`, but before the typing step a dep is a bare
+   *  STRING, so `d.id` is undefined and no edge matches. The typing step then
+   *  wrapped each bare string and preserved the pre-rename id.
+   *
+   *  Nothing broke, because every lookup resolves an old id through the alias
+   *  table. But the stored record names an id that appears nowhere else on the
+   *  board, which reads as a dangling reference and traps any future consumer
+   *  that forgets to call `canonicalId`. Remy chose the repair (r10q1).
+   *
+   *  This is ONE new event. It rewrites no past event, and the old id keeps
+   *  resolving afterwards, so D-E holds.
+   */
+  function migrateDepIds({ agentId, note, dryRun = false } = {}) {
+    const requester = state.agents.get(agentId);
+    if (!requester || !COMMAND_CHANNEL_ROLES.includes(requester.role)) {
+      return {
+        ok: false,
+        error: 'dep id repair needs one of: ' + COMMAND_CHANNEL_ROLES.join(', '),
+      };
+    }
+
+    const changes = [];
+    for (const t2 of state.tasks.values()) {
+      const deps = t2.deps || [];
+      if (!deps.length) continue;
+      // A bare string is a PRE-typing dep. Leave it alone: `migrate-deps` owns
+      // that shape, and doing both jobs in one pass is what caused this defect.
+      if (deps.some((d) => typeof d === 'string')) continue;
+      const to = deps.map((d) => {
+        const current = canonicalId(d.id);
+        return current === d.id ? d : { ...d, id: current };
+      });
+      if (to.every((d, i) => d.id === deps[i].id)) continue;
+      changes.push({
+        taskId: t2.id,
+        from: JSON.parse(JSON.stringify(deps)),
+        to,
+      });
+    }
+
+    if (!changes.length) return { ok: true, migrated: 0, changes: [] };
+    if (dryRun) return { ok: true, migrated: changes.length, changes, dryRun: true };
+
+    const at = now();
+    emit('task.deps.canonicalize', {
+      at,
+      by: agentId || 'migration',
+      note: note || 'WF-G104: point each dependency at the id its target carries now; the old id stays an alias',
+      changes,
+    });
+    return { ok: true, migrated: changes.length, changes };
+  }
+
+  //  `dryRun` is NOT optional politeness. The CLI has offered `--dry` on this
+  //  command since it shipped, and printed "Nothing was written" — while the
+  //  store had no dry branch and wrote every time. An operator who checked
+  //  before committing got the commit AND the reassurance. WF-G105.
+  function migrateTaskDeps({ agentId, note, dryRun = false } = {}) {
+    // Control-plane only. One call retypes every dep on the board, so the same
+    // roles that may drive the command channel may run it, and nobody else.
+    const requester = state.agents.get(agentId);
+    if (!requester || !COMMAND_CHANNEL_ROLES.includes(requester.role)) {
+      return {
+        ok: false,
+        error: 'dep migration needs one of: ' + COMMAND_CHANNEL_ROLES.join(', '),
+      };
+    }
+    const changes = [];
+    for (const t2 of state.tasks.values()) {
+      const raw = t2.deps || [];
+      if (!raw.some((d) => typeof d === 'string')) continue;
+      changes.push({
+        taskId: t2.id,
+        from: JSON.parse(JSON.stringify(raw)),
+        to: normalizeTaskDeps(raw),
+      });
+    }
+    if (!changes.length) return { ok: true, migrated: 0, changes: [] };
+    if (dryRun) return { ok: true, migrated: changes.length, changes, dryRun: true };
+    const at = now();
+    emit('task.deps.migrate', {
+      at,
+      by: agentId || 'migration',
+      note: note || 'D-T: untyped deps become blocks; every pre-migration dep already gated readiness',
+      changes,
+    });
+    return { ok: true, migrated: changes.length, changes };
   }
 
   /** A task is ready when it is open and every dep has qualifying completion.
@@ -1517,7 +2785,7 @@ export function createStore({
   // completion deliberately stays blocking because that review was deferred,
   // while old records with no disposition retain their historical behavior.
   function isTaskDependencySatisfied(dependencyId) {
-    const dependency = state.tasks.get(dependencyId);
+    const dependency = getTask(dependencyId);
     return Boolean(
       dependency
       && dependency.state === 'done'
@@ -1525,10 +2793,17 @@ export function createStore({
     );
   }
 
+  /** Only a BLOCKING dependency holds a task back. A "supersedes" or
+   *  "discovered-from" edge is a recorded fact about the work, not a gate, so
+   *  reading it as one would stall a board that has done nothing wrong. */
+  function blockingDeps(t) {
+    return (t.deps || []).filter((d) => isBlockingDepType(d.type || DEFAULT_TASK_DEP_TYPE));
+  }
+
   function isTaskReady(t) {
     if (t.state !== 'open') return false;
-    for (const d of t.deps || []) {
-      if (!isTaskDependencySatisfied(d)) return false;
+    for (const d of blockingDeps(t)) {
+      if (!isTaskDependencySatisfied(d.id)) return false;
     }
     return true;
   }
@@ -1541,7 +2816,7 @@ export function createStore({
   }
 
   function claimTask({ taskId, agentId, force = false } = {}) {
-    const t = state.tasks.get(taskId);
+    const t = getTask(taskId);
     if (!t) return { ok: false, error: 'task not found' };
     if (!state.agents.has(agentId)) return { ok: false, error: 'registered claiming agent is required' };
     if ((t.state === 'claimed' || t.state === 'in_progress') && t.claimedBy && t.claimedBy !== agentId) {
@@ -1556,7 +2831,9 @@ export function createStore({
         // Report the same unresolved gates that the ready queue uses. This
         // keeps a triage-only dependency visible instead of returning an
         // unhelpful unknown blocker after readiness has already rejected it.
-        const blocks = (t.deps || []).filter((d) => !isTaskDependencySatisfied(d));
+        const blocks = blockingDeps(t)
+          .filter((d) => !isTaskDependencySatisfied(d.id))
+          .map((d) => d.id + ' (' + d.type + ')');
         return { ok: false, error: `task not ready: blocked by dep ${blocks.join(', ') || '(unknown)'}` };
       }
     }
@@ -1574,13 +2851,194 @@ export function createStore({
       ts,
       entry,
     });
-    return { ok: true, task: JSON.parse(JSON.stringify(state.tasks.get(taskId))) };
+    return { ok: true, task: JSON.parse(JSON.stringify(getTask(taskId))) };
   }
 
-  function setTaskState({ taskId, agentId, state: newState, result, resultDisposition, finding, evidence } = {}) {
-    const t = state.tasks.get(taskId);
+  /** WF-G130 (2026-09-09): correct a task's authored fields IN PLACE.
+   *  WF-G149 (2026-09-15): allow orchestrators/master/human to annotate any task with a reason/note without claiming.
+   *  WF-G153 (2026-09-15): support appendBody and note annotations.
+   *  Until now a title that failed `task lint` could only be fixed by closing
+   *  the task and filing a new one, which burned ids and left husks on the
+   *  board. Only the creator, the current claimant, or an orchestrator/master/human
+   *  may edit; the state, the claimant, the deps and the campaign are not authored
+   *  fields and stay on their own commands. The history entry carries every old value. */
+  const TASK_EDITABLE = new Set(['title', 'body', 'appendBody', 'priority', 'refs', 'deliverable', 'design', 'wave']);
+
+  /** WF-G169: move ONE task to another campaign, or make it standalone.
+   *
+   *  The board lost campaign membership at intake 50 times out of 51, and
+   *  nothing could repair it: `editTask` refuses `campaignId` on purpose,
+   *  because the campaign is not an authored field. A reviewer who found the
+   *  right campaign had to leave the task stale or edit the state file by
+   *  hand. This command is the supported repair.
+   *
+   *  THE GUARDS:
+   *   - only the command channel (orchestrator, master, human) may reassign;
+   *   - a reason is mandatory, and goes on the record;
+   *   - the target campaign must EXIST and must not be `done`, so a task
+   *     cannot be filed into a finished effort;
+   *   - a move that changes nothing is refused, so the history holds no
+   *     entries that say nothing.
+   *
+   *  THE ID DOES NOT CHANGE. A task id spells its campaign (`agora-a3f8.2`),
+   *  but finished results and gap rows quote ids, and rewriting a quoted id
+   *  would be editing the past. `campaignId` is what every route and filter
+   *  reads, so `task show` and `campaign show` agree the moment it changes.
+   */
+  function setTaskCampaign({ taskId, agentId, campaignId, standalone = false, reason } = {}) {
+    const t = getTask(taskId);
+    if (!t) return { ok: false, error: 'task not found' };
+    if (!isCommandChannel(agentId)) {
+      return { ok: false, error: 'reassigning a task needs one of: ' + COMMAND_CHANNEL_ROLES.join(', ') };
+    }
+    const why = typeof reason === 'string' ? reason.trim() : '';
+    if (!why) return { ok: false, error: 'a campaign reassignment needs a reason' };
+
+    const asked = typeof campaignId === 'string' ? campaignId.trim() : '';
+    const wantsStandalone = standalone === true || /^(none|standalone)$/i.test(asked);
+    if (!wantsStandalone && !asked) {
+      return { ok: false, error: 'name a campaign, or say standalone' };
+    }
+
+    let target = '';
+    if (!wantsStandalone) {
+      target = canonicalId(normalizeCampaignId(asked));
+      const campaign = getCampaign(target);
+      if (!campaign) return { ok: false, error: 'unknown campaign: ' + asked };
+      if (campaign.state === 'done') {
+        return { ok: false, error: `campaign "${campaign.id}" is done; a finished effort cannot take new work` };
+      }
+    }
+
+    const from = t.campaignId || '';
+    if (from === target) {
+      return {
+        ok: false,
+        error: target
+          ? `task ${t.id} is already in campaign ${target}`
+          : `task ${t.id} is already standalone`,
+      };
+    }
+
+    const ts = now();
+    const fields = {
+      campaignId: target,
+      membership: target ? 'recorded' : 'standalone',
+      inferredFrom: target
+        ? `reassigned by ${agentId}: ${why}`
+        : `made standalone by ${agentId}: ${why}`,
+      inferredCandidates: [],
+      // `campaignDecision` always states the CURRENT decision and why, so a
+      // reader never has to replay the history to learn where a task stands.
+      // The history keeps every earlier decision, so nothing is lost.
+      campaignDecision: {
+        kind: target ? 'campaign' : 'standalone',
+        campaignId: target,
+        reason: why,
+        by: agentId,
+        at: ts,
+      },
+    };
+    const entry = {
+      at: ts,
+      by: agentId,
+      action: 'campaign',
+      from: from || 'standalone',
+      to: target || 'standalone',
+      reason: why,
+    };
+    // The `task.edit` event already writes named fields and pushes a history
+    // entry, so the move needs no new journal kind and replays on old logs.
+    emit('task.edit', { taskId: t.id, agentId, fields, ts, entry });
+    return {
+      ok: true,
+      task: JSON.parse(JSON.stringify(getTask(t.id))),
+      from: from || '',
+      to: target || '',
+    };
+  }
+
+  function editTask({ taskId, agentId, fields = {}, reason } = {}) {
+    const t = getTask(taskId);
+    if (!t) return { ok: false, error: 'task not found' };
+    const agent = state.agents.get(agentId);
+    const isOrchestrator = agent && (agent.role === 'orchestrator' || agent.role === 'master' || agent.role === 'human');
+    if (t.createdBy !== agentId && t.claimedBy !== agentId && !isOrchestrator) {
+      return { ok: false, error: 'only the creator, the claimant, or an orchestrator may edit a task' };
+    }
+    if (t.state === 'done') return { ok: false, error: 'a done task is a record; reopen it before you edit it' };
+    const next = {};
+    const from = {};
+    const why = typeof reason === 'string' ? reason.trim() : '';
+
+    // WF-G153: handle appendBody by appending to existing body
+    if (fields.appendBody !== undefined) {
+      if (typeof fields.appendBody !== 'string') return { ok: false, error: 'appendBody must be a string' };
+      const appended = fields.appendBody.trim();
+      if (appended) {
+        const curBody = t.body || '';
+        fields.body = curBody ? `${curBody}\n${appended}` : appended;
+      }
+      delete fields.appendBody;
+    }
+
+    for (const [key, raw] of Object.entries(fields)) {
+      if (raw === undefined) continue;
+      if (!TASK_EDITABLE.has(key)) return { ok: false, error: `field "${key}" is not editable here` };
+      let value = raw;
+      if (key === 'title' || key === 'body' || key === 'wave') {
+        if (typeof raw !== 'string') return { ok: false, error: `${key} must be a string` };
+        value = key === 'title' ? raw.trim() : raw;
+        if (key === 'title' && !value) return { ok: false, error: 'title cannot be empty' };
+      } else if (key === 'priority') {
+        value = Number(raw);
+        if (!Number.isFinite(value)) return { ok: false, error: 'priority must be a number' };
+      } else if (key === 'refs') {
+        if (!Array.isArray(raw)) return { ok: false, error: 'refs must be an array of strings' };
+        value = raw.filter((r) => typeof r === 'string');
+      } else if (key === 'deliverable') {
+        if (raw === null || raw === '') value = '';
+        else {
+          try { value = normalizeDeliverable(raw); }
+          catch (error) { return { ok: false, error: error.message }; }
+        }
+      } else if (key === 'design') {
+        if (raw === null || raw === '') value = '';
+        else if (typeof raw !== 'string' || !raw.trim()) {
+          return { ok: false, error: 'design must be non-empty text, or null to clear it' };
+        }
+      }
+      if (JSON.stringify(value) === JSON.stringify(t[key])) continue;
+      next[key] = value;
+      from[key] = t[key] === undefined ? null : JSON.parse(JSON.stringify(t[key]));
+    }
+    if (!Object.keys(next).length) {
+      if (why) {
+        // WF-G149: Reason-only annotation (e.g. PARKED, human decision notes) without field mutations.
+        const ts = now();
+        const entry = { at: ts, by: agentId, action: 'note', reason: why };
+        emit('task.edit', { taskId, agentId, fields: {}, ts, entry });
+        return { ok: true, task: JSON.parse(JSON.stringify(getTask(taskId))), changed: [] };
+      }
+      return { ok: false, error: 'nothing to edit: every named field already has that value' };
+    }
+    const ts = now();
+    const entry = { at: ts, by: agentId, action: 'edit', fields: Object.keys(next), from };
+    if (why) entry.reason = why;
+    emit('task.edit', { taskId, agentId, fields: next, ts, entry });
+    return { ok: true, task: JSON.parse(JSON.stringify(getTask(taskId))), changed: Object.keys(next) };
+  }
+
+  function setTaskState({ taskId, agentId, state: newState, result, resultDisposition, finding, evidence, reason } = {}) {
+    const t = getTask(taskId);
     if (!t) return { ok: false, error: 'task not found' };
     if (!TASK_STATES.has(newState)) return { ok: false, error: 'invalid state: ' + newState };
+    // WF-G86: a task that stops needs to say why. Every other transition may
+    // carry a reason; `blocked` may not omit it.
+    const why = typeof reason === 'string' ? reason.trim() : '';
+    if (newState === 'blocked' && !why && t.state !== 'blocked') {
+      return { ok: false, error: 'state blocked needs a reason' };
+    }
     if (resultDisposition !== undefined && !TASK_RESULT_DISPOSITIONS.has(resultDisposition)) {
       return { ok: false, error: 'invalid result disposition: ' + resultDisposition };
     }
@@ -1617,7 +3075,10 @@ export function createStore({
     }
 
     const ts = now();
-    const entry = { at: ts, by: agentId, action: 'state', state: newState };
+    // WF-G86: `from` names the prior state, `reason` the why. Legacy entries
+    // lack both; every reader treats them as optional.
+    const entry = { at: ts, by: agentId, action: 'state', from: t.state, state: newState };
+    if (why) entry.reason = why;
     if (hasNewResult) entry.result = result;
     if (resolvedDisposition !== undefined) entry.resultDisposition = resolvedDisposition;
     if (resolvedDisposition === 'triage_only') {
@@ -1640,13 +3101,21 @@ export function createStore({
       if (evidence !== undefined) payload.evidence = evidence;
     }
     emit('task.state', payload);
-    return { ok: true, task: JSON.parse(JSON.stringify(state.tasks.get(taskId))) };
+    return { ok: true, task: JSON.parse(JSON.stringify(getTask(taskId))) };
   }
 
   /** Atomically claim the highest-priority ready task (worker-pull model).
    *  Returns { ok: true, task } or { ok: true, task: null } when nothing is ready. */
   function claimNextReady({ agentId, campaignId, category } = {}) {
-    const normalizedCampaignId = normalizeCampaignId(campaignId || '');
+    // A caller may name a campaign by its code or by the name a person chose.
+    // Resolve to the code, so a task stores and filters on one value.
+    const normalizedCampaignId = canonicalId(normalizeCampaignId(campaignId || ''));
+    // WF-G127: an unknown lane is an error, not an empty lane. listTasks and
+    // createTask both refuse it; without the same guard here a worker handed a
+    // typo'd or renamed campaign idles forever on "no ready tasks".
+    if (normalizedCampaignId && !hasCampaign(normalizedCampaignId)) {
+      return { ok: false, error: 'unknown campaign: ' + normalizedCampaignId };
+    }
     const normalizedCategory = normalizeCategoryInput(category);
     const ready = [...state.tasks.values()]
       .filter(isTaskReady)
@@ -1658,7 +3127,7 @@ export function createStore({
   }
 
   function handoffTask({ taskId, agentId, toAgentId } = {}) {
-    const t = state.tasks.get(taskId);
+    const t = getTask(taskId);
     if (!t) return { ok: false, error: 'task not found' };
     if (!toAgentId) return { ok: false, error: 'toAgentId required' };
     // Authorization (WF-G11): only the current claimant or the task's creator
@@ -1684,11 +3153,11 @@ export function createStore({
       ts,
       entry,
     });
-    return { ok: true, task: JSON.parse(JSON.stringify(state.tasks.get(taskId))) };
+    return { ok: true, task: JSON.parse(JSON.stringify(getTask(taskId))) };
   }
 
   function setTaskCategories({ taskId, agentId, categories, category } = {}) {
-    const t = state.tasks.get(taskId);
+    const t = getTask(taskId);
     if (!t) return { ok: false, error: 'task not found' };
     const merged = normalizeCategoryList([
       ...(typeof category === 'string' ? [category] : []),
@@ -1699,13 +3168,13 @@ export function createStore({
     const ts = now();
     const entry = { at: ts, by: agentId, action: 'categories', state: t.state };
     emit('task.categories', { taskId, agentId, categories: merged, category: merged[0], ts, entry });
-    return { ok: true, task: JSON.parse(JSON.stringify(state.tasks.get(taskId))) };
+    return { ok: true, task: JSON.parse(JSON.stringify(getTask(taskId))) };
   }
 
   // Leave a resumable checkpoint on a task (agent-retrace, Wave 2). Latest-wins: the
   // newest checkpoint replaces the last. Captured into the retrace dossier on reap.
   function checkpointTask({ taskId, agentId, did, next, files } = {}) {
-    const t = state.tasks.get(taskId);
+    const t = getTask(taskId);
     if (!t) return { ok: false, error: 'task not found' };
     // A checkpoint describes live owned work, so open, blocked, and completed
     // tasks cannot accept one even from a former/current claimant.
@@ -1734,7 +3203,18 @@ export function createStore({
     return { ok: true, checkpoint };
   }
 
-  function listTasks({ state: filterState, ready, category } = {}) {
+  /** WF-G88: `campaignId` filters the listing the same way it already filters
+   *  `claimNextReady`. An UNKNOWN campaign id throws rather than returning the
+   *  whole board — the old behavior silently ignored the parameter, so a typo
+   *  produced a wrong answer that looked right. Omitting it still returns
+   *  everything, which is the documented default. */
+  function listTasks({ state: filterState, ready, category, campaignId } = {}) {
+    // A caller may name a campaign by its code or by the name a person chose.
+    // Resolve to the code, so a task stores and filters on one value.
+    const normalizedCampaignId = canonicalId(normalizeCampaignId(campaignId || ''));
+    if (normalizedCampaignId && !hasCampaign(normalizedCampaignId)) {
+      throw new Error('unknown campaign: ' + normalizedCampaignId);
+    }
     let source = [...state.tasks.values()];
     if (ready) source = source.filter(isTaskReady).sort(readyOrder);
     const normalizedCategory = category == null ? '' : normalizeCategoryInput(category);
@@ -1749,16 +3229,23 @@ export function createStore({
       const row = withCategory(t);
       if (normalizedCategory && !row.categories.includes(normalizedCategory)) continue;
       if (filterState && t.state !== filterState) continue;
+      if (normalizedCampaignId && t.campaignId !== normalizedCampaignId) continue;
       row.ready = isTaskReady(t);
+      // The type travels with each edge, so a reader can tell a gate from a
+      // recorded relationship without looking the type up elsewhere.
       row.depStates = (t.deps || []).map((d) => {
-        const dep = state.tasks.get(d);
+        const type = d.type || DEFAULT_TASK_DEP_TYPE;
+        const dep = getTask(d.id);
         return dep
-          ? { id: dep.id, state: dep.state, title: dep.title }
-          : { id: d, state: 'missing', title: '' };
+          ? { id: dep.id, type, blocking: isBlockingDepType(type), state: dep.state, title: dep.title }
+          : { id: d.id, type, blocking: isBlockingDepType(type), state: 'missing', title: '' };
       });
+      // `gates` answers "how many tasks am I holding back", so only a blocking
+      // edge counts. Counting a supersedes edge here would report a finished
+      // task as gating live work.
       let gates = 0;
       for (const other of state.tasks.values()) {
-        if ((other.deps || []).includes(t.id)) gates += 1;
+        if (blockingDeps(other).some((d) => d.id === t.id)) gates += 1;
       }
       row.gates = gates;
       out.push(row);
@@ -1855,7 +3342,7 @@ export function createStore({
   // not have to wait out the horizon. Not journaled — the archive event that
   // tests trigger afterwards is what replay depends on.
   function __setTaskUpdatedAt(taskId, when) {
-    const t = state.tasks.get(taskId);
+    const t = getTask(taskId);
     if (t) t.updatedAt = new Date(when).getTime();
   }
 
@@ -1867,6 +3354,15 @@ export function createStore({
     for (const lock of [...state.locks.values()]) {
       if (lock.expiresAt && lock.expiresAt <= t) {
         emit('lock.expired', { lockId: lock.id, agentId: lock.agentId });
+        continue;
+      }
+      // WF-G75: one-shot T-minus warning so a holder learns its lock is about
+      // to lapse while it can still renew. Sweeps run every ~30s server-side,
+      // but the warned flag keeps this to a single event per TTL window.
+      const remainMs = lock.expiresAt ? lock.expiresAt - t : Infinity;
+      if (!lock.expiringWarned && remainMs <= lockExpiringWarnMs) {
+        lock.expiringWarned = true;
+        emit('lock.expiring', { lockId: lock.id, agentId: lock.agentId, expiresAt: lock.expiresAt, remainingMs: remainMs });
       }
     }
 
@@ -2012,6 +3508,7 @@ export function createStore({
     // locks
     acquireLock,
     releaseLock,
+    shrinkLock,
     renewLock,
     listLocks,
     // reservations
@@ -2022,11 +3519,40 @@ export function createStore({
     claimCampaign,
     setCampaignState,
     listCampaigns,
+    // charters and triage (design §6, §7, §10, §72)
+    putCharter,
+    approveCharter,
+    campaignView,
+    triageReport,
+    startTriage,
+    applyDisposition,
+    finishTriage,
     // tasks
     createTask,
+    defaultCampaignFor,
+    migrateTaskDeps,
+    migrateDepIds,
+    migrateIds,
+    // Seats: durable identity for campaign ownership (phase 3).
+    createSeat,
+    holdSeat,
+    releaseSeat,
+    renameSeat,
+    resolveSeatId,
+    seatDiary,
+    listSeats,
+    seatIdFor,
+    writeSeatRoster,
+    sweepEmptyCampaigns,
+    inferTaskMembership,
+    canonicalId,
     claimTask,
     claimNextReady,
     setTaskState,
+    editTask,
+    setTaskCampaign,
+    /** WF-G147: when the last snapshot ran, how long it took, how big it was. */
+    getSnapshotStats: () => (lastSnapshot ? { ...lastSnapshot } : null),
     setTaskCategories,
     checkpointTask,
     handoffTask,

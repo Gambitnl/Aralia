@@ -311,7 +311,7 @@ describe('UtilityCommand', () => {
                     spellId: 'command-flee-zone',
                     casterId: 'zone-caster',
                     position: { x: 8, y: 5 },
-                    areaOfEffect: { shape: 'cube', size: 30 },
+                    areaOfEffect: { shape: 'cube', size: 30 }, direction: { x: 1, y: 0 },
                     effects: [zoneEffect],
                     triggeredThisTurn: new Set(),
                     triggeredEver: new Set()

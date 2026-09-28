@@ -22,7 +22,8 @@ import { calculateProficiencyBonus } from '@/utils/character/savingThrowUtils';
 import { getAbilityModifierValue } from '@/utils/character/statUtils';
 import { applyDamageAndCheckDowned } from '@/utils/combat/deathSaveUtils';
 import { ResistanceCalculator } from '@/utils/combat/resistanceUtils';
-import { resolveAttack, rollDamage } from '@/utils/combat';
+import { resolveAttack } from '@/utils/combat';
+import { rollDamage } from '@/systems/dice/rollers';
 import { createMockCombatCharacter, createMockCombatState } from '@/utils/core';
 import type { SpellScenarioComponentProps } from './types';
 

@@ -19,9 +19,9 @@ import { describe, it, expect, vi } from 'vitest';
 import { worldReducer } from '../worldReducer';
 import { ritualReducer } from '../ritualReducer';
 import { GameState } from '../../../types';
-import { RitualState } from '../../../types/ritual';
+import { RitualState } from '../../../types/rituals';
 import * as RitualManager from '../../../systems/rituals/RitualManager';
-import { getGameDay } from '../../../utils/core';
+import { getGameDay, getGameEpoch, GAME_EPOCH_YEAR } from '../../../utils/core';
 import { createMockGameState } from '../../../utils/core/factories';
 import type { AppAction } from '../../actionTypes';
 
@@ -201,5 +201,96 @@ describe('worldReducer day-boundary transition (time G2)', () => {
     // No fresh "Ritual Complete" message: it was already done before this tick.
     const completions = (result.messages ?? []).filter((m) => m.text.includes('Ritual Complete'));
     expect(completions).toHaveLength(0);
+  });
+
+  // ==========================================================================
+  // Calendar edge cases (COV-6): year overflow, epoch boundary, hour
+  // wraparound. These lean on the native JS Date UTC arithmetic that
+  // ADVANCE_TIME uses (`newTime.setSeconds(...)`), so the assertions pin the
+  // *observed* rollover behavior rather than re-deriving the calendar math.
+  // ==========================================================================
+
+  it('rolls a Dec 31 23:00Z step over into Jan 1 of the following year (year overflow)', () => {
+    const yearEnd = '2024-12-31T23:00:00Z';
+    const baseState = createMockGameState({ gameTime: new Date(yearEnd) });
+
+    const result = worldReducer(baseState, advanceAction(ONE_HOUR));
+
+    expect(result.gameTime?.toISOString()).toBe('2025-01-01T00:00:00.000Z');
+    expect(result.gameTime?.getUTCFullYear()).toBe(2025);
+    expect(getGameDay(result.gameTime!)).toBe(getGameDay(baseState.gameTime) + 1);
+  });
+
+  it('carries an in-flight ritual across a year overflow by literal elapsed seconds', () => {
+    const baseState = createMockGameState({
+      gameTime: new Date('2024-12-31T23:00:00Z'),
+      activeRitual: makeRitual({ durationTotalSeconds: 1_000_000, progressSeconds: 0 }),
+    });
+
+    const result = worldReducer(baseState, advanceAction(ONE_HOUR));
+
+    expect(result.gameTime?.getUTCFullYear()).toBe(2025);
+    expect(result.activeRitual?.progressSeconds).toBe(ONE_HOUR);
+  });
+
+  it('advances cleanly across the in-world epoch boundary (GAME_EPOCH_YEAR Dec 31 -> Jan 1)', () => {
+    // getGameEpoch() is Jan 1 of GAME_EPOCH_YEAR at 00:00Z. Start one hour
+    // before the epoch itself (Dec 31 of the prior in-world year) and advance
+    // across it, mirroring the real-calendar boundary tests above but pinned
+    // to the game's own epoch constant instead of an arbitrary real year.
+    const epoch = getGameEpoch();
+    const beforeEpoch = new Date(epoch.getTime() - ONE_HOUR * 1000);
+    const baseState = createMockGameState({ gameTime: beforeEpoch });
+
+    const result = worldReducer(baseState, advanceAction(ONE_HOUR));
+
+    expect(result.gameTime?.toISOString()).toBe(epoch.toISOString());
+    expect(result.gameTime?.getUTCFullYear()).toBe(GAME_EPOCH_YEAR);
+    expect(beforeEpoch.getUTCFullYear()).toBe(GAME_EPOCH_YEAR - 1);
+    // getGameDay is defined as days-since-epoch + 1, so landing exactly on the
+    // epoch is game day 1, and the moment before it is still the prior day.
+    expect(getGameDay(result.gameTime!)).toBe(1);
+    expect(getGameDay(beforeEpoch)).toBe(0);
+  });
+
+  it('wraps the hour field past 23 into the next day without losing minutes/seconds', () => {
+    // 22:15:30 + 3h -> 01:15:30 the next day. Exercises the hour field
+    // wrapping past its 0-23 range via native Date arithmetic, distinct from
+    // the exact-midnight day-boundary cases above.
+    const baseState = createMockGameState({ gameTime: new Date('2024-06-10T22:15:30Z') });
+
+    const result = worldReducer(baseState, advanceAction(3 * ONE_HOUR));
+
+    expect(result.gameTime?.toISOString()).toBe('2024-06-11T01:15:30.000Z');
+    expect(result.gameTime?.getUTCHours()).toBe(1);
+    expect(getGameDay(result.gameTime!)).toBe(getGameDay(baseState.gameTime) + 1);
+  });
+
+  it('wraps the hour field for a ritual completion message stamped with the wrapped time', () => {
+    const baseState = createMockGameState({
+      gameTime: new Date('2024-06-10T23:30:00Z'),
+      // Completes exactly when the hour wraps: 23:30 + 45min = 00:15 next day.
+      activeRitual: makeRitual({ durationTotalSeconds: 45 * 60, progressSeconds: 0 }),
+    });
+
+    const result = worldReducer(baseState, advanceAction(45 * 60));
+
+    expect(RitualManager.isRitualComplete(result.activeRitual as RitualState)).toBe(true);
+    expect(result.gameTime?.toISOString()).toBe('2024-06-11T00:15:00.000Z');
+
+    const completionMsg = result.messages?.find((m) => m.text.includes('Ritual Complete'));
+    expect(completionMsg).toBeDefined();
+    expect(completionMsg!.timestamp.toISOString()).toBe('2024-06-11T00:15:00.000Z');
+  });
+
+  it('advances multiple hours spanning a multi-day wraparound (25h step)', () => {
+    // A step longer than 24h both wraps the hour field and crosses more than
+    // one day boundary in a single ADVANCE_TIME dispatch.
+    const baseState = createMockGameState({ gameTime: new Date('2024-06-10T10:00:00Z') });
+
+    const result = worldReducer(baseState, advanceAction(25 * ONE_HOUR));
+
+    expect(result.gameTime?.toISOString()).toBe('2024-06-11T11:00:00.000Z');
+    expect(getGameDay(result.gameTime!)).toBe(getGameDay(baseState.gameTime) + 1);
   });
 });

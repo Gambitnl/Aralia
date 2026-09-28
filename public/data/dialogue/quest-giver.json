@@ -1,0 +1,58 @@
+{
+  "id": "quest-giver",
+  "startNodeId": "greeting",
+  "nodes": {
+    "greeting": {
+      "id": "greeting",
+      "speaker": "npc",
+      "text": "You have the look of someone who is not from the valley. Good. The locals have stopped listening to me.",
+      "next": "pitch"
+    },
+    "pitch": {
+      "id": "pitch",
+      "speaker": "npc",
+      "text": "Something has been taking lambs from the high pasture. Not a wolf. Wolves leave a mess. Whatever this is leaves nothing at all. Find it, and there is coin in it for you.",
+      "choices": [
+        { "text": "I'll take the job.", "nextNodeId": "accept" },
+        { "text": "What does it pay?", "nextNodeId": "haggle" },
+        { "text": "Find someone else.", "nextNodeId": "decline" }
+      ]
+    },
+    "haggle": {
+      "id": "haggle",
+      "speaker": "npc",
+      "text": "Forty silver, and the flock's gratitude. That is what a shepherd has to give.",
+      "choices": [
+        { "text": "Good enough. I'll do it.", "nextNodeId": "accept" },
+        { "text": "Not for forty. Find someone else.", "nextNodeId": "decline" }
+      ]
+    },
+    "accept": {
+      "id": "accept",
+      "speaker": "npc",
+      "text": "Then it is yours. Follow the stone wall up past the split oak. Take this — it was my father's, and it has seen worse nights than you will.",
+      "effects": [
+        { "type": "start_quest", "params": { "questId": "quest_pasture_predator" } },
+        { "type": "grant_item", "params": { "itemId": "item_shepherds_lantern", "quantity": 1 } },
+        { "type": "update_disposition", "params": { "delta": 10 } },
+        { "type": "set_flag", "params": { "flag": "quest_giver_pasture_accepted" } },
+        { "type": "unlock_topic", "params": { "topicId": "topic_high_pasture" } }
+      ],
+      "next": "farewell_accepted"
+    },
+    "farewell_accepted": {
+      "id": "farewell_accepted",
+      "speaker": "npc",
+      "text": "Go before the light does."
+    },
+    "decline": {
+      "id": "decline",
+      "speaker": "npc",
+      "text": "Then the lambs keep going. Do not pretend you did not hear it.",
+      "effects": [
+        { "type": "update_disposition", "params": { "delta": -5 } },
+        { "type": "set_flag", "params": { "flag": "quest_giver_pasture_declined" } }
+      ]
+    }
+  }
+}

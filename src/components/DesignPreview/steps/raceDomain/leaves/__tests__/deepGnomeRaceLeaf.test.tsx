@@ -105,8 +105,10 @@ describe('Deep Gnome Race domain leaf', () => {
         ...actor,
         limitedUses: {
           ...actor.limitedUses,
+          // The baseline actor always carries this resource (asserted above),
+          // so the non-null read keeps the exhausted entry a full LimitedUseAbility.
           [DEEP_GNOME_GNOMISH_CAMOUFLAGE_RESOURCE_ID]: {
-            ...actor.limitedUses?.[DEEP_GNOME_GNOMISH_CAMOUFLAGE_RESOURCE_ID],
+            ...actor.limitedUses![DEEP_GNOME_GNOMISH_CAMOUFLAGE_RESOURCE_ID],
             current: 0,
           },
         },
@@ -160,8 +162,11 @@ describe('Deep Gnome Race domain leaf', () => {
 
     expect(screen.getByTestId('deep-gnome-actor')).toHaveTextContent('Uses 3/3');
     expect(screen.getByTestId('deep-gnome-check-result')).toHaveTextContent('No Gnomish Camouflage check resolved yet');
-    expect(screen.getByTestId('deep-gnome-assembly-boundary')).toHaveTextContent('rejects deep_gnome');
-    expect(screen.getByTestId('deep-gnome-assembly-boundary')).toHaveTextContent('typed fixture adapter');
+    // agora-c582: production quick assembly resolves deep_gnome directly, so
+    // the leaf no longer carries a fixture adapter and the boundary text must
+    // not claim one. See src/utils/sandbox/__tests__/quickCharacterGenerator.test.ts.
+    expect(screen.getByTestId('deep-gnome-assembly-boundary')).toHaveTextContent('resolves deep_gnome directly');
+    expect(screen.getByTestId('deep-gnome-assembly-boundary')).toHaveTextContent('no fixture adapter');
     expect(screen.getByTestId('deep-gnome-assembly-boundary')).toHaveTextContent('applyRacialSpellGrantsByLevel');
     expect(screen.getByTestId('deep-gnome-unsupported-boundary')).toHaveTextContent('Darkvision sensing/visibility');
     expect(screen.getByTestId('deep-gnome-unsupported-boundary')).toHaveTextContent('No 2D/3D render proof');

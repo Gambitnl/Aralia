@@ -796,7 +796,7 @@ export interface StatModifier {
   type: "bonus" | "penalty";
 }
 
-// --- Stubbed Effect Types for Future Implementation ---
+// --- Core Spell Effect Types (Movement, Summoning, Environmental, Transformative) ---
 
 /** An effect that alters movement (e.g., reduces speed, forces movement). */
 export interface MovementEffect extends BaseEffect {

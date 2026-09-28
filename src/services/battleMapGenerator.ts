@@ -64,7 +64,10 @@ export class BattleMapGenerator {
       tiles: this.tiles,
       targetableObjects: [...this.targetableObjects],
       theme: biome,
-      seed: seed
+      seed: seed,
+      // agora-a46a.3: the generator knows the board's base light; enclosed
+      // biomes start dark, open ones bright. Light sources raise it later.
+      ambientLight: biome === 'cave' || biome === 'dungeon' ? 'darkness' : 'bright'
     };
   }
   

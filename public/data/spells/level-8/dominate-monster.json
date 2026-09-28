@@ -57,7 +57,10 @@
     "maxTargets": 1,
     "filter": {
       "creatureTypes": [],
-      "excludeCreatureTypes": [],
+      "excludeCreatureTypes": [
+        "Construct",
+        "Undead"
+      ],
       "sizes": [],
       "alignments": [],
       "hasCondition": [],
@@ -105,7 +108,10 @@
         "type": "always",
         "targetFilter": {
           "creatureTypes": [],
-          "excludeCreatureTypes": [],
+          "excludeCreatureTypes": [
+            "Construct",
+            "Undead"
+          ],
           "sizes": [],
           "alignments": [],
           "hasCondition": [],
@@ -239,7 +245,10 @@
         "type": "save",
         "targetFilter": {
           "creatureTypes": [],
-          "excludeCreatureTypes": [],
+          "excludeCreatureTypes": [
+            "Construct",
+            "Undead"
+          ],
           "sizes": [],
           "alignments": [],
           "hasCondition": [],
@@ -271,7 +280,10 @@
             "type": "advantage",
             "appliesTo": {
               "creatureTypes": [],
-              "excludeCreatureTypes": [],
+              "excludeCreatureTypes": [
+                "Construct",
+                "Undead"
+              ],
               "sizes": [],
               "alignments": [],
               "hasCondition": [],
@@ -308,7 +320,11 @@
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",
-        "customFormula": ""
+        "customFormula": "",
+        "scalingTiers": {
+          "8": "up to 1 hour",
+          "9": "up to 8 hours"
+        }
       },
       "description": "One visible creature within 60 feet has Advantage on the Wisdom save if you or your allies are fighting it; on a failed save, it is Charmed for the concentration duration, linked telepathically for commands, and repeats the save whenever it takes damage, ending the spell on a success.",
       "statusCondition": {

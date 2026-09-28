@@ -515,11 +515,14 @@ describe('no-overlap + density invariants (audit regression)', () => {
     }
   });
 
-  it('building count scales UP with typology (hamlet < village < walled < city < capital)', () => {
+  it('larger settlements retain a growing building sample with usable urban lots', () => {
     const count = (pop: number) => countPlots(generateTownPlan(bigFootprint, rootSeedPath(137), { population: pop }));
     const hamlet = count(60), village = count(450), walled = count(3200), city = count(14000), capital = count(120000);
     expect(hamlet).toBeLessThan(village);
-    expect(village).toBeLessThan(walled);
+    // Walled settlements now reserve usable 25ft frontages instead of packing
+    // 15ft boxes. Their finite core can show fewer homes than a detached village;
+    // population conservation is checked separately in population.test.ts.
+    expect(walled).toBeGreaterThan(hamlet);
     expect(walled).toBeLessThan(city);
     expect(city).toBeLessThan(capital);
   });

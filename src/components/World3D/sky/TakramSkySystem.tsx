@@ -3,7 +3,8 @@
  *
  * Extracted 2026-08-26 from ThreeDModal/ (whose Scene3D consumer is orphaned) so the
  * stars/moon/volumetric-cloud capability survives for a future World3D night-sky port.
- * Still consumed by the legacy ThreeDModal/Scene3D via skyMode='takram'.
+ * Original consumer ThreeDModal/Scene3D was deleted 2026-08-26; this file now
+ * awaits its World3D night-sky port (see planmap combat-3d-visual-quality).
  *
  * Key integration notes:
  * - Atmosphere loads pre-baked Bruneton LUT textures from public/data/takram-atmosphere/
@@ -94,7 +95,7 @@ interface TakramSkySystemProps {
 // Without this the atmosphere shader thinks the camera is at Earth's centre
 // (6371km underground) and shows a black sky when looking upward.
 const SURFACE_ECEF = new Geodetic(0, 0, 0).toECEF();
-const WORLD_TO_ECEF = Ellipsoid.WGS84.getNorthUpEastFrame(SURFACE_ECEF, new Matrix4());
+export const WORLD_TO_ECEF = Ellipsoid.WGS84.getNorthUpEastFrame(SURFACE_ECEF, new Matrix4());
 
 // Reusable scratch vector — avoids a new allocation every frame.
 const _ecefSunDir = new ThreeVector3();
@@ -105,18 +106,20 @@ const _ecefSunDir = new ThreeVector3();
 // stbn.bin (STBN noise) is not shipped in any npm package — downloaded once from GitHub
 // CDN and cached locally in public/data/takram-atmosphere/ alongside the other assets.
 // BASE_URL handles the /Aralia/ prefix in dev and production builds.
+// Exported: VolumetricClouds.tsx mounts its OWN <Atmosphere> inside the scene
+// post chain and needs the same asset URLs + ECEF frame to stay consistent.
 const _base = ENV.BASE_URL || '/';
 const _atm = `${_base}data/takram-atmosphere`;
-const ATMOSPHERE_TEXTURES_URL = _atm;
-const STARS_DATA_URL = `${_atm}/stars.bin`;
-const CLOUD_LOCAL_WEATHER_URL = `${_atm}/local_weather.png`;
-const CLOUD_SHAPE_URL = `${_atm}/shape.bin`;
-const CLOUD_SHAPE_DETAIL_URL = `${_atm}/shape_detail.bin`;
-const CLOUD_TURBULENCE_URL = `${_atm}/turbulence.png`;
+export const ATMOSPHERE_TEXTURES_URL = _atm;
+export const STARS_DATA_URL = `${_atm}/stars.bin`;
+export const CLOUD_LOCAL_WEATHER_URL = `${_atm}/local_weather.png`;
+export const CLOUD_SHAPE_URL = `${_atm}/shape.bin`;
+export const CLOUD_SHAPE_DETAIL_URL = `${_atm}/shape_detail.bin`;
+export const CLOUD_TURBULENCE_URL = `${_atm}/turbulence.png`;
 // stbn.bin = Spatio-Temporal Blue Noise (64³ 3D texture used for cloud jitter).
 // Not shipped in any npm package; downloaded from the GitHub CDN once and cached
 // locally in public/data/takram-atmosphere/ to avoid CDN latency / failures.
-const CLOUD_STBN_URL = `${_atm}/stbn.bin`;
+export const CLOUD_STBN_URL = `${_atm}/stbn.bin`;
 
 // Moon distance in scene units — far enough to sit on the sky dome.
 const MOON_DISTANCE = 80000;

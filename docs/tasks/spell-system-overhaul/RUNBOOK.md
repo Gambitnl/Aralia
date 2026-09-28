@@ -9,7 +9,7 @@ Historical operator workflow for the retired task-folder surface. This folder is
 
 ## Pre-flight for each slice
 
-1. Start from `docs/projects/spells/SUBPROJECTS.md` — the live entry point for all spell work.
+1. Start from `docs/projects/spells/SUBPROJECTS.md` - the live entry point for all spell work.
 2. Read the relevant child `GAPS.md` file under `docs/projects/spells/subprojects/*/` for the selected lane.
 3. Treat this folder (`docs/tasks/spell-system-overhaul/`) as historical evidence only; its open gap rows were re-homed into the child GAPS files on 2026-07-01.
 4. Validate assumptions against `docs/projects/PROJECT_TRACKER.md` row for this project.

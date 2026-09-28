@@ -166,7 +166,7 @@
                                           "saveOutcomeOverrides":  [
                                                                        {
                                                                            "outcome":  "failure",
-                                                                           "effect":  "Move the creature up to 30 feet in any direction within range and restrain it until the end of the caster\u0027s next turn."
+                                                                           "effect":  "Move the creature up to 30 feet in any direction within range and restrain it until the end of the caster's next turn."
                                                                        },
                                                                        {
                                                                            "outcome":  "worn_or_carried_object_failure",
@@ -194,7 +194,7 @@
                                                    "actionType":  "magic_action",
                                                    "timing":  "on_cast_and_later_caster_turns_before_spell_ends",
                                                    "target":  "visible_creature_or_object_within_range",
-                                                   "description":  "Keep affecting the same target or switch to a new creature or object; switching ends the prior target\u0027s effect."
+                                                   "description":  "Keep affecting the same target or switch to a new creature or object; switching ends the prior target's effect."
                                                }
                                            ],
                         "scaling":  {
@@ -202,7 +202,7 @@
                                         "bonusPerLevel":  "",
                                         "customFormula":  ""
                                     },
-                        "description":  "For up to 10 minutes with concentration, the caster can use a Magic action each turn to affect one Huge or smaller creature or object within 60 feet: failed Strength saves let the caster move and Restrain creatures until the end of the caster\u0027s next turn, unattended objects move automatically, worn or carried objects can be pulled free on a failed save, and simple objects can be finely manipulated.",
+                        "description":  "For up to 10 minutes with concentration, the caster can use a Magic action each turn to affect one Huge or smaller creature or object within 60 feet: failed Strength saves let the caster move and Restrain creatures until the end of the caster's next turn, unattended objects move automatically, worn or carried objects can be pulled free on a failed save, and simple objects can be finely manipulated.",
                         "conditionalEndings":  [
                                                    {
                                                        "trigger":  "caster_switches_target",
@@ -235,7 +235,7 @@
                 ],
     "arbitrationType":  "mechanical",
     "aiContext":  {
-                      "prompt":  "Choose whether to affect a creature or an object, then choose the visible target and movement or manipulation direction. On later Magic actions, choose whether to keep the same target or switch to a new target; switching ends the prior target\u0027s effect.",
+                      "prompt":  "Choose whether to affect a creature or an object, then choose the visible target and movement or manipulation direction. On later Magic actions, choose whether to keep the same target or switch to a new target; switching ends the prior target's effect.",
                       "playerInputRequired":  true
                   },
     "modeChoice":  {
@@ -247,7 +247,7 @@
                        "options":  [
                                        {
                                            "label":  "Creature",
-                                           "summary":  "Move a Huge or smaller creature up to 30 feet on a failed Strength save and Restrain it until the end of the caster\u0027s next turn.",
+                                           "summary":  "Move a Huge or smaller creature up to 30 feet on a failed Strength save and Restrain it until the end of the caster's next turn.",
                                            "effectIndices":  [
                                                                  0
                                                              ],
@@ -268,7 +268,7 @@
                                    ],
                        "notes":  "The selected mode determines whether Telekinesis applies the creature restraint flow or the object movement/manipulation flow."
                    },
-    "description":  "You gain the ability to move or manipulate creatures or objects by thought. When you cast the spell and as a Magic action on your later turns before the spell ends, you can exert your will on one creature or object that you can see within range, causing the appropriate effect below. You can affect the same target round after round or choose a new one at any time. If you switch targets, the prior target is no longer affected by the spell. Creature. You can try to move a Huge or smaller creature. The target must succeed on a Strength saving throw, or you move it up to 30 feet in any direction within the spell\u0027s range. Until the end of your next turn, the creature has the Restrained condition, and if you lift it into the air, it is suspended there. It falls at the end of your next turn unless you use this option on it again and it fails the save. Object. You can try to move a Huge or smaller object. If the object isn\u0027t being worn or carried, you automatically move it up to 30 feet in any direction within the spell\u0027s range. If the object is worn or carried by a creature, that creature must succeed on a Strength saving throw, or you pull the object away and move it up to 30 feet in any direction within the spell\u0027s range. You can exert fine control on objects with your telekinetic grip, such as manipulating a simple tool, opening a door or a container, stowing or retrieving an item from an open container, or pouring the contents from a vial.",
+    "description":  "You gain the ability to move or manipulate creatures or objects by thought. When you cast the spell and as a Magic action on your later turns before the spell ends, you can exert your will on one creature or object that you can see within range, causing the appropriate effect below. You can affect the same target round after round or choose a new one at any time. If you switch targets, the prior target is no longer affected by the spell. Creature. You can try to move a Huge or smaller creature. The target must succeed on a Strength saving throw, or you move it up to 30 feet in any direction within the spell's range. Until the end of your next turn, the creature has the Restrained condition, and if you lift it into the air, it is suspended there. It falls at the end of your next turn unless you use this option on it again and it fails the save. Object. You can try to move a Huge or smaller object. If the object isn't being worn or carried, you automatically move it up to 30 feet in any direction within the spell's range. If the object is worn or carried by a creature, that creature must succeed on a Strength saving throw, or you pull the object away and move it up to 30 feet in any direction within the spell's range. You can exert fine control on objects with your telekinetic grip, such as manipulating a simple tool, opening a door or a container, stowing or retrieving an item from an open container, or pouring the contents from a vial.",
     "higherLevels":  "",
     "tags":  [
                  "concentration"

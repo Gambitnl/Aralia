@@ -61,4 +61,7 @@ export {
 } from './perfRegistry';
 
 export { PerfProbe } from './PerfProbe';
-export { PerfOverlay } from './PerfOverlay';
+// The overlay reaches the page through its host, which owns the second React
+// root. See PerfOverlayHost.tsx for what sharing a root cost.
+export { PerfOverlay } from './PerfOverlayHost';
+export { PerfOverlayView } from './PerfOverlay';

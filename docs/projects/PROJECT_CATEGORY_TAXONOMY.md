@@ -57,7 +57,7 @@ Potential duplicates should be classified before any merge/archive decision:
 |---|---|---|
 | Gameplay/world rows repeated under `Projectized Planning Areas` | duplicate_tracker_row | Merge duplicate registry rows only; keep canonical project folders. |
 | Spell Phase Workstream and Structured Spell Execution | task_project_overlap | Treat Spell Phase as a milestone/phase unless human review says it needs a standalone card. |
-| 3D Combat Map conductor path and docs/projects path | stale_pointer | Keep `docs/projects/3d-combat-map`; review/demote old conductor pointer. |
+| 3D Combat Map conductor path and docs/projects path | RESOLVED 2026-09-05 | Both are gone. `conductor/` was deleted, and `docs/projects/3d-combat-map` does not exist either. The lane lives at `docs/superpowers/specs/2026-07-14-absorbed-3d-combat-map.md`. See CONDUCTOR_RETIRED.md. |
 | UI/system pairs like Crafting UI + Crafting System | ui_runtime_pair | Keep both unless their North Stars converge on the same owner and tasks. |
 | Crime project giant North Star | corrupted_doc_surface | Repair/rebuild docs; do not deprecate Crime System. |
 

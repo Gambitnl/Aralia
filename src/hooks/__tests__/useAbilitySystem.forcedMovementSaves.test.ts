@@ -86,6 +86,19 @@ vi.mock('../../commands', () => ({
     CommandExecutor: { execute: vi.fn().mockReturnValue({ success: true, finalState: { characters: [], combatLog: [] } }) }
 }));
 
+// agora-f821.4 retired the combatUtils roller family; the modules under
+// test roll through systems/dice/rollers now. One hoisted set of mocks
+// stands in for BOTH specifiers, so one vi.mocked(...) pins every die.
+const diceMocks = vi.hoisted(() => ({
+    rollDice: () => 15, // Always roll high for testing hits
+    rollDamage: () => 5
+}))
+
+vi.mock('../../systems/dice/rollers', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../../systems/dice/rollers')>()
+  return { ...actual, ...diceMocks }
+})
+
 vi.mock('../../utils/combat', () => ({
     getDistance: vi.fn(() => 5),
     getCharacterDistance: vi.fn(() => 5),
@@ -95,8 +108,7 @@ vi.mock('../../utils/combat', () => ({
     getOccupiedTiles: (character: CombatCharacter) => [character.position],
     calculateDamage: () => 5,
     generateId: () => 'test-id',
-    rollDice: () => 15, // Always roll high for testing hits
-    rollDamage: () => 5
+    ...diceMocks,
 }));
 
 vi.mock('../../utils/character/savingThrowUtils', () => ({

@@ -19,5 +19,8 @@ export * from './oceanFftReference';
 export * from './oceanFieldReference';
 export * from './oceanCapability';
 export * from './oceanCompute';
+export * from './oceanSky';
+export * from './oceanSampler';
+export * from './oceanNormalMip';
 export * from './oceanSurface';
 export * from './oceanField';

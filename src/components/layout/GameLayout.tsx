@@ -27,7 +27,11 @@
  * It uses a responsive flexbox layout to adapt between mobile (column) and desktop (row) views.
  */
 import React, { useMemo } from 'react';
-import { Location, MapData, GameMessage, Action, NPC, Item, PlayerCharacter } from '../../types';
+// Grid retirement (agora-608b): the `MapData` import is gone — GameLayout stopped
+// feeding the legacy 30x20 grid to the removed minimap adapter, so the import was
+// dead. The world is cell-native (worldSeed -> atlas); nothing here needs a grid.
+import { Location, GameMessage, Action, NPC, Item, PlayerCharacter } from '../../types';
+import type { RulesEdition } from '../../config/rulesEdition';
 import ErrorBoundary from '../ui/ErrorBoundary';
 import { VersionDisplay } from '../ui/VersionDisplay';
 import { ConditionChips } from '../ui/PartyConditionChips';
@@ -68,6 +72,9 @@ interface GameLayoutProps {
     isDevModeEnabled: boolean;
     /** User preference: if true, the game periodically saves to the auto-save slot. */
     autoSaveEnabled: boolean;
+    combatDifficulty?: 'easy' | 'normal' | 'hard';
+    rulesEdition?: RulesEdition;
+    allowSaveScum?: boolean;
     /** If true, disables all interactive elements (buttons, inputs) in the layout. */
     disabled: boolean;
     /** Central handler for dispatching user actions (movement, interaction, etc.). */
@@ -100,6 +107,9 @@ const GameLayout: React.FC<GameLayoutProps> = ({
     worldSeed,
     isDevModeEnabled,
     autoSaveEnabled,
+    combatDifficulty,
+    rulesEdition,
+    allowSaveScum,
     disabled,
     onAction,
     surfaceToggle,
@@ -168,6 +178,9 @@ const GameLayout: React.FC<GameLayoutProps> = ({
                         isDevModeEnabled={isDevModeEnabled}
                         unreadDiscoveryCount={unreadDiscoveryCount}
                         autoSaveEnabled={autoSaveEnabled}
+                        combatDifficulty={combatDifficulty}
+                        rulesEdition={rulesEdition}
+                        allowSaveScum={allowSaveScum}
                         hasNewRateLimitError={hasNewRateLimitError}
                     />
                 </ErrorBoundary>

@@ -118,10 +118,10 @@ describe('buildBuildingMaterialParts', () => {
 
       expect(second).toEqual(first);
       expect(first.length).toBeGreaterThan(0);
-      // Dressing-2 adds two real joinery bars per window. The measured maximum
-      // in this 60-building corpus is 515, so 600 preserves a meaningful cap
-      // without deleting detail from the window-rich three-storey fixture.
-      expect(first.length, `seed ${seed} material part count`).toBeLessThan(600);
+      // Larger character-scale floorplans have longer walls and more windows.
+      // This same 60-building corpus now peaks at 761 parts (seed 22), versus
+      // 515 before resizing; 850 bounds growth without stripping real joinery.
+      expect(first.length, `seed ${seed} material part count`).toBeLessThan(850);
       expect(first.every((part) =>
         part.tag === MATERIAL_PART_TAG
         && part.materialDetailKind.length > 0
@@ -280,7 +280,10 @@ describe('buildBuildingMaterialParts', () => {
 
       expect(owned.length).toBeLessThan(legacyParts.length);
       expect(sideParts.length).toBeGreaterThan(0);
-      expect(sideParts.every((part) => Math.sign(part.x) !== hiddenSign)).toBe(true);
+      // A larger irregular plan can have recessed wing walls on the same
+      // half as its party wall. Only the actual outside envelope belongs to
+      // the neighbor; the sign of X cannot identify ownership on an L-shape.
+      expect(sideParts.some((part) => inOutsideBand(part.x, hiddenSign))).toBe(false);
       // Uprights and transoms have different width/depth orientations. Their
       // center outside the canonical side envelope is the unambiguous proof:
       // none occupy the neighbour-owned side, while the owned side still reads.

@@ -117,6 +117,9 @@ export interface Skill {
   id: string;
   name: string;
   ability: AbilityScoreName;
+  /** Two sentences: what the skill covers and when the game calls for it (agora-d1c7.7).
+   * Optional on the type so test fixtures stay short; SKILLS_DATA carries it for all 18 (guarded by a test). */
+  description?: string;
 }
 
 export interface CharacterSenses {

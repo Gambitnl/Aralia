@@ -8,13 +8,13 @@
   },
   {
    "name": "joints-inside-mesh",
-   "pass": false,
-   "detail": "far: head_leaf=0.144"
+   "pass": true,
+   "detail": "all 71 joints within 0.09 of the mesh (headless: head chain neck_01/head/head_leaf not checked)"
   },
   {
    "name": "symmetry",
-   "pass": true,
-   "detail": "all _l/_r pairs mirror within 0.025"
+   "pass": false,
+   "detail": "calf_l~0.055"
   },
   {
    "name": "bone-lengths",
@@ -28,8 +28,10 @@
   },
   {
    "name": "torso-ownership",
-   "pass": false,
-   "detail": "0.58-0.68h owned by pelvis (want spine_01|spine_02); 0.68-0.78h owned by spine_01 (want spine_02|spine_03); 0.86-0.99h owned by spine_03 (want head|neck_01)"
+   "pass": true,
+   "detail": "every torso band owned by an allowed bone (headless: 1 head band skipped)"
   }
- ]
+ ],
+ "family": "pack",
+ "headless": true
 }

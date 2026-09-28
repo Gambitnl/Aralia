@@ -806,7 +806,13 @@ function chainStations(
       // is deepest at the ribcage and shallows toward the collarbone. Depth
       // now tapers above the under-pec line; bulky frames (low soft) taper
       // harder because their absolute depth is larger.
-      push(seg, 0.78, bone, 0, 1, 0, chestFlatAt(0.78), rAt(0.78), 0, tintFor(seg.id), 1 * soft, inkFor(seg.id), 0.14 * soft, null, { lat: -0.14, latTint: band(LAT_GROOVE_TINT) });
+      // Phase 3 (value-break geometry): pec ledge swell increased from 0.14 to
+      // 0.30 — the old 14% front-only radius boost was invisible under the
+      // toon ramp. At 30% the chest front visibly bulges at the lower pec
+      // boundary, creating a silhouette break the 6-step ramp reads as a
+      // distinct light/shadow transition. Bulk-softened (×soft) so the orc
+      // doesn't plate out.
+      push(seg, 0.78, bone, 0, 1, 0, chestFlatAt(0.78), rAt(0.78), 0, tintFor(seg.id), 1 * soft, inkFor(seg.id), 0.30 * soft, null, { lat: -0.14, latTint: band(LAT_GROOVE_TINT) });
       push(seg, 0.87, bone, 0, 1, 0, chestFlatAt(0.87), rAt(0.87), 0, tintFor(seg.id), 0.7 * soft, inkFor(seg.id), 0, band(CLAVICLE_TINT), { lat: 0.1, yoke: 0.14 });
     } else if (seg.id === 'torso.traps') {
       // round 23 (humanoid-anatomy): THE TRAPEZIUS YOKE — the structural half
@@ -1212,16 +1218,19 @@ export function buildSmoothBipedGeometry(
         // round 16 (humanoid-anatomy): STERNUM carve — pec rings dent their
         // front-center vertex column (front = −binormal on the +Y torso
         // chain, i.e. s < 0) and darken it, so the chest splits into two
-        // plates meeting at a vertical sternum line instead of one roll. The
-        // dark column is the carrier — the dent alone quantizes flat under
-        // the toon ramp (render lesson).
+        // plates meeting at a vertical sternum line instead of one roll.
+        // Phase 3 (value-break geometry): the round-16 indent (16%) and tint
+        // (26%) were both too subtle — the toon ramp quantized them away. The
+        // indent is now 32% (real geometric notch the 6-step ramp picks up as
+        // a distinct value band) and the tint deepens to 42% so the shadow in
+        // the notch reads even when the camera angle flattens the dent.
         if (st.sternum > 0) {
           const frontness = Math.max(0, -s);
           const centerness = Math.max(0, 1 - Math.abs(c) * 1.8);
           const dent = st.sternum * frontness * frontness * centerness;
-          k *= 1 - 0.16 * dent;
+          k *= 1 - 0.32 * dent;
           if (dent > 0) {
-            tint = [tint[0] * (1 - 0.26 * dent), tint[1] * (1 - 0.32 * dent), tint[2] * (1 - 0.35 * dent)];
+            tint = [tint[0] * (1 - 0.42 * dent), tint[1] * (1 - 0.48 * dent), tint[2] * (1 - 0.52 * dent)];
           }
         }
         // round 19 (humanoid-anatomy): INSEAM SPLIT — thigh-root rings darken

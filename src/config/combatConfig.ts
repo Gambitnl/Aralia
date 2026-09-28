@@ -16,3 +16,13 @@ export const AI_THINKING_DELAY_MS = {
   normal: 1000,
   hard: 1500,
 };
+
+/** Player-chosen combat difficulty (agora-a46a.1). Drives AI thinking delay today. */
+export type CombatDifficulty = keyof typeof AI_THINKING_DELAY_MS;
+export const COMBAT_DIFFICULTIES: readonly CombatDifficulty[] = ['easy', 'normal', 'hard'];
+export const DEFAULT_COMBAT_DIFFICULTY: CombatDifficulty = 'normal';
+export const isCombatDifficulty = (value: unknown): value is CombatDifficulty =>
+  typeof value === 'string' && (COMBAT_DIFFICULTIES as readonly string[]).includes(value);
+export const nextCombatDifficulty = (current: CombatDifficulty): CombatDifficulty =>
+  COMBAT_DIFFICULTIES[(COMBAT_DIFFICULTIES.indexOf(current) + 1) % COMBAT_DIFFICULTIES.length];
+export const COMBAT_DIFFICULTY_LABEL: Record<CombatDifficulty, string> = { easy: 'Easy', normal: 'Normal', hard: 'Hard' };

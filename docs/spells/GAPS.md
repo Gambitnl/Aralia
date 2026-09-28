@@ -1,4 +1,4 @@
-﻿# Spell Phase Workstream Gaps
+# Spell Phase Workstream Gaps
 
 Status: active
 Last updated: 2026-05-31

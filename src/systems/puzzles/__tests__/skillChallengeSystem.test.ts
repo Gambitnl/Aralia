@@ -100,4 +100,42 @@ describe('SkillChallengeSystem', () => {
     // Counts shouldn't change on invalid attempt
     expect(challenge.currentSuccesses).toBe(1);
   });
+  // #916: a proficient character adds their proficiency bonus. Every run below
+  // shares ability scores and differs only in the skill list. The bonus is set
+  // absurdly high on purpose: a proficient total can then never fall inside the
+  // untrained 1-20 band, so the assertions are exact rather than probabilistic.
+  describe('proficiency bonus (#916)', () => {
+    function runAt(dc: number, skills: PlayerCharacter['skills']): boolean {
+      const challenge = createSkillChallenge(
+        'test_prof', 'Test', 'Desc', 1, 1, dc,
+        [{ skillName: 'Athletics', description: 'Heave' }],
+        'Win', 'Lose'
+      );
+      const char = createTestCharacter('Hero', 10, 10, 10);
+      char.proficiencyBonus = 100;
+      char.skills = skills;
+
+      return attemptSkillChallenge(challenge, char, 'Athletics').success;
+    }
+
+    it('adds the bonus for a skill listed by id', () => {
+      // Strength 10 gives +0, so an untrained total can never reach 50.
+      expect(runAt(50, [{ id: 'athletics', name: 'Athletics', ability: 'Strength' }])).toBe(true);
+    });
+
+    it('adds the bonus for a skill listed by display name', () => {
+      expect(runAt(50, [{ id: 'ath_legacy', name: 'Athletics', ability: 'Strength' }])).toBe(true);
+    });
+
+    it('withholds the bonus from a character proficient in a different skill', () => {
+      expect(runAt(50, [{ id: 'stealth', name: 'Stealth', ability: 'Dexterity' }])).toBe(false);
+    });
+
+    it('leaves an untrained total unchanged', () => {
+      expect(runAt(50, [])).toBe(false);
+      // Strength 10, no proficiency: the best possible total is exactly 20.
+      expect(runAt(21, [])).toBe(false);
+      expect(runAt(1, [])).toBe(true);
+    });
+  });
 });

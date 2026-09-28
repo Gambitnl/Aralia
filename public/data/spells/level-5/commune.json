@@ -14,6 +14,30 @@
                        "Paladin - Oath of Devotion"
                    ],
     "ritual":  true,
+    "ritualData": {
+      "requirements": [
+        {
+          "type": "custom",
+          "value": "component:verbal",
+          "description": "The ritual must be chanted aloud from start to finish."
+        },
+        {
+          "type": "custom",
+          "value": "component:somatic",
+          "description": "The ritual needs a free hand for its gestures throughout."
+        },
+        {
+          "type": "custom",
+          "value": "component:material",
+          "description": "The ritual needs incense; it is held throughout the casting."
+        },
+        {
+          "type": "custom",
+          "value": "uninterrupted_casting",
+          "description": "Ritual casting adds 10 minutes to the casting time and must run uninterrupted."
+        }
+      ]
+    },
     "rarity":  "common",
     "attackType":  "",
     "castingTime":  {
@@ -228,7 +252,7 @@
                       "prompt":  "",
                       "playerInputRequired":  false
                   },
-    "description":  "You contact a deity or a divine proxy and ask up to three questions that can be answered with yes or no. You must ask your questions before the spell ends. You receive a correct answer for each question. Divine beings aren\u0027t necessarily omniscient, so you might receive \"unclear\" as an answer if a question pertains to information that lies beyond the deity\u0027s knowledge. In a case where a one-word answer could be misleading or contrary to the deity\u0027s interests, the DM might offer a short phrase as an answer instead. If you cast the spell more than once before finishing a Long Rest, there is a cumulative 25 percent chance for each casting after the first that you get no answer.",
+    "description":  "You contact a deity or a divine proxy and ask up to three questions that can be answered with yes or no. You must ask your questions before the spell ends. You receive a correct answer for each question. Divine beings aren't necessarily omniscient, so you might receive \"unclear\" as an answer if a question pertains to information that lies beyond the deity's knowledge. In a case where a one-word answer could be misleading or contrary to the deity's interests, the DM might offer a short phrase as an answer instead. If you cast the spell more than once before finishing a Long Rest, there is a cumulative 25 percent chance for each casting after the first that you get no answer.",
     "higherLevels":  "",
     "tags":  [
                  "divination",

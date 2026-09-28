@@ -205,7 +205,9 @@ describe('useTargeting - area targeting preview', () => {
         ['circle / sphere', makeAreaAbility('circle', 2), { x: 2, y: 2 }],
         ['cone', makeAreaAbility('cone', 3), { x: 2, y: 0 }],
         ['line', makeAreaAbility('line', 4), { x: 4, y: 2 }],
-        ['square / cube', makeAreaAbility('cube', 3), { x: 2, y: 2 }],
+        // A cube extends away from the caster (ruling Q4, 2026-09-22), thus the
+        // hover point is east of the caster at (2,2), not on the caster tile.
+        ['square / cube', makeAreaAbility('cube', 3), { x: 4, y: 2 }],
         ['cylinder', makeAreaAbility('cylinder', 2), { x: 2, y: 2 }]
     ])('previews affected tiles for %s shapes', (_label, ability, hoverPosition) => {
         const caster = makeCharacter('caster', { x: 2, y: 2 });

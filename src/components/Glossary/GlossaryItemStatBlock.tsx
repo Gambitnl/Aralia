@@ -2,9 +2,9 @@ import React from 'react';
 import { GlossaryEntry } from '../../types';
 
 export const GlossaryItemStatBlock: React.FC<{ metadata: NonNullable<GlossaryEntry['itemMetadata']> }> = ({ metadata }) => {
-    // The ingest pipeline uses "None" as a placeholder rarity for mundane items.
+    // The ingest pipeline uses "None" as a sentinel rarity for mundane items.
     // Hide that sentinel here so the card reads like a real item card instead of
-    // surfacing the placeholder back to the player.
+    // surfacing the sentinel back to the player.
     const displayRarity = metadata.rarity && metadata.rarity !== 'None' ? metadata.rarity : undefined;
 
     // Rarity Color Mapping

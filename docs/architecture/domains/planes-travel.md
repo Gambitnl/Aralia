@@ -1,6 +1,6 @@
 # Planes / Travel
 
-Verified: unknown — predates the verification rule (see AGENTS.md)
+Verified: 2026-09-28 (every path this doc lists exists; src/services/travelService.ts and its test are gone and were removed from this doc, Remy's call on the GG-310 question sheet q3. The behavior prose below predates the verification rule.)
 
 ## Purpose
 
@@ -11,7 +11,6 @@ This domain covers planar mechanics, overland travel systems, travel-event gener
 - src/systems/planar/
 - src/systems/travel/
 - src/services/travelEventService.ts
-- src/services/travelService.ts
 - src/data/planes.ts
 - src/data/travelEvents.ts
 - src/types/planes.ts
@@ -47,7 +46,6 @@ This pass verified the live travel subtree under src/systems/travel/, including:
 It also confirmed:
 
 - src/services/travelEventService.ts
-- src/services/travelService.ts
 - src/utils/travel/TravelCalculator.ts
 - src/utils/travel/__tests__/TravelCalculator.test.ts
 
@@ -72,7 +70,6 @@ It also confirmed:
 - src/systems/travel/__tests__/TravelCalculations.test.ts
 - src/systems/travel/__tests__/TravelNavigation.test.ts
 - src/services/__tests__/travelEventService.test.ts
-- src/services/__tests__/travelService.test.ts
 - src/data/__tests__/planes.test.ts
 
 ## Current Interpretation

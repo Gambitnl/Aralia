@@ -214,9 +214,9 @@
                                            ],
                         "scaling":  {
                                         "type":  "slot_level",
-                                        "bonusPerLevel":  "",
+                                        "bonusPerLevel":  "+5 feet Cube size",
                                         "customFormula":  ""
-                                    },
+                        },
                         "grantedActions":  [
 
                                            ],
@@ -274,7 +274,7 @@
                       "prompt":  "",
                       "playerInputRequired":  false
                   },
-    "description":  "You pull wisps of shadow material from the Shadowfell to create an object within range. It is either an object of vegetable matter (soft goods, rope, wood, and the like) or mineral matter (stone, crystal, metal, and the like). The object must be no larger than a 5-foot Cube , and the object must be of a form and material that you have seen. The spell\u0027s duration depends on the object\u0027s material, as shown in the Materials table. If the object is composed of multiple materials, use the shortest duration. Using any object created by this spell as another spell\u0027s Material component causes the other spell to fail.",
+    "description":  "You pull wisps of shadow material from the Shadowfell to create an object within range. It is either an object of vegetable matter (soft goods, rope, wood, and the like) or mineral matter (stone, crystal, metal, and the like). The object must be no larger than a 5-foot Cube , and the object must be of a form and material that you have seen. The spell's duration depends on the object's material, as shown in the Materials table. If the object is composed of multiple materials, use the shortest duration. Using any object created by this spell as another spell's Material component causes the other spell to fail.",
     "higherLevels":  "Using a Higher-Level Spell Slot. The Cube increases by 5 feet for each spell slot level above 5.",
     "tags":  [
 

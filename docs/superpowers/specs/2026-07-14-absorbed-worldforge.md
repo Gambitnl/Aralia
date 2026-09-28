@@ -1,4 +1,4 @@
-# Worldforge — Procedural World Pipeline (Absorbed 2026-07-14)
+# Worldforge - Procedural World Pipeline (Absorbed 2026-07-14)
 
 Preserved essential specification and decisions from absorbed `docs/projects/worldforge/` folder.
 

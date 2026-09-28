@@ -176,9 +176,9 @@
                                    },
                         "scaling":  {
                                         "type":  "slot_level",
-                                        "bonusPerLevel":  "",
+                                        "bonusPerLevel":  "+2 pieces of ammunition",
                                         "customFormula":  ""
-                                    },
+                        },
                         "description":  "A target hit by a ranged weapon attack using ammunition drawn from the touched quiver takes an extra 1d6 Fire damage.",
                         "conditionalEndings":  [
                                                    {
@@ -189,7 +189,7 @@
                                                    {
                                                        "trigger":  "on_attack_hit_or_miss",
                                                        "scope":  "item",
-                                                       "description":  "The spell\u0027s magic ends on the piece of ammunition when it hits or misses."
+                                                       "description":  "The spell's magic ends on the piece of ammunition when it hits or misses."
                                                    }
                                                ]
                     }
@@ -199,7 +199,7 @@
                       "prompt":  "",
                       "playerInputRequired":  false
                   },
-    "description":  "You touch a quiver containing arrows or bolts. When a target is hit by a ranged weapon attack using a piece of ammunition drawn from the quiver, the target takes an extra 1d6 fire damage. The spell\u0027s magic ends on the piece of ammunition when it hits or misses, and the spell ends when twelve pieces of ammunition have been drawn from the quiver.",
+    "description":  "You touch a quiver containing arrows or bolts. When a target is hit by a ranged weapon attack using a piece of ammunition drawn from the quiver, the target takes an extra 1d6 fire damage. The spell's magic ends on the piece of ammunition when it hits or misses, and the spell ends when twelve pieces of ammunition have been drawn from the quiver.",
     "higherLevels":  "When you cast this spell using a spell slot of 4th level or higher, the number of pieces of ammunition you can affect with this spell increases by two for each slot level above 3rd.",
     "tags":  [
                  "concentration"

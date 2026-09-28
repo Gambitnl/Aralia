@@ -69,6 +69,8 @@ const spikeGrowthZone: ActiveSpellZone = {
         shape: 'square',
         size: 15
     },
+    // A square zone uses the face-anchored cube geometry (ruling Q4, 2026-09-22), thus it needs a direction.
+    direction: { x: 1, y: 0 },
     effects: [spikeGrowthEffect],
     triggeredThisTurn: new Set(),
     triggeredEver: new Set()

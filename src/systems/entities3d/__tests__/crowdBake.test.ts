@@ -3,11 +3,18 @@
  * walk-cycle keyframe geometries (slice 5 groundwork).
  */
 import { describe, it, expect, beforeAll } from 'vitest';
-import { bakeCrowdArchetype, crowdArchetypeForGroup, CROWD_WALK_PHASES } from '../three/crowdBake';
+import { bakeCrowdArchetype, CROWD_WALK_PHASES } from '../three/crowdBake';
 import { generateEntityBlueprint } from '../generateEntityBlueprint';
-import { recipeFromOccupant } from '../recipeFromOccupant';
+import { recipeFromOccupant, crowdArchetypeForGroup } from '../recipeFromOccupant';
 import { registerAllParts } from '../parts';
 import { heightM } from '../types';
+
+// ============================================================================
+// Crowd Baking Tests
+// ============================================================================
+// Verifies that baking process runs correctly, yields correct geometry shapes,
+// and preserves walker animation offsets and caching behavior.
+// ============================================================================
 
 describe('bakeCrowdArchetype', () => {
   beforeAll(() => registerAllParts());

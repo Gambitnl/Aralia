@@ -38,7 +38,9 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const tool = path.join(here, 'planmap-add.mjs');
 
 // Build the smallest valid map that supports topic, feature, and status edits.
-const mkMap = () => {
+// `indent` is the JSON.stringify indent this fixture is WRITTEN with, so a test
+// can prove the command hands the file's own formatting back (WF-G117).
+const mkMap = (indent = 2) => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'pmadd-'));
   const file = path.join(dir, 'topics.json');
   fs.writeFileSync(file, JSON.stringify({
@@ -47,7 +49,7 @@ const mkMap = () => {
       id: 'existing-topic', title: 'Existing', campaign: 'tooling', status: 'parked',
       features: [{ title: 'Old step', status: 'parked' }],
     }],
-  }, null, 2) + '\n');
+  }, null, indent) + '\n');
   return file;
 };
 
@@ -151,9 +153,10 @@ test('write is atomic: no .tmp file left behind', () => {
 // leaves every topic outside the caller's selection equivalent to its input.
 // ============================================================================
 
-// An invalid starting map stays data-equivalent across repeated calls,
-// so an operator can repair the unrelated drift without removing duplicates.
-test('validation failure from pre-existing drift does not write or duplicate on retry', () => {
+// WF-G117: an unrelated broken topic used to refuse EVERY other agent's write,
+// which pushed workers onto --no-validate. The validator still reads the whole
+// map; only a problem naming the touched topic may block the write.
+test('drift in another topic warns but does not block the caller write', () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'pmadd-drift-'));
   const file = path.join(dir, 'topics.json');
   const baseline = {
@@ -165,16 +168,131 @@ test('validation failure from pre-existing drift does not write or duplicate on 
   };
   fs.writeFileSync(file, JSON.stringify(baseline, null, 2) + '\n');
 
-  const first = run(file, ['--topic', 'existing-topic', '--feature', 'Retry step'], { validate: true });
-  const afterFirst = readMap(file);
-  const second = run(file, ['--topic', 'existing-topic', '--feature', 'Retry step'], { validate: true });
-  const afterSecond = readMap(file);
+  const payload = run(file, ['--topic', 'existing-topic', '--feature', 'Retry step'], { validate: true });
+  assert.equal(payload.code, 0);
+  // The unrelated problem is reported, attributed elsewhere, and stepped over.
+  assert.match(payload.output, /warning \(elsewhere in the map, not "existing-topic"\)/);
+  assert.match(payload.output, /bad-topic/);
 
-  assert.equal(first.code, 1);
-  assert.equal(second.code, 1);
-  assert.match(first.output, /pre-existing plan-map validation errors detected/i);
-  assert.deepEqual(afterFirst, baseline);
-  assert.deepEqual(afterSecond, baseline);
+  const after = readMap(file);
+  assert.equal(after.topics[0].features.at(-1).title, 'Retry step');
+  // The broken topic is left exactly as found — this command does not repair it.
+  assert.deepEqual(after.topics[1], baseline.topics[1]);
+});
+
+// The other half of the scoping rule: a problem that DOES name the touched topic
+// still refuses the write, and says the problem was inherited rather than caused.
+test('drift in the touched topic still blocks the write', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'pmadd-scoped-'));
+  const file = path.join(dir, 'topics.json');
+  const baseline = {
+    campaigns: { tooling: { label: 'Tooling', color: 'teal' } },
+    topics: [
+      // A broken link is a problem this command cannot accidentally fix, so it
+      // survives the mutation and must be attributed to "existing-topic".
+      { id: 'existing-topic', title: 'Existing', campaign: 'tooling', status: 'parked', link: 'docs/does-not-exist-wfg117.md' },
+    ],
+  };
+  fs.writeFileSync(file, JSON.stringify(baseline, null, 2) + '\n');
+
+  const payload = run(file, ['--topic', 'existing-topic', '--set-status', 'active'], { validate: true });
+  assert.equal(payload.code, 1);
+  assert.match(payload.output, /problem\(s\) naming "existing-topic"/);
+  assert.match(payload.output, /\(pre-existing\)/);
+  assert.match(payload.output, /caller-scoped validation failed/);
+  assert.deepEqual(readMap(file), baseline);
+  assert.equal(fs.existsSync(`${file}.tmp`), false);
+});
+
+// The gap's own proof (WF-G117): the file's indentation is the format of record.
+// A hardcoded two-space write turned this one-field flip into a whole-file diff.
+test('a status flip on a one-space map is a one-line diff', () => {
+  const file = mkMap(1);
+  // Pre-stamp today's date so the freshness stamp is not itself a second
+  // changed line — the assertion is about formatting, not about `updated`.
+  const seeded = readMap(file);
+  seeded.topics[0].updated = new Date().toISOString().slice(0, 10);
+  fs.writeFileSync(file, JSON.stringify(seeded, null, 1) + '\n');
+
+  const before = fs.readFileSync(file, 'utf8').split('\n');
+  run(file, ['--topic', 'existing-topic', '--set-status', 'active']);
+  const after = fs.readFileSync(file, 'utf8').split('\n');
+
+  assert.equal(before.length, after.length);
+  const changed = before.map((line, n) => [line, after[n]]).filter(([a, b]) => a !== b);
+  assert.equal(changed.length, 1);
+  assert.match(changed[0][1], /"status": "active"/);
+});
+
+// Feature capture writes through the same detector, so an appended feature adds
+// lines without reformatting the ones around it.
+test('adding a feature to a one-space map keeps the one-space indent', () => {
+  const file = mkMap(1);
+  run(file, ['--topic', 'existing-topic', '--feature', 'New step']);
+  const text = fs.readFileSync(file, 'utf8');
+  assert.match(text, /^ "campaigns": \{$/m);
+  assert.equal(/^ {2}"campaigns"/m.test(text), false);
+});
+
+// ============================================================================
+// Annotation Flags (--status-note / --verified)
+// ============================================================================
+// Both use the same --feature-match selector as --set-status and may be used
+// WITHOUT a status flip, so an audit can record what it checked and when.
+// ============================================================================
+
+// A verification date on a feature needs no status change to be recorded.
+test('--verified stamps a matched feature without touching its status', () => {
+  const file = mkMap();
+  const payload = run(file, ['--topic', 'existing-topic', '--feature-match', 'old step', '--verified', '2026-09-09']);
+  assert.equal(payload.code, 0);
+  const t = readMap(file).topics[0];
+  assert.equal(t.features[0].verified, '2026-09-09');
+  assert.equal(t.features[0].status, 'parked');
+  assert.match(t.updated, DATE);
+  assert.match(payload.output, /verified 2026-09-09/);
+});
+
+// The same flags address the topic itself when no --feature-match is given, and
+// an empty note is the CLI's only way to retract one.
+test('--status-note sets and clears a topic note', () => {
+  const file = mkMap();
+  run(file, ['--topic', 'existing-topic', '--status-note', 'checked against src/ on the day']);
+  assert.equal(readMap(file).topics[0].status_note, 'checked against src/ on the day');
+  run(file, ['--topic', 'existing-topic', '--status-note', '']);
+  assert.equal('status_note' in readMap(file).topics[0], false);
+});
+
+// A status flip and an annotation are one edit, not two passes over the file.
+test('--set-status and --verified apply together to one feature', () => {
+  const file = mkMap();
+  run(file, ['--topic', 'existing-topic', '--feature-match', 'old step', '--set-status', 'done', '--verified', '2026-09-09']);
+  const f = readMap(file).topics[0].features[0];
+  assert.equal(f.status, 'done');
+  assert.equal(f.verified, '2026-09-09');
+});
+
+// New captures carry the annotations too, so an audit-driven addition does not
+// need a second command.
+test('new topic and new feature accept the annotation flags', () => {
+  const file = mkMap();
+  run(file, ['--new-topic', 'annotated', '--title', 'Annotated', '--campaign', 'tooling', '--verified', '2026-09-09', '--status-note', 'seeded by an audit']);
+  const topic = readMap(file).topics.find((t) => t.id === 'annotated');
+  assert.equal(topic.verified, '2026-09-09');
+  assert.equal(topic.status_note, 'seeded by an audit');
+
+  run(file, ['--topic', 'existing-topic', '--feature', 'Audited step', '--verified', '2026-09-09']);
+  assert.equal(readMap(file).topics[0].features.at(-1).verified, '2026-09-09');
+});
+
+// A free-form date would pass this command and then fail the schema pattern
+// downstream, so reject it at the door.
+test('--verified rejects a value that is not YYYY-MM-DD', () => {
+  const file = mkMap();
+  const payload = run(file, ['--topic', 'existing-topic', '--verified', 'yesterday']);
+  assert.equal(payload.code, 1);
+  assert.match(payload.output, /--verified must be YYYY-MM-DD/);
+  assert.equal('verified' in readMap(file).topics[0], false);
 });
 
 // A validated success may refresh and extend only the explicitly named topic.

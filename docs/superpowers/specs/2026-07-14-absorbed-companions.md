@@ -11,21 +11,21 @@ three open lanes remain (see the planmap topic features).
 
 ## File ownership map
 
-- `src/systems/companions/RelationshipManager.ts` — approval math on a
+- `src/systems/companions/RelationshipManager.ts` - approval math on a
   `-500..500` scale with 11 levels, thresholds, unlock checks, event history,
   loyalty retention floor. IDs go through the shared `generateId()` helper
   (`src/utils/core/idGenerator.ts`).
-- `src/systems/companions/CompanionReactionSystem.ts` — reaction approvals and
+- `src/systems/companions/CompanionReactionSystem.ts` - reaction approvals and
   text from rule matches; rules outside their relationship bounds are filtered
   before aggregation.
-- `src/systems/companions/BanterManager.ts` — banter candidate selection by
+- `src/systems/companions/BanterManager.ts` - banter candidate selection by
   cooldown, location, participants, relationship, and chance.
 - Hooks: `src/hooks/useCompanionBanter.ts` (ambient banter plus player-directed
   interjection with an explicit response-window contract),
   `src/hooks/useCompanionCommentary.ts`, `src/hooks/useConversation.ts`.
 - State: `src/state/reducers/companionReducer.ts`,
   `src/state/reducers/conversationReducer.ts`. `UPDATE_COMPANION_APPROVAL.source`
-  is provenance-only routing — do not branch behavior on it.
+  is provenance-only routing - do not branch behavior on it.
 - UI: `CollapsibleBanterPanel`, `BanterAttentionBanner`, `BanterInterruptUI`,
   `CompanionReaction` (FIFO bubble queue with duplicate suppression),
   `ConversationPanel`, `CompanionCard`, `RelationshipsPane`.
@@ -55,16 +55,16 @@ The recruitment runtime already exists with tests: `RECRUIT_COMPANION` in
 `recruitConsent.ts`, `recruitTypes.ts` and their test files. What is missing:
 
 - G7: gameplay-owned recruit/leave reducer semantics formally specified
-  (payloads, duplicate prevention, approval side effects) — the existing party
+  (payloads, duplicate prevention, approval side effects) - the existing party
   runtime substantially covers the runtime ask; the reducer contract needs proof.
-- G8: producer-side wiring — nothing in live dialogue/gameplay surfaces recruit
+- G8: producer-side wiring - nothing in live dialogue/gameplay surfaces recruit
   offers, so the shipped runtime is unreachable in normal play. Proof is a live
   in-game end-to-end recruitment playtest.
 
 ## What must not be lost
 
 - The `-500..500` scale is reconciled across types, runtime clamp, threshold
-  tests, and the `CompanionCard` marker — keep future UI math aligned.
+  tests, and the `CompanionCard` marker - keep future UI math aligned.
 - Ambient banter and directed conversation are product-visible and stateful;
   the codebase intentionally mixes finished mechanics with documented
   placeholders, so preserve that distinction when editing.

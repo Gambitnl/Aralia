@@ -14,10 +14,10 @@ them.
 
 Substance splits into four parts, and they can be bought separately:
 
-- **Layers** — what a solid is made of, going down. This is strata, narrowly.
-- **Volume** — a solid occupies space and has an inside.
-- **Resistance** — a solid has mass and pushes back.
-- **Consequence** — an act on a solid leaves a result.
+- **Layers** - what a solid is made of, going down. This is strata, narrowly.
+- **Volume** - a solid occupies space and has an inside.
+- **Resistance** - a solid has mass and pushes back.
+- **Consequence** - an act on a solid leaves a result.
 
 This document prices three levels.
 

@@ -51,13 +51,15 @@ export class VisibilitySystem {
    */
   static calculateLightLevels(
     mapData: BattleMapData,
-    lightSources: LightSource[]
+    lightSources: LightSource[],
+    ambient: Exclude<LightLevel, 'magical_darkness'> = 'darkness'
   ): Map<string, LightLevel> {
     const lightLevels = new Map<string, LightLevel>();
 
-    // Initialize all tiles to Darkness (Underdark default)
+    // Initialize every tile to the board's ambient level (darkness unless the
+    // board says otherwise, agora-a46a.3); light sources only ever raise it.
     mapData.tiles.forEach((tile) => {
-      lightLevels.set(tile.id, 'darkness');
+      lightLevels.set(tile.id, ambient);
     });
 
     for (const source of lightSources) {

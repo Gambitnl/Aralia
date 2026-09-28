@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file grownTreeWiring.test.ts — the grown trees, as the GAME consumes them.
  *
  * The differentiation gate (grownTreeMeshSource.test.ts) proves one biome grows
@@ -12,9 +12,19 @@ import {
   grownTreeHeightM,
   grownTreeVariantsFor,
 } from '../grownTreeVariants';
-import { partitionGrownTreeInstances } from '../treeInstancePartition';
+import {
+  partitionGrownTreeInstances,
+  getGrownVariantIndex,
+} from '../treeInstancePartition';
 import { buildGrownTreeBatches, grownTreeBatchKey } from '../treeBatching';
 import type { TreeBatchInput } from '../treeBatching';
+import {
+  getVariantHeightMultiplier,
+  resolveInstanceScalesForVariant,
+  wireGrownTreeBatches,
+  prepareGrownTreeGeometryMap,
+  biomeGrowsTrees,
+} from '../grownTreeWiring';
 
 /** A chunk scatter whose instances all stand in one biome. */
 const makeChunk = (
@@ -111,6 +121,17 @@ describe('partitionGrownTreeInstances', () => {
     scatter.biomeCodes![2] = 7;
     expect(() => partitionGrownTreeInstances(scatter)).toThrow(/outside a table/);
   });
+
+  it('getGrownVariantIndex returns stable variant indices in range 0..3', () => {
+    for (let x = -50; x <= 50; x += 10) {
+      for (let z = -50; z <= 50; z += 10) {
+        const v = getGrownVariantIndex(x, z);
+        expect(v).toBeGreaterThanOrEqual(0);
+        expect(v).toBeLessThan(GROWN_VARIANTS_PER_BIOME);
+        expect(getGrownVariantIndex(x, z)).toBe(v);
+      }
+    }
+  });
 });
 
 describe('buildGrownTreeBatches', () => {
@@ -159,5 +180,40 @@ describe('buildGrownTreeBatches', () => {
     expect(taiga.length).toBeGreaterThan(0);
     expect(savanna.length).toBeGreaterThan(0);
     for (const b of batches) expect(b.count).toBeGreaterThan(0);
+  });
+});
+
+describe('grownTreeWiring high-level utilities', () => {
+  it('getVariantHeightMultiplier matches grownTreeHeightM', () => {
+    for (let v = 0; v < GROWN_VARIANTS_PER_BIOME; v++) {
+      expect(getVariantHeightMultiplier('Taiga', v)).toBe(grownTreeHeightM('Taiga', v));
+    }
+  });
+
+  it('resolveInstanceScalesForVariant scales base values by variant height', () => {
+    const base = [1.0, 0.5, 1.2];
+    const scales = resolveInstanceScalesForVariant('Taiga', 0, base);
+    const height = grownTreeHeightM('Taiga', 0);
+    expect(scales[0]).toBeCloseTo(1.0 * height);
+    expect(scales[1]).toBeCloseTo(0.5 * height);
+    expect(scales[2]).toBeCloseTo(1.2 * height);
+  });
+
+  it('wireGrownTreeBatches produces equivalent batches to buildGrownTreeBatches', () => {
+    const input = makeChunk(20, ['Taiga']);
+    const batchesA = wireGrownTreeBatches([input]);
+    const batchesB = buildGrownTreeBatches([input]);
+    expect(batchesA.length).toBe(batchesB.length);
+    expect(batchesA[0].count).toBe(batchesB[0].count);
+  });
+
+  it('prepareGrownTreeGeometryMap pre-populates all variants for valid biomes and ignores treeless', () => {
+    const map = prepareGrownTreeGeometryMap(['Taiga', 'Marine', 'Hot desert']);
+    // Taiga and Hot desert should have GROWN_VARIANTS_PER_BIOME entries each; Marine should be skipped
+    expect(biomeGrowsTrees('Marine')).toBe(false);
+    expect(map.size).toBe(GROWN_VARIANTS_PER_BIOME * 2);
+    expect(map.has('Taiga|0')).toBe(true);
+    expect(map.has('Hot desert|3')).toBe(true);
+    expect(map.has('Marine|0')).toBe(false);
   });
 });

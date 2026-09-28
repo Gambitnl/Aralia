@@ -66,6 +66,9 @@ for (const t of topics) {
   if (t.updated !== undefined && !DATE_RE.test(t.updated)) warn(`${where}: "updated" must be YYYY-MM-DD`);
   if (t.tier !== undefined && !TIERS.has(t.tier)) warn(`${where}: "tier" must be strategic|component`);
   if (t.status_note !== undefined && typeof t.status_note !== 'string') warn(`${where}: "status_note" must be a string`);
+  // Verification stamp (GG-121 / WF-G117): the day this entry was last checked
+  // against the code. planmap-add --verified writes it; hand edits land here too.
+  if (t.verified !== undefined && !DATE_RE.test(t.verified)) warn(`${where}: "verified" must be YYYY-MM-DD`);
   if (!t.id) warn(`${where}: missing id`);
   else if (!ID_RE.test(t.id)) warn(`${where}: id violates pattern ^[a-z0-9][a-z0-9-]*$ (breaks planmap:<id>/<slug> refs and the viewer)`);
   else if (ids.has(t.id)) warn(`duplicate topic id "${t.id}"`);
@@ -93,6 +96,7 @@ for (const t of topics) {
     if (!STATUSES.has(f.status)) warn(`${where} / "${f.title}": invalid status "${f.status}"`);
     if (f.status === 'superseded' && !f.killed) warn(`${where} / "${f.title}": superseded but no "killed" reason`);
     if (f.status_note !== undefined && typeof f.status_note !== 'string') warn(`${where} / "${f.title}": "status_note" must be a string`);
+    if (f.verified !== undefined && !DATE_RE.test(f.verified)) warn(`${where} / "${f.title}": "verified" must be YYYY-MM-DD`);
     if (f.decision !== undefined && typeof f.decision !== 'boolean') warn(`${where} / "${f.title}": "decision" must be boolean (true = waiting on a human call)`);
     if (f.open != null && (!Number.isInteger(f.open) || f.open < 0)) warn(`${where} / "${f.title}": "open" must be an integer >= 0 (got ${JSON.stringify(f.open)})`);
     if (f.spike != null && typeof f.spike !== 'boolean') warn(`${where} / "${f.title}": "spike" must be boolean`);

@@ -162,7 +162,7 @@
                                           "saveModifiers":  [
                                                                 {
                                                                     "type":  "advantage",
-                                                                    "reason":  "The target has Advantage on the Wisdom saving throw if the caster or the caster\u0027s allies are fighting it.",
+                                                                    "reason":  "The target has Advantage on the Wisdom saving throw if the caster or the caster's allies are fighting it.",
                                                                     "condition":  "caster_or_allies_fighting_target"
                                                                 }
                                                             ],
@@ -188,20 +188,26 @@
                                                   "telepathicLink":  {
                                                                          "requiresSamePlane":  true,
                                                                          "actionCost":  "none",
-                                                                         "description":  "While the target is Charmed and on the same plane, the caster can issue telepathic commands with no action on the caster\u0027s turn."
+                                                                         "description":  "While the target is Charmed and on the same plane, the caster can issue telepathic commands with no action on the caster's turn."
                                                                      },
                                                   "reactionCommand":  {
                                                                           "requiresCasterReaction":  true,
-                                                                          "description":  "The caster can command the Charmed Beast to take a Reaction only by spending the caster\u0027s own Reaction."
+                                                                          "description":  "The caster can command the Charmed Beast to take a Reaction only by spending the caster's own Reaction."
                                                                       },
                                                   "defaultAfterCompletedOrder":  "acts_and_moves_as_it_likes_focusing_on_self_protection"
                                               },
                         "scaling":  {
                                         "type":  "slot_level",
                                         "bonusPerLevel":  "",
-                                        "customFormula":  ""
-                                    },
-                        "description":  "One visible Beast within 60 feet makes a Wisdom save, with Advantage if the caster or the caster\u0027s allies are fighting it; on a failed save, it is Charmed for up to 1 minute, and each time it takes damage it repeats the Wisdom save, ending the spell on itself on a success.",
+                                        "customFormula":  "",
+                                        "scalingTiers":  {
+                                                        "4":  "up to 1 minute",
+                                                        "5":  "up to 10 minutes",
+                                                        "6":  "up to 1 hour",
+                                                        "7":  "up to 8 hours"
+                                        }
+                        },
+                        "description":  "One visible Beast within 60 feet makes a Wisdom save, with Advantage if the caster or the caster's allies are fighting it; on a failed save, it is Charmed for up to 1 minute, and each time it takes damage it repeats the Wisdom save, ending the spell on itself on a success.",
                         "conditionalEndings":  [
 
                                                ],
@@ -246,10 +252,10 @@
                 ],
     "arbitrationType":  "mechanical",
     "aiContext":  {
-                      "prompt":  "Prompt the Beast\u0027s Wisdom save, including Advantage if the caster or allies are fighting it. On failure, apply Charmed, establish same-plane telepathic commands with no action, repeat the save when the Beast takes damage, and require the caster\u0027s Reaction to command a Reaction.",
+                      "prompt":  "Prompt the Beast's Wisdom save, including Advantage if the caster or allies are fighting it. On failure, apply Charmed, establish same-plane telepathic commands with no action, repeat the save when the Beast takes damage, and require the caster's Reaction to command a Reaction.",
                       "playerInputRequired":  true
                   },
-    "description":  "One Beast you can see within range must succeed on a Wisdom saving throw or have the Charmed condition for the duration. The target has Advantage on the save if you or your allies are fighting it. Whenever the target takes damage, it repeats the save, ending the spell on itself on a success. You have a telepathic link with the Charmed target while the two of you are on the same plane of existence. On your turn, you can use this link to issue commands to the target (no action required), such as \"Attack that creature,\" \"Move over there,\" or \"Fetch that object.\" The target does its best to obey on its turn. If it completes an order and doesn\u0027t receive further direction from you, it acts and moves as it likes, focusing on protecting itself. You can command the target to take a Reaction but must take your own Reaction to do so.",
+    "description":  "One Beast you can see within range must succeed on a Wisdom saving throw or have the Charmed condition for the duration. The target has Advantage on the save if you or your allies are fighting it. Whenever the target takes damage, it repeats the save, ending the spell on itself on a success. You have a telepathic link with the Charmed target while the two of you are on the same plane of existence. On your turn, you can use this link to issue commands to the target (no action required), such as \"Attack that creature,\" \"Move over there,\" or \"Fetch that object.\" The target does its best to obey on its turn. If it completes an order and doesn't receive further direction from you, it acts and moves as it likes, focusing on protecting itself. You can command the target to take a Reaction but must take your own Reaction to do so.",
     "higherLevels":  "Your Concentration can last longer with a spell slot of level 5 (up to 10 minutes), 6 (up to 1 hour), or 7+ (up to 8 hours).",
     "tags":  [
                  "concentration"

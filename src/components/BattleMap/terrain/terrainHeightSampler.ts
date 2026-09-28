@@ -108,11 +108,28 @@ export function smoothNoise(x: number, y: number, seed: number): number {
  * arena fill, and WaterSystem's per-vertex depth bake. Water tiles are carved
  * down by WATER_BASIN_DEPTH so pools have real beds below their surface plane.
  */
+/**
+ * Optional extras layered on top of the generated surface.
+ *
+ * `scarHeightOffsetM` is the terrain sim's ground-scar field: metres to ADD to
+ * the generated height, negative inside a crater or a carve. It is passed in
+ * rather than imported so this file keeps knowing only the surface formula, and
+ * so a caller that has no scars pays nothing.
+ *
+ * Build one with `makeScarHeightFieldForGrid(scars, metersPerTile)` from
+ * `systems/worldforge/terrainsim` — it takes the sampler's TILE coordinates and
+ * returns metres, matching this function's mixed units.
+ */
+export interface TerrainHeightSamplerOptions {
+  scarHeightOffsetM?: (tileX: number, tileZ: number) => number;
+}
+
 export function makeTerrainHeightSampler(
   tileGrid: (BattleMapTile | null)[][],
   width: number,
   height: number,
   seed: number,
+  options?: TerrainHeightSamplerOptions,
 ): (tileX: number, tileZ: number) => number {
   // Raw per-tile carve: full basin for open water, near-none for a ford bed
   // (a ford IS a raised bed — the shallow sheet above it drives WaterSystem's
@@ -146,14 +163,19 @@ export function makeTerrainHeightSampler(
     }
     return elev - (n > 0 ? sum / n : WATER_BASIN_DEPTH);
   };
+  const scarField = options?.scarHeightOffsetM;
   return (tileX: number, tileZ: number): number => {
     const smoothElev = bicubicSample(getElevation, tileX, tileZ, width, height);
     const noise = smoothNoise(tileX * 3.7, tileZ * 3.7, seed) * 2 - 1;
     // Recover the same real vertical metres that the 2D elevation readout
     // presents in feet; a shared constant keeps both renderers in agreement.
-    return (
+    const generated =
       smoothElev * BATTLE_MAP_ELEVATION_METERS_PER_UNIT +
-      noise * MICRO_NOISE_AMPLITUDE
-    );
+      noise * MICRO_NOISE_AMPLITUDE;
+    // Ground scars are actor-made changes on top of what the generator
+    // produced, so they are added here rather than folded into `getElevation`:
+    // a scar must not be smeared by the bicubic filter, and it heals back
+    // toward this exact generated height (CONTEXT.md, "Heal").
+    return scarField ? generated + scarField(tileX, tileZ) : generated;
   };
 }

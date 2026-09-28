@@ -187,7 +187,7 @@
                                         "bonusPerLevel":  "+1d8",
                                         "customFormula":  ""
                                     },
-                        "description":  "For up to 10 minutes with concentration, nature spirits flit in a 10-foot Emanation around the caster; when the Emanation enters a visible creature\u0027s space, or a visible creature enters it or ends its turn there, that creature can be forced to make a Wisdom save once per turn, taking 5d8 Force damage on a failure or half as much on a success, with +1d8 per slot level above 4.",
+                        "description":  "For up to 10 minutes with concentration, nature spirits flit in a 10-foot Emanation around the caster; when the Emanation enters a visible creature's space, or a visible creature enters it or ends its turn there, that creature can be forced to make a Wisdom save once per turn, taking 5d8 Force damage on a failure or half as much on a success, with +1d8 per slot level above 4.",
                         "conditionalEndings":  [
 
                                                ],
@@ -268,7 +268,7 @@
                                                                    ]
                                       },
                         "utilityType":  "other",
-                        "description":  "For the spell\u0027s duration, the caster can take the Disengage action as a Bonus Action.",
+                        "description":  "For the spell's duration, the caster can take the Disengage action as a Bonus Action.",
                         "scaling":  {
                                         "type":  "slot_level",
                                         "bonusPerLevel":  "",
@@ -332,10 +332,10 @@
                 ],
     "arbitrationType":  "mechanical",
     "aiContext":  {
-                      "prompt":  "Track the caster\u0027s 10-foot Emanation; once per turn, when the Emanation enters a visible creature\u0027s space, a visible creature enters it, or a visible creature ends its turn there, let the caster force the Wisdom save, and keep Disengage available as a Bonus Action.",
+                      "prompt":  "Track the caster's 10-foot Emanation; once per turn, when the Emanation enters a visible creature's space, a visible creature enters it, or a visible creature ends its turn there, let the caster force the Wisdom save, and keep Disengage available as a Bonus Action.",
                       "playerInputRequired":  true
                   },
-    "description":  "You conjure nature spirits that flit around you in a 10-foot Emanation for the duration. Whenever the Emanation enters the space of a creature you can see and whenever a creature you can see enters the Emanation or ends its turn there, you can force that creature to make a Wisdom saving throw. The creature takes 5d8 Force damage on a failed save or half as much damage on a successful one. A creature makes this save only once per turn. In addition, you can take the Disengage action as a Bonus Action for the spell\u0027s duration.",
+    "description":  "You conjure nature spirits that flit around you in a 10-foot Emanation for the duration. Whenever the Emanation enters the space of a creature you can see and whenever a creature you can see enters the Emanation or ends its turn there, you can force that creature to make a Wisdom saving throw. The creature takes 5d8 Force damage on a failed save or half as much damage on a successful one. A creature makes this save only once per turn. In addition, you can take the Disengage action as a Bonus Action for the spell's duration.",
     "higherLevels":  "The damage increases by 1d8 for each spell slot level above 4.",
     "tags":  [
                  "concentration"

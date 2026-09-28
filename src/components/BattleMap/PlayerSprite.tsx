@@ -1,7 +1,8 @@
 /**
  * @file PlayerSprite.tsx
  * SVG-based player character sprite that can be used in HTML contexts.
- * Matches the pixel-art style of the canvas-based AssetPainter.drawPlayer().
+ * Matches the pixel-art style of the retired RealmSmith canvas player painter
+ * (removed 2026-09-14; salvage lives in src/rendering2d/).
  *
  * USED BY:
  * - ./Submap/SubmapTile.tsx (submap player position)
@@ -47,7 +48,7 @@ const PlayerSprite: React.FC<PlayerSpriteProps> = ({
     const isBackView = baseFacing === 'north' || baseFacing === 'northwest';
     const isSideView = baseFacing === 'west';
 
-    // Colors (matching AssetPainter)
+    // Colors (from the retired RealmSmith canvas player painter)
     const skinColor = '#d4a574';
     const cloakColor = '#374151';
     const cloakHighlight = '#4b5563';

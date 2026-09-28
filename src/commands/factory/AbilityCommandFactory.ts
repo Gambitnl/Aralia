@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 16/08/2026, 22:22:30
+ * Last Sync: 26/08/2026, 18:58:26
  * Dependents: commands/factory/SpellCommandFactory.ts, commands/index.ts, components/DesignPreview/steps/spells/shieldScenario.tsx
- * Imports: 30 files
+ * Imports: 32 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -42,9 +42,16 @@ import { StatusConditionCommand } from '../effects/StatusConditionCommand';
 import { DefensiveCommand } from '../effects/DefensiveCommand';
 import { AttackRollModifierCommand } from '../effects/AttackRollModifierCommand';
 import { AbilityEffectMapper } from './AbilityEffectMapper';
-import { generateId, calculateCover, resolveAttack, getDistance, rollD20, rollDice } from '@/utils/combat';
+import { generateId, calculateCover, resolveAttack, getDistance, hasTavernBrawler, isImprovisedWeapon, getUnarmedStrikeDamageFormula, buildTavernBrawlerShoveOffer } from '@/utils/combat';
+import { rollD20, rollDice } from '@/systems/dice/rollers';
+import { getAbilityModifierValue } from '@/utils/character';
 import { SpellEffect, Spell, isAttackRollModifierEffect, isDamageEffect, isHealingEffect, isMovementEffect, isStatusConditionEffect } from '@/types/spells';
 import { AttackRiderSystem, AttackContext } from '@/systems/combat/AttackRiderSystem';
+// Subclass attack riders. Each module owns its whole rule; this command only
+// supplies live combat state and the caller-reported surprise fact, then
+// publishes whatever the module hands back (agora-f821.41).
+import { resolveAssassinateAgainstTarget } from '@/utils/combat/assassinUtils';
+import { resolveColossusSlayerOnHit } from '@/utils/combat/hunterUtils';
 import { VisibilitySystem } from '@/systems/visibility';
 import { DismissFamiliarToPocketCommand, RecallFamiliarFromPocketCommand } from '../effects/FamiliarPocketCommands';
 import { FamiliarSharedSensesCommand } from '../effects/FamiliarSharedSensesCommand';
@@ -61,6 +68,8 @@ import { isGreenFlameBladeRuntimeAbility } from './greenFlameBladeAttackBridge';
 import { canAffordActionCost, consumeActionCost } from '@/utils/combat/actionEconomyUtils';
 import { breakTauntsForEvent, hasTauntAttackDisadvantage } from '@/systems/combat/tauntConstraint';
 import { hasGrappledAttackDisadvantage } from '@/utils/combat/grappleUtils';
+import { getCombatantAltitudeFeet } from '@/utils/spatial/elevationGeometry';
+import { getHighGroundAdvantage } from '@/utils/spatial/elevationSemantics';
 import {
   hasUndetectedHiddenSource,
   revealHideDerivedHiddenAfterAttack,
@@ -274,6 +283,47 @@ export class WeaponAttackCommand implements SpellCommand {
         type: (useForce ? 'Force' : weaponNormalType) as typeof spellEffect.damage.type
       }
     };
+  }
+
+  /**
+   * Tavern Brawler (agora-4325.2): an Unarmed Strike by a feat holder deals
+   * 1d4 + Strength instead of the flat 1 + Strength the base rules give.
+   *
+   * The upgrade is applied here, on the mapped damage effect, so it reaches
+   * every unarmed attack the command layer resolves — the equipment-derived
+   * Unarmed Strike, Flurry of Blows, and any monster or fixture ability that
+   * declares attackType 'unarmed' — instead of only the one the character
+   * sheet happens to build.
+   */
+  private applyTavernBrawlerUnarmedDamage(
+    spellEffect: SpellEffect,
+    attackClassification: ReturnType<typeof getAttackEventClassification>
+  ): SpellEffect {
+    if (!isDamageEffect(spellEffect)) return spellEffect;
+    if (attackClassification.attackType !== 'unarmed') return spellEffect;
+    if (!hasTavernBrawler(this.caster)) return spellEffect;
+
+    const strengthModifier = getAbilityModifierValue(this.caster.stats.strength);
+
+    return {
+      ...spellEffect,
+      damage: {
+        ...spellEffect.damage,
+        dice: getUnarmedStrikeDamageFormula(this.caster, strengthModifier),
+      },
+    };
+  }
+
+  /**
+   * Which Tavern Brawler attack family this ability belongs to, or null when
+   * the feat's post-hit shove does not apply to it.
+   */
+  private getTavernBrawlerAttackKind(
+    attackClassification: ReturnType<typeof getAttackEventClassification>
+  ): 'unarmed' | 'improvised' | null {
+    if (attackClassification.attackType === 'unarmed') return 'unarmed';
+    if (this.ability.weapon && isImprovisedWeapon(this.ability.weapon)) return 'improvised';
+    return null;
   }
 
   private consumeOneShotHeldWeaponAugment(
@@ -704,6 +754,46 @@ export class WeaponAttackCommand implements SpellCommand {
         hasAdvantage = true;
       }
 
+      // G14 combat-elevation house rule: a melee attacker whose feet sit a
+      // full five-foot band above the target presses downhill (Advantage),
+      // and one fighting uphill from below suffers Disadvantage. Both flags
+      // funnel through rollD20's cancel-out rule like every other source.
+      // Ranged attacks stay outside the rule; sight geometry owns them. The
+      // altitude helper already honors explicit flying altitudes.
+      const isRangedAttackForHighGround =
+        this.ability.range > 1 ||
+        Boolean(this.ability.weapon?.properties?.some(p => p.toLowerCase() === 'range'));
+      if (
+        state.mapData &&
+        currentTarget &&
+        !isRangedAttackForHighGround
+      ) {
+        const elevationRoll = getHighGroundAdvantage(
+          getCombatantAltitudeFeet(this.caster, state.mapData, this.caster.position),
+          getCombatantAltitudeFeet(currentTarget, state.mapData, currentTarget.position),
+        );
+        if (elevationRoll.modifier === 'advantage') {
+          hasAdvantage = true;
+        } else if (elevationRoll.modifier === 'disadvantage') {
+          hasDisadvantage = true;
+        }
+      }
+
+      // Assassinate (Assassin rogue, level 3). The rider module owns the whole
+      // rule; this supplies the two facts it cannot read out of combat state:
+      // who is attacking whom, and whether the CALLER reported the target as
+      // Surprised. `resolved` is false for every non-Assassin and for any state
+      // whose initiative order does not contain the target, and both modifiers
+      // are then false, so nothing changes for anyone else.
+      const assassinate = resolveAssassinateAgainstTarget(newState, {
+        assassinId: this.caster.id,
+        targetId: currentTarget.id,
+        targetIsSurprised: this.context.surprisedTargetIds?.includes(currentTarget.id) === true,
+      });
+      if (assassinate.modifiers.advantage) {
+        hasAdvantage = true;
+      }
+
       // Use centralized rollD20 with integrated advantage/disadvantage handling
       const d20 = rollD20({
         advantage: hasAdvantage && !hasDisadvantage,
@@ -766,7 +856,7 @@ export class WeaponAttackCommand implements SpellCommand {
       // Resolve Attack
       const preliminaryAttack = resolveAttack(d20, modifiers, targetAC, liveCaster.critThreshold ?? 20);
       let isHit = preliminaryAttack.isHit;
-      const isCritical = preliminaryAttack.isCritical;
+      let isCritical = preliminaryAttack.isCritical;
       const isAutoMiss = preliminaryAttack.isAutoMiss;
       const attackRoll = d20 + modifiers;
       if (isHit && !isCritical) {
@@ -781,6 +871,24 @@ export class WeaponAttackCommand implements SpellCommand {
         currentTarget = reactionResult.target;
         targetAC = reactionResult.targetAC;
         isHit = reactionResult.isHit;
+      }
+
+      // Assassinate turns ANY hit on a surprised creature into a critical. That
+      // is a hit-time rule, not a die threshold, so it cannot ride
+      // `critThreshold`, which would also turn misses into criticals. It lands
+      // here, after the defensive reaction above could still turn a hit into a
+      // miss, so a Shield that beats the roll also cancels the critical.
+      if (isHit && !isCritical && assassinate.modifiers.criticalOnHit) {
+        isCritical = true;
+        newState.combatLog.push({
+          id: generateId(),
+          timestamp: Date.now(),
+          type: 'action',
+          message: `${this.caster.name}'s Assassinate turns the hit on ${currentTarget.name} into a critical.`,
+          characterId: this.caster.id,
+          targetIds: [currentTarget.id],
+          data: { assassinate: assassinate.modifiers },
+        });
       }
 
       // Publish the structured attack result at the same point the command
@@ -844,6 +952,17 @@ export class WeaponAttackCommand implements SpellCommand {
           attackType: attackEventClassification.attackType,
           weaponType: attackEventClassification.weaponType,
           hiddenAttackerAdvantage,
+          // Tavern Brawler (agora-4325.2): after a hit with an Unarmed Strike
+          // or an Improvised Weapon the feat OFFERS a free 5-foot shove. It is
+          // published as data on the attack entry rather than applied here, so
+          // the executor or the player decides; resolveTavernBrawlerShove takes
+          // the offer when accepted. Absent when the feat does not apply.
+          tavernBrawlerShoveOffer: buildTavernBrawlerShoveOffer({
+            shover: this.caster,
+            target: currentTarget,
+            attackKind: this.getTavernBrawlerAttackKind(attackEventClassification),
+            isHit,
+          }) ?? undefined,
         },
       });
 
@@ -969,7 +1088,8 @@ export class WeaponAttackCommand implements SpellCommand {
         for (const abilityEffect of this.ability.effects) {
           const mappedSpellEffect = AbilityEffectMapper.mapToSpellEffect(abilityEffect);
           if (!mappedSpellEffect) continue;
-          const spellEffect = this.applyHeldWeaponAugmentToDamageEffect(mappedSpellEffect, heldWeaponAugment, newState);
+          const augmentedSpellEffect = this.applyHeldWeaponAugmentToDamageEffect(mappedSpellEffect, heldWeaponAugment, newState);
+          const spellEffect = this.applyTavernBrawlerUnarmedDamage(augmentedSpellEffect, attackEventClassification);
 
           const subContext: CommandContext = {
             ...this.context,
@@ -1145,6 +1265,55 @@ export class WeaponAttackCommand implements SpellCommand {
             message: `${this.caster.name}'s Sneak Attack triggers! Dealing an extra ${sneakAttackDice} ${baseWeaponDamageType} damage.`,
             characterId: this.caster.id,
             targetIds: [currentTarget.id]
+          });
+        }
+      }
+
+      // ================================================================
+      // COLOSSUS SLAYER (Hunter ranger, level 3)
+      // ================================================================
+      // Once on each of the ranger's turns, extra damage against a creature
+      // already below its hit point maximum. The rider module owns eligibility,
+      // the dice, and the once-per-turn ledger; it returns the bonus and the
+      // state with the ledger spent. The bonus travels through DamageCommand so
+      // it is one more damage packet under the shared damage engine rather than
+      // a hand-subtracted hit point.
+      if (!attackPayloadIsReplaced) {
+        const colossus = resolveColossusSlayerOnHit(newState, {
+          rangerId: this.caster.id,
+          targetId: currentTarget.id,
+          rng: this.context.damageRng,
+        });
+
+        if (colossus.resolved) {
+          newState = colossus.state;
+          const colossusDamageType = this.ability.effects
+            .find(effect => effect.type === 'damage')?.damageType || 'piercing';
+          const colossusCommand = new DamageCommand({
+            type: 'DAMAGE',
+            trigger: { type: 'immediate' },
+            condition: { type: 'hit' },
+            damage: { dice: String(colossus.bonusDamage), type: colossusDamageType }
+          }, {
+            ...this.context,
+            spellName: 'Colossus Slayer',
+            targets: [currentTarget],
+            // The rider module already rolled its die. Doubling it here would
+            // roll the same bonus twice on a critical.
+            isCritical: false,
+          });
+          newState = await colossusCommand.execute(newState);
+          currentTarget = newState.characters.find(c => c.id === target.id) || currentTarget;
+          this.caster = newState.characters.find(c => c.id === this.caster.id) || this.caster;
+
+          newState.combatLog.push({
+            id: generateId(),
+            timestamp: Date.now(),
+            type: 'damage',
+            message: `${this.caster.name}'s Colossus Slayer adds ${colossus.bonusDamage} damage.`,
+            characterId: this.caster.id,
+            targetIds: [currentTarget.id],
+            data: { damageDealt: colossus.bonusDamage },
           });
         }
       }
@@ -1462,6 +1631,11 @@ export class AbilityCommandFactory {
     selectedSpellTargets?: SelectedSpellTarget[],
     requestReaction?: (attackerId: string, targetId: string, triggerType: 'on_hit' | 'on_take_damage', options: any[]) => Promise<string | null>,
     randomSources?: Pick<CommandContext, 'attackRollRng' | 'damageRng'>,
+    /**
+     * Facts only the calling controller knows, which no command can derive from
+     * combat state. Today that is the Surprised roster Assassinate needs.
+     */
+    callerFacts?: Pick<CommandContext, 'surprisedTargetIds'>,
   ): SpellCommand[] {
     const context: CommandContext = {
       // Spell-created utility buttons, such as familiar dismiss/recall, have
@@ -1478,6 +1652,7 @@ export class AbilityCommandFactory {
       requestReaction,
       attackRollRng: randomSources?.attackRollRng,
       damageRng: randomSources?.damageRng,
+      surprisedTargetIds: callerFacts?.surprisedTargetIds,
     };
 
     // Spell-created summons can have both a normal action cost and a

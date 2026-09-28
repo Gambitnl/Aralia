@@ -13,9 +13,7 @@ export function dialogueReducer(state: GameState, action: AppAction): Partial<Ga
             const { npcId } = action.payload;
             const session: DialogueSession = {
                 npcId,
-                availableTopicIds: [], // Will be populated by UI or Service on init
-                discussedTopicIds: [],
-                sessionDispositionMod: 0
+                discussedTopicIds: []
             };
 
             return {

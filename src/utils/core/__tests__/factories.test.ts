@@ -1,8 +1,10 @@
 import { describe, it, expect, vi } from 'vitest';
 import {
   createMockSpell,
+  createMockCombatCharacter,
   createMockItem,
   createMockQuest,
+  createMockLegacyQuest,
   createMockMonster,
   createMockGameMessage,
   createMockGameState
@@ -138,6 +140,45 @@ describe('Mimic Factories', () => {
     });
   });
 
+  // COV-1: `createMockLegacyQuest` is the fixture reducer/handler tests consume.
+  // It runs the QuestDefinition through the runtime adapter, so these checks pin
+  // the adapted legacy shape (flat objectives, questType, rewards) that
+  // questReducer and QuestManager read.
+  describe('createMockLegacyQuest', () => {
+    it('adapts the definition into a valid legacy Quest', () => {
+      const quest = createMockLegacyQuest();
+      expect(quest.id).toMatch(/^quest-/);
+      expect(quest.title).toBe('Mock Quest');
+      expect(quest.status).toBe(QuestStatus.Active);
+      expect(quest.questType).toBe('Side');
+      // The adapter flattens the active stage into a legacy objective list.
+      expect(Array.isArray(quest.objectives)).toBe(true);
+      expect(typeof quest.dateStarted).toBe('number');
+      // The stage journal entry becomes the runtime description.
+      expect(quest.description).toBe('Begin the mock adventure.');
+    });
+
+    it('applies definition overrides and then legacy overrides', () => {
+      const quest = createMockLegacyQuest(
+        { id: 'quest-1', title: 'Courier Run', status: QuestStatus.Completed },
+        {
+          description: 'Deliver the sealed letter.',
+          objectives: [
+            { id: 'objective-1', description: 'Carry the letter to the harbor', isCompleted: false }
+          ],
+          rewards: { gold: 250, xp: 400, items: ['torch'] }
+        }
+      );
+      expect(quest.id).toBe('quest-1');
+      expect(quest.title).toBe('Courier Run');
+      expect(quest.status).toBe(QuestStatus.Completed);
+      expect(quest.description).toBe('Deliver the sealed letter.');
+      expect(quest.objectives).toHaveLength(1);
+      expect(quest.objectives[0].id).toBe('objective-1');
+      expect(quest.rewards?.gold).toBe(250);
+    });
+  });
+
   describe('createMockMonster', () => {
     it('creates a default monster', () => {
           const monster = createMockMonster();
@@ -167,6 +208,107 @@ describe('Mimic Factories', () => {
           expect(msg.sender).toBe('npc');
         });
       });
+
+  // ============================================================================
+  // createMockCombatCharacter Tests
+  // ============================================================================
+  // Verifies that mock combatants are created with safe default collections
+  // (arrays, maps) and sensible baselines (level 1 humanoid player) so tests
+  // don't fail unexpectedly on missing fields. Also tests override handling.
+  // ============================================================================
+  describe('createMockCombatCharacter', () => {
+    // Check that all required standard defaults are properly set
+    it('should create a valid CombatCharacter with standard defaults', () => {
+      const character = createMockCombatCharacter();
+
+      expect(character).toBeDefined();
+      expect(character.id).toMatch(/^combat-char-/);
+      expect(character.name).toBe('Mock Combatant');
+      expect(character.level).toBe(1);
+      expect(character.team).toBe('player');
+      expect(character.creatureTypes).toEqual(['Humanoid']);
+      expect(character.statusEffects).toEqual([]);
+      expect(character.conditions).toEqual([]);
+      expect(character.spellSlots).toEqual({});
+      expect(character.currentHP).toBe(10);
+      expect(character.maxHP).toBe(10);
+      expect(character.position).toEqual({ x: 0, y: 0 });
+      expect(character.stats.strength).toBe(10);
+      expect(character.stats.speed).toBe(30);
+      expect(character.actionEconomy.action.remaining).toBe(1);
+    });
+
+    // Check top-level property overrides
+    it('should allow overriding top-level properties', () => {
+      const character = createMockCombatCharacter({
+        name: 'Goblin Scout',
+        team: 'enemy',
+        level: 3,
+        creatureTypes: ['Humanoid', 'Goblinoid'],
+        spellSlots: { 1: { max: 4, current: 2 } },
+      });
+
+      expect(character.name).toBe('Goblin Scout');
+      expect(character.team).toBe('enemy');
+      expect(character.level).toBe(3);
+      expect(character.creatureTypes).toEqual(['Humanoid', 'Goblinoid']);
+      expect(character.spellSlots).toEqual({ 1: { max: 4, current: 2 } });
+      // Unspecified collections still retain default empty arrays
+      expect(character.statusEffects).toEqual([]);
+      expect(character.conditions).toEqual([]);
+    });
+
+    // Check deep nested object overrides (e.g., partial stats or actionEconomy)
+    it('should deeply preserve nested defaults when partial sub-objects are provided', () => {
+      const character = createMockCombatCharacter({
+        stats: {
+          strength: 18,
+          dexterity: 14,
+        } as any,
+        actionEconomy: {
+          movement: { used: 15, total: 30 },
+        } as any,
+      });
+
+      // Overridden stat values are applied
+      expect(character.stats.strength).toBe(18);
+      expect(character.stats.dexterity).toBe(14);
+      // Non-overridden stat defaults are preserved
+      expect(character.stats.constitution).toBe(10);
+      expect(character.stats.intelligence).toBe(10);
+      expect(character.stats.speed).toBe(30);
+
+      // Overridden action economy movement is applied
+      expect(character.actionEconomy.movement.used).toBe(15);
+      expect(character.actionEconomy.movement.total).toBe(30);
+      // Non-overridden action economy structures are preserved
+      expect(character.actionEconomy.action.remaining).toBe(1);
+      expect(character.actionEconomy.bonusAction.remaining).toBe(1);
+      expect(character.actionEconomy.reaction.remaining).toBe(1);
+      expect(character.actionEconomy.freeActions).toBe(1);
+    });
+
+    // Check fallback behavior if creation throws an error
+    it('should return a safe fallback character if an error occurs during creation', () => {
+      const badOverride = {
+        get name() {
+          throw new Error('Explosive Character Getter');
+          return 'Boom';
+        },
+      } as unknown as Parameters<typeof createMockCombatCharacter>[0];
+
+      const character = createMockCombatCharacter(badOverride);
+
+      expect(character.id).toBe('error-combat-char');
+      expect(character.name).toBe('Error Combatant');
+      expect(character.team).toBe('player');
+      expect(character.level).toBe(1);
+      expect(character.creatureTypes).toEqual(['Humanoid']);
+      expect(character.statusEffects).toEqual([]);
+      expect(character.conditions).toEqual([]);
+      expect(character.spellSlots).toEqual({});
+    });
+  });
 
   describe('createMockGameState parity with initialGameState', () => {
     // Regression guard for factory drift: createMockGameState() must initialize every

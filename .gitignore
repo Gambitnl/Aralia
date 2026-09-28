@@ -106,6 +106,15 @@ public/assets/ez-tree-lab/
 deprecated/uplink/
 .agent/
 
+# Local Ops Dashboard. Its generated pages already live under the ignored
+# .agent tree; these explicit rules keep the server, service supervisors, and
+# focused ownership tests local as one complete operator-only system.
+/scripts/ops-dashboard-server.mjs
+/scripts/ops-companion-services.mjs
+/scripts/ops-entity-studio-supervisor.mjs
+/scripts/__tests__/ops-companion-services.test.js
+/scripts/__tests__/ops-entity-studio-supervisor.test.js
+
 # Jules Agent State
 .jules/claude_last_seen_id.txt
 .jules/codex_last_seen_id.txt
@@ -151,12 +160,30 @@ state_*.sqlite
 pnpm-lock.yaml
 
 # Design Preview Tool (local-only developer tool)
+#
+# 2026-08-28: four files left this folder because GAME code imported them,
+# which is what forced them into git in the first place. waterSheet.ts went
+# to BattleMap/terrain, PreviewBuilding3D to devtools/buildingIdentityLab,
+# PreviewMdLibrary (+ docLibrary) to devtools/mdLibrary, and
+# PreviewSpellDataFlow to devtools/spellPipeline. A preview may import game
+# code; game code must never import a preview.
 src/components/DesignPreview/
 !src/components/DesignPreview/
 src/components/DesignPreview/*
 !src/components/DesignPreview/steps/
 src/components/DesignPreview/steps/*
-!src/components/DesignPreview/steps/PreviewSpellDataFlow.tsx
+# The ocean viewer: git keeps it (Water and Land sheet, round 18, q26,
+# 2026-09-28). Every ocean gauntlet piece is filmed and judged through these
+# files; they import only each other and tracked ocean modules. The other
+# side-by-side previews in this folder stay ignored.
+!src/components/DesignPreview/steps/sidebyside/
+src/components/DesignPreview/steps/sidebyside/*
+!src/components/DesignPreview/steps/sidebyside/SideBySideOcean.tsx
+!src/components/DesignPreview/steps/sidebyside/ComparePane.tsx
+!src/components/DesignPreview/steps/sidebyside/oceanExtras.ts
+!src/components/DesignPreview/steps/sidebyside/oceanFreeLook.ts
+!src/components/DesignPreview/steps/sidebyside/oceanExtras/
+!src/components/DesignPreview/steps/sidebyside/oceanExtras/**
 !src/components/DesignPreview/steps/PreviewDungeon.tsx
 # The World Battle Lab is a canonical Vistest/debug contract, not a local-only
 # preview experiment; keep this one scenario harness in shared history.
@@ -166,14 +193,6 @@ src/components/DesignPreview/steps/*
 # Design Preview default above.
 !src/components/DesignPreview/steps/PreviewCombatDomainTabs.tsx
 !src/components/DesignPreview/steps/PreviewCombatDomainTabs.test.tsx
-# waterSheet.ts holds no preview UI. It is pure water-sheet geometry math with
-# zero imports, and shipping code depends on it:
-# src/components/BattleMap/terrain/VolumeArenaWater.tsx imports wetQuadIndices,
-# DRY_M, TUCK_M and RELIEF_PER_CELL from it. While it stayed ignored, CI could
-# not build index.html and every Pages deploy failed from 2026-08-15 onward.
-# Its test stays local: `steps/*` excludes the __tests__ directory itself, and
-# git cannot re-include a file whose parent directory is excluded.
-!src/components/DesignPreview/steps/waterSheet.ts
 # These three folders are the durable, self-contained domain panels registered
 # by the shared Tactical Sandbox shell. Their internals stay owned by the peer
 # domain lanes while the central host imports only each folder's public export.
@@ -183,15 +202,25 @@ src/components/DesignPreview/steps/*
 !src/components/DesignPreview/steps/raceDomain/**
 !src/components/DesignPreview/steps/spells/
 !src/components/DesignPreview/steps/spells/**
-# The tracked Building Identity Lab imports this renderer, so keep its complete
-# visual contract reproducible from a fresh checkout rather than local-only.
-!src/components/DesignPreview/steps/PreviewBuilding3D.tsx
+# GG-123 (2026-08-26): tracked domain adapters (classes/raceDomain/spells) and
+# the tracked md-library entry import these files. While they stayed ignored,
+# every fresh clone failed typecheck on missing modules. Same class of fix as
+# waterSheet.ts above: tracked code importing a file makes that file tracked.
+!src/components/DesignPreview/steps/PreviewCombatScenarioFramework.tsx
+!src/components/DesignPreview/steps/PreviewCombatDomainScenarioSidebar.tsx
+!src/components/DesignPreview/steps/PreviewCombatScenarioCollapsibleSection.tsx
+!src/components/DesignPreview/steps/PreviewCombatScenarioCatalog.ts
+!src/components/DesignPreview/steps/PreviewCombatScenarioObjects.ts
+!src/components/DesignPreview/steps/PreviewCombatScenarioObjects.d.ts
+!src/components/DesignPreview/steps/scenarioControls/
+!src/components/DesignPreview/steps/scenarioControls/**
 src/design-preview.tsx
 src/components/SpellPipelineAtlas/
 src/spell-pipeline-atlas.tsx
 !src/spell-pipeline-atlas.tsx
 src/agent-docs-entry.tsx
 misc/*
+!misc/character-atelier.html
 !misc/dev_hub.html
 !misc/spell_pipeline_atlas.html
 !misc/spell_data_validation.html
@@ -234,6 +263,30 @@ scripts/tooling/
 .agent/3d-visual-quality/captures/
 docs/projects/
 
+# Living Idea Board records must survive Git sync. Re-open only this project
+# folder while leaving every other locally ignored project folder unchanged.
+!docs/projects/
+docs/projects/*
+!docs/projects/idea-board/
+!docs/projects/idea-board/*.md
+!docs/projects/character-atelier/
+!docs/projects/character-atelier/GAPS.md
+
+# WF-G178: a GAP REGISTRY is shared coordination state, not a local artifact.
+# An orchestrator reads it to pick work and a worker writes the resolve note
+# into it, so an ignored registry loses every row on a clean or a reset and no
+# other agent sees a row until the file is copied by hand. Git needs the
+# directory re-opened before it will look inside it, so each rule below comes
+# in a pair: the folder, then the one file kept from it.
+!docs/projects/*/
+docs/projects/*/*
+!docs/projects/*/GAPS.md
+!docs/projects/GLOBAL_GAPS.md
+# WF-G202: the Spells registry names these living-project pages. Keep its
+# two declared targets versioned without reopening unrelated local docs.
+!docs/projects/spells/NORTH_STAR.md
+!docs/projects/spells/TRACKER.md
+
 # Local-only agent/runtime artifacts from external or desktop-side processes.
 .agent/rules/environment-learnings/codex-desktop-terminal.md
 
@@ -243,6 +296,8 @@ docs/projects/
 # .agent/ is NOT wholesale-ignored in this repo, so this is path-specific.
 .agent/agora/
 .agent/agora-*test*/
+.agent/orchestration/
+.agent/orchestration-*.jsonl
 
 # Symphony/Jules runtime state. These files are created while the local
 # dashboard, preflight, and Jules handoff flow are running; keeping them ignored
@@ -270,6 +325,10 @@ take_screenshot.js
 # Temporary agent render/screenshot proofs — scratch only, never versioned.
 # Default scratch dir for throwaway proofs is .agent/scratch/. Verify with
 # `git check-ignore <path>` before writing proof anywhere new.
+# Throwaway root proofs (e.g. probe.png). Legit art lives under public/,
+# so root-only images are never versioned.
+/*.png
+/*.jpg
 .agent/scratch/
 # Vistest also emits disposable rendered proof captures. Existing tracked images are
 # preserved for now, but future captures must remain local so daily snapshots do not
@@ -322,3 +381,37 @@ public/img2threejs-earth/
 # submodules, and committing them as gitlinks (mode 160000) made every status
 # report them as modified forever.
 /Aralia/
+
+# Pane catalog screenshots. Decided 2026-08-28: these stay OUT of git. They are
+# a few megabytes per refresh and go stale as soon as a pane changes. The
+# catalog shows rows without pictures until someone runs the capture:
+#   node scripts/preview/capture-catalog.mjs
+public/preview-catalog/
+
+# Untracked 2026-08-29 (Remy's call): 86.1 MB of agent-dashboard art and
+# generated test output. The files stay on disk; git just stops carrying them.
+tools/agora/dashboard/pets/
+test-reports/
+# One hero-pipeline run's output, 17.5 MB (Remy's call, 2026-08-31). The files
+# stay on disk; the plan that names it is status "generated", not "approved",
+# so nothing in the game library points at it.
+public/creatures3d/hero/fix00000/
+# GG-310 (Remy's call, 2026-09-28, before the first nightly save since 08-26):
+# the 14 character-atelier race models stay out of git. They are about 270 MB
+# of Blender build output, and each rebuild would add as much again to the
+# public repo. The builder (scripts/character-atelier/build_characters.py), the
+# race recipes and the portraits stay tracked. After a disk loss, download the
+# inputs its README names again and rebuild the models in Blender.
+public/assets/character-atelier/*.glb
+
+# WF-G141 (Remy, 2026-09-09 sheet q2): the seat roster mirror is runtime state; the daemon rebuilds it from its snapshot on start.
+tools/agora/seat-roster.json
+
+# GG-160 + GG-145 (Remy, board-sweep sheet q8, 2026-09-09): two working-tree-only sources join history.
+# git cannot re-include a path under an ignored parent, so misc/dev_hub is opened one level at a time;
+# the visualizer's vendored client assets stay out (see the next line if that folder exists).
+!misc/dev_hub/
+misc/dev_hub/*
+!misc/dev_hub/codebase-visualizer/
+misc/dev_hub/codebase-visualizer/node_modules/
+!src/components/DesignPreview/steps/PreviewTown3D.tsx

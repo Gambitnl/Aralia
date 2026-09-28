@@ -1,4 +1,4 @@
-﻿# Spell Phase 1 Package History
+# Spell Phase 1 Package History
 
 This appendix holds the completed Package 0-17 history that used to live inline in `SPELL_PHASE_1_TASK_TRACKER.md`.
 The live tracker now stays focused on the current package, live blockers, and update rules.

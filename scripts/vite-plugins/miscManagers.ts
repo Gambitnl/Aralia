@@ -3,62 +3,6 @@ import fs from 'fs';
 import { exec, execSync } from 'child_process';
 import { readBody, execAsync } from './utils';
 
-export const conductorManager = () => ({
-  name: 'conductor-manager',
-  configureServer(server: any) {
-    server.middlewares.use((req: any, res: any, next: any) => {
-      if (req.url === '/api/conductor/list') {
-        try {
-          const tracksPath = path.resolve(process.cwd(), 'conductor/tracks.md');
-          if (!fs.existsSync(tracksPath)) {
-            res.writeHead(404);
-            res.end(JSON.stringify({ error: 'tracks.md not found' }));
-            return;
-          }
-          const content = fs.readFileSync(tracksPath, 'utf-8');
-          res.writeHead(200, { 'Content-Type': 'application/json' });
-          res.end(JSON.stringify({ content }));
-        } catch (e) {
-          res.writeHead(500);
-          res.end(JSON.stringify({ error: String(e) }));
-        }
-        return;
-      }
-
-      if (req.url.startsWith('/api/conductor/read')) {
-        try {
-          const url = new URL(req.url, 'http://localhost');
-          const relativePath = url.searchParams.get('path');
-
-          if (!relativePath) {
-            res.writeHead(400);
-            res.end(JSON.stringify({ error: 'Missing path param' }));
-            return;
-          }
-
-          const safePath = path.normalize(relativePath).replace(/^(\.\.(\/|\\|$))+/, '');
-          const fullPath = path.resolve(process.cwd(), 'conductor', safePath);
-
-          if (!fs.existsSync(fullPath)) {
-            res.writeHead(404);
-            res.end(JSON.stringify({ error: 'File not found' }));
-            return;
-          }
-
-          const content = fs.readFileSync(fullPath, 'utf-8');
-          res.writeHead(200, { 'Content-Type': 'application/json' });
-          res.end(JSON.stringify({ content }));
-        } catch (e) {
-          res.writeHead(500);
-          res.end(JSON.stringify({ error: String(e) }));
-        }
-        return;
-      }
-      next();
-    });
-  }
-});
-
 export const scanManager = () => ({
   name: 'scan-manager',
   configureServer(server: any) {

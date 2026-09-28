@@ -43,7 +43,16 @@ if (!Array.isArray(tasks)) {
 
 const data = JSON.parse(fs.readFileSync(file, 'utf8'));
 
-const { changes, disconnected, evidence } = reconcileBoardToPlanmap(data, tasks);
+// WF-G150: the campaigns carry each charter's primary reference, which caps a
+// feature at active until the campaign that exists to deliver it is done.
+const campaignsRes = await fetch(`${BASE}/campaigns`).catch((e) => {
+  console.error(`Agora daemon unreachable at ${BASE}: ${e.message}`);
+  process.exit(1);
+});
+const campaigns = (await campaignsRes.json()).campaigns ?? [];
+
+const { changes, disconnected, evidence, held } = reconcileBoardToPlanmap(data, tasks, { campaigns });
+for (const line of held) console.log(`HELD at active (WF-G150): ${line}`);
 
 // The highest-value signal this tool emits: topics the plan-map claims are in
 // motion (specced/active) but which NO board task references. Reconcile is a

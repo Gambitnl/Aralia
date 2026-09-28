@@ -166,7 +166,7 @@
                                         "bonusPerLevel":  "",
                                         "customFormula":  ""
                                     },
-                        "description":  "Creates an inert duplicate body that matures over 120 days and can receive the original creature\u0027s soul if the original later dies and the soul is free and willing.",
+                        "description":  "Creates an inert duplicate body that matures over 120 days and can receive the original creature's soul if the original later dies and the soul is free and willing.",
                         "utilityType":  "creation",
                         "grantedActions":  [
 
@@ -216,7 +216,7 @@
                                                    "duplicateHasOriginalEquipment":  false,
                                                    "casterChoosesFinalAge":  true,
                                                    "enduresIndefinitelyAfterMature":  true,
-                                                   "notes":  "The clone remains inert indefinitely while its vessel is undisturbed, then receives the original creature\u0027s soul if the original dies after maturity and the soul is free and willing."
+                                                   "notes":  "The clone remains inert indefinitely while its vessel is undisturbed, then receives the original creature's soul if the original dies after maturity and the soul is free and willing."
                                                }
                                            ],
                         "taunt":  {
@@ -275,7 +275,7 @@
                       "prompt":  "Track the 120-day clone growth, vessel disturbance, caster age choice, free-and-willing soul transfer, and original remains becoming inert if the clone activates.",
                       "playerInputRequired":  true
                   },
-    "description":  "You touch a creature or at least 1 cubic inch of its flesh. An inert duplicate of that creature forms inside the vessel used in the spell\u0027s casting and finishes growing after 120 days; you choose whether the finished clone is the same age as the creature or younger. The clone remains inert and endures indefinitely while its vessel remains undisturbed. If the original creature dies after the clone finishes forming, the creature\u0027s soul transfers to the clone if the soul is free and willing to return. The clone is physically identical to the original and has the same personality, memories, and abilities, but none of the original\u0027s equipment. The creature\u0027s original remains, if any, become inert and can\u0027t be revived, since the creature\u0027s soul is elsewhere.",
+    "description":  "You touch a creature or at least 1 cubic inch of its flesh. An inert duplicate of that creature forms inside the vessel used in the spell's casting and finishes growing after 120 days; you choose whether the finished clone is the same age as the creature or younger. The clone remains inert and endures indefinitely while its vessel remains undisturbed. If the original creature dies after the clone finishes forming, the creature's soul transfers to the clone if the soul is free and willing to return. The clone is physically identical to the original and has the same personality, memories, and abilities, but none of the original's equipment. The creature's original remains, if any, become inert and can't be revived, since the creature's soul is elsewhere.",
     "higherLevels":  "",
     "tags":  [
                  "necromancy",

@@ -389,9 +389,8 @@ const Glossary: React.FC<GlossaryProps> = ({
       })
       .catch(() => {
         if (cancelled) return;
-        // DEBT: We currently fail open here because missing enrichment data should not
-        // break the whole glossary. If the canonical rule-link lane becomes mandatory,
-        // surface a user-visible warning instead of silently hiding the chips.
+        // Adding visible warnings or link gate when rule-link enrichment dataset is missing is tracked in Agora task agora-65d0.
+        // We currently fail open here because missing enrichment data should not break the whole glossary.
         setSpellReferencedRulesBySpellId({});
       });
 

@@ -11,23 +11,34 @@ import { describe, expect, it } from 'vitest';
 import { questReducer } from '../questReducer';
 import { Quest, QuestStatus } from '../../../types';
 import { createInitialJournalState } from '../../../types/journal';
-import { createMockGameState } from '../../../utils/core';
+import { createMockGameState, createMockLegacyQuest } from '../../../utils/core';
 
 describe('questReducer', () => {
-  const quest: Quest = {
-    id: 'quest-1',
-    title: 'Courier Run',
-    description: 'Deliver the sealed letter before the market closes.',
-    giverId: 'npc-1',
-    status: QuestStatus.Active,
-    objectives: [
-      {
-        id: 'objective-1',
-        description: 'Carry the letter to the harbor',
-        isCompleted: false,
-      },
-    ],
-  };
+  // COV-1: built by the shared quest factory instead of a hand-written literal,
+  // so the reducer-facing Quest shape is defined in one place
+  // (src/utils/core/factories.ts). The id, title, description, giver, status,
+  // and the single objective are the same values the assertions below read.
+  const quest: Quest = createMockLegacyQuest(
+    {
+      id: 'quest-1',
+      title: 'Courier Run',
+      description: 'Deliver the sealed letter before the market closes.',
+      giverId: 'npc-1',
+      status: QuestStatus.Active,
+    },
+    {
+      // The adapter takes the description from the active stage's journal entry,
+      // so the legacy-shape overrides restate the description and objectives.
+      description: 'Deliver the sealed letter before the market closes.',
+      objectives: [
+        {
+          id: 'objective-1',
+          description: 'Carry the letter to the harbor',
+          isCompleted: false,
+        },
+      ],
+    }
+  );
 
   it('queues journal events when a quest is accepted and completed', () => {
     // Start with an explicit journal so the test can inspect the pending queue

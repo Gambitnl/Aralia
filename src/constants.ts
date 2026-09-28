@@ -15,7 +15,10 @@
 // This import statement has been cleaned up to remove the unused type imports
 
 // Import aggregated data from specialized modules
-import { ALL_RACES_DATA, RACE_DATA_BUNDLE } from './data/races/index.ts';
+import { ALL_RACES_DATA } from './data/races/index.ts';
+import { DRAGONBORN_ANCESTRIES_DATA as DRAGONBORN_ANCESTRIES } from './data/races/dragonborn.ts';
+import { GIANT_ANCESTRY_BENEFITS_DATA as GIANT_ANCESTRIES } from './data/races/goliath.ts';
+import { FIENDISH_LEGACIES_DATA as TIEFLING_LEGACIES } from './data/races/tiefling.ts';
 import { BIOMES } from './data/biomes';
 import { ALL_ITEMS, ITEMS as _BASE_ITEMS, WEAPONS_DATA } from './data/items';
 import { MASTERY_DATA } from './data/masteryData';
@@ -31,12 +34,6 @@ import { TTS_VOICE_OPTIONS } from './data/settings/ttsOptions';
 
 // Define RACES_DATA using the imported ALL_RACES_DATA
 const RACES_DATA = ALL_RACES_DATA;
-
-const {
-  dragonbornAncestries: DRAGONBORN_ANCESTRIES,
-  goliathGiantAncestries: GIANT_ANCESTRIES,
-  tieflingLegacies: TIEFLING_LEGACIES,
-} = RACE_DATA_BUNDLE;
 
 // Re-export data imported from specialized modules
 export {

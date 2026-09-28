@@ -4,7 +4,7 @@
 
 **Goal:** Build the `/testkit` project skill (troubleshoot / perf / smoke modes driven live through the chrome-devtools MCP) plus a baseline-diff script so regressions are called out automatically.
 
-**Architecture:** The skill is markdown playbooks — `SKILL.md` dispatches to one workflow file per mode, and each workflow tells the executing agent exactly which `mcp__chrome-devtools__*` tools to call against the Aralia dev server. The only code is `tools/testkit/baseline.mjs`: a pure `compareRuns` function plus a small CLI that persists runs under `.agent/testkit/` and diffs against a promoted baseline.
+**Architecture:** The skill is markdown playbooks - `SKILL.md` dispatches to one workflow file per mode, and each workflow tells the executing agent exactly which `mcp__chrome-devtools__*` tools to call against the Aralia dev server. The only code is `tools/testkit/baseline.mjs`: a pure `compareRuns` function plus a small CLI that persists runs under `.agent/testkit/` and diffs against a promoted baseline.
 
 **Tech Stack:** Node ESM (.mjs), vitest 4 for tests, chrome-devtools MCP (no Puppeteer/Playwright).
 
@@ -15,7 +15,7 @@
 - `.agent/testkit/` is gitignored scratch (this repo does NOT wholesale-ignore `.agent/`; add the specific path).
 - No fallback paths: if the MCP or dev server is unavailable, the workflows say so and stop (Remy's no-fallback directive).
 - A visual surface never passes without a screenshot.
-- Do NOT create git commits — this repo auto-commits via a 2am daily snapshot; skip every "Commit" step convention.
+- Do NOT create git commits - this repo auto-commits via a 2am daily snapshot; skip every "Commit" step convention.
 - Writing style for all markdown: ASD-STE100 Simplified Technical English, US spelling.
 - Dev server: launch config `dev` on port 5174 (`.claude/launch.json`); base URL `http://localhost:5174`.
 
@@ -30,7 +30,7 @@
 
 **Interfaces:**
 - Produces: `compareRuns(baseline, run) => { regressions: string[], improvements: string[], notes: string[] }` (named export).
-- Produces: CLI `node tools/testkit/baseline.mjs <run.json> [--promote]` — exit 0 clean, exit 1 if regressions.
+- Produces: CLI `node tools/testkit/baseline.mjs <run.json> [--promote]` - exit 0 clean, exit 1 if regressions.
 - Run JSON shape (both files use it):
 
 ```json
@@ -100,7 +100,7 @@ describe('compareRuns', () => {
 - [ ] **Step 2: Run tests to verify they fail**
 
 Run: `npx vitest run tools/testkit/__tests__/baseline.test.ts`
-Expected: FAIL — cannot resolve `../baseline.mjs`.
+Expected: FAIL - cannot resolve `../baseline.mjs`.
 
 - [ ] **Step 3: Write the implementation**
 
@@ -172,7 +172,7 @@ function main() {
 
   if (!existsSync(baselinePath)) {
     writeFileSync(baselinePath, JSON.stringify(run, null, 2));
-    console.log('No baseline existed — this run is now the baseline.');
+    console.log('No baseline existed - this run is now the baseline.');
     return;
   }
 
@@ -233,14 +233,14 @@ Expected: first call prints "No baseline existed"; second prints `REGRESSIONS (1
 
 **Interfaces:**
 - Consumes: `tools/testkit/baseline.mjs` CLI from Task 1.
-- Produces: the mode-dispatch contract used by Tasks 3–5 — workflow files at `.claude/skills/testkit/workflows/{troubleshoot,perf,smoke}.md`, and the shared run-JSON shape from Task 1.
+- Produces: the mode-dispatch contract used by Tasks 3-5 - workflow files at `.claude/skills/testkit/workflows/{troubleshoot,perf,smoke}.md`, and the shared run-JSON shape from Task 1.
 
 - [ ] **Step 1: Write SKILL.md**
 
 ```markdown
 ---
 name: testkit
-description: Use when testing or diagnosing Aralia in a real browser — bug troubleshooting, performance/memory checks, or smoke passes over the key game surfaces. Drives the chrome-devtools MCP live and diffs results against saved baselines. Modes: troubleshoot | perf | smoke.
+description: Use when testing or diagnosing Aralia in a real browser - bug troubleshooting, performance/memory checks, or smoke passes over the key game surfaces. Drives the chrome-devtools MCP live and diffs results against saved baselines. Modes: troubleshoot | perf | smoke.
 ---
 
 # Testkit
@@ -261,14 +261,14 @@ Invoked without a mode? Ask which one (use AskUserQuestion).
 1. **Dev server first.** Target the `dev` launch config, `http://localhost:5174`.
    If it is not running, start it via the preview tools (`preview_start` with
    name `dev`), never via Bash. If it will not start or the chrome-devtools MCP
-   tools are unavailable, STOP and say so — no fallback path.
+   tools are unavailable, STOP and say so - no fallback path.
 2. **Fresh console only.** Chrome buffers console messages; a buffer read after
    the fact can be stale. Navigate (or reload) first, then read
    `list_console_messages`. For World3D issues use the in-page deterministic
    replay recipe instead of trusting old output.
 3. **Screenshots are the pass condition for anything visual.** Never report a
    visual surface as working from numbers alone. R3F/WebGL scenes can hang naive
-   screenshot paths — if `take_screenshot` stalls, fall back to the repo's
+   screenshot paths - if `take_screenshot` stalls, fall back to the repo's
    shoot.mjs rig or a rAF readback, and say which you used.
 4. **Baselines.** When a mode produces metrics, write them into the run-JSON
    shape below and run `node tools/testkit/baseline.mjs <run.json>`
@@ -293,10 +293,10 @@ metric on +20%.
 
 ## Known gotchas (apply in every mode)
 
-- StrictMode double-invokes effects and clobbers one-shot drill signals — a
+- StrictMode double-invokes effects and clobbers one-shot drill signals - a
   "missed" 3D drill is often this, not a bug.
 - Combat runs without Ollama via `?dummy=1&dev_combat=1`.
-- The player's streamed cell is not the town cell — town identity comes from
+- The player's streamed cell is not the town cell - town identity comes from
   `groundTownBurgs`.
 ```
 
@@ -319,7 +319,7 @@ Run: `Get-ChildItem .claude/skills/testkit` and confirm `SKILL.md` exists. In a 
 ```markdown
 # Testkit: troubleshoot
 
-Use with the superpowers:systematic-debugging skill — this file is the
+Use with the superpowers:systematic-debugging skill - this file is the
 browser-evidence half; that skill owns the hypothesis loop.
 
 Input needed from the user (ask if missing): the URL or phase where the bug
@@ -330,11 +330,11 @@ shows, and what "broken" looks like.
 1. Ensure the dev server is running (SKILL.md ground rule 1).
 2. `new_page` (or `select_page`) to the target URL. Reproduce from a fresh
    navigation so the console buffer is fresh.
-3. `list_console_messages` — record every error/warning verbatim.
-4. `list_network_requests` — flag failed requests, 4xx/5xx, and missing chunks.
+3. `list_console_messages` - record every error/warning verbatim.
+4. `list_network_requests` - flag failed requests, 4xx/5xx, and missing chunks.
    `get_network_request` on anything suspicious.
 5. Probe app state with `evaluate_script` (read-only probes; do not patch the
-   page to "fix" it — fixes go in source).
+   page to "fix" it - fixes go in source).
 6. Reproduce the interaction with `click` / `type_text` / `press_key`, watching
    the console between steps to bracket exactly which action triggers the error.
 7. Suspected memory leak: `take_heapsnapshot` before and after the interaction,
@@ -345,12 +345,12 @@ shows, and what "broken" looks like.
 
 Report: reproduction steps, verbatim error(s), the narrowed trigger, network
 evidence, and the screenshot. Then hand back to systematic-debugging for root
-cause — do not jump to a patch from symptoms alone.
+cause - do not jump to a patch from symptoms alone.
 ```
 
 - [ ] **Step 2: Review against spec**
 
-Confirm the file covers spec Mode 1 items 1–7 and all three embedded gotchas (gotchas live in SKILL.md; the workflow references ground rules). Fix any gap inline.
+Confirm the file covers spec Mode 1 items 1-7 and all three embedded gotchas (gotchas live in SKILL.md; the workflow references ground rules). Fix any gap inline.
 
 ---
 
@@ -400,13 +400,13 @@ and how to reach them:
 ## Notes
 
 - One surface per trace. Traces on the 3D world are heavy; keep interactions
-  short (10–20 s).
+  short (10-20 s).
 - Do not run Lighthouse on WebGL surfaces; its metrics are meaningless there.
 ```
 
 - [ ] **Step 2: Review against spec**
 
-Confirm coverage of spec Mode 2 items 1–5 (trace, insight, heap before/after, optional Lighthouse, baseline write). Fix gaps inline.
+Confirm coverage of spec Mode 2 items 1-5 (trace, insight, heap before/after, optional Lighthouse, baseline write). Fix gaps inline.
 
 ---
 
@@ -433,12 +433,12 @@ screenshot. Edit this table to add or retire surfaces.
 | 3 | world3d | 3D entry via wf-town3d flow | first frame rendered (rAF readback if screenshot hangs) |
 | 4 | agentsim | http://localhost:5174/?phase=agentsim | commuters moving |
 | 5 | pixiboard | http://localhost:5174/?pixiboard=1 | Pixi canvas visible |
-| 6 | dungeon | dungeon preview route (PreviewDungeon — gitignored, on disk only) | sheet rendered |
+| 6 | dungeon | dungeon preview route (PreviewDungeon - gitignored, on disk only) | sheet rendered |
 | 7 | combat | http://localhost:5174/?dummy=1&dev_combat=1 | combat HUD visible |
 
 ## Per surface
 
-1. `navigate_page` to the URL; `wait_for` the ready signal (10 s budget —
+1. `navigate_page` to the URL; `wait_for` the ready signal (10 s budget -
    longer for world3d first load).
 2. `list_console_messages`; count messages at error level. Record the count
    and the first error verbatim if any.
@@ -450,7 +450,7 @@ screenshot. Edit this table to add or retire surfaces.
 ## Output
 
 1. A pass/fail table (surface, errors, first error, screenshot path).
-2. Send ALL screenshots to the user — they eyeball every visual surface;
+2. Send ALL screenshots to the user - they eyeball every visual surface;
    numbers alone never pass a surface.
 3. Write consoleErrors per surface into the run JSON at
    `.agent/testkit/last-smoke.json`, run
@@ -471,7 +471,7 @@ Confirm all seven spec surfaces appear, output includes pass/fail table + screen
 - No new files; exercises everything above.
 
 **Interfaces:**
-- Consumes: the full skill (Tasks 2–5) and the CLI (Task 1).
+- Consumes: the full skill (Tasks 2-5) and the CLI (Task 1).
 
 - [ ] **Step 1: Run the smoke workflow for real**
 
@@ -486,7 +486,7 @@ Follow `workflows/perf.md` on the `atlas` surface. Expected: trace insights repo
 - [ ] **Step 3: Confirm hygiene**
 
 Run: `git status --short`
-Expected: new skill files and `tools/testkit/` show as untracked/modified; nothing under `.agent/testkit/` appears. Do not commit — the 2am snapshot handles it.
+Expected: new skill files and `tools/testkit/` show as untracked/modified; nothing under `.agent/testkit/` appears. Do not commit - the 2am snapshot handles it.
 
 - [ ] **Step 4: Report to the user**
 

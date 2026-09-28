@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { startRitual, advanceRitual, checkRitualInterrupt, isRitualComplete } from '../RitualManager';
 import { CombatCharacter } from '../../../types/combat';
 import { Spell, SpellSchool } from '../../../types/spells';
+import { CLASSES_DATA } from '../../../data/classes';
 
 /**
  * These tests protect the ritual timing bridge between spell semantics and runtime math.
@@ -22,20 +23,9 @@ const mockCaster: CombatCharacter = {
   id: 'caster-1',
   name: 'Mage',
   level: 5,
-  // TODO #942(2026-01-03 pass 4 Codex-CLI): ritual test class stubbed; fill full class data from fixtures.
-  class: {
-    id: 'wizard',
-    name: 'Wizard',
-    description: '',
-    hitDie: 6,
-    primaryAbility: ['Intelligence'],
-    savingThrowProficiencies: ['Intelligence', 'Wisdom'],
-    skillProficienciesAvailable: [],
-    numberOfSkillProficiencies: 0,
-    armorProficiencies: [],
-    weaponProficiencies: [],
-    features: [],
-  },
+  // The caster carries the shipped wizard, not a hand-rolled stub, so a change to
+  // the real class data reaches these tests instead of passing them by.
+  class: CLASSES_DATA.wizard,
   position: { x: 0, y: 0 },
   stats: { strength: 10, dexterity: 12, constitution: 14, intelligence: 18, wisdom: 10, charisma: 8, baseInitiative: 1, speed: 30, cr: '5' },
   abilities: [],
@@ -67,6 +57,12 @@ const mockSpell: Spell = {
 };
 
 describe('RitualManager', () => {
+  it('casts from the shipped wizard class data, not a hand-rolled stub', () => {
+    expect(mockCaster.class?.id).toBe('wizard');
+    expect(mockCaster.class?.features?.length ?? 0).toBeGreaterThan(0);
+    expect(mockCaster.class?.spellcasting?.ability).toBe('Intelligence');
+  });
+
   it('stores base ritual timing canonically in seconds while keeping minute display fields', () => {
     const ritual = startRitual(mockCaster, mockSpell, 1);
 

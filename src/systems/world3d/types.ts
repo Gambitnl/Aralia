@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 18/07/2026, 21:15:13
- * Dependents: components/Combat/InPlaceCombatScene.tsx, components/World3D/GroundAgents.tsx, components/World3D/InteriorLights.tsx, components/World3D/InteriorOccupants.tsx, components/World3D/WebGPUProbe.tsx, components/World3D/WebGPUProbeScene.tsx, components/World3D/World3DDemo.tsx, components/World3D/World3DNameplates.tsx, components/World3D/World3DScene.tsx, components/World3D/createGroundWorkerChunkLoader.ts, components/World3D/createWorkerChunkLoader.ts, components/World3D/createWorldGenClient.ts, components/World3D/useChunkStreaming.ts, components/World3D/vegetation/GrassLayer.tsx, components/World3D/vegetation/VegetationTrees.tsx, components/World3D/vegetationInstanceMatrices.ts, systems/world3d/buildingModels.ts, systems/world3d/chunkBundle.ts, systems/world3d/chunkGeometry.ts, systems/world3d/chunkManager.ts, systems/world3d/chunkSampler.ts, systems/world3d/chunkStreamer.ts, systems/world3d/chunkWorkerCore.ts, systems/world3d/config.ts, systems/world3d/coords.ts, systems/world3d/deckGeometry.ts, systems/world3d/gateGeometry.ts, systems/world3d/lod.ts, systems/world3d/polylineClip.ts, systems/world3d/roadGeometry.ts, systems/world3d/siteGeometry.ts, systems/world3d/vegetationScatter.ts, systems/world3d/wallGeometry.ts, systems/world3d/waterGeometry.ts, systems/worldforge/bridge/groundChunkLoader.ts, systems/worldforge/bridge/groundChunkWorkerCore.ts
- * Imports: 2 files
+ * Last Sync: 07/09/2026, 23:24:41
+ * Dependents: components/Combat/InPlaceCombatScene.tsx, components/World3D/GroundAgents.tsx, components/World3D/InteriorLights.tsx, components/World3D/InteriorOccupants.tsx, components/World3D/WebGPUProbeScene.tsx, components/World3D/World3DDemo.tsx, components/World3D/World3DNameplates.tsx, components/World3D/World3DScene.tsx, components/World3D/buildingExteriorGeometry.ts, components/World3D/createGroundWorkerChunkLoader.ts, components/World3D/createWorkerChunkLoader.ts, components/World3D/createWorldGenClient.ts, components/World3D/useChunkStreaming.ts, components/World3D/vegetation/GrassLayer.tsx, components/World3D/vegetationInstanceMatrices.ts, systems/world3d/buildingModels.ts, systems/world3d/chunkBundle.ts, systems/world3d/chunkGeometry.ts, systems/world3d/chunkManager.ts, systems/world3d/chunkSampler.ts, systems/world3d/chunkStreamer.ts, systems/world3d/chunkWorkerCore.ts, systems/world3d/config.ts, systems/world3d/coords.ts, systems/world3d/deckGeometry.ts, systems/world3d/gateGeometry.ts, systems/world3d/lod.ts, systems/world3d/polylineClip.ts, systems/world3d/roadGeometry.ts, systems/world3d/siteBoxBatches.ts, systems/world3d/siteGeometry.ts, systems/world3d/vegetationScatter.ts, systems/world3d/wallGeometry.ts, systems/world3d/waterGeometry.ts, systems/worldforge/bridge/groundChunkLoader.ts, systems/worldforge/bridge/groundChunkWorkerCore.ts, systems/worldforge/vegetation/treeBatching.ts
+ * Imports: 3 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -29,6 +29,7 @@
 // occupancy resolver's plan-feet station point and the interior body shape.
 // Type-only imports — erased at compile, so they add no runtime dependency.
 import type { StationFeetPoint } from "../worldforge/bridge/buildingOccupancy";
+import type { WallMaterial, RoofCovering } from '../worldforge/interior/blueprintTypes';
 import type { OccupantBody } from "../worldforge/bridge/interiorParts";
 
 /**
@@ -220,6 +221,7 @@ export interface ChunkData {
       baseY?: number;
       emissiveHex?: string;
       tag?: string;
+      wallMaterial?: WallMaterial;
       lightRole?: "window" | "hearth";
       /** Present in collision data but intentionally omitted from rendering. */
       renderRole?: "tactical-only";
@@ -263,6 +265,7 @@ export interface ChunkData {
      * the renderer draws this mesh AND skips the legacy whole-rect roof prism.
      */
     solvedRoof?: {
+      roofCovering?: RoofCovering;
       positions: Float32Array;
       indices: Uint32Array;
       normals: Float32Array;
@@ -382,6 +385,7 @@ export interface ChunkSite {
     baseY?: number;
     emissiveHex?: string;
     tag?: string;
+    wallMaterial?: WallMaterial;
     lightRole?: "window" | "hearth";
     /** Present in collision data but intentionally omitted from rendering. */
     renderRole?: "tactical-only";
@@ -407,6 +411,7 @@ export interface ChunkSite {
   /** Solved roof group, site-local meters (see ChunkData.sites.solvedRoof).
    *  When set, the renderer draws it and skips the legacy roof prism. */
   solvedRoof?: {
+    roofCovering?: RoofCovering;
     positions: Float32Array;
     indices: Uint32Array;
     normals: Float32Array;

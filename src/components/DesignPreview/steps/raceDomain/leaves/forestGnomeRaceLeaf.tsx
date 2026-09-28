@@ -162,11 +162,6 @@ function createForestGnomeAdapterActor(race: Race): PlayerCharacter | null {
   };
 }
 
-/** Remove glossary link wrappers so the shared text parser can read canonical prose. */
-function normalizeCanonicalTraitForParser(trait: string): string {
-  return trait.replace(/\[\[(?:[^|\]]+\|)?([^\]]+)\]\]/g, '$1');
-}
-
 export interface ForestGnomeSaveResolution {
   ability: SavingThrowAbility;
   advantaged: SavingThrowResult;
@@ -210,18 +205,14 @@ export function createForestGnomeGnomishCunningScenario(race: Race): ForestGnome
     );
   }
 
-  const parserRace: Race = {
-    ...race,
-    traits: race.traits.map(normalizeCanonicalTraitForParser),
-  };
-  const canonicalTraitLibrary = buildRacialTraitLibrary({ [race.id]: parserRace });
+  // The shared parser normalizes glossary link markup at its own boundary
+  // (normalizeRacialTraitDisplayText), so the canonical Race goes in unchanged.
+  const canonicalTraitLibrary = buildRacialTraitLibrary({ [race.id]: race });
   const canonicalCunning = canonicalTraitLibrary.byRaceId[race.id]?.find(trait => (
     trait.type !== 'spell' && trait.traitName === FOREST_GNOME_CUNNING_TRAIT
   ));
   const canonicalCunningText = getCanonicalForestGnomeTrait(race, FOREST_GNOME_CUNNING_TRAIT);
-  const canonicalCunningBuckets = getRacialModifierBucketsFromTraitText(
-    normalizeCanonicalTraitForParser(canonicalCunningText ?? ''),
-  );
+  const canonicalCunningBuckets = getRacialModifierBucketsFromTraitText(canonicalCunningText ?? '');
   const canonicalSpeakWithAnimals = canonicalTraitLibrary.byRaceId[race.id]?.find(trait => (
     trait.type !== 'spell' && trait.traitName === FOREST_GNOME_ANIMALS_TRAIT
   ));
@@ -253,19 +244,18 @@ export function createForestGnomeGnomishCunningScenario(race: Race): ForestGnome
   // The racial parser supplies both the save modifier and Speak with Animals
   // resource. The leaf does not duplicate either rule in its runtime actor.
   const parsedCharacterBase = applyRacialSpellGrantsByLevel({ ...baseCharacter, race }, FOREST_GNOME_SCENARIO_LEVEL);
-  // DEBT: The generic parser currently sees glossary-linked `[[advantage]]` as
-  // plain text and therefore misses this one modifier. Normalize only the
-  // canonical sentence and merge its parsed bucket; the resource parser,
-  // actor conversion, save resolver, and dice engine remain production paths.
+  // Normalizing display links before caching in shared racial trait library is tracked in Agora task agora-1525.
+  // The generic parser currently sees glossary-linked `[[advantage]]` as plain text. Normalize the canonical
+  // sentence and merge its parsed bucket; dice engine, save resolvers, and actor conversions remain production paths.
   const canonicalResourceMax = canonicalSpeakResource.maxUses === 'proficiency_bonus'
     ? calculateProficiencyBonus(FOREST_GNOME_SCENARIO_LEVEL)
     : canonicalSpeakResource.maxUses;
   const canonicalResourceKey = resolveRacialResourceId('feature', canonicalSpeakResource.id);
   const parsedCharacter: PlayerCharacter = {
     ...parsedCharacterBase,
-    // DEBT: The generic global trait-library cache still reads linked canonical
-    // text, so it misses this resource. Use the same production parser above
-    // on normalized canonical text and merge only its resulting resource.
+    // Normalizing display links before caching in shared racial trait library is tracked in Agora task agora-1525.
+    // The generic global trait-library cache reads linked canonical text, missing this resource. We use the
+    // production parser on normalized canonical text and merge only the resulting resource.
     limitedUses: {
       ...(parsedCharacterBase.limitedUses ?? {}),
       [canonicalResourceKey]: {

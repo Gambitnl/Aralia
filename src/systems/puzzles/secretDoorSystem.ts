@@ -23,7 +23,7 @@
  */
 
 import { PlayerCharacter } from '../../types/character';
-import { rollDice } from '../../utils/combat';
+import { rollDice } from '../dice/rollers';
 import { getAbilityModifierValue } from '../../utils/character';
 import { getPuzzleCharacterStats } from './characterAbilityBridge';
 import { SecretDoor, SecretDoorResult } from './types';
@@ -180,4 +180,9 @@ export function operateSecretDoor(
   };
 }
 
-// TODO #911(Lockpick): Integrate Secret Doors into BattleMap rendering to visually reveal them when state changes to 'detected' or 'open'.
+// #911 resolved (2026-09-09): door state now maps to a BattleMap tile
+// presentation. See `getSecretDoorTileView` in ./battleMapBridge.ts, which turns
+// each SecretDoorState into the terrain the renderer already draws plus a
+// `revealed` flag for the discovery marker. The remaining step is consuming that
+// map in the tile component; that call site is tracked as GG-215 because it
+// belongs to the BattleMap package, not here.

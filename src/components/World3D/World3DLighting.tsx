@@ -3,8 +3,8 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 12/07/2026, 00:34:41
- * Dependents: components/World3D/WebGPUProbeScene.tsx, components/World3D/World3DScene.tsx
+ * Last Sync: 26/08/2026, 14:47:32
+ * Dependents: components/World3D/NightSky.tsx, components/World3D/WebGPUProbeScene.tsx, components/World3D/World3DScene.tsx
  * Imports: 1 files
  *
  * MULTI-AGENT SAFETY:
@@ -60,27 +60,74 @@ export interface SunState {
 }
 
 /**
- * Simple analytic time-of-day model. Daylight-only for now (the streamed world
- * has no night mode yet): hours outside ~6..20 clamp to the nearest daylight edge.
- * Pure and deterministic so it can be tested and later driven by the game clock.
+ * Shared sun-angle geometry for the analytic time-of-day model.
+ * Elevation: 0 at 6h/20h, peak ~62° at 13h (solar noon), NEGATIVE at night
+ * (t continues past the [0,1] daylight window instead of clamping).
+ * Azimuth swings east→south→west across the day.
+ */
+function sunAngles(hours: number): { elevation: number; azimuth: number; s: number } {
+  const t = (hours - 6) / 14; // 0..1 across the daylight window
+  const s = Math.sin(t * Math.PI); // negative at night
+  const elevation = s * (62 * Math.PI) / 180;
+  const azimuth = (-100 + t * 200) * (Math.PI / 180);
+  return { elevation, azimuth, s };
+}
+
+/**
+ * TRUE astronomical sun direction at `hours` — UNCLAMPED, may point below the
+ * horizon at night. This is what the physically-based night sky consumes
+ * (`NightSky` → TakramSkySystem): Bruneton scattering needs the sun to
+ * genuinely set to produce sunset gradients, star visibility, and moon phase.
+ * Pure; allocates a Vector3 unless `target` is given.
+ */
+export function trueSunVector(
+  hours: number,
+  target: THREE.Vector3 = new THREE.Vector3(),
+): THREE.Vector3 {
+  const { elevation, azimuth } = sunAngles(hours);
+  const cosE = Math.cos(elevation);
+  return target
+    .set(Math.sin(azimuth) * cosE, Math.sin(elevation), Math.cos(azimuth) * cosE)
+    .normalize();
+}
+
+/**
+ * Analytic time-of-day model, now FULL 24 HOURS (night-sky port, 2026-08-26).
+ * The DAYTIME curve (h in 6..20) is unchanged — pinned by
+ * World3DLighting.test.ts. Only hours outside that window behave differently:
+ * previously they clamped to the nearest daylight edge, which froze the whole
+ * night at golden-hour dusk. Now the scene dims through a cool moonlit night.
+ * Pure and deterministic so it can be tested and driven by the game clock.
  */
 export function sunFromTime(hours: number): SunState {
-  const h = Math.min(20, Math.max(6, hours));
-  // Sun elevation: 0 at 6h/20h, peak ~62° at 13h (solar noon).
-  const t = (h - 6) / 14; // 0..1 across the day
-  const elevation = Math.sin(t * Math.PI) * (62 * Math.PI) / 180;
-  // Azimuth swings east→south→west across the day.
-  const azimuth = (-100 + t * 200) * (Math.PI / 180);
+  const { elevation, azimuth, s } = sunAngles(hours);
   const cosE = Math.cos(elevation);
+  // Astronomical direction may dip below the horizon at night; the SCENE
+  // LIGHTS must not follow it down there — a directional light under the
+  // terrain plane lights surfaces from beneath. Floor the height component
+  // and renormalise. (A "moon flip" — pointing the key opposite the sun at
+  // night — was rejected: it hard-swings every shadow 180° at the horizon
+  // moment. The floored dusk direction + dimmed cool key reads as moonlight
+  // without any discontinuity.) During full day the floor is a no-op.
+  const rawY = Math.sin(elevation);
+  const flooredY = Math.max(0.12, rawY);
+  const dirLen = Math.hypot(Math.sin(azimuth) * cosE, flooredY, Math.cos(azimuth) * cosE);
   const direction: [number, number, number] = [
-    Math.sin(azimuth) * cosE,
-    Math.sin(elevation),
-    Math.cos(azimuth) * cosE,
+    (Math.sin(azimuth) * cosE) / dirLen,
+    flooredY / dirLen,
+    (Math.cos(azimuth) * cosE) / dirLen,
   ];
   // How far the sun has dropped, 0 at solar noon and 1 at the daylight edges.
   // Note this is LINEAR IN ELEVATION (elevation = sin(t·π) · 62°), so it reads
   // 0.61 at a sun still 24° up — most of an afternoon sky.
-  const lowSun = 1 - Math.sin(t * Math.PI);
+  // Clamped to [0,1]: past dusk the warmth ramps must FREEZE at their
+  // full-dusk values (not run away), because the night look is applied
+  // separately below via `nightStrength`.
+  const lowSun = 1 - Math.max(0, s);
+  // How far into night we are: 0 while the sun is up, rising smoothly toward
+  // 1 at antisolar midnight. All night colour/intensity blends ride this, so
+  // the transition starts exactly at sunset and is continuous there.
+  const nightStrength = THREE.MathUtils.clamp(-s, 0, 1);
   // Reddening of DIRECT sunlight is an air-mass effect: it barely exists above
   // ~15° elevation and then runs away as the sun touches the horizon. Using
   // `lowSun` raw made the whole afternoon amber, and amber light is not a tint
@@ -116,17 +163,59 @@ export function sunFromTime(hours: number): SunState {
   // the sky dome and the far terrain haze read as one continuous atmosphere.
   const skyZenith = new THREE.Color(0x2f6fc8).lerp(new THREE.Color(0x1e2d58), skyWarmth);
   const skyHorizon = new THREE.Color(0x9fc4e8).lerp(new THREE.Color(0xeca457), skyWarmth);
+
+  // Night overlay (night-sky port): everything cools toward moonlit navy as
+  // `nightStrength` rises. At nightStrength = 0 every value here is exactly
+  // the previous daylight result, so daytime pixels are untouched.
+  if (nightStrength > 0) {
+    sunColor.lerp(new THREE.Color(0x8fa8d0), nightStrength); // moonlit key
+    fogColor.lerp(new THREE.Color(0x0a1122), nightStrength);
+    skyZenith.lerp(new THREE.Color(0x050a18), nightStrength);
+    skyHorizon.lerp(new THREE.Color(0x0c1424), nightStrength);
+  }
+  const hemiSky = new THREE.Color(0x89b0f0).lerp(
+    new THREE.Color(0x101a30),
+    nightStrength * 0.85,
+  );
+  const hemiGround = new THREE.Color(0x6b5a3e).lerp(
+    new THREE.Color(0x0b0e14),
+    nightStrength * 0.85,
+  );
+
   return {
     direction,
     sunColor: sunColor.getHex(),
-    // Stronger directional key so the scene has punch and contrast.
-    sunIntensity: 1.85 + 0.5 * Math.sin(t * Math.PI),
+    // Stronger directional key so the scene has punch and contrast. At night
+    // this fades to a moonlight floor — never zero, but note the floor looks
+    // much smaller than it is: the night key direction is floored to y=0.12
+    // (near-grazing), so flat ground only receives intensity × 0.12. The
+    // first port shipped 0.22 here and rendered the world pitch-black
+    // (measured terrain mean luminance 0.6/255 under ACES). 0.9 × grazing
+    // ≈ 0.11 effective — silhouettes and ridge lines read without washing
+    // out the stars overhead.
+    sunIntensity: THREE.MathUtils.lerp(
+      1.85 + 0.5 * Math.max(0, s),
+      1.5,
+      nightStrength,
+    ),
     // Deeper sky-blue fill (was a pale 0xbcd6ff that flattened everything).
-    hemiSkyColor: 0x89b0f0,
-    hemiGroundColor: 0x6b5a3e,
+    hemiSkyColor: hemiSky.getHex(),
+    hemiGroundColor: hemiGround.getHex(),
     // Lower ambient fill = more contrast between sunlit and shaded faces, so
     // buildings and terrain gain depth instead of hazing to a uniform flat.
-    hemiIntensity: 0.38 + 0.22 * Math.sin(t * Math.PI),
+    // Night floor 6.0 looks extreme next to the ~0.6 daylight value but is
+    // calibrated against RENDERED pixels, not raw numbers: hex colours pass
+    // through sRGB→linear conversion before multiplying, so the deep-navy
+    // night hemisphere colour contributes only ~0.01 linear per unit
+    // intensity. Measured ladder: floors (0.22 key / 0.06 hemi) rendered a
+    // pitch-black world (terrain mean 0.6/255); (0.9 / 1.0) reached just
+    // 2.3/255; (1.5 / 6.0) is the first step where ground, paths, and
+    // building faces read as moonlit while staying far below daylight.
+    hemiIntensity: THREE.MathUtils.lerp(
+      0.38 + 0.22 * Math.max(0, s),
+      6.0,
+      nightStrength,
+    ),
     fogColor: fogColor.getHex(),
     skyZenith: skyZenith.getHex(),
     skyHorizon: skyHorizon.getHex(),

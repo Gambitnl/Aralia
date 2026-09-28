@@ -133,13 +133,6 @@ export const COMPONENT_CATALOG: ComponentCatalogEntry[] = [
     ],
   },
   {
-    id: 'cmp-image-pane',
-    name: 'ImagePane',
-    type: 'Media',
-    location: 'src/components/ui/ImagePane.tsx',
-    purpose: 'Image display panel with framing (currently inactive).',
-  },
-  {
     id: 'cmp-typography',
     name: 'Typography',
     type: 'Text',

@@ -266,4 +266,28 @@ describe("BattleMapTile", () => {
       "\u2191 10 ft",
     );
   });
+
+  it("places itself in the grid cell its coordinates name", () => {
+    // The grid is viewport-culled, so DOM order no longer matches board order.
+    // Each tile must carry its own explicit placement or auto-placement would
+    // put a culled row in the wrong cell.
+    render(
+      <BattleMapTile
+        tile={{ ...mockTile, id: "17-42", coordinates: { x: 17, y: 42 } }}
+        isValidMove={false}
+        isInPath={false}
+        isTargetable={false}
+        isAoePreview={false}
+        isTeleportDestinationPreview={false}
+        targetingMode={false}
+        onTileClick={mockOnTileClick}
+      />,
+    );
+
+    const tileElement = screen.getByRole("button", {
+      name: /Tile grass at 17, 42/,
+    });
+    // CSS grid placement is 1-based; tile coordinates are 0-based.
+    expect(tileElement).toHaveStyle({ gridColumn: "18", gridRow: "43" });
+  });
 });

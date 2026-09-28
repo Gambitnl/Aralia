@@ -10,6 +10,7 @@ import { describe, expect, it, vi, afterEach } from 'vitest';
 import type { CharacterStats } from '../../../types/combat';
 import type { Puzzle } from '../types';
 import { requestPuzzleHint } from '../puzzleRuntime';
+import * as rollers from '../../dice/rollers';
 
 // ============================================================================
 // Test Fixtures
@@ -61,8 +62,10 @@ describe('puzzle runtime surface', () => {
   });
 
   it('returns a successful hint result through the puzzle-owned runtime caller', () => {
-    // Force the live 1d20 check to meet the puzzle's hint DC.
-    vi.spyOn(Math, 'random').mockReturnValue(0.4);
+    // Force the live 1d20 check to meet the puzzle's hint DC. Since
+    // agora-f821.4 that check rolls through the audited contract, so the
+    // pin goes on the roller rather than on Math.random.
+    vi.spyOn(rollers, 'rollDice').mockReturnValue(9);
 
     const result = requestPuzzleHint({
       character: hintCharacter,

@@ -1,5 +1,5 @@
-/**
- * @file grownTreeMeshSource.ts — trees GROWN from a biome, not picked from a
+﻿/**
+ * @file grownTreeMeshSource.ts â€” trees GROWN from a biome, not picked from a
  * preset list.
  *
  * THE PIPELINE
@@ -47,11 +47,11 @@ import { SeededRandom } from '../../../utils/random/seededRandom';
 import type { TreeEnvironment } from './treeEnvironment';
 import type { TreeGeometryData } from './treeMeshGenerator';
 
-// ── Shared render contract ──────────────────────────────────────────────────
+// â”€â”€ Shared render contract â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 /**
  * A vertex is bark if its baked green channel is below this. Same 0.6 the
- * ez-tree source and the `VegetationTreeField` vertex shader both use — the
+ * ez-tree source and the `VegetationTreeField` vertex shader both use â€” the
  * shader has to make the split without an extra attribute, so the threshold is
  * a contract, not a local choice. Kept as a literal rather than imported
  * because importing `ezTreeMeshSource` pulls the vendored ez-tree library into
@@ -73,7 +73,7 @@ const CROWN_NORMAL_BLEND = 0.62;
 /** Where a leaf blade is widest, as a fraction of its length. */
 const BLADE_SHOULDER = 0.38;
 
-// ── Physical constants ──────────────────────────────────────────────────────
+// â”€â”€ Physical constants â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 /**
  * Aralia's surface gravity, relative to the value the allometry was written
@@ -95,7 +95,7 @@ const DROOP_PER_LEVEL = 0.30;
  * The rest is spent at the collar, where the branch leaves its parent. Without
  * this split the droop compounded: a level-3 twig inherited four branches' worth
  * of accumulated bend and ended up pointing at the ground. Measured terminal
- * tilt was 2.85 rad — 163 degrees from vertical, an upside-down tree.
+ * tilt was 2.85 rad â€” 163 degrees from vertical, an upside-down tree.
  */
 const DROOP_BRANCH_SHARE = 0.22;
 /** Droop spent at the collar, as a fraction of the branch's droop. */
@@ -104,7 +104,7 @@ const DROOP_COLLAR_SHARE = 0.13;
  * APICAL DOMINANCE. The leader keeps only this share of the droop.
  *
  * Without it the leader inherited every ancestor's bend and the tree came out as
- * one long whip sweeping to one side — the trunk left vertical at the first
+ * one long whip sweeping to one side â€” the trunk left vertical at the first
  * branch order and never came back. A real leader is the one shoot that stays
  * upright; that is what makes a trunk a trunk.
  */
@@ -124,7 +124,7 @@ const LATERAL_LENGTH_GAIN = 1.8;
  *
  * The world draws a tree at a range where one leaf is sub-pixel, so the
  * renderable primitive is a SPRAY, not a leaf. A spray of N leaves has about
- * sqrt(N) times a leaf's silhouette, which is where the blade size comes from —
+ * sqrt(N) times a leaf's silhouette, which is where the blade size comes from â€”
  * and the leaf-area metric stays honest, because it measures the canopy the
  * spray represents. Rendering true single leaves gave a canopy of wisps.
  */
@@ -158,7 +158,7 @@ const MAX_TERMINAL_BRANCHES = 260;
 /** Golden angle, the phyllotaxy used to space leaves and laterals. */
 const GOLDEN_ANGLE = Math.PI * (3 - Math.sqrt(5));
 
-// ── Genome ──────────────────────────────────────────────────────────────────
+// â”€â”€ Genome â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 /**
  * The heritable half. Environment-free on purpose: the SAME genome in two
@@ -178,7 +178,7 @@ export interface TreeGenome {
 }
 
 /**
- * DRAW ORDER — nine draws, in this order, forever:
+ * DRAW ORDER â€” nine draws, in this order, forever:
  *
  *   1 heightBias  2 slendernessBias  3 extraLevel  4 lateralCount
  *   5 branchAngleBias  6 twistPhase  7 leafAspectBias  8 crownDensityBias
@@ -204,7 +204,7 @@ export function drawGenome(seed: number): TreeGenome {
   };
 }
 
-// ── Traits ──────────────────────────────────────────────────────────────────
+// â”€â”€ Traits â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 /** The grown answer: what this genome becomes in THIS environment. */
 export interface TreeTraits {
@@ -223,7 +223,7 @@ export interface TreeTraits {
   taper: number;
   /** One real leaf's blade length, in feet. The botanical value. */
   leafLengthFt: number;
-  /** The rendered blade — a spray of `LEAVES_PER_BLADE` real leaves. */
+  /** The rendered blade â€” a spray of `LEAVES_PER_BLADE` real leaves. */
   bladeLengthFt: number;
   bladeHalfWidthFt: number;
   leavesPerTerminal: number;
@@ -240,7 +240,7 @@ function clamp(v: number, lo: number, hi: number): number {
  * biome difference a player can see is produced here and nowhere else.
  */
 export function traitsFor(genome: TreeGenome, env: TreeEnvironment): TreeTraits {
-  // Wind and drought both thicken a stem — a tree that must stand up to load or
+  // Wind and drought both thicken a stem â€” a tree that must stand up to load or
   // hold water builds wood instead of length.
   const windThicken = 1 + (env.wind - 0.2) * 0.6;
   const aridThicken = 1 + (env.aridity - 0.35) * 0.7;
@@ -265,11 +265,11 @@ export function traitsFor(genome: TreeGenome, env: TreeEnvironment): TreeTraits 
   if (env.vigor > 0.85 && env.aridity < 0.2) branchLevels += 1;
   branchLevels = clamp(Math.round(branchLevels), 2, 5);
 
-  // Dim light narrows the crown — a sapling under a canopy reaches, it does not
+  // Dim light narrows the crown â€” a sapling under a canopy reaches, it does not
   // spread. Wind and drought narrow it too, for the opposite reason.
   //
   // The coefficients are deliberately STRONG. The first pass used gentle ones
-  // and the four gate biomes came out inside 10% of each other on crown ratio —
+  // and the four gate biomes came out inside 10% of each other on crown ratio â€”
   // a preset with a tint, which is the fault being removed. Weak coupling is
   // the failure mode here, not the safe choice.
   const spread = clamp(
@@ -295,7 +295,7 @@ export function traitsFor(genome: TreeGenome, env: TreeEnvironment): TreeTraits 
     * (1 - 0.26 * env.chill);
   // The aspect floor is a LOOK value, not botany. Driven to its mathematical
   // limit the blade became a hairline, and a desert tree rendered as a dead
-  // stick — sparse is right, leafless is not. A needle still has width.
+  // stick â€” sparse is right, leafless is not. A needle still has width.
   const bladeAspect = clamp(
     REFERENCE_BLADE_ASPECT
       * (1 - (env.wind - 0.2) * 0.60)
@@ -304,7 +304,7 @@ export function traitsFor(genome: TreeGenome, env: TreeEnvironment): TreeTraits 
     0.09, 0.55,
   );
   // A rendered blade stands for a spray of real leaves, so its silhouette is
-  // sqrt(N) times a leaf's. The aspect ratio — the needle-vs-leaf read — is the
+  // sqrt(N) times a leaf's. The aspect ratio â€” the needle-vs-leaf read â€” is the
   // leaf's own, so drought and cold still narrow what the player sees.
   const bladeLengthFt = leafLengthFt * Math.sqrt(LEAVES_PER_BLADE);
   const bladeHalfWidthFt = bladeLengthFt * bladeAspect;
@@ -313,7 +313,7 @@ export function traitsFor(genome: TreeGenome, env: TreeEnvironment): TreeTraits 
   //
   // A rainforest tree is a long clean bole carrying MANY orders of FEW branches;
   // a desert shrub is FEW orders of MANY coarse ones. The first pass had this
-  // backwards — it gave the rich biome more laterals, which blew the terminal
+  // backwards â€” it gave the rich biome more laterals, which blew the terminal
   // budget and got its branch order cut back to the same 3 as everything else.
   // Every biome then had identical branch order, so the knob was dead.
   const lateralCount = clamp(
@@ -347,7 +347,7 @@ export function traitsFor(genome: TreeGenome, env: TreeEnvironment): TreeTraits 
   };
 }
 
-// ── Vector helpers (plain arrays: no THREE dependency in the hot path) ───────
+// â”€â”€ Vector helpers (plain arrays: no THREE dependency in the hot path) â”€â”€â”€â”€â”€â”€â”€
 
 type V3 = [number, number, number];
 
@@ -393,7 +393,7 @@ function limitTilt(d: V3): V3 {
   return rotateToward(d, [0, 1, 0], tilt - MAX_TILT_RAD);
 }
 
-// ── Mesh accumulation ───────────────────────────────────────────────────────
+// â”€â”€ Mesh accumulation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 interface MeshSink {
   pos: number[];
@@ -499,7 +499,7 @@ function emitLeaf(
   return lengthFt * halfWidthFt;
 }
 
-// ── The grower ──────────────────────────────────────────────────────────────
+// â”€â”€ The grower â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 /** Measured facts about a grown tree. The differentiation gate asserts on these. */
 export interface TreeMetrics {
@@ -557,7 +557,7 @@ function growRecursive(
   // Only part of a branch's droop bends the branch; the rest is spent at the
   // collar below. Splitting it is what stops the bend compounding into an
   // upside-down tree by the third branch order. The LEADER keeps only a sliver
-  // of it — apical dominance is what holds a trunk up.
+  // of it â€” apical dominance is what holds a trunk up.
   const droop = level === 0
     ? 0
     : t.droopRad * (1 + level * DROOP_PER_LEVEL) * DROOP_BRANCH_SHARE
@@ -629,7 +629,7 @@ function growRecursive(
  *
  * Geometry comes back in the unit frame (trunk base at y = 0, total height
  * exactly 1) because that is the contract the world's instancer scales against.
- * The metrics are measured in FEET, BEFORE normalization — the unit frame
+ * The metrics are measured in FEET, BEFORE normalization â€” the unit frame
  * erases absolute size on purpose, so absolute differences would be invisible
  * if they were only read off the geometry.
  */
@@ -670,7 +670,7 @@ export function growTree(seed: number, env: TreeEnvironment): GrownTree {
   const colors = new Float32Array(sink.col);
   const indices = new Uint32Array(sink.idx);
 
-  // ── Measure in feet, before the unit frame erases the scale ───────────────
+  // â”€â”€ Measure in feet, before the unit frame erases the scale â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   let minY = Infinity;
   let maxY = -Infinity;
   let maxR = 0;
@@ -707,7 +707,7 @@ export function growTree(seed: number, env: TreeEnvironment): GrownTree {
     triangles: indices.length / 3,
   };
 
-  // ── Unit frame: centre on the trunk axis, base at 0, height exactly 1 ─────
+  // â”€â”€ Unit frame: centre on the trunk axis, base at 0, height exactly 1 â”€â”€â”€â”€â”€
   const k = heightFt > 1e-6 ? 1 / heightFt : 1;
   for (let i = 0; i < vCount; i++) {
     positions[i * 3] = (positions[i * 3] - cx) * k;
@@ -747,7 +747,7 @@ function bakeBarkValue(data: TreeGeometryData): void {
  * Turn the leaf normals toward "away from the middle of the crown".
  *
  * A flat quad normal makes every leaf shade as an independent plane, and the
- * crown becomes a mosaic of unrelated values — the confetti fault the ez-tree
+ * crown becomes a mosaic of unrelated values â€” the confetti fault the ez-tree
  * path already had to fix. Kept short of 1.0 so a blade edge-on to the sun
  * still goes dark and the crown keeps internal contrast.
  */
@@ -805,3 +805,4 @@ export function growTreeVariants(
   }
   return out;
 }
+

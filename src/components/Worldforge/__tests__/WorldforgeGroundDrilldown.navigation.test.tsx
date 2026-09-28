@@ -40,7 +40,8 @@ const region = { seedPath: '42/region:9' } as RegionArtifact;
 const local = {
   seedPath: '42/region:9/local:1200,900',
   bounds: { x: 1000, y: 500, width: 3000, height: 3000 },
-} as LocalArtifact;
+  features: [{ id: 7, kind: 'poi', x: 1300, y: 1100, data: { name: 'Ash Shrine' } }],
+} as unknown as LocalArtifact;
 const drilldown = {
   worldSeed: 42,
   atlasCellId: 9,

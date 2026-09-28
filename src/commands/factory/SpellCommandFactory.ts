@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 17/08/2026, 01:55:22
+ * Last Sync: 26/08/2026, 03:10:31
  * Dependents: commands/index.ts
- * Imports: 36 files
+ * Imports: 37 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -14,8 +14,8 @@
  */
 // @dependencies-end
 
-import { Spell, SpellEffect, UtilityEffect, CreatedObject, isAttackRollModifierEffect, isDamageEffect, isHealingEffect, StatusConditionEffect, isUtilityEffect, resolveScalableNumber, type DamageEffect, type MovementEffect } from '@/types/spells'
-import { ActiveFireEffect, ActiveSpellHelper, ActiveSpellTargetLockout, CombatCharacter, CombatState, LightSource, SelectedSpellTarget, SpellObjectImpact } from '@/types/combat'
+import { Spell, SpellEffect, UtilityEffect, CreatedObject, isAttackRollModifierEffect, isDamageEffect, isHealingEffect, StatusConditionEffect, isUtilityEffect, resolveScalableNumber, resolveByLevelThreshold, countLevelThresholdsReached, type DamageEffect, type MovementEffect } from '@/types/spells'
+import { ActiveFireEffect, ActiveSpellHelper, ActiveSpellTargetLockout, CombatCharacter, CombatState, LightSource, SelectedSpellTarget, SpellObjectImpact, StatusEffect } from '@/types/combat'
 
 import { SpellCommand, CommandContext, CommandMetadata } from '../base/SpellCommand'
 import { DamageCommand } from '../effects/DamageCommand'
@@ -40,7 +40,8 @@ import { TargetValidationUtils } from '@/systems/spells/targeting/TargetValidati
 import { Plane } from '@/types/planes'
 import { calculateProficiencyBonus } from '@/utils/character/savingThrowUtils'
 import { getAbilityModifierValue } from '@/utils/character/statUtils'
-import { generateId, getCharacterDistance, resolveAttack, rollD20 } from '@/utils/combat'
+import { generateId, getCharacterDistance, resolveAttack } from '@/utils/combat';
+import { rollD20 } from '@/systems/dice/rollers';
 import { calculateSpellDC, rollSavingThrow } from '@/utils/character/savingThrowUtils'
 import { combatEvents } from '@/systems/events/CombatEvents'
 import { SavePenaltySystem } from '@/systems/combat/SavePenaltySystem'
@@ -66,6 +67,7 @@ import {
   validateGreenFlameBladeWeaponSnapshot
 } from './greenFlameBladeAttackBridge'
 import { addDice } from '@/utils/diceUtils'
+import { DiceRoller } from '@/systems/spells/mechanics/DiceRoller'
 import { breakTauntsForEvent, hasTauntAttackDisadvantage } from '@/systems/combat/tauntConstraint'
 import type { SavingThrowModifier, SavingThrowResult } from '@/utils/character/savingThrowUtils'
 import { isDeferredAreaZoneTrigger } from '@/hooks/spellEffectUtils'
@@ -384,6 +386,425 @@ class ScryingBridgeCommand implements SpellCommand {
     return this.spell.duration.concentration
       ? new StartConcentrationCommand(this.spell, this.context).execute(resolvedState)
       : resolvedState
+  }
+}
+
+// ============================================================================
+// Seeming Selection and Execution Bridge
+// ============================================================================
+// Seeming (5th level Illusion) gives an illusory appearance to chosen creatures.
+// Willing targets accept the disguise without making a saving throw. Unwilling
+// targets can make a Charisma saving throw; on success, the creature is unaffected.
+// Physical inspection fails to hold up, and a creature taking the Study action
+// can make an Intelligence (Investigation) check against the spell save DC.
+// ============================================================================
+
+interface SeemingSelection {
+  willingTargetIds: Set<string>;
+  unwillingTargetIds: Set<string>;
+  appearance?: string;
+}
+
+const parseSeemingSelection = (playerInput?: string): SeemingSelection => {
+  const selection: SeemingSelection = {
+    willingTargetIds: new Set<string>(),
+    unwillingTargetIds: new Set<string>()
+  };
+
+  const tokens = (playerInput ?? '').split(';').map(t => t.trim()).filter(Boolean);
+  for (const token of tokens) {
+    const [rawKey, rawVal] = token.split('=').map(s => s?.trim());
+    if (!rawKey) continue;
+    const key = rawKey.toLowerCase();
+    if (key === 'willing' && rawVal) {
+      rawVal.split(',').forEach(id => selection.willingTargetIds.add(id.trim()));
+    } else if (key === 'unwilling' && rawVal) {
+      rawVal.split(',').forEach(id => selection.unwillingTargetIds.add(id.trim()));
+    } else if (key === 'appearance' && rawVal) {
+      selection.appearance = rawVal;
+    }
+  }
+
+  return selection;
+};
+
+/** Resolves Seeming's multi-target illusory appearance and willing vs unwilling save mechanics. */
+class SeemingBridgeCommand implements SpellCommand {
+  public readonly id = generateId();
+  public readonly description: string;
+  public readonly metadata: CommandMetadata;
+
+  constructor(
+    private readonly spell: Spell,
+    private readonly effect: UtilityEffect,
+    private readonly caster: CombatCharacter,
+    private readonly context: CommandContext
+  ) {
+    this.description = `${spell.name} applies illusory disguises to targets with Charisma save resolution for unwilling creatures`;
+    this.metadata = {
+      spellId: spell.id,
+      spellName: spell.name,
+      casterId: caster.id,
+      casterName: caster.name,
+      targetIds: context.targets.map(t => t.id),
+      effectType: 'seeming_disguise',
+      timestamp: Date.now()
+    };
+  }
+
+  execute(state: CombatState): CombatState {
+    const selection = parseSeemingSelection(this.context.playerInput);
+    const caster = state.characters.find(c => c.id === this.caster.id) ?? this.caster;
+    const spellDc = calculateSpellDC(caster);
+    let currentState = state;
+
+    for (const target of this.context.targets) {
+      const liveTarget = currentState.characters.find(c => c.id === target.id) ?? target;
+
+      // Determine willingness:
+      // 1. Explicitly marked in playerInput selection
+      // 2. Default: same team as caster = willing; opposing team = unwilling
+      let isWilling = true;
+      if (selection.unwillingTargetIds.has(liveTarget.id)) {
+        isWilling = false;
+      } else if (selection.willingTargetIds.has(liveTarget.id)) {
+        isWilling = true;
+      } else if (caster.team && liveTarget.team && caster.team !== liveTarget.team) {
+        isWilling = false;
+      }
+
+      if (isWilling) {
+        // Willing target receives disguise without rolling a save
+        const disguiseStatus: StatusEffect = {
+          id: `status_seeming_disguise_${generateId()}`,
+          name: 'Disguised (Seeming)',
+          type: 'buff',
+          description: `Illusory appearance altered by Seeming for 8 hours. Physical inspection fails to hold up. Study action (Intelligence Investigation vs DC ${spellDc}) reveals the disguise.`,
+          duration: 4800,
+          source: this.spell.name,
+          sourceSpellId: this.spell.id,
+          sourceCasterId: caster.id,
+          escapeCheck: {
+            abilityOptions: ['Intelligence'],
+            dc: spellDc,
+            actionCost: 'action'
+          }
+        };
+
+        currentState = {
+          ...currentState,
+          characters: currentState.characters.map(c =>
+            c.id === liveTarget.id
+              ? { ...c, statusEffects: [...(c.statusEffects || []), disguiseStatus] }
+              : c
+          ),
+          combatLog: [
+            ...currentState.combatLog,
+            {
+              id: generateId(),
+              timestamp: Date.now(),
+              type: 'status',
+              message: `${liveTarget.name} willingly accepts the illusory disguise from ${this.spell.name}.`,
+              characterId: liveTarget.id,
+              targetIds: [liveTarget.id],
+              data: {
+                spellId: this.spell.id,
+                targetWilling: true,
+                appliedStatusId: disguiseStatus.id
+              }
+            }
+          ]
+        };
+      } else {
+        // Unwilling target makes a Charisma save
+        const saveResult = rollSavingThrow(liveTarget, 'Charisma', spellDc);
+        if (saveResult.success) {
+          // Resisted — unaffected by the spell
+          currentState = {
+            ...currentState,
+            combatLog: [
+              ...currentState.combatLog,
+              {
+                id: generateId(),
+                timestamp: Date.now(),
+                type: 'status',
+                message: `${liveTarget.name} succeeds the Charisma save (${saveResult.total} vs DC ${spellDc}) and is unaffected by ${this.spell.name}.`,
+                characterId: liveTarget.id,
+                targetIds: [liveTarget.id],
+                data: {
+                  spellId: this.spell.id,
+                  saveType: 'Charisma',
+                  saveTotal: saveResult.total,
+                  saveSucceeded: true,
+                  targetWilling: false
+                }
+              }
+            ]
+          };
+        } else {
+          // Failed save — disguise is applied
+          const disguiseStatus: StatusEffect = {
+            id: `status_seeming_disguise_${generateId()}`,
+            name: 'Disguised (Seeming)',
+            type: 'debuff',
+            description: `Illusory appearance altered by Seeming for 8 hours. Physical inspection fails to hold up. Study action (Intelligence Investigation vs DC ${spellDc}) reveals the disguise.`,
+            duration: 4800,
+            source: this.spell.name,
+            sourceSpellId: this.spell.id,
+            sourceCasterId: caster.id,
+            escapeCheck: {
+              abilityOptions: ['Intelligence'],
+              dc: spellDc,
+              actionCost: 'action'
+            }
+          };
+
+          currentState = {
+            ...currentState,
+            characters: currentState.characters.map(c =>
+              c.id === liveTarget.id
+                ? { ...c, statusEffects: [...(c.statusEffects || []), disguiseStatus] }
+                : c
+            ),
+            combatLog: [
+              ...currentState.combatLog,
+              {
+                id: generateId(),
+                timestamp: Date.now(),
+                type: 'status',
+                message: `${liveTarget.name} fails the Charisma save (${saveResult.total} vs DC ${spellDc}) and is disguised by ${this.spell.name}.`,
+                characterId: liveTarget.id,
+                targetIds: [liveTarget.id],
+                data: {
+                  spellId: this.spell.id,
+                  saveType: 'Charisma',
+                  saveTotal: saveResult.total,
+                  saveSucceeded: false,
+                  targetWilling: false,
+                  appliedStatusId: disguiseStatus.id
+                }
+              }
+            ]
+          };
+        }
+      }
+    }
+
+    return currentState;
+  }
+}
+
+// ============================================================================
+// Bones of the Earth Selection and Execution Bridge
+// ============================================================================
+// Bones of the Earth (6th level Transmutation) causes up to 6 stone pillars to
+// burst from the ground. Creatures under pillars must make a Dexterity save or be
+// lifted atop the pillar. A creature can voluntarily choose to fail the save.
+// If a pillar is blocked by a ceiling or obstacle, the creature takes 6d6
+// Bludgeoning damage and is Restrained (escaping with an action Strength/Dexterity check).
+// ============================================================================
+
+interface BonesOfTheEarthSelection {
+  voluntaryFailure: boolean;
+  blockedPillar: boolean;
+}
+
+const parseBonesOfTheEarthSelection = (playerInput?: string): BonesOfTheEarthSelection => {
+  const selection: BonesOfTheEarthSelection = {
+    voluntaryFailure: false,
+    blockedPillar: false
+  };
+
+  const tokens = (playerInput ?? '').split(';').map(t => t.trim()).filter(Boolean);
+  for (const token of tokens) {
+    const [rawKey, rawVal] = token.split('=').map(s => s?.trim());
+    if (!rawKey) continue;
+    const key = rawKey.toLowerCase();
+    if (key === 'voluntaryfailure' || key === 'voluntary_failure' || key === 'voluntaryfail') {
+      selection.voluntaryFailure = rawVal ? rawVal.toLowerCase() === 'true' : true;
+    } else if (key === 'blocked' || key === 'blockedpillar' || key === 'blocked_pillar' || key === 'lowceiling' || key === 'low_ceiling') {
+      selection.blockedPillar = rawVal ? rawVal.toLowerCase() === 'true' : true;
+    }
+  }
+
+  return selection;
+};
+
+/** Resolves Bones of the Earth stone pillar creation, creature lift, voluntary failure, and ceiling crushing. */
+class BonesOfTheEarthBridgeCommand implements SpellCommand {
+  public readonly id = generateId();
+  public readonly description: string;
+  public readonly metadata: CommandMetadata;
+
+  constructor(
+    private readonly spell: Spell,
+    private readonly effect: DamageEffect | SpellEffect,
+    private readonly caster: CombatCharacter,
+    private readonly context: CommandContext
+  ) {
+    this.description = `${spell.name} raises stone pillars under targets with Dexterity save and blocked ceiling resolution`;
+    this.metadata = {
+      spellId: spell.id,
+      spellName: spell.name,
+      casterId: caster.id,
+      casterName: caster.name,
+      targetIds: context.targets.map(t => t.id),
+      effectType: 'bones_of_the_earth_pillar',
+      timestamp: Date.now()
+    };
+  }
+
+  execute(state: CombatState): CombatState {
+    const selection = parseBonesOfTheEarthSelection(this.context.playerInput);
+    const caster = state.characters.find(c => c.id === this.caster.id) ?? this.caster;
+    const spellDc = calculateSpellDC(caster);
+    let currentState = state;
+
+    for (const target of this.context.targets) {
+      const liveTarget = currentState.characters.find(c => c.id === target.id) ?? target;
+
+      if (selection.voluntaryFailure) {
+        // Creature voluntarily chooses to fail the Dexterity save to be lifted
+        currentState = {
+          ...currentState,
+          combatLog: [
+            ...currentState.combatLog,
+            {
+              id: generateId(),
+              timestamp: Date.now(),
+              type: 'action',
+              message: `${liveTarget.name} voluntarily fails the Dexterity save against ${this.spell.name} and is lifted atop the rising stone pillar.`,
+              characterId: liveTarget.id,
+              targetIds: [liveTarget.id],
+              data: {
+                spellId: this.spell.id,
+                voluntaryFailure: true,
+                pillarLifted: true
+              }
+            }
+          ]
+        };
+      } else {
+        // Roll Dexterity saving throw
+        const saveResult = rollSavingThrow(liveTarget, 'Dexterity', spellDc);
+        if (saveResult.success) {
+          // Avoids being lifted
+          currentState = {
+            ...currentState,
+            combatLog: [
+              ...currentState.combatLog,
+              {
+                id: generateId(),
+                timestamp: Date.now(),
+                type: 'status',
+                message: `${liveTarget.name} succeeds the Dexterity save (${saveResult.total} vs DC ${spellDc}) and avoids the rising stone pillar from ${this.spell.name}.`,
+                characterId: liveTarget.id,
+                targetIds: [liveTarget.id],
+                data: {
+                  spellId: this.spell.id,
+                  saveType: 'Dexterity',
+                  saveTotal: saveResult.total,
+                  saveSucceeded: true,
+                  pillarLifted: false
+                }
+              }
+            ]
+          };
+        } else {
+          // Failed save
+          if (selection.blockedPillar) {
+            // Blocked by ceiling or obstacle: takes 6d6 bludgeoning damage and is Restrained
+            const damage = DiceRoller.roll('6d6');
+            const newHp = Math.max(0, (liveTarget.currentHp ?? liveTarget.stats.hp ?? 0) - damage);
+
+            const restrainedStatus: StatusEffect = {
+              id: `status_bones_earth_restrained_${generateId()}`,
+              name: 'Restrained',
+              type: 'debuff',
+              description: `Restrained between a stone pillar and an obstacle. An action can be used to make a Strength or Dexterity check vs DC ${spellDc} to escape.`,
+              duration: 10,
+              persistsUntilRemoved: true,
+              source: this.spell.name,
+              sourceSpellId: this.spell.id,
+              sourceCasterId: caster.id,
+              escapeCheck: {
+                abilityOptions: ['Strength', 'Dexterity'],
+                dc: spellDc,
+                actionCost: 'action'
+              }
+            };
+
+            currentState = {
+              ...currentState,
+              characters: currentState.characters.map(c =>
+                c.id === liveTarget.id
+                  ? {
+                      ...c,
+                      currentHp: newHp,
+                      statusEffects: [...(c.statusEffects || []), restrainedStatus],
+                      conditions: [
+                        ...(c.conditions || []),
+                        {
+                          name: 'Restrained' as const,
+                          source: this.spell.name,
+                          sourceCasterId: caster.id,
+                          duration: 10
+                        }
+                      ]
+                    }
+                  : c
+              ),
+              combatLog: [
+                ...currentState.combatLog,
+                {
+                  id: generateId(),
+                  timestamp: Date.now(),
+                  type: 'damage',
+                  message: `${liveTarget.name} fails the Dexterity save (${saveResult.total} vs DC ${spellDc}), is crushed against an obstacle for ${damage} bludgeoning damage, and is Restrained by ${this.spell.name}.`,
+                  characterId: liveTarget.id,
+                  targetIds: [liveTarget.id],
+                  data: {
+                    spellId: this.spell.id,
+                    damage,
+                    damageType: 'Bludgeoning',
+                    saveType: 'Dexterity',
+                    saveTotal: saveResult.total,
+                    saveSucceeded: false,
+                    blockedPillar: true,
+                    appliedStatusId: restrainedStatus.id
+                  }
+                }
+              ]
+            };
+          } else {
+            // Normal lift atop pillar
+            currentState = {
+              ...currentState,
+              combatLog: [
+                ...currentState.combatLog,
+                {
+                  id: generateId(),
+                  timestamp: Date.now(),
+                  type: 'status',
+                  message: `${liveTarget.name} fails the Dexterity save (${saveResult.total} vs DC ${spellDc}) and is lifted 30 feet atop the stone pillar.`,
+                  characterId: liveTarget.id,
+                  targetIds: [liveTarget.id],
+                  data: {
+                    spellId: this.spell.id,
+                    saveType: 'Dexterity',
+                    saveTotal: saveResult.total,
+                    saveSucceeded: false,
+                    pillarLifted: true
+                  }
+                }
+              ]
+            };
+          }
+        }
+      }
+    }
+
+    return currentState;
   }
 }
 
@@ -1439,6 +1860,22 @@ export class SpellCommandFactory {
       ], spell, caster, context)
     }
 
+    // Seeming handles per-target willing consent, Charisma save resistance, and disguise status effects.
+    if (spell.id === 'seeming') {
+      const seemingEffect = activeEffects.find(isUtilityEffect)
+      if (seemingEffect) {
+        return [new SeemingBridgeCommand(spell, seemingEffect, caster, context)]
+      }
+    }
+
+    // Bones of the Earth handles stone pillar creation, creature lift, voluntary failure, and ceiling crushing.
+    if (spell.id === 'bones-of-the-earth') {
+      const bonesEffect = activeEffects[0] || spell.effects[0]
+      if (bonesEffect) {
+        return [new BonesOfTheEarthBridgeCommand(spell, bonesEffect, caster, context)]
+      }
+    }
+
     // Booming Blade is a blade cantrip: the spell cast is only real if it
     // creates a weapon attack first. Keep this bridge ahead of generic damage
     // command creation so the thunder payload stays gated behind hit or miss.
@@ -1877,9 +2314,13 @@ export class SpellCommandFactory {
   }
 
   /**
-   * Apply scaling formulas to effect
-   * TODO: This manual scaling logic duplicates `resolveScalableNumber` from `src/types/spells.ts`.
-   * We should refactor this to use the shared utility, especially for resolving numeric values.
+   * Apply scaling formulas to effect.
+   *
+   * Character-level (cantrip) scaling reads the same level-threshold tables as
+   * target counts, so it goes through the shared `resolveByLevelThreshold` /
+   * `countLevelThresholdsReached` helpers in `src/types/spellTargeting.ts`.
+   * Slot-level scaling stays here: it adds dice per slot above the base level
+   * and has no threshold table to share.
    */
   private static applyScaling(
     effect: SpellEffect,
@@ -1999,20 +2440,15 @@ export class SpellCommandFactory {
     casterLevel: number,
     scalingLevels: number[]
   ): SpellEffect {
-    const tier = scalingLevels.filter(l => casterLevel >= l).length
+    const tier = countLevelThresholdsReached(scalingLevels, casterLevel)
 
     if (tier === 0 || !effect.scaling) return effect
 
     const scalingTiers = effect.scaling.scalingTiers
     if (scalingTiers) {
-      const tierKeys = Object.keys(scalingTiers).map(Number).sort((a, b) => a - b)
-      const qualifiedTier = tierKeys.filter(l => casterLevel >= l).pop()
-
-      if (qualifiedTier !== undefined) {
-        const tierDice = scalingTiers[String(qualifiedTier)]
-        if (tierDice && /^\d+d\d+$/.test(tierDice)) {
-          return this.applyScaledDamageDice(effect, tierDice)
-        }
+      const tierDice = resolveByLevelThreshold(scalingTiers, casterLevel)
+      if (tierDice && /^\d+d\d+$/.test(tierDice)) {
+        return this.applyScaledDamageDice(effect, tierDice)
       }
     }
 

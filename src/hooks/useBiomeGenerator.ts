@@ -16,7 +16,7 @@
 
 import { useState, useCallback } from 'react';
 import type { BiomeDNA, ScatterRule } from '@/types/biome';
-import { BIOME_GENERATION_MODELS } from '@/config/llmProviderConfig';
+import { resolveOllamaModel } from '@/services/ai/aiProviderSettings';
 
 // ============================================================================
 // TYPES
@@ -25,28 +25,137 @@ import { BIOME_GENERATION_MODELS } from '@/config/llmProviderConfig';
 type GeneratorStatus = 'idle' | 'generating' | 'success' | 'error';
 type Provider = 'ollama' | 'gemini';
 
-function coerceScatterRules(raw: unknown): ScatterRule[] {
+type AssetType = ScatterRule['assetType'];
+type WeatherType = NonNullable<BiomeDNA['weatherType']>;
+
+/**
+ * The biome payload an LLM is asked to emit (see SYSTEM_PROMPT). Every field is
+ * `unknown`: the model is free to omit a key, emit a string where a number was
+ * asked for, or invent a value outside the allowed set. `toBiomeDNA` narrows
+ * each field before it reaches `BiomeDNA`, so no `any` is needed to read them.
+ */
+interface RawBiomeResponse {
+  name?: unknown;
+  descriptor?: unknown;
+  primaryColor?: unknown;
+  secondaryColor?: unknown;
+  roughness?: unknown;
+  waterColor?: unknown;
+  waterClarity?: unknown;
+  waveIntensity?: unknown;
+  fogDensity?: unknown;
+  fogHeight?: unknown;
+  weatherType?: unknown;
+  weatherIntensity?: unknown;
+  scatter?: unknown;
+}
+
+/** One entry of the `scatter` array as it arrives, before coercion. */
+type RawScatterRule = Partial<Record<keyof ScatterRule, unknown>>;
+
+/** The slice of the `/api/ollama/generate` envelope this hook reads. */
+interface OllamaGenerateEnvelope {
+  response?: unknown;
+}
+
+// ============================================================================
+// RESPONSE NARROWING
+// ============================================================================
+
+const ASSET_TYPES: readonly AssetType[] = ['tree', 'rock', 'grass'];
+const WEATHER_TYPES: readonly WeatherType[] = ['clear', 'rain', 'snow', 'ash', 'spores'];
+
+function asString(value: unknown, fallback: string): string {
+  return typeof value === 'string' && value.length > 0 ? value : fallback;
+}
+
+function asOptionalString(value: unknown): string | undefined {
+  return typeof value === 'string' ? value : undefined;
+}
+
+function asNumber(value: unknown, fallback: number): number {
+  return typeof value === 'number' ? value : fallback;
+}
+
+function asOptionalNumber(value: unknown): number | undefined {
+  return typeof value === 'number' ? value : undefined;
+}
+
+function asAssetType(value: unknown): AssetType {
+  return ASSET_TYPES.find((t) => t === value) ?? 'tree';
+}
+
+function asWeatherType(value: unknown): WeatherType {
+  return WEATHER_TYPES.find((w) => w === value) ?? 'clear';
+}
+
+/** Scatter ids may arrive as a number; anything else is dropped by the id filter. */
+function asRuleId(value: unknown): string {
+  if (typeof value === 'string') return value;
+  if (typeof value === 'number') return String(value);
+  return '';
+}
+
+export function coerceScatterRules(raw: unknown): ScatterRule[] {
   if (!Array.isArray(raw)) return [];
   // Best-effort parsing: keep entries with the required fields and coerce numbers.
   return raw
-    .filter((r) => r && typeof r === 'object')
-    // DEBT: Cast r to any to probe dynamic response properties without full schema mapping.
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    .map((r: any) => ({
-      id: String(r.id || ''),
-      assetType: r.assetType === 'tree' || r.assetType === 'rock' || r.assetType === 'grass' ? r.assetType : 'tree',
-      preset: typeof r.preset === 'string' ? r.preset : undefined,
-      density: typeof r.density === 'number' ? r.density : 0,
-      minSlope: typeof r.minSlope === 'number' ? r.minSlope : undefined,
-      maxSlope: typeof r.maxSlope === 'number' ? r.maxSlope : undefined,
-      minHeight: typeof r.minHeight === 'number' ? r.minHeight : undefined,
-      maxHeight: typeof r.maxHeight === 'number' ? r.maxHeight : undefined,
-      scaleMean: typeof r.scaleMean === 'number' ? r.scaleMean : 1,
-      scaleVar: typeof r.scaleVar === 'number' ? r.scaleVar : 0,
-      clusterScale: typeof r.clusterScale === 'number' ? r.clusterScale : undefined,
-      clusterThreshold: typeof r.clusterThreshold === 'number' ? r.clusterThreshold : undefined,
+    .filter((r): r is RawScatterRule => Boolean(r) && typeof r === 'object')
+    .map((r) => ({
+      id: asRuleId(r.id),
+      assetType: asAssetType(r.assetType),
+      preset: asOptionalString(r.preset),
+      density: asNumber(r.density, 0),
+      minSlope: asOptionalNumber(r.minSlope),
+      maxSlope: asOptionalNumber(r.maxSlope),
+      minHeight: asOptionalNumber(r.minHeight),
+      maxHeight: asOptionalNumber(r.maxHeight),
+      scaleMean: asNumber(r.scaleMean, 1),
+      scaleVar: asNumber(r.scaleVar, 0),
+      clusterScale: asOptionalNumber(r.clusterScale),
+      clusterThreshold: asOptionalNumber(r.clusterThreshold),
     }))
     .filter((r) => r.id.length > 0);
+}
+
+/**
+ * Parse the model's text as a biome object. There is ONE accepted shape; a
+ * fenced, truncated or non-object reply fails honestly and names the provider
+ * plus the head of what it actually said, so the error is diagnosable.
+ */
+export function parseBiomeResponse(text: string, source: string): RawBiomeResponse {
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(text);
+  } catch {
+    throw new Error(`${source} did not return valid JSON. Response began: ${text.slice(0, 120)}`);
+  }
+  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+    throw new Error(
+      `${source} returned ${Array.isArray(parsed) ? 'an array' : typeof parsed} where a biome JSON object was expected.`,
+    );
+  }
+  return parsed as RawBiomeResponse;
+}
+
+/** Build the validated BiomeDNA the preview renders from a narrowed response. */
+export function toBiomeDNA(result: RawBiomeResponse, userPrompt: string, id: string): BiomeDNA {
+  return {
+    id,
+    name: asString(result.name, 'Unknown Biome'),
+    descriptor: userPrompt,
+    primaryColor: asString(result.primaryColor, '#000000'),
+    secondaryColor: asString(result.secondaryColor, '#ffffff'),
+    roughness: asNumber(result.roughness, 0.5),
+    waterColor: asString(result.waterColor, '#1e3a8a'),
+    waterClarity: asNumber(result.waterClarity, 0.6),
+    waveIntensity: asNumber(result.waveIntensity, 0.3),
+    fogDensity: asNumber(result.fogDensity, 0.02),
+    fogHeight: asNumber(result.fogHeight, 10.0),
+    weatherType: asWeatherType(result.weatherType),
+    weatherIntensity: asNumber(result.weatherIntensity, 0.0),
+    scatter: coerceScatterRules(result.scatter),
+  };
 }
 
 interface UseBiomeGeneratorResult {
@@ -97,6 +206,71 @@ The JSON must match this schema:
 }
 `;
 
+/** The user turn sent to either provider. Kept identical so the two agree. */
+function buildUserPrompt(userPrompt: string): string {
+  return `Generate a biome based on: "${userPrompt}"`;
+}
+
+// ============================================================================
+// PROVIDER CALLS
+// ============================================================================
+
+/** Local Ollama, one model: the player's choice or the biome default (agora-d1c7.1). */
+async function generateViaOllama(userPrompt: string): Promise<RawBiomeResponse> {
+  // A failure names the model; nothing else is tried.
+  const usedModel = resolveOllamaModel('biome');
+  const response = await fetch('/api/ollama/generate', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: usedModel,
+      system: SYSTEM_PROMPT,
+      prompt: buildUserPrompt(userPrompt),
+      stream: false,
+      format: 'json',
+      options: { temperature: 0.7 }
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Ollama model "${usedModel}" failed with ${response.status}. Pick an installed model in AI settings or run: ollama pull ${usedModel}`);
+  }
+
+  const data: OllamaGenerateEnvelope = await response.json();
+  if (typeof data.response !== 'string') {
+    throw new Error(`Ollama model "${usedModel}" returned an envelope with no "response" text.`);
+  }
+  console.log(`Success with model: ${usedModel}`);
+  return parseBiomeResponse(data.response, `Ollama model "${usedModel}"`);
+}
+
+/**
+ * Gemini cloud provider. Goes through the shared `gemini/core` service so this
+ * call inherits the app's credential resolution (the player's own API key or
+ * Google sign-in — never a key stored in this file), the rate-limit cooldown,
+ * and the JSON response mode.
+ *
+ * The service module is imported lazily so choosing Ollama never pulls the
+ * Gemini SDK (and its client construction) into the biome preview bundle.
+ *
+ * NO-FALLBACK: a Gemini error is reported as-is; the hook does not retry on
+ * Ollama behind the player's back.
+ */
+async function generateViaGemini(userPrompt: string): Promise<RawBiomeResponse> {
+  const { generateText } = await import('@/services/gemini/core');
+  const result = await generateText(
+    buildUserPrompt(userPrompt),
+    SYSTEM_PROMPT,
+    true,
+    'useBiomeGenerator.generate',
+  );
+
+  if (result.error || !result.data) {
+    throw new Error(`Gemini biome generation failed: ${result.error ?? 'no data returned'}`);
+  }
+  return parseBiomeResponse(result.data.text.trim(), 'Gemini');
+}
+
 // ============================================================================
 // HOOK IMPLEMENTATION
 // ============================================================================
@@ -111,103 +285,20 @@ export const useBiomeGenerator = (): UseBiomeGeneratorResult => {
     setError(null);
 
     try {
-      // DEBT: Cast to any to probe dynamic JSON response from generation service.
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      let resultJSON: any;
-
-      if (provider === 'ollama') {
-        // Models to try in order based on actually installed list.
-        // Sourced from the canonical LLM provider config — value unchanged.
-        // NOTE: this is an EXISTING fallback loop, preserved as-is for behavior
-        // parity. See src/config/llmProviderConfig.ts (BIOME_GENERATION_MODELS).
-        const models = BIOME_GENERATION_MODELS;
-        
-        let response: Response | null = null;
-        let usedModel = '';
-
-        for (const model of models) {
-            try {
-                console.log(`Attempting generation with model: ${model}`);
-                response = await fetch('/api/ollama/generate', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({
-                    model: model,
-                    system: SYSTEM_PROMPT,
-                    prompt: `Generate a biome based on: "${userPrompt}"`,
-                    stream: false,
-                    format: 'json', 
-                    options: { temperature: 0.7 }
-                  }),
-                });
-
-                if (response.ok) {
-                    usedModel = model;
-                    break;
-                } else {
-                    console.warn(`Model ${model} failed with ${response.status}`);
-                }
-            } catch (e) {
-                console.warn(`Connection error with ${model}`, e);
-            }
-        }
-
-        if (!response || !response.ok) {
-          throw new Error(`Ollama API failed. Ensure you have 'mistral' or 'llama3' pulled via 'ollama pull mistral'.`);
-        }
-
-        const data = await response.json();
-        console.log(`Success with model: ${usedModel}`);
-        resultJSON = JSON.parse(data.response);
-
-      } else {
-        // ------------------------------------------------------------------
-        // GEMINI (Cloud Fallback)
-        // ------------------------------------------------------------------
-        // Placeholder for Gemini implementation.
-        // For now, we simulate a delay and return mock data to prove the UI flows.
-        await new Promise(r => setTimeout(r, 1500));
-        
-        // Mock response for now until Gemini SDK is wired if specifically requested.
-        resultJSON = {
-          name: `Gemini ${userPrompt.substring(0, 10)}...`,
-          descriptor: userPrompt,
-          primaryColor: '#4b0082',
-          secondaryColor: '#dda0dd',
-          roughness: 0.8,
-          scatter: [
-            { id: 'gemini_tree', assetType: 'tree', preset: 'pine', density: 0.1, scaleMean: 1.2, scaleVar: 0.3 }
-          ]
-        };
-      }
+      const resultJSON: RawBiomeResponse =
+        provider === 'ollama'
+          ? await generateViaOllama(userPrompt)
+          : await generateViaGemini(userPrompt);
 
       // ------------------------------------------------------------------
       // VALIDATION & CLEANUP
       // ------------------------------------------------------------------
-      
-      const newDna: BiomeDNA = {
-        id: `gen_${Date.now()}`,
-        name: resultJSON.name || 'Unknown Biome',
-        descriptor: userPrompt,
-        primaryColor: resultJSON.primaryColor || '#000000',
-        secondaryColor: resultJSON.secondaryColor || '#ffffff',
-        roughness: typeof resultJSON.roughness === 'number' ? resultJSON.roughness : 0.5,
-        waterColor: resultJSON.waterColor || '#1e3a8a',
-        waterClarity: typeof resultJSON.waterClarity === 'number' ? resultJSON.waterClarity : 0.6,
-        waveIntensity: typeof resultJSON.waveIntensity === 'number' ? resultJSON.waveIntensity : 0.3,
-        fogDensity: typeof resultJSON.fogDensity === 'number' ? resultJSON.fogDensity : 0.02,
-        fogHeight: typeof resultJSON.fogHeight === 'number' ? resultJSON.fogHeight : 10.0,
-        weatherType: ['clear', 'rain', 'snow', 'ash', 'spores'].includes(resultJSON.weatherType) ? resultJSON.weatherType : 'clear',
-        weatherIntensity: typeof resultJSON.weatherIntensity === 'number' ? resultJSON.weatherIntensity : 0.0,
-        scatter: coerceScatterRules(resultJSON.scatter),
-      };
-
-      setDna(newDna);
+      setDna(toBiomeDNA(resultJSON, userPrompt, `gen_${Date.now()}`));
       setStatus('success');
 
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Biome Generation Failed:', err);
-      setError(err.message || 'Unknown error occurred');
+      setError(err instanceof Error ? err.message : String(err));
       setStatus('error');
     }
   }, []);

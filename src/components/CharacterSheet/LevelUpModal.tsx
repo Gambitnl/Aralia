@@ -22,6 +22,9 @@ import {
 } from '../../utils/character';
 import FeatSelection from '../CharacterCreator/FeatSelection';
 import { subclassesForClass } from '../../data/classes/subclasses';
+import { classFeaturesForLevel } from '../../data/classes/classFeatureProgression';
+import { SKILLS_DATA } from '../../data/skills';
+import { EXPERTISE_CHOICE_KEY } from '../../utils/character/skillModifierUtils';
 import type { FeatChoiceState, FeatChoiceValue } from '../CharacterCreator/state/characterCreatorState';
 
 interface LevelUpModalProps {
@@ -33,6 +36,38 @@ interface LevelUpModalProps {
 
 type LevelUpStep = 'choice' | 'asi' | 'feat' | 'base';
 type FeatOption = Feat & { isEligible: boolean; unmet: string[] };
+
+/**
+ * Every source of Expertise the level-up flow can offer, keyed by the id the
+ * choice is recorded under (agora-db71.18).
+ *
+ * The key IS the `featChoices` key. `skillModifierUtils.getExpertiseSkillIds`
+ * walks every `featChoices` entry looking for `selectedExpertiseSkills`, so a
+ * class feature and a feat both land in the same place without either knowing
+ * the other exists — which is why this registry can stay this small.
+ *
+ * `eligibleSkillIds` is present only where the source restricts the choice.
+ * Everything else is limited to skills the character is already proficient in,
+ * because `calculateExpertiseBonus` returns 0 without proficiency: offering a
+ * non-proficient skill would be offering a pick worth nothing.
+ *
+ * NOT LISTED, on purpose: the Rogue. This project's class data gives the rogue
+ * `sneak_attack` at level 1 and `cunning_action`/`steady_aim` at 2-3
+ * (`src/data/classes/index.ts`, `tierOneFeatures.ts`); there is no rogue
+ * Expertise feature to key on. This registry is data-driven off the feature id,
+ * so adding one to the class data is all that picker would need.
+ */
+const EXPERTISE_GRANTS: Record<string, { picks: number; eligibleSkillIds?: string[] }> = {
+  /** Bard, level 2: "Double your proficiency bonus on two chosen skills." */
+  expertise: { picks: 2 },
+  /** Wizard, level 2 (Scholar): one skill, from the six knowledge skills. */
+  scholar: {
+    picks: 1,
+    eligibleSkillIds: ['arcana', 'history', 'investigation', 'medicine', 'nature', 'religion'],
+  },
+  /** The Skill Expert feat: one skill the character is already proficient with. */
+  skill_expert: { picks: 1 },
+};
 
 const ABILITY_ORDER: AbilityScoreName[] = [
   'Strength',
@@ -82,6 +117,82 @@ const LevelUpModal: React.FC<LevelUpModalProps> = ({ isOpen, character, onClose,
     return subclassesForClass(selectedClassId || character.class?.id || '');
   }, [character, nextLevel, selectedClassId]);
   const needsSubclassChoice = subclassOptions.length > 0;
+
+  /**
+   * The Expertise sources that arrive at THIS level-up and still need a pick.
+   *
+   * Two kinds, resolved the same way:
+   *  - class features whose `levelAvailable` is exactly `nextLevel` (so a bard
+   *    advancing to 4 is not asked to re-pick the Expertise they took at 2);
+   *  - the Skill Expert feat, but only once the player has actually selected it.
+   *
+   * Candidates are the character's proficient skills, minus any skill they
+   * already hold Expertise in, because doubling an already-doubled bonus is not
+   * a choice the rules offer.
+   */
+  const expertiseGrants = useMemo(() => {
+    if (!character) return [];
+    const alreadyExpert = new Set(
+      Object.values(character.featChoices ?? {}).flatMap((choice) => {
+        const selected = (choice as Record<string, unknown> | undefined)?.[EXPERTISE_CHOICE_KEY];
+        return Array.isArray(selected) ? selected.filter((s): s is string => typeof s === 'string') : [];
+      })
+    );
+    const proficientSkillIds = (character.skills ?? [])
+      .map((skill) => skill.id)
+      .filter((id) => !alreadyExpert.has(id));
+
+    const sources = classFeaturesForLevel(character.class, nextLevel, character.subclassId)
+      .filter((feature) => (feature.levelAvailable ?? 1) === nextLevel && EXPERTISE_GRANTS[feature.id])
+      .map((feature) => ({ id: feature.id, name: feature.name, description: feature.description }));
+
+    if (selectedFeatId === 'skill_expert') {
+      const feat = FEATS_DATA.find((entry) => entry.id === 'skill_expert');
+      sources.push({
+        id: 'skill_expert',
+        name: feat?.name ?? 'Skill Expert',
+        description: 'Choose the skill this feat doubles your proficiency bonus in.',
+      });
+    }
+
+    return sources.map((source) => {
+      const grant = EXPERTISE_GRANTS[source.id];
+      const eligible = grant.eligibleSkillIds
+        ? proficientSkillIds.filter((id) => grant.eligibleSkillIds?.includes(id))
+        : proficientSkillIds;
+      return { ...source, picks: grant.picks, eligibleSkillIds: eligible };
+    });
+  }, [character, nextLevel, selectedFeatId]);
+
+  const expertisePicksFor = (featureId: string): string[] => {
+    const selected = featChoices[featureId]?.[EXPERTISE_CHOICE_KEY];
+    return Array.isArray(selected) ? selected : [];
+  };
+
+  /**
+   * Toggles one skill in one grant's pick list, capped at that grant's allowance.
+   * Re-clicking a chosen skill removes it, so a player can change their mind
+   * without a reset control.
+   */
+  const handleExpertiseToggle = (featureId: string, skillId: string, picks: number) => {
+    const current = expertisePicksFor(featureId);
+    const next = current.includes(skillId)
+      ? current.filter((id) => id !== skillId)
+      : [...current, skillId];
+    if (next.length > picks) return;
+    handleFeatChoice(featureId, EXPERTISE_CHOICE_KEY, next);
+  };
+
+  /**
+   * Every offered grant must be filled before the level-up can be confirmed. A
+   * grant with no eligible skill at all (a wizard proficient in none of the six
+   * Scholar skills) is treated as satisfied rather than as a dead end.
+   */
+  const areExpertisePicksComplete = expertiseGrants.every(
+    (grant) =>
+      grant.eligibleSkillIds.length === 0 ||
+      expertisePicksFor(grant.id).length === Math.min(grant.picks, grant.eligibleSkillIds.length)
+  );
 
   useEffect(() => {
     if (!isOpen || !character) return;
@@ -159,12 +270,21 @@ const LevelUpModal: React.FC<LevelUpModalProps> = ({ isOpen, character, onClose,
 
   const handleConfirm = (payloadStep: 'asi' | 'feat' | 'base') => {
     if (!character) return;
+    // An unfilled Expertise pick blocks every path, including FeatSelection's own
+    // Confirm button, which this component does not own. The warning line above
+    // the step content says why.
+    if (!areExpertisePicksComplete) return;
     // Build the LevelUpChoices payload so the reducer can apply the selections.
+    //
+    // WHAT CHANGED (agora-db71.18): `featChoices` used to ride only on the 'feat'
+    // step. A class-feature Expertise pick (bard level 2) is made on the 'base'
+    // step, so restricting the payload to 'feat' would have dropped it silently.
+    const hasChoices = Object.keys(featChoices).length > 0;
     const choices: LevelUpChoices = {
       classId: selectedClassId || character.class?.id,
       abilityScoreIncreases: payloadStep === 'asi' ? abilityScoreIncreases : undefined,
       featId: payloadStep === 'feat' ? selectedFeatId || undefined : undefined,
-      featChoices: payloadStep === 'feat' ? (featChoices as Record<string, FeatChoice>) : undefined,
+      featChoices: hasChoices ? (featChoices as Record<string, FeatChoice>) : undefined,
       subclassId: needsSubclassChoice ? (selectedSubclassId || undefined) : undefined,
     };
     onConfirm(choices);
@@ -221,6 +341,60 @@ const LevelUpModal: React.FC<LevelUpModalProps> = ({ isOpen, character, onClose,
             <div className="text-xs text-gray-400">
               Leveling as {classOptions[0]?.name} (Hit Die d{classOptions[0]?.hitDie}).
             </div>
+          )}
+
+          {/*
+            Expertise picker (agora-db71.18). Rendered outside the step switch on
+            purpose: a bard's Expertise arrives at level 2, where `asiBudget` is 0
+            and the flow sits on the 'base' step, while the Skill Expert feat's
+            pick belongs to the 'feat' step. One block serves both.
+          */}
+          {expertiseGrants.map((grant) => {
+            const picked = expertisePicksFor(grant.id);
+            const allowance = Math.min(grant.picks, grant.eligibleSkillIds.length);
+            return (
+              <div key={grant.id} className="border border-gray-700 rounded-lg p-4 bg-gray-900/40 space-y-3">
+                <h3 className="text-sm font-semibold text-amber-200">{grant.name}: choose your Expertise</h3>
+                <p className="text-xs text-gray-400">{grant.description}</p>
+                {grant.eligibleSkillIds.length === 0 ? (
+                  <p className="text-xs text-red-300">
+                    No eligible skill: Expertise only doubles a proficiency you already have.
+                  </p>
+                ) : (
+                  <>
+                    <p className="text-xs text-gray-400">
+                      Chosen {picked.length} of {allowance}.
+                    </p>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                      {grant.eligibleSkillIds.map((skillId) => {
+                        const isPicked = picked.includes(skillId);
+                        return (
+                          <button
+                            key={skillId}
+                            type="button"
+                            onClick={() => handleExpertiseToggle(grant.id, skillId, allowance)}
+                            aria-pressed={isPicked}
+                            className={`p-2 rounded border text-left text-sm transition-colors ${
+                              isPicked
+                                ? 'bg-amber-700/30 border-amber-500 text-white'
+                                : 'bg-gray-700/50 border-gray-600 text-gray-200 hover:bg-gray-700'
+                            }`}
+                          >
+                            {SKILLS_DATA[skillId]?.name ?? skillId}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </>
+                )}
+              </div>
+            );
+          })}
+
+          {!areExpertisePicksComplete && (
+            <p className="text-xs text-red-300">
+              Choose your Expertise skills before confirming this level.
+            </p>
           )}
 
           {asiBudget > 0 && step === 'choice' && (
@@ -303,7 +477,7 @@ const LevelUpModal: React.FC<LevelUpModalProps> = ({ isOpen, character, onClose,
                   type="button"
                   onClick={() => handleConfirm('asi')}
                   className="flex-1 bg-amber-600 hover:bg-amber-500 text-white font-semibold py-2 rounded-lg disabled:bg-gray-600 disabled:cursor-not-allowed"
-                  disabled={totalAsiSpent !== asiBudget}
+                  disabled={totalAsiSpent !== asiBudget || !areExpertisePicksComplete}
                 >
                   Confirm Level Up
                 </button>
@@ -374,7 +548,7 @@ const LevelUpModal: React.FC<LevelUpModalProps> = ({ isOpen, character, onClose,
                 <button
                   type="button"
                   onClick={() => handleConfirm('base')}
-                  disabled={needsSubclassChoice && !selectedSubclassId}
+                  disabled={(needsSubclassChoice && !selectedSubclassId) || !areExpertisePicksComplete}
                   className="flex-1 bg-amber-600 hover:bg-amber-500 text-white font-semibold py-2 rounded-lg disabled:bg-gray-600 disabled:cursor-not-allowed"
                 >
                   Confirm Level Up

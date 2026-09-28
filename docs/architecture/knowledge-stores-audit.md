@@ -1,4 +1,4 @@
-# Knowledge stores — audit
+# Knowledge stores - audit
 
 Purpose: name every place this project keeps knowledge, say what each one is
 for, and record where they overlap or contradict.
@@ -38,7 +38,7 @@ going back to 2026-05-20.
 
 ## Findings
 
-### Finding 1 — `docs/` is 40% dead
+### Finding 1 - `docs/` is 40% dead
 
 513 files have not been touched since 2026-06-01. 280 have been touched since
 2026-07-01. So roughly two fifths of the tree is cold, and there is no signal
@@ -46,7 +46,7 @@ in the file itself that says so.
 
 `docs/spells/` alone holds 536 files, 42% of the whole tree.
 
-### Finding 2 — dated files are the safe default
+### Finding 2 - dated files are the safe default
 
 162 files carry a date in the name. July alone produced 129, about four a day.
 
@@ -57,16 +57,16 @@ only choice that cannot be wrong.
 The system rewards a new file over an update. That is the root cause of the
 sprawl, and it is a rule problem rather than a discipline problem.
 
-### Finding 3 — memory and the plan map overlap heavily
+### Finding 3 - memory and the plan map overlap heavily
 
 76 of 144 memory files share a name with a plan-map topic. Over half the memory
 store shadows something the plan map already tracks.
 
-Neither is wrong. They hold different facets — the plan map holds status, and
+Neither is wrong. They hold different facets - the plan map holds status, and
 memory holds the reasoning and the gotchas. But no rule states that split, so
 both drift toward holding the whole story.
 
-### Finding 4 — the domain docs carry no freshness signal
+### Finding 4 - the domain docs carry no freshness signal
 
 Zero of the 24 domain docs record when they were last verified. They each claim
 "Verified Current Entry Points" and none says current as of when.
@@ -75,7 +75,7 @@ A living document with no verification date is a stale document that a reader
 trusts. This is the surface-staleness fault named in `CONTEXT.md`, applied to
 prose rather than to a preview page.
 
-### Finding 5 — a domain is missing
+### Finding 5 - a domain is missing
 
 There is no domain doc for the streamed 3D world.
 
@@ -87,14 +87,14 @@ That gap has a direct cost. A facade audit written on 2026-08-05 had no home,
 so it became another dated file. The missing domain manufactured the sprawl it
 was documenting.
 
-### Finding 6 — memory link health is good
+### Finding 6 - memory link health is good
 
 9 broken wiki links out of 109 targets. 3 files missing from the index.
 
 This store is the healthiest of the six by a wide margin, and it is the only
 one with links between its parts.
 
-### Finding 7 — verdicts have almost no home
+### Finding 7 - verdicts have almost no home
 
 11 of 650 plan-map features carry a decision field. 87 carry a status note.
 

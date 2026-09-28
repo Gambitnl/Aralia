@@ -9,6 +9,12 @@ export enum CrimeType {
   Vandalism = 'Vandalism',
   Smuggling = 'Smuggling',
   Forgery = 'Forgery',
+  // Added for the merchant intimidation strategy (handleMerchantInteraction),
+  // which already commits a crime of this kind but previously had to widen the
+  // payload with a cast because the enum did not name it. Preserved as its own
+  // member rather than folded into Assault so notoriety, watch reactions, and
+  // future bounty rules can price coercion separately from violence.
+  Intimidation = 'Intimidation',
 }
 
 export enum HeatLevel {

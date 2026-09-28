@@ -1,6 +1,29 @@
 import { describe, expect, it, vi } from 'vitest';
-import { createMockCombatCharacter, AbilityCommandFactory, WeaponAttackCommand } from './AbilityCommandFactory.testHelpers';
+import { AbilityCommandFactory, WeaponAttackCommand, createMockCombatCharacter, createMockCombatState } from './AbilityCommandFactory.testHelpers';
 import type { Ability, CombatState, GameState } from './AbilityCommandFactory.testHelpers';
+
+// agora-f821.4: this file pins Math.random to make a roll deterministic. Game rolls now
+// run on the audit log's own seed stream, so the pin only reaches them
+// through the roller's supported injected-source seam. Feeding
+// Math.random in as that source keeps every pin below meaning what it
+// meant before the migration.
+vi.mock('../../../systems/dice/rollers', async importOriginal => {
+  const actual = await importOriginal<typeof import('../../../systems/dice/rollers')>()
+  return {
+    ...actual,
+    rollDice: (notation: string, options: { rng?: () => number } = {}) =>
+      actual.rollDice(notation, { ...options, rng: options.rng ?? Math.random }),
+    rollD20: (options: { rng?: () => number } = {}) =>
+      actual.rollD20({ ...options, rng: options.rng ?? Math.random }),
+    rollDamage: (
+      notation: string,
+      isCritical: boolean,
+      minRoll = 1,
+      rng?: () => number,
+    ) => actual.rollDamage(notation, isCritical, minRoll, rng ?? Math.random),
+  }
+})
+
 
 // ============================================================================
 // Mode-Choice Damage Type Resolution (G4)
@@ -93,7 +116,7 @@ describe('AbilityCommandFactory mode-choice damage type resolution', () => {
     });
 
     try {
-      const result = await command.execute({ characters: [druid, target], combatLog: [] } as any);
+      const result = await command.execute(createMockCombatState({ characters: [druid, target] }));
 
       // A valid "force" choice from the mode menu must switch the delivered
       // damage type on the shared damage command rather than keeping the club's
@@ -119,7 +142,7 @@ describe('AbilityCommandFactory mode-choice damage type resolution', () => {
     });
 
     try {
-      const result = await command.execute({ characters: [druid, target], combatLog: [] } as any);
+      const result = await command.execute(createMockCombatState({ characters: [druid, target] }));
 
       // "acid" is not one of the offered options, so the special type is not
       // forced. The attack falls back to the weapon's normal bludgeoning type
@@ -146,7 +169,7 @@ describe('AbilityCommandFactory mode-choice damage type resolution', () => {
     );
 
     try {
-      const result = await commands[0].execute({ characters: [druid, target], combatLog: [] } as any);
+      const result = await commands[0].execute(createMockCombatState({ characters: [druid, target] }));
 
       expect(findDamageType(result)).toBe('bludgeoning');
     } finally {

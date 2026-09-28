@@ -1,4 +1,4 @@
-# MOVED — SSO Task Slice Log
+# MOVED - SSO Task Slice Log
 
 Moved 2026-07-01 to `docs/archive/spell-system/SSO-TASK-SLICE.md` (exhausted slice log; stub left because other docs still reference the old path).
 

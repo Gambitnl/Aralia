@@ -515,16 +515,6 @@ const renderDescriptionWithRuleChips = (
             return <React.Fragment key={`text-${index}`}>{part}</React.Fragment>;
         }
 
-        const chip = (
-            <button
-                key={`rule-chip-${matchedRule.glossaryTermId || matchedRule.label}-${index}`}
-                type="button"
-                className="spell-card-tag inline-flex align-middle mx-0.5 cursor-pointer hover:bg-sky-700/60 focus:outline-none focus:ring-1 focus:ring-sky-400"
-            >
-                {matchedRule.label}
-            </button>
-        );
-
         if (matchedRule.glossaryTermId) {
             return (
                 <GlossaryTooltip
@@ -532,15 +522,30 @@ const renderDescriptionWithRuleChips = (
                     termId={matchedRule.glossaryTermId}
                     onNavigateToGlossary={onNavigateToGlossary}
                 >
-                    {chip}
+                    <button
+                        type="button"
+                        className="spell-card-tag inline-flex align-middle mx-0.5 cursor-pointer hover:bg-sky-700/60 focus:outline-none focus:ring-1 focus:ring-sky-400"
+                    >
+                        {matchedRule.label}
+                    </button>
                 </GlossaryTooltip>
             );
         }
 
-        // DEBT: The enrichment generator is supposed to supply a glossaryTermId for every
-        // referenced rule. If one is still missing, we keep the chip styling so the prose
-        // still signals "this is a rule concept," but it will not navigate anywhere yet.
-        return chip;
+        // The enrichment generator now verifies that every emitted rule carries a
+        // glossary destination (agora-9833), so reaching this line means the
+        // dataset is stale or hand-edited. The prose still marks the rule concept,
+        // but as an inert span: a button with no destination would advertise
+        // navigation the card cannot perform.
+        return (
+            <span
+                key={`rule-chip-unlinked-${matchedRule.label}-${index}`}
+                className="spell-card-tag inline-flex align-middle mx-0.5 opacity-70"
+                title="This rule has no glossary entry yet, so it cannot be opened."
+            >
+                {matchedRule.label}
+            </span>
+        );
     });
 };
 
@@ -564,16 +569,6 @@ const SpellReferencedRuleChips: React.FC<{
                 const tagChipText = (rule.glossaryTermId || '').endsWith('_area')
                     ? `Area: ${rule.label}`
                     : rule.label;
-                const chip = (
-                    <button
-                        key={`${rule.glossaryTermId || rule.label}-chip`}
-                        type="button"
-                        className="spell-card-tag cursor-pointer hover:bg-sky-700/60 focus:outline-none focus:ring-1 focus:ring-sky-400"
-                    >
-                        {tagChipText}
-                    </button>
-                );
-
                 // If the enrichment data knows which glossary entry owns this rule, use the
                 // existing glossary tooltip/navigation component so spell cards behave like
                 // the rest of the glossary surface instead of inventing a separate UX.
@@ -584,15 +579,29 @@ const SpellReferencedRuleChips: React.FC<{
                             termId={rule.glossaryTermId}
                             onNavigateToGlossary={onNavigateToGlossary}
                         >
-                            {chip}
+                            <button
+                                type="button"
+                                className="spell-card-tag cursor-pointer hover:bg-sky-700/60 focus:outline-none focus:ring-1 focus:ring-sky-400"
+                            >
+                                {tagChipText}
+                            </button>
                         </GlossaryTooltip>
                     );
                 }
 
-                // DEBT: If a referenced rule still has no glossary term id, we degrade to a
-                // plain non-navigating chip. The enrichment generator is meant to eliminate this
-                // state by either resolving or generating a destination entry.
-                return chip;
+                // A rule with no destination is a stale-dataset signal, not a normal
+                // state: the generator verifies every chip has one (agora-9833). The
+                // tag stays visible so the referenced rule is not lost, but it is an
+                // inert span rather than a button that would do nothing when pressed.
+                return (
+                    <span
+                        key={`${rule.label}-chip-unlinked`}
+                        className="spell-card-tag opacity-70"
+                        title="This rule has no glossary entry yet, so it cannot be opened."
+                    >
+                        {tagChipText}
+                    </span>
+                );
             })}
         </>
     );

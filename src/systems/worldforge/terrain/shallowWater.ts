@@ -56,6 +56,43 @@ const FRICTION = 0.985;
 /** Most of its depth a cell may shed in one step. Below 1 to damp odd-even swap. */
 const MAX_DRAIN = 0.5;
 
+/**
+ * WATER WITH WEIGHT — the free-discharge law, beside the pipe law.
+ *
+ * THE PIPE LAW IS LINEAR IN THE DROP. Flow across a face is proportional to the
+ * difference in surface height, which is right for water finding its level and
+ * wrong for water under pressure. Remy, 2026-08-27: a basin on a hill with a
+ * small tunnel dug out the side should SHOOT, and the speed should depend on how
+ * much water sits above the hole.
+ *
+ * That is Torricelli: a free jet leaves an opening at `sqrt(2 g h)`, where `h`
+ * is the head above it. It is not a tuning constant — it is the same result as
+ * dropping the water from that height, because it is.
+ *
+ * BOTH LAWS RUN, AND THE LARGER WINS. Measured against each other on this grid,
+ * with the head in metres and the flux in metres of source depth per step:
+ *
+ *     head   pipe     Torricelli   ratio
+ *     0.05   0.0145   0.0017       0.11x
+ *     0.5    0.1449   0.0522       0.36x
+ *     2      0.5798   0.4176       0.72x
+ *     10     2.8054   4.5185       1.61x
+ *     30     4.8590   13.5554      2.79x
+ *
+ * They cross near five metres of head. Below that the pipe law is larger, so
+ * taking the maximum leaves every shallow spread, flood front and puddle
+ * bit-identical to what nine rounds of look judgement approved. Above it the jet
+ * law is larger, so a deep basin drains nearly three times faster through the
+ * same gap. Nothing that works today gets slower — that was the condition Remy
+ * chose this option under.
+ *
+ * THE OPENING THROTTLES THE AMOUNT, NOT THE SPEED. The rate is the jet speed
+ * times the open cross-section, so a narrow tunnel passes less water at the same
+ * violent speed. That is the distinction he asked for, and it falls out of the
+ * law rather than needing a rule.
+ */
+const PRESSURE_FLOW = true;
+
 export interface ShallowWaterStats {
   /** Cells holding water above DRY_DEPTH_M. */
   wetCells: number;
@@ -80,6 +117,48 @@ export class ShallowWaterField {
   /** Water depth per cell, meters. */
   readonly depth: Float32Array;
   /** Outgoing flux per cell on each of four faces: -x, +x, -z, +z. */
+  /**
+   * The fastest face speed at each cell, metres per second.
+   *
+   * The sheet stores depth and nothing else, so it cannot draw a jet however
+   * fast the water is moving — there is no velocity anywhere to point at. This
+   * is that number, and it is free: the square root is already taken to work
+   * out the discharge. A jet, foam at a fall foot, and water sound all need it.
+   *
+   * Zero where nothing flows. Written every step, so it never describes a
+   * frame that has passed.
+   */
+  readonly exitSpeed: Float32Array;
+  /**
+   * Transport velocity per cell, meters per second, along +x and +z.
+   *
+   * THIS IS NOT `exitSpeed`, and confusing the two produces plausible nonsense.
+   * `exitSpeed` is Torricelli: how fast a free jet leaves an opening, driven by
+   * the head above it. This is continuity: how fast the water body actually
+   * travels across this cell. A deep still lake beside a low sill has a large
+   * exit speed and almost no transport; a shallow fast riffle has the reverse.
+   *
+   *   - Foam, the Froude number, sound, advection and floating things want THIS.
+   *   - A jet leaving a tunnel wants `exitSpeed`.
+   *
+   * UNITS, because getting them wrong here fails SILENTLY. The four fluxes are
+   * depth decrements in meters per step, not the volumetric discharge of the
+   * Mei paper. The conversion is therefore:
+   *
+   *     volume through a face   = flux * cellM^2          cubic meters
+   *     discharge               = flux * cellM^2 / dt     cubic meters a second
+   *     wetted face area        = depth * cellM           square meters
+   *     velocity                = flux * cellM / (dt * depth)
+   *
+   * Drop the divide by dt and every speed comes out about thirty times too
+   * small, because `maxStableStep` caps dt near 1/30 s. A Froude test built on
+   * that mistake never fires, looks implemented, and produces nothing.
+   *
+   * Zero where the cell is dry. Written every step, so it never describes a
+   * frame that has passed.
+   */
+  readonly flowX: Float32Array;
+  readonly flowZ: Float32Array;
   private readonly fluxL: Float32Array;
   private readonly fluxR: Float32Array;
   private readonly fluxD: Float32Array;
@@ -111,6 +190,9 @@ export class ShallowWaterField {
     const total = n * n;
     this.bed = bed ? bed.slice(0, total) : new Float32Array(total);
     this.depth = new Float32Array(total);
+    this.exitSpeed = new Float32Array(total);
+    this.flowX = new Float32Array(total);
+    this.flowZ = new Float32Array(total);
     this.fluxL = new Float32Array(total);
     this.fluxR = new Float32Array(total);
     this.fluxD = new Float32Array(total);
@@ -134,6 +216,34 @@ export class ShallowWaterField {
     this.depth[i] = Math.max(0, this.depth[i] + meters);
   }
 
+  /** How fast the water at cell `i` is travelling, meters a second. */
+  flowSpeedAt(i: number): number {
+    const x = this.flowX[i];
+    const z = this.flowZ[i];
+    return Math.sqrt(x * x + z * z);
+  }
+
+  /**
+   * The Froude number at cell `i` — speed against the wave speed it could carry.
+   *
+   * This is the one number that tells four kinds of water apart, and it is the
+   * reason the transport velocity was worth storing:
+   *
+   *   Fr well under 1   a pond. Still, or drifting.
+   *   Fr near 1         a riffle. Broken, noisy, catching light.
+   *   Fr over 1         a chute. Water outrunning its own ripples.
+   *   Fr falling THROUGH 1 between neighbours   a hydraulic jump: the standing
+   *                     wall of churn where a chute hits slow water.
+   *
+   * Dry cells return 0 rather than infinity. A depth at the dry threshold has
+   * no meaningful wave speed, and a caller that ranked cells by Froude would
+   * otherwise find the whole shoreline at the top of the list.
+   */
+  froudeAt(i: number): number {
+    const h = this.depth[i];
+    if (h <= DRY_DEPTH_M) return 0;
+    return this.flowSpeedAt(i) / Math.sqrt(G * h);
+  }
   /** Total water volume, cubic meters. */
   volume(): number {
     let v = 0;
@@ -169,7 +279,7 @@ export class ShallowWaterField {
   step(dt: number): ShallowWaterStats {
     const t0 = Date.now();
     const n = this.n;
-    const { depth, bed, fluxL, fluxR, fluxD, fluxU } = this;
+    const { depth, bed, fluxL, fluxR, fluxD, fluxU, flowX, flowZ } = this;
     const cell = this.cellM;
     const area = cell * cell;
     // Acceleration of flow per unit of surface difference, from the pipe model.
@@ -184,6 +294,8 @@ export class ShallowWaterField {
         const h = depth[i];
         if (h <= DRY_DEPTH_M) {
           fluxL[i] = fluxR[i] = fluxD[i] = fluxU[i] = 0;
+          this.exitSpeed[i] = 0;
+          flowX[i] = flowZ[i] = 0;
           continue;
         }
         const surf = bed[i] + h;
@@ -212,10 +324,36 @@ export class ShallowWaterField {
          * Half the difference is the most two cells can exchange and still
          * meet in the middle rather than swap past each other. */
         const cap = 0.5;
-        let l = Math.min(dl * accel * FRICTION, dl * cap);
-        let r = Math.min(dr * accel * FRICTION, dr * cap);
-        let d = Math.min(dd * accel * FRICTION, dd * cap);
-        let u = Math.min(du * accel * FRICTION, du * cap);
+
+        /* THE TWO LAWS, per face, and the larger one wins. See PRESSURE_FLOW.
+         *
+         * `openHeight` is how much of the face is actually open water: a head
+         * taller than the source cell is deep cannot push through more water
+         * than the cell holds. That single clamp is what makes a narrow tunnel
+         * throttle the AMOUNT while leaving the speed alone. */
+        const jet = (drop: number): number => {
+          if (!PRESSURE_FLOW || drop <= 0) return 0;
+          const openHeight = Math.min(h, drop);
+          // Torricelli: a free jet leaves at sqrt(2 g head).
+          return Math.sqrt(2 * G * drop) * openHeight * (dt / cell);
+        };
+
+        let l = Math.max(Math.min(dl * accel * FRICTION, dl * cap), jet(dl));
+        let r = Math.max(Math.min(dr * accel * FRICTION, dr * cap), jet(dr));
+        let d = Math.max(Math.min(dd * accel * FRICTION, dd * cap), jet(dd));
+        let u = Math.max(Math.min(du * accel * FRICTION, du * cap), jet(du));
+
+        /* THE EXIT SPEED, recorded for whoever draws this.
+         *
+         * The sheet has depth and nothing else, so it cannot draw a jet however
+         * fast the water is moving — there is no velocity to point at. This is
+         * that number: the fastest face at this cell, in metres per second. It
+         * costs one square root that has already been taken, and it is what a
+         * jet, foam at a fall foot, and water sound all need. Nothing reads it
+         * yet, and that is fine: the alternative is finding out later that the
+         * solver threw it away every step. */
+        const fastest = Math.max(dl, dr, dd, du);
+        this.exitSpeed[i] = fastest > 0 ? Math.sqrt(2 * G * fastest) : 0;
 
         /* A cell may give away at most HALF its water in one step.
          *
@@ -252,6 +390,18 @@ export class ShallowWaterField {
         fluxR[i] = r;
         fluxD[i] = d;
         fluxU[i] = u;
+
+        /* THE TRANSPORT VELOCITY. See flowX for why it is not exitSpeed.
+         *
+         * Written HERE, after the cap, because the capped fluxes are the water
+         * that actually moves. Written with the pass-one depth, because that is
+         * the water present when it left; pass two mutates depth as neighbours
+         * pour in, and a denominator taken there would describe a different
+         * cell. The net of opposite faces is the through-flow: a cell with
+         * equal left and right outflow is spreading, not travelling. */
+        const perSecond = cell / (dt * h);
+        flowX[i] = (r - l) * perSecond;
+        flowZ[i] = (u - d) * perSecond;
       }
     }
 

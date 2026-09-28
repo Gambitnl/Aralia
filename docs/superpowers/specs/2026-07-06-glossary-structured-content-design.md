@@ -1,13 +1,13 @@
-# Glossary structured content layer — design spec
+# Glossary structured content layer - design spec
 
 **Date:** 2026-07-06
-**Status:** APPROVED 2026-07-06 (Remy); **slice 1 BUILT 2026-07-06** — compiler, graph, and gate live at the end of `npm run glossary:rebuild` and as a vitest corpus gate; 0 issues over all 1,571 entries after the ingest pipe-corruption root-cause fix and the ~850-entry source cleanup. Decisions: one v2 bundle file; gate fails on ALL flaws from day one (no grandfathered baseline); source files get fixed, not permanently auto-repaired.
+**Status:** APPROVED 2026-07-06 (Remy); **slice 1 BUILT 2026-07-06** - compiler, graph, and gate live at the end of `npm run glossary:rebuild` and as a vitest corpus gate; 0 issues over all 1,571 entries after the ingest pipe-corruption root-cause fix and the ~850-entry source cleanup. Decisions: one v2 bundle file; gate fails on ALL flaws from day one (no grandfathered baseline); source files get fixed, not permanently auto-repaired.
 **Mission:** Replace the glossary's regex-and-`dangerouslySetInnerHTML` string pipeline with a typed content model, one link primitive, and a build-time validation gate.
 
 ## The problem in one paragraph
 
-Every glossary rendering bug we have chased — unparsed headings, tables eaten by
-adjacent HTML, dead inline links, borderless grids — has the same root cause:
+Every glossary rendering bug we have chased - unparsed headings, tables eaten by
+adjacent HTML, dead inline links, borderless grids - has the same root cause:
 each entry's markdown is re-parsed at click time by `marked`, patched with regex
 (double-colon cleanup, `<hr/>` injection to stop table swallowing, corrupted
 `[[token word]]` repair), sanitized, DOM-walked to wrap collapsible cards, and
@@ -18,7 +18,7 @@ regex to touch and hoping the other four surfaces don't regress.
 ## The fix in one paragraph
 
 Parse each entry **once, at build time**, into a typed block tree. Validate it
-there — broken cross-references, malformed tables, dirty tokens, and dead link
+there - broken cross-references, malformed tables, dirty tokens, and dead link
 targets fail the build, not the render. Ship the compiled blocks plus a
 precomputed cross-reference graph. Render blocks with real React components,
 with a single `<GlossaryLink>` primitive carrying all link behavior. No parser,
@@ -31,17 +31,17 @@ no sanitizer, no regex, and no `dangerouslySetInnerHTML` in the render path.
 Mapped 2026-07-06; file references are to the tree as of that date.
 
 ### Data
-- **1,572 entry JSON files** under `public/data/glossary/entries/` — each holds
+- **1,572 entry JSON files** under `public/data/glossary/entries/` - each holds
   `id`, `title`, `category`, `tags`, `excerpt`, `aliases`, `seeAlso`,
   `filePath`, and a raw `markdown` string (headings, GFM tables, `[[term]]` /
-  `{{term}}` / `<g t="…">` link shorthands, and stray HTML).
+  `{{term}}` / `<g t="...">` link shorthands, and stray HTML).
 - **Index files** under `public/data/glossary/index/` (671 rows) and a
   flattened **`public/data/glossary_bundle.json`** loaded once at startup by
   `src/context/GlossaryContext.tsx`.
 - **Spells are special:** the glossary carries a manifest row with
   `hasSpellJson: true`; real spell data lives in
   `public/data/spells/level-{n}/{id}.json` and renders through
-  `SpellCardTemplate` (already data-driven — mostly out of scope here).
+  `SpellCardTemplate` (already data-driven - mostly out of scope here).
 - A **spell-referenced-rules enrichment file** is fetched at render time and
   appended to rule entries as a "Referenced By Spells" markdown section.
 
@@ -50,19 +50,19 @@ Mapped 2026-07-06; file references are to the tree as of that date.
 enrichment section, then `GlossaryContentRenderer.tsx`:
 1. regex-expands three link shorthands into `<span data-term-id>` HTML,
    repairing corrupted tokens (`[[magic_initiate Initiate]]`) and possessive
-   ids (`calligrapher_s_supplies`) along the way (lines 93–189);
+   ids (`calligrapher_s_supplies`) along the way (lines 93-189);
 2. collapses doubled colons; rewrites `---` to `<hr/>` so `marked`'s HTML-block
-   rule doesn't swallow the table that follows (lines 218–228);
-3. `marked.parse` + `DOMPurify.sanitize` (lines 230–231);
+   rule doesn't swallow the table that follows (lines 218-228);
+3. `marked.parse` + `DOMPurify.sanitize` (lines 230-231);
 4. walks the resulting DOM to wrap H3 sections in `<details>` cards, manually
-   preserving open/closed state across re-renders (lines 233–285);
+   preserving open/closed state across re-renders (lines 233-285);
 5. injects via `dangerouslySetInnerHTML` and handles term clicks with a
-   delegated listener reading `data-term-id` (lines 292–357).
+   delegated listener reading `data-term-id` (lines 292-357).
 
 ### Link surfaces (five implementations of one idea)
-1. Inline `<span data-term-id>` from the shorthand expansion — 3,842
+1. Inline `<span data-term-id>` from the shorthand expansion - 3,842
    occurrences across 942 entries.
-2. "See Also" footer chips in `GlossaryEntryTemplate.tsx` — 2,855 occurrences —
+2. "See Also" footer chips in `GlossaryEntryTemplate.tsx` - 2,855 occurrences -
    with its **own copy** of the id-normalization logic.
 3. `GlossaryPill.tsx` (spell tags, conditions, ability scores).
 4. `GlossaryTooltip.tsx`-wrapped pills (hover excerpt + click navigate).
@@ -72,10 +72,10 @@ Only the inline surface knows whether a target actually loads (red styling);
 the other four can render dead links.
 
 ### Validation today
-- `.agent/scratch/glossary-render-audit.mjs` — replicates the pipeline over all
+- `.agent/scratch/glossary-render-audit.mjs` - replicates the pipeline over all
   non-spell entries and flags leftover markdown artifacts (leaked headings,
   bold, shorthand, tables, list markers). Throwaway script, not in CI.
-- `scripts/audits/inventory-glossary-link-surfaces.ts` — counts redirect
+- `scripts/audits/inventory-glossary-link-surfaces.ts` - counts redirect
   surfaces, writes `docs/tasks/glossary/GLOSSARY_LINK_SURFACES_INVENTORY.md`.
 - No tests cover `GlossaryContentRenderer`, `FullEntryDisplay`, link
   resolution, or click delegation.
@@ -124,14 +124,14 @@ interface TermRef { id: string; kind: 'entry' | 'spell' }
 
 Rules the model enforces by construction:
 - **No raw HTML and no markdown strings anywhere.** If content needs a new
-  visual, it gets a new block kind — never an escape hatch.
+  visual, it gets a new block kind - never an escape hatch.
 - **Every `termLink` is pre-resolved.** The compiler either resolves a token to
   a real, loadable entry or fails the build. "Red link" stops being a runtime
   style and becomes a build error. (During migration, a compiler flag can
-  downgrade known-broken refs to warnings — see slice 1.)
+  downgrade known-broken refs to warnings - see slice 1.)
 - **Collapsible sections are structural**, decided by the compiler (H3 grouping
   today), not by DOM surgery after parse.
-- **`referencedBy` is data**, emitted from the graph — the render-time
+- **`referencedBy` is data**, emitted from the graph - the render-time
   enrichment fetch and markdown append are deleted.
 
 ### The cross-reference graph
@@ -144,7 +144,7 @@ interface GlossaryGraph {
     title: string;
     category: string;
     renderable: boolean;      // has compiled blocks or spell JSON
-    isGroupingNode: boolean;  // category/container rows — never clickable
+    isGroupingNode: boolean;  // category/container rows - never clickable
   }>;
   // edge lists, deduplicated, both directions precomputed
   outbound: Record<string, TermRefWithSource[]>;  // what this entry links to
@@ -170,14 +170,14 @@ in CI). Steps:
    once and recorded: doubled colons, corrupted `[[token word]]` shorthands,
    possessive ids, alias whitespace. Each repair is logged; the long-term goal
    is to fix the source files and delete the repair.
-3. **Parse** with `marked.lexer` (tokens, never HTML) and map tokens →
+3. **Parse** with `marked.lexer` (tokens, never HTML) and map tokens ->
    `Block[]` / `InlineNode[]`. Unknown or unmappable tokens are build errors,
    not silent passthrough.
 4. **Resolve** every link token against the id/alias table; classify targets as
    renderable / grouping / missing.
 5. **Build the graph** from inline links + `seeAlso` + the spell-referenced-
    rules enrichment data (which moves from render-time fetch to compile input).
-6. **Validate** — fail the build on:
+6. **Validate** - fail the build on:
    - unresolvable or non-renderable `termLink` target,
    - malformed table (ragged rows, empty header),
    - leftover markdown artifacts in compiled text (port the seven detectors
@@ -195,15 +195,15 @@ CI wiring: a `glossary:compile` npm script; the Pages build runs it before
 catches breakage too.
 
 **Gate hardness (decided by Remy 2026-07-06):** every validation failure is a
-hard build error from day one — no grandfathered baseline. Slice 1 therefore
+hard build error from day one - no grandfathered baseline. Slice 1 therefore
 includes fixing all flagged source content until the compiler runs clean.
 This matches the no-fallback directive: one real path, fail honestly.
 
 ### Source of truth during and after migration
 
 Markdown stays the **authoring format**; compiled blocks are the **shipping
-format**. The 1,572 entry files are not hand-migrated wholesale — the compiler
-is the migration — but flawed source files ARE fixed at the source (decided by
+format**. The 1,572 entry files are not hand-migrated wholesale - the compiler
+is the migration - but flawed source files ARE fixed at the source (decided by
 Remy 2026-07-06): corrupted link tokens, doubled colons, malformed tables, and
 content-less entries get repaired in the entry JSON itself, so the compiler's
 normalizer stays minimal and temporary repairs never become permanent
@@ -215,16 +215,16 @@ infrastructure.
 
 New components under `src/components/Glossary/blocks/`:
 
-- **`GlossaryDocView`** — maps `Block[]` to components. Replaces
+- **`GlossaryDocView`** - maps `Block[]` to components. Replaces
   `GlossaryContentRenderer` for compiled entries. No `marked`, no `DOMPurify`,
   no `dangerouslySetInnerHTML`, no delegated click listener.
 - **`GlossaryTable`**, **`GlossaryCallout`**, **`GlossarySection`**
   (controlled `<details>` with state owned by React, killing the manual
   open-state DOM tracking), **`GlossaryDivider`**, **`ReferencedByBlock`**.
-  Spacing and borders become one decision per component — the four demo fixes
+  Spacing and borders become one decision per component - the four demo fixes
   (hr spacing, empty-state message, table cell borders, HTML-adjacent tables)
   become that component's defaults plus a test each.
-- **`GlossaryLink`** — the one primitive:
+- **`GlossaryLink`** - the one primitive:
 
 ```tsx
 <GlossaryLink termId="rage" variant="inline" | "pill" | "chip" tooltip>
@@ -233,7 +233,7 @@ New components under `src/components/Glossary/blocks/`:
 ```
 
   It resolves through the graph (`renderable`? `isGroupingNode`?), renders the
-  broken style when unresolvable (only reachable for runtime-supplied ids —
+  broken style when unresolvable (only reachable for runtime-supplied ids -
   compiled content can't produce one), renders plain text for grouping nodes,
   wires the hover excerpt when `tooltip` is set, and calls the navigation
   context. All five current surfaces become thin wrappers or direct uses:
@@ -248,7 +248,7 @@ New components under `src/components/Glossary/blocks/`:
   `GlossaryLink`; its inline description text moves to compiled blocks in a
   late slice).
 - `GlossaryContext`'s load-once bundle pattern; it just loads v2 + graph.
-- Navigation flow (`onNavigate` → entry/path lookup) — though
+- Navigation flow (`onNavigate` -> entry/path lookup) - though
   `findGlossaryEntryAndPath`'s recursive scan can later read the graph instead.
 
 ---
@@ -263,7 +263,7 @@ re-run and a visual eyeball (per the visual-inspection rule) before the next.
    suite. Emit v2 bundle + graph alongside the existing data. Promote the
    scratch render audit into `scripts/audits/` as a compiler sub-check. Fix
    every source file the gate flags (corrupted tokens, malformed tables,
-   content-less entries, dead refs) until the compiler runs clean — the gate
+   content-less entries, dead refs) until the compiler runs clean - the gate
    is a hard error from day one. *Proof:* compiler exits zero over all 1,572
    entries; CI runs it.
 
@@ -299,23 +299,23 @@ re-run and a visual eyeball (per the visual-inspection rule) before the next.
    `Block` gets an optional `appliesWhen?: RuleCondition` tag the compiler can
    populate from structured rule metadata, and the graph's query surface
    ("entries referencing condition X") is already the data needed for "what
-   rules affect me this turn." No implementation in slices 1–5.
+   rules affect me this turn." No implementation in slices 1-5.
 
 ---
 
 ## 6. Decisions (resolved by Remy 2026-07-06)
 
-1. **One v2 bundle file** (not per-entry files) — matches today's load-once
+1. **One v2 bundle file** (not per-entry files) - matches today's load-once
    pattern. Per-entry files remain possible later if startup weight becomes a
    problem.
-2. **The gate fails on everything from day one** — no grandfathered baseline;
+2. **The gate fails on everything from day one** - no grandfathered baseline;
    slice 1 includes the source cleanup that makes the compiler pass.
-3. **Fix the source files** — the compiler's normalizer stays minimal;
+3. **Fix the source files** - the compiler's normalizer stays minimal;
    repairs land at the true source, not as permanent render-time patching.
    Implementation note (found during slice 1): the entry JSON files are
    themselves generated by `npm run glossary:rebuild`
    (`scripts/ingestPhbGlossary.ts` reading `vendor/5etools-src/data`), so
-   "fix the source" means fixing the ingest converter's markdown emission —
+   "fix the source" means fixing the ingest converter's markdown emission -
    corrupted `[[token word]]` shorthands, doubled colons, and malformed
    tables get fixed where they are produced. The new compiler becomes the
    final stage of `glossary:rebuild`, gating its own input.

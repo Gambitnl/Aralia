@@ -149,8 +149,9 @@ export function hasCanonicalDraconbloodRules(race: Race): boolean {
 // ============================================================================
 // The actor begins as a production quick character and passes through racial
 // spell/resource assembly and the normal PlayerCharacter-to-combat bridge.
-// Forceful Presence's resource is parser-projected; its exact source wording
-// supplies the targeted advantage adapter described below.
+// Both halves of Forceful Presence - its once-per-rest resource and its
+// Charisma check advantage scope - are parser-projected; this leaf adds
+// neither and refuses when either is absent.
 // ============================================================================
 
 export interface DraconbloodScenarioState {
@@ -217,17 +218,20 @@ function createDraconbloodActor(race: Race): {
     },
   });
 
-  // DEBT: The shared modifier parser does not yet recognize the authored
-  // "check ... with advantage" sentence shape, although it does recognize the
-  // resource. This narrow adapter carries only the canonical check scope so
-  // rollAbilityCheck remains the authority; the durable fix belongs in the
-  // shared racial parser and is intentionally outside this leaf task.
-  const existingAdvantage = generatedActor.modifiers?.advantage ?? [];
-  const forcefulAdvantage = existingAdvantage.some(modifier => (
+  // The shared modifier parser now reads the authored "you can do so with
+  // advantage" sentence, racial assembly pushes its scope onto
+  // modifiers.advantage, and the combat bridge copies it. If that projection
+  // is missing, stop at the boundary rather than hand-authoring a scope here.
+  const forcefulAdvantage = generatedActor.modifiers?.advantage ?? [];
+  if (!forcefulAdvantage.some(modifier => (
     /charisma/i.test(modifier) && /intimidation|persuasion/i.test(modifier)
-  ))
-    ? existingAdvantage
-    : [...existingAdvantage, 'Charisma (Intimidation or Persuasion) checks'];
+  ))) {
+    return {
+      actor: null,
+      outcome: 'Draconblood Dragonborn unavailable: the racial parser did not project the Forceful Presence advantage scope.',
+    };
+  }
+
   const actor = resetEconomy({
     ...generatedActor,
     id: DRACONBLOOD_ACTOR_ID,
@@ -299,8 +303,8 @@ export function resolveDraconbloodForcefulPresence(
     return (face - 1) / 20;
   };
 
-  // Forceful Presence is canonical advantage even while the shared parser is
-  // waiting for its authored sentence grammar to be widened.
+  // The parser-projected advantage scope on the actor is what makes this
+  // canonical; rollAbilityCheck stays the authority for the roll itself.
   const check = rollAbilityCheck(actor, 'Charisma', skill, {
     advantage: true,
     rng: deterministicRng,

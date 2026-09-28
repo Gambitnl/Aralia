@@ -18,7 +18,7 @@
  * ARCHITECTURAL CONTEXT:
  * This file defines the 'Game Command Pattern'. It is the foundation 
  * for the combat execution layer, allowing effects (damage, status, etc.) 
- * to be treated as discrete objects that can be queued, logged, or undone.
+ * to be treated as discrete objects that can be queued and logged.
  *
  * Recent updates focus on 'Martial/Magical Distinction'. The addition 
  * of `weaponProperties` to the `CommandContext` allows commands to 
@@ -49,12 +49,6 @@ export interface SpellCommand {
    * @returns New combat state with effects applied.
    */
   execute(state: CombatState): CombatState | Promise<CombatState>
-
-  /**
-   * Optional: Undo the command (for turn rewind feature).
-   * @returns Combat state before command was executed.
-   */
-  undo?(state: CombatState): CombatState
 
   /**
    * Human-readable description for combat log and debugging.
@@ -233,6 +227,16 @@ export interface CommandContext {
    * listener/logging behavior instead of guessing at a payload.
    */
   delegatedReactivePayload?: DelegatedReactivePayload
+  /**
+   * Ids of creatures the CALLER knows to be Surprised for this attack.
+   *
+   * There is no surprise system in the engine yet (GG-258), so surprise cannot
+   * be derived from combat state. Assassinate needs the fact, so the controller
+   * that knows an ambush happened states it here. An absent list means the
+   * caller reported no surprise, which the rider reads as "not surprised"; it
+   * is never guessed from initiative, stealth, or turn order.
+   */
+  surprisedTargetIds?: string[]
   /** Request a manual reaction from the user via UI */
   requestReaction?: (attackerId: string, targetId: string, triggerType: 'on_hit' | 'on_take_damage', options: any[]) => Promise<string | null>
 }

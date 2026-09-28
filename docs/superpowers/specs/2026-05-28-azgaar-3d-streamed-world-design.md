@@ -1,17 +1,17 @@
-# Azgaar-Driven 3D Streamed World — Map Layer Redesign
+# Azgaar-Driven 3D Streamed World - Map Layer Redesign
 
 **Date:** 2026-05-28
 **Status:** Design approved, implementation pending
 **Supersedes (partial):** Grid-mode world map in `MapPane`, the entire Submap layer
-**Inspired by:** Veloren's worldsim / column architecture (GPL-3.0 — study only, do not copy)
+**Inspired by:** Veloren's worldsim / column architecture (GPL-3.0 - study only, do not copy)
 
 ---
 
 ## 1. Goal
 
-Replace Aralia's current three-tier exploration stack (grid-mode world map → submap → combat) with a two-tier stack: **a 2D Azgaar atlas at world scale, and a single streamed 3D world at every smaller scale**. The 3D world is massive, traversable across chunks without scene transitions, faithful to the Azgaar atlas (every river, town, road, coastline you see in 2D exists in the same place in 3D), and the player's 3D position is bidirectionally synchronized with a marker on the atlas.
+Replace Aralia's current three-tier exploration stack (grid-mode world map -> submap -> combat) with a two-tier stack: **a 2D Azgaar atlas at world scale, and a single streamed 3D world at every smaller scale**. The 3D world is massive, traversable across chunks without scene transitions, faithful to the Azgaar atlas (every river, town, road, coastline you see in 2D exists in the same place in 3D), and the player's 3D position is bidirectionally synchronized with a marker on the atlas.
 
-The motivating constraint: when you zoom in from the atlas to a region with a river, that river must be in the same place, flow the same direction, and connect the same way in 3D — and the same for towns, roads, biomes, coastlines, and lakes.
+The motivating constraint: when you zoom in from the atlas to a region with a river, that river must be in the same place, flow the same direction, and connect the same way in 3D - and the same for towns, roads, biomes, coastlines, and lakes.
 
 ---
 
@@ -19,10 +19,10 @@ The motivating constraint: when you zoom in from the atlas to a region with a ri
 
 ### Kept (with extensions)
 
-- **`MapPane.tsx`** — the embedded Azgaar atlas. Default mode stays. Pan/zoom in 2D stays.
-- **`azgaarDerivedMapService.ts`** — the world generator. Extended (not replaced) to produce richer artifacts (see §5).
-- **`BattleMap3D.tsx`** and its subtree (`terrain/`, `camera/`, `characters/`, `vfx/`) — reused as the rendering toolkit for the 3D world. Combat keeps its own tactical instance; the 3D world reuses the same primitives.
-- **`TownCanvas.tsx`** — town rendering stays as-is. Approaching a town in the 3D world hands off to TownCanvas (for now; merging towns into the world is future work, see §13).
+- **`MapPane.tsx`** - the embedded Azgaar atlas. Default mode stays. Pan/zoom in 2D stays.
+- **`azgaarDerivedMapService.ts`** - the world generator. Extended (not replaced) to produce richer artifacts (see §5).
+- **`BattleMap3D.tsx`** and its subtree (`terrain/`, `camera/`, `characters/`, `vfx/`) - reused as the rendering toolkit for the 3D world. Combat keeps its own tactical instance; the 3D world reuses the same primitives.
+- **`TownCanvas.tsx`** - town rendering stays as-is. Approaching a town in the 3D world hands off to TownCanvas (for now; merging towns into the world is future work, see §13).
 
 ### Removed
 
@@ -48,10 +48,10 @@ The motivating constraint: when you zoom in from the atlas to a region with a ri
 
 | Decision | Choice | Rationale |
 |----------|--------|-----------|
-| Zoom model | **Hybrid** — 2D Azgaar atlas pans/zooms continuously, then a single threshold drops the player into a continuous 3D world | Sidesteps the "magic middle" of true continuous zoom; keeps Azgaar at its strengths; matches BG3's actual world-map → zone model |
-| World data source | **Procedural per-seed** — extend `azgaarDerivedMapService` to produce all rich artifacts | Keeps Aralia's per-seed identity; one engineering effort delivers both 2D enrichment and 3D fidelity |
+| Zoom model | **Hybrid** - 2D Azgaar atlas pans/zooms continuously, then a single threshold drops the player into a continuous 3D world | Sidesteps the "magic middle" of true continuous zoom; keeps Azgaar at its strengths; matches BG3's actual world-map -> zone model |
+| World data source | **Procedural per-seed** - extend `azgaarDerivedMapService` to produce all rich artifacts | Keeps Aralia's per-seed identity; one engineering effort delivers both 2D enrichment and 3D fidelity |
 | World sim ↔ chunk render split | **Strict separation, Veloren-style** | Adherence is structural: chunks sample from world sim output, so they cannot disagree with the atlas |
-| 3D scope | **Streamed massive world** — chunks loaded around the player, LOD for distance | "Massive in scope, surrounding chunks accessible by traversing" is a hard requirement |
+| 3D scope | **Streamed massive world** - chunks loaded around the player, LOD for distance | "Massive in scope, surrounding chunks accessible by traversing" is a hard requirement |
 | 3D renderer | **R3F (reuse BattleMap3D primitives)** | Engine already exists; same biome lighting, terrain shaders, vegetation system |
 | Combat | **Separate scene, still BattleMap3D** | Combat is its own bounded tactical scene; transitioning into it from the 3D world is fine and matches existing flow |
 | Towns | **Separate scene, still TownCanvas** for v1; merge later | Town rendering is mature and not the bottleneck; merging into the 3D world is a future polish |
@@ -107,28 +107,28 @@ The atlas SVG and the 3D mesh both draw from the same WorldData object. A river 
 
 ```
 App.tsx
-├── MapPane.tsx                  (2D atlas — unchanged externally; reads new WorldData fields)
-├── World3DScene.tsx             (NEW — top-level R3F <Canvas> for the streamed world)
-│   ├── ChunkManager             (NEW — sliding window of loaded chunks around player)
-│   ├── Chunk[] (instanced)      (NEW — per-chunk subtree)
+├── MapPane.tsx                  (2D atlas - unchanged externally; reads new WorldData fields)
+├── World3DScene.tsx             (NEW - top-level R3F <Canvas> for the streamed world)
+│   ├── ChunkManager             (NEW - sliding window of loaded chunks around player)
+│   ├── Chunk[] (instanced)      (NEW - per-chunk subtree)
 │   │   ├── ChunkTerrainMesh     (reuses TerrainMesh patterns at chunk scale)
-│   │   ├── ChunkRivers          (NEW — water mesh extruded along river polylines)
-│   │   ├── ChunkRoads           (NEW — road mesh extruded along graph edges)
-│   │   ├── ChunkSites           (NEW — building footprints; full town hands off to TownCanvas)
+│   │   ├── ChunkRivers          (NEW - water mesh extruded along river polylines)
+│   │   ├── ChunkRoads           (NEW - road mesh extruded along graph edges)
+│   │   ├── ChunkSites           (NEW - building footprints; full town hands off to TownCanvas)
 │   │   ├── ChunkVegetation      (reuses GrassLayer + EzTreeLayer per chunk)
 │   │   └── ChunkScatter         (reuses GroundScatter per chunk)
 │   ├── PlayerActor              (reuses CharacterActor)
 │   ├── CameraController         (extends combat CameraController with free-roam mode)
-│   ├── DistanceLOD              (NEW — selects render mode per chunk by distance)
+│   ├── DistanceLOD              (NEW - selects render mode per chunk by distance)
 │   └── SkyAtmosphere            (takram atmosphere + clouds at world scale)
-├── TransitionController.tsx     (NEW — handles 2D ↔ 3D dive animation + camera handoff)
-├── CombatView.tsx               (unchanged — BattleMap / BattleMap3D toggle stays)
+├── TransitionController.tsx     (NEW - handles 2D ↔ 3D dive animation + camera handoff)
+├── CombatView.tsx               (unchanged - BattleMap / BattleMap3D toggle stays)
 └── TownCanvas.tsx               (unchanged)
 ```
 
 ---
 
-## 5. World Sim — What It Produces
+## 5. World Sim - What It Produces
 
 ### 5.1 Extended WorldData shape
 
@@ -161,7 +161,7 @@ interface WorldData {
 
 interface River {
   id: string;
-  points: Array<{ x: number; y: number }>;    // world coords, ordered source → mouth
+  points: Array<{ x: number; y: number }>;    // world coords, ordered source -> mouth
   width: number[];            // per-segment width in world meters
   discharge: number[];        // per-segment flow volume (for water shader)
   parentId?: string;          // tributary relationship
@@ -206,7 +206,7 @@ interface BiomeZone {
 | Coastlines / lakes | **Marching squares** on the height = sea_level threshold | Standard polygon extraction from scalar field |
 | Biome zones | **Marching squares per biome class** | Same as coastlines, per biome boundary |
 
-These are well-trodden algorithms. None require novel research. Estimated implementation per artifact: 2–5 days each.
+These are well-trodden algorithms. None require novel research. Estimated implementation per artifact: 2-5 days each.
 
 ### 5.3 Persistence
 
@@ -214,12 +214,12 @@ WorldData is computed at world creation and stored in the save file. Re-generati
 
 ---
 
-## 6. Chunk Render — Building a 3D Chunk from WorldData
+## 6. Chunk Render - Building a 3D Chunk from WorldData
 
 ### 6.1 Chunk size and world dimensions
 
-- **Default chunk size:** 128m × 128m in world space.
-- **Default world size:** 60 cols × 40 rows from the Azgaar grid. Each Azgaar cell corresponds to 8 × 8 = 64 chunks, so the world is ~480 × 320 chunks (~61km × 41km).
+- **Default chunk size:** 128m x 128m in world space.
+- **Default world size:** 60 cols x 40 rows from the Azgaar grid. Each Azgaar cell corresponds to 8 x 8 = 64 chunks, so the world is ~480 x 320 chunks (~61km x 41km).
 - These are tunable via constants. Smaller chunks = more streaming overhead; larger chunks = more per-chunk content.
 
 ### 6.2 Per-chunk generation steps
@@ -227,13 +227,13 @@ WorldData is computed at world creation and stored in the save file. Re-generati
 For `(worldSeed, chunkX, chunkY)`:
 
 1. **Compute the chunk's world AABB.** Sample WorldData layers overlapping this box.
-2. **Heightfield mesh.** A `PlaneGeometry` at chunk size, ~64×64 subdivisions, with vertex Y from bilinear interpolation of WorldData.heights. Borders sample from the same source as neighbors, so seams stitch by construction.
+2. **Heightfield mesh.** A `PlaneGeometry` at chunk size, ~64x64 subdivisions, with vertex Y from bilinear interpolation of WorldData.heights. Borders sample from the same source as neighbors, so seams stitch by construction.
 3. **Water meshes.** For each river polyline intersecting the chunk, extrude a strip along the polyline with per-segment width. Snap polyline vertex Y to terrain height. Apply the existing water shader.
 4. **Road meshes.** Same pattern as rivers but using the road type for texture (cobble / dirt / trail).
 5. **Site rendering.** For each site with footprint intersecting the chunk:
-   - `kind: 'town'` — render only the wall + outer buildings here; clicking handed off to TownCanvas
-   - `kind: 'dungeon'` / `'ruin'` — render the entrance and exterior; interior is its own scene (or a future submap-style instance)
-   - `kind: 'landmark'` — render the prop directly
+   - `kind: 'town'` - render only the wall + outer buildings here; clicking handed off to TownCanvas
+   - `kind: 'dungeon'` / `'ruin'` - render the entrance and exterior; interior is its own scene (or a future submap-style instance)
+   - `kind: 'landmark'` - render the prop directly
 6. **Vegetation.** Use existing `GrassLayer` and `EzTreeLayer` patterns, scoped to the chunk. Density and species table come from the chunk's dominant biome zones.
 7. **Decoration scatter.** Reuse `GroundScatter` per-chunk.
 
@@ -269,9 +269,9 @@ class ChunkManager {
 
 | Distance from player | Render mode |
 |----------------------|-------------|
-| 0 ≤ d < load radius | Full detail — heightfield + vegetation + water + sites |
-| load ≤ d < far radius | Mid LOD — heightfield + impostor vegetation (billboards) + water as flat mesh |
-| far ≤ d < horizon | Low LOD — coarse heightfield only, no vegetation, sites as marker billboards |
+| 0 ≤ d < load radius | Full detail - heightfield + vegetation + water + sites |
+| load ≤ d < far radius | Mid LOD - heightfield + impostor vegetation (billboards) + water as flat mesh |
+| far ≤ d < horizon | Low LOD - coarse heightfield only, no vegetation, sites as marker billboards |
 | beyond horizon | Skybox / atmosphere only |
 
 The far rings let the player see mountains 5km away without loading their content.
@@ -327,15 +327,15 @@ In atlas mode, clicking a discovered tile with the "fast travel" affordance tele
 
 A bidirectional binding between 3D player position and a marker on the atlas SVG.
 
-### 9.1 3D → atlas (live position)
+### 9.1 3D -> atlas (live position)
 
 - The atlas pane subscribes to `playerWorldPos` from game state.
-- Projects `(wx, wy)` to atlas SVG coords via a simple scalar transform (world meters → SVG units).
+- Projects `(wx, wy)` to atlas SVG coords via a simple scalar transform (world meters -> SVG units).
 - Renders a `<circle>` marker that updates as the player moves.
 
 When the atlas is mounted, this updates in real time. When the atlas is unmounted (3D mode active), no updates fire.
 
-### 9.2 atlas → 3D (click-to-travel)
+### 9.2 atlas -> 3D (click-to-travel)
 
 - User clicks on a discovered atlas cell.
 - The click handler reverse-projects the SVG click to `(wx, wy)`.
@@ -353,7 +353,7 @@ For v1, towns stay as the existing `TownCanvas`:
 - Approaching a gate close enough triggers a prompt; entering hands off to `TownCanvas`, exiting returns to the 3D world at the same gate.
 - Town's `townSeed` is stored on the `Site` so the town map is deterministic from the world sim.
 
-Future work (out of scope for this spec): merge town interiors into the 3D world's streamed chunks — but that's a large effort and the existing `TownCanvas` is mature.
+Future work (out of scope for this spec): merge town interiors into the 3D world's streamed chunks - but that's a large effort and the existing `TownCanvas` is mature.
 
 ---
 
@@ -365,7 +365,7 @@ For v1, combat stays as the existing `BattleMap3D`:
 - The encounter transition saves the 3D world state and loads `BattleMap3D` with `(biome, encounterSeed)` derived from the world position + worldSeed.
 - After combat, the player returns to the 3D world at the same position.
 
-The biome passed to `battleMapGenerator` now comes from the world sim's per-cell biome data, so the battle map biome matches what the player saw in 3D right before combat. (Bridge from §1 of the original brainstorm — solved as a byproduct of this design.)
+The biome passed to `battleMapGenerator` now comes from the world sim's per-cell biome data, so the battle map biome matches what the player saw in 3D right before combat. (Bridge from §1 of the original brainstorm - solved as a byproduct of this design.)
 
 Future work: make combat happen in-place in the 3D world (no scene transition). Out of scope for v1.
 
@@ -424,7 +424,7 @@ Save format migration: a one-shot loader detects v1 saves (no `WorldData` or wit
 
 | Risk | Likelihood | Impact | Mitigation |
 |------|-----------|--------|------------|
-| Chunk generation is too slow → player walks into unloaded chunks | Medium | High | Worker pool, prioritize chunks in camera direction, generate impostor terrain first then refine |
+| Chunk generation is too slow -> player walks into unloaded chunks | Medium | High | Worker pool, prioritize chunks in camera direction, generate impostor terrain first then refine |
 | LOD rings still drop below 60fps on target hardware | Medium | Medium | Aggressive InstancedMesh; KTX2 textures; quality presets; profile early |
 | River polyline extraction produces ugly artifacts at chunk borders | Medium | Medium | Polylines sampled from continuous WorldData, not per-chunk; tested with explicit cross-border cases |
 | Save file bloat from chunk deltas | Low | Medium | Delta-compress; periodic prune of distant chunks player hasn't visited in a long time |
@@ -447,7 +447,7 @@ Save format migration: a one-shot loader detects v1 saves (no `WorldData` or wit
 ## 16. References
 
 ### Pattern reference (study only, GPL-3.0)
-- [Veloren worldgen architecture](https://gitlab.com/veloren/veloren) — particularly `world/src/sim/` (world sim) and `world/src/column/` (chunk render)
+- [Veloren worldgen architecture](https://gitlab.com/veloren/veloren) - particularly `world/src/sim/` (world sim) and `world/src/column/` (chunk render)
 
 ### Algorithms
 - Flow accumulation / hydraulic erosion: Tarboton (1997) D∞ flow direction

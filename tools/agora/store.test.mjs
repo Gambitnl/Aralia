@@ -271,6 +271,48 @@ test('locks: auto-expiry — sweepExpired drops past-TTL lock and emits lock.exp
   rm(dir);
 });
 
+test('locks: sweepExpired emits one lock.expiring warning before lapse; renew re-arms it (WF-G75)', () => {
+  const dir = tmpDir();
+  const now = makeClock();
+  const store = createStore({ dir, now, lockTtlMs: 600_000, lockExpiringWarnMs: 300_000 });
+  const a = store.registerAgent({ petSlug: 'gf-sd', handle: 'a' });
+
+  const events = [];
+  store.subscribe((e) => events.push(e));
+
+  const r = store.acquireLock({ agentId: a.id, paths: ['x'], ttlMs: 600_000 });
+  assert.equal(r.ok, true);
+
+  // Well before the warn window: no warning.
+  now.advance(100_000);
+  store.sweepExpired();
+  assert.equal(events.filter((e) => e.type === 'lock.expiring').length, 0);
+
+  // Cross into the warn window: exactly one warning, with remainingMs.
+  now.advance(250_000); // 350s elapsed, 250s remaining < 300s window
+  store.sweepExpired();
+  const warns = events.filter((e) => e.type === 'lock.expiring');
+  assert.equal(warns.length, 1);
+  assert.equal(warns[0].payload.lockId, r.lock.id);
+  assert.ok(warns[0].payload.remainingMs > 0 && warns[0].payload.remainingMs <= 300_000);
+
+  // Sweeping again must not spam: one-shot per TTL window.
+  now.advance(30_000);
+  store.sweepExpired();
+  assert.equal(events.filter((e) => e.type === 'lock.expiring').length, 1);
+
+  // Renew re-arms: crossing the new warn window warns again.
+  store.renewLock({ lockId: r.lock.id, agentId: a.id, ttlMs: 600_000 });
+  now.advance(350_000);
+  store.sweepExpired();
+  const warns2 = events.filter((e) => e.type === 'lock.expiring');
+  assert.equal(warns2.length, 2);
+  assert.ok(warns2[1].payload.expiresAt > warns[0].payload.expiresAt);
+
+  store.close();
+  rm(dir);
+});
+
 test('reservations: queued agents keep FIFO dibs and the head is fulfilled by locking', () => {
   const dir = tmpDir();
   const store = createStore({ dir, now: makeClock() });
@@ -795,5 +837,83 @@ test('durability: replay works without a snapshot (journal-only, mid-session cra
   assert.equal(s2.listTasks()[0].title, 'survive');
 
   s2.close();
+  rm(dir);
+});
+
+// WF-G110 (2026-09-09): a renew that names no ttl keeps the span the holder asked for.
+test('WF-G110: renewLock without ttlMs extends by the lock\'s own span, not the 30-min default', () => {
+  const dir = tmpDir();
+  const now = makeClock();
+  const store = createStore({ dir, now, lockTtlMs: 30 * 60_000 });
+  const a = store.registerAgent({ petSlug: 'gf-sd', handle: 'long-holder' });
+  const r = store.acquireLock({ agentId: a.id, paths: ['src/long.ts'], ttlMs: 180 * 60_000 });
+  assert.equal(r.ok, true);
+  assert.equal(r.lock.ttlMs, 180 * 60_000);
+  now.advance(10 * 60_000);
+  const renewed = store.renewLock({ lockId: r.lock.id, agentId: a.id });
+  assert.equal(renewed.ok, true);
+  assert.equal(renewed.lock.expiresAt - now(), 180 * 60_000, 'span preserved');
+  // An explicit ttl still wins.
+  const shorter = store.renewLock({ lockId: r.lock.id, agentId: a.id, ttlMs: 5 * 60_000 });
+  assert.equal(shorter.lock.expiresAt - now(), 5 * 60_000);
+  store.close();
+  rm(dir);
+});
+
+// WF-G122 (2026-09-09): unlock <path> must not drop a worker's other files.
+test('WF-G122: shrinkLock drops one token and keeps the rest; the last token releases', () => {
+  const dir = tmpDir();
+  const store = createStore({ dir });
+  const a = store.registerAgent({ petSlug: 'gf-sd', handle: 'shrinker' });
+  const r = store.acquireLock({ agentId: a.id, paths: ['src/a.ts', 'src/b.ts', 'src/c.ts'], ttlMs: 60_000 });
+  const s1 = store.shrinkLock({ lockId: r.lock.id, agentId: a.id, paths: ['src/b.ts'] });
+  assert.equal(s1.ok, true);
+  assert.equal(s1.released, false);
+  assert.deepEqual(s1.lock.paths, ['src/a.ts', 'src/c.ts']);
+  assert.equal(s1.lock.id, r.lock.id);
+  assert.equal(s1.lock.expiresAt, r.lock.expiresAt, 'expiry untouched');
+  // b.ts is free for someone else now; a.ts is still held.
+  const b = store.registerAgent({ petSlug: 'gf-sd', handle: 'other' });
+  assert.equal(store.acquireLock({ agentId: b.id, paths: ['src/b.ts'] }).ok, true);
+  assert.equal(store.acquireLock({ agentId: b.id, paths: ['src/a.ts'] }).ok, false);
+  const s2 = store.shrinkLock({ lockId: r.lock.id, agentId: a.id, paths: ['src/a.ts', 'src/c.ts'] });
+  assert.equal(s2.released, true);
+  assert.equal(store.listLocks().some((l) => l.id === r.lock.id), false);
+  assert.equal(store.shrinkLock({ lockId: 'nope', agentId: a.id, paths: ['x'] }).ok, false);
+  store.close();
+  rm(dir);
+});
+
+// WF-G121 (2026-09-09): an idle reserver on a FREE file must not block the lock forever.
+test('WF-G121: a stale head reservation on an unlocked file yields to a lock request after the grace', () => {
+  const dir = tmpDir();
+  const now = makeClock();
+  const store = createStore({ dir, now, reservationGraceMs: 120_000 });
+  const idle = store.registerAgent({ petSlug: 'gf-sd', handle: 'idle-reserver' });
+  const worker = store.registerAgent({ petSlug: 'gf-sd', handle: 'needs-it' });
+  const res = store.reserveFiles({ agentId: idle.id, paths: ['tools/agora/AGENT.md'] });
+  assert.equal(res.ok, true);
+  // The first request that finds the file free starts the grace clock; the reservation still wins.
+  now.advance(60_000);
+  let r = store.acquireLock({ agentId: worker.id, paths: ['tools/agora/AGENT.md'] });
+  assert.equal(r.ok, false);
+  assert.equal(r.conflict.type, 'reservation');
+  // Still inside the grace: the reservation keeps its place.
+  now.advance(60_000);
+  r = store.acquireLock({ agentId: worker.id, paths: ['tools/agora/AGENT.md'] });
+  assert.equal(r.ok, false);
+  // Past the grace, with nobody holding the file, the lock is granted and the idle reservation is gone.
+  now.advance(121_000);
+  r = store.acquireLock({ agentId: worker.id, paths: ['tools/agora/AGENT.md'] });
+  assert.equal(r.ok, true, JSON.stringify(r.conflict));
+  assert.equal(store.listReservations().length, 0);
+  // But a reservation queued behind a HELD file keeps its place, however old.
+  const third = store.registerAgent({ petSlug: 'gf-sd', handle: 'third' });
+  store.reserveFiles({ agentId: idle.id, paths: ['tools/agora/AGENT.md'] });
+  now.advance(600_000);
+  const blocked = store.acquireLock({ agentId: third.id, paths: ['tools/agora/AGENT.md'] });
+  assert.equal(blocked.ok, false);
+  assert.equal(store.listReservations().length, 1);
+  store.close();
   rm(dir);
 });

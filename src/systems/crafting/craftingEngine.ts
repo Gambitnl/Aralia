@@ -21,7 +21,8 @@
  */
 import { Item, PlayerCharacter } from '../../types';
 import { CraftingRecipe, CraftingTool, ALL_RECIPES } from './alchemyRecipes';
-import { rollDice } from '../../utils/combat';
+import { rollDice } from '../dice/rollers';
+import type { CraftingBenchAction } from '../../state/actionTypes';
 import { rollAbilityCheck } from '../../utils/character/checkUtils';
 import {
     determineCraftingQuality,
@@ -330,8 +331,8 @@ export function attemptCrafting(
 export function generateCraftingActions(
     recipe: CraftingRecipe,
     result: CraftingResult
-): { type: string; payload: unknown }[] {
-    const actions: { type: string; payload: unknown }[] = [];
+): CraftingBenchAction[] {
+    const actions: CraftingBenchAction[] = [];
 
     // Consume ingredients
     if (result.materialsConsumed) {

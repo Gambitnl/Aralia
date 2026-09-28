@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { buildRacialTraitLibrary } from '../racialTraits';
 import { GOLIATH_DATA } from '../goliath';
 import { RAVENITE_DRAGONBORN_DATA } from '../ravenite_dragonborn';
+import { HARENGON_DATA } from '../harengon';
 
 describe('Racial Reaction Parser', () => {
   it('should extract Stone\'s Endurance reaction from Goliath ancestry benefits', () => {
@@ -49,6 +50,19 @@ describe('Racial Reaction Parser', () => {
     expect(reaction.effect.type).toBe('DAMAGE');
     expect(reaction.effect.damage.dice).toBe('1d8');
     expect(reaction.effect.damage.type).toBe('Thunder');
+  });
+
+  it("should fire Harengon's Lucky Footwork on the failed save, not on damage taken", () => {
+    const library = buildRacialTraitLibrary({ harengon: HARENGON_DATA });
+    const trait = library.byRaceId['harengon'].find(t => t.traitName === 'Lucky Footwork') as any;
+
+    const reaction = trait.modifierBuckets.reactions[0];
+    expect(reaction.name).toBe('Lucky Footwork');
+    // A damage trigger made this reaction offer itself on every hit taken; the
+    // trait only fires on the Dexterity save it adds its d4 to.
+    expect(reaction.trigger.type).toBe('on_failed_saving_throw');
+    expect(reaction.condition).toEqual({ type: 'save', saveType: 'Dexterity' });
+    expect(reaction.effect.savingThrowModifier.dice).toBe('d4');
   });
 
   it('should extract Vengeful Assault reaction from Ravenite Dragonborn', () => {

@@ -81,6 +81,14 @@ test('reconcileGaps: routed/unknown statuses land in their own buckets', () => {
   assert.ok(CLOSED_STATUSES.has('routed'));
 });
 
+test('WF-G259: reconcile never auto-resolves a repair awaiting daemon restart', () => {
+  const task = { id: 't259', state: 'done', title: 'daemon repair', refs: ['workflow:WF-G50'], result: 'local tests passed' };
+  const gap = { id: 'WF-G50', project: 'workflow', status: 'pending_restart', file: 'tools/agora/WORKFLOW_GAPS.md' };
+  const report = reconcileGaps([task], [gap]);
+  assert.equal(report.staleOpen.length, 0);
+  assert.deepEqual(report.pendingRestart.map((item) => item.gap.id), ['WF-G50']);
+});
+
 // --- WF-G5/G2: registry-driven dispatch -------------------------------------
 
 test('launchSpec + probeAgent are registry-driven; kilo is wired', () => {
@@ -90,7 +98,12 @@ test('launchSpec + probeAgent are registry-driven; kilo is wired', () => {
   assert.deepEqual(kilo.args, ['run', '-m', 'kilo/kilo-auto/free', 'PROMPT']);
   const codex = launchSpec('codex', 'P', reg);
   assert.equal(codex.cmd, 'codex');
-  assert.throws(() => launchSpec('cursor', 'P', reg), /no launch spec/);
+  // cursor was wired after this test was written (agents.json pins the
+  // versioned cursor-agent.cmd path), so it now HAS a launch spec.
+  assert.equal(launchSpec('cursor', 'P', reg).cmd.endsWith('cursor-agent.cmd'), true);
+  // agy dispatches through the dashboard prompt-file runner, not through
+  // `orchestrate dispatch`, so it is the lane with no launch spec.
+  assert.throws(() => launchSpec('agy', 'P', reg), /needs a prompt file/);
 
   // probeAgent honors quotaProbe from an injected registry (stubbed command).
   const stub = {

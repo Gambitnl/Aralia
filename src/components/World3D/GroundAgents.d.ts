@@ -47,5 +47,6 @@ interface GroundAgentsProps {
     sceneOrigin: SceneOrigin;
     /** Visual size multiplier for figures (preview exaggeration). Default 1. */
     figureScale?: number;
+}
 declare const GroundAgents: React.FC<GroundAgentsProps>;
 export default GroundAgents;

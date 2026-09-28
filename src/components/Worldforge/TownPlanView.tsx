@@ -53,6 +53,7 @@ import {
   type StreetTierName,
 } from '../../systems/worldforge/town/streetRibbons';
 import type { TownStreet } from '../../systems/worldforge/town/townStreetNetwork';
+import type { VillageIntegrationProfile } from '../../data/villagePersonalityProfiles';
 import { useTownLayers, TOWN_LAYER_DEFS } from './useDrillLayers';
 import DrillLayerPanel from './DrillLayerPanel';
 
@@ -101,6 +102,14 @@ export interface TownPlanViewProps {
    * the TOWN, so a brook and a great river drew identically.
    */
   riverWidth?: number;
+  /**
+   * The settlement's authored FLAVOR — tagline, cultural signature and encounter
+   * hooks — resolved by `getCanonicalTownPersonality` from the same (atlas,
+   * worldSeed, burgId) that produced `plan`. Rendered as a caption over the map
+   * so the reader gets what the place FEELS like beside what it looks like.
+   * Absent for previews and fixtures that have no burg behind them.
+   */
+  personality?: VillageIntegrationProfile;
 }
 
 const CIVIC_COLOR: Record<CivicKind, string> = {
@@ -523,6 +532,7 @@ const TownPlanView: React.FC<TownPlanViewProps> = ({
   water,
   coast,
   riverWidth,
+  personality,
 }) => {
   const { layers, toggle } = useTownLayers(prefsScope);
   const bounds = useMemo(() => polygonBounds(plan.footprint), [plan]);
@@ -1232,6 +1242,28 @@ const TownPlanView: React.FC<TownPlanViewProps> = ({
         </g>
       )}
     </svg>
+    {/* Settlement flavor caption. The map answers what the town looks like; this
+        answers what it feels like. Both are derived from the same canonical burg,
+        so the caption can never describe a different settlement than the one drawn. */}
+    {personality && (
+      <div
+        data-testid="town-personality"
+        data-personality-profile-id={personality.id}
+        style={{
+          position: 'absolute', left: 8, right: 8, bottom: 8,
+          padding: '6px 10px', borderRadius: 4,
+          background: '#1c150aee', border: '1px solid #ffe08a',
+          fontFamily: 'Georgia, serif', pointerEvents: 'none',
+        }}
+      >
+        <div data-testid="town-personality-tagline" style={{ fontSize: 13, fontWeight: 700, color: '#ffe08a' }}>
+          {personality.tagline}
+        </div>
+        <div data-testid="town-personality-signature" style={{ fontSize: 11, color: '#e8dcc0' }}>
+          {personality.culturalSignature}
+        </div>
+      </div>
+    )}
     </div>
   );
 };

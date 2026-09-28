@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 13/08/2026, 13:33:52
+ * Last Sync: 26/08/2026, 03:12:04
  * Dependents: commands/effects/AttackRollModifierCommand.ts, commands/effects/DamageCommand.ts, commands/effects/GraspingVineCommand.ts, commands/effects/ReactiveEffectCommand.ts, commands/factory/AbilityCommandFactory.ts, commands/factory/SpellCommandFactory.ts
  * Imports: 14 files
  *
@@ -27,7 +27,7 @@ import { CombatState, StatusEffect, ActiveCondition, ActiveEffect, ActiveEnviron
 import { isStatusConditionEffect, EffectDuration, ConditionName, BindingControl, DominationControl, StatusCondition, StatusConditionEffect, RepeatSave, SpellcastingRestriction } from '../../types/spells';
 import { calculateSpellDC, rollSavingThrow, resolveSaveOutcomeOverride } from '../../utils/character';
 import { generateId } from '../../utils/combat';
-import { STATUS_ICONS, DEFAULT_STATUS_ICON } from '@/config/statusIcons';
+import { getStatusVisual } from '@/types/visuals';
 import { SavePenaltySystem } from '../../systems/combat/SavePenaltySystem';
 import { ConditionToStateTag } from '../../types/elemental';
 import { applyStateToTags } from '../../systems/physics/ElementalInteractionSystem';
@@ -36,6 +36,7 @@ import { refreshConditionsByName, refreshStatusEffectsByName } from '../../utils
 import { getRecurringMechanics } from '../../hooks/spellEffectUtils';
 import { resolveSourceSaveAdvantageModifiers } from '../../systems/spells/mechanics/sourceSaveModifierResolution';
 import { isIncapacitated } from '../../utils/combat/deathSaveUtils';
+import { getStatusDiscriminator } from '../../types/combatMessages';
 
 const FRIENDS_MEMORY_DURATION_ROUNDS = 24 * 60 * 10;
 const SPECIAL_STATUS_DURATION_ROUNDS = Number.MAX_SAFE_INTEGER;
@@ -185,7 +186,8 @@ export class StatusConditionCommand extends BaseEffectCommand {
         const saveResult = resolveSaveOutcomeOverride(
           this.effect.condition.saveOutcomeOverrides,
           target,
-          dc
+          dc,
+          caster.team
         ) ?? rollSavingThrow(
           target,
           this.effect.condition.saveType,
@@ -281,6 +283,10 @@ export class StatusConditionCommand extends BaseEffectCommand {
         message: `${target.name} is now ${statusCondition.name}`,
         characterId: target.id,
         targetIds: [target.id],
+        // agora-db71.10: the emitter knows which status it just applied, so it says so.
+        // The adapter's live lookup can only classify a record whose named effect is still
+        // on the character when the record is converted; a stamp survives that.
+        eventClass: getStatusDiscriminator(appliedStatus.type)?.eventClass,
         data: { statusId: appliedStatus.id, condition: appliedCondition }
       });
 
@@ -861,7 +867,7 @@ export class StatusConditionCommand extends BaseEffectCommand {
   }
 
   private getIconForCondition(name: string): string {
-    return STATUS_ICONS[name] || DEFAULT_STATUS_ICON;
+    return getStatusVisual(name).icon;
   }
 
   get description(): string {

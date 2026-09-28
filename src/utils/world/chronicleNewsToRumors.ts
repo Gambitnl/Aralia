@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 14/07/2026, 17:49:10
+ * Last Sync: 30/08/2026, 01:49:14
  * Dependents: hooks/useChronicleRumorsSync.ts
  * Imports: 3 files
  *
@@ -45,6 +45,9 @@ const KIND_TO_TYPE: Record<LifeEventKind, WorldRumor['type']> = {
   economy: 'market',
   disaster: 'event',
   building: 'event',
+  // Player outcomes use the ordinary local-event channel; stable chronicle ids
+  // make repeated syncs idempotent just like sim-authored town events.
+  player_intervention: 'event',
   raid_worry: 'event',
   death: 'event',
   role_succession: 'event',

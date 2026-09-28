@@ -56,7 +56,10 @@
     "maxTargets": 1,
     "filter": {
       "creatureTypes": [],
-      "excludeCreatureTypes": [],
+      "excludeCreatureTypes": [
+        "Construct",
+        "Undead"
+      ],
       "sizes": [],
       "alignments": [],
       "hasCondition": [],
@@ -106,7 +109,10 @@
         "saveEffect": "negates_condition",
         "targetFilter": {
           "creatureTypes": [],
-          "excludeCreatureTypes": [],
+          "excludeCreatureTypes": [
+            "Construct",
+            "Undead"
+          ],
           "sizes": [],
           "alignments": [],
           "hasCondition": [],
@@ -186,7 +192,10 @@
         "saveEffect": "negates_condition",
         "targetFilter": {
           "creatureTypes": [],
-          "excludeCreatureTypes": [],
+          "excludeCreatureTypes": [
+            "Construct",
+            "Undead"
+          ],
           "sizes": [],
           "alignments": [],
           "hasCondition": [],

@@ -603,6 +603,10 @@ export function assemblePlayerCharacter(currentState: CharacterCreationState, cu
       selectedDivineOrder: currentState.selectedDivineOrder || undefined,
       selectedDruidOrder: currentState.selectedDruidOrder || undefined,
       selectedWarlockPatron: currentState.selectedWarlockPatron || undefined,
+      // Set only when the campaign's rules edition puts the subclass choice at
+      // level 1 (2014 cleric / sorcerer). Left undefined under 2024 so the
+      // level-3 level-up flow still asks.
+      subclassId: currentState.selectedSubclassId || undefined,
       racialSelections: currentState.racialSelections,
       visuals: currentState.visuals,
       visualDescription: currentState.visualDescription || undefined,

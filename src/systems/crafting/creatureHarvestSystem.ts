@@ -20,7 +20,7 @@
  */
 import { Crafter } from './craftingSystem';
 import { CreaturePart, HarvestableCreature, getCreatureById } from './creatureHarvestData';
-import { rollDice } from '../../utils/combat';
+import { rollDice } from '../dice/rollers';
 
 export interface CreatureHarvestResult {
     success: boolean;

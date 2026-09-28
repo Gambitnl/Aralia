@@ -26,6 +26,16 @@ export enum ConditionType {
    * Mechanically treated as a condition for tracking duration and removal.
    */
   Ignited = 'Ignited',
+  /**
+   * Non-standard condition: Target is encased in ice.
+   * Applied by freezing effects; tracked like any other condition.
+   */
+  Frozen = 'Frozen',
+  /**
+   * Non-standard condition: Target is numbed by deep cold.
+   * The milder cold condition; does not incapacitate.
+   */
+  Chilled = 'Chilled',
 }
 
 /**
@@ -192,6 +202,25 @@ export const ConditionDefinitions: Record<ConditionType, ConditionTraits> = {
     mechanics: [
       "Take fire damage at the start of each turn",
       "Can usually be extinguished as an Action",
+    ],
+  },
+  [ConditionType.Frozen]: {
+    description: "You are encased in ice, unable to move or act.",
+    mechanics: [
+      "Incapacitated (no actions/reactions)",
+      "Speed becomes 0",
+      "Auto-fail Strength and Dexterity saves",
+      "Attack rolls against you have Advantage",
+      "Ends when the ice is shattered or melted",
+    ],
+    isIncapacitating: true,
+  },
+  [ConditionType.Chilled]: {
+    description: "Deep cold numbs your limbs.",
+    mechanics: [
+      "Speed halved",
+      "Disadvantage on Dexterity saving throws",
+      "Ends when you warm up or the cold source is removed",
     ],
   },
 };

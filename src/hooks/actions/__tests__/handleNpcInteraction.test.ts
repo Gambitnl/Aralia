@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { Dispatch } from 'react';
 import { handleStartDialogue, handleTalk } from '../handleNpcInteraction';
-import type { Action, GameState } from '../../../types';
+import type { Action, GameState, KnownFact } from '../../../types';
 import type { AppAction } from '../../../state/actionTypes';
 import { evaluateRecruitOffer } from '../../../systems/party/recruitConsent';
 import { npcToPartyMember, promoteCompanionToMember } from '../../../systems/party/npcToPartyMember';
@@ -188,6 +188,43 @@ describe('handleStartDialogue', () => {
     expect(mockDispatch.mock.calls.some(([dispatched]) => dispatched.type === 'ADD_NPC_KNOWN_FACT')).toBe(true);
     expect(mockDispatch.mock.calls.some(([dispatched]) => dispatched.type === 'ADD_MET_NPC')).toBe(true);
     expect(mockDispatch.mock.calls.some(([dispatched]) => dispatched.type === 'START_DIALOGUE_SESSION')).toBe(true);
+  });
+
+  it('records the first-contact fact through the action-memory matrix (agora-f821.15)', async () => {
+    const action: Action = {
+      type: 'talk',
+      payload: { npcId: 'npc_1' },
+    } as Action;
+
+    await handleStartDialogue({
+      action,
+      gameState: mockGameState,
+      dispatch: mockDispatch as unknown as Dispatch<AppAction>,
+      addMessage: mockAddMessage,
+      addGeminiLog: mockAddGeminiLog,
+      playPcmAudio: mockPlayPcmAudio,
+      playerContext: 'Test adventurer',
+      generalActionContext: 'Testing first contact',
+    });
+
+    const fact = (
+      dispatchedPayload(mockDispatch as unknown as DispatchMock, 'ADD_NPC_KNOWN_FACT') as
+        { fact: KnownFact }
+    ).fact;
+
+    // The wording and the four table values the hand-rolled literal used are
+    // unchanged; what changed is who owns them.
+    expect(fact.text).toBe('Met the adventurer.');
+    expect(fact.source).toBe('direct');
+    expect(fact.isPublic).toBe(true);
+    expect(fact.strength).toBe(3);
+    expect(fact.lifespan).toBe(999);
+    expect(fact.timestamp).toBe(gameTime.getTime());
+
+    // The matrix signature: a deterministic id and a semantic key, neither of
+    // which a `generateId()` literal could produce.
+    expect(fact.factKey).toBe('player_met_npc');
+    expect(fact.id).toMatch(/^amm:npc_1:met:/);
   });
 });
 

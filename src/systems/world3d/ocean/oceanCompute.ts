@@ -1,12 +1,13 @@
 /**
  * @file oceanCompute.ts — the ocean on the GPU, in TSL.
  *
- * FOUR KERNELS, RUN 18 TIMES A FRAME
+ * FOUR KERNELS, FOUR DISPATCHES A FRAME
  *
  *   1. `pack`   — evolve the spectrum to time t and build 4 packed complex
  *                 fields per cascade. One dispatch.
- *   2. `hStep`  — one radix-2 Stockham stage along X. Eight dispatches.
- *   3. `vStep`  — one radix-2 Stockham stage along Z. Eight dispatches.
+ *   2. `hAxis`  — the eight radix-2 Stockham stages along X, in workgroup
+ *                 memory. One dispatch.
+ *   3. `vAxis`  — the same along Z. One dispatch.
  *   4. `unpack` — split the transform output into displacement and normal,
  *                 apply the centered-k sign and the transform scale. One
  *                 dispatch.
@@ -24,8 +25,11 @@
  *   is a power-of-two mask (`bitAnd`) or a shift (`shiftRight`), which is the
  *   same arithmetic with no trap. `modInt` is not needed either.
  *
- *   Never scatter-write from a compute shader. EVERY kernel below writes
- *   exactly one element, at its own `instanceIndex`. The pack kernel
+ *   Never scatter-write from a compute shader: no two work items may write
+ *   one address. Every kernel below gathers. `pack` and `unpack` write only
+ *   their own `instanceIndex`; an axis kernel's thread writes the two outputs
+ *   of its line that no other thread writes, with a barrier between stages
+ *   (performance pass, 2026-09-25, when 16 stage dispatches became 2). The pack kernel
  *   recomputes the evolved spectrum four times rather than write four
  *   elements once — two sine evaluations are cheaper than a rule exception.
  *
@@ -35,10 +39,9 @@
  *
  *   Ping-pong buffers need explicit rebinding. A TSL compute node captures
  *   its storage bindings when it is BUILT. Swapping two JavaScript references
- *   afterwards changes nothing on the GPU. So this file builds BOTH
- *   directions of every ping-pong kernel up front — `hStepAB` and `hStepBA`,
- *   `vStepAB` and `vStepBA` — and alternates which node it dispatches. There
- *   is no swap.
+ *   afterwards changes nothing on the GPU. So this file builds each axis
+ *   kernel on its own fixed pair — `hAxis` reads A and writes B, `vAxis`
+ *   reads B and writes A — and the unpack reads A. There is no swap.
  *
  * WHY THE FFT LIVES IN BUFFERS AND NOT IN STORAGE TEXTURES
  *
@@ -50,6 +53,23 @@
  * yet, and inventing one inside an unproven FFT would have hidden which of
  * the two was wrong.
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 25/09/2026, 05:21:02
+ * Dependents: systems/world3d/ocean/index.ts, systems/world3d/ocean/oceanField.ts, systems/world3d/ocean/oceanNormalMip.ts, systems/world3d/ocean/oceanRain.ts, systems/world3d/ocean/oceanSampler.ts, systems/world3d/ocean/oceanSurface.ts
+ * Imports: 2 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import {
   Fn,
   bitAnd,
@@ -65,7 +85,13 @@ import {
   uniform,
   vec2,
   vec4,
+  workgroupArray,
+  workgroupBarrier,
+  textureStore,
+  uint,
+  uvec2,
 } from 'three/tsl';
+import * as THREE from 'three/webgpu';
 import { StorageBufferAttribute } from 'three/webgpu';
 import {
   FIELDS_PER_CASCADE,
@@ -90,6 +116,28 @@ export interface OceanGpuBuffers {
   readonly disp: StorageBufferAttribute;
   /** vec4 per cell per cascade: normal xyz, unused w. */
   readonly norm: StorageBufferAttribute;
+  /**
+   * `disp` and `norm` again, as bordered texture ATLASES for the render-side
+   * readers (performance pass, 2026-09-25): one column of n + 2 texels per
+   * cascade, the plane inside a one-texel border that holds the opposite
+   * edge, so a hardware-bilinear fetch reproduces the wrapped four-read of
+   * `oceanSampler.ts`. Written each frame after the unpack
+   * (`buildOceanKernels`), read by `createOceanSampler(..., { filtered })`.
+   */
+  readonly dispTex: THREE.StorageTexture;
+  readonly normTex: THREE.StorageTexture;
+}
+
+/** A bordered plane atlas: (n + 2) x cascades wide, n + 2 tall, half float, filtered. */
+function makePlaneAtlas(n: number, cascades: number): THREE.StorageTexture {
+  const t = new THREE.StorageTexture((n + 2) * cascades, n + 2);
+  t.type = THREE.HalfFloatType;
+  t.wrapS = THREE.ClampToEdgeWrapping;
+  t.wrapT = THREE.ClampToEdgeWrapping;
+  t.magFilter = THREE.LinearFilter;
+  t.minFilter = THREE.LinearFilter;
+  t.generateMipmaps = false;
+  return t;
 }
 
 /**
@@ -130,6 +178,8 @@ export function createOceanBuffers(
     fftB: new StorageBufferAttribute(new Float32Array(cells * 2 * FIELDS_PER_CASCADE * c), 2),
     disp: new StorageBufferAttribute(new Float32Array(cells * 4 * c), 4),
     norm: new StorageBufferAttribute(new Float32Array(cells * 4 * c), 4),
+    dispTex: makePlaneAtlas(n, c),
+    normTex: makePlaneAtlas(n, c),
   };
 
   return { buffers, spectra };
@@ -177,7 +227,31 @@ function buildPack(
   // Per-cascade choppiness, read by cascade index. A handful of cascades is
   // few enough that a select chain is cheaper and far clearer than a uniform
   // buffer, and every branch of it is a constant the compiler folds.
-  const chops = choppiness.map((c) => uniform(c));
+  //
+  // THE SIGN IS NEGATIVE, AND THAT IS WHAT PUTS THE CUSP ON THE CREST.
+  //
+  // Tessendorf writes the horizontal displacement as
+  // D = sum -i (k/|k|) hhat e^{ikx}, and the spectra below carry that -i.
+  // Under this pipeline's transform convention the formula moves surface
+  // points AWAY from crests. Measured on a single wave h = cos(kx) at
+  // choppiness 1 (the CPU mirror, which the cross-check proves equal to this
+  // kernel): the folding Jacobian was 1.79 at the crest and 0.21 in the
+  // trough. So the sea had stretched, rounded crests over cusped troughs, and
+  // the foam its Jacobian drove sat in the troughs. A critic read it as
+  // "tonal bands rather than shapes".
+  //
+  // Deep-water orbital motion says the opposite. The horizontal velocity at
+  // the surface is u = a w cos(kx - wt); it integrates to a displacement
+  // -a sin(kx - wt), which is toward the crest on both sides of it. Surface
+  // particles converge on crests, which is why a crest is sharp.
+  //
+  // Negating the choppiness flips D and every derivative of D together, so
+  // the Jacobian's distribution is unchanged (the linear field is symmetric)
+  // and only its LOCATION moves, from trough to crest. Every measured foam
+  // coverage in oceanConfig.ts therefore still holds. The CPU mirror in
+  // oceanFieldReference.ts negates the same way, and the sign gate in
+  // oceanSpectrum.test.ts asserts that height and Jacobian anticorrelate.
+  const chops = choppiness.map((c) => uniform(-c));
 
   return Fn(() => {
     const i = int(instanceIndex);
@@ -256,91 +330,140 @@ function buildPack(
 }
 
 /* ------------------------------------------------------------------ */
-/* Kernels 2 and 3 — one Stockham stage                                */
+/* Kernels 2 and 3 — one whole axis of the transform                   */
 /* ------------------------------------------------------------------ */
 
 /**
- * One radix-2 Stockham stage, gather form.
+ * ONE WHOLE AXIS OF THE TRANSFORM IN ONE DISPATCH: the eight radix-2
+ * Stockham stages of one axis, gather form (performance pass, 2026-09-25).
  *
- * MIRRORS `oceanFftIndex()` in `oceanFftReference.ts` NODE FOR NODE. vitest
- * proves that function against a naive DFT; this is the same arithmetic in
- * TSL. A divergence between the two is a bug in the mirror.
+ * MIRRORS `oceanFftIndex()` in `oceanFftReference.ts` NODE FOR NODE, stage by
+ * stage. vitest proves that function against a naive DFT; this is the same
+ * arithmetic in TSL, and a divergence between the two is a bug in the mirror.
  *
  * THE STAGE IS A COMPILE-TIME CONSTANT, NOT A UNIFORM, AND THAT IS LOAD
- * BEARING.
+ * BEARING. The stages are unrolled in JavaScript, so `m` and the shifts fold
+ * into constants. A `stage` uniform bumped between dispatches would be wrong
+ * in the quiet way this project has been burned by twice: buffer writes queued
+ * before a submit all land before any command in it runs, so every dispatch
+ * would see the last value.
  *
- * The obvious build is one kernel with a `stage` uniform, dispatched eight
- * times with the uniform bumped between calls. It is wrong, and it is wrong
- * in the quiet way this project has already been burned by twice.
+ * The stages run in workgroup memory. One
+ * workgroup of n/2 threads owns one line (a row, or a column, of one plane):
+ * it loads the line's n values into a workgroup array, runs the eight stages
+ * between two arrays with a barrier after each, and writes the line back.
+ * The buffer is read once and written once per axis, where the old one-stage
+ * kernels read it and wrote it eight times, and 16 dispatches became 2.
+ * Measured A/B in the same minutes (perf iteration 3): the sea's compute
+ * 1.2 -> 0.5 ms, overall frame time 5.10 -> 4.30 ms across five scenes, and
+ * the field hash BIT-IDENTICAL to the stage chain at two sea times.
  *
- * Setting a uniform issues a buffer write. Buffer writes queued before a
- * submit all land BEFORE any command in that submit runs. Eight dispatches in
- * one frame therefore see the LAST value written, not the value that was set
- * before each one. The transform would silently run stage 7 eight times and
- * still produce something that looks like waves.
+ * THE ARITHMETIC IS THE OLD STAGE KERNEL'S, UNCHANGED. Each thread takes the
+ * outputs o = lane and o = lane + n/2 of every stage and computes each from
+ * the same gather: `k`, `q2`, the two input indices, the twiddle angle
+ * pi*k/m, the butterfly sign. So every value is the one the one-stage kernels
+ * produced, and the output lands in natural order at the same address.
  *
- * So every stage gets its own compiled kernel, with `m` and the shifts folded
- * into constants. Sixteen pipelines, built once, and no per-frame uniform to
- * race. The compiler also constant-folds every mask, which is free speed.
- *
- * @param vertical false transforms along X, true along Z.
- * @param stage    Stockham stage index, baked in.
+ * NO WRITE RACE. The registered hazard is two work items writing one
+ * address (the fluid kernel lost mass to it). Here each output index has
+ * exactly one writer in every stage, and the barriers order the stages; the
+ * form is still gather.
  */
-function buildFftStage(
+function buildFftAxis(
   bufs: OceanGpuBuffers,
   src: StorageBufferAttribute,
   dst: StorageBufferAttribute,
   vertical: boolean,
-  stage: number,
 ) {
   const n = bufs.n;
   const logN = log2Exact(n);
   const half = n >> 1;
-  const m = 1 << stage;
+  const lines = src.count / n;
 
   const readBuf = storage(src, 'vec2', src.count).toReadOnly();
   const writeBuf = storage(dst, 'vec2', dst.count);
+  const shA = workgroupArray('vec2', n);
+  const shB = workgroupArray('vec2', n);
 
   return Fn(() => {
-    const i = int(instanceIndex);
-
-    // Split the flat index into plane, row and column.
-    const planeBase = bitAnd(i, int(~((n * n) - 1))).toVar();
-    const rem = bitAnd(i, int((n * n) - 1)).toVar();
-    const z = shiftRight(rem, int(logN)).toVar();
-    const x = bitAnd(rem, int(n - 1)).toVar();
-
-    // `o` is the index ALONG the transformed axis; `lineBase` turns an index
-    // along that axis back into a flat address.
-    const o = vertical ? z : x;
-    const lineBase = vertical ? planeBase.add(x) : planeBase.add(shiftLeft(z, int(logN)));
-
-    // --- the mirror of oceanFftIndex() ---
-    const k = bitAnd(o, int(m - 1)).toVar();
-    const q2 = shiftRight(o, int(stage)).toVar();
-    const aIdx = shiftRight(q2, int(1)).mul(int(m)).add(k).toVar();
-    const bIdx = aIdx.add(int(half)).toVar();
-
+    const g = int(instanceIndex);
+    // n/2 threads per line: the line index and the lane within it.
+    const line = shiftRight(g, int(logN - 1)).toVar();
+    const lane = bitAnd(g, int(half - 1)).toVar();
+    // A line is row `pos` (horizontal) or column `pos` (vertical) of one plane.
+    const planeBase = shiftLeft(shiftRight(line, int(logN)), int(2 * logN)).toVar();
+    const pos = bitAnd(line, int(n - 1)).toVar();
+    const lineBase = (vertical ? planeBase.add(pos) : planeBase.add(shiftLeft(pos, int(logN)))).toVar();
     const flat = (idx: ReturnType<typeof int>) => (vertical
       ? lineBase.add(shiftLeft(idx, int(logN)))
       : lineBase.add(idx));
+    const o0 = lane;
+    const o1 = lane.add(int(half)).toVar();
 
-    const a = readBuf.element(flat(aIdx)).toVar();
-    const b = readBuf.element(flat(bIdx)).toVar();
+    shA.element(o0).assign(readBuf.element(flat(o0)));
+    shA.element(o1).assign(readBuf.element(flat(o1)));
+    workgroupBarrier();
 
-    // Inverse transform: positive twiddle sign. 2*pi*k / (2m) = pi*k/m.
-    const ang = float(k).mul(float(Math.PI / m)).toVar();
-    const wr = cos(ang).toVar();
-    const wi = sin(ang).toVar();
+    let cur = shA;
+    let nxt = shB;
+    for (let stage = 0; stage < logN; stage += 1) {
+      const m = 1 << stage;
+      for (const o of [o0, o1]) {
+        // --- the mirror of oceanFftIndex() ---
+        const k = bitAnd(o, int(m - 1)).toVar();
+        const q2 = shiftRight(o, int(stage)).toVar();
+        const aIdx = shiftRight(q2, int(1)).mul(int(m)).add(k).toVar();
+        const bIdx = aIdx.add(int(half)).toVar();
+        const a = cur.element(aIdx).toVar();
+        const b = cur.element(bIdx).toVar();
+        const ang = float(k).mul(float(Math.PI / m)).toVar();
+        const wr = cos(ang).toVar();
+        const wi = sin(ang).toVar();
+        const tr = wr.mul(b.x).sub(wi.mul(b.y)).toVar();
+        const ti = wr.mul(b.y).add(wi.mul(b.x)).toVar();
+        const sgn = select(bitAnd(q2, int(1)).equal(int(0)), float(1), float(-1)).toVar();
+        nxt.element(o).assign(vec2(a.x.add(sgn.mul(tr)), a.y.add(sgn.mul(ti))));
+      }
+      workgroupBarrier();
+      const t = cur;
+      cur = nxt;
+      nxt = t;
+    }
 
-    const tr = wr.mul(b.x).sub(wi.mul(b.y)).toVar();
-    const ti = wr.mul(b.y).add(wi.mul(b.x)).toVar();
+    writeBuf.element(flat(o0)).assign(cur.element(o0));
+    writeBuf.element(flat(o1)).assign(cur.element(o1));
+  })().compute(lines * half, [half]);
+}
 
-    // The even half of the butterfly adds, the odd half subtracts.
-    const sgn = select(bitAnd(q2, int(1)).equal(int(0)), float(1), float(-1)).toVar();
+/* ------------------------------------------------------------------ */
+/* Kernel 5 — the plane atlases                                        */
+/* ------------------------------------------------------------------ */
 
-    writeBuf.element(i).assign(vec2(a.x.add(sgn.mul(tr)), a.y.add(sgn.mul(ti))));
-  })().compute(src.count);
+/**
+ * Copy `disp` and `norm` into their bordered atlases, one thread per atlas
+ * texel. Border texels (local -1 and n) take the opposite edge, so the
+ * sampler's bilinear fetch wraps exactly as its `bitAnd` four-read does.
+ * Gather form: each thread writes only its own texel of each atlas.
+ */
+function buildPlaneAtlas(bufs: OceanGpuBuffers) {
+  const n = bufs.n;
+  const cells = n * n;
+  const colW = n + 2;
+  const w = colW * bufs.cascades;
+  const dispRO = storage(bufs.disp, 'vec4', bufs.disp.count).toReadOnly();
+  const normRO = storage(bufs.norm, 'vec4', bufs.norm.count).toReadOnly();
+  return Fn(() => {
+    const i = int(instanceIndex);
+    const v = i.div(int(w));
+    const u = i.sub(v.mul(int(w)));
+    const c = u.div(int(colW));
+    const lu = u.sub(c.mul(int(colW)));
+    const ix = bitAnd(lu.sub(int(1)).add(int(n)), int(n - 1));
+    const iz = bitAnd(v.sub(int(1)).add(int(n)), int(n - 1));
+    const src = c.mul(int(cells)).add(iz.mul(int(n))).add(ix);
+    textureStore(bufs.dispTex, uvec2(uint(u), uint(v)), dispRO.element(src));
+    textureStore(bufs.normTex, uvec2(uint(u), uint(v)), normRO.element(src));
+  })().compute(w * colW);
 }
 
 /* ------------------------------------------------------------------ */
@@ -461,37 +584,12 @@ export function buildOceanKernels(
     },
   ];
 
-  // Each stage alternates the ping-pong direction AND gets its own compiled
-  // kernel. Both are required: the direction because bindings are captured at
-  // build time, the kernel because a stage uniform would collapse across the
-  // dispatches in one frame.
-  for (let s = 0; s < stages; s += 1) {
-    const fromA = s % 2 === 0;
-    dispatches.push({
-      node: buildFftStage(
-        bufs,
-        fromA ? bufs.fftA : bufs.fftB,
-        fromA ? bufs.fftB : bufs.fftA,
-        false,
-        s,
-      ),
-      label: `hStep${s}`,
-    });
-  }
-  for (let s = 0; s < stages; s += 1) {
-    const fromA = s % 2 === 0;
-    dispatches.push({
-      node: buildFftStage(
-        bufs,
-        fromA ? bufs.fftA : bufs.fftB,
-        fromA ? bufs.fftB : bufs.fftA,
-        true,
-        s,
-      ),
-      label: `vStep${s}`,
-    });
-  }
+  // THE TWO WHOLE-AXIS KERNELS (buildFftAxis): A -> B along X, B -> A along
+  // Z, so the result is in A and the unpack reads it there.
+  dispatches.push({ node: buildFftAxis(bufs, bufs.fftA, bufs.fftB, false), label: 'hAxis' });
+  dispatches.push({ node: buildFftAxis(bufs, bufs.fftB, bufs.fftA, true), label: 'vAxis' });
   dispatches.push({ node: buildUnpack(bufs, bufs.fftA), label: 'unpack' });
+  dispatches.push({ node: buildPlaneAtlas(bufs), label: 'planeAtlas' });
 
   return {
     dispatches,

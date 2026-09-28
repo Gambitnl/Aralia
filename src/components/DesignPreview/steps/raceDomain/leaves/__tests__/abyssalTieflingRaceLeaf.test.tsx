@@ -49,7 +49,8 @@ describe('Abyssal Tiefling Race leaf', () => {
     expect(baseline.actor).toMatchObject({
       class: { id: 'fighter' },
       level: 1,
-      resistances: ['poison'],
+      // Projected by the shared racial parser, in its canonical capitalization.
+      resistances: ['Poison'],
     });
     expect(baseline.actor?.currentHP).toBe(baseline.actor?.maxHP);
   });
@@ -91,7 +92,7 @@ describe('Abyssal Tiefling Race leaf', () => {
       />,
     );
 
-    expect(screen.getByTestId('abyssal-resistance-actor')).toHaveTextContent('Resistance: poison');
+    expect(screen.getByTestId('abyssal-resistance-actor')).toHaveTextContent('Resistance: Poison');
     expect(screen.getByTestId('abyssal-resistance-packet')).toHaveTextContent('Raw 15; Final not resolved');
     fireEvent.click(screen.getByRole('button', { name: /resolve abyssal damage/i }));
 
@@ -109,6 +110,6 @@ describe('Abyssal Tiefling Race leaf', () => {
 
     expect(screen.getByTestId('abyssal-resistance-packet')).toHaveTextContent('Raw 15; Final not resolved');
     expect(screen.getByTestId('abyssal-resistance-actor')).toHaveTextContent('HP 12/12');
-    expect(screen.getByTestId('abyssal-assembly-boundary')).toHaveTextContent('materialized into CombatCharacter.resistances');
+    expect(screen.getByTestId('abyssal-assembly-boundary')).toHaveTextContent('projected by the shared racial parser');
   });
 });

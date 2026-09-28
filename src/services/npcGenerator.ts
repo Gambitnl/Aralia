@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 27/02/2026, 09:28:59
- * Dependents: CompanionGenerator.ts, ThreeDModal.tsx, handleMerchantInteraction.ts, handleNpcInteraction.ts
- * Imports: 12 files
+ * Last Sync: 09/09/2026, 10:30:03
+ * Dependents: components/World3D/World3DWrapper.tsx, hooks/actions/handleMerchantInteraction.ts, hooks/actions/handleNpcInteraction.ts, services/CompanionGenerator.ts, systems/gameEntry/situationNpcToRichNpc.ts, systems/party/authoredCompanionToRichNpc.ts, systems/party/npcToPartyMember.ts, systems/worldforge/townsim/registerBurgMerchants.ts
+ * Imports: None
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -27,6 +27,15 @@ import { ALL_RACES_DATA } from '../data/races/index.js';
 import { ALL_ITEMS } from '../data/items/index.js';
 import { generateId } from '../utils/core/idGenerator.js';
 import { SeededRandom } from '../utils/random/seededRandom.js';
+import { generateSpeechProfile } from '../systems/social/speechProfile.js';
+import {
+  generateBackgroundBrief,
+  coerceBackgroundBiome,
+  coerceBackgroundCulture,
+  type RichNpcWithBackground,
+} from '../systems/npc/backgroundBrief.js';
+import { generatePersonality, describePersonality } from '../systems/npcPersonality/index.js';
+import { executeRoll, deriveRollSeed } from '../systems/dice/rollContract';
 
 const npcGeneratorRng = new SeededRandom(Date.now());
 
@@ -41,14 +50,19 @@ function randomInt(maxExclusive: number): number {
   return npcGeneratorRng.nextInt(0, maxExclusive);
 }
 
-// Helper to simulate dice rolls string (e.g. "2d10")
-function rollDiceString(diceString: string): number {
-  const [count, sides] = diceString.split('d').map(Number);
-  let total = 0;
-  for (let i = 0; i < count; i++) {
-    total += randomInt(sides) + 1;
-  }
-  return total;
+/**
+ * Seeds the body draws for one npc (agora-f821.7).
+ *
+ * WHY: height and weight used to come off the module RNG, which is seeded from
+ * `Date.now()`, so the same npc in the same town had a different body on every
+ * run. They are facts about a person, not flavor noise, so they key on the same
+ * (worldSeed, burg, npc id) triple `townRng` already uses. `index` separates the
+ * three draws through the contract's own avalanche mixer.
+ */
+function npcBodySeed(worldSeed: number, burgId: number, npcId: string, index: number): number {
+  const base =
+    (worldSeed + burgId * 7919 + [...npcId].reduce((h, c) => ((h * 31 + c.charCodeAt(0)) >>> 0), 7)) >>> 0;
+  return deriveRollSeed(base, index);
 }
 
 /**
@@ -211,7 +225,83 @@ export interface NPCGenerationConfig {
   backgroundId?: string;
   /** Optional gender override. If not provided, randomly determined. */
   gender?: 'male' | 'female';
+  /**
+   * Optional biome id/family of the NPC's home region. Feeds speech fingerprinting
+   * (agora-9e0f) so a harbor NPC and a highland NPC pick up different dialects.
+   */
+  biomeId?: string;
+  /**
+   * Optional culture/settlement tag. Also feeds speech fingerprinting; substring
+   * matched, so a settlement id, culture id or background tag all work.
+   */
+  cultureId?: string;
+  /**
+   * World seed this NPC belongs to. Only the deterministic background brief
+   * reads it: the same seed plus the same context always yields the same
+   * backstory, so an NPC regenerated from a save reads identically. Defaults to 0.
+   */
+  worldSeed?: number;
+  /**
+   * The town this NPC belongs to. When present, race and level are DERIVED from
+   * it (see `townRaceId` / `levelForTownWealth`) instead of defaulting to a
+   * human level-1 stranger. An explicit `raceId` / `level` still wins.
+   */
+  town?: TownProfile;
 }
+
+/**
+ * The town facts NPC generation reads: how rich the place is and who lives
+ * there. Sourced from the living-world sim (`systems/worldforge/townsim`):
+ * `wealth` is TownSimState.prosperity, `raceWeights` is the head count per race
+ * across its living villagers.
+ */
+export interface TownProfile {
+  /** Town prosperity meter, 0 (destitute) - 100 (rich). */
+  wealth: number;
+  /** Head count per race label in the town roster, e.g. `{ Human: 30, Dwarf: 4 }`. */
+  raceWeights: Record<string, number>;
+  /** Stable id of the town, used only to seed the deterministic draw. */
+  burgId?: number;
+}
+
+/** Race labels arrive as roster prose ("Half-Elf", "Draconic Kin"); race data is keyed by id. */
+function raceLabelToId(label: string): string {
+  return label.trim().toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
+}
+
+/**
+ * Pick a race id from the town's roster weights. `roll` is a unit value in
+ * [0,1): the races are walked in their weight order, so the same roll over the
+ * same town always yields the same race. Returns undefined for an empty town.
+ */
+export function townRaceId(raceWeights: Record<string, number>, roll: number): string | undefined {
+  const entries = Object.entries(raceWeights)
+    .filter(([, weight]) => weight > 0)
+    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+  const total = entries.reduce((sum, [, weight]) => sum + weight, 0);
+  if (total <= 0) return undefined;
+
+  let cursor = Math.min(Math.max(roll, 0), 0.999999) * total;
+  for (const [label, weight] of entries) {
+    cursor -= weight;
+    if (cursor < 0) return raceLabelToId(label);
+  }
+  return raceLabelToId(entries[entries.length - 1][0]);
+}
+
+/**
+ * The level band a town's wealth supports. A destitute hamlet is served by a
+ * level 1-2 shopkeeper; a prosperous burg keeps a seasoned 6-9 trader who can
+ * stock and defend real goods. `roll` is a unit value in [0,1) so the pick
+ * inside the band is deterministic per NPC.
+ */
+export function levelForTownWealth(wealth: number, roll: number): number {
+  const clamped = Math.min(Math.max(wealth, 0), 100);
+  const [min, max] = clamped < 35 ? [1, 2] : clamped <= 65 ? [3, 5] : [6, 9];
+  const span = max - min + 1;
+  return min + Math.min(span - 1, Math.floor(Math.min(Math.max(roll, 0), 0.999999) * span));
+}
+
 
 // Fallback data banks for generation if race not found
 const NAMES_MALE_FALLBACK = RACE_NAMES.human.male;
@@ -261,11 +351,23 @@ const DEFAULT_VOICES: TTSVoiceOption[] = [
  * @param config Configuration options for the generator.
  * @returns A RichNPC object containing all character data.
  */
-export function generateNPC(config: NPCGenerationConfig): RichNPC {
+export function generateNPC(config: NPCGenerationConfig): RichNpcWithBackground {
   // --- 1. Identity & Race ---
   const isFemale = config.gender ? config.gender === 'female' : randomUnit() > 0.5;
   const genderString = isFemale ? 'female' : 'male';
-  const raceId = (config.raceId || 'human').toLowerCase();
+  // Town-derived draws share ONE deterministic stream keyed by (worldSeed, town,
+  // npc id), so the same merchant in the same town is always the same person —
+  // unlike the module RNG above, which is seeded from Date.now().
+  const townRng = config.town
+    ? new SeededRandom(
+        (config.worldSeed ?? 0) +
+          (config.town.burgId ?? 0) * 7919 +
+          [...(config.id ?? '')].reduce((h, c) => ((h * 31 + c.charCodeAt(0)) >>> 0), 7),
+      )
+    : undefined;
+  const townRaceChoice =
+    config.town && townRng ? townRaceId(config.town.raceWeights, townRng.next()) : undefined;
+  const raceId = (config.raceId || townRaceChoice || 'human').toLowerCase();
   const raceNameData = RACE_NAMES[raceId] || RACE_NAMES.human;
   const racePhysicalData = RACE_PHYSICAL_TRAITS[raceId] || FALLBACK_TRAITS;
   const raceData = ALL_RACES_DATA[raceId] || ALL_RACES_DATA['human'];
@@ -280,10 +382,20 @@ export function generateNPC(config: NPCGenerationConfig): RichNPC {
   const id = config.id || generateId();
 
   // --- 2. Physical Description ---
-  // Height and weight use dice strings to ensure variety within logical race bounds.
-  const heightInches = racePhysicalData.heightBaseInches + rollDiceString(racePhysicalData.heightModifierDice);
+  // Height and weight use dice strings to ensure variety within logical race
+  // bounds. They roll through the shared contract (agora-f821.7 retired this
+  // file's own dice parser) on a seed keyed to this npc, so the same npc in the
+  // same town under the same world seed always has the same body.
+  const bodyRoll = (notation: string, index: number): number =>
+    executeRoll(
+      { notation },
+      npcBodySeed(config.worldSeed ?? 0, config.town?.burgId ?? 0, id, index)
+    ).total;
+  const heightInches = racePhysicalData.heightBaseInches + bodyRoll(racePhysicalData.heightModifierDice, 0);
   const heightStr = formatHeight(heightInches);
-  const weightLb = racePhysicalData.weightBaseLb + (rollDiceString(racePhysicalData.heightModifierDice) * rollDiceString(racePhysicalData.weightModifierDice));
+  const weightLb =
+    racePhysicalData.weightBaseLb +
+    bodyRoll(racePhysicalData.heightModifierDice, 1) * bodyRoll(racePhysicalData.weightModifierDice, 2);
 
   const hairStyle = getRandomElement(racePhysicalData.hairStyles);
   const hairColor = getRandomElement(racePhysicalData.hairColors);
@@ -332,7 +444,9 @@ export function generateNPC(config: NPCGenerationConfig): RichNPC {
   const age = randomInt(racePhysicalData.ageMax - racePhysicalData.ageMaturity) + racePhysicalData.ageMaturity;
   const charClassId = config.classId || getRandomElement(AVAILABLE_CLASSES).id;
   const backgroundId = config.backgroundId || getRandomElement(Object.keys(BACKGROUNDS));
-  const level = config.level || 1;
+  const level =
+    config.level ??
+    (config.town && townRng ? levelForTownWealth(config.town.wealth, townRng.next()) : 1);
   const abilityScores = generateAbilityScores(charClassId);
   const classData = CLASSES_DATA[charClassId];
 
@@ -447,6 +561,16 @@ export function generateNPC(config: NPCGenerationConfig): RichNPC {
 
   const voice = config.voice || DEFAULT_VOICES[randomInt(DEFAULT_VOICES.length)];
 
+  // Speech fingerprint (agora-9e0f). Seeded on the NPC id so a given NPC keeps one
+  // voice across sessions. `voice` above stays the TTS timbre; this is word choice.
+  const speechProfile = generateSpeechProfile({
+    role: config.role,
+    biomeId: config.biomeId,
+    cultureId: config.cultureId ?? config.faction,
+    backgroundId,
+    seed: id,
+  });
+
   // Canonical NPC memory. The two forked memory models were merged onto `NpcMemory`; the richer
   // fields (interactions/attitude/discussedTopics + per-fact key/confidence/significance) are now
   // optional on this shape and start empty for a freshly generated NPC.
@@ -459,15 +583,62 @@ export function generateNPC(config: NPCGenerationConfig): RichNPC {
     interactions: [],
   };
 
+  // --- 8b. Background brief ---
+  // Deterministic, unlike the rest of this generator: the brief is drawn from
+  // the world seed plus this NPC's context, so the same NPC regenerated later
+  // reads identically. The family tree generated above feeds the relationship
+  // hook, so it points at a real living relative instead of an invented one.
+  // `biomeId`/`cultureId` are the same free-form context tags the speech
+  // profile reads; the brief coerces them onto its own vocabularies and falls
+  // back to a role-only pack when they say nothing it recognizes.
+  const background = generateBackgroundBrief({
+    worldSeed: config.worldSeed,
+    identity: config.id || finalName,
+    role: config.role,
+    biome: coerceBackgroundBiome(config.biomeId),
+    culture: coerceBackgroundCulture(config.cultureId ?? config.faction),
+    age,
+    maturityAge: racePhysicalData.ageMaturity,
+    familyTies: family,
+    gender: genderString,
+  });
+
+  // The brief exists for dialogue, not just for the character sheet, so the
+  // personality prompt carries it. The secret is included on purpose: it gives
+  // the NPC something concrete to guard in conversation.
+  // --- 8c. Personality (agora-d9e1) ---
+  // Deterministic like the background brief, and seeded on the same pair
+  // (world seed + this NPC's identity) so both layers agree about who this is
+  // after a save/reload. `occupation` is passed alongside `role` because the
+  // archetype table can say something specific about a blacksmith that it cannot
+  // say about the functional role `civilian`.
+  const npcPersonality = generatePersonality({
+    role: config.role,
+    occupation: config.occupation,
+    biomeId: config.biomeId ?? config.cultureId,
+    worldSeed: config.worldSeed,
+    identity: config.id || finalName,
+  });
+
+  // The personality reaches dialogue through the same prompt the background
+  // brief uses, so no dialogue-side file has to change: `useDialogueSystem`
+  // already forwards `initialPersonalityPrompt` and appends the speech hint.
+  const personalityWithBackground =
+    `${personality} ${background.history} ${background.motivation} ` +
+    `Something you keep to yourself: ${background.secret} ` +
+    describePersonality(npcPersonality);
+
   return {
     id,
     name: finalName,
     baseDescription: fullDescription,
-    initialPersonalityPrompt: personality,
+    initialPersonalityPrompt: personalityWithBackground,
     role: config.role,
     faction: config.faction,
     dialoguePromptSeed: template.dialogueSeed,
     voice,
+    speechProfile,
+    personality: npcPersonality,
     goals: initialGoals,
     visual,
     memory: initialMemory,
@@ -477,7 +648,8 @@ export function generateNPC(config: NPCGenerationConfig): RichNPC {
       backgroundId,
       level,
       family,
-      abilityScores
+      abilityScores,
+      background
     },
     stats: {
       hp: maxHp,

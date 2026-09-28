@@ -31,8 +31,10 @@ import {
 import {
   calculateDamage,
   createPlayerCombatCharacter,
-  rollDice,
 } from '../../../../../utils/combat/combatUtils';
+import {
+  rollDice,
+} from '../../../../../systems/dice/rollers';
 import {
   canAffordActionCost,
   consumeActionCost,
@@ -103,43 +105,12 @@ export interface ParsedBlackDragonbornTraits {
   breathShapes: readonly BlackDragonbornBreathShapeOption[];
 }
 
-/** Parse the small linked-text gap left by the shared modifier parser. */
-export function parseCanonicalBlackDragonbornBreath(
-  traitText: string,
-): RacialBreathWeapon | null {
-  const areaMatches = [...traitText.matchAll(/(\d+)-foot\s+(cone|line)/gi)];
-  // The authored row states the DC formula as a Constitution modifier beside
-  // a linked generic Saving Throw label, so accept that canonical wording as
-  // the save ability instead of requiring the parser's monster-style phrase.
-  const saveMatch = traitText.match(/\b(Dexterity|Constitution)\b\s+(?:modifier|saving throw)/i);
-  const damageDiceMatch = traitText.match(/(\d+d\d+)\s+damage/i);
-  const damageTypeMatch = traitText.match(/exhalation of\s+([a-z]+)\s+damage/i);
-  if (!areaMatches.length || !saveMatch || !damageDiceMatch || !damageTypeMatch) return null;
-
-  return {
-    areaShape: areaMatches[0][2].toLowerCase() as 'cone' | 'line',
-    areaSize: Number(areaMatches[0][1]),
-    saveAbility: saveMatch[1] as RacialBreathWeapon['saveAbility'],
-    damageDice: damageDiceMatch[1],
-    damageType: damageTypeMatch[1],
-    scaling: [],
-  };
-}
-
 /** Return the exact canonical trait with the requested display name. */
 export function getCanonicalBlackDragonbornTrait(
   race: Race,
   traitName: string,
 ): string | null {
   return race.traits.find(trait => trait.trim().toLowerCase().startsWith(`${traitName.toLowerCase()}:`)) ?? null;
-}
-
-/** Remove only display links before sending this canonical row through assembly. */
-function createParserReadyBlackDragonbornRace(race: Race): Race {
-  return {
-    ...race,
-    traits: race.traits.map(trait => trait.replace(/\[\[(?:[^|\]]+\|)?([^\]]+)\]\]/g, '$1')),
-  };
 }
 
 /**
@@ -149,20 +120,16 @@ function createParserReadyBlackDragonbornRace(race: Race): Race {
 export function getCanonicalBlackDragonbornTraits(
   race: Race,
 ): ParsedBlackDragonbornTraits | null {
-  // Canonical trait links are display markup, not rule words. Strip only that
-  // markup before passing the same Race through the production parser; this is
-  // the narrow adapter needed for this corpus and does not copy any mechanic.
-  const parserReadyRace = createParserReadyBlackDragonbornRace(race);
-  const parsedTraits = buildRacialTraitLibrary({ [race.id]: parserReadyRace }).byRaceId[race.id] ?? [];
+  // Display links are stripped once at the shared parser boundary
+  // (normalizeRacialTraitDisplayText), so the canonical Race goes in unchanged.
+  const parsedTraits = buildRacialTraitLibrary({ [race.id]: race }).byRaceId[race.id] ?? [];
   const breathText = getCanonicalBlackDragonbornTrait(race, 'Breath Weapon') ?? '';
-  const normalizedBreathText = breathText.replace(/\[\[(?:[^|\]]+\|)?([^\]]+)\]\]/g, '$1');
   const breathTrait = parsedTraits.find(
     (trait): trait is RacialFeatureTrait => (
       trait.type !== 'spell' && trait.traitName === 'Breath Weapon'
     ),
   );
-  const breath = breathTrait?.modifierBuckets?.breathWeapon
-    ?? parseCanonicalBlackDragonbornBreath(normalizedBreathText);
+  const breath = breathTrait?.modifierBuckets?.breathWeapon;
   const resistanceTrait = parsedTraits.find(
     (trait): trait is RacialFeatureTrait => (
       trait.type !== 'spell' && trait.traitName === 'Damage Resistance'
@@ -183,36 +150,11 @@ export function getCanonicalBlackDragonbornTraits(
       candidate.shape === option.shape && candidate.sizeFeet === option.sizeFeet
     )) === index);
 
-  // The shared parser understands singular "at 5th level" rows. Black
-  // Dragonborn's canonical text uses the equivalent compact phrase "increases
-  // by 1d10 at levels 5, 11, and 17", so this adapter expands that authored
-  // increment into the cumulative dice values the native combat bridge uses.
-  // The source sentence remains the authority for every derived value.
-  const increaseMatch = breathText.match(/damage increases by (\d+)d(\d+)\s+at levels?\s+([^.;]+)/i);
-  if (increaseMatch) {
-    const incrementDice = Number(increaseMatch[1]);
-    const dieSize = Number(increaseMatch[2]);
-    const levels = [...increaseMatch[3].matchAll(/\d+/g)].map(match => Number(match[0]));
-    const baseMatch = breath.damageDice.match(/(\d+)d(\d+)/i);
-    const baseDice = baseMatch ? Number(baseMatch[1]) : 1;
-    const baseSides = baseMatch ? Number(baseMatch[2]) : dieSize;
-    breath.scaling = levels.map((level, index) => ({
-      level,
-      dice: `${baseDice + (index + 1) * incrementDice}d${baseSides}`,
-    }));
-  }
-
+  // The shared parser expands the compact "increases by 1d10 at levels 5, 11,
+  // and 17" sentence into cumulative dice itself, so its breath record is used
+  // exactly as produced. Nothing here re-derives a scaling row or a resistance.
   return {
-    resistance: resistanceTrait.defensiveTraits?.resistances?.length
-      ? resistanceTrait.defensiveTraits.resistances
-      : ((getCanonicalBlackDragonbornTrait(race, 'Damage Resistance') ?? '')
-        .replace(/\[\[(?:[^|\]]+\|)?([^\]]+)\]\]/g, '$1')
-        .match(/resistance\s+to\s+([a-z]+)\s+damage/i)?.[1]
-        ? [((getCanonicalBlackDragonbornTrait(race, 'Damage Resistance') ?? '')
-          .replace(/\[\[(?:[^|\]]+\|)?([^\]]+)\]\]/g, '$1')
-          .match(/resistance\s+to\s+([a-z]+)\s+damage/i)?.[1] ?? '')
-          .replace(/^./, character => character.toUpperCase())]
-        : []),
+    resistance: resistanceTrait.defensiveTraits?.resistances ?? [],
     breath,
     breathTrait,
     breathShapes,
@@ -306,12 +248,7 @@ function createBlackDragonbornActor(race: Race): {
   }
 
   const parserAssembledCharacter = applyRacialSpellGrantsByLevel(
-    {
-      ...quickCharacter,
-      // The shared assembly currently reads the global Race library, whose
-      // linked-text rows need this same display-only normalization first.
-      race: createParserReadyBlackDragonbornRace(race),
-    },
+    { ...quickCharacter, race },
     quickCharacter.level ?? 1,
   );
   const resourceDefinition = canonicalTraits.breathTrait.resources?.find(resource => (
@@ -328,18 +265,15 @@ function createBlackDragonbornActor(race: Race): {
     };
   }
 
-  // DEBT: The shared assembly cache still reads the linked-text version of
-  // this Race, so it does not project the canonical resistance, breath
-  // modifier, or resource. This narrow adapter copies only the parsed facts
-  // above into the already assembled character; the combat bridge and native
-  // resolvers remain authoritative for execution. The durable fix is to make
-  // the shared racial library normalize display links before caching.
+  // Normalizing display links before caching in shared racial trait library is tracked in Agora task agora-1525.
+  // The shared assembly cache reads the linked-text version of this Race; this narrow adapter copies the parsed
+  // resistance, breath modifier, and resource facts into the assembled character while resolvers remain authoritative.
   const resourceMax = typeof resourceDefinition.maxUses === 'number'
     ? resourceDefinition.maxUses
     : parserAssembledCharacter.proficiencyBonus ?? 2;
   const assembledCharacter: PlayerCharacter = {
     ...parserAssembledCharacter,
-    race: createParserReadyBlackDragonbornRace(race),
+    race,
     resistances: Array.from(new Set([
       ...(parserAssembledCharacter.resistances ?? []),
       ...canonicalTraits.resistance,

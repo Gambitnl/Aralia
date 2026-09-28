@@ -96,9 +96,8 @@ class DiceServiceClass {
 
             // Dynamic import
             if (!DiceBox) {
-                // DEBT: @ts-ignore used because @3d-dice/dice-box lacks local declaration files
-                // and our environment does not have @types for it installed.
-                // @ts-ignore
+                // `@3d-dice/dice-box` ships no type declarations; src/types/dice-box.d.ts
+                // declares it ambiently, so this dynamic import resolves without a suppression.
                 const module = await import('@3d-dice/dice-box');
                 DiceBox = module.default;
             }

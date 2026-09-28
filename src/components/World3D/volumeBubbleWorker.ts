@@ -18,6 +18,7 @@
 /// <reference lib="webworker" />
 import type { GroundWorld } from '@/systems/worldforge/bridge/groundChunkLoader';
 import { streamedTerrainSurfaceY } from '@/systems/worldforge/bridge/streamedSurface';
+import { townClearance } from '@/systems/worldforge/bridge/townVegetationKeepOut';
 import { groundSource } from '@/systems/worldforge/terrain/groundVolumeFromWorld';
 import { colorAtDepth } from '@/systems/worldforge/terrain/materials';
 import { VoxelVolume } from '@/systems/worldforge/terrain/voxelVolume';
@@ -36,11 +37,22 @@ import {
   depthDatumFor,
   censusColumnStacks,
   tintRatio,
+  townFloorTop,
+  quantizeTownMask,
+  slabHeightForFootprint,
+  TOWN_FLOOR_FEATHER_M,
   bakeTintField,
   tintFromField,
   transfersOfTintField,
   transfersOfSlab,
 } from '@/systems/worldforge/terrain/volumeBubbleCore';
+
+/**
+ * Sky and rock a slab bubble keeps beyond the terrain it measured, metres
+ * EACH WAY. Absorbs a ridge narrower than the height pre-pass's sample step,
+ * and leaves room under the surface for a cut to have somewhere to go.
+ */
+const SLAB_MARGIN_M = 24;
 
 let ground: GroundWorld | null = null;
 
@@ -51,6 +63,11 @@ interface BuildMessage {
   centerZM: number;
   extentM: number;
   cellM: number;
+  /**
+   * Vertical extent, metres — a FLOOR, not the final height. Omitted keeps
+   * the cube every walking bubble has always been. See `slabHeightForFootprint`.
+   */
+  heightM?: number;
   preCut?: {
     xM: number;
     zM: number;
@@ -107,22 +124,69 @@ self.onmessage = (ev: MessageEvent) => {
   const bubbleStack = census.dominant.stack;
   const bubbleTop = topColorOfStack(bubbleStack);
 
-  const fill = fillBubble(src, req.centerXM, req.centerZM, req.extentM, req.cellM, (x, z) =>
-    stackAt(x, z).stack,
-  );
-  const slabs = planSlabs(fill.cellsPerEdge);
+  /* HOW TALL THIS BUBBLE IS. Omit `heightM` and it is a cube, which is every
+   * walking bubble. Ask for one and the footprint gets a vote: the request's
+   * height is a FLOOR, and the measured relief across the footprint raises it
+   * when the ground needs more room. A slab shorter than its own terrain
+   * clamps ridges into mesas and drops valleys into holes, and a hole in the
+   * ground of a town pane is worse than any cost this pre-pass has. */
+  const heightM =
+    req.heightM === undefined
+      ? undefined
+      : Math.max(
+          req.heightM,
+          slabHeightForFootprint(src, req.centerXM, req.centerZM, req.extentM, SLAB_MARGIN_M),
+        );
 
+  const fill = fillBubble(
+    src,
+    req.centerXM,
+    req.centerZM,
+    req.extentM,
+    req.cellM,
+    (x, z) => stackAt(x, z).stack,
+    heightM,
+  );
+  const slabs = planSlabs(fill.cellsPerEdge, fill.cellsY);
+
+
+  /* THE TOWN'S FLOOR, ON THE VOLUME TOP (agora-f452).
+   *
+   * The SHEET path has painted trodden earth inside a town since 2026-08-24 —
+   * see the TOWN_FLOOR_RGB blend in `sampleGroundChunk`. The VOLUME path never
+   * learned it, so the town-on-LAND pane put the burg on ground that was still
+   * whatever biome it stood on: measured on Hafting, half the floor inside the
+   * built radius rendered as bright meadow grass between the houses, and the
+   * pale street ribbons laid over it had nothing to separate them from their
+   * surroundings. The bubble showed the exact fault the sheet fix cured.
+   *
+   * The mask is the town's own keep-out ring, which is the SAME ring the
+   * vegetation scatter reads — so cleared trees, bare ground and the sheet
+   * path's floor cannot disagree about where the town is. Quantized before it
+   * reaches the cache and the palette; `quantizeTownMask` says why.
+   *
+   * Empty for a bubble with no settlement in it, and `townFloorTop` returns its
+   * input unchanged at mask 0, so wilderness bubbles are untouched. */
+  const keepOuts = g.townKeepOuts ?? [];
+  const townMaskAt =
+    keepOuts.length === 0
+      ? null
+      : (x: number, z: number): number =>
+          quantizeTownMask(1 - townClearance(x, z, keepOuts, TOWN_FLOOR_FEATHER_M));
 
   /* The tint is a RATIO against the bubble's own stack, so a single-biome bubble
-   * hands every vertex exactly 1 and the top is untouched. Cached per stack key:
-   * a slab has tens of thousands of vertices and at most a handful of grounds. */
+   * with no town in it hands every vertex exactly 1 and the top is untouched.
+   * Cached per stack key AND town-mask step: a slab has tens of thousands of
+   * vertices and at most a handful of grounds. */
   const tintCache = new Map<string, readonly [number, number, number]>();
   const sampleTint = (x: number, z: number): readonly [number, number, number] => {
     const cs = stackAt(x, z);
-    const hit = tintCache.get(cs.key);
+    const townT = townMaskAt ? townMaskAt(x, z) : 0;
+    const key = townT === 0 ? cs.key : `${cs.key}|${townT}`;
+    const hit = tintCache.get(key);
     if (hit) return hit;
-    const made = tintRatio(topColorOfStack(cs.stack), bubbleTop);
-    tintCache.set(cs.key, made);
+    const made = tintRatio(townFloorTop(topColorOfStack(cs.stack), townT), bubbleTop);
+    tintCache.set(key, made);
     return made;
   };
 
@@ -188,6 +252,9 @@ self.onmessage = (ev: MessageEvent) => {
       originM: fill.originM,
       cellM: fill.cellM,
       cellsPerEdge: fill.cellsPerEdge,
+      /* The volume is not always a cube any more. Every main-thread reader
+       * that used to derive its Y extent from `cellsPerEdge` reads this. */
+      cellsY: fill.cellsY,
       originalTopY: fill.originalTopY,
       fillMs: fill.fillMs,
       solidCells: fill.solidCells,

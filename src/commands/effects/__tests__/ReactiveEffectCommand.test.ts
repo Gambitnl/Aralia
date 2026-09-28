@@ -1,13 +1,9 @@
-
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { ReactiveEffectCommand, type ReactiveEventEmitters } from '../ReactiveEffectCommand';
 import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '../../../utils/core';
 import { CombatCharacter, CombatState } from '../../../types/combat';
-import { MovementEventEmitter } from '../../../systems/combat/MovementEventEmitter';
-import { AttackEventEmitter } from '../../../systems/combat/AttackEventEmitter';
 import { CombatEventEmitter } from '../../../systems/events/CombatEvents';
 import type { CommandContext } from '../../base/SpellCommand';
-import type { EffectCondition } from '../../../types/spells';
 
 /**
  * This file proves that reactive spell effects do more than register a future listener.
@@ -17,9 +13,16 @@ import type { EffectCondition } from '../../../types/spells';
  * the delegated-payload path where the later trigger replays normal effect commands against
  * the current combat state.
  *
+ * `on_target_move` and `on_target_attack` register NO event listener (agora-f821.45).
+ * They only write a row into `state.reactiveTriggers`, and the hook layer reads
+ * that array: `useActionExecutor.resolveOnTargetAttackReactiveEffects` for an
+ * attack and the movement-debuff pipeline for a move. The emitters those two
+ * branches used to listen on had no production caller and were deleted, so the
+ * tests that fired them went with them.
+ *
  * Called by: focused command-effect test runs.
- * Depends on: fresh movement, attack and combat emitters for isolated trigger signals,
- * plus the shared command context shape from SpellCommand.ts.
+ * Depends on: a fresh combat emitter for an isolated cast signal, plus the shared
+ * command context shape from SpellCommand.ts.
  */
 
 // Keep command diagnostics quiet while the assertions focus on state changes.
@@ -36,8 +39,6 @@ describe('ReactiveEffectCommand event listeners', () => {
     let mockState: CombatState;
     let caster: CombatCharacter;
     let target: CombatCharacter;
-    let movementEmitter: MovementEventEmitter;
-    let attackEmitter: AttackEventEmitter;
     let combatEmitter: CombatEventEmitter;
     let emitters: ReactiveEventEmitters;
 
@@ -59,14 +60,10 @@ describe('ReactiveEffectCommand event listeners', () => {
             activeLightSources: []
         });
 
-        // Every test owns fresh buses. This proves the constructor dependency
+        // Every test owns a fresh bus. This proves the constructor dependency
         // works and prevents listeners surviving into another test process.
-        movementEmitter = MovementEventEmitter.createFresh();
-        attackEmitter = AttackEventEmitter.createFresh();
         combatEmitter = new CombatEventEmitter();
         emitters = {
-            movement: movementEmitter,
-            attack: attackEmitter,
             combat: combatEmitter
         };
 
@@ -96,50 +93,10 @@ describe('ReactiveEffectCommand event listeners', () => {
         }
     });
 
-    it('executes delegated damage payloads through the command context when a movement trigger fires', async () => {
-        // Keep the later event callback connected to the same state object a React
-        // integration would own, so the test proves the trigger can commit real combat
-        // state instead of only writing to the logger.
-        let liveState = mockState;
-
-        const alwaysCondition: EffectCondition = { type: 'always' };
-        const context = createDamageContext(
-            () => liveState,
-            nextState => { liveState = nextState; }
-        );
-
-        const command = new ReactiveEffectCommand(
-            {
-                type: 'REACTIVE',
-                trigger: { type: 'on_target_move', movementType: 'willing' },
-                condition: alwaysCondition
-            },
-            context,
-            emitters
-        );
-
-        try {
-            // Register now, then prove a matching movement reaches the normal
-            // damage command through this test's private movement bus.
-            liveState = await command.execute(liveState);
-            await movementEmitter.emitMovement(
-                target.id,
-                target.position,
-                { x: target.position.x + 1, y: target.position.y },
-                'willing'
-            );
-
-            const damagedTarget = liveState.characters.find(character => character.id === target.id);
-            expect(damagedTarget?.currentHP).toBe(target.currentHP - 1);
-            expect(liveState.combatLog.some(entry =>
-                entry.type === 'damage' && entry.message.includes('Reactive Spark')
-            )).toBe(true);
-        } finally {
-            command.cleanup();
-        }
-    });
-
-    it('executes only when an attack targets the protected creature', async () => {
+    it.each([
+        ['on_target_move'] as const,
+        ['on_target_attack'] as const,
+    ])('records a %s trigger on combat state instead of registering an emitter listener', (triggerType) => {
         let liveState = mockState;
         const context = createDamageContext(
             () => liveState,
@@ -147,20 +104,25 @@ describe('ReactiveEffectCommand event listeners', () => {
         );
         const command = new ReactiveEffectCommand({
             type: 'REACTIVE',
-            trigger: { type: 'on_target_attack' },
+            trigger: { type: triggerType },
             condition: { type: 'always' }
         }, context, emitters);
 
         try {
             liveState = command.execute(liveState);
 
-            // An attack on somebody else must leave the waiting effect untouched.
-            await attackEmitter.emitPreAttack('attacker-1', 'other-target', 'weapon', 'melee');
-            expect(liveState.characters.find(character => character.id === target.id)?.currentHP).toBe(target.currentHP);
+            // The trigger row is the whole registration. It names the protected
+            // creature so the hook-side resolver can match it later.
+            const registered = liveState.reactiveTriggers
+                .filter(trigger => trigger.sourceEffect.trigger.type === triggerType);
+            expect(registered).toHaveLength(1);
+            expect(registered[0].targetId).toBe(target.id);
+            expect(registered[0].casterId).toBe(caster.id);
+            expect(registered[0].sourceSpellId).toBe('spell-1');
 
-            // The protected target now matches, so the delegated damage fires once.
-            await attackEmitter.emitPreAttack('attacker-1', target.id, 'weapon', 'melee');
-            expect(liveState.characters.find(character => character.id === target.id)?.currentHP).toBe(target.currentHP - 1);
+            // Nothing was applied at registration time.
+            expect(liveState.characters.find(character => character.id === target.id)?.currentHP)
+                .toBe(target.currentHP);
         } finally {
             command.cleanup();
         }

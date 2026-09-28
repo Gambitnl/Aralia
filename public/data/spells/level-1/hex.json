@@ -302,8 +302,14 @@
                         "scaling":  {
                                         "type":  "slot_level",
                                         "bonusPerLevel":  "",
-                                        "customFormula":  ""
-                                    },
+                                        "customFormula":  "",
+                                        "scalingTiers":  {
+                                                        "1":  "up to 1 hour",
+                                                        "2":  "up to 4 hours",
+                                                        "3":  "up to 8 hours",
+                                                        "5":  "up to 24 hours"
+                                        }
+                        },
                         "grantedActions":  [
 
                                            ],
@@ -370,7 +376,7 @@
                                                "3-4":  "duration up to 8 hours with concentration",
                                                "5+":  "duration up to 24 hours with concentration"
                                            },
-                               "notes":  "Higher slots increase Hex\u0027s maximum concentration duration."
+                               "notes":  "Higher slots increase Hex's maximum concentration duration."
                            },
     "tags":  [
                  "damage",
@@ -469,6 +475,6 @@
                                            "duration":  "while Hex remains on the target"
                                        }
                                    ],
-                       "notes":  "The utility effect\u0027s controlOptions carry the ability-specific disadvantage payloads; this menu makes the required caster ability choice explicit for UI and command creation."
+                       "notes":  "The utility effect's controlOptions carry the ability-specific disadvantage payloads; this menu makes the required caster ability choice explicit for UI and command creation."
                    }
 }

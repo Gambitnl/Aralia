@@ -1,4 +1,4 @@
-# Design brief — next-generation 2D combat map
+# Design brief - next-generation 2D combat map
 
 **Date:** 2026-07-06
 **Requested by:** Remy
@@ -11,24 +11,24 @@
 You are designing the next generation of Aralia's 2D combat map. Aralia is a
 D&D 5e-style RPG in React + TypeScript (repo `F:\Repos\Aralia`). The current
 2D combat map was recently reskinned to a premium Roll20/Foundry-style
-tactical screen and is good — but it has hit an architectural ceiling. Your
+tactical screen and is good - but it has hit an architectural ceiling. Your
 mission has three pillars, in dependency order.
 
-### Pillar 1 — One renderer (the structural bet)
+### Pillar 1 - One renderer (the structural bet)
 
 Today the board is ~10,800 DOM elements (one per tile) stacked over two
 `<canvas>` layers (painted ground, fog). This caps map size, blurs at zoom,
 draws grid lines over tree art, and leaves no animation budget.
 
-Design a single rendered scene — layered canvas (or WebGL/PixiJS if
-justified) — that draws EVERYTHING: ground, grid, movement/targeting
+Design a single rendered scene - layered canvas (or WebGL/PixiJS if
+justified) - that draws EVERYTHING: ground, grid, movement/targeting
 overlays, fog-of-war, tokens, effects. Requirements:
 
-- Battlefields of at least 120×90 tiles at 60fps, with headroom for more.
+- Battlefields of at least 120x90 tiles at 60fps, with headroom for more.
 - Crisp at any zoom (re-render at the target resolution; no bilinear mush).
 - The grid is a planning tool, not decor: it fades in when the player is
   choosing a move or target and fades out when they are watching. The
-  approved fight-in-place design (gridless BG3 look, invisible 5-ft referee —
+  approved fight-in-place design (gridless BG3 look, invisible 5-ft referee -
   `docs/superpowers/specs/2026-07-02-fight-in-place-combat-design.md`) is the
   end state; this renderer must be built to serve it.
 - Interaction (hover, click, keyboard focus, screen-reader labels) must not
@@ -39,16 +39,16 @@ overlays, fog-of-war, tokens, effects. Requirements:
 - Keep the mechanical model untouched: tiles, movement costs, visibility
   data, and the combat engine do not change. This is a rendering swap.
 
-### Pillar 2 — The battlefield is a real place
+### Pillar 2 - The battlefield is a real place
 
 Today combat rolls a generic "forest" map from a seed. Aralia's North Star is
-one world seen at different zoom levels (Worldforge: FMG/Voronoi atlas → 3D
-ground → towns → interiors). Combat must join that chain.
+one world seen at different zoom levels (Worldforge: FMG/Voronoi atlas -> 3D
+ground -> towns -> interiors). Combat must join that chain.
 
 Design battlefield generation DERIVED from the player's actual location:
 
 - Input: the Worldforge cell (biome, elevation, rivers, roads, coastline,
-  nearby burg) where the encounter fires. The world data layer exists — see
+  nearby burg) where the encounter fires. The world data layer exists - see
   `src/systems/worldforge/` and the ground-chunk bridge
   (`src/systems/worldforge/bridge/groundChunkLoader.ts`).
 - Output: a battle map where the road you traveled is THE road on the map,
@@ -61,7 +61,7 @@ Design battlefield generation DERIVED from the player's actual location:
 - Same seed + same cell = same battlefield, forever (canonical, like the
   town generator).
 
-### Pillar 3 — A living, watchable board
+### Pillar 3 - A living, watchable board
 
 - Ambient life: canopy sway, water shimmer, drifting cloud shadows, weather
   (rain, fog banks), time-of-day palettes that come from world time, torch
@@ -71,7 +71,7 @@ Design battlefield generation DERIVED from the player's actual location:
   get a visual beat. Damage numbers, trails, and persistent battle scars
   (scorch marks, trampled grass, blood) that remain for the whole fight.
 - A narrated combat log: every line is generated from data the engine already
-  has (attacker, target, distance, direction, cover, result) — no AI calls.
+  has (attacker, target, distance, direction, cover, result) - no AI calls.
 - A minimal sound layer keyed to events the log already emits, plus one
   ambience bed per biome. Silent combat is a spreadsheet.
 
@@ -90,7 +90,7 @@ Design battlefield generation DERIVED from the player's actual location:
 - Terrain-diffusion idea (MIT diffusion model conditioned on our map data)
   is an optional ingredient for painted ground plates.
 
-### How to work (house rules — not optional)
+### How to work (house rules - not optional)
 
 - **Looks first.** Produce visual mocks (HTML/canvas prototypes are fine) and
   get Remy's eyeball approval on the LOOK before building systems. A previous
@@ -98,7 +98,7 @@ Design battlefield generation DERIVED from the player's actual location:
   before the look was approved.
 - **Design doc before code.** Deliver: (1) an architecture note for the
   renderer (layers, what redraws when, a11y story, migration steps that keep
-  the game shippable at every step), (2) the worldforge→battlefield data
+  the game shippable at every step), (2) the worldforge->battlefield data
   contract, (3) a mock or storyboard for the living-board look. Use
   ASD-STE100 Simplified Technical English, US spelling; define any coined term in
   `tools/agora/GLOSSARY.md` in the same turn.
@@ -106,14 +106,14 @@ Design battlefield generation DERIVED from the player's actual location:
 - **No fallbacks.** One real path; fail honestly.
 - **Work only in master.** No branches, no worktrees. Leave changes
   uncommitted (a 2am snapshot commits daily). Coordinate through Agora
-  (daemon on :4319 — check locks before touching contended files;
+  (daemon on :4319 - check locks before touching contended files;
   `CombatView.tsx` has been contended before).
 - **Verify visually, headless.** Reach the 2D map without any LLM backend via
   `?dummy=1&dev_combat=1`. Playwright scripts live in `.agent/scratch/`
   (`shoot-combat2.mjs`, `shoot-bigmap.mjs`). The dev server is
   `node -r ./scripts/dev-crash-logger.cjs node_modules/vite/bin/vite.js
   --port <p> --strictPort`, app served under `/Aralia/`. `preview_screenshot`
-  hangs on animated canvases — use the headless scripts.
+  hangs on animated canvases - use the headless scripts.
 - **Tests.** BattleMap suites: `npx vitest run src/components/BattleMap`.
   Keep them green or migrate them deliberately. Pre-existing repo-wide tsc
   errors are background noise (see memory `known-preexisting-issues`);
@@ -125,7 +125,7 @@ Design battlefield generation DERIVED from the player's actual location:
 
 1. Renderer architecture note + a thin visual prototype (one map, ground +
    tokens + fog on the new renderer) for eyeball approval.
-2. Worldforge→battlefield data contract + one derived-battlefield mock
+2. Worldforge->battlefield data contract + one derived-battlefield mock
    (road cell and river cell).
 3. Living-board storyboard (what moves, when, at what zoom).
 4. Only after approvals: migration plan and build, smallest shippable slices,

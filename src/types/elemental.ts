@@ -3,6 +3,22 @@
  * Defines elemental states and their interactions for the physics simulation system.
  */
 
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 20/09/2026, 21:00:39
+ * Dependents: commands/effects/DamageCommand.ts, commands/effects/StatusConditionCommand.ts, systems/physics/ElementalInteractionSystem.ts, types/index.ts, utils/combat/aoeCalculations.ts
+ * Imports: None
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * Tags that can be applied to entities, affecting game mechanics and reacting to other elements.
  * States can combine (wet + cold = frozen) or cancel (wet + fire = steam/null).
@@ -65,7 +81,11 @@ export const StateInteractions: Record<string, StateTag | null> = {
   'acid+burning': StateTag.Smoke,   // Acid burns into toxic fumes
 
   // Electrified interactions
-  // (Placeholder for future: wet+electrified -> AoE damage)
+  // Wet + electrified is deliberately NOT a row in this table (agora-2fb1). A row here means
+  // "these two states combine into one", and applyStateToTags() removes the existing state
+  // whenever a row matches. Conductivity needs the opposite: the water has to SURVIVE so it
+  // can keep carrying the charge to the next creature standing in it. The mechanic therefore
+  // lives in CONDUCTIVITY_RULES below, which adds a charge instead of consuming a state.
 
 };
 
@@ -108,4 +128,92 @@ export const DamageTypeToStateTag: Record<string, StateTag> = {
  */
 export function getStateTagForDamageType(damageType: string): StateTag | undefined {
   return DamageTypeToStateTag[damageType.toLowerCase()];
+}
+
+// -----------------------------------------------------------------------------
+// CONDUCTIVITY (agora-2fb1)
+// -----------------------------------------------------------------------------
+
+/**
+ * ConductivityRule — how a charge spreads through a conducting medium.
+ *
+ * WHAT THIS MODELS: lightning that lands in standing water does not stop at the creature it
+ * hit. The water carries it outward, weaker at every step, until it runs out. That is one
+ * mechanic with four knobs, and they are declared together here so balance is a single edit
+ * rather than a hunt through the resolver.
+ *
+ * WHY IT IS NOT IN StateInteractions: that table maps a PAIR of states to the ONE state they
+ * become, and its resolver deletes the state that reacted. A conductivity row there would wash
+ * the Wet tag off the first creature hit, so the second creature in the same puddle would be
+ * dry and the propagation would die at range one.
+ */
+export interface ConductivityRule {
+  /** The state a creature or tile must carry to pass the charge along. */
+  conductor: StateTag;
+  /** The state the charge applies to everything it reaches. */
+  charge: StateTag;
+  /** How far one step of the charge reaches, in feet. */
+  hopRangeFeet: number;
+  /**
+   * Share of the strike's damage that survives each step. Applied per hop, so hop 2 of a 0.5
+   * rule carries a quarter.
+   */
+  damageFractionPerHop: number;
+  /** Steps the charge can take before it dies. */
+  maxHops: number;
+}
+
+/**
+ * CONDUCTIVITY_RULES — the conducting media, keyed like StateInteractions.
+ *
+ * Keys are the same alphabetically sorted "state+state" form the interaction table uses, so a
+ * caller that already built a key for one table can reuse it against the other.
+ *
+ * WHERE THE NUMBERS COME FROM, so a later reader can argue with them instead of guessing:
+ *   hopRangeFeet 5        one grid square. Conduction is contact through the puddle, so the
+ *                         charge reaches whatever is touching the square it is already in.
+ *   damageFractionPerHop  half, matching the share 5e hands a creature that makes its save
+ *     0.5                 against a damaging effect. Halving also ends the chain on its own.
+ *   maxHops 3             the number of extra creatures Chain Lightning leaps to at base level.
+ *
+ * These are balance values, not physics. Change them here and every consumer follows.
+ */
+export const CONDUCTIVITY_RULES: Record<string, ConductivityRule> = {
+  'electrified+wet': {
+    conductor: StateTag.Wet,
+    charge: StateTag.Electrified,
+    hopRangeFeet: 5,
+    damageFractionPerHop: 0.5,
+    maxHops: 3,
+  },
+};
+
+/**
+ * getConductivityRule — looks up the rule for a pair of states, in either order.
+ *
+ * Returns undefined when the pair does not conduct, which callers must treat as "this strike
+ * affects only what it hit" rather than as an error.
+ */
+export function getConductivityRule(
+  first: StateTag,
+  second: StateTag,
+): ConductivityRule | undefined {
+  return CONDUCTIVITY_RULES[[first, second].sort().join('+')];
+}
+
+/**
+ * getConductivityRuleForDamageType — the entry point a damage pipeline actually has enough
+ * information to call.
+ *
+ * A damage event knows its damage type and the conducting state already on the ground or on
+ * the creature. This resolves the damage type to its state tag and asks whether that pair
+ * conducts, so no caller has to know that lightning is the charge and water is the conductor.
+ */
+export function getConductivityRuleForDamageType(
+  damageType: string,
+  conductor: StateTag,
+): ConductivityRule | undefined {
+  const charge = getStateTagForDamageType(damageType);
+  if (!charge) return undefined;
+  return getConductivityRule(charge, conductor);
 }

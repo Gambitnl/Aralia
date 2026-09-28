@@ -50,9 +50,27 @@ export const DamageType = {
   Thunder: "Thunder",
 } as const;
 
+/**
+ * The canonical thirteen damage types with no escape hatch. Use this wherever a
+ * real damage type is required, such as a weapon's damage.
+ */
+export type CanonicalDamageType = typeof DamageType[keyof typeof DamageType];
+
 // Allow string for test compatibility and imported/homebrew damage labels that
 // have not been normalized into the canonical table yet.
-export type DamageType = typeof DamageType[keyof typeof DamageType] | string;
+export type DamageType = CanonicalDamageType | string;
+
+/**
+ * Resolves a free-text damage label to its canonical name, matching case
+ * insensitively. Returns undefined when the label names no canonical damage
+ * type, so callers must decide what an unrecognized label means rather than
+ * silently carrying it.
+ */
+export function toCanonicalDamageType(value: string | null | undefined): CanonicalDamageType | undefined {
+  if (!value) return undefined;
+  const wanted = value.trim().toLowerCase();
+  return Object.values(DamageType).find((name) => name.toLowerCase() === wanted);
+}
 
 // ============================================================================
 // Damage Type Descriptions

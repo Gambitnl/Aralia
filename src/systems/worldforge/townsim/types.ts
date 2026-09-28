@@ -3,8 +3,8 @@
  * ARCHITECTURAL ADVISORY:
  * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 18/07/2026, 20:18:10
- * Dependents: components/Worldforge/LivingWorldPreview.tsx, components/debug/TownHistoryDevOverlay.tsx, systems/worldforge/roster/agentDeepening.ts, systems/worldforge/roster/agentLife.ts, systems/worldforge/townsim/buildingHistoryCompaction.ts, systems/worldforge/townsim/chronicle.ts, systems/worldforge/townsim/chronicleForLocation.ts, systems/worldforge/townsim/keyNpcs.ts, systems/worldforge/townsim/townNews.ts, systems/worldforge/townsim/townSim.ts, systems/worldforge/townsim/townSimRegistration.ts, systems/worldforge/townsim/townSimRegistry.ts, utils/world/chronicleNewsToRumors.ts
+ * Last Sync: 30/08/2026, 01:45:19
+ * Dependents: components/Worldforge/LivingWorldPreview.tsx, components/debug/TownHistoryDevOverlay.tsx, systems/worldforge/roster/agentDeepening.ts, systems/worldforge/roster/agentLife.ts, systems/worldforge/townsim/buildingHistoryCompaction.ts, systems/worldforge/townsim/chronicle.ts, systems/worldforge/townsim/chronicleForLocation.ts, systems/worldforge/townsim/keyNpcs.ts, systems/worldforge/townsim/townNews.ts, systems/worldforge/townsim/townSim.ts, systems/worldforge/townsim/townSimRegistration.ts, systems/worldforge/townsim/townSimRegistry.ts, systems/worldforge/townsim/townSituation.ts, utils/world/chronicleNewsToRumors.ts
  * Imports: 2 files
  *
  * MULTI-AGENT SAFETY:
@@ -48,6 +48,10 @@ export type LifeEventKind =
   | 'festival'
   | 'disaster'
   | 'building'
+  // Player interventions share the town's append-only diary with simulated
+  // events. That makes player agency visible to every existing chronicle/news
+  // projection without creating a second source of world truth.
+  | 'player_intervention'
   // Pillar 2, Task 8 (living ecology): an occasional worry line about the
   // uncleared dungeons around the burg (raid-pressure signal, one visible
   // symptom). Never lethal — it colors the town's mood, not its population.
@@ -66,6 +70,18 @@ export interface LifeEvent {
   relatedIds: number[];
   /** Plain-English diary line. */
   summary: string;
+  /**
+   * Optional causal receipt for events written by an external gameplay loop.
+   * Sim-authored births, deaths, and economy ticks deliberately omit it. The
+   * stable source key lets replayed UI actions prove an outcome already exists
+   * instead of appending duplicate history after a reload or double click.
+   */
+  provenance?: {
+    sourceKey: string;
+    sourceEventId?: number;
+    resolutionId?: string;
+    actorName?: string;
+  };
 }
 
 /** Town institutions a key NPC can hold. */

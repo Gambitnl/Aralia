@@ -26,6 +26,52 @@ import { getDivineStanding } from '../../utils/world';
 import { WindowFrame } from '../ui/WindowFrame';
 import { WINDOW_KEYS } from '../../styles/uiIds';
 
+// ============================================================================
+// Holy Symbol Glyphs
+// ============================================================================
+// `Deity.symbol` in src/data/deities/index.ts is authored prose ("Hammer and
+// anvil"), not a renderable mark. This table is the one place that turns that
+// authored prose into a glyph, so the header shows the deity the player is
+// actually standing in front of instead of one hardcoded sun.
+//
+// Every deity id currently in DEITIES has an entry. A deity added later without
+// an entry renders its own initial (see `getDeitySymbolGlyph`) — a deterministic
+// mark derived from that deity's own data, NOT a stand-in for another god. The
+// authored prose always travels with the glyph as its accessible name, so the
+// pantheon text stays readable even when a glyph is unfamiliar.
+// ============================================================================
+
+export const DEITY_SYMBOL_GLYPHS: Record<string, string> = {
+    bahamut: '🐉',      // Platinum dragon head in profile
+    moradin: '🔨',      // Hammer and anvil
+    pelor: '☀️',        // Sun face
+    raven_queen: '🪶',  // Raven head
+    lolth: '🕷️',        // Spider
+    corellon: '🌙',     // Quarter moon or starburst
+    gruumsh: '👁️',      // Unblinking eye
+    tiamat: '🐲',       // Five-headed dragon
+    asmodeus: '🔻',     // Three inverted triangles
+    vecna: '🖐️',        // Hand with eye in palm
+    melora: '🌀',       // Spiral pattern
+    erathis: '⚙️',      // Upper half of a cog
+    ioun: '✴️',         // Eye within a star
+    kord: '⚔️',         // Sword with a lightning bolt crossguard
+    sehanine: '🌜',     // Crescent moon
+    avandra: '🪙',      // Woman's profile, coin
+    zehir: '🐍',        // A snake in the shape of a dagger
+    torog: '⛓️',        // A T-bar attached to shackles
+};
+
+/**
+ * Resolves the mark drawn in the temple header for a deity.
+ *
+ * Returns the authored glyph when one exists. Otherwise it returns the deity's
+ * own initial, which is still that deity's data and never another god's symbol.
+ */
+export function getDeitySymbolGlyph(deityId: string, deityName: string): string {
+    return DEITY_SYMBOL_GLYPHS[deityId] ?? deityName.charAt(0).toUpperCase();
+}
+
 interface TempleModalProps {
     isOpen: boolean;
     temple: Temple;
@@ -90,16 +136,26 @@ const TempleModal: React.FC<TempleModalProps> = ({
                 <div className="relative p-6 bg-gradient-to-b from-gray-800 to-gray-900 border-b border-amber-800 shrink-0">
                     <div className="flex items-start gap-6">
                         <div className="w-16 h-16 bg-amber-900/30 rounded-full flex items-center justify-center border-2 border-amber-600/50 text-3xl shadow-[0_0_15px_rgba(245,158,11,0.2)]">
-                            {/* Placeholder for deity symbol */}
-                            <span>☀️</span>
+                            {/* agora-1b88: the mark now comes from this temple's deity, not a fixed sun. */}
+                            <span
+                                role="img"
+                                aria-label={`Holy symbol of ${deity.name}: ${deity.symbol}`}
+                                title={deity.symbol}
+                                data-deity-id={deity.id}
+                            >
+                                {getDeitySymbolGlyph(deity.id, deity.name)}
+                            </span>
                         </div>
                         <div>
                             <p className="text-amber-400/80 italic font-serif">{deity.titles[0]}</p>
-                            <div className="mt-2 flex items-center gap-3 text-sm">
+                            <div className="mt-2 flex items-center gap-3 text-sm flex-wrap">
                                 <span className="bg-amber-900/40 px-2 py-0.5 rounded text-amber-200 border border-amber-800/50">
                                     {deity.alignment}
                                 </span>
                                 <span className="text-gray-400">Domains: {deity.domains.join(', ')}</span>
+                                {/* The authored symbol prose stays visible so the pantheon text is
+                                    readable even where the glyph is unfamiliar. */}
+                                <span className="text-gray-400">Holy symbol: {deity.symbol}</span>
                             </div>
                         </div>
                     </div>

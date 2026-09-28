@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 26/08/2026, 03:11:17
+ * Dependents: systems/spells/mechanics/index.ts
+ * Imports: 3 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import type { Spell } from '@/types/spells'
 import type { CombatCharacter, CombatState, ConcentrationState } from '@/types/combat'
 import { rollSavingThrow } from '@/utils/character'
@@ -91,22 +107,43 @@ export class ConcentrationTracker {
       return gameState
     }
 
-    const effectIdsToRemove = new Set(character.concentratingOn.effectIds)
+    const previousSpellId = character.concentratingOn.spellId;
+    const previousSpellName = character.concentratingOn.spellName;
+    const effectIdsToRemove = new Set(character.concentratingOn.effectIds);
 
-    // Update characters:
-    // 1. Remove effects linked to this concentration
-    // 2. Remove concentration from the caster
+    // 1. Update characters: remove linked status effects and clear concentratingOn
     const newCharacters = gameState.characters.map(c => {
-      let newC = c
+      let newC = c;
 
       // Remove effects if any match
-      if (c.statusEffects && c.statusEffects.length > 0 && effectIdsToRemove.size > 0) {
-        const remainingEffects = c.statusEffects.filter(e => !effectIdsToRemove.has(e.id))
+      if (c.statusEffects && c.statusEffects.length > 0) {
+        const remainingEffects = c.statusEffects.filter(e => {
+          const ownedSource = e.sourceCasterId === character.id && (
+            e.sourceSpellId === previousSpellId ||
+            e.source === previousSpellId ||
+            e.source === previousSpellName
+          );
+          return !effectIdsToRemove.has(e.id) && !ownedSource;
+        });
         if (remainingEffects.length !== c.statusEffects.length) {
           newC = {
             ...newC,
             statusEffects: remainingEffects
-          }
+          };
+        }
+      }
+
+      // Remove conditions if any match source
+      if (c.conditions && c.conditions.length > 0) {
+        const remainingConditions = c.conditions.filter(cond => {
+          const sourceMatches = cond.source === previousSpellId || cond.source === previousSpellName;
+          return !(sourceMatches && cond.sourceCasterId === character.id);
+        });
+        if (remainingConditions.length !== c.conditions.length) {
+          newC = {
+            ...newC,
+            conditions: remainingConditions
+          };
         }
       }
 
@@ -115,16 +152,86 @@ export class ConcentrationTracker {
         newC = {
           ...newC,
           concentratingOn: undefined
-        }
+        };
       }
 
-      return newC
-    })
+      return newC;
+    });
 
-    return {
+    let nextState: CombatState = {
       ...gameState,
       characters: newCharacters
+    };
+
+    // 2. Remove active spell zones (e.g. Flaming Sphere, Moonbeam, Darkness)
+    if (nextState.spellZones) {
+      nextState = {
+        ...nextState,
+        spellZones: nextState.spellZones.filter(
+          zone => (zone.spellId !== previousSpellId || zone.casterId !== character.id) && !effectIdsToRemove.has(zone.id)
+        )
+      };
     }
+
+    // 3. Remove active light sources
+    if (nextState.activeLightSources) {
+      nextState = {
+        ...nextState,
+        activeLightSources: nextState.activeLightSources.filter(
+          ls => (ls.sourceSpellId !== previousSpellId || ls.casterId !== character.id) && !effectIdsToRemove.has(ls.id)
+        )
+      };
+    }
+
+    // 4. Remove active fire effects
+    if (nextState.activeFireEffects) {
+      nextState = {
+        ...nextState,
+        activeFireEffects: nextState.activeFireEffects.filter(
+          fire => (fire.spellId !== previousSpellId || fire.casterId !== character.id) && !effectIdsToRemove.has(fire.id)
+        )
+      };
+    }
+
+    // 5. Remove active spell forces and guardians
+    if (nextState.activeSpellForces) {
+      nextState = {
+        ...nextState,
+        activeSpellForces: nextState.activeSpellForces.filter(
+          force => (force.spellId !== previousSpellId || force.casterId !== character.id) && !effectIdsToRemove.has(force.id)
+        )
+      };
+    }
+
+    if (nextState.activeSpellGuardians) {
+      nextState = {
+        ...nextState,
+        activeSpellGuardians: nextState.activeSpellGuardians.filter(
+          guardian => (guardian.spellId !== previousSpellId || guardian.casterId !== character.id) && !effectIdsToRemove.has(guardian.id)
+        )
+      };
+    }
+
+    // 6. Remove active emanations and environmental controls
+    if (nextState.activeSpellEmanations) {
+      nextState = {
+        ...nextState,
+        activeSpellEmanations: nextState.activeSpellEmanations.filter(
+          emanation => (emanation.spellId !== previousSpellId || emanation.casterId !== character.id) && !effectIdsToRemove.has(emanation.id)
+        )
+      };
+    }
+
+    if (nextState.activeEnvironmentalControls) {
+      nextState = {
+        ...nextState,
+        activeEnvironmentalControls: nextState.activeEnvironmentalControls.filter(
+          control => (control.spellId !== previousSpellId || control.casterId !== character.id) && !effectIdsToRemove.has(control.id)
+        )
+      };
+    }
+
+    return nextState;
   }
 
   /**

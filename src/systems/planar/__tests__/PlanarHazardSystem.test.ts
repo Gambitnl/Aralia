@@ -8,6 +8,11 @@ import { rollSavingThrow } from '../../../utils/character';
 import { createMockGameState, createMockPlayerCharacter } from '../../../utils/core';
 
 // Mock dependencies
+// agora-f821.4: the hazard rolls through the audited roller, not utils/combat.
+vi.mock('../../dice/rollers', async (importOriginal) => {
+    const actual = await importOriginal() as typeof import('../../dice/rollers');
+    return { ...actual, rollDice: vi.fn().mockReturnValue(3) };
+});
 vi.mock('../../../utils/planar/planarUtils', () => ({
   getCurrentPlane: vi.fn()
 }));
@@ -16,7 +21,6 @@ vi.mock('../../../utils/combat', async (importOriginal) => {
     const actual = await importOriginal() as typeof import('../../../utils/combat');
     return {
         ...actual,
-        rollDice: vi.fn().mockReturnValue(3), // Fixed roll for predictability
         createPlayerCombatCharacter: vi.fn().mockReturnValue({
             id: 'p1',
             stats: { wisdom: 10, constitution: 10 }

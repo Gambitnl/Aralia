@@ -69,7 +69,7 @@ describe('Githyanki Race domain leaf', () => {
     const resolved = resolveGithyankiPsychicResilience(baseline);
 
     expect(baseline.actor.id).toBe('githyanki-psychic-resilience-actor');
-    expect(baseline.defenseBridge).toBe('narrow canonical defense adapter');
+    expect(baseline.defenseBridge).toBe('production racial parser');
     expect(baseline.actor.resistances?.map(type => type.toLowerCase())).toContain('psychic');
     expect(resolved.resolution).toMatchObject({
       rawDamage: GITHYANKI_PSYCHIC_RAW_DAMAGE,

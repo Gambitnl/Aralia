@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 14/07/2026, 17:48:55
+ * Last Sync: 30/08/2026, 01:47:22
  * Dependents: components/Town/Broadsheet.tsx, components/Town/NoticeBoard.tsx, components/debug/TownHistoryDevOverlay.tsx, hooks/actions/actionHandlers.ts, hooks/useChronicleRumorsSync.ts, hooks/useOverheardGossip.ts, hooks/useTownCrierAnnouncements.ts, utils/world/chronicleNewsToRumors.ts
  * Imports: 2 files
  *
@@ -50,6 +50,9 @@ const PROMINENCE: Record<LifeEventKind, NewsProminence> = {
   // Property changes matter to neighbors, tradespeople, and notice boards, but
   // ordinary repairs or household moves do not displace disaster headlines.
   building: 'notice',
+  // A player-authored outcome is substantial local news. It reaches boards and
+  // rumors without displacing disasters or succession from crier headlines.
+  player_intervention: 'notice',
   death: 'gossip',
   birth: 'gossip',
   courtship: 'gossip',

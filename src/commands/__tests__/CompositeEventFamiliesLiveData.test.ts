@@ -28,7 +28,7 @@ import {
   createMockCommandContext,
   createMockGameState
 } from '@/utils/core'
-import * as combatUtils from '@/utils/combat'
+import * as diceRollers from '@/systems/dice/rollers'
 import * as savingThrowUtils from '@/utils/character/savingThrowUtils'
 import elementalBaneData from '@/data/spells/level-4/elemental-bane.json'
 import graspingVineData from '@/data/spells/level-4/grasping-vine.json'
@@ -134,7 +134,7 @@ describe('live composite spell event families', () => {
       caster,
       targets: [affectedTarget]
     })
-    vi.spyOn(combatUtils, 'rollDamage')
+    vi.spyOn(diceRollers, 'rollDamage')
       .mockReturnValueOnce(6)
       .mockReturnValueOnce(10)
       .mockReturnValueOnce(7)
@@ -208,7 +208,7 @@ describe('live composite spell event families', () => {
       onMapUpdate: vi.fn(),
       addDamageNumber: vi.fn()
     }
-    vi.spyOn(combatUtils, 'rollDice').mockReturnValue(7)
+    vi.spyOn(diceRollers, 'rollDice').mockReturnValue(7)
 
     const { result } = renderHook(() => useCombatEngine(props))
     const afterFirstDamage = result.current.handleDamage(
@@ -229,7 +229,7 @@ describe('live composite spell event families', () => {
     expect(afterFirstDamage.currentHP).toBe(63)
     expect(afterFirstDamage.statusEffects[0].onDamageSpellEffect?.lastTriggeredTurn).toBe(3)
     expect(afterSecondDamage.currentHP).toBe(53)
-    expect(combatUtils.rollDice).toHaveBeenCalledTimes(1)
+    expect(diceRollers.rollDice).toHaveBeenCalledTimes(1)
   })
 
   it('uses one Grasping Vine owner for the initial attack and later Bonus Action', async () => {
@@ -243,8 +243,8 @@ describe('live composite spell event families', () => {
       armorClass: 12,
       position: { x: 6, y: 0 }
     })
-    vi.spyOn(combatUtils, 'rollD20').mockReturnValue(15)
-    vi.spyOn(combatUtils, 'rollDamage').mockReturnValue(8)
+    vi.spyOn(diceRollers, 'rollD20').mockReturnValue(15)
+    vi.spyOn(diceRollers, 'rollDamage').mockReturnValue(8)
 
     const initialCommands = await SpellCommandFactory.createCommands(
       graspingVine,

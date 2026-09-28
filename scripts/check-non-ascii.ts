@@ -1,4 +1,5 @@
 import fs from 'fs';
+import path from 'path';
 import { globSync } from 'glob';
 import { pathToFileURL } from 'url';
 
@@ -59,6 +60,9 @@ export const MOJIBAKE_NORMALIZATIONS: { pattern: RegExp; replacement: string; na
     { pattern: /\u00E2\u20AC\u2122/g, replacement: "'", name: 'Mojibake Right Single Quote Sequence' },
     { pattern: /\u00E2\u02C6'/g, replacement: '-', name: 'Mojibake Minus Sign Sequence' },
 ];
+
+//   to ~ inside a JSON string: printable ASCII written as an escape.
+export const PRINTABLE_ASCII_ESCAPE = /\\u00([2-7][0-9a-fA-F])/g;
 
 export const NORMALIZATIONS: { pattern: RegExp; replacement: string; name: string }[] = [
     { pattern: /[\u2018\u2019]/g, replacement: "'", name: 'Smart Single Quote' },
@@ -459,13 +463,21 @@ export function buildCharsetReviewReport(issues: Issue[]): string {
         softManualIssues.forEach(appendIssue);
     }
 
-    return `${lines.join('\n')}\n`;
+    return `${lines.join('\n').trimEnd()}\n`;
 }
 
-function writeCharsetReviewReport(issues: Issue[]) {
-    fs.mkdirSync('docs/reports', { recursive: true });
-    fs.writeFileSync(CHARSET_REVIEW_REPORT_PATH, buildCharsetReviewReport(issues), 'utf-8');
-    console.log(`Charset review report written to ${CHARSET_REVIEW_REPORT_PATH}`);
+export function writeCharsetReviewReport(issues: Issue[], reportPath = CHARSET_REVIEW_REPORT_PATH): boolean {
+    const report = buildCharsetReviewReport(issues);
+    try {
+        fs.mkdirSync(path.dirname(reportPath), { recursive: true });
+        fs.writeFileSync(reportPath, report, 'utf-8');
+    } catch (error) {
+        const detail = error instanceof Error ? error.message : String(error);
+        console.warn(`WARNING: Charset review report not written to ${reportPath}: ${detail}. Validation continues; scan findings remain in this output.`);
+        return false;
+    }
+    console.log(`Charset review report written to ${reportPath}`);
+    return true;
 }
 
 // ============================================================================
@@ -495,6 +507,18 @@ export function fixFile(filePath: string): boolean {
             content = content.replace(f.pattern, f.replacement);
             modified = true;
         }
+    }
+
+    // Decode JSON escapes that hide printable ASCII (the strict finding
+    // "Escaped U+00xx: Printable ASCII hidden by JSON escape"). The double
+    // quote and the backslash stay escaped because JSON requires it.
+    if (patternMatches(PRINTABLE_ASCII_ESCAPE, content)) {
+        content = content.replace(PRINTABLE_ASCII_ESCAPE, (whole, hex: string) => {
+            const code = Number.parseInt(hex, 16);
+            if (code === 0x22 || code === 0x5c) return whole;
+            return String.fromCharCode(code);
+        });
+        modified = true;
     }
 
     // Apply NORMALIZATIONS

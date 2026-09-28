@@ -1,10 +1,15 @@
+/**
+ * @file src/utils/savingThrowUtils.ts
+ * Utility functions for handling saving throws in D&D 5e combat.
+ */
+
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
  * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 16/08/2026, 02:52:17
- * Dependents: commands/effects/GrantedActionCommand.ts, commands/factory/SpellCommandFactory.ts, commands/factory/boomingBladeAttackBridge.ts, commands/factory/greenFlameBladeAttackBridge.ts, commands/factory/trueStrikeAttackBridge.ts, components/CharacterCreator/SkillSelection.tsx, components/DesignPreview/steps/raceDomain/leaves/autumnEladrinRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/blackDragonbornRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/blueDragonbornRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/brassDragonbornRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/bronzeDragonbornRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/copperDragonbornRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/deepGnomeRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/drowHalfElfRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/earthGenasiRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/fallenAasimarRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/firbolgRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/fireGiantGoliathRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/forestGnomeRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/frostGiantGoliathRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/giffRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/githzeraiRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/goldDragonbornRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/grayDwarfDuergarRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/greenDragonbornRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/hadozeeRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/halfElfRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/halflingRaceLeaf.tsx, components/DesignPreview/steps/scenarioControls/counterspellNestedReactionsScenarioControls.ts, components/DesignPreview/steps/scenarioControls/multiattackRidersScenarioControls.ts, components/DesignPreview/steps/scenarioControls/repeatSavesConditionExpiryScenarioControls.ts, components/DesignPreview/steps/scenarioControls/savingThrowsHalfDamageScenarioControls.ts, components/DesignPreview/steps/scenarioControls/tauntForcedTargetingScenarioControls.ts, components/DesignPreview/steps/spells/fireBoltScenario.tsx, systems/combat/reactions/companionProtectionReaction.ts, systems/perception/eventDetection.ts, systems/spells/mechanics/areaDamageSpellCastResolution.ts, systems/spells/mechanics/directDamageSpellCastResolution.ts, systems/spells/mechanics/reactiveDamageRetaliationResolution.ts, systems/spells/mechanics/sourceSaveModifierResolution.ts, systems/spells/mechanics/witchBoltOngoingResolution.ts, systems/spells/socialServiceResolution.ts, systems/travel/forcedMarch.ts, utils/character/concentrationUtils.ts, utils/character/index.ts, utils/character/skillModifierUtils.ts, utils/combat/shoveUtils.ts
+ * Last Sync: 09/09/2026, 14:21:17
+ * Dependents: commands/effects/GrantedActionCommand.ts, commands/factory/SpellCommandFactory.ts, commands/factory/boomingBladeAttackBridge.ts, commands/factory/greenFlameBladeAttackBridge.ts, commands/factory/trueStrikeAttackBridge.ts, components/CharacterCreator/SkillSelection.tsx, components/DesignPreview/steps/raceDomain/leaves/autumnEladrinRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/blackDragonbornRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/blueDragonbornRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/brassDragonbornRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/bronzeDragonbornRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/copperDragonbornRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/deepGnomeRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/drowHalfElfRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/earthGenasiRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/fallenAasimarRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/firbolgRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/fireGiantGoliathRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/forestGnomeRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/frostGiantGoliathRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/giffRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/githzeraiRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/goldDragonbornRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/grayDwarfDuergarRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/greenDragonbornRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/hadozeeRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/halfElfRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/halflingRaceLeaf.tsx, components/DesignPreview/steps/scenarioControls/counterspellNestedReactionsScenarioControls.ts, components/DesignPreview/steps/scenarioControls/multiattackRidersScenarioControls.ts, components/DesignPreview/steps/scenarioControls/repeatSavesConditionExpiryScenarioControls.ts, components/DesignPreview/steps/scenarioControls/savingThrowsHalfDamageScenarioControls.ts, components/DesignPreview/steps/scenarioControls/tauntForcedTargetingScenarioControls.ts, components/DesignPreview/steps/spells/fireBoltScenario.tsx, systems/combat/reactions/companionProtectionReaction.ts, systems/perception/eventDetection.ts, systems/spells/mechanics/areaDamageSpellCastResolution.ts, systems/spells/mechanics/directDamageSpellCastResolution.ts, systems/spells/mechanics/reactiveDamageRetaliationResolution.ts, systems/spells/mechanics/sourceSaveModifierResolution.ts, systems/spells/mechanics/witchBoltOngoingResolution.ts, systems/spells/socialServiceResolution.ts, systems/travel/forcedMarch.ts, utils/character/concentrationUtils.ts, utils/character/index.ts, utils/character/skillModifierUtils.ts, utils/combat/archfeyUtils.ts, utils/combat/battleMasterUtils.ts, utils/combat/beastMasterUtils.ts, utils/combat/multiattackUtils.ts, utils/combat/openHandUtils.ts, utils/combat/shoveUtils.ts
  * Imports: 4 files
  *
  * MULTI-AGENT SAFETY:
@@ -14,14 +19,10 @@
  */
 // @dependencies-end
 
-/**
- * @file src/utils/savingThrowUtils.ts
- * Utility functions for handling saving throws in D&D 5e combat.
- */
 import {
     CombatCharacter,
 } from '../../types/combat';
-import { rollDice } from '../combat/combatUtils';
+import { rollDice } from '../../systems/dice/rollers';
 import { getAbilityModifierValue } from './statUtils';
 import {
     SavingThrowAbility,
@@ -44,6 +45,129 @@ const ABILITY_STAT_KEYS: Record<SavingThrowAbility, AbilityStatKey> = {
     Wisdom: 'wisdom',
     Charisma: 'charisma',
 };
+
+// ============================================================================
+// PHB 2024 Saving-Throw Rule Helpers (SYS-2)
+// ============================================================================
+// Two 2024 Player's Handbook rules were only partly represented in this file.
+//
+// 1. PROFICIENCY STACKING. The Proficiency Bonus is added to a d20 Test at most
+//    ONCE, however many sources grant proficiency in that save (class table,
+//    the Resilient feat, a species or background grant). The single add below
+//    already honored that, but the two proficiency lists are authored
+//    inconsistently ("Dexterity", "dexterity", "dex", " Dexterity "), and the
+//    old exact lowercase compare silently missed every variant — so a real
+//    grant could drop the bonus entirely. One alias table fixes the miss while
+//    keeping the add-once behavior intact.
+//
+// 2. SPECIES TRAITS. 2024 traits phrase their narrowing as a CONDITION, not a
+//    damage type: Fey Ancestry ("advantage on saving throws you make to avoid
+//    or end the Charmed condition"), Brave (Frightened), Dwarven Resilience
+//    (Poisoned). The old `against\s+([a-z]+)` capture matched none of those
+//    wordings, and captured the filler word "being" from "against being
+//    frightened" — so each of those traits granted advantage on EVERY saving
+//    throw. Several DesignPreview race leaves strip the raw parser projection
+//    to work around exactly that; those adapters keep working unchanged, they
+//    are simply no longer the only defense.
+//
+// PRESERVED: narrowing still applies ONLY when the caller supplies an
+// effectContext. A call with no context keeps the pre-existing broad behavior,
+// which the existing legacy-string tests pin.
+// ============================================================================
+
+/** Ability spellings accepted inside saving-throw proficiency lists. */
+const SAVE_PROFICIENCY_ALIASES: Record<string, AbilityStatKey> = {
+    str: 'strength', strength: 'strength',
+    dex: 'dexterity', dexterity: 'dexterity',
+    con: 'constitution', constitution: 'constitution',
+    int: 'intelligence', intelligence: 'intelligence',
+    wis: 'wisdom', wisdom: 'wisdom',
+    cha: 'charisma', charisma: 'charisma',
+};
+
+/** Condition names a species trait can narrow a saving throw to. */
+const SAVE_CONDITION_QUALIFIERS = [
+    'charmed', 'frightened', 'poisoned', 'paralyzed', 'petrified', 'stunned',
+    'blinded', 'deafened', 'restrained', 'grappled', 'incapacitated',
+    'unconscious', 'exhaustion', 'diseased', 'disease', 'prone',
+];
+
+/** Words that can follow "against" without naming what is being saved against. */
+const QUALIFIER_FILLER = new Set([
+    'being', 'been', 'becoming', 'the', 'a', 'an', 'all', 'any', 'your', 'their',
+]);
+
+/** Reduce a qualifier to a comparable stem so "Poisoned" and "poison" agree. */
+function qualifierStem(value: string): string {
+    const text = value.trim().toLowerCase();
+    return text.length > 3 && text.endsWith('ed') ? text.slice(0, -2) : text;
+}
+
+/**
+ * True when a trait qualifier and an incoming effect tag name the same thing,
+ * tolerating the condition/noun spelling split ("Poisoned condition" vs the
+ * effect tag "poison") that PHB 2024 species wording makes routine.
+ */
+export function qualifierMatches(qualifier: string, effectTag: string): boolean {
+    const left = qualifierStem(qualifier);
+    const right = qualifierStem(effectTag);
+    if (!left || !right) return false;
+    if (left === right) return true;
+    const [shorter, longer] = left.length <= right.length ? [left, right] : [right, left];
+    return shorter.length >= 4 && longer.startsWith(shorter);
+}
+
+/**
+ * Pull the "what is this save against?" qualifiers out of free-text trait wording.
+ * Returns an empty list for an unconditional modifier ("advantage on all saving
+ * throws"), which callers treat as "applies regardless of effect context".
+ */
+export function extractSaveQualifiers(modifierText: string): string[] {
+    const text = modifierText.toLowerCase();
+    const found = new Set<string>();
+
+    // 2024 phrasing: "...to avoid or end the Frightened condition".
+    for (const condition of SAVE_CONDITION_QUALIFIERS) {
+        if (text.includes(condition)) found.add(condition);
+    }
+
+    // Legacy phrasing: "against poison", "against being frightened". Only the
+    // first meaningful word is taken, deliberately: grabbing the whole trailing
+    // phrase would widen a narrow trait back out into a broad one.
+    const againstPattern = /against\s+(?:(?:being|been|becoming|the|a|an|all|any|your|their)\s+)*([a-z]+)/g;
+    let match: RegExpExecArray | null;
+    while ((match = againstPattern.exec(text)) !== null) {
+        const word = match[1];
+        if (!QUALIFIER_FILLER.has(word) && word !== 'condition') found.add(word);
+    }
+
+    return [...found];
+}
+
+/**
+ * Whether the character is proficient in this saving throw, from ANY source.
+ *
+ * Collapsing every source to one boolean is what enforces the PHB 2024 rule
+ * that the Proficiency Bonus is never added twice: a Fighter who also takes
+ * Resilient (Constitution) is proficient once, not twice. Entries are matched
+ * through the alias table so authored spelling variants still count.
+ */
+export function hasSavingThrowProficiency(
+    target: Pick<CombatCharacter, 'class' | 'savingThrowProficiencies'>,
+    ability: SavingThrowAbility
+): boolean {
+    const wanted = SAVE_PROFICIENCY_ALIASES[ability.trim().toLowerCase()];
+    if (!wanted) return false;
+
+    const sources = [
+        ...(target.class?.savingThrowProficiencies ?? []),
+        ...(target.savingThrowProficiencies ?? []),
+    ];
+
+    return sources.some(entry => (
+        SAVE_PROFICIENCY_ALIASES[String(entry ?? '').trim().toLowerCase()] === wanted
+    ));
+}
 
 /**
  * Result of a saving throw roll.
@@ -107,21 +231,58 @@ export interface SavingThrowRollOptions {
 }
 
 /**
- * Resolve only save-outcome overrides whose condition is represented by the
- * current combat character model. Source rows that require size, language,
- * player choice, or a richer relationship model remain available to their
- * owning adapters instead of being guessed at this shared boundary.
+ * Resolve save-outcome overrides whose condition is represented by the
+ * combat character model or context.
+ *
+ * Supported conditions:
+ * - not_humanoid (auto_success)
+ * - immune_to_frightened (auto_success)
+ * - immune_to_charmed (auto_success)
+ * - creature_does_not_sleep_or_has_exhaustion_immunity (auto_success)
+ * - is_plant_creature (auto_failure)
+ * - target_size_huge_or_larger / target_is_huge_or_larger (auto_success)
+ * - fighting_caster_or_allies / caster_fighting_target (auto_success)
+ * - voluntary_failure / voluntary_failure_allowed (when target.voluntaryFailure is true)
+ *
+ * @param overrides - The list of save outcome overrides from spell data
+ * @param target - The defending character (and optional context flags)
+ * @param dc - The spell save DC
+ * @param casterTeam - Optional team identifier of the caster for hostility checks
+ * @returns An overridden SavingThrowResult if matched, or undefined to roll normally
  */
 export function resolveSaveOutcomeOverride(
     overrides: SaveOutcomeOverride[] | undefined,
-    target: Pick<CombatCharacter, 'creatureTypes' | 'conditionImmunities'>,
-    dc: number
+    target: Partial<CombatCharacter> & {
+        creatureTypes?: string[];
+        conditionImmunities?: string[];
+        stats?: { size?: string; creatureTypes?: string[] };
+        team?: string;
+        casterTeam?: string;
+        voluntaryFailure?: boolean;
+    },
+    dc: number,
+    casterTeam?: string
 ): SavingThrowResult | undefined {
     if (!overrides?.length) return undefined;
 
-    const creatureTypes = (target.creatureTypes ?? []).map(type => type.toLowerCase());
+    // Collect creature types (preferring root creatureTypes, falling back to stats.creatureTypes)
+    const creatureTypes = (target.creatureTypes ?? target.stats?.creatureTypes ?? []).map(type => type.toLowerCase());
+
     const conditionImmunities = new Set(
         (target.conditionImmunities ?? []).map(condition => condition.toLowerCase())
+    );
+
+    // Normalize target size
+    const targetSize = (target.stats?.size ?? (target as { size?: string }).size ?? '').toLowerCase();
+    const isHugeOrLarger = targetSize === 'huge' || targetSize === 'gargantuan';
+    const isLargeOrSmaller = targetSize === 'large' || targetSize === 'medium' || targetSize === 'small' || targetSize === 'tiny';
+
+    // Check team hostility
+    const effectiveCasterTeam = casterTeam ?? target.casterTeam;
+    const isFightingCaster = Boolean(
+        target.team &&
+        effectiveCasterTeam &&
+        target.team !== effectiveCasterTeam
     );
 
     for (const override of overrides) {
@@ -141,14 +302,34 @@ export function resolveSaveOutcomeOverride(
             matches = creatureTypes.includes('elf') || conditionImmunities.has('exhaustion');
         } else if (override.outcome === 'auto_failure' && condition === 'is_plant_creature') {
             matches = creatureTypes.includes('plant');
+        } else if (
+            override.outcome === 'auto_success' &&
+            (condition === 'target_size_huge_or_larger' || condition === 'target_is_huge_or_larger')
+        ) {
+            matches = isHugeOrLarger;
+        } else if (
+            override.outcome === 'auto_success' &&
+            (condition === 'fighting_caster_or_allies' || condition === 'caster_fighting_target')
+        ) {
+            matches = isFightingCaster;
+        } else if (
+            (override.outcome === 'voluntary_failure' || override.outcome === 'voluntary_failure_allowed') &&
+            target.voluntaryFailure === true
+        ) {
+            if (condition === 'target_size_large_or_smaller') {
+                matches = isLargeOrSmaller;
+            } else {
+                matches = true;
+            }
         }
 
         if (matches) {
             // The override is a save result, not a replacement damage/status
             // outcome. Callers still apply their normal success/failure rules.
+            const isSuccess = override.outcome === 'auto_success';
             return {
-                success: override.outcome === 'auto_success',
-                total: override.outcome === 'auto_success' ? dc : 0,
+                success: isSuccess,
+                total: isSuccess ? dc : 0,
                 dc,
                 modifiersApplied: []
             };
@@ -246,10 +427,13 @@ export function rollSavingThrow(
     const contextMatches = (against?: string[]): boolean => {
         if (!against || against.length === 0) return true; // unconditional modifier
         if (!effectContext) return false;                  // contextual modifier needs a context to match
-        const haystack = new Set<string>();
-        if (effectContext.damageType) haystack.add(effectContext.damageType.toLowerCase());
-        effectContext.tags?.forEach(tag => haystack.add(tag.toLowerCase()));
-        return against.some(a => haystack.has(a.toLowerCase()));
+        const haystack: string[] = [];
+        if (effectContext.damageType) haystack.push(effectContext.damageType);
+        effectContext.tags?.forEach(tag => haystack.push(tag));
+        // Stem-tolerant (see qualifierMatches): a trait written as the condition
+        // ("Poisoned condition") still matches an effect tagged with the bare
+        // noun ("poison"). Exact tags keep matching exactly as before.
+        return against.some(a => haystack.some(tag => qualifierMatches(a, tag)));
     };
 
     const checkModifier = (modText: string) => {
@@ -265,9 +449,12 @@ export function rollSavingThrow(
             // Contextual qualifier: phrases like "against poison" should only apply when the
             // incoming effect matches. We only narrow when an effectContext was supplied, so
             // callers that pass no context keep the original (broad) behavior for legacy strings.
-            const againstMatch = text.match(/against\s+([a-z]+)/);
-            if (againstMatch && effectContext) {
-                return contextMatches([againstMatch[1]]);
+            // PHB 2024 species traits narrow by CONDITION, not damage type, so the
+            // qualifier extractor reads both wordings. Preserved: narrowing only
+            // happens when the caller supplied an effectContext.
+            const qualifiers = extractSaveQualifiers(text);
+            if (qualifiers.length > 0 && effectContext) {
+                return contextMatches(qualifiers);
             }
             // Generic saving throw modifier (e.g., "all saving throws"), or a contextual string with
             // no effectContext to narrow against (legacy broad behavior preserved).
@@ -330,15 +517,13 @@ export function rollSavingThrow(
       // Add proficiency bonus if the character is proficient in this save
       // Proficiency can come from class (e.g., Fighters are proficient in Str/Con)
       // or from the character directly (e.g., Resilient feat grants proficiency)
-      const classHasProficiency = (target.class?.savingThrowProficiencies ?? [])
-        .some(proficiency => proficiency.toLowerCase() === ability.toLowerCase());
-      const charHasProficiency = (target.savingThrowProficiencies ?? [])
-        .some(proficiency => proficiency.toLowerCase() === ability.toLowerCase());
-
-      // Note: SavingThrowAbility is "Strength", "Dexterity", etc.
-      // Class.savingThrowProficiencies and target.savingThrowProficiencies are AbilityScoreName ("Strength", etc.)
-      // So direct comparison should work.
-      if (classHasProficiency || charHasProficiency) {
+      // PHB 2024: the Proficiency Bonus is added to a d20 Test at most ONCE,
+      // however many sources grant proficiency in this save. hasSavingThrowProficiency
+      // collapses class grants and character grants (Resilient, species, background)
+      // to a single boolean, so the add below can never stack, and it normalizes
+      // authored spelling variants ("dex", " Dexterity ") that the previous exact
+      // lowercase compare missed — which dropped the bonus rather than doubling it.
+      if (hasSavingThrowProficiency(target, ability)) {
           mod += calculateProficiencyBonus(target.level || 1);
       }
     }

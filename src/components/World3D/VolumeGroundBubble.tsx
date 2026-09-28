@@ -146,6 +146,18 @@ export interface VolumeGroundBubbleProps {
   /** Cell size override, meters. Default = ADR 0002's 0.25 m. */
   cellM?: number;
   /**
+   * Vertical extent override, meters. Omitted keeps the CUBE the walking
+   * bubble has always been.
+   *
+   * A cube is affordable at 64 m across and ruinous at 560 m, and the whole
+   * cost is vertical: a town bubble is a lid over terrain whose relief is tens
+   * of metres, not hundreds. Passing this lets the town-on-LAND pane widen its
+   * footprint past the 480 m the cube capped it at without paying for hundreds
+   * of metres of sky and rock nobody sees. The worker treats it as a FLOOR and
+   * raises it to fit the footprint's measured relief.
+   */
+  heightM?: number;
+  /**
    * Called once per build with the voxels. The next slice's carve runs against
    * this object on the main thread; nothing else may own a second copy.
    */
@@ -253,6 +265,7 @@ const VolumeGroundBubble: React.FC<VolumeGroundBubbleProps> = ({
   playerGroundPos,
   extentM = BUBBLE_EXTENT_M,
   cellM = BUBBLE_CELL_M,
+  heightM,
   onVolume,
   onStats,
 }) => {
@@ -333,7 +346,7 @@ const VolumeGroundBubble: React.FC<VolumeGroundBubbleProps> = ({
       st.msTotal += r.ms;
       if (r.ms > st.maxSlice) st.maxSlice = r.ms;
       if (r.changed) {
-        for (const s of slabsForEdit(v.cellsPerEdge, r.min, r.max, AO_REACH_CELLS + 1)) {
+        for (const s of slabsForEdit(v.cellsPerEdge, r.min, r.max, AO_REACH_CELLS + 1, v.cellsY)) {
           st.dirty.set(slabKey(s), s);
         }
       }
@@ -474,12 +487,20 @@ const VolumeGroundBubble: React.FC<VolumeGroundBubbleProps> = ({
       centerZM: pz,
       extentM,
       cellM,
+      heightM,
       preCut: rigCut,
       onFill: (v) => {
         fillMs = v.fillMs;
         solidCells = v.solidCells;
         const half = (v.cellsPerEdge * v.cellM) / 2;
-        shiftM = [v.originM[0] + half, v.originM[1] + half, v.originM[2] + half];
+        /* The VERTICAL half is its own number. The bubble was a cube, so one
+         * half served all three axes; a slab bubble is not, and reusing the
+         * horizontal half here would rebase the geometry to a point hundreds of
+         * metres above the ground it draws — the mesh would be correct and
+         * invisible. The vertical cell equals the horizontal one by design (see
+         * `fillBubble`), so only the COUNT differs. */
+        const halfY = (v.cellsY * v.cellM) / 2;
+        shiftM = [v.originM[0] + half, v.originM[1] + halfY, v.originM[2] + half];
         /* THE BUBBLE'S GROUND DECIDES ITS SHADER. `stackKey` names the ground
          * most of these columns stand on, and the strata a cut face shows are
          * that stack's — which is why a mountain bubble now bores into rock
@@ -539,7 +560,7 @@ const VolumeGroundBubble: React.FC<VolumeGroundBubbleProps> = ({
     };
     // `onVolume` and `onStats` are stable for the component's life.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ground, px, pz, rigCut, extentM, cellM]);
+  }, [ground, px, pz, rigCut, extentM, cellM, heightM]);
 
   // Retire the geometries of a superseded build. Held until React has stopped
   // rendering them — disposing a geometry that then draws again re-uploads it.
@@ -638,7 +659,7 @@ const VolumeGroundBubble: React.FC<VolumeGroundBubbleProps> = ({
         const ix = Math.floor((xM - v.originM[0]) / v.cellM);
         const iz = Math.floor((zM - v.originM[2]) / v.cellM);
         if (ix < 0 || iz < 0 || ix >= v.cellsPerEdge || iz >= v.cellsPerEdge) return null;
-        for (let y = v.cellsPerEdge - 1; y >= 0; y--) {
+        for (let y = v.cellsY - 1; y >= 0; y--) {
           const m = v.volume.get(ix, y, iz);
           if (m !== 0) {
             const topY = v.originM[1] + (y + 1) * v.cellM;
@@ -727,7 +748,7 @@ const VolumeGroundBubble: React.FC<VolumeGroundBubbleProps> = ({
         /* Resolved against the SLAB PLAN, not against what is being drawn: the
          * floor of a cut belongs to a buried slab that meshed to nothing at
          * build time and was therefore never delivered. See `slabsForEdit`. */
-        const touched = slabsForEdit(v.cellsPerEdge, r.min, r.max, AO_REACH_CELLS + 1);
+        const touched = slabsForEdit(v.cellsPerEdge, r.min, r.max, AO_REACH_CELLS + 1, v.cellsY);
         const touchedKeys = new Set(touched.map(slabKey));
         const next: DrawnSlab[] = live.slabs.filter((s) => !touchedKeys.has(slabKey(s)));
         const had = live.slabs.length - next.length;

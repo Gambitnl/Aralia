@@ -1,4 +1,4 @@
-﻿# Terrain And Surfaces
+# Terrain And Surfaces
 
 Bucket id: `terrain_or_surface`
 Total findings: 114

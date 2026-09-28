@@ -5,15 +5,27 @@ import { SpellEffect } from '../../../types/spells'
 import type { DamageEffect } from '../../../types/spellEffectTypes'
 import { CommandContext } from '../../base/SpellCommand'
 import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '../../../utils/core/factories'
-import * as combatUtils from '../../../utils/combat/combatUtils'
+import * as diceRollers from '../../../systems/dice/rollers'
+
+// agora-f821.4 retired the combatUtils roller family; the modules under
+// test roll through systems/dice/rollers now. One hoisted set of mocks
+// stands in for BOTH specifiers, so one vi.mocked(...) pins every die.
+const diceMocks = vi.hoisted(() => ({
+    rollDice: vi.fn(),
+    rollDamage: vi.fn(),
+}))
+
+vi.mock('../../../systems/dice/rollers', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../../../systems/dice/rollers')>()
+  return { ...actual, ...diceMocks }
+})
 
 vi.mock('../../../utils/combat/combatUtils', async (importOriginal) => {
   const actual = await importOriginal<typeof import('../../../utils/combat/combatUtils')>()
   return {
     ...actual,
-    rollDice: vi.fn(),
-    rollDamage: vi.fn(),
-  }
+    ...diceMocks,
+}
 })
 
 // Deterministic dice: sum of every face (e.g. "2d6" -> 12), so a modest damage
@@ -40,8 +52,8 @@ describe("DamageCommand — Dark One's Blessing (Fiend warlock, level 3)", () =>
   let context: CommandContext
 
   beforeEach(() => {
-    vi.mocked(combatUtils.rollDice).mockImplementation((dice: string) => (dice === '1d20' ? 10 : sumFaces(dice)))
-    vi.mocked(combatUtils.rollDamage).mockImplementation((dice: string) => sumFaces(dice))
+    vi.mocked(diceRollers.rollDice).mockImplementation((dice: string) => (dice === '1d20' ? 10 : sumFaces(dice)))
+    vi.mocked(diceRollers.rollDamage).mockImplementation((dice: string) => sumFaces(dice))
 
     // Cha modifier +3 (16) + warlock level 3 = 6 temporary hit points.
     warlock = createMockCombatCharacter({

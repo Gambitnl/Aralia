@@ -18,7 +18,7 @@ grant it access to the Aralia repository. The secret must be a Hugging Face toke
 that can call the hosted `microsoft/TRELLIS.2` Space. The name does not start with
 `VITE_`, so Vite does not copy it into browser code.
 
-Create the Codespace from GitHub using **Code → Codespaces → New with options**.
+Create the Codespace from GitHub using **Code -> Codespaces -> New with options**.
 The advanced creation screen shows the recommended `HF_TOKEN` secret when it is
 not already associated with the repository. After startup, open forwarded port
 3000 and navigate to `/Aralia/misc/design.html?step=herolab`.

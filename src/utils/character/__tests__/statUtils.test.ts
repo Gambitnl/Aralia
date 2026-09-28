@@ -1,5 +1,6 @@
 
 import { describe, it, expect } from 'vitest';
+import { ItemType } from '../../../types';
 import { calculateArmorClass, calculateFinalAbilityScores, calculatePassiveScore } from '../statUtils';
 import { createMockPlayerCharacter } from '../../core/factories';
 import { ActiveEffect } from '@/types/effects';
@@ -32,7 +33,7 @@ describe('statUtils', () => {
                     Torso: {
                         id: 'leather_armor',
                         name: 'Leather Armor',
-                        type: 'armor',
+                        type: ItemType.Armor,
                         description: '',
                         armorCategory: 'Light',
                         baseArmorClass: 11,
@@ -55,7 +56,7 @@ describe('statUtils', () => {
                     Torso: {
                         id: 'scale_mail',
                         name: 'Scale Mail',
-                        type: 'armor',
+                        type: ItemType.Armor,
                         description: '',
                         armorCategory: 'Medium',
                         baseArmorClass: 14,
@@ -80,7 +81,7 @@ describe('statUtils', () => {
                     OffHand: {
                         id: 'shield',
                         name: 'Shield',
-                        type: 'armor',
+                        type: ItemType.Armor,
                         description: '',
                         armorCategory: 'Shield',
                         armorClassBonus: 2
@@ -118,7 +119,7 @@ describe('statUtils', () => {
                     OffHand: {
                         id: 'shield',
                         name: 'Shield',
-                        type: 'armor',
+                        type: ItemType.Armor,
                         description: '',
                         armorCategory: 'Shield',
                         armorClassBonus: 2
@@ -160,7 +161,7 @@ describe('statUtils', () => {
                     OffHand: {
                         id: 'shield',
                         name: 'Shield',
-                        type: 'armor',
+                        type: ItemType.Armor,
                         description: '',
                         armorCategory: 'Shield',
                         armorClassBonus: 2
@@ -238,7 +239,7 @@ describe('statUtils', () => {
                         id: 'leather',
                         name: 'Leather Armor',
                         description: '',
-                        type: 'armor',
+                        type: ItemType.Armor,
                         armorCategory: 'Light',
                         baseArmorClass: 11,
                         addsDexterityModifier: true
@@ -277,7 +278,7 @@ describe('statUtils', () => {
             // Item that adds +2 Strength (e.g. Manual of Gainful Exercise)
             const item: Item = {
                 id: 'book_str', name: 'Manual of Str', description: 'Adds +2 Str',
-                type: 'accessory',
+                type: ItemType.Accessory,
                 statBonuses: { Strength: 2 }
             };
 
@@ -302,7 +303,7 @@ describe('statUtils', () => {
             const gauntlets: Item = {
                 id: 'gauntlets', name: 'Gauntlets of Ogre Power',
                 description: 'Sets Str to 19',
-                type: 'accessory',
+                type: ItemType.Accessory,
                 statOverrides: { Strength: 19 } // Now using the correct field
             };
 
@@ -327,7 +328,7 @@ describe('statUtils', () => {
             const gauntlets: Item = {
                 id: 'gauntlets', name: 'Gauntlets of Ogre Power',
                 description: 'Sets Str to 19',
-                type: 'accessory',
+                type: ItemType.Accessory,
                 statOverrides: { Strength: 19 }
             };
 
@@ -376,7 +377,7 @@ describe('statUtils', () => {
         const ringOfProtection: Item = {
             id: 'ring_of_protection',
             name: 'Ring of Protection',
-            type: 'accessory',
+            type: ItemType.Accessory,
             description: '',
             slot: 'Ring',
             armorClassBonus: 1,
@@ -415,7 +416,7 @@ describe('statUtils', () => {
                     Torso: {
                         id: 'demon_armor',
                         name: 'Demon Armor',
-                        type: 'armor',
+                        type: ItemType.Armor,
                         description: '',
                         armorCategory: 'Heavy',
                         baseArmorClass: 18,
@@ -438,7 +439,7 @@ describe('statUtils', () => {
                     OffHand: {
                         id: 'shield',
                         name: 'Shield',
-                        type: 'armor',
+                        type: ItemType.Armor,
                         description: '',
                         armorCategory: 'Shield',
                         armorClassBonus: 2

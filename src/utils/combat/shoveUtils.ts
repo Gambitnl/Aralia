@@ -45,6 +45,7 @@ import {
 import { getAbilityModifierValue } from '../character/statUtils';
 import {
   getCharacterDistance,
+  TAVERN_BRAWLER_FEAT_ID,
 } from './combatUtils';
 import { canAffordActionCost, consumeActionCost } from './actionEconomyUtils';
 import { applyRuntimeStatusCondition } from './statusConditionUtils';
@@ -82,6 +83,12 @@ export interface ShoveResolutionRequest {
   saveAbility: Extract<SavingThrowAbility, 'Strength' | 'Dexterity'>;
   /** Deterministic simulations can provide a stream without bypassing save math. */
   rng?: () => number;
+  /**
+   * Whether this shove spends one of the shover's Attack-action attacks.
+   * Defaults to true. Tavern Brawler's post-hit shove is free, so it passes
+   * false and skips both the availability gate and the spend.
+   */
+  costsAttack?: boolean;
 }
 
 export interface ShoveResolution {
@@ -306,7 +313,9 @@ export function resolveShoveAttempt(
   }
 
 
-  if (!hasShoveAttackAvailable(shover)) {
+  const costsAttack = request.costsAttack !== false;
+
+  if (costsAttack && !hasShoveAttackAvailable(shover)) {
     return {
       state: request.state,
       attempted: false,
@@ -345,7 +354,7 @@ export function resolveShoveAttempt(
 
   // Availability was checked before spatial eligibility so exhausted repeats
   // are rejected consistently even if the first shove moved its target away.
-  const spentShover = spendOneShoveAttack(shover);
+  const spentShover = costsAttack ? spendOneShoveAttack(shover) : shover;
   if (!spentShover) {
     return {
       state: request.state,
@@ -362,7 +371,9 @@ export function resolveShoveAttempt(
   // consume exactly one attempt. Effects below operate on this committed state.
   const committedState = replaceCharacter(request.state, spentShover);
   const attacksRemaining = spentShover.actionEconomy.action.remaining;
-  const attackSummary = `Attack spent; ${attacksRemaining} remaining`;
+  const attackSummary = costsAttack
+    ? `Attack spent; ${attacksRemaining} remaining`
+    : `Free shove; ${attacksRemaining} attack(s) remaining`;
 
   const saveDc = calculateShoveSaveDc(shover);
   const save = rollSavingThrow(
@@ -380,7 +391,7 @@ export function resolveShoveAttempt(
     return {
       state: committedState,
       attempted: true,
-      attackSpent: true,
+      attackSpent: costsAttack,
       attacksRemaining,
       shoveSucceeded: false,
       reason: 'save_succeeded',
@@ -394,7 +405,7 @@ export function resolveShoveAttempt(
     return {
       state: applyCanonicalProne(committedState, spentShover, target),
       attempted: true,
-      attackSpent: true,
+      attackSpent: costsAttack,
       attacksRemaining,
       shoveSucceeded: true,
       reason: 'resolved_prone',
@@ -412,7 +423,7 @@ export function resolveShoveAttempt(
     return {
       state: pushedState,
       attempted: true,
-      attackSpent: true,
+      attackSpent: costsAttack,
       attacksRemaining,
       shoveSucceeded: false,
       reason: 'blocked_destination',
@@ -425,7 +436,7 @@ export function resolveShoveAttempt(
   return {
     state: pushedState,
     attempted: true,
-    attackSpent: true,
+    attackSpent: costsAttack,
     attacksRemaining,
     shoveSucceeded: true,
     reason: 'resolved_push',
@@ -433,4 +444,86 @@ export function resolveShoveAttempt(
     save,
     message: `Shove succeeded (${attackSummary}): ${target.name} failed its ${saveSummary} and was pushed 5 feet to ${pushedTarget.position.x},${pushedTarget.position.y}.`,
   };
+}
+
+
+// ============================================================================
+// Tavern Brawler Free Shove Rider (agora-4325.2)
+// ============================================================================
+// The feat lets a character shove a creature 5 feet after hitting it with an
+// Unarmed Strike or an Improvised Weapon. It is an OFFER, not an automatic
+// shove: the attack resolver publishes it and the executor (or the player)
+// decides whether to take it. Taking it calls resolveShoveAttempt with
+// costsAttack:false, so the shove is free but still faces the normal save,
+// reach, and size gates.
+// ============================================================================
+
+/** Attack families that arm the Tavern Brawler shove. */
+export type TavernBrawlerAttackKind = 'unarmed' | 'improvised';
+
+export interface TavernBrawlerShoveOffer {
+  /** Feat that produced the offer, so a log consumer can name the source. */
+  source: 'tavern_brawler';
+  shoverId: string;
+  targetId: string;
+  /** Which hit armed the offer. */
+  attackKind: TavernBrawlerAttackKind;
+  /** The offer only ever pushes; Tavern Brawler does not grant a free prone. */
+  choice: Extract<ShoveChoice, 'push'>;
+  distanceFeet: number;
+  /** The shove is free, so nothing is deducted if the player declines. */
+  costsAttack: false;
+}
+
+/**
+ * Builds the post-hit shove offer, or returns null when the feat does not
+ * apply. Eligibility that can still change before the player answers (the
+ * save, a blocked destination) is left to resolveTavernBrawlerShove; only the
+ * facts fixed at the moment of the hit are checked here.
+ */
+export function buildTavernBrawlerShoveOffer(args: {
+  shover: CombatCharacter;
+  target: CombatCharacter;
+  attackKind: TavernBrawlerAttackKind | null;
+  isHit: boolean;
+}): TavernBrawlerShoveOffer | null {
+  const { shover, target, attackKind, isHit } = args;
+
+  if (!isHit || !attackKind) return null;
+  if (!shover.feats?.includes(TAVERN_BRAWLER_FEAT_ID)) return null;
+  if (!isTargetSizeEligibleForShove(shover, target)) return null;
+  if (getCharacterDistance(shover, target) > SHOVE_REACH_TILES) return null;
+
+  return {
+    source: 'tavern_brawler',
+    shoverId: shover.id,
+    targetId: target.id,
+    attackKind,
+    choice: 'push',
+    distanceFeet: SHOVE_DISTANCE_FEET,
+    costsAttack: false,
+  };
+}
+
+/**
+ * Resolves an offer the player accepted. Same rules path as a normal shove,
+ * except the attack is not spent and the result is always a 5-foot push.
+ */
+export function resolveTavernBrawlerShove(args: {
+  offer: TavernBrawlerShoveOffer;
+  state: CombatState;
+  gameState: GameState;
+  saveAbility: Extract<SavingThrowAbility, 'Strength' | 'Dexterity'>;
+  rng?: () => number;
+}): ShoveResolution {
+  return resolveShoveAttempt({
+    state: args.state,
+    gameState: args.gameState,
+    shoverId: args.offer.shoverId,
+    targetId: args.offer.targetId,
+    choice: args.offer.choice,
+    saveAbility: args.saveAbility,
+    rng: args.rng,
+    costsAttack: false,
+  });
 }

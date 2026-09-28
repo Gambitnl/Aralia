@@ -7,7 +7,11 @@
  * renderer only consumes the resulting ChunkData records.
  */
 import { describe, expect, it } from "vitest";
-import { WORLD3D_CONFIG, heightToMeters } from "../../../world3d/config";
+import {
+  WORLD3D_CONFIG,
+  heightToMeters,
+  metersToHeight,
+} from "../../../world3d/config";
 import { buildPlaceholderHeightfield } from "../../../world3d/chunkGeometry";
 import type { ChunkData } from "../../../world3d/types";
 import {
@@ -1910,6 +1914,141 @@ describe("extractLocalTerrainPatch", () => {
     expect(centerTile?.surface).toBeUndefined();
     expect(centerTile?.crossing).toBeUndefined();
     expect(centerTile?.blocksMovement).toBe(true);
+  });
+
+  // ── Water elevation: a wet tile reports the SURFACE, not the bed ──────────
+  // Regression cover for the seabed bug: extractLocalTerrainPatch sampled the
+  // heightfield for every tile, and under water the heightfield IS the channel
+  // bottom. A referee tile that reports the bed describes a drained river to the
+  // player standing in it, so wet tiles now carry the sheet the renderer draws.
+
+  /**
+   * A straight north-south channel: banks at encoded 30, a bed carved to 0, and
+   * the wet cells marked in the biome grid. Callers add the resolved runs (or
+   * deliberately omit them to exercise the bank fallback).
+   */
+  function makeChannelGround(waterRuns?: GroundWorld["waterRuns"]): GroundWorld {
+    const cols = 40;
+    const rows = 40;
+    const heights = new Array(cols * rows).fill(30);
+    const biomeIds = new Array(cols * rows).fill("plains");
+    for (let y = 0; y < rows; y++) {
+      for (let x = 18; x <= 21; x++) {
+        heights[y * cols + x] = 0;
+        biomeIds[y * cols + x] = "water";
+      }
+    }
+    return makeGroundWorldFixture({
+      cols,
+      rows,
+      heights,
+      biomeIds,
+      extentMetersX: cols * GROUND_METERS_PER_CELL,
+      extentMetersZ: rows * GROUND_METERS_PER_CELL,
+      ...(waterRuns ? { waterRuns } : {}),
+    });
+  }
+
+  /** Center of the carved channel, in ground meters. */
+  const CHANNEL_X = 19.5 * GROUND_METERS_PER_CELL;
+  const CHANNEL_Z = 20 * GROUND_METERS_PER_CELL;
+
+  it("reports the resolved water surface on a wet tile instead of the seabed under it", () => {
+    const surfaceEnc = 24;
+    const runs = [];
+    for (let y = 0; y < 40; y++) {
+      runs.push({
+        minX: 18 * GROUND_METERS_PER_CELL,
+        maxX: 22 * GROUND_METERS_PER_CELL,
+        minZ: y * GROUND_METERS_PER_CELL,
+        maxZ: (y + 1) * GROUND_METERS_PER_CELL,
+        surfaceEnc,
+      });
+    }
+    const ground = makeChannelGround(runs);
+
+    const patch = extractLocalTerrainPatch(
+      ground,
+      CHANNEL_X,
+      CHANNEL_Z,
+      "forest",
+      42,
+      { width: 9, height: 3 },
+    );
+
+    const waterTile = patch.tiles.get("4-1")!;
+    expect(waterTile.terrain).toBe("water");
+
+    // The fix: the surface the renderer draws, NOT groundSurfaceY.
+    expect(waterTile.elevation).toBeCloseTo(heightToMeters(surfaceEnc) / 0.3, 4);
+
+    // And it really is above the bed the old code reported.
+    const seabedM = groundSurfaceY(ground, CHANNEL_X, CHANNEL_Z);
+    expect(seabedM).toBeCloseTo(heightToMeters(0), 4);
+    expect(waterTile.elevation).toBeGreaterThan(seabedM / 0.3);
+
+    // No regression: a dry bank tile still reports its own ground elevation.
+    const bankTile = patch.tiles.get("0-1")!;
+    const bankWorldX = CHANNEL_X - 4 * GROUND_METERS_PER_CELL;
+    expect(bankTile.terrain).not.toBe("water");
+    expect(bankTile.elevation).toBeCloseTo(
+      groundSurfaceY(ground, bankWorldX, CHANNEL_Z) / 0.3,
+      4,
+    );
+  });
+
+  it("derives a wet tile's surface from its banks when the world carries no resolved runs", () => {
+    // Worlds baked before waterRuns existed still must not report the bed. The
+    // fallback mirrors findWaterRegions: the lowest surrounding land minus the
+    // 1.5 m WATER_SURFACE_DROP_M spill allowance.
+    const ground = makeChannelGround();
+
+    const patch = extractLocalTerrainPatch(
+      ground,
+      CHANNEL_X,
+      CHANNEL_Z,
+      "forest",
+      42,
+      { width: 3, height: 3 },
+    );
+
+    const waterTile = patch.tiles.get("1-1")!;
+    const expectedSurfaceM = heightToMeters(30 - metersToHeight(1.5));
+
+    expect(waterTile.terrain).toBe("water");
+    expect(waterTile.elevation).toBeCloseTo(expectedSurfaceM / 0.3, 4);
+    expect(waterTile.elevation).toBeGreaterThan(
+      groundSurfaceY(ground, CHANNEL_X, CHANNEL_Z) / 0.3,
+    );
+    // The derived sheet stays BELOW the bank it spills from.
+    expect(waterTile.elevation).toBeLessThan(heightToMeters(30) / 0.3);
+  });
+
+  it("leaves an open-water tile with no bank in reach on its own reading", () => {
+    // An all-ocean crop has no shore to derive from and no runs. Inventing a
+    // surface here would be a guess, so the tile keeps the terrain sample.
+    const cols = 40;
+    const rows = 40;
+    const ground = makeGroundWorldFixture({
+      cols,
+      rows,
+      heights: new Array(cols * rows).fill(12),
+      biomeIds: new Array(cols * rows).fill("ocean"),
+      extentMetersX: cols * GROUND_METERS_PER_CELL,
+      extentMetersZ: rows * GROUND_METERS_PER_CELL,
+    });
+
+    const patch = extractLocalTerrainPatch(ground, CHANNEL_X, CHANNEL_Z, "forest", 42, {
+      width: 3,
+      height: 3,
+    });
+
+    const tile = patch.tiles.get("1-1")!;
+    expect(tile.terrain).toBe("water");
+    expect(tile.elevation).toBeCloseTo(
+      groundSurfaceY(ground, CHANNEL_X, CHANNEL_Z) / 0.3,
+      4,
+    );
   });
 
   it("projects source bridges and fords over water without changing the base terrain fact", () => {

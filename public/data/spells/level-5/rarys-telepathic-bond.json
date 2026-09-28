@@ -1,6 +1,6 @@
 {
     "id":  "rarys-telepathic-bond",
-    "name":  "Rary\u0027s Telepathic Bond",
+    "name":  "Rary's Telepathic Bond",
     "aliases":  [
 
                 ],
@@ -14,6 +14,30 @@
 
                    ],
     "ritual":  true,
+    "ritualData": {
+      "requirements": [
+        {
+          "type": "custom",
+          "value": "component:verbal",
+          "description": "The ritual must be chanted aloud from start to finish."
+        },
+        {
+          "type": "custom",
+          "value": "component:somatic",
+          "description": "The ritual needs a free hand for its gestures throughout."
+        },
+        {
+          "type": "custom",
+          "value": "component:material",
+          "description": "The ritual needs pieces of eggshell from two different kinds of creatures; it is held throughout the casting."
+        },
+        {
+          "type": "custom",
+          "value": "uninterrupted_casting",
+          "description": "Ritual casting adds 10 minutes to the casting time and must run uninterrupted."
+        }
+      ]
+    },
     "rarity":  "common",
     "attackType":  "",
     "castingTime":  {
@@ -226,7 +250,7 @@
                       "prompt":  "",
                       "playerInputRequired":  false
                   },
-    "description":  "You forge a telepathic link among up to eight willing creatures of your choice within range, psychically linking each creature to all the others for the duration. Creatures with Intelligence scores of 2 or less aren\u0027t affected by this spell. Until the spell ends, the targets can communicate telepathically through the bond whether or not they have a common language. The communication is possible over any distance, though it can\u0027t extend to other planes of existence.",
+    "description":  "You forge a telepathic link among up to eight willing creatures of your choice within range, psychically linking each creature to all the others for the duration. Creatures with Intelligence scores of 2 or less aren't affected by this spell. Until the spell ends, the targets can communicate telepathically through the bond whether or not they have a common language. The communication is possible over any distance, though it can't extend to other planes of existence.",
     "higherLevels":  "",
     "tags":  [
                  "legacy",

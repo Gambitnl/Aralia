@@ -6,7 +6,7 @@ Files:
 - `combatShapes.test.ts` - minimal `BattleMapTile`, `BattleMapData`, `CombatCharacter` + action economy fields.
 - `environmentLogs.contract.test.ts` - contract for environment/ollama log shapes. <!-- No entry here previously; added to document the existing contract test. -->
 - `gameStateDefaults.test.ts` - `createMockGameState` must keep critical flags (ollama logs, dev override, economy/religion/environment, banter cooldowns).
-- `quests.contract.test.ts` - quest shape invariants for planning and state updates. <!-- No entry here previously; added to document the existing contract test. -->
+- `quests.contract.test.ts` - quest shape invariants for planning and state updates, plus a reconciliation pass over `src/data/quests/index.ts`: template keys match ids, template objectives omit the runtime-only `isCompleted`/`currentCount`, rewards stay on the flat `QuestRewards` shape (`items`, not the staged `itemIds`), `instantiateQuest` deep-clones, and quest/objective ids hardcoded in action handlers still resolve. <!-- No entry here previously; added to document the existing contract test. -->
 - `spells.contract.test.ts` - spells include targeting/effects; `createAbilityFromSpell` returns a combat-ready `Ability`.
 - `statusEffects.contract.test.ts` - status effect shape guard coverage. <!-- No entry here previously; added to document the existing contract test. -->
 - `characterCreation.contract.test.ts` - class/fighting style/ancestry/legacy required fields.

@@ -1,16 +1,16 @@
-# Living Interiors — Live Clock Implementation Plan
+# Living Interiors - Live Clock Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Make a 3D town's interiors track the live game clock — windows and hearths light at dusk and go dark by day, and each household member moves through their house hour by hour — instead of freezing at the hour the player entered.
+**Goal:** Make a 3D town's interiors track the live game clock - windows and hearths light at dusk and go dark by day, and each household member moves through their house hour by hour - instead of freezing at the hour the player entered.
 
-**Architecture:** Keep baking interior data **once at world generation**, but bake the full **24-hour schedule** (which hours windows glow, which hours the hearth is lit, and each member's station for every hour) instead of a single-hour snapshot. The render side already receives the live clock (`agentClock`); it re-resolves the schedule against that clock. Lighting becomes a declarative re-render on the integer-hour boundary; occupants move in a new live figure layer modeled on the existing street-agent layer (`GroundAgents`). Nothing touches the streaming worker or forces a chunk re-mesh — the worker keeps passing building `parts` through as data, and the main-thread renderer interprets the schedule live.
+**Architecture:** Keep baking interior data **once at world generation**, but bake the full **24-hour schedule** (which hours windows glow, which hours the hearth is lit, and each member's station for every hour) instead of a single-hour snapshot. The render side already receives the live clock (`agentClock`); it re-resolves the schedule against that clock. Lighting becomes a declarative re-render on the integer-hour boundary; occupants move in a new live figure layer modeled on the existing street-agent layer (`GroundAgents`). Nothing touches the streaming worker or forces a chunk re-mesh - the worker keeps passing building `parts` through as data, and the main-thread renderer interprets the schedule live.
 
 **Tech Stack:** TypeScript, React, React Three Fiber (`@react-three/fiber`), three.js, Vitest.
 
 ## Global Constraints
 
-- **No-fallback directive:** one real path, fail honestly. No silent degradation. If a schedule or transform can't resolve, throw — do not substitute a default.
+- **No-fallback directive:** one real path, fail honestly. No silent degradation. If a schedule or transform can't resolve, throw - do not substitute a default.
 - **Determinism:** all baked data stays pure and RNG-free. Identical `(plot, seedPath)` yields identical schedule. Render-side clock selection is the only legitimately non-deterministic step.
 - **Plain writing, US spelling** in all comments and docs (color, gray, -ize).
 - **Units:** interior stations are in **plan feet** (blueprint frame, `0` = min corner); the renderer maps them the same way `SiteBuilding` maps parts. `FT = 0.3048`.
@@ -22,17 +22,17 @@
 ## File Structure
 
 **Modify:**
-- `src/systems/worldforge/bridge/buildingOccupancy.ts` — add `occupancyScheduleForPlot` (full-day resolver); keep `occupancyForPlot` as a thin one-hour wrapper.
-- `src/systems/worldforge/bridge/interiorParts.ts` — add `lightRole` to `SitePart`; tag window/hearth parts unconditionally; stop injecting household occupant boxes into `parts` for populated plots.
-- `src/systems/worldforge/bridge/groundChunkLoader.ts` — bake the schedule (`litHours`, `hearthHours`, `occupants`) onto each building record; pass through to the bundle site.
-- `src/systems/world3d/types.ts` (or wherever `GroundWorldBuilding` / `SiteBundle` live) — add schedule fields to the building/site record.
-- `src/components/World3D/World3DScene.tsx` — `SiteBuilding` derives emissive from the live hour; mount `InteriorHourProvider` and `InteriorOccupants`.
-- `src/components/World3D/InteriorLights.tsx` — collect hearths by `lightRole`; gate flame selection by `hearthHours[hour]`; use the shared transform helper.
+- `src/systems/worldforge/bridge/buildingOccupancy.ts` - add `occupancyScheduleForPlot` (full-day resolver); keep `occupancyForPlot` as a thin one-hour wrapper.
+- `src/systems/worldforge/bridge/interiorParts.ts` - add `lightRole` to `SitePart`; tag window/hearth parts unconditionally; stop injecting household occupant boxes into `parts` for populated plots.
+- `src/systems/worldforge/bridge/groundChunkLoader.ts` - bake the schedule (`litHours`, `hearthHours`, `occupants`) onto each building record; pass through to the bundle site.
+- `src/systems/world3d/types.ts` (or wherever `GroundWorldBuilding` / `SiteBundle` live) - add schedule fields to the building/site record.
+- `src/components/World3D/World3DScene.tsx` - `SiteBuilding` derives emissive from the live hour; mount `InteriorHourProvider` and `InteriorOccupants`.
+- `src/components/World3D/InteriorLights.tsx` - collect hearths by `lightRole`; gate flame selection by `hearthHours[hour]`; use the shared transform helper.
 
 **Create:**
-- `src/components/World3D/interiorPlacement.ts` — the shared site-local → scene transform used by `InteriorLights`, `InteriorOccupants`, and (for the drift-seam fix) verified against `SiteBuilding`.
-- `src/components/World3D/InteriorHourContext.tsx` — React context providing the live **integer** game hour to the building subtree (re-renders only on hour change).
-- `src/components/World3D/InteriorOccupants.tsx` — the live interior-figure layer.
+- `src/components/World3D/interiorPlacement.ts` - the shared site-local -> scene transform used by `InteriorLights`, `InteriorOccupants`, and (for the drift-seam fix) verified against `SiteBuilding`.
+- `src/components/World3D/InteriorHourContext.tsx` - React context providing the live **integer** game hour to the building subtree (re-renders only on hour change).
+- `src/components/World3D/InteriorOccupants.tsx` - the live interior-figure layer.
 
 ---
 
@@ -61,8 +61,8 @@
     stationsByHour: (StationFeetPoint | null)[];
   }
   export interface PlotOccupancySchedule {
-    litHours: boolean[];        // length 24 — windows glow
-    hearthHours: boolean[];     // length 24 — hearth lit
+    litHours: boolean[];        // length 24 - windows glow
+    hearthHours: boolean[];     // length 24 - hearth lit
     occupants: OccupantDaySchedule[];
     household: Household;
   }
@@ -123,7 +123,7 @@ test('occupancyScheduleForPlot matches occupancyForPlot hour by hour', () => {
 Run: `npx vitest run src/systems/worldforge/bridge/__tests__/buildingOccupancy.test.ts -t "occupancyScheduleForPlot"`
 Expected: FAIL with `occupancyScheduleForPlot is not a function`.
 
-> If `makePopulatedHousePlotFixture` doesn't already exist, factor it out of the existing `occupancyForPlot` test setup in this same file (the arrange block that builds `plotPop`, `allPlots`, `plotInput`, `seedPath`, `townSeed`). Do not invent new fixture data — reuse exactly what the one-hour tests use, so the "matches hour by hour" test is meaningful.
+> If `makePopulatedHousePlotFixture` doesn't already exist, factor it out of the existing `occupancyForPlot` test setup in this same file (the arrange block that builds `plotPop`, `allPlots`, `plotInput`, `seedPath`, `townSeed`). Do not invent new fixture data - reuse exactly what the one-hour tests use, so the "matches hour by hour" test is meaningful.
 
 - [ ] **Step 3: Write minimal implementation**
 
@@ -131,7 +131,7 @@ Add to `buildingOccupancy.ts`. Factor the feet-resolution out of `occupancyForPl
 
 ```ts
 /** Resolve one station row entry to plan feet (furnishing center, else room
- * anchor center — guaranteed in-room). Mirrors the 2D overlay exactly. */
+ * anchor center - guaranteed in-room). Mirrors the 2D overlay exactly. */
 function stationToFeet(
   st: OccupantStation,
   plan: BlueprintPlan,
@@ -152,7 +152,7 @@ function stationToFeet(
     if (!room) {
       throw new Error(
         `stationToFeet: member ${st.memberIndex} home at level ${st.level} room ${st.roomId} ` +
-        `but no such room on the floor — occupancy/plan mismatch.`,
+        `but no such room on the floor - occupancy/plan mismatch.`,
       );
     }
     x = (room.anchor.cx + 0.5) * 5;
@@ -211,7 +211,7 @@ export function occupancyScheduleForPlot(
   household.members.forEach((member, memberIndex) => {
     const stations = byMember.get(memberIndex)!;
     // Skip members who are never home (e.g. servants with no station all day):
-    // they contribute no figure. This is not a fallback — it's an empty set.
+    // they contribute no figure. This is not a fallback - it's an empty set.
     if (stations.every((s) => s === null)) return;
     occupants.push({
       memberIndex,
@@ -276,7 +276,7 @@ git commit -m "feat(interiors): full-day occupancy schedule resolver"
 
 ---
 
-## Phase 1 — Lighting live
+## Phase 1 - Lighting live
 
 Independently shippable: after this phase, windows and hearths light and darken with the clock. Occupants still stand at their entry-hour spots (fixed in Phase 2).
 
@@ -300,7 +300,7 @@ test('window-pane and hearth parts carry a lightRole regardless of lit state', (
   const windows = (ps: SitePart[]) => ps.filter((p) => p.lightRole === 'window');
   const hearths = (ps: SitePart[]) => ps.filter((p) => p.lightRole === 'hearth');
 
-  // Same count of tagged windows/hearths whether lit or not — identity no longer
+  // Same count of tagged windows/hearths whether lit or not - identity no longer
   // depends on the bake hour.
   expect(windows(litParts).length).toBe(windows(darkParts).length);
   expect(windows(darkParts).length).toBeGreaterThan(0);
@@ -317,7 +317,7 @@ test('window-pane and hearth parts carry a lightRole regardless of lit state', (
 - [ ] **Step 2: Run test to verify it fails**
 
 Run: `npx vitest run src/systems/worldforge/bridge/__tests__/interiorParts.test.ts -t "lightRole"`
-Expected: FAIL — `lightRole` is undefined on all parts.
+Expected: FAIL - `lightRole` is undefined on all parts.
 
 - [ ] **Step 3: Write minimal implementation**
 
@@ -362,7 +362,7 @@ parts.push({ x, z, w, d, h, colorHex: spec.colorHex,
 - [ ] **Step 4: Run tests to verify they pass**
 
 Run: `npx vitest run src/systems/worldforge/bridge/__tests__/interiorParts.test.ts`
-Expected: PASS. Update any pre-existing assertion that checked `emissiveHex === WINDOW_GLOW_HEX`/`HEARTH_GLOW_HEX` on baked parts — those now assert `lightRole` instead. The "byte-identical geometry aside from emissive" test becomes "byte-identical aside from lightRole tag."
+Expected: PASS. Update any pre-existing assertion that checked `emissiveHex === WINDOW_GLOW_HEX`/`HEARTH_GLOW_HEX` on baked parts - those now assert `lightRole` instead. The "byte-identical geometry aside from emissive" test becomes "byte-identical aside from lightRole tag."
 
 - [ ] **Step 5: Commit**
 
@@ -377,7 +377,7 @@ git commit -m "feat(interiors): tag window/hearth parts with lightRole for live 
 
 **Files:**
 - Modify: `src/systems/worldforge/bridge/groundChunkLoader.ts` (the plot loop ~1265-1378, and the bundle-site passthrough ~1640-1664)
-- Modify: the building/site record type (find `GroundWorldBuilding` and the bundle `Site` type — grep `wallWidthM` in `src/systems/world3d/types.ts` and `groundChunkLoader.ts`)
+- Modify: the building/site record type (find `GroundWorldBuilding` and the bundle `Site` type - grep `wallWidthM` in `src/systems/world3d/types.ts` and `groundChunkLoader.ts`)
 - Test: `src/systems/worldforge/__integration__/pipeline.test.ts` (extend an existing populated-town case)
 
 **Interfaces:**
@@ -403,7 +403,7 @@ test('bakes a 24-hour lighting schedule onto populated buildings', () => {
 - [ ] **Step 2: Run test to verify it fails**
 
 Run: `npx vitest run src/systems/worldforge/__integration__/pipeline.test.ts -t "lighting schedule"`
-Expected: FAIL — `litHours` is undefined on all buildings.
+Expected: FAIL - `litHours` is undefined on all buildings.
 
 - [ ] **Step 3: Write minimal implementation**
 
@@ -415,7 +415,7 @@ Expected: FAIL — `litHours` is undefined on all buildings.
 const schedule = p.pop
   ? occupancyScheduleForPlot(p.pop, pops, plotInput, region!.seedPath, townSeed)
   : undefined;
-// buildInterior no longer needs live lit flags — parts are tagged, renderer
+// buildInterior no longer needs live lit flags - parts are tagged, renderer
 // decides. Pass false/false; Task 2 already dropped the emissive branches.
 const interior = buildInterior(plotInput, region!.seedPath, heightM, occFigures, false, false);
 ```
@@ -438,12 +438,12 @@ litHours: b.litHours,
 hearthHours: b.hearthHours,
 ```
 
-5. `occFigures` for populated plots is handled in Task 7. For THIS task, keep the existing populated-plot `occFigures` baking exactly as-is (occupants still static). This task only adds the lighting schedule. Remove the now-unused `hour` parameter usage for lighting but keep `hour` flowing (Task 7 and unpopulated roster figures still read nothing hour-based here — verify no other use of `hour` remains in the loop; if the only remaining use was lighting, leave `hour` in the function signature untouched to avoid a wide refactor this task).
+5. `occFigures` for populated plots is handled in Task 7. For THIS task, keep the existing populated-plot `occFigures` baking exactly as-is (occupants still static). This task only adds the lighting schedule. Remove the now-unused `hour` parameter usage for lighting but keep `hour` flowing (Task 7 and unpopulated roster figures still read nothing hour-based here - verify no other use of `hour` remains in the loop; if the only remaining use was lighting, leave `hour` in the function signature untouched to avoid a wide refactor this task).
 
 - [ ] **Step 4: Run test to verify it passes**
 
 Run: `npx vitest run src/systems/worldforge/__integration__/pipeline.test.ts`
-Expected: PASS. Fix any golden that recorded baked window/hearth emissive on parts (now driven live) — regenerate only the affected golden and eyeball the diff.
+Expected: PASS. Fix any golden that recorded baked window/hearth emissive on parts (now driven live) - regenerate only the affected golden and eyeball the diff.
 
 - [ ] **Step 5: Commit**
 
@@ -502,7 +502,7 @@ test('emissiveForPart leaves non-light parts dark', () => {
 - [ ] **Step 2: Run test to verify it fails**
 
 Run: `npx vitest run src/components/World3D/__tests__/InteriorHourContext.test.tsx`
-Expected: FAIL — module not found.
+Expected: FAIL - module not found.
 
 - [ ] **Step 3: Write minimal implementation**
 
@@ -556,16 +556,16 @@ emissive={em.emissive}
 emissiveIntensity={em.emissiveIntensity}
 ```
 
-(Keep the old `p.emissiveHex ?? '#000000'` path as a fallback ONLY for parts with no `lightRole` but a `tag`/legacy emissive — there should be none after Task 2, so it can be removed; verify no other producer sets `emissiveHex`.)
+(Keep the old `p.emissiveHex ?? '#000000'` path as a fallback ONLY for parts with no `lightRole` but a `tag`/legacy emissive - there should be none after Task 2, so it can be removed; verify no other producer sets `emissiveHex`.)
 
 - [ ] **Step 4: Run test to verify it passes**
 
 Run: `npx vitest run src/components/World3D/__tests__/InteriorHourContext.test.tsx`
 Expected: PASS.
 
-- [ ] **Step 5: Eyeball gate (REQUIRED — visual slice)**
+- [ ] **Step 5: Eyeball gate (REQUIRED - visual slice)**
 
-Render a populated town in the ground/town 3D preview. Step the game clock across 12:00 → 18:00 → 22:00 → 02:00. Confirm: windows dark at noon, glowing by 18:00, still glowing at 22:00, and the town reads lit-then-dark as hours pass — without re-entering the world. Capture a noon vs 20:00 screenshot pair.
+Render a populated town in the ground/town 3D preview. Step the game clock across 12:00 -> 18:00 -> 22:00 -> 02:00. Confirm: windows dark at noon, glowing by 18:00, still glowing at 22:00, and the town reads lit-then-dark as hours pass - without re-entering the world. Capture a noon vs 20:00 screenshot pair.
 
 - [ ] **Step 6: Commit**
 
@@ -600,7 +600,7 @@ test('collectInteriorLighting emits a hearth per lightRole hearth part with its 
 - [ ] **Step 2: Run to verify it fails**
 
 Run: `npx vitest run src/components/World3D/__tests__/InteriorLights.test.tsx -t "lightRole hearth"`
-Expected: FAIL — `collectInteriorLighting` keys off `emissiveHex === HEARTH_GLOW_HEX`.
+Expected: FAIL - `collectInteriorLighting` keys off `emissiveHex === HEARTH_GLOW_HEX`.
 
 - [ ] **Step 3: Implement**
 
@@ -620,7 +620,7 @@ Expected: PASS.
 
 - [ ] **Step 5: Eyeball gate**
 
-In the same preview, confirm a hearth casts its warm point light only during hearth hours (evening), and goes dark by day, as the clock steps — matching the emissive box from Task 4.
+In the same preview, confirm a hearth casts its warm point light only during hearth hours (evening), and goes dark by day, as the clock steps - matching the emissive box from Task 4.
 
 - [ ] **Step 6: Commit**
 
@@ -633,13 +633,13 @@ git commit -m "feat(interiors): hearth flame lights follow the live schedule"
 
 ---
 
-## Phase 2 — Occupants live
+## Phase 2 - Occupants live
 
-### Task 6: Shared site-local → scene placement transform
+### Task 6: Shared site-local -> scene placement transform
 
 **Files:**
 - Create: `src/components/World3D/interiorPlacement.ts`
-- Modify: `src/components/World3D/InteriorLights.tsx` (use the helper for hearth projection — fixes the hand-copied-transform drift seam)
+- Modify: `src/components/World3D/InteriorLights.tsx` (use the helper for hearth projection - fixes the hand-copied-transform drift seam)
 - Test: `src/components/World3D/__tests__/interiorPlacement.test.ts`
 
 **Interfaces:**
@@ -647,10 +647,10 @@ git commit -m "feat(interiors): hearth flame lights follow the live schedule"
   ```ts
   export interface SitePlacement { gx: number; gz: number; rotationY: number; doorZSign: number; }
   /** Project a site-local (x,z) meters point into scene-space (x,z). Applies the
-   * doorZSign z-flip then the group yaw — the SAME transform SiteBuilding applies
+   * doorZSign z-flip then the group yaw - the SAME transform SiteBuilding applies
    * to its group. Single source of truth for hearth lights and occupant figures. */
   export function siteLocalToScene(localX: number, localZ: number, s: SitePlacement): { x: number; z: number };
-  /** Plan feet (blueprint frame, 0=min corner) → site-local meters, centered.
+  /** Plan feet (blueprint frame, 0=min corner) -> site-local meters, centered.
    * widthFt/depthFt are the interior envelope in feet. */
   export function planFeetToSiteLocal(xFt: number, yFt: number, widthFt: number, depthFt: number): { x: number; z: number };
   ```
@@ -678,12 +678,12 @@ test('planFeetToSiteLocal centers the frame', () => {
 });
 ```
 
-> Derive the exact rotation/flip convention by reading the current hearth projection in `InteriorLights.tsx:114-127` and `SiteBuilding`'s group transform in `World3DScene.tsx:411-489`. The test values above encode: `lz = localZ * -doorZSign`, `rx = lx*cos + lz*sin`, `rz = -lx*sin + lz*cos`, `x = gx + rx`, `z = gz + rz`. Confirm `planFeetToSiteLocal` matches how `SiteBuilding` centers plan feet (frontage +x along the 0→1 edge, depth +z inward).
+> Derive the exact rotation/flip convention by reading the current hearth projection in `InteriorLights.tsx:114-127` and `SiteBuilding`'s group transform in `World3DScene.tsx:411-489`. The test values above encode: `lz = localZ * -doorZSign`, `rx = lx*cos + lz*sin`, `rz = -lx*sin + lz*cos`, `x = gx + rx`, `z = gz + rz`. Confirm `planFeetToSiteLocal` matches how `SiteBuilding` centers plan feet (frontage +x along the 0->1 edge, depth +z inward).
 
 - [ ] **Step 2: Run to verify it fails**
 
 Run: `npx vitest run src/components/World3D/__tests__/interiorPlacement.test.ts`
-Expected: FAIL — module not found.
+Expected: FAIL - module not found.
 
 - [ ] **Step 3: Implement**
 
@@ -701,12 +701,12 @@ export function siteLocalToScene(localX: number, localZ: number, s: SitePlacemen
 const FT = 0.3048;
 export function planFeetToSiteLocal(xFt: number, yFt: number, widthFt: number, depthFt: number): { x: number; z: number } {
   // Center the frame: plan 0..widthFt maps to -w/2..+w/2 (frontage +x), and
-  // 0..depthFt to depth +z inward — the same centering SiteBuilding uses.
+  // 0..depthFt to depth +z inward - the same centering SiteBuilding uses.
   return { x: (xFt - widthFt / 2) * FT, z: (yFt - depthFt / 2) * FT };
 }
 ```
 
-Then refactor `InteriorLights.collectInteriorLighting` to build a `SitePlacement` per site and call `siteLocalToScene(p.x, p.z, placement)` instead of the inline math (lines 114-127). The hearth y stays as-is (`s.surfaceY + (p.baseY ?? 0) + p.h*0.5`). Re-run `InteriorLights.test.tsx` — it must still pass (the transform is identical, now shared).
+Then refactor `InteriorLights.collectInteriorLighting` to build a `SitePlacement` per site and call `siteLocalToScene(p.x, p.z, placement)` instead of the inline math (lines 114-127). The hearth y stays as-is (`s.surfaceY + (p.baseY ?? 0) + p.h*0.5`). Re-run `InteriorLights.test.tsx` - it must still pass (the transform is identical, now shared).
 
 - [ ] **Step 4: Run to verify it passes**
 
@@ -726,8 +726,8 @@ git commit -m "refactor(interiors): shared site placement transform (kills hand-
 
 **Files:**
 - Modify: `src/systems/worldforge/bridge/groundChunkLoader.ts` (plot loop; remove populated-plot `occFigures` baking, add occupant schedule)
-- Modify: `src/systems/worldforge/bridge/interiorParts.ts` (drop the occupant body/head boxes for the household path — Task 2 kept them; remove now)
-- Modify: building/site record type — add `occupants?: BuildingOccupantRender[]`
+- Modify: `src/systems/worldforge/bridge/interiorParts.ts` (drop the occupant body/head boxes for the household path - Task 2 kept them; remove now)
+- Modify: building/site record type - add `occupants?: BuildingOccupantRender[]`
 - Test: `pipeline.test.ts`
 
 **Interfaces:**
@@ -765,9 +765,9 @@ Expected: FAIL.
 
 - [ ] **Step 3: Implement**
 
-1. In `interiorParts.ts`, the household-occupant path currently pushes body+head boxes (~763-781). Remove that push for figures carrying a station identity (the populated household path). Unpopulated roster figures (the `else` branch feeding `occFigures`) stay as-is for now — they are the street/commuter fallback and out of scope.
+1. In `interiorParts.ts`, the household-occupant path currently pushes body+head boxes (~763-781). Remove that push for figures carrying a station identity (the populated household path). Unpopulated roster figures (the `else` branch feeding `occFigures`) stay as-is for now - they are the street/commuter fallback and out of scope.
 
-2. In `groundChunkLoader.ts`, build the occupant render list from the schedule + body synthesis (reuse the exact body pipeline from the old inline code — `bodyPlanToOccupantBody(generateBody(occLike, childSeedPath(townSeed, \`member:${p.id}:${memberIndex}\`)))`):
+2. In `groundChunkLoader.ts`, build the occupant render list from the schedule + body synthesis (reuse the exact body pipeline from the old inline code - `bodyPlanToOccupantBody(generateBody(occLike, childSeedPath(townSeed, \`member:${p.id}:${memberIndex}\`)))`):
 
 ```ts
 const occupantsRender: BuildingOccupantRender[] | undefined = schedule
@@ -792,7 +792,7 @@ const occupantsRender: BuildingOccupantRender[] | undefined = schedule
 
 3. Pass `false, false` for `occFigures`/lit flags of populated plots (occupants are no longer baked). For populated plots, pass an empty `occFigures` so `buildInterior` bakes no bodies; keep unpopulated roster `occFigures` unchanged.
 
-4. Attach `occupants: occupantsRender`, plus the interior frame size (`interiorWidthFt`, `interiorDepthFt` — read from the blueprint/interior envelope in feet) to the building record and the bundle site passthrough.
+4. Attach `occupants: occupantsRender`, plus the interior frame size (`interiorWidthFt`, `interiorDepthFt` - read from the blueprint/interior envelope in feet) to the building record and the bundle site passthrough.
 
 - [ ] **Step 4: Run to verify it passes**
 
@@ -842,7 +842,7 @@ test('occupantScenePosition maps a home station through plan-feet then placement
     stationsByHour: (() => { const a = Array(24).fill(null); a[2] = { xFt: 10, yFt: 15, level: 0, activity: 'sleeping' }; return a; })() };
   const pos = occupantScenePosition(occ as any, 2, { widthFt: 20, depthFt: 30 },
     { gx: 5, gz: 7, rotationY: 0, doorZSign: -1 }, 1.0);
-  // center of frame → local (0,0) → scene (gx,gz); y = surfaceY + level*storeyH
+  // center of frame -> local (0,0) -> scene (gx,gz); y = surfaceY + level*storeyH
   expect(pos).toEqual({ x: 5, y: 1.0, z: 7 });
 });
 ```
@@ -850,7 +850,7 @@ test('occupantScenePosition maps a home station through plan-feet then placement
 - [ ] **Step 2: Run to verify it fails**
 
 Run: `npx vitest run src/components/World3D/__tests__/InteriorOccupants.test.tsx`
-Expected: FAIL — module not found.
+Expected: FAIL - module not found.
 
 - [ ] **Step 3: Implement**
 
@@ -875,7 +875,7 @@ export function occupantScenePosition(occ, hour, frame, placement: SitePlacement
 }
 
 const InteriorOccupants: React.FC<{ loaded: LoadedChunk[]; origin: SceneOrigin; hour: number }> = ({ loaded, origin, hour }) => {
-  // Flatten loaded chunks → (occupant, placement, frame, surfaceY). Recompute
+  // Flatten loaded chunks -> (occupant, placement, frame, surfaceY). Recompute
   // only when the loaded-chunk set changes; positions recompute on `hour`.
   const figures = useMemo(() => {
     const out: Array<{ key: string; occ: any; placement: SitePlacement; frame: any; surfaceY: number }> = [];
@@ -899,7 +899,7 @@ const InteriorOccupants: React.FC<{ loaded: LoadedChunk[]; origin: SceneOrigin; 
     <>
       {figures.map((f) => {
         const pos = occupantScenePosition(f.occ, hour, f.frame, f.placement, f.surfaceY);
-        if (!pos) return null; // OUT this hour — not rendered
+        if (!pos) return null; // OUT this hour - not rendered
         return <OccupantFigure key={f.key} body={f.occ.body} ageBand={f.occ.ageBand}
           position={[pos.x, pos.y, pos.z]} rotationY={f.placement.rotationY} />;
       })}
@@ -909,7 +909,7 @@ const InteriorOccupants: React.FC<{ loaded: LoadedChunk[]; origin: SceneOrigin; 
 export default InteriorOccupants;
 ```
 
-> If the occupant figure mesh is currently inline in `SiteBuilding` (body+head boxes from `OccupantBody`), extract it into `OccupantFigure.tsx` so both the (removed) static path and this live layer share one figure renderer. v1 SNAPS between stations — no walk animation. Walk-lerp is a follow-up (note on the plan-map).
+> If the occupant figure mesh is currently inline in `SiteBuilding` (body+head boxes from `OccupantBody`), extract it into `OccupantFigure.tsx` so both the (removed) static path and this live layer share one figure renderer. v1 SNAPS between stations - no walk animation. Walk-lerp is a follow-up (note on the plan-map).
 
 - [ ] **Step 4: Run to verify it passes**
 
@@ -937,12 +937,12 @@ git commit -m "feat(interiors): live interior-occupant render layer (position re
 <InteriorOccupants loaded={loaded} origin={sceneOrigin} hour={agentClock ?? 12} />
 ```
 
-- [ ] **Step 2: Eyeball gate (REQUIRED — the payoff)**
+- [ ] **Step 2: Eyeball gate (REQUIRED - the payoff)**
 
 Render a populated town. Without re-entering, step the clock:
-- **02:00** — members in bedrooms (sleeping stations), none out.
-- **08:00–17:00** — working members OUT (no figure); at-home members at day stations.
-- **18:00** — meal station (table), then **19:00–21:00** hearthside.
+- **02:00** - members in bedrooms (sleeping stations), none out.
+- **08:00-17:00** - working members OUT (no figure); at-home members at day stations.
+- **18:00** - meal station (table), then **19:00-21:00** hearthside.
 - Confirm figures move room-to-room and floor-to-floor as hours pass, appear/disappear correctly, and stand on the right floor (level). Capture a night vs midday screenshot pair.
 
 - [ ] **Step 3: Commit**
@@ -960,13 +960,13 @@ git commit -m "feat(interiors): occupants walk their day on the live clock"
   `npx vitest run src/systems/worldforge/bridge src/systems/worldforge/interior src/systems/worldforge/__integration__ src/components/World3D`
 - [ ] The two eyeball gates (Task 4/5 lighting, Task 9 occupants) captured with before/after screenshots and sent to Remy per the visual-proof cadence.
 - [ ] Grep confirms no remaining bake-time `emissiveHex` on window/hearth parts and no `(0,0)` anchor fallback (Task 1 replaced it with a throw).
-- [ ] Plan-map node appended: "Living interiors — live clock" under the interiors branch, with the walk-animation follow-up noted.
+- [ ] Plan-map node appended: "Living interiors - live clock" under the interiors branch, with the walk-animation follow-up noted.
 
 ## Self-review notes (author)
 
-- **Spec coverage:** both halves the user chose (lighting + occupants) are covered — lighting in Phase 1 (Tasks 2-5), occupants in Phase 2 (Tasks 6-9), on the shared schedule foundation (Task 1). The drift-seam #3 fix rides along in Task 6.
+- **Spec coverage:** both halves the user chose (lighting + occupants) are covered - lighting in Phase 1 (Tasks 2-5), occupants in Phase 2 (Tasks 6-9), on the shared schedule foundation (Task 1). The drift-seam #3 fix rides along in Task 6.
 - **Streaming constraint respected:** no task re-inits the worker or forces a chunk re-mesh; all liveness is render-side against `agentClock`, which already flows to the scene.
 - **No-fallback:** Task 1 turns the silent `(0,0)` anchor default into a throw; window/hearth identity no longer depends on the bake hour.
-- **Open design choice deferred, not skipped:** occupants SNAP between stations (v1). Walk-path animation and any eventual merge with the street agent-sim are follow-ups, flagged on the plan-map — not silently dropped.
+- **Open design choice deferred, not skipped:** occupants SNAP between stations (v1). Walk-path animation and any eventual merge with the street agent-sim are follow-ups, flagged on the plan-map - not silently dropped.
 
 <!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/plans/2026-07-08-living-interiors-live-clock.md","sha256WithoutMarker":"379115273a192eb795c0fdcba13305451fc44fbf368c76e2ca42183b921443ea","markedAtUtc":"2026-08-09T20:22:07.615Z"} -->

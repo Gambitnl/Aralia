@@ -36,6 +36,15 @@ export interface Brush {
   lengthM?: number;
   /** Which way a ditch runs. */
   axis?: 'x' | 'z';
+  /**
+   * Free rotation for the oblong shapes, in radians, clockwise from +X.
+   *
+   * `axis` could only say north-south or east-west, so a channel at any other
+   * bearing had to be approximated in two steps. This costs the same
+   * arithmetic. When it is absent `axis` still decides, so every existing
+   * caller keeps its exact behavior.
+   */
+  angleRad?: number;
   /** What `paint` writes. Required for paint; ignored by dig and raise. */
   material?: Material;
   /** How deep below the surface `paint` rewrites, meters. Default 1.5. */
@@ -182,18 +191,35 @@ export function applyBrush(
      *
      * A ditch cut as a box would surface at the uphill end and bury itself at
      * the downhill end. Following the ground is what makes it a ditch. */
-    const alongX = (brush.axis ?? 'x') === 'x';
-    const halfX = alongX ? half : r;
-    const halfZ = alongX ? r : half;
+    /* FREE ROTATION, by moving the SAMPLE into the brush's frame rather than
+     * the brush into the world's. The ellipse test below is unchanged; it just
+     * receives coordinates measured along the channel and across it.
+     *
+     * `angleRad` absent falls back to `axis`, so every existing caller keeps
+     * its exact behavior: angle 0 is the old 'x', a quarter turn is the old
+     * 'z', and both agree to the cell.
+     *
+     * The scan box uses the LONG half on both axes, because a rotated ellipse
+     * can reach that far on either one. The extra cells cost a rejected
+     * distance test each, which is what `fall <= 0` already did for the corners
+     * of the old rectangle. */
+    const angle = brush.angleRad ?? ((brush.axis ?? 'x') === 'x' ? 0 : Math.PI / 2);
+    const ca = Math.cos(angle);
+    const sa = Math.sin(angle);
+    const halfLong = half;
+    const halfShort = r;
+    const scan = Math.max(halfLong, halfShort);
 
-    for (let z = cz - halfZ; z <= cz + halfZ; z++) {
-      for (let x = cx - halfX; x <= cx + halfX; x++) {
+    for (let z = cz - scan; z <= cz + scan; z++) {
+      for (let x = cx - scan; x <= cx + scan; x++) {
         if (x < 0 || z < 0 || x >= n || z >= n) continue;
 
         // Round the ends and the cross-section, so it is a channel and not a
         // slot with square corners a player can see from any angle.
-        const u = (x - cx) / (halfX + 0.5);
-        const v = (z - cz) / (halfZ + 0.5);
+        const dx = x - cx;
+        const dz = z - cz;
+        const u = (dx * ca + dz * sa) / (halfLong + 0.5);
+        const v = (-dx * sa + dz * ca) / (halfShort + 0.5);
         const fall = 1 - Math.min(1, u * u + v * v);
         if (fall <= 0) continue;
 

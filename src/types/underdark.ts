@@ -60,7 +60,7 @@ export interface UnderdarkBiome {
     name: string;
     description: string;
     nativeDepthLayers: DepthLayer[]; // Where this biome appears
-    baseLightLevel: 'darkness' | 'dim' | 'bright'; // Natural ambient light
+    baseLightLevel: 'darkness' | 'dim' | 'bright' | 'magical_darkness'; // Natural ambient light; 'magical_darkness' is planar/magical gloom that doubles sanity decay
     sanityModifier: number; // Multiplier for sanity decay (e.g. 0.5 for safe, 2.0 for scary)
     hazards: string[];
     resources: string[];

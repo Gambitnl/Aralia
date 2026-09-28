@@ -174,3 +174,33 @@ export const getDayPartLabel = (gameTime: Date): DayPartLabel => {
   if (hour < 18) return 'Afternoon';
   return 'Evening';
 };
+
+// ---------------------------------------------------------------------------
+// G1 contract validation (generational-time, 2026-08-28)
+// ---------------------------------------------------------------------------
+
+/** Minimum valid in-world year (the epoch). */
+export const MIN_GAME_YEAR = GAME_EPOCH_YEAR; // 351
+/** Maximum valid in-world year (Date API practical upper bound). */
+export const MAX_GAME_YEAR = 9999;
+
+/**
+ * Validate that a Date falls within the in-world time contract bounds.
+ * Returns `{ valid: true }` or `{ valid: false, reason }`.
+ *
+ * This is a development-time guard, not a runtime gate — callers should
+ * use it in tests and assertions, not in hot loops.
+ */
+export function validateGameTime(gameTime: Date): { valid: true } | { valid: false; reason: string } {
+  if (!(gameTime instanceof Date) || Number.isNaN(gameTime.getTime())) {
+    return { valid: false, reason: 'gameTime is not a valid Date' };
+  }
+  const year = gameTime.getUTCFullYear();
+  if (year < MIN_GAME_YEAR) {
+    return { valid: false, reason: `Year ${year} is before the epoch (${MIN_GAME_YEAR})` };
+  }
+  if (year > MAX_GAME_YEAR) {
+    return { valid: false, reason: `Year ${year} exceeds maximum (${MAX_GAME_YEAR})` };
+  }
+  return { valid: true };
+}

@@ -1,5 +1,5 @@
 {
- "pass": true,
+ "pass": false,
  "checks": [
   {
    "name": "root-at-origin",
@@ -9,12 +9,12 @@
   {
    "name": "joints-inside-mesh",
    "pass": true,
-   "detail": "all 66 joints within 0.09 of the mesh"
+   "detail": "all 74 joints within 0.09 of the mesh"
   },
   {
    "name": "symmetry",
-   "pass": true,
-   "detail": "all _l/_r pairs mirror within 0.025"
+   "pass": false,
+   "detail": "hand_l~0.025 metacarp_index_l~0.025 index_01_l~0.025 index_02_l~0.025 index_03_l~0.025 index_04_leaf_l~0.025 metacarp_middle_l~0.025 middle_01_l~0.025 middle_02_l~0.025 middle_03_l~0.025 middle_04_leaf_l~0.025 metacarp_pinky_l~0.025 pinky_01_l~0.025 pinky_02_l~0.025 pinky_03_l~0.025 pinky_04_leaf_l~0.025 metacarp_ring_l~0.025 ring_01_l~0.025 ring_02_l~0.025 ring_03_l~0.025 ring_04_leaf_l~0.025 thumb_01_l~0.025"
   },
   {
    "name": "bone-lengths",
@@ -31,5 +31,7 @@
    "pass": true,
    "detail": "every torso band owned by an allowed bone"
   }
- ]
+ ],
+ "family": "pack",
+ "headless": false
 }

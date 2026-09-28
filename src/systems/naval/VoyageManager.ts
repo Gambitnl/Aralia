@@ -22,12 +22,26 @@
  * Logic for managing sea voyages, including daily progression and event resolution.
  */
 import { Ship, VoyageState } from '../../types/naval';
+import { PlayerFactionStanding } from '../../types/factions';
+import { PortFactionRegistry, shipFactionStanding, withResolvedShipFaction } from './shipFaction';
 import { VOYAGE_EVENTS } from '../../data/naval/voyageEvents';
 import { CrewManager } from './CrewManager';
 import { WeatherState } from '../../types/environment';
 import { SeededRandom } from '@/utils/random';
 
 type RandomSource = SeededRandom;
+
+/**
+ * Faction state a voyage needs to judge how the lower deck feels about the flag
+ * it sails under. Supplied by the caller that owns the campaign's faction
+ * standings; when it is absent the faction term is simply not applied.
+ */
+export interface VoyageFactionContext {
+    /** The player's standing with every known faction, keyed by faction id. */
+    standings: Readonly<Record<string, PlayerFactionStanding>>;
+    /** Which faction holds which port, used to flag hulls saved before Ship.factionId existed. */
+    portFactions: PortFactionRegistry;
+}
 
 const hashStringToSeed = (value: string): number => {
     let hash = 2166136261;
@@ -74,7 +88,8 @@ export class VoyageManager {
         ship: Ship, 
         weather: WeatherState,
         availableFunds: number = 1000,
-        rng?: RandomSource
+        rng?: RandomSource,
+        factionContext?: VoyageFactionContext
     ): {
         newState: VoyageState;
         updatedShip: Ship;
@@ -148,7 +163,15 @@ export class VoyageManager {
         state.distanceToDestination = Math.max(0, state.distanceToDestination - actualDistance);
 
         // 3. Crew Updates
-        const crewUpdate = CrewManager.processDailyCrewUpdate(currentShip, availableFunds, randomSource);
+        // A hull saved before Ship.factionId existed is flagged here, once, so the
+        // resolved allegiance travels out with the updated ship and into the save.
+        let factionStanding: number | undefined;
+        if (factionContext) {
+            currentShip = withResolvedShipFaction(currentShip, factionContext.portFactions);
+            factionStanding = shipFactionStanding(currentShip, factionContext.standings, factionContext.portFactions);
+        }
+
+        const crewUpdate = CrewManager.processDailyCrewUpdate(currentShip, availableFunds, randomSource, factionStanding);
         currentShip = crewUpdate.ship;
         const funds = crewUpdate.remainingFunds;
 

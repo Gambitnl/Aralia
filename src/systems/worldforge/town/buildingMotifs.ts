@@ -61,6 +61,17 @@ export const BUILDING_MOTIF_PROGRAMS: Record<BuildingType, BuildingMotifProgram>
   temple: { core: ['bell-cote'], districtChoices: ['entry-portico', 'roof-finials'] },
   keep: { core: ['battlements'], districtChoices: ['corner-turrets', 'buttresses'] },
   civic: { core: ['entry-portico'], districtChoices: ['bell-cote', 'roof-finials'] },
+  // Named landmarks: each core cue is the silhouette that names the building
+  // from across the street.
+  library: { core: ['entry-portico'], districtChoices: ['bay-window', 'buttresses'] },
+  guildhall: { core: ['hanging-sign'], districtChoices: ['entry-portico', 'roof-finials'] },
+  granary: { core: ['loading-hoist'], districtChoices: ['side-shed', 'vent-stack'] },
+  windmill: { core: ['vent-stack'], districtChoices: ['side-shed', 'log-porch'] },
+  lumbermill: { core: ['side-shed'], districtChoices: ['loading-hoist', 'log-porch'] },
+  school: { core: ['bell-cote'], districtChoices: ['entry-portico', 'bay-window'] },
+  shrine: { core: ['bell-cote'], districtChoices: ['roof-finials', 'front-canopy'] },
+  barracks: { core: ['battlements'], districtChoices: ['buttresses', 'corner-turrets'] },
+  bakery: { core: ['vent-stack'], districtChoices: ['shop-awning', 'hanging-sign'] },
 };
 
 /** Culture accents stay inside the same role grammar but distinguish regions. */

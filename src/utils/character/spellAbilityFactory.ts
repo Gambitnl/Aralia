@@ -1,10 +1,24 @@
+/**
+ * @file src/utils/spellAbilityFactory.ts
+ * A factory service that converts static Spell JSON data (from src/types)
+ * into functional Ability objects for the Combat System (from src/types/combat).
+ * 
+ * Strategy: structured data only. Every ability is built from the spell JSON's
+ * `effects` array and its typed sibling fields. There is no description-text
+ * parser behind it: a spell that produces nothing here is a data gap to fix in
+ * the JSON, not prose for this file to guess at.
+ *
+ * This allows us to define a spell ONCE in the JSON data, and have it automatically
+ * work in the BattleMap without writing manual code for every single spell.
+ */
+
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 10/08/2026, 13:59:23
- * Dependents: utils/character/index.ts, utils/combat/combatUtils.ts
+ * Last Sync: 20/09/2026, 21:00:39
+ * Dependents: components/DesignPreview/steps/scenarioControls/concentrationScenarioControls.ts, components/DesignPreview/steps/scenarioControls/counterspellNestedReactionsScenarioControls.ts, components/DesignPreview/steps/scenarioControls/reactiveDamageRetaliationScenarioControls.ts, components/DesignPreview/steps/scenarioControls/spellTargetRestrictionsScenarioControls.ts, components/DesignPreview/steps/scenarioControls/tauntForcedTargetingScenarioControls.ts, systems/puzzles/arcaneGlyphSystem.ts, systems/spells/mechanics/areaDamageSpellCastResolution.ts, systems/spells/mechanics/directDamageSpellCastResolution.ts, systems/spells/mechanics/dispelMagicResolution.ts, systems/spells/mechanics/healingTemporaryHitPointResolution.ts, systems/spells/mechanics/reactiveDamageRetaliationResolution.ts, systems/spells/mechanics/witchBoltOngoingResolution.ts, utils/character/index.ts, utils/combat/combatUtils.ts
  * Imports: 4 files
  *
  * MULTI-AGENT SAFETY:
@@ -14,28 +28,31 @@
  */
 // @dependencies-end
 
-/**
- * @file src/utils/spellAbilityFactory.ts
- * A factory service that converts static Spell JSON data (from src/types)
- * into functional Ability objects for the Combat System (from src/types/combat).
- * 
- * Strategy:
- * 1. "Gold Standard": Prefer explicit structured data from the spell JSON (e.g., `effects` array).
- * 2. "Silver Standard": Fallback to parsing the description text for legacy spells or simple mechanics.
- *
- * This allows us to define a spell ONCE in the JSON data, and have it automatically
- * work in the BattleMap without writing manual code for every single spell.
- */
 import { Spell, AbilityScoreName, PlayerCharacter } from '../../types';
 import { Ability, AbilityCost, AbilityEffect, AbilityGrantedAction, AreaOfEffect, TargetingType, ActionCostType } from '../../types/combat';
 import { getAbilityModifierValue, getRacialSpellGrantForSpell, resolveRacialSpellCastingAbility } from './characterUtils';
 import { logger } from '../core/logger';
 
-// TODO #1288(FEATURES): Expand spell-to-ability translation coverage (conditions, multi-step effects, unique spell riders) so more spells execute without bespoke handlers (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path).
-// NOTE: UTILITY effects with custom fields (savePenalty, light sources, terrain manipulation) are not yet handled in the effects loop below.
-//   - light.json defines `light: { brightRadius, dimRadius }` for dynamic lighting (awaiting lighting system)
-//   - mind-sliver.json defines `savePenalty: { dice, applies, duration }` for save debuffs (needs schema + handler)
-//   - Ref: docs/tasks/spell-system-overhaul/1K-MIGRATE-CANTRIPS-BATCH-3.md#system-gaps
+// Effect-type coverage (Agora tasks agora-c495, agora-1a02 and agora-f821.46).
+//
+// The spell corpus uses nine effect types and this factory translates all nine:
+//   DAMAGE, HEALING, DEFENSIVE, STATUS_CONDITION, UTILITY, ATTACK_ROLL_MODIFIER,
+//   MOVEMENT, TERRAIN, SUMMONING.
+// SUMMONING maps to the 'summon_creature' ability effect. That effect describes the
+// summon; it does not spawn it. The authoritative spawn stays in SummoningCommand on
+// the spell path, so there is still exactly one spawn path.
+//
+// Empty-effects contract: every spell in the corpus produces at least one ability
+// effect, with one declared exception. A spell whose whole mechanic is an interrupt
+// (Counterspell) carries it in `interruptionState`, not in `effects`, and is executed
+// by the reaction gate rather than by this effect list. Those spells are allowed an
+// empty ability effects array; anything else with an empty array is a data gap, and
+// the corpus test in __tests__/spellAbilityFactory.test.ts fails on it.
+//
+// Zero-filled riders are the recurring trap in this data. Every effect row carries a fully
+// populated sub-object even when the spell does not use it (Mind Sliver's all-zero `light`,
+// Shield of Faith's `acMinimum: 0` and empty `baseACFormula`). Every builder below therefore
+// gates on the declared kind plus a positive value, never on the presence of the block.
 
 /**
  * Determines the appropriate targeting type based on the spell definition.
@@ -121,6 +138,43 @@ const inferTargeting = (spell: Spell): TargetingType => {
 };
 
 /**
+ * Maps every spell-JSON area shape onto the four shapes the 2D grid can draw.
+ *
+ * Extended shapes collapse to their closest basic equivalent: an Emanation is a
+ * sphere that follows its caster, a Wall is a linear barrier, and a Hemisphere
+ * or Ring reads as a circle from above.
+ */
+const AOE_SHAPE_MAP: Record<string, 'circle' | 'cone' | 'line' | 'square'> = {
+    'Sphere': 'circle',
+    'Cone': 'cone',
+    'Line': 'line',
+    'Cube': 'square',
+    'Cylinder': 'circle',
+    'Emanation': 'circle',
+    'Wall': 'line',
+    'Hemisphere': 'circle',
+    'Ring': 'circle'
+};
+
+/** Converts a spell-JSON area block (feet) into the combat area block (tiles). */
+const toCombatAreaOfEffect = (
+    area: { shape?: string; size?: number; followsCaster?: boolean } | undefined
+): AreaOfEffect | undefined => {
+    if (!area) return undefined;
+
+    const result: AreaOfEffect = {
+        shape: AOE_SHAPE_MAP[area.shape ?? ''] || 'circle',
+        size: (area.size || 0) / 5 // Convert feet to tiles (5ft = 1 tile)
+    };
+
+    if (area.followsCaster) {
+        result.followsCaster = true;
+    }
+
+    return result;
+};
+
+/**
  * Parses the Area of Effect from spell description or metadata.
  *
  * Converts real-world measurements (feet) into grid units (tiles).
@@ -129,72 +183,25 @@ const inferTargeting = (spell: Spell): TargetingType => {
  * @returns The shape and size in tiles, or undefined if no AoE detected.
  */
 const inferAoE = (spell: Spell): AreaOfEffect | undefined => {
-    const desc = spell.description ? spell.description.toLowerCase() : '';      
-
     // Check JSON effects first if they exist
     if (Array.isArray(spell.effects)) {
         // Safe find with null check
     const aoeEffect = spell.effects.find(e => e && typeof e === 'object' && e.areaOfEffect);
     if (aoeEffect && aoeEffect.areaOfEffect) {
-            // Map JSON AoE shape to Combat AoE shape
-            const shapeMap: Record<string, 'circle' | 'cone' | 'line' | 'square'> = {
-                'Sphere': 'circle',
-                'Cone': 'cone',
-                'Line': 'line',
-                'Cube': 'square',
-                'Cylinder': 'circle' // Best approximation for 2D grid
-            };
-            const shapeKey = aoeEffect.areaOfEffect.shape;
-            return {
-                shape: shapeMap[shapeKey] || 'circle',
-                size: (aoeEffect.areaOfEffect.size || 0) / 5, // Convert feet to tiles (5ft = 1 tile)
-            };
+            return toCombatAreaOfEffect(aoeEffect.areaOfEffect);
         }
     }
 
     // Also check top-level areaOfEffect property
     const topAoe = (spell as { areaOfEffect?: { shape: string; size?: number; followsCaster?: boolean } }).areaOfEffect;
     if (topAoe) {
-        // Map JSON AoE shape to Combat AoE shape for 2D grid rendering
-        // Extended shapes map to closest basic shape for grid calculations
-        const shapeMap: Record<string, 'circle' | 'cone' | 'line' | 'square'> = {
-            'Sphere': 'circle',
-            'Cone': 'cone',
-            'Line': 'line',
-            'Cube': 'square',
-            'Cylinder': 'circle',
-            // Extended shapes mapped to closest basic equivalent
-            'Emanation': 'circle',  // Emanation is a sphere that follows caster
-            'Wall': 'line',         // Walls are linear barriers
-            'Hemisphere': 'circle', // Dome is half-sphere, renders as circle on 2D grid
-            'Ring': 'circle'        // Ring is hollow circle
-        };
-
-        // Merge conflict resolved: Kept HEAD's approach with semantics passthrough for
-        // extended AoE shapes (e.g., Emanations with followsCaster for Spirit Guardians).
-        // The other branch's early return would have skipped this critical functionality.
-        const result: AreaOfEffect = {
-            shape: shapeMap[topAoe.shape] || 'circle',
-            size: (topAoe.size || 0) / 5, // Convert feet to tiles (5ft = 1 tile)
-        };
-
-        // Pass through extended semantics for downstream handlers
-        if (topAoe.followsCaster) {
-            result.followsCaster = true;
-        }
-
-        return result;
+        // Extended semantics such as an Emanation's followsCaster (Spirit Guardians)
+        // are passed through by the shared converter rather than dropped here.
+        return toCombatAreaOfEffect(topAoe);
     }
 
-    // Fallback to text parsing (basic)
-    if (desc.includes('15-foot cone')) return { shape: 'cone', size: 3 };
-    if (desc.includes('30-foot cone')) return { shape: 'cone', size: 6 };
-    if (desc.includes('60-foot cone')) return { shape: 'cone', size: 12 };
-    if (desc.includes('20-foot-radius sphere')) return { shape: 'circle', size: 4 };
-    if (desc.includes('15-foot cube')) return { shape: 'square', size: 3 };
-    if (desc.includes('100-foot line')) return { shape: 'line', size: 20 };
-    if (desc.includes('60-foot line')) return { shape: 'line', size: 12 };
-
+    // No text fallback: a spell whose area is not in structured data has no
+    // area here, so the gap stays visible in the JSON instead of being guessed.
     return undefined;
 };
 
@@ -211,58 +218,6 @@ const calculateAverageDamage = (diceString: string, modifier: number = 0): numbe
     const mod = isNaN(modifier) ? 0 : modifier;
     const total = Math.floor(average) + mod;
     return isNaN(total) ? 0 : total;
-};
-
-/**
- * Parses the spell description to infer effects when structured data is missing.
- * This is the "Silver Standard" logic.
- */
-const inferEffectsFromDescription = (description: string, modifier: number): AbilityEffect[] => {
-    const effects: AbilityEffect[] = [];
-    if (!description) return effects;
-
-    const lowerDesc = description ? description.toLowerCase() : '';
-
-    // 1. Damage Detection
-    // Regex looks for patterns like "3d6 fire damage" or "1d10 piercing damage"
-    const damageRegex = /(\d+)d(\d+)\s+(acid|bludgeoning|cold|fire|force|lightning|necrotic|piercing|poison|psychic|radiant|slashing|thunder)\s+damage/i;       
-    const damageMatch = description.match(damageRegex);
-
-    if (damageMatch) {
-        const diceString = `${damageMatch[1]}d${damageMatch[2]}`;
-        const type = (damageMatch[3] || '').toString().toLowerCase();
-        effects.push({
-            type: 'damage',
-            value: calculateAverageDamage(diceString, 0), // Don't add mod to base spell damage usually
-            damageType: type as AbilityEffect['damageType']
-        });
-    } else if (lowerDesc.includes("magic missile")) {
-        // Hardcode for magic missile specific
-        effects.push({ type: 'damage', value: 3 * (2.5 + 1), damageType: 'force' });
-    }
-
-    // 2. Healing Detection
-    // Regex looks for "regains ... 1d8 ... hit points" or similar
-    const healingRegex = /regains?\s+.*?(\d+)d(\d+)/i;
-    const healingMatch = description.match(healingRegex);
-    if (healingMatch) {
-        const diceString = `${healingMatch[1]}d${healingMatch[2]}`;
-        // Most healing spells add the modifier
-        effects.push({
-            type: 'heal',
-            value: calculateAverageDamage(diceString, modifier)
-        });
-    }
-
-    // 3. Simple Buffs
-    if (lowerDesc.includes('bonus to ac')) {
-        effects.push({
-            type: 'status',
-            statusEffect: { id: 'ac_buff', name: 'AC Bonus', type: 'buff', duration: 10, effect: { type: 'stat_modifier', value: 2, stat: 'dexterity' } } // Placeholder stat - In real app, map to AC
-        });
-    }
-
-    return effects;
 };
 
 const extractGrantedActions = (spell: Spell): AbilityGrantedAction[] => {
@@ -351,6 +306,605 @@ const resolveSpellRangeFeet = (spell: Spell, caster: PlayerCharacter): number =>
     return baseDistance;
 };
 
+/** Spell-JSON shape of a UTILITY effect's optional light and save-penalty riders. */
+interface UtilityEffectRiders {
+    light?: {
+        brightRadius?: number;
+        dimRadius?: number;
+        attachedTo?: 'caster' | 'target' | 'point';
+        color?: string;
+        opaqueCoverBlocks?: boolean | string;
+    };
+    savePenalty?: {
+        dice?: string;
+        flat?: number;
+        applies?: string;
+        duration?: { type?: string; value?: number };
+    };
+}
+
+/**
+ * Decides whether a UTILITY effect's `light` block is a real light source.
+ *
+ * Spell JSON carries a fully populated `light` object on every UTILITY effect,
+ * including effects that emit no light at all (Mind Sliver's block is all
+ * zeroes). Radius is the only field that separates Light from that filler, so a
+ * zero-radius block must not win over the effect's real rider.
+ */
+const emitsLight = (light: UtilityEffectRiders['light']): boolean => {
+    if (!light) return false;
+    return (light.brightRadius ?? 0) > 0 || (light.dimRadius ?? 0) > 0;
+};
+
+/**
+ * Converts a spell-effect duration into whole combat rounds.
+ *
+ * One round is 6 seconds, so a minute is 10 rounds. Durations the engine cannot
+ * count down (special, instantaneous, unknown) fall back to the caller's default.
+ */
+const resolveDurationInRounds = (
+    duration: { type?: string; value?: number } | undefined,
+    fallbackRounds: number
+): number => {
+    if (!duration) return fallbackRounds;
+
+    switch (duration.type) {
+        case 'rounds':
+            return duration.value && duration.value > 0 ? duration.value : fallbackRounds;
+        case 'minutes':
+            return duration.value && duration.value > 0 ? duration.value * 10 : fallbackRounds;
+        case 'until_end_of_current_turn':
+        case 'turn_end':
+            return 1;
+        default:
+            return fallbackRounds;
+    }
+};
+
+/**
+ * Turns one UTILITY spell effect into the combat ability effects it deserves.
+ *
+ * A single UTILITY effect can carry more than one rider, so light sources and
+ * save penalties are emitted independently instead of as an either/or chain.
+ * When neither rider is present the effect still reaches the ability as a
+ * neutral status, which keeps terrain and other prose-only utilities visible.
+ */
+const buildUtilityAbilityEffects = (spell: Spell, jsonEffect: UtilityEffectRiders): AbilityEffect[] => {
+    const built: AbilityEffect[] = [];
+    const concentration = typeof spell.duration === 'object' && spell.duration?.concentration === true;
+
+    if (emitsLight(jsonEffect.light)) {
+        const light = jsonEffect.light!;
+        built.push({
+            type: 'status',
+            statusEffect: {
+                id: `spell_${spell.id}_light`,
+                name: `${spell.name} (Light Source)`,
+                type: 'neutral',
+                sourceSpellId: spell.id,
+                duration: concentration ? 100 : 1000,
+                light: {
+                    brightRadius: light.brightRadius ?? 0,
+                    dimRadius: light.dimRadius ?? 0,
+                    attachedTo: light.attachedTo || 'target',
+                    color: light.color,
+                    opaqueCoverBlocks: light.opaqueCoverBlocks === true
+                }
+            }
+        });
+    }
+
+    const savePenalty = jsonEffect.savePenalty;
+    if (savePenalty?.dice) {
+        built.push({
+            type: 'status',
+            statusEffect: {
+                id: `spell_${spell.id}_save_penalty`,
+                name: `${spell.name} Penalty`,
+                type: 'debuff',
+                sourceSpellId: spell.id,
+                // Mind Sliver's penalty runs to the end of the caster's next turn,
+                // which the JSON records as a rounds duration.
+                duration: resolveDurationInRounds(savePenalty.duration, 1),
+                savePenalty: {
+                    dice: savePenalty.dice,
+                    flat: savePenalty.flat,
+                    applies: savePenalty.applies === 'all_saves' ? 'all_saves' : 'next_save'
+                }
+            }
+        });
+    }
+
+    if (built.length === 0) {
+        // Generic status/utility mapping fallback if no special sub-fields are present.
+        built.push({
+            type: 'status',
+            statusEffect: {
+                id: `spell_${spell.id}_utility`,
+                name: spell.name,
+                type: 'neutral',
+                sourceSpellId: spell.id,
+                duration: 10
+            }
+        });
+    }
+
+    return built;
+};
+
+/** Spell-JSON shape of a DEFENSIVE effect's Armor Class and damage-response riders. */
+interface DefensiveEffectRiders {
+    defenseType?: string;
+    value?: number;
+    acBonus?: number;
+    baseACFormula?: string;
+    acMinimum?: number;
+    damageType?: string[];
+    duration?: { type?: string; value?: number };
+    description?: string;
+}
+
+/**
+ * Turns one DEFENSIVE spell effect into the combat ability effects it deserves.
+ *
+ * Armor Class is written as a real Armor Class change. The old placeholder
+ * raised Dexterity by one point instead, which is a different rule with a
+ * different magnitude: Shield of Faith is a flat +2 AC, not +1 Dexterity, and
+ * Mage Armor replaces the base AC rather than adding to it. Resistance and
+ * immunity defenses reach the same status through the modifier block they
+ * already have, so a defense that is not about AC is no longer flattened into a
+ * generic "+1 to something".
+ *
+ * Zero-filled fields are the trap here: every DEFENSIVE row carries `value`,
+ * `acMinimum` and `baseACFormula` even when the spell uses none of them, so
+ * each branch is chosen by `defenseType` and then checked for a real number.
+ */
+const buildDefensiveAbilityEffects = (spell: Spell, jsonEffect: DefensiveEffectRiders): AbilityEffect[] => {
+    const concentration = typeof spell.duration === 'object' && spell.duration?.concentration === true;
+    const modifiers: NonNullable<AbilityEffect['statusEffect']>['modifiers'] = {};
+
+    switch (jsonEffect.defenseType) {
+        case 'ac_bonus': {
+            const bonus = jsonEffect.acBonus ?? jsonEffect.value ?? 0;
+            if (bonus > 0) modifiers.acBonus = bonus;
+            break;
+        }
+        case 'set_base_ac': {
+            const base = jsonEffect.value ?? 0;
+            if (base > 0) {
+                modifiers.baseAC = base;
+                if (jsonEffect.baseACFormula) modifiers.baseACFormula = jsonEffect.baseACFormula;
+            }
+            break;
+        }
+        case 'ac_minimum': {
+            const minimum = jsonEffect.acMinimum ?? jsonEffect.value ?? 0;
+            if (minimum > 0) modifiers.acMinimum = minimum;
+            break;
+        }
+        case 'resistance': {
+            const types = jsonEffect.damageType ?? [];
+            if (types.length > 0) {
+                modifiers.resistance = types as NonNullable<typeof modifiers.resistance>;
+            }
+            break;
+        }
+        case 'immunity': {
+            const types = jsonEffect.damageType ?? [];
+            if (types.length > 0) {
+                modifiers.immunity = types as NonNullable<typeof modifiers.immunity>;
+            }
+            break;
+        }
+        case 'advantage_on_saves':
+            modifiers.advantage = ['save'];
+            break;
+        case 'disadvantage_on_attacks':
+            // The attacker suffers, not the holder, so this is an incoming rider
+            // rather than a disadvantage the protected creature carries.
+            break;
+        default:
+            break;
+    }
+
+    const statusEffect: NonNullable<AbilityEffect['statusEffect']> = {
+        id: `spell_${spell.id}_buff`,
+        name: spell.name,
+        type: 'buff',
+        sourceSpellId: spell.id,
+        duration: resolveDurationInRounds(jsonEffect.duration, concentration ? 10 : 100)
+    };
+
+    if (Object.keys(modifiers).length > 0) {
+        statusEffect.modifiers = modifiers;
+    }
+
+    if (jsonEffect.defenseType === 'disadvantage_on_attacks') {
+        statusEffect.attackRollRider = {
+            modifier: 'disadvantage',
+            direction: 'incoming',
+            attackKind: 'any',
+            consumption: 'while_active'
+        };
+    }
+
+    return [{ type: 'status', statusEffect }];
+};
+
+/** Spell-JSON shape of an ATTACK_ROLL_MODIFIER effect's two riders. */
+interface AttackRollModifierRiders {
+    attackRollModifier?: {
+        modifier?: string;
+        direction?: string;
+        attackKind?: string;
+        consumption?: string;
+        dice?: string;
+        value?: number;
+        notes?: string;
+        duration?: { type?: string; value?: number };
+    };
+    savingThrowModifier?: {
+        modifier?: string;
+        consumption?: string;
+        dice?: string;
+        value?: number;
+        ability?: string;
+        duration?: { type?: string; value?: number };
+    };
+    statusCondition?: { name?: string };
+    description?: string;
+}
+
+/**
+ * Decides whether an attack-roll rider helps or hurts the creature that carries it.
+ *
+ * Direction is what makes this non-obvious. Blur gives *incoming* attacks
+ * disadvantage, which protects its holder, while Bane gives its holder's
+ * *outgoing* attacks a penalty. Both are "disadvantage or penalty", and they
+ * mean opposite things, so the answer needs both fields.
+ */
+const attackRollRiderHelpsHolder = (modifier: string, direction: string): boolean => {
+    const improves = modifier === 'advantage' || modifier === 'bonus';
+    return direction === 'outgoing' ? improves : !improves;
+};
+
+/**
+ * Turns one ATTACK_ROLL_MODIFIER spell effect into the combat ability effects it deserves.
+ *
+ * Bless and Bane each change two separate rolls from a single spell effect, so
+ * the attack rider and the saving-throw rider are both preserved on one status
+ * instead of one overwriting the other. Where the rider is plain advantage or
+ * disadvantage on the holder's own rolls, the existing modifier lists are filled
+ * too, so consumers that only read those lists still see the spell.
+ */
+const buildAttackRollModifierAbilityEffects = (
+    spell: Spell,
+    jsonEffect: AttackRollModifierRiders
+): AbilityEffect[] => {
+    const attackRider = jsonEffect.attackRollModifier;
+    const saveRider = jsonEffect.savingThrowModifier;
+
+    if (!attackRider?.modifier && !saveRider?.modifier) {
+        return [];
+    }
+
+    const modifiers: NonNullable<AbilityEffect['statusEffect']>['modifiers'] = {};
+    const advantage: ('attack' | 'save' | 'check')[] = [];
+    const disadvantage: ('attack' | 'save' | 'check')[] = [];
+    let helpsHolder = true;
+
+    const statusEffect: NonNullable<AbilityEffect['statusEffect']> = {
+        id: `spell_${spell.id}_attack_rider`,
+        // Bless and Bane name their own condition in the JSON. Using that name
+        // keeps the combat log saying "Blessed" instead of the spell title.
+        name: jsonEffect.statusCondition?.name || spell.name,
+        type: 'buff',
+        sourceSpellId: spell.id,
+        duration: resolveDurationInRounds(attackRider?.duration ?? saveRider?.duration, 10)
+    };
+
+    if (attackRider?.modifier) {
+        const direction = attackRider.direction === 'incoming' ? 'incoming' : 'outgoing';
+        helpsHolder = attackRollRiderHelpsHolder(attackRider.modifier, direction);
+
+        statusEffect.attackRollRider = {
+            modifier: attackRider.modifier as NonNullable<typeof statusEffect.attackRollRider>['modifier'],
+            direction,
+            attackKind: (attackRider.attackKind || 'any') as NonNullable<typeof statusEffect.attackRollRider>['attackKind'],
+            consumption: (attackRider.consumption || 'while_active') as NonNullable<typeof statusEffect.attackRollRider>['consumption'],
+            dice: attackRider.dice || undefined,
+            value: attackRider.value,
+            notes: attackRider.notes || undefined
+        };
+
+        // Only an outgoing rider describes rolls the holder makes, so only an
+        // outgoing rider belongs in the holder's own advantage lists.
+        if (direction === 'outgoing') {
+            if (attackRider.modifier === 'advantage') advantage.push('attack');
+            if (attackRider.modifier === 'disadvantage') disadvantage.push('attack');
+            if (typeof attackRider.value === 'number' && attackRider.value !== 0) {
+                modifiers.attackBonus = attackRider.modifier === 'penalty'
+                    ? -Math.abs(attackRider.value)
+                    : Math.abs(attackRider.value);
+            }
+        }
+    }
+
+    if (saveRider?.modifier) {
+        statusEffect.savingThrowRider = {
+            modifier: saveRider.modifier as NonNullable<typeof statusEffect.savingThrowRider>['modifier'],
+            consumption: saveRider.consumption === 'next_save' ? 'next_save' : 'while_active',
+            dice: saveRider.dice || undefined,
+            value: saveRider.value,
+            ability: saveRider.ability || undefined
+        };
+
+        if (saveRider.modifier === 'advantage') advantage.push('save');
+        if (saveRider.modifier === 'disadvantage') disadvantage.push('save');
+
+        if (!attackRider?.modifier) {
+            helpsHolder = saveRider.modifier === 'advantage' || saveRider.modifier === 'bonus';
+        }
+    }
+
+    statusEffect.type = helpsHolder ? 'buff' : 'debuff';
+    if (advantage.length > 0) modifiers.advantage = advantage;
+    if (disadvantage.length > 0) modifiers.disadvantage = disadvantage;
+    if (Object.keys(modifiers).length > 0) statusEffect.modifiers = modifiers;
+
+    return [{ type: 'status', statusEffect }];
+};
+
+/** Spell-JSON shape of a MOVEMENT effect. */
+interface MovementEffectRiders {
+    movementType?: string;
+    distance?: number;
+    speedChange?: { value?: number };
+    forcedMovement?: { maxDistance?: string | number };
+    duration?: { type?: string; value?: number };
+}
+
+/**
+ * Reads the distance a movement effect covers, in feet.
+ *
+ * `distance` is zero-filled on rows that keep the real number on
+ * `forcedMovement.maxDistance`, which is authored as prose such as "30 ft".
+ */
+const resolveMovementDistanceFeet = (jsonEffect: MovementEffectRiders): number => {
+    if (typeof jsonEffect.distance === 'number' && jsonEffect.distance > 0) {
+        return jsonEffect.distance;
+    }
+
+    const maxDistance = jsonEffect.forcedMovement?.maxDistance;
+    if (typeof maxDistance === 'number') return maxDistance;
+
+    const parsed = typeof maxDistance === 'string' ? maxDistance.match(/(\d+)/) : null;
+    return parsed ? parseInt(parsed[1], 10) : 0;
+};
+
+/**
+ * Turns one MOVEMENT spell effect into the combat ability effects it deserves.
+ *
+ * Teleports and forced movement already have their own AbilityEffect kinds, so
+ * Misty Step becomes a teleport rather than a nameless status. A speed change is
+ * not movement that happens now, so it becomes a status the turn clock can hold.
+ */
+const buildMovementAbilityEffects = (spell: Spell, jsonEffect: MovementEffectRiders): AbilityEffect[] => {
+    const distanceFeet = resolveMovementDistanceFeet(jsonEffect);
+
+    switch (jsonEffect.movementType) {
+        case 'teleport':
+            return [{ type: 'teleport', value: distanceFeet }];
+        case 'push':
+        case 'pull':
+            return [{ type: 'movement', value: distanceFeet }];
+        case 'speed_change': {
+            const speedChange = jsonEffect.speedChange?.value ?? 0;
+            return [{
+                type: 'status',
+                statusEffect: {
+                    id: `spell_${spell.id}_speed`,
+                    name: `${spell.name} (Speed)`,
+                    type: speedChange >= 0 ? 'buff' : 'debuff',
+                    sourceSpellId: spell.id,
+                    duration: resolveDurationInRounds(jsonEffect.duration, 10),
+                    modifiers: { movementSpeed: speedChange }
+                }
+            }];
+        }
+        case 'stop':
+            return [{
+                type: 'status',
+                statusEffect: {
+                    id: `spell_${spell.id}_movement_stop`,
+                    name: `${spell.name} (Held)`,
+                    type: 'debuff',
+                    sourceSpellId: spell.id,
+                    duration: resolveDurationInRounds(jsonEffect.duration, 10),
+                    modifiers: { movementSpeed: 0 }
+                }
+            }];
+        default:
+            return [];
+    }
+};
+
+/** Spell-JSON shape of a TERRAIN effect. */
+interface TerrainEffectRiders {
+    terrainType?: string;
+    areaOfEffect?: { shape?: string; size?: number };
+    duration?: { type?: string; value?: number };
+    damage?: { dice?: string; type?: string };
+    wallProperties?: { hp?: number; ac?: number };
+    dispersedByStrongWind?: boolean;
+    manipulation?: {
+        type?: string;
+        volume?: { shape?: string; size?: number; depth?: number };
+        depositDistance?: number;
+    };
+}
+
+/** Terrain that only changes what a square looks like is neutral, not hostile. */
+const COSMETIC_TERRAIN_MANIPULATIONS = new Set(['cosmetic']);
+
+/**
+ * Turns one TERRAIN spell effect into the combat ability effects it deserves.
+ *
+ * A terrain spell is two facts at once. The zone itself is a status the combat
+ * map owns, while damaging terrain such as Spike Growth also has to read as
+ * damage or the combat AI scores it as harmless. Both are emitted, which is why
+ * a single terrain row can produce two ability effects.
+ *
+ * Mold Earth's active terrain-control option lives on `manipulation` and has no
+ * condition equivalent, so it is preserved whole rather than reduced to a flag.
+ */
+const buildTerrainAbilityEffects = (spell: Spell, jsonEffect: TerrainEffectRiders): AbilityEffect[] => {
+    const built: AbilityEffect[] = [];
+    const terrainType = (jsonEffect.terrainType || 'difficult') as NonNullable<
+        NonNullable<AbilityEffect['statusEffect']>['terrain']
+    >['terrainType'];
+
+    const terrain: NonNullable<NonNullable<AbilityEffect['statusEffect']>['terrain']> = { terrainType };
+
+    const area = toCombatAreaOfEffect(jsonEffect.areaOfEffect);
+    if (area && area.size > 0) {
+        terrain.areaOfEffect = area;
+    }
+
+    if (jsonEffect.dispersedByStrongWind) {
+        terrain.dispersedByStrongWind = true;
+    }
+
+    const wall = jsonEffect.wallProperties;
+    if (wall && ((wall.hp ?? 0) > 0 || (wall.ac ?? 0) > 0)) {
+        terrain.wallProperties = { hp: wall.hp ?? 0, ac: wall.ac ?? 0 };
+    }
+
+    const damageDice = jsonEffect.damage?.dice;
+    if (damageDice) {
+        terrain.damage = { dice: damageDice, type: jsonEffect.damage?.type ?? '' };
+    }
+
+    const manipulation = jsonEffect.manipulation;
+    if (manipulation?.type) {
+        terrain.manipulation = {
+            type: manipulation.type,
+            volume: manipulation.volume,
+            depositDistance: manipulation.depositDistance
+        };
+    }
+
+    const isHostile = terrainType === 'difficult' || terrainType === 'damaging' || terrainType === 'blocking';
+    const isCosmetic = COSMETIC_TERRAIN_MANIPULATIONS.has(manipulation?.type ?? '');
+
+    built.push({
+        type: 'status',
+        statusEffect: {
+            id: `spell_${spell.id}_terrain`,
+            name: `${spell.name} (Terrain)`,
+            type: isHostile && !isCosmetic ? 'debuff' : 'neutral',
+            sourceSpellId: spell.id,
+            duration: resolveDurationInRounds(jsonEffect.duration, 10),
+            terrain
+        }
+    });
+
+    // Damaging terrain has to reach the ability as damage as well. The combat AI
+    // scores abilities from this list, and a zone that only appears as a status
+    // is read as dealing nothing at all.
+    if (damageDice) {
+        built.push({
+            type: 'damage',
+            value: calculateAverageDamage(damageDice),
+            dice: damageDice,
+            damageType: jsonEffect.damage?.type
+                ? (String(jsonEffect.damage.type).toLowerCase() as AbilityEffect['damageType'])
+                : 'force'
+        });
+    }
+
+    return built;
+};
+
+/** Spell-JSON shape of a SUMMONING effect. */
+interface SummoningEffectRiders {
+    summonType?: string;
+    creatureId?: string;
+    objectDescription?: string;
+    count?: number;
+    summon?: {
+        entityType?: string;
+        persistent?: boolean;
+        count?: number;
+        countByCR?: Record<string, number>;
+        objectDescription?: string;
+    };
+}
+
+/** Entity kinds the combat ability contract can carry for a created summon. */
+const SUMMON_ENTITY_TYPES = new Set<NonNullable<AbilityEffect['summonEntityType']>>([
+    'familiar',
+    'servant',
+    'construct',
+    'creature',
+    'undead',
+    'mount',
+    'object'
+]);
+
+const resolveSummonEntityType = (
+    jsonEffect: SummoningEffectRiders
+): AbilityEffect['summonEntityType'] => {
+    const declared = jsonEffect.summon?.entityType ?? jsonEffect.summonType;
+    if (!declared) return undefined;
+
+    const normalized = String(declared).toLowerCase() as NonNullable<AbilityEffect['summonEntityType']>;
+    return SUMMON_ENTITY_TYPES.has(normalized) ? normalized : undefined;
+};
+
+/**
+ * Turns one SUMMONING spell effect into the combat ability effect it deserves.
+ *
+ * The other summon effect kinds on AbilityEffect ('commanded_summon',
+ * 'summon_dismiss', 'summon_return_home') all act on a summon that is already
+ * on the field. A SUMMONING row is the cast that puts it there, so it maps to
+ * 'summon_creature'. The authoritative spawn still belongs to SummoningCommand
+ * on the spell path; this effect exists so the battle-map ability and the combat
+ * AI can see that the cast does something instead of reading as an empty list.
+ *
+ * `countByCR` spells (Conjure Animals) offer several counts and the player picks
+ * one at cast time, so no single count is written here rather than inventing the
+ * largest or smallest option.
+ */
+const buildSummoningAbilityEffects = (jsonEffect: SummoningEffectRiders): AbilityEffect[] => {
+    const effect: AbilityEffect = { type: 'summon_creature' };
+
+    const entityType = resolveSummonEntityType(jsonEffect);
+    if (entityType) {
+        effect.summonEntityType = entityType;
+    }
+
+    const count = jsonEffect.summon?.count ?? jsonEffect.count;
+    if (typeof count === 'number' && count > 0) {
+        effect.summonCount = count;
+    }
+
+    const description = jsonEffect.summon?.objectDescription ?? jsonEffect.objectDescription;
+    if (description) {
+        effect.summonDescription = description;
+    }
+
+    if (typeof jsonEffect.summon?.persistent === 'boolean') {
+        effect.summonPersistent = jsonEffect.summon.persistent;
+    }
+
+    if (jsonEffect.creatureId) {
+        effect.summonId = jsonEffect.creatureId;
+    }
+
+    return [effect];
+};
+
 /**
  * Main Factory Function
  *
@@ -435,7 +989,7 @@ export function createAbilityFromSpell(spell: Spell, caster: PlayerCharacter): A
         }
 
         // 3. Determine Effects
-        let effects: AbilityEffect[] = [];
+        const effects: AbilityEffect[] = [];
 
         // Safety check: verify effects is an array before iterating
         if (Array.isArray(spell.effects) && spell.effects.length > 0) {
@@ -464,18 +1018,7 @@ export function createAbilityFromSpell(spell: Spell, caster: PlayerCharacter): A
                         value: healAmount
                     });
                 } else if (jsonEffect.type === 'DEFENSIVE') {
-                    effects.push({
-                        type: 'status',
-                        statusEffect: {
-                            id: `spell_${spell.id}_buff`,
-                            name: spell.name,
-                            type: 'buff',
-                            duration: (typeof spell.duration === 'object' && spell.duration?.concentration) ? 10 : 100, // Approximation
-                            // Simple visual effect. In real app, this would hook into actual stat modifiers.
-                            // For now, we use a placeholder stat modifier to allow the UI to show it.
-                            effect: { type: 'stat_modifier', value: 1 }
-                        }
-                    });
+                    effects.push(...buildDefensiveAbilityEffects(spell, jsonEffect as DefensiveEffectRiders));
                 } else if (jsonEffect.type === 'STATUS_CONDITION') {
                     effects.push({
                         type: 'status',
@@ -490,57 +1033,20 @@ export function createAbilityFromSpell(spell: Spell, caster: PlayerCharacter): A
                 } else if (jsonEffect.type === 'UTILITY') {
                     // UTILITY effects represent spell mechanisms that do not deal direct damage or heals,
                     // but create physical changes (light sources) or debuff enemy saves (e.g. Mind Sliver).
-                    if (jsonEffect.light) {
-                        effects.push({
-                            type: 'status',
-                            statusEffect: {
-                                id: `spell_${spell.id}_light`,
-                                name: `${spell.name} (Light Source)`,
-                                type: 'neutral',
-                                duration: (typeof spell.duration === 'object' && spell.duration?.concentration) ? 100 : 1000,
-                                light: {
-                                    brightRadius: jsonEffect.light.brightRadius,
-                                    dimRadius: jsonEffect.light.dimRadius,
-                                    attachedTo: jsonEffect.light.attachedTo || 'target',
-                                    color: jsonEffect.light.color,
-                                    opaqueCoverBlocks: jsonEffect.light.opaqueCoverBlocks === true
-                                }
-                            }
-                        });
-                    } else if (jsonEffect.savePenalty) {
-                        effects.push({
-                            type: 'status',
-                            statusEffect: {
-                                id: `spell_${spell.id}_save_penalty`,
-                                name: `${spell.name} Penalty`,
-                                type: 'debuff',
-                                duration: 1, // Mind Sliver's penalty lasts until the start of the caster's next turn.
-                                savePenalty: {
-                                    dice: jsonEffect.savePenalty.dice,
-                                    flat: jsonEffect.savePenalty.flat,
-                                    applies: jsonEffect.savePenalty.applies
-                                }
-                            }
-                        });
-                    } else {
-                        // Generic status/utility mapping fallback if no special sub-fields are present.
-                        effects.push({
-                            type: 'status',
-                            statusEffect: {
-                                id: `spell_${spell.id}_utility`,
-                                name: spell.name,
-                                type: 'neutral',
-                                duration: 10
-                            }
-                        });
-                    }
+                    effects.push(...buildUtilityAbilityEffects(spell, jsonEffect as UtilityEffectRiders));
+                } else if (jsonEffect.type === 'ATTACK_ROLL_MODIFIER') {
+                    // Bless, Bane, Blur and Blade Ward are riders on future rolls
+                    // rather than conditions, and one row can carry both an attack
+                    // rider and a saving-throw rider.
+                    effects.push(...buildAttackRollModifierAbilityEffects(spell, jsonEffect as AttackRollModifierRiders));
+                } else if (jsonEffect.type === 'MOVEMENT') {
+                    effects.push(...buildMovementAbilityEffects(spell, jsonEffect as MovementEffectRiders));
+                } else if (jsonEffect.type === 'TERRAIN') {
+                    effects.push(...buildTerrainAbilityEffects(spell, jsonEffect as TerrainEffectRiders));
+                } else if (jsonEffect.type === 'SUMMONING') {
+                    effects.push(...buildSummoningAbilityEffects(jsonEffect as SummoningEffectRiders));
                 }
             });
-        } else {
-            // Fallback: Parse description (Silver Standard)
-            // Use safe fallback if description is missing
-            const desc = spell.description || "";
-            effects = inferEffectsFromDescription(desc, modifier);
         }
 
         const grantedActions = extractGrantedActions(spell);

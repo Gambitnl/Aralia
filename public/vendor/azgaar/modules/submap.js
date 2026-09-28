@@ -65,7 +65,10 @@ window.Submap = (function () {
       if (options.depressRivers) forwardGridMap[cid].push(id);
       reverseGridMap[id] = cid;
     });
-    // TODO: add smooth/noise function for h, temp, prec n times
+    // No extra smooth/noise pass for h, temp and prec runs here. This module is
+    // dead vendor code: nothing loads modules/submap.js, and the Submap tool button
+    // calls Resample.process in modules/resample.js instead. That module smooths the
+    // heightmap in smoothHeightmap(). Audited 2026-09-20 (agora-67a9).
 
     // smooth heightmap
     // smoothing should never change cell type (land->water or water->land)
@@ -202,7 +205,9 @@ window.Submap = (function () {
     Biomes.define();
     Features.defineGroups();
     // recalculate suitability and population
-    // TODO: normalize according to the base-map
+    // Base-map normalization is not done here. The live path,
+    // Resample.restoreCellData in modules/resample.js, scales the parent cell
+    // suitability and population by the cell-area ratio. Audited 2026-09-20 (agora-67a9).
     rankCells();
 
     stage("Porting Cultures");

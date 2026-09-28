@@ -5,18 +5,33 @@ import { WeaponAttackCommand } from '../AbilityCommandFactory'
 import magicStone from '@/data/spells/level-0/magic-stone.json'
 import { createMockCombatCharacter, createMockCombatState, createMockItem } from '@/utils/core'
 import { ItemType } from '@/types/items'
-import { rollDamage } from '@/utils/combat'
+import { rollDamage } from '@/systems/dice/rollers'
 import type { Ability, CombatCharacter, CombatState } from '@/types/combat'
 import type { Item } from '@/types/items'
+
+// agora-f821.4 retired the combatUtils roller family, so modules this test
+// drives now roll through systems/dice/rollers. Both specifiers are pinned with
+// the SAME implementations but SEPARATE spies: the assertions below count calls
+// on the combat-imported spy, and folding the migrated callers into it would
+// change what those assertions see.
+const diceMocks = vi.hoisted(() => ({
+    rollD20: vi.fn(() => 10),
+    rollDamage: vi.fn((formula: string) => (formula === '1d6+5' ? 11 : 1))
+}))
+
+
+vi.mock('@/systems/dice/rollers', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/systems/dice/rollers')>()
+  return { ...actual, ...diceMocks }
+})
 
 vi.mock('@/utils/combat', async () => {
   const actual = await vi.importActual<typeof import('@/utils/combat')>('@/utils/combat')
 
   return {
     ...actual,
-    rollD20: vi.fn(() => 10),
-    rollDamage: vi.fn((formula: string) => (formula === '1d6+5' ? 11 : 1))
-  }
+    ...diceMocks,
+}
 })
 
 const createCaster = (): CombatCharacter =>
@@ -194,7 +209,7 @@ describe('Magic Stone bridge', () => {
     const hitState = await attack.execute(castState)
     const hitTarget = hitState.characters.find(character => character.id === target.id)
 
-    expect(rollDamage).toHaveBeenCalledWith('1d6+5', false, 1)
+    expect(rollDamage).toHaveBeenCalledWith('1d6+5', false, 1, undefined)
     expect(hitTarget?.currentHP).toBeLessThan(target.currentHP)
     expect(hitState.spellCreatedInventoryItems).toHaveLength(2)
     expect(hitState.temporaryWeaponEnchantments).toHaveLength(2)
@@ -245,7 +260,7 @@ describe('Magic Stone bridge', () => {
       type: ItemType.Weapon,
       description: 'A plain stone that should not inherit Magic Stone.',
       damageDice: '1d4',
-      damageType: 'bludgeoning',
+      damageType: 'Bludgeoning',
       properties: []
     })
 
@@ -264,7 +279,7 @@ describe('Magic Stone bridge', () => {
 
     await expiredAttack.execute(expiredState)
 
-    expect(rollDamage).toHaveBeenCalledWith('1d6', false, 1)
+    expect(rollDamage).toHaveBeenCalledWith('1d6', false, 1, undefined)
 
     const unrelatedAttack = new WeaponAttackCommand(createPebbleAttack(stone), ally, [target], {
       spellId: 'attack_main',

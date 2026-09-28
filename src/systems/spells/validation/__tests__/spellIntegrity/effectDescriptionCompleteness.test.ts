@@ -1221,7 +1221,16 @@ describe('SpellIntegrityValidator', () => {
   it('keeps terrain rows tied to area size and terrain type', () => {
     const spikeGrowth = getSpells(2).find(spell => spell.id === 'spike-growth');
     const web = getSpells(2).find(spell => spell.id === 'web');
-    const spikeGrowthDescriptions = spikeGrowth?.effects.map(effect => effect.description) ?? [];
+    const spikeGrowthDescriptions = spikeGrowth?.effects
+      .filter(effect => effect.type === 'TERRAIN')
+      .map(effect => effect.description) ?? [];
+    // Spike Growth also carries an on_move_in_area DAMAGE row (GG-204, added
+    // 2026-09-13) so the per-five-feet damage actually fires. That row is not a
+    // terrain row, so it is asserted separately below rather than folded into
+    // the terrain list this test guards.
+    const spikeGrowthMoveDescriptions = spikeGrowth?.effects
+      .filter(effect => effect.trigger?.type === 'on_move_in_area')
+      .map(effect => effect.description) ?? [];
     const webTerrainDescriptions = web?.effects
       .filter(effect => effect.type === 'TERRAIN')
       .map(effect => effect.description) ?? [];
@@ -1232,6 +1241,9 @@ describe('SpellIntegrityValidator', () => {
     expect(spikeGrowthDescriptions).toEqual([
       'For up to 10 minutes with concentration, create a camouflaged 20-foot-radius Sphere centered on a point within 150 feet; a creature takes 2d4 Piercing damage for every 5 feet it travels through the damaging Difficult Terrain.',
       'The 20-foot-radius Sphere is Difficult Terrain for up to 10 minutes with concentration, and a creature that could not see the area when the spell was cast must Search and succeed on a Wisdom (Perception or Survival) check against the spell save DC to recognize the hazard before entering.'
+    ]);
+    expect(spikeGrowthMoveDescriptions).toEqual([
+      'A creature takes 2d4 Piercing damage for every 5 feet it moves into or within the 20-foot-radius Sphere; the runtime fires this row once per 5-foot step traveled inside the area.'
     ]);
     expect(webTerrainDescriptions).toEqual([
       'Create a 20-foot Cube of sticky webs for up to 1 hour with concentration; the webbed area anchors restraint saves, Difficult Terrain, and burning-web damage.',

@@ -42,6 +42,7 @@ import { ContactShadows, Html } from '@react-three/drei';
 import { EffectComposer, Bloom, Vignette, N8AO, ToneMapping } from '@react-three/postprocessing';
 import { BlendFunction, ToneMappingMode } from 'postprocessing';
 import * as THREE from 'three';
+import { GridlessAoEOutline } from './GridlessAoEOutline';
 import { Animation, BattleMapData, BattleMapTile, CombatCharacter, CombatState, LightSource, SpellEffectAnimationData, TargetableMapObject } from '../../types/combat';
 import { useBattleMap } from '../../hooks/useBattleMap';
 import { useTargetSelection } from '../../hooks/combat/useTargetSelection';
@@ -363,63 +364,101 @@ const SceneLighting: React.FC<{ biome: string; mapCenter: readonly [number, numb
  * The radius comes from the apron's reach for the same reason: a dome smaller
  * than the ground it covers has the ground poking out of it.
  */
+/**
+ * The dome's material, exported so a test can assert its output conversion
+ * without a WebGL context. See the note at the end of the fragment shader:
+ * this material is the one surface in the scene that is not a built-in, so it
+ * is the one surface that can silently write the wrong colour space.
+ */
+export function createSkyDomeMaterial(biome: string, fogColor: number): THREE.ShaderMaterial {
+  // Only the ZENITH is a biome choice; the horizon is the fog it meets.
+  const skyTops: Record<string, string> = {
+    forest:  '#5a86c0',
+    cave:    '#0a0a18',
+    dungeon: '#241a2c',
+    desert:  '#6a8ac0',
+    swamp:   '#2a3a2a',
+  };
+  const horizon = new THREE.Color(fogColor);
+  // Below the horizon the dome is only ever seen through fogged ground, so
+  // it is the fog colour taken down a stop rather than a fourth palette.
+  const bottom = horizon.clone().multiplyScalar(0.62);
+
+  return new THREE.ShaderMaterial({
+    side: THREE.BackSide,
+    depthWrite: false,
+    fog: false,
+    uniforms: {
+      uTopColor:     { value: new THREE.Color(skyTops[biome] ?? skyTops.forest) },
+      uHorizonColor: { value: horizon },
+      uBottomColor:  { value: bottom },
+    },
+    vertexShader: /* glsl */ `
+      varying vec3 vDir;
+      void main() {
+        // Key the gradient to the dome's own latitude (object space) so it
+        // stays correct no matter where the dome is centered or how large it
+        // is — lets us recenter on the map and enlarge it freely.
+        vDir = normalize(position);
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      }
+    `,
+    fragmentShader: /* glsl */ `
+      uniform vec3 uTopColor;
+      uniform vec3 uHorizonColor;
+      uniform vec3 uBottomColor;
+      varying vec3 vDir;
+      void main() {
+        float h = vDir.y;
+        vec3 color;
+        if (h > 0.0) {
+          color = mix(uHorizonColor, uTopColor, smoothstep(0.0, 0.5, h));
+        } else {
+          color = mix(uHorizonColor, uBottomColor, smoothstep(0.0, -0.3, h));
+        }
+        gl_FragColor = vec4(color, 1.0);
+        /* A hand-written ShaderMaterial gets the DEFINITIONS of the output
+         * conversion for free and none of the CALLS, so without these two
+         * lines the dome writes working-space linear straight to an sRGB
+         * framebuffer and every uniform lands a stop and a half too dark.
+         * THREE.Color(0xd8c8a0) — the desert fog — is (0.687, 0.580, 0.351)
+         * linear; unconverted that displays as (175, 148, 90) against a
+         * fogged apron that tone-maps to (205, 191, 160), and the difference
+         * between the two is a flat dark band lying along the top of the
+         * frame exactly where the far dunes end. Measured 2026-09-20 at
+         * poseTeam('enemy', 14, 70, 20) on the desert board. The ground is
+         * lit by a MeshStandardMaterial and has always been converted, which
+         * is why only the sky was dark and why the mismatch reads as an
+         * object rather than as a mood.
+         *
+         * WHERE IT BITES, measured rather than assumed. While the
+         * EffectComposer is mounted it sets gl.toneMapping = NoToneMapping
+         * and renders into a linear target, so on the COMPOSED path both
+         * includes compile to nothing and the on-screen sky was always
+         * right — the apron-off frame measures (189, 183, 167) before and
+         * after. __bm3dCam.capture() calls gl.render straight to the sRGB
+         * canvas instead, and that is the path every headless proof of this
+         * board goes through: sky (166, 142, 90) before, (218, 212, 192)
+         * after, against an apron of (205, 191, 160). So the defect was
+         * never in the game and always in the evidence.
+         *
+         * Order matters and so does the position: tone map in linear, THEN
+         * encode. See the shadermaterial-output-encoding note — same defect,
+         * same two lines, previously in dropletSkin.ts. */
+        #include <tonemapping_fragment>
+        #include <colorspace_fragment>
+      }
+    `,
+  });
+}
+
 const SkyDome: React.FC<{
   biome: string;
   mapCenter: readonly [number, number, number];
   fogColor: number;
   radius: number;
 }> = ({ biome, mapCenter, fogColor, radius }) => {
-  const skyMaterial = useMemo(() => {
-    // Only the ZENITH is a biome choice; the horizon is the fog it meets.
-    const skyTops: Record<string, string> = {
-      forest:  '#5a86c0',
-      cave:    '#0a0a18',
-      dungeon: '#241a2c',
-      desert:  '#6a8ac0',
-      swamp:   '#2a3a2a',
-    };
-    const horizon = new THREE.Color(fogColor);
-    // Below the horizon the dome is only ever seen through fogged ground, so
-    // it is the fog colour taken down a stop rather than a fourth palette.
-    const bottom = horizon.clone().multiplyScalar(0.62);
-
-    return new THREE.ShaderMaterial({
-      side: THREE.BackSide,
-      depthWrite: false,
-      fog: false,
-      uniforms: {
-        uTopColor:     { value: new THREE.Color(skyTops[biome] ?? skyTops.forest) },
-        uHorizonColor: { value: horizon },
-        uBottomColor:  { value: bottom },
-      },
-      vertexShader: /* glsl */ `
-        varying vec3 vDir;
-        void main() {
-          // Key the gradient to the dome's own latitude (object space) so it
-          // stays correct no matter where the dome is centered or how large it
-          // is — lets us recenter on the map and enlarge it freely.
-          vDir = normalize(position);
-          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-        }
-      `,
-      fragmentShader: /* glsl */ `
-        uniform vec3 uTopColor;
-        uniform vec3 uHorizonColor;
-        uniform vec3 uBottomColor;
-        varying vec3 vDir;
-        void main() {
-          float h = vDir.y;
-          vec3 color;
-          if (h > 0.0) {
-            color = mix(uHorizonColor, uTopColor, smoothstep(0.0, 0.5, h));
-          } else {
-            color = mix(uHorizonColor, uBottomColor, smoothstep(0.0, -0.3, h));
-          }
-          gl_FragColor = vec4(color, 1.0);
-        }
-      `,
-    });
-  }, [biome, fogColor]);
+  const skyMaterial = useMemo(() => createSkyDomeMaterial(biome, fogColor), [biome, fogColor]);
 
   React.useEffect(() => () => skyMaterial.dispose(), [skyMaterial]);
 
@@ -931,6 +970,13 @@ const BattleMap3D: React.FC<BattleMap3DProps> = ({ mapData, characters, spellMap
           teleportDestinationSet={teleportDestinationSet}
           aoeSet={aoeSet}
           targetingMode={abilitySystem.targetingMode}
+          groundSampler={groundSampler}
+        />
+        {/* Gridless (Euclidean) AoE outline over the snapped tile decals
+            (agora-79fa.2 / GG-211): the true cone, circle, line or square. */}
+        <GridlessAoEOutline
+          aoePreview={abilitySystem.aoePreview}
+          caster={currentCharacter ?? null}
           groundSampler={groundSampler}
         />
         <GrassLayer mapData={mapData} surfaceY={groundSampler ?? undefined} />

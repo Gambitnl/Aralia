@@ -1,11 +1,33 @@
+/**
+ * ARCHITECTURAL CONTEXT:
+ * This component handles the 'Race Taxonomy' selection. It groups 
+ * subraces (variants) under their base parent races (e.g., High Elf and 
+ * Wood Elf under 'Elf') to keep the selection sidebar manageable.
+ *
+ * Recent updates focus on 'State Synchronization' and 'Choice Isolation'.
+ * - The racial choices (like Keen Senses or Spellcasting Ability) are no
+ *   longer mirrored into component state and re-synchronized from an effect.
+ *   They are derived from the creator draft for the race being viewed, and a
+ *   reducer owns the player's edits. See the race-draft section below.
+ * - That removed the eight `react-hooks/set-state-in-effect` suppressions this
+ *   file carried, and the extra render each race click used to cost. The
+ *   isolation the effect protected is preserved: choices for a newly selected
+ *   race still never inherit values from the previous one.
+ * - Improved darkvision and speed extraction logic in `transformRaceData` 
+ *   to handle variations in trait text formatting across different race 
+ *   definitions.
+ * 
+ * @file src/components/CharacterCreator/Race/RaceSelection.tsx
+ */
+
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 27/02/2026, 09:27:07
- * Dependents: CharacterCreator.tsx
- * Imports: 6 files
+ * Last Sync: 20/09/2026, 21:00:39
+ * Dependents: components/CharacterCreator/CharacterCreator.tsx
+ * Imports: 7 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -14,28 +36,7 @@
  */
 // @dependencies-end
 
-/**
- * ARCHITECTURAL CONTEXT:
- * This component handles the 'Race Taxonomy' selection. It groups 
- * subraces (variants) under their base parent races (e.g., High Elf and 
- * Wood Elf under 'Elf') to keep the selection sidebar manageable.
- *
- * Recent updates focus on 'State Synchronization' and 'Choice Isolation'.
- * - Refined the `useEffect` used to reset racial choices (like Keen 
- *   Senses or Spellcasting Ability). It now depends on `effectiveRaceId` 
- *   to ensure that switching between similar subraces or groups correctly 
- *   clears stale local state.
- * - Added `eslint-disable` for `react-hooks/set-state-in-effect`. While 
- *   resetting state in an effect can cause extra renders, it is currently 
- *   required here to ensure that "hidden" choices for a newly selected 
- *   race don't inherit values from the previous one.
- * - Improved darkvision and speed extraction logic in `transformRaceData` 
- *   to handle variations in trait text formatting across different race 
- *   definitions.
- * 
- * @file src/components/CharacterCreator/Race/RaceSelection.tsx
- */
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo, useReducer, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Race, RacialSelectionData } from '../../../types';
 import { CreationStepLayout } from '../ui/CreationStepLayout';
@@ -158,12 +159,150 @@ interface RaceSelectionProps {
   onBack?: () => void;
 }
 
-// Reuse one empty draft map for races with no saved subchoices. Creating a new
-// object during every render would retrigger the synchronization effect and
-// turn an otherwise idle race screen into an infinite render loop.
+// Reuse one empty draft map for races with no saved subchoices. The draft key
+// below compares this map by identity, so a fresh object on every render would
+// make every render look like a new set of saved choices and throw away the
+// edit in progress.
 const EMPTY_RACIAL_SELECTIONS: Record<string, RacialSelectionData> = {};
 
 type AbilityScoreName = 'Intelligence' | 'Wisdom' | 'Charisma';
+
+// Changeling Instincts is a "choose exactly two" trait. The count is named
+// once so the toggle cap and the confirm gate below cannot drift apart.
+const CHANGELING_INSTINCT_SKILL_COUNT = 2;
+
+// ---------------------------------------------------------------------------
+// Reducer-owned race draft (agora-b6fc)
+// ---------------------------------------------------------------------------
+// This step used to mirror the creator draft into nine pieces of component
+// state and re-synchronize all of them from an effect whenever the viewed race
+// changed. That is why this file carried eight
+// `react-hooks/set-state-in-effect` suppressions and paid a second render for
+// every race click.
+//
+// The draft is derived now, not mirrored. `buildRaceDraft` reads the saved
+// selections for the race being viewed, and the reducer stores an edited draft
+// beside the key it was edited against. When that key moves on - a different
+// race, or a parent that stored new selections - the derived draft wins on the
+// very next render, with no effect and no second render.
+//
+// Preserved: every per-race rule the effect encoded (Keen Senses only for the
+// elf family, Changeling skills and size cleared together, the generic skill
+// store empty for races that have a dedicated control) now lives in
+// `buildRaceDraft`, which is exported so it can be read on its own.
+
+export interface RaceDraft {
+  spellAbility: AbilityScoreName | null;
+  keenSensesSkillId: string | null;
+  centaurNaturalAffinitySkillId: string | null;
+  changelingInstinctSkillIds: Set<string>;
+  changelingSize: 'Small' | 'Medium' | null;
+  skillIds: string[];
+  toolIds: string[];
+  cantripIds: string[];
+}
+
+/** Everything the derived draft depends on. Compared by identity. */
+export interface RaceDraftKey {
+  raceId: string | null;
+  race: Race | undefined;
+  racialSelections: Record<string, RacialSelectionData>;
+}
+
+export const buildRaceDraft = ({ raceId, race, racialSelections }: RaceDraftKey): RaceDraft => {
+  const currentSelection = racialSelections[raceId ?? ''];
+  const isElfFamily = race?.id === 'elf' || race?.baseRace === 'elf';
+  // These races collect their skills through a dedicated control, so the
+  // generic skill store stays empty for them instead of showing the same
+  // choice twice.
+  const hasDedicatedSkillControl = race?.id === 'changeling' || race?.id === 'centaur' || isElfFamily;
+
+  return {
+    spellAbility: (currentSelection?.spellAbility as AbilityScoreName | undefined) ?? null,
+    keenSensesSkillId: isElfFamily ? racialSelections.elf?.skillIds?.[0] ?? null : null,
+    centaurNaturalAffinitySkillId: race?.id === 'centaur'
+      ? racialSelections.centaur?.skillIds?.[0] ?? null
+      : null,
+    changelingInstinctSkillIds: new Set(
+      race?.id === 'changeling' ? racialSelections.changeling?.skillIds ?? [] : [],
+    ),
+    changelingSize: race?.id === 'changeling' ? racialSelections.changeling?.size ?? null : null,
+    skillIds: hasDedicatedSkillControl ? [] : currentSelection?.skillIds ?? [],
+    toolIds: currentSelection?.toolIds ?? [],
+    cantripIds: currentSelection?.selectedSpellIds ?? [],
+  };
+};
+
+export const isSameRaceDraftKey = (a: RaceDraftKey, b: RaceDraftKey): boolean =>
+  a.raceId === b.raceId && a.race === b.race && a.racialSelections === b.racialSelections;
+
+// Every edit carries the key it was made against, so an edit that races a race
+// change lands on the newly derived draft rather than the stale stored one.
+export type RaceDraftAction = { key: RaceDraftKey } & (
+  | { field: 'spellAbility'; value: AbilityScoreName | null }
+  | { field: 'keenSensesSkillId'; value: string | null }
+  | { field: 'centaurNaturalAffinitySkillId'; value: string | null }
+  | { field: 'changelingSize'; value: 'Small' | 'Medium' | null }
+  | { field: 'changelingInstinctSkillIds'; skillId: string }
+  | { field: 'skillIds' | 'toolIds' | 'cantripIds'; id: string; maxChoices: number }
+);
+
+export interface RaceDraftState {
+  key: RaceDraftKey;
+  draft: RaceDraft;
+}
+
+export const createRaceDraftState = (key: RaceDraftKey): RaceDraftState => ({
+  key,
+  draft: buildRaceDraft(key),
+});
+
+// A choice list is a capped toggle: picking a chosen entry drops it, and a new
+// entry is taken only while the race still allows another one.
+const toggleChoice = (choices: string[], id: string, maxChoices: number): string[] => {
+  if (choices.includes(id)) return choices.filter(choice => choice !== id);
+  if (choices.length < maxChoices) return [...choices, id];
+  return choices;
+};
+
+export const raceDraftReducer = (state: RaceDraftState, action: RaceDraftAction): RaceDraftState => {
+  const base = isSameRaceDraftKey(state.key, action.key) ? state.draft : buildRaceDraft(action.key);
+
+  switch (action.field) {
+    case 'spellAbility':
+      return { key: action.key, draft: { ...base, spellAbility: action.value } };
+    case 'keenSensesSkillId':
+      return { key: action.key, draft: { ...base, keenSensesSkillId: action.value } };
+    case 'centaurNaturalAffinitySkillId':
+      return { key: action.key, draft: { ...base, centaurNaturalAffinitySkillId: action.value } };
+    case 'changelingSize':
+      return { key: action.key, draft: { ...base, changelingSize: action.value } };
+    case 'changelingInstinctSkillIds': {
+      const next = new Set(base.changelingInstinctSkillIds);
+      if (next.has(action.skillId)) {
+        next.delete(action.skillId);
+      } else if (next.size < CHANGELING_INSTINCT_SKILL_COUNT) {
+        next.add(action.skillId);
+      }
+      return { key: action.key, draft: { ...base, changelingInstinctSkillIds: next } };
+    }
+    case 'skillIds':
+      return {
+        key: action.key,
+        draft: { ...base, skillIds: toggleChoice(base.skillIds, action.id, action.maxChoices) },
+      };
+    case 'toolIds':
+      return {
+        key: action.key,
+        draft: { ...base, toolIds: toggleChoice(base.toolIds, action.id, action.maxChoices) },
+      };
+    case 'cantripIds':
+      return {
+        key: action.key,
+        draft: { ...base, cantripIds: toggleChoice(base.cantripIds, action.id, action.maxChoices) },
+      };
+  }
+};
 
 const RaceSelection: React.FC<RaceSelectionProps> = ({
   races,
@@ -178,16 +317,6 @@ const RaceSelection: React.FC<RaceSelectionProps> = ({
   // the player's earlier choice without warning.
   const [selectedRaceId, setSelectedRaceId] = useState<string | null>(() => savedRaceId ?? null);
   const [expandedGroupId, setExpandedGroupId] = useState<string | null>(null);
-  const [selectedSpellAbility, setSelectedSpellAbility] = useState<AbilityScoreName | null>(null);
-  const [selectedKeenSensesSkillId, setSelectedKeenSensesSkillId] = useState<string | null>(null);
-  const [selectedCentaurNaturalAffinitySkillId, setSelectedCentaurNaturalAffinitySkillId] = useState<string | null>(null);
-  const [selectedChangelingInstinctSkillIds, setSelectedChangelingInstinctSkillIds] = useState<Set<string>>(new Set());
-  const [selectedChangelingSize, setSelectedChangelingSize] = useState<'Small' | 'Medium' | null>(null);
-  
-  // Generic choices for the current race
-  const [racialSkillChoices, setRacialSkillChoices] = useState<string[]>([]);
-  const [racialToolChoices, setRacialToolChoices] = useState<string[]>([]);
-  const [racialCantripChoices, setRacialCantripChoices] = useState<string[]>([]);
 
   // Group races by baseRace
   const raceGroups = useMemo(() => {
@@ -224,38 +353,17 @@ const RaceSelection: React.FC<RaceSelectionProps> = ({
   const selectedRace = races.find(r => r.id === effectiveRaceId);
   const selectedRaceSpellAbilityChoice = selectedRace ? getRacialSpellCastingAbilityChoiceForRace(selectedRace.id) : null;
 
-  // When the viewed race changes, restore any choices already owned by the
-  // creator draft. A race can have several linked choice stores (for example,
-  // Changeling uses skills plus size), so every local control is populated or
-  // cleared together instead of leaking choices between species.
-  useEffect(() => {
-    const currentSelection = racialSelections[effectiveRaceId ?? ''];
-    const isElfFamily = selectedRace?.id === 'elf' || selectedRace?.baseRace === 'elf';
-
-    // DEBT: Synchronizing local controls from the draft in an effect causes an
-    // extra render. A future reducer-owned race form could remove this mirror,
-    // but this keeps the current component boundary while preserving choices.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setSelectedSpellAbility((currentSelection?.spellAbility as AbilityScoreName | undefined) ?? null);
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setSelectedKeenSensesSkillId(isElfFamily ? racialSelections.elf?.skillIds?.[0] ?? null : null);
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setSelectedCentaurNaturalAffinitySkillId(selectedRace?.id === 'centaur' ? racialSelections.centaur?.skillIds?.[0] ?? null : null);
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setSelectedChangelingInstinctSkillIds(new Set(selectedRace?.id === 'changeling' ? racialSelections.changeling?.skillIds ?? [] : []));
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setSelectedChangelingSize(selectedRace?.id === 'changeling' ? racialSelections.changeling?.size ?? null : null);
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setRacialSkillChoices(
-      selectedRace?.id === 'changeling' || selectedRace?.id === 'centaur' || isElfFamily
-        ? []
-        : currentSelection?.skillIds ?? [],
-    );
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setRacialToolChoices(currentSelection?.toolIds ?? []);
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setRacialCantripChoices(currentSelection?.selectedSpellIds ?? []);
-  }, [effectiveRaceId, racialSelections, selectedRace]);
+  // The draft the player is editing. It is read from the creator draft for the
+  // race in view, so returning to this step, or switching race, shows that
+  // race's own saved choices with nothing carried over from the previous one.
+  const draftKey: RaceDraftKey = { raceId: effectiveRaceId, race: selectedRace, racialSelections };
+  const [draftState, dispatchDraft] = useReducer(raceDraftReducer, draftKey, createRaceDraftState);
+  // When the key has moved on, the freshly derived draft is what this render
+  // shows. The reducer rebases the next edit onto it, so nothing is written
+  // back here and no second render is queued.
+  const draft = isSameRaceDraftKey(draftState.key, draftKey)
+    ? draftState.draft
+    : buildRaceDraft(draftKey);
 
   // Compute detail data with sibling variants for comparison table
   const detailData = useMemo(() => {
@@ -321,9 +429,11 @@ const RaceSelection: React.FC<RaceSelectionProps> = ({
   };
 
   const handleVariantClick = (raceId: string) => {
+    // The draft is derived from the race in view, so the new race's own spell
+    // ability is read on the next render. The explicit reset that used to sit
+    // here was already redundant: the synchronization effect overwrote it in
+    // the same commit.
     setSelectedRaceId(raceId);
-    // Reset spell ability when the chosen race changes.
-    setSelectedSpellAbility(null);
   };
 
   // Single source of truth for "why can't I confirm yet" — used for the
@@ -331,35 +441,35 @@ const RaceSelection: React.FC<RaceSelectionProps> = ({
   // explanation isn't tooltip-only (GAPS.md G11).
   const confirmBlockedReason: string | null = !selectedRace
     ? null
-    : selectedRaceSpellAbilityChoice && !selectedSpellAbility
+    : selectedRaceSpellAbilityChoice && !draft.spellAbility
       ? 'Please select a spellcasting ability first'
-      : selectedRace.id === 'elf' && !selectedKeenSensesSkillId
+      : selectedRace.id === 'elf' && !draft.keenSensesSkillId
         ? 'Please select a Keen Senses skill first'
-        : selectedRace.id === 'centaur' && !selectedCentaurNaturalAffinitySkillId
+        : selectedRace.id === 'centaur' && !draft.centaurNaturalAffinitySkillId
           ? 'Please select a Natural Affinity skill first'
-          : selectedRace.id === 'changeling' && selectedChangelingInstinctSkillIds.size !== 2
+          : selectedRace.id === 'changeling' && draft.changelingInstinctSkillIds.size !== CHANGELING_INSTINCT_SKILL_COUNT
             ? 'Please select two Changeling Instincts skills first'
-            : selectedRace.id === 'changeling' && !selectedChangelingSize
+            : selectedRace.id === 'changeling' && !draft.changelingSize
               ? 'Please select your size first'
-              : selectedRace.id === 'kender' && racialSkillChoices.length !== 1
+              : selectedRace.id === 'kender' && draft.skillIds.length !== 1
                 ? 'Please select a skill first'
-                : selectedRace.id === 'kenku' && racialSkillChoices.length !== 2
+                : selectedRace.id === 'kenku' && draft.skillIds.length !== 2
                   ? 'Please select two skills first'
-                  : selectedRace.id === 'warforged' && racialSkillChoices.length !== 1
+                  : selectedRace.id === 'warforged' && draft.skillIds.length !== 1
                     ? 'Please select a skill first'
-                    : selectedRace.id === 'warforged' && racialToolChoices.length !== 1
+                    : selectedRace.id === 'warforged' && draft.toolIds.length !== 1
                       ? 'Please select a tool first'
-                      : selectedRace.id.startsWith('half_elf') && racialSkillChoices.length !== 2
+                      : selectedRace.id.startsWith('half_elf') && draft.skillIds.length !== 2
                         ? 'Please select two skills first'
-                        : selectedRace.id === 'autognome' && racialToolChoices.length !== 2
+                        : selectedRace.id === 'autognome' && draft.toolIds.length !== 2
                           ? 'Please select two tools first'
-                          : selectedRace.id === 'forgeborn_human' && racialToolChoices.length !== 1
+                          : selectedRace.id === 'forgeborn_human' && draft.toolIds.length !== 1
                             ? 'Please select a tool first'
-                            : selectedRace.id === 'lizardfolk' && racialSkillChoices.length !== 2
+                            : selectedRace.id === 'lizardfolk' && draft.skillIds.length !== 2
                               ? 'Please select two skills first'
-                              : selectedRace.id.includes('dwarf') && selectedRace.id !== 'dwarf' && racialToolChoices.length !== 1
+                              : selectedRace.id.includes('dwarf') && selectedRace.id !== 'dwarf' && draft.toolIds.length !== 1
                                 ? 'Please select a tool first'
-                                : (selectedRace.id === 'astral_elf' || selectedRace.id === 'high_elf' || selectedRace.id === 'half_elf_high') && racialCantripChoices.length !== 1
+                                : (selectedRace.id === 'astral_elf' || selectedRace.id === 'high_elf' || selectedRace.id === 'half_elf_high') && draft.cantripIds.length !== 1
                                   ? 'Please select a cantrip first'
                                   : null;
 
@@ -372,26 +482,26 @@ const RaceSelection: React.FC<RaceSelectionProps> = ({
       className="min-h-11"
       onClick={() => {
         const choices: RacialChoiceData = {};
-        if (selectedSpellAbility) {
-          choices.spellAbility = selectedSpellAbility;
+        if (draft.spellAbility) {
+          choices.spellAbility = draft.spellAbility;
         }
-        if (selectedRace.id === 'elf' && selectedKeenSensesSkillId) {
-          choices.keenSensesSkillId = selectedKeenSensesSkillId;
+        if (selectedRace.id === 'elf' && draft.keenSensesSkillId) {
+          choices.keenSensesSkillId = draft.keenSensesSkillId;
         }
-        if (selectedRace.id === 'centaur' && selectedCentaurNaturalAffinitySkillId) {
-          choices.centaurNaturalAffinitySkillId = selectedCentaurNaturalAffinitySkillId;
+        if (selectedRace.id === 'centaur' && draft.centaurNaturalAffinitySkillId) {
+          choices.centaurNaturalAffinitySkillId = draft.centaurNaturalAffinitySkillId;
         }
         if (selectedRace.id === 'changeling') {
-          if (selectedChangelingInstinctSkillIds.size > 0) {
-            choices.changelingInstinctSkillIds = Array.from(selectedChangelingInstinctSkillIds);
+          if (draft.changelingInstinctSkillIds.size > 0) {
+            choices.changelingInstinctSkillIds = Array.from(draft.changelingInstinctSkillIds);
           }
-          if (selectedChangelingSize) {
-            choices.changelingSize = selectedChangelingSize;
+          if (draft.changelingSize) {
+            choices.changelingSize = draft.changelingSize;
           }
         }
-        if (racialSkillChoices.length > 0) choices.genericSkillChoices = racialSkillChoices;
-        if (racialToolChoices.length > 0) choices.genericToolChoices = racialToolChoices;
-        if (racialCantripChoices.length > 0) choices.genericCantripChoices = racialCantripChoices;
+        if (draft.skillIds.length > 0) choices.genericSkillChoices = draft.skillIds;
+        if (draft.toolIds.length > 0) choices.genericToolChoices = draft.toolIds;
+        if (draft.cantripIds.length > 0) choices.genericCantripChoices = draft.cantripIds;
         onRaceSelect(selectedRace.id, choices);
       }}
       disabled={!!confirmBlockedReason}
@@ -515,62 +625,22 @@ const RaceSelection: React.FC<RaceSelectionProps> = ({
                 <RaceDetailPane
                   race={detailData}
                   onSelect={onRaceSelect}
-                  selectedSpellAbility={selectedSpellAbility}
-                  onSpellAbilityChange={setSelectedSpellAbility}
-                  selectedKeenSensesSkillId={selectedKeenSensesSkillId}
-                  onKeenSensesSkillChange={setSelectedKeenSensesSkillId}
-                  selectedCentaurNaturalAffinitySkillId={selectedCentaurNaturalAffinitySkillId}
-                  onCentaurNaturalAffinitySkillChange={setSelectedCentaurNaturalAffinitySkillId}
-                  selectedChangelingInstinctSkillIds={selectedChangelingInstinctSkillIds}
-                  onChangelingInstinctSkillToggle={(skillId) => {
-                    setSelectedChangelingInstinctSkillIds((prev) => {
-                      const next = new Set(prev);
-                      if (next.has(skillId)) {
-                        next.delete(skillId);
-                      } else if (next.size < 2) {
-                        next.add(skillId);
-                      }
-                      return next;
-                    });
-                  }}
-                  selectedChangelingSize={selectedChangelingSize}
-                  onChangelingSizeChange={setSelectedChangelingSize}
-                  racialSkillChoices={racialSkillChoices}
-                  onRacialSkillChoiceToggle={(skillId, maxChoices) => {
-                    setRacialSkillChoices(prev => {
-                      if (prev.includes(skillId)) {
-                        return prev.filter(id => id !== skillId);
-                      }
-                      if (prev.length < maxChoices) {
-                        return [...prev, skillId];
-                      }
-                      return prev;
-                    });
-                  }}
-                  racialToolChoices={racialToolChoices}
-                  onRacialToolChoiceToggle={(toolId, maxChoices) => {
-                    setRacialToolChoices(prev => {
-                      if (prev.includes(toolId)) {
-                        return prev.filter(id => id !== toolId);
-                      }
-                      if (prev.length < maxChoices) {
-                        return [...prev, toolId];
-                      }
-                      return prev;
-                    });
-                  }}
-                  racialCantripChoices={racialCantripChoices}
-                  onRacialCantripChoiceToggle={(cantripId, maxChoices) => {
-                    setRacialCantripChoices(prev => {
-                      if (prev.includes(cantripId)) {
-                        return prev.filter(id => id !== cantripId);
-                      }
-                      if (prev.length < maxChoices) {
-                        return [...prev, cantripId];
-                      }
-                      return prev;
-                    });
-                  }}
+                  selectedSpellAbility={draft.spellAbility}
+                  onSpellAbilityChange={(ability) => dispatchDraft({ key: draftKey, field: 'spellAbility', value: ability })}
+                  selectedKeenSensesSkillId={draft.keenSensesSkillId}
+                  onKeenSensesSkillChange={(skillId) => dispatchDraft({ key: draftKey, field: 'keenSensesSkillId', value: skillId })}
+                  selectedCentaurNaturalAffinitySkillId={draft.centaurNaturalAffinitySkillId}
+                  onCentaurNaturalAffinitySkillChange={(skillId) => dispatchDraft({ key: draftKey, field: 'centaurNaturalAffinitySkillId', value: skillId })}
+                  selectedChangelingInstinctSkillIds={draft.changelingInstinctSkillIds}
+                  onChangelingInstinctSkillToggle={(skillId) => dispatchDraft({ key: draftKey, field: 'changelingInstinctSkillIds', skillId })}
+                  selectedChangelingSize={draft.changelingSize}
+                  onChangelingSizeChange={(size) => dispatchDraft({ key: draftKey, field: 'changelingSize', value: size })}
+                  racialSkillChoices={draft.skillIds}
+                  onRacialSkillChoiceToggle={(skillId, maxChoices) => dispatchDraft({ key: draftKey, field: 'skillIds', id: skillId, maxChoices })}
+                  racialToolChoices={draft.toolIds}
+                  onRacialToolChoiceToggle={(toolId, maxChoices) => dispatchDraft({ key: draftKey, field: 'toolIds', id: toolId, maxChoices })}
+                  racialCantripChoices={draft.cantripIds}
+                  onRacialCantripChoiceToggle={(cantripId, maxChoices) => dispatchDraft({ key: draftKey, field: 'cantripIds', id: cantripId, maxChoices })}
                 />
               </motion.div>
             ) : (

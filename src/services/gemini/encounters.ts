@@ -18,11 +18,11 @@ import { GenerationConfig } from "@google/genai";
 import { ai } from "../aiClient";
 import { getFallbackEncounter } from "../geminiServiceFallback";
 import { CLASSES_DATA } from "../../data/classes";
-import { sanitizeAIInput, cleanAIJSON, safeJSONParse, redactSensitiveData } from "../../utils/core";
+import { sanitizeAIInput, cleanAIJSON, safeJSONParse, redactSensitiveData, redactUserText } from "../../utils/core";
 import { logger } from "../../utils/core";
 import { GEMINI_TEXT_MODEL_FALLBACK_CHAIN, COMPLEX_MODEL, FAST_MODEL } from "../../config/geminiConfig";
 import { MonsterSchema, CustomActionSchema, SocialOutcomeSchema } from "../geminiSchemas";
-import { chooseModelForComplexity, generateText, calculateBackoffDelay, sleep } from "./core";
+import { chooseModelForComplexity, generateText, calculateBackoffDelay, sleep, throttledGenerate } from "./core";
 import { ExtendedGenerationConfig, GeminiCustomActionData, GeminiEncounterData, GeminiMetadata, GeminiSocialCheckData, GeminiTextData, StandardizedResult } from "./types";
 import { Action, GoalStatus, GroundingChunk, Monster, NPCMemory, TempPartyMember, VillageActionContext } from "../../types";
 import { MAX_ENCOUNTER_MONSTER_COUNT } from "../../utils/world/encounterUtils";
@@ -85,7 +85,8 @@ export async function generateEncounter(
   - Provide ONLY the JSON array.`;
 
   const prompt = `Create a medium-difficulty D&D 5e encounter for a party of ${party.length} adventurers (${partyComposition}) with an XP budget of ${xpBudget}. Themes: ${themeTags.join(', ')}.`;
-  const fullPromptForLogging = `System Instruction: ${systemInstruction}\nUser Prompt: ${prompt}`;
+  // User-provided text can carry PII, so it is masked before it ever reaches GeminiMetadata.
+  const fullPromptForLogging = redactUserText(`System Instruction: ${systemInstruction}\nUser Prompt: ${prompt}`);
 
   if (!ai) {
     return {
@@ -124,7 +125,8 @@ export async function generateEncounter(
         config.thinkingConfig = { thinkingBudget: 32768 };
       }
 
-      const response = await ai.models.generateContent({
+      // Routed through the shared throttle so lastRequestTimestamp in core.ts stays accurate.
+      const response = await throttledGenerate({
         model: model,
         contents: prompt,
         config: config as unknown as GenerationConfig,
@@ -155,7 +157,7 @@ export async function generateEncounter(
           encounter,
           sources,
           promptSent: fullPromptForLogging,
-          rawResponse: JSON.stringify(response),
+          rawResponse: redactUserText(JSON.stringify(response)),
           rateLimitHit: rateLimitHitInChain,
         },
         error: null

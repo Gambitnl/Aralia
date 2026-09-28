@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { ItemType } from '../../../types';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import AbilityButton from '../AbilityButton';
@@ -122,13 +123,13 @@ describe('AbilityButton', () => {
             weapon: {
                 id: 'greatsword',
                 name: 'Greatsword',
-                type: 'weapon',
+                type: ItemType.Weapon,
                 weight: 6,
                 value: 50,
                 description: 'A heavy blade.',
                 quantity: 1,
                 damageDice: '2d6',
-                damageType: 'slashing',
+                damageType: 'Slashing',
                 category: 'Martial'
             },
             isProficient: false

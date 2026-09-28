@@ -688,7 +688,17 @@ export function buildRoofMeshData(
   // receive enough triangles to remove a real opening or bend the roof skin.
   for (let planeIndex = 0; planeIndex < roof.planes.length; planeIndex += 1) {
     const plane = roof.planes[planeIndex];
-    const holes = deformation.holes.filter((hole) => hole.planeIndex === planeIndex);
+    // A fire opening can straddle a valley or a short wing plane. Cutting only
+    // its named source plane left neighboring roof skin across the same hole
+    // on larger buildings. Include every plane intersecting its footprint;
+    // distant intact planes keep their original triangulation.
+    const minX = Math.min(...plane.pts.map(p => p[0]));
+    const maxX = Math.max(...plane.pts.map(p => p[0]));
+    const minY = Math.min(...plane.pts.map(p => p[1]));
+    const maxY = Math.max(...plane.pts.map(p => p[1]));
+    const holes = deformation.holes.filter(hole =>
+      Math.hypot(hole.x - Math.max(minX, Math.min(maxX, hole.x)),
+        hole.y - Math.max(minY, Math.min(maxY, hole.y))) < hole.radiusFt);
     const affected = holes.length > 0 || deformation.sags.length > 0;
     if (!affected) {
       const base = P.length;
@@ -726,6 +736,38 @@ export function buildRoofMeshData(
       for (const [x, y, z] of deformed) P.push([x, wallTopFt + z, y]);
       tris.push([base, base + 1, base + 2]);
     }
+  }
+
+  // Close the exposed rake edges of gables. The roof solver describes the
+  // sloping skin; without these end boards a closed house had an open attic.
+  // Shared plane edges are interior joins, and horizontal eaves need no fill.
+  // Include existing step skirts in edge ownership so a step is not filled twice.
+  const edges = new Map<string, { a: RoofPoint; b: RoofPoint; count: number }>();
+  const pointKey = (p: RoofPoint) => p.map(v => v.toFixed(4)).join(',');
+  for (const plane of [...roof.planes, ...(roof.skirts ?? [])]) {
+    for (let i = 0; i < plane.pts.length; i++) {
+      const a = plane.pts[i] as RoofPoint, b = plane.pts[(i + 1) % plane.pts.length] as RoofPoint;
+      const key = [pointKey(a), pointKey(b)].sort().join('|');
+      const previous = edges.get(key);
+      if (previous) previous.count++;
+      else edges.set(key, { a, b, count: 1 });
+    }
+  }
+  const closures = [...(roof.skirts ?? [])];
+  for (const { a, b, count } of edges.values()) {
+    // Intersecting roof sections can trim both ends of a rake above the
+    // eave. Those raised boundaries still need boards down to the wall top;
+    // requiring an endpoint at zero left triangular holes in compound roofs.
+    if (count !== 1 || Math.max(a[2], b[2]) < 0.01) continue;
+    if (Math.abs(a[0] - b[0]) > 0.001 && Math.abs(a[1] - b[1]) > 0.001) continue;
+    closures.push({ pts: [a, b, [b[0], b[1], 0], [a[0], a[1], 0]] });
+  }
+  for (const closure of closures) {
+    // Remove coincident points at the eave: each rake half is a triangle.
+    const points = closure.pts.filter((p, i, all) => all.findIndex(q => pointKey(q) === pointKey(p)) === i);
+    const base = P.length;
+    for (const [x, y, z] of points) P.push([x, wallTopFt + z, y]);
+    for (let i = 1; i + 1 < points.length; i++) tris.push([base, base + i, base + i + 1]);
   }
 
   // ── Tower caps: pyramid (rect base) or cone-as-pyramid, apex above wall-top. ──

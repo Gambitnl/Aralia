@@ -37,6 +37,17 @@ const agentUsageProbe = () => ({
   },
 });
 
+// Same lazy pattern for the pane catalog's Recapture route: editing the route
+// must not restart the dev server, because a restart would kill the headless
+// capture the route had just started.
+const catalogRecapture = () => ({
+  name: 'catalog-recapture-lazy',
+  async configureServer(server: unknown) {
+    const mod = await import('./scripts/vite-plugins/catalogRecapture');
+    return (mod.catalogRecapture() as { configureServer: (s: unknown) => void }).configureServer(server);
+  },
+});
+
 // Same lazy pattern: agent-session tiles plugin stays out of the config watch
 // list so editing it doesn't restart the server and kill live agent PTYs.
 const agentSessionManager = () => ({
@@ -75,7 +86,6 @@ import { lessonsManager } from './scripts/vite-plugins/lessonsManager';
 import { spellIconPicksManager } from './scripts/vite-plugins/spellIconPicksManager';
 
 import {
-  conductorManager,
   scanManager,
   gitStatusManager,
   scriptRegistryManager,
@@ -249,7 +259,6 @@ export default defineConfig(async ({ mode, command }) => {
     roadmapManager(),
     roadmapLauncherManager(),
     devHubLauncherManager(),
-    conductorManager(),
     scanManager(),
     gitStatusManager(),
     devHubApiManager(),
@@ -268,6 +277,7 @@ export default defineConfig(async ({ mode, command }) => {
     lessonsManager(),
     spellIconPicksManager(),
     agentSessionManager(),
+    catalogRecapture(),
     groqProxyManager()
   ];
   const roadmapOnlyPlugins = [react(), roadmapManager()];
@@ -276,7 +286,6 @@ export default defineConfig(async ({ mode, command }) => {
     visualizerManager(),
     roadmapLauncherManager(),
     devHubLauncherManager(),
-    conductorManager(),
     scanManager(),
     gitStatusManager(),
     devHubApiManager(),

@@ -3,8 +3,8 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 20/07/2026, 00:20:47
- * Dependents: components/DesignPreview/steps/PreviewBlueprint.tsx, components/DesignPreview/steps/PreviewBuilding3D.tsx
+ * Last Sync: 07/09/2026, 23:23:33
+ * Dependents: components/DesignPreview/steps/PreviewBlueprint.tsx, devtools/buildingIdentityLab/PreviewBuilding3D.tsx
  * Imports: 8 files
  *
  * MULTI-AGENT SAFETY:
@@ -52,8 +52,9 @@
  * WHAT WAS PRESERVED: Legacy plans without styleResolved remain a strict no-op, preserving
  * the original v1 colors and layout. Structural geometry remains completely untouched, as pinned
  * by invariants tests. Floor peel, window lighting, and hearth glowing schedules remain fully intact.
- * WHAT REMAINS DEFERRED: The 2D vs 3D climate parity roof seam, town-map selection behavior,
- * and streamed production ground pipeline details remain deferred to separate repair/feature lanes.
+ * WHAT REMAINS DEFERRED (tracked in Agora task agora-8cf6): The 2D vs 3D climate parity roof seam,
+ * town-map selection behavior, and streamed production ground pipeline details remain deferred to
+ * separate repair/feature lanes.
  */
 
 import type {
@@ -74,6 +75,8 @@ import {
 } from './buildingModels';
 import {
   buildBlueprintParts,
+  furnishingSpec,
+  seatRoofEaveOnWalls,
   MATERIAL_PART_TAG,
   FACADE_PART_TAG,
   MOTIF_PART_TAG,
@@ -85,6 +88,7 @@ import {
 export type PeelLevel = number | 'all';
 
 export type SceneBoxKind = MeshBoxKind
+  | 'furniture'
   | 'hearth'
   | 'history-scorch'
   | 'history-board'
@@ -273,6 +277,7 @@ const BOX_COLOR: Record<SceneBoxKind, string> = {
   ceiling: '#5c5347',
   stair: '#a5713f',
   hearth: '#5a4636',
+  furniture: '#765638',
   // Roof dressing (Task 5) — colors are normally overridden per box from the
   // resolved trim/roof tint; these are the bare-plan fallbacks.
   chimney: '#7c6a58',
@@ -301,6 +306,9 @@ const ACTIVITY_COLOR: Record<OccupantStation['activity'], string> = {
   hearthside: '#ff9d5c',
   chores: '#9ef07a',
   out: '#9aa0a6',
+  // Public-house patrons: a violet distinct from the family's warm amber meal
+  // so a taproom crowd reads as visitors, not as the household eating.
+  visiting: '#c39bff',
 };
 
 /** Build the render-ready scene model. Pure + deterministic. */
@@ -393,18 +401,23 @@ export function buildingSceneModel(
     }
   }
 
-  // Hearth furnishings as glowable masses (mesh data carries structure only).
+  // Use the production furniture dimensions in the inspection view. Empty
+  // rooms concealed how much floor space tables and beds actually occupy.
   for (const floor of plan.floors) {
     if (!visible(floor.level)) continue;
     for (const f of floor.furnishings) {
-      if (!HEARTH_KINDS.has(f.kind)) continue;
+      const hearth = HEARTH_KINDS.has(f.kind);
+      const spec = furnishingSpec(f.kind);
+      const rotated = f.rotation === 90 || f.rotation === 270;
       const box: SceneBox = {
-        kind: 'hearth', level: floor.level,
-        x: f.x, y: f.y, w: 2.5, d: 2.5,
-        z0: floor.level * storeyFt, h: 3,
-        color: BOX_COLOR.hearth,
+        kind: hearth ? 'hearth' : 'furniture', level: floor.level,
+        x: f.x, y: f.y,
+        w: (rotated ? spec.d : spec.w) / 0.3048,
+        d: (rotated ? spec.w : spec.d) / 0.3048,
+        z0: floor.level * storeyFt, h: spec.h / 0.3048,
+        color: spec.colorHex,
       };
-      if (hearthLit) {
+      if (hearth && hearthLit) {
         box.emissive = HEARTH_GLOW;
         box.emissiveIntensity = 1.2;
       }
@@ -627,7 +640,9 @@ export function buildingSceneModel(
       roofDeformationForPlan(plan),
     );
     roof = {
-      positions: rm.tris.positions,
+      // Same eave seating the production bridge applies, from the same
+      // function — a lab render that differs from the game is a lie.
+      positions: seatRoofEaveOnWalls(rm.tris.positions, plan),
       indices: rm.tris.indices,
       normals: rm.tris.normals,
       uvs: planarRoofUvs(rm.tris.positions),

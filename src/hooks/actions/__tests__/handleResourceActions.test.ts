@@ -23,6 +23,12 @@ vi.mock('../handleWorldEvents', () => ({
   handleResidueChecks: vi.fn().mockResolvedValue(undefined),
   handleGossipEvent: vi.fn().mockResolvedValue(undefined),
   handleLongRestWorldEvents: vi.fn((gameState) => gameState.npcMemory),
+  // DIAL-002: the long rest now also runs the deterministic fact-propagation
+  // pass; stubbed here for the same reason the gossip lane is.
+  handleFactPropagationEvent: vi.fn(),
+  // The long rest also nudges the town's occupant routines; stubbed for the
+  // same reason the gossip lane is (it would build a canonical town roster).
+  handleTownRoutineEvents: vi.fn().mockResolvedValue([]),
 }));
 
 describe('handleShortRest', () => {

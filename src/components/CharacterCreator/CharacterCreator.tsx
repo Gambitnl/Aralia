@@ -93,6 +93,9 @@ import { useCharacterAssembly } from './hooks/useCharacterAssembly';
 import { CharacterVisualConfig } from '../../services/CharacterAssetService';
 import { generatePortraitUrl } from '../../services/PortraitService';
 import SpellContext from '../../context/SpellContext';
+import { useOptionalGameState } from '../../state/GameContext';
+import { getRulesEdition } from '../../config/rulesEdition';
+import { subclassesForClass } from '../../data/classes/subclasses';
 import { LoadingSpinner } from '../ui/LoadingSpinner';
 import { WindowFrame } from '../ui/WindowFrame';
 import { WINDOW_KEYS } from '../../styles/uiIds';
@@ -219,6 +222,9 @@ const CharacterCreator: React.FC<CharacterCreatorProps> = ({
   }, [draftStorageKey, onDraftChange, state]);
 
   const allSpells = useContext(SpellContext);
+  // The creator runs inside GameProvider in the app, and without one in tests.
+  // getRulesEdition is the single place the 2024 default is decided.
+  const rulesEdition = getRulesEdition(useOptionalGameState()?.state);
   const [showSidebar, setShowSidebar] = useState(true);
   const portraitJobRef = React.useRef<{ token: number; cancelled: boolean }>({ token: 0, cancelled: false });
 
@@ -394,15 +400,15 @@ const CharacterCreator: React.FC<CharacterCreatorProps> = ({
   const handleHumanSkillSelect = useCallback((skillId: string) => dispatch({ type: 'SELECT_HUMAN_SKILL', payload: skillId }), [dispatch]);
   const handleSkillsSelect = useCallback((skills: Skill[]) => dispatch({ type: 'SELECT_SKILLS', payload: skills }), [dispatch]);
   const handleFighterFeaturesSelect = useCallback((style: FightingStyle) => dispatch({ type: 'SELECT_FIGHTER_FEATURES', payload: style }), [dispatch]);
-  const handleClericFeaturesSelect = useCallback((order: 'Protector' | 'Thaumaturge', cantrips: Spell[], spellsL1: Spell[]) => dispatch({ type: 'SELECT_CLERIC_FEATURES', payload: { order, cantrips, spellsL1 } }), [dispatch]);
+  const handleClericFeaturesSelect = useCallback((order: 'Protector' | 'Thaumaturge', cantrips: Spell[], spellsL1: Spell[], domainId?: string) => dispatch({ type: 'SELECT_CLERIC_FEATURES', payload: { order, cantrips, spellsL1, domainId } }), [dispatch]);
   const handleDruidFeaturesSelect = useCallback((order: 'Magician' | 'Warden', cantrips: Spell[], spellsL1: Spell[]) => dispatch({ type: 'SELECT_DRUID_FEATURES', payload: { order, cantrips, spellsL1 } }), [dispatch]);
   const handleWizardFeaturesSelect = useCallback((cantripsSpells: Spell[], spellsL1Spells: Spell[]) => dispatch({ type: 'SELECT_WIZARD_FEATURES', payload: { cantrips: cantripsSpells, spellsL1: spellsL1Spells } }), [dispatch]);
-  const handleSorcererFeaturesSelect = useCallback((cantrips: Spell[], spellsL1: Spell[]) => dispatch({ type: 'SELECT_SORCERER_FEATURES', payload: { cantrips, spellsL1 } }), [dispatch]);
+  const handleSorcererFeaturesSelect = useCallback((cantrips: Spell[], spellsL1: Spell[], originId?: string) => dispatch({ type: 'SELECT_SORCERER_FEATURES', payload: { cantrips, spellsL1, originId } }), [dispatch]);
   const handleRangerFeaturesSelect = useCallback((spellsL1: Spell[]) => dispatch({ type: 'SELECT_RANGER_FEATURES', payload: { spellsL1 } }), [dispatch]);
   const handlePaladinFeaturesSelect = useCallback((spellsL1: Spell[]) => dispatch({ type: 'SELECT_PALADIN_FEATURES', payload: { spellsL1 } }), [dispatch]);
   const handleArtificerFeaturesSelect = useCallback((cantripsSpells: Spell[], spellsL1Spells: Spell[]) => dispatch({ type: 'SELECT_ARTIFICER_FEATURES', payload: { cantrips: cantripsSpells, spellsL1: spellsL1Spells } }), [dispatch]);
   const handleBardFeaturesSelect = useCallback((cantripsSpells: Spell[], spellsL1Spells: Spell[]) => dispatch({ type: 'SELECT_BARD_FEATURES', payload: { cantrips: cantripsSpells, spellsL1: spellsL1Spells } }), [dispatch]);
-  const handleWarlockFeaturesSelect = useCallback((cantripsSpells: Spell[], spellsL1Spells: Spell[]) => dispatch({ type: 'SELECT_WARLOCK_FEATURES', payload: { cantrips: cantripsSpells, spellsL1: spellsL1Spells } }), [dispatch]);
+  const handleWarlockFeaturesSelect = useCallback((cantripsSpells: Spell[], spellsL1Spells: Spell[], patronId?: string) => dispatch({ type: 'SELECT_WARLOCK_FEATURES', payload: { cantrips: cantripsSpells, spellsL1: spellsL1Spells, patronId } }), [dispatch]);
   const handleWeaponMasteriesSelect = useCallback((weaponIds: string[]) => dispatch({ type: 'SELECT_WEAPON_MASTERIES', payload: weaponIds }), [dispatch]);
   const handleBackgroundFeatSelect = useCallback((featId: string) => dispatch({ type: 'SELECT_BACKGROUND_FEAT', payload: featId }), [dispatch]);
   const handleRacialFeatSelect = useCallback((featId: string) => dispatch({ type: 'SELECT_RACIAL_FEAT', payload: featId }), [dispatch]);
@@ -444,15 +450,19 @@ const CharacterCreator: React.FC<CharacterCreatorProps> = ({
     // instead of building a finished character object. The first action is a
     // full reset, so re-clicking produces a fresh legal draft over any dirty
     // in-progress state.
+    // The edition decides whether the plan has to pick a subclass at level 1
+    // (2014 cleric / sorcerer / warlock) or leave it for the level-3 milestone.
+    // No `rng` is passed: the engine seeds its own SeededRandom from the clock,
+    // so the plan varies per click and stays replayable from a seed.
     const plan = randomizeCreation({
       allSpells,
-      rng: Math.random,
+      rulesEdition,
     });
 
     for (const action of plan.actions) {
       dispatch(action);
     }
-  }, [allSpells, dispatch]);
+  }, [allSpells, dispatch, rulesEdition]);
 
   /**
    * Shown when a step is navigated to via the sidebar but prerequisites aren't yet met.
@@ -546,12 +556,12 @@ const CharacterCreator: React.FC<CharacterCreatorProps> = ({
       case CreationStep.ClassFeatures:
         if (!selectedClass || !finalAbilityScores) return <StepLockedPlaceholder message={getPrerequisiteLockMessage({ requiresClass: true, requiresAbilityScores: true })} />;
         if (selectedClass.id === 'fighter' && selectedClass.fightingStyles) { return <FighterFeatureSelection styles={selectedClass.fightingStyles} onStyleSelect={handleFighterFeaturesSelect} onBack={goBack} />; }
-        if (selectedClass.id === 'cleric' && selectedClass.divineOrders && selectedClass.spellcasting) { return <ClericFeatureSelection divineOrders={selectedClass.divineOrders} spellcastingInfo={selectedClass.spellcasting} allSpells={allSpells} onClericFeaturesSelect={handleClericFeaturesSelect} onBack={goBack} />; }
+        if (selectedClass.id === 'cleric' && selectedClass.divineOrders && selectedClass.spellcasting) { return <ClericFeatureSelection divineOrders={selectedClass.divineOrders} divineDomains={subclassesForClass('cleric').map(({ id, name, description }) => ({ id, name, description }))} rulesEdition={rulesEdition} spellcastingInfo={selectedClass.spellcasting} allSpells={allSpells} onClericFeaturesSelect={handleClericFeaturesSelect} onBack={goBack} />; }
         if (selectedClass.id === 'druid' && selectedClass.primalOrders && selectedClass.spellcasting) { return <DruidFeatureSelection primalOrders={selectedClass.primalOrders} spellcastingInfo={selectedClass.spellcasting} allSpells={allSpells} onDruidFeaturesSelect={handleDruidFeaturesSelect} onBack={goBack} />; }
         if (selectedClass.id === 'wizard' && selectedClass.spellcasting) { return <WizardFeatureSelection spellcastingInfo={selectedClass.spellcasting} allSpells={allSpells} onWizardFeaturesSelect={handleWizardFeaturesSelect} onBack={goBack} />; }
-        if (selectedClass.id === 'sorcerer' && selectedClass.spellcasting) { return <SorcererFeatureSelection spellcastingInfo={selectedClass.spellcasting} allSpells={allSpells} onSorcererFeaturesSelect={handleSorcererFeaturesSelect} onBack={goBack} />; }
+        if (selectedClass.id === 'sorcerer' && selectedClass.spellcasting) { return <SorcererFeatureSelection spellcastingInfo={selectedClass.spellcasting} origins={subclassesForClass('sorcerer').map(({ id, name, description }) => ({ id, name, description }))} rulesEdition={rulesEdition} allSpells={allSpells} onSorcererFeaturesSelect={handleSorcererFeaturesSelect} onBack={goBack} />; }
         if (selectedClass.id === 'bard' && selectedClass.spellcasting) { return <BardFeatureSelection spellcastingInfo={selectedClass.spellcasting} allSpells={allSpells} onBardFeaturesSelect={handleBardFeaturesSelect} onBack={goBack} />; }
-        if (selectedClass.id === 'warlock' && selectedClass.spellcasting) { return <WarlockFeatureSelection spellcastingInfo={selectedClass.spellcasting} allSpells={allSpells} onWarlockFeaturesSelect={handleWarlockFeaturesSelect} onBack={goBack} />; }
+        if (selectedClass.id === 'warlock' && selectedClass.spellcasting) { return <WarlockFeatureSelection spellcastingInfo={selectedClass.spellcasting} patrons={selectedClass.warlockPatrons ?? []} rulesEdition={rulesEdition} allSpells={allSpells} onWarlockFeaturesSelect={handleWarlockFeaturesSelect} onBack={goBack} />; }
         if (selectedClass.id === 'ranger' && selectedClass.spellcasting) { return <RangerFeatureSelection spellcastingInfo={selectedClass.spellcasting} allSpells={allSpells} onRangerFeaturesSelect={handleRangerFeaturesSelect} onBack={goBack} />; }
         if (selectedClass.id === 'paladin' && selectedClass.spellcasting) { return <PaladinFeatureSelection spellcastingInfo={selectedClass.spellcasting} allSpells={allSpells} onPaladinFeaturesSelect={handlePaladinFeaturesSelect} onBack={goBack} />; }
         if (selectedClass.id === 'artificer' && selectedClass.spellcasting) { return <ArtificerFeatureSelection spellcastingInfo={selectedClass.spellcasting} allSpells={allSpells} abilityScores={finalAbilityScores} onArtificerFeaturesSelect={handleArtificerFeaturesSelect} onBack={goBack} />; }

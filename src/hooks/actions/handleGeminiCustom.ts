@@ -193,9 +193,9 @@ export async function handleGeminiCustom({
       }
 
       // --- Linker Coherence Check ---
+      // resolveAndRegisterEntities also links any new NPC to the current
+      // location's npcIds and seeds a neutral player relationship.
       await resolveAndRegisterEntities(outcomeResult.data.text, gameState, dispatch, addGeminiLog);
-
-      // TODO(Linker): Enhance entity creation by linking new NPCs to the current location (e.g. location.npcIds.push(newNpc.id)) and establishing relationships.
       // -----------------------------
 
     } else {

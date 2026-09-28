@@ -16,7 +16,7 @@
 import type { PlayerCharacter, Spell, SpellSlots } from '../../types';
 import type { SpellEffect } from '../../types/spells';
 import type { StatusEffect } from '../../types/effects';
-import { rollDice } from '../combat/combatUtils';
+import { rollDice } from '../../systems/dice/rollers';
 import { getAbilityModifierValue } from '../character/characterUtils';
 
 /** Effect types that are safe/beneficial regardless of condition. */

@@ -1,4 +1,5 @@
 import { describe, expect, test } from 'vitest';
+import { ItemType } from '../../../../types';
 import { calculateArmorClass } from "../../../../utils/character/statUtils";
 import { PlayerCharacter, Item, ItemRarity } from "../../../../types";
 import { ActiveEffect } from "../../../../types/effects";
@@ -30,7 +31,7 @@ const mockCharacterWithDex = (dexScore: number): PlayerCharacter => {
 const mockLeatherArmor: Item = {
     id: "leather",
     name: "Leather Armor",
-    type: "armor",
+    type: ItemType.Armor,
     rarity: ItemRarity.Common,
     armorCategory: "Light",
     baseArmorClass: 11,
@@ -43,7 +44,7 @@ const mockLeatherArmor: Item = {
 const mockPlateArmor: Item = {
     id: "plate",
     name: "Plate Armor",
-    type: "armor",
+    type: ItemType.Armor,
     rarity: ItemRarity.Rare,
     armorCategory: "Heavy",
     baseArmorClass: 18,
@@ -56,7 +57,7 @@ const mockPlateArmor: Item = {
 const mockShield: Item = {
     id: "shield-item",
     name: "Shield",
-    type: "armor",
+    type: ItemType.Armor,
     armorCategory: "Shield",
     armorClassBonus: 2,
     description: "A shield",

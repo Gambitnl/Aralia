@@ -3,7 +3,7 @@ import { ConcentrationTracker } from '../ConcentrationTracker'
 // DiceRoller is no longer used directly by ConcentrationTracker, but savingThrowUtils uses combatUtils which uses Math.random
 // We need to mock combatUtils to control the roll
 // Import the same module path used by savingThrowUtils so the rollDice spy is effective.
-import * as combatUtils from '@/utils/combat/combatUtils'
+import * as combatUtils from '@/systems/dice/rollers'
 import type { CombatCharacter, CombatState, ConcentrationState } from '@/types/combat'
 import type { Spell } from '@/types/spells'
 

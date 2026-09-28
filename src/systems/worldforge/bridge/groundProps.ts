@@ -37,6 +37,7 @@ import type {
   CtxCourtyard,
   CtxGatehouse,
   CtxHiddenSite,
+  CtxDeadEnd,
 } from '../props/placementEngine';
 import { placePropsInstrumented, type PropPlacementStats } from '../props/placementEngine';
 import {
@@ -48,6 +49,7 @@ import type { GateResult } from '../placement/gate';
 import type { WorldBusiness } from '../../../types/business';
 import { WAVE1_PROPS_BY_ID, PROPS_BY_ID } from '../props/catalog';
 import { CELL_METERS, providesCover as defProvidesCover, type PropInstance, type PropDefinition } from '../props/propSchema';
+import { polylineDeadEnds } from '../town/townStreetNetwork';
 import type { SeedPath } from '../seedPath';
 import { childSeedPath, rootSeedPath, streamPath } from '../seedPath';
 import type { BattleMapTile, BattleMapDecoration } from '@/types/combat';
@@ -155,6 +157,9 @@ export function groundToPlacementContext(
     angleRad: g.angleRad,
   }));
 
+  // SLICE C — dead ends: the lane ends of THIS window's road graph.
+  const deadEnds: CtxDeadEnd[] = windowDeadEnds(ground);
+
   // SLICE B — ruin: 'ruin'-kind hidden sites seed ruin dressing.
   const hiddenSites: CtxHiddenSite[] = ground.hiddenSites.map((h) => ({
     id: h.id,
@@ -185,9 +190,37 @@ export function groundToPlacementContext(
     heights: ground.heights,
     walls: ground.walls.map((w) => ({ points: w.points })),
     gatehouses,
+    deadEnds,
     rivers: ground.rivers.map((r) => ({ points: r.points })),
     hiddenSites,
   };
+}
+
+/**
+ * A road tip inside this margin of the window edge is where the polyline was
+ * CLIPPED, not where the lane stops. Dressing those would ring every window
+ * boundary with shrines and graves, so they are dropped.
+ */
+const DEAD_END_WINDOW_MARGIN_M = CELL_METERS * 4;
+/** Two road vertices within this distance are the same node (meters). */
+const DEAD_END_NODE_QUANT_M = 0.25;
+
+/**
+ * The street dead ends of one ground window: terminal (degree-1) nodes of the
+ * road graph, found by the same node-degree pass the town street network uses
+ * (`town/townStreetNetwork.ts` `polylineDeadEnds`), minus the tips that are
+ * only the window's own clip line.
+ */
+function windowDeadEnds(ground: GroundWorld): CtxDeadEnd[] {
+  const lines = ground.roads.map((r) => r.points.map((p) => [p.x, p.z] as [number, number]));
+  const out: CtxDeadEnd[] = [];
+  for (const d of polylineDeadEnds(lines, DEAD_END_NODE_QUANT_M)) {
+    const [xM, zM] = d.point;
+    const m = DEAD_END_WINDOW_MARGIN_M;
+    if (xM < m || zM < m || xM > ground.extentMetersX - m || zM > ground.extentMetersZ - m) continue;
+    out.push({ id: `r${d.lineIndex}:${Math.round(xM * 4)}:${Math.round(zM * 4)}`, xM, zM, inwardRad: d.inwardRad });
+  }
+  return out;
 }
 
 /** Feet-to-meters conversion shared with the ground loader's town projection. */

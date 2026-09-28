@@ -3,6 +3,14 @@
  * This component manages the 'Cleric Feature' selection (Divine Order, 
  * Cantrips, and Level 1 Spells).
  *
+ * WHEN the Divine Domain is chosen depends on the campaign's rules edition
+ * (agora-f821.56): the 2014 Player's Handbook picks a Divine Domain at level 1,
+ * while the 2024 one defers it to level 3. The level comes from
+ * `getSubclassLevel`, so this component never decides the edition for itself —
+ * it is told. Note that the Divine Domain (the subclass) is a different choice
+ * from the 2024 Divine Order (Protector / Thaumaturge), which stays on every
+ * edition because it is what this repo's level-1 cleric data encodes.
+ *
  * Recent updates focus on '2024 Rulebook Alignment' and 'Dynamic Selection Pools'.
  * - Added `sr-only` accessibility labels for all spell selection inputs.
  * - Refined item highlighting to use a consolidated check 
@@ -17,23 +25,41 @@
  */
 import React, { useState } from 'react';
 import { DivineOrderOption, Spell, Class as CharClass } from '../../../types';
+import { getSubclassLevel, type RulesEdition } from '../../../config/rulesEdition';
 import { CreationStepLayout } from '../ui/CreationStepLayout';
 import { SpellCard } from './SpellCard';
 
+/** One Divine Domain offered at level 1, derived from SUBCLASSES.cleric by the caller. */
+export interface DivineDomainOption {
+  id: string;
+  name: string;
+  description: string;
+}
+
 interface ClericFeatureSelectionProps {
   divineOrders: DivineOrderOption[];
+  /** Every Divine Domain a cleric can serve; only offered when the edition puts the choice at level 1. */
+  divineDomains: DivineDomainOption[];
+  /** The campaign's rules edition, read by the caller via `getRulesEdition`. */
+  rulesEdition: RulesEdition;
   spellcastingInfo: NonNullable<CharClass['spellcasting']>;
   allSpells: Record<string, Spell>;
-  onClericFeaturesSelect: (order: 'Protector' | 'Thaumaturge', cantrips: Spell[], spellsL1: Spell[]) => void;
+  onClericFeaturesSelect: (order: 'Protector' | 'Thaumaturge', cantrips: Spell[], spellsL1: Spell[], domainId?: string) => void;
   onBack: () => void;
 }
 
 const ClericFeatureSelection: React.FC<ClericFeatureSelectionProps> = ({ 
-  divineOrders, spellcastingInfo, allSpells, onClericFeaturesSelect, onBack 
+  divineOrders, divineDomains, rulesEdition, spellcastingInfo, allSpells, onClericFeaturesSelect, onBack 
 }) => {
   const [selectedOrder, setSelectedOrder] = useState<'Protector' | 'Thaumaturge' | null>(null);
+  const [selectedDomainId, setSelectedDomainId] = useState<string | null>(null);
   const [selectedCantripIds, setSelectedCantripIds] = useState<Set<string>>(new Set());
   const [selectedSpellL1Ids, setSelectedSpellL1Ids] = useState<Set<string>>(new Set());
+
+  // The whole edition switch reduces to this one number. Level 1 means the
+  // Divine Domain is part of this step; anything later means it is not.
+  const domainLevel = getSubclassLevel('cleric', rulesEdition);
+  const choosesDomainNow = domainLevel === 1 && divineDomains.length > 0;
 
   const handleOrderSelect = (orderId: 'Protector' | 'Thaumaturge') => {
     if (orderId !== selectedOrder) {
@@ -68,25 +94,61 @@ const ClericFeatureSelection: React.FC<ClericFeatureSelectionProps> = ({
     setSelection(newSelection);
   };
   
+  const isDomainSatisfied = !choosesDomainNow || selectedDomainId !== null;
+
   const handleSubmit = () => {
-    if (selectedOrder && selectedCantripIds.size === numCantripsToSelect && selectedSpellL1Ids.size === numSpellsL1ToSelect) {
+    if (selectedOrder && selectedCantripIds.size === numCantripsToSelect && selectedSpellL1Ids.size === numSpellsL1ToSelect && isDomainSatisfied) {
       const cantrips = Array.from(selectedCantripIds).map(id => allSpells[String(id)]);
       const spellsL1 = Array.from(selectedSpellL1Ids).map(id => allSpells[String(id)]);
-      onClericFeaturesSelect(selectedOrder, cantrips, spellsL1);
+      onClericFeaturesSelect(selectedOrder, cantrips, spellsL1, choosesDomainNow ? selectedDomainId! : undefined);
     }
   };
 
-  const isSubmitDisabled = !selectedOrder || selectedCantripIds.size !== numCantripsToSelect || selectedSpellL1Ids.size !== numSpellsL1ToSelect;
+  const isSubmitDisabled = !selectedOrder || selectedCantripIds.size !== numCantripsToSelect || selectedSpellL1Ids.size !== numSpellsL1ToSelect || !isDomainSatisfied;
 
   return (
     <CreationStepLayout
-      title="Cleric Choices"
+      title={choosesDomainNow ? 'Cleric Domain & Choices' : 'Cleric Choices'}
       onBack={onBack}
       onNext={handleSubmit}
       canProceed={!isSubmitDisabled}
       nextLabel="Confirm Choices"
     >
       <div className="space-y-8">
+        {choosesDomainNow ? (
+          <section>
+            <div className="flex justify-between items-end mb-3 border-b border-gray-700 pb-1">
+              <h3 className="text-xl font-cinzel text-amber-400">Choose Your Divine Domain</h3>
+              <span className="text-xs font-mono text-gray-500 mb-1">2014 rules &middot; level 1</span>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {divineDomains.map(domain => {
+                const isSelected = selectedDomainId === domain.id;
+                return (
+                  <button
+                    key={domain.id}
+                    type="button"
+                    onClick={() => setSelectedDomainId(domain.id)}
+                    aria-pressed={isSelected}
+                    className={`text-left p-3 rounded-lg border transition-colors ${
+                      isSelected
+                        ? 'bg-amber-900/40 border-amber-400'
+                        : 'bg-gray-800 border-gray-700 hover:border-amber-600'
+                    }`}
+                  >
+                    <span className="block font-cinzel text-amber-300">{domain.name}</span>
+                    <span className="block text-xs text-gray-400 mt-1">{domain.description}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </section>
+        ) : (
+          <p className="text-sm text-gray-400 italic">
+            Under the 2024 rules you choose a Divine Domain at level {domainLevel}.
+          </p>
+        )}
+
         <section>
           <h3 className="text-xl font-cinzel text-amber-400 mb-3 border-b border-gray-700 pb-1">Choose Divine Order</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

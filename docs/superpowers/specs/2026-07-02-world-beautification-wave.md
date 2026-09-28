@@ -1,11 +1,11 @@
-# World Beautification Wave — Design Spec (2026-07-02)
+# World Beautification Wave - Design Spec (2026-07-02)
 
 **Status:** BUILT 2026-07-04/05 (props, catalogs, owned generators, vegetation,
 lighting, placement tuning, de-gridding, wind sway, far shadow cascade all
 shipped and screenshot-verified). The WebGPU-renderer tail (`webgpu-migration`
 topic) is the only remainder: battle-map port is active, default flip + WebGL
 retirement still parked pending Remy's real-GPU eyeball. This wave was the head
-of the dependency chain — it landed BEFORE fight-in-place combat slice 1 (see
+of the dependency chain - it landed BEFORE fight-in-place combat slice 1 (see
 `2026-07-02-fight-in-place-combat-design.md`), which is now also built (slices
 1+2).
 
@@ -13,26 +13,26 @@ of the dependency chain — it landed BEFORE fight-in-place combat slice 1 (see
 
 The streamed 3D world stops being sparse and plain. Towns get lived-in clutter,
 wilderness gets real cover, trees stop being cones, lighting gets the battle
-map's atmosphere — one campaign, one visible transformation, in exploration
+map's atmosphere - one campaign, one visible transformation, in exploration
 AND (later) combat.
 
 ## Locked decisions (interview, 2026-07-02)
 
 1. **One wave, both catalogs.** A single prop SYSTEM (semantics + placement
    engine) ships with town clutter (crates, carts, barrels, market stalls,
-   wells, fences, woodpiles…) and wilderness cover (rocks, fallen logs,
-   thickets, ruins…) from day one. No town-first/wilderness-later split.
+   wells, fences, woodpiles...) and wilderness cover (rocks, fallen logs,
+   thickets, ruins...) from day one. No town-first/wilderness-later split.
 2. **Vegetation + lighting migration rides in the same wave.** The battle
-   map's visual tech — volumetric tree canopies (EzTree-class), atmosphere/
-   lighting — moves into the streamed world as part of this campaign. The
+   map's visual tech - volumetric tree canopies (EzTree-class), atmosphere/
+   lighting - moves into the streamed world as part of this campaign. The
    biggest "ugly" delta is trees, not crates; fixing props without vegetation
    would miss the point.
 3. **Full referee data on every prop from day one.** Every catalog entry
    declares: cover, blocks-sight, blocks-movement, material + thickness
    (the exact vocabulary the combat extraction and spell corpus already
-   consume — `BattleMapTile.providesCover/blocksLoS/blocksMovement/material/
+   consume - `BattleMapTile.providesCover/blocksLoS/blocksMovement/material/
    thicknessInches`). This is the entire reason props precede combat.
-4. **Beauty first, perf later — conscious deferral.** No performance gate on
+4. **Beauty first, perf later - conscious deferral.** No performance gate on
    this wave (Remy's explicit call over a recommended hard gate). Entry FPS
    was ~13 in towns BEFORE this wave; every visual eyeball must still RECORD
    the FPS readout (information, not a gate), and a dedicated optimization
@@ -42,7 +42,7 @@ AND (later) combat.
    migrated vegetation keeps its realism, and buildings/terrain get upgraded
    toward that bar in later waves (building generator inherits this target).
    Interim mixed fidelity (detailed trees beside boxy houses) is ACCEPTED as a
-   transition state — chosen over unified-stylized-low-poly and over
+   transition state - chosen over unified-stylized-low-poly and over
    deliberate-contrast.
 6. **Visual anchor: Baldur's Gate 3.** Density + mood calibration for every
    eyeball: dense, readable clutter where every object is plausibly owned by
@@ -51,15 +51,15 @@ AND (later) combat.
 7. **Asset sourcing: adopt-where-proven, build-where-gap (surveyed 2026-07-02).**
    - Trees: **EzTree stays** (MIT, seedable, still best-in-class for runtime
      JS) + trial GPU-instanced L-system forests for mid/far LOD.
-   - Grass: trial `procedural-grass-threejs` (WebGL2 fallback exists —
+   - Grass: trial `procedural-grass-threejs` (WebGL2 fallback exists -
      VERIFY LICENSE before adoption) or port the instancing/wind technique.
-   - Rocks: **genuine gap — build owned**: icomesh (MIT) base + seeded
+   - Rocks: **genuine gap - build owned**: icomesh (MIT) base + seeded
      FBM/Worley displacement; THREE.Terrain techniques for cliffs/scree.
-   - Small props: **genuine gap — build owned** parametric generators
+   - Small props: **genuine gap - build owned** parametric generators
      (crate/barrel/cart/stall families) on `three-bvh-csg` (MIT) for boolean
-     detailing. No adoptable prop-mesh library exists in the JS ecosystem —
+     detailing. No adoptable prop-mesh library exists in the JS ecosystem -
      this validates the owned-generator strategy.
-   - Buildings (later project): no adopt-ready open CGA/shape-grammar engine —
+   - Buildings (later project): no adopt-ready open CGA/shape-grammar engine -
      custom lightweight CGA-subset interpreter (split/extrude/repeat, seeded),
      per the 2006 Müller CGA paper, reusing three-bvh-csg.
    - Textures: runtime seeded triplanar/noise shaders as primary; Material
@@ -72,14 +72,14 @@ AND (later) combat.
    3D moves to three.js `WebGPURenderer` + TSL as the head slice of this wave
    (chosen order: props/catalogs are renderer-agnostic, but every visual
    packet should be built once, on the final renderer). What this unlocks:
-   direct MIT code lifts from `Braffolk/fable5-world-demo` (a browser 4×4 km
+   direct MIT code lifts from `Braffolk/fable5-world-demo` (a browser 4x4 km
    procedural world proving the fidelity ceiling: procedurally-grown trees w/
    impostor LOD, ~1M instanced grass, hierarchical wind, volumetric clouds,
-   Hillaire sky, GI probes + shadow-color bounce) — plus erosion as a DETAIL
+   Hillaire sky, GI probes + shadow-color bounce) - plus erosion as a DETAIL
    PASS over our FMG-derived heightfields (never replacing world-canon
    terrain). Budgets re-scoped for a real game loop (the demo spends its whole
    frame on scenery). REJECTED alternative: WASM/native engine (Rust wgpu,
-   C++ Emscripten) — an engine rewrite that forks the codebase into two
+   C++ Emscripten) - an engine rewrite that forks the codebase into two
    languages, kills the TSL code reuse, and buys nothing for GPU-bound
    rendering; WASM stays the documented escape hatch for CPU-bound kernels
    (erosion sim, mass pathfinding) IF profiling ever demands it.
@@ -87,12 +87,12 @@ AND (later) combat.
    DELTA loop, scripted visual checks, banned-outcomes list, DEVIATIONS.md).
 
    **§8 migration status (updated 2026-07-04):**
-   - DONE — WebGPU probe on the streamed ground world (`?phase=webgpuprobe`);
+   - DONE - WebGPU probe on the streamed ground world (`?phase=webgpuprobe`);
      material parity fix (root cause: R3F scene lights don't drive the node-path
-     `LightsNode`, three #30044 / r3f #2853 → black terrain; fixed by baking
+     `LightsNode`, three #30044 / r3f #2853 -> black terrain; fixed by baking
      hemisphere+sun Lambert into unlit `MeshBasicNodeMaterial` colorNodes).
-   - ACTIVE — **Battle-map WebGPU render path** behind an opt-in (`?gpu=1`;
-     `WEBGPU_BATTLE_MAP_DEFAULT=false` — WebGL is unchanged as the default this
+   - ACTIVE - **Battle-map WebGPU render path** behind an opt-in (`?gpu=1`;
+     `WEBGPU_BATTLE_MAP_DEFAULT=false` - WebGL is unchanged as the default this
      slice). `BattleMap3D` delegates to a self-contained `BattleMap3DGpuScene`
      (sibling of `WebGPUProbeScene`) that renders the SAME shared `mapData` /
      `characters` through the proven baked-TSL pattern. Game logic untouched
@@ -101,24 +101,24 @@ AND (later) combat.
      hemisphere split.
      **FAIL-FAST, no fallback backend:** with `?gpu=1` the scene probes
      `navigator.gpu.requestAdapter()` BEFORE mounting; if WebGPU is unavailable
-     (or the renderer would still come up on a non-WebGPU backend — that
+     (or the renderer would still come up on a non-WebGPU backend - that
      throws) it renders NO scene. Instead an error panel states the reason
-     ("WebGPU unavailable: …") and offers one explicit "Use WebGL instead"
+     ("WebGPU unavailable: ...") and offers one explicit "Use WebGL instead"
      button that remounts the WebGL scene and strips `gpu=1` from the URL. The
      USER makes the switch; the system never auto-falls-back. The on-screen
      "WebGPU" badge exists ONLY in the genuine-WebGPU success case.
      Proof so far: the baked-TSL material pattern is validated on the probe's
      node path; headless battle-map capture (no WebGPU adapter) shows the
-     fail-fast error panel — the CORRECT behavior
+     fail-fast error panel - the CORRECT behavior
      (`.agent/scratch/bm3d-webgl-baseline.png` = WebGL scene, `bm3d-webgpu.png`
      = error panel, `bm3d-webgpu-after-usewebgl.png` = WebGL after the button
      click; error panel + button remount live-verified headlessly). The
      rendered WebGPU-backend battlefield itself can now only be eyeballed on
-     real WebGPU hardware — Remy's RTX 2070S via `?gpu=1` is the open
+     real WebGPU hardware - Remy's RTX 2070S via `?gpu=1` is the open
      verification.
-     **Visual parity port (2026-07-05, rungs 1–4 SHIPPED + rung 5 wired):**
+     **Visual parity port (2026-07-05, rungs 1-4 SHIPPED + rung 5 wired):**
      the interim scene's parity gaps are now largely closed. (1) Procedural
-     terrain texturing — the `onBeforeCompile` GLSL is TRANSLATED to a TSL node
+     terrain texturing - the `onBeforeCompile` GLSL is TRANSLATED to a TSL node
      graph (`gpu/terrainColorNode.ts`: per-type palettes, FBM/voronoi noise
      hierarchy, organic edge blend, slope-rock, wet banks, dapple), NOT a flat
      palette. (2) Instanced grass + ground scatter (placement mirrors
@@ -133,28 +133,28 @@ AND (later) combat.
      red MISSING list): real-time shadows on node materials (no `LightsNode`
      consumes a shadow map when lighting is baked into `colorNode`), the full
      animated `CharacterActor` rig + drei `<Html>` nameplates (1,491-line drei/
-     AnimationMixer stack — tokens are lit capsules + rings), and GPU wind sway
+     AnimationMixer stack - tokens are lit capsules + rings), and GPU wind sway
      on grass (blades are static). These are the last items before any default
      flip. Captures: `.agent/scratch/bm3d-port-webgl-ref.png` (target look) +
      `bm3d-port-webgpu.png` (headless fail-fast pane, correct with no adapter).
-   - PARKED — modal (non-battle) combat scenes; default flip + WebGL retirement.
+   - PARKED - modal (non-battle) combat scenes; default flip + WebGL retirement.
 9. **Reproducibility is non-negotiable.** All placement seeded from the
-   existing seed-path discipline: same world + same town → same props,
-   forever. Placement is rule-driven (dock → crates/nets, smithy → woodpile,
-   market plaza → stalls, biome → cover-scatter with clustering), not uniform
+   existing seed-path discipline: same world + same town -> same props,
+   forever. Placement is rule-driven (dock -> crates/nets, smithy -> woodpile,
+   market plaza -> stalls, biome -> cover-scatter with clustering), not uniform
    scatter.
 
 ## Shape of the work (packet-friendly partition)
 
-- **Prop schema + catalog format** — the contract: visual form + referee data
+- **Prop schema + catalog format** - the contract: visual form + referee data
   + placement tags. (Everything else depends on this; do first.)
-- **Placement engine** — seeded rules mapping town plan roles / building
-  types / biomes → prop instances in the ground artifact.
-- **Town catalog** / **wilderness catalog** — parallel packets once schema
+- **Placement engine** - seeded rules mapping town plan roles / building
+  types / biomes -> prop instances in the ground artifact.
+- **Town catalog** / **wilderness catalog** - parallel packets once schema
   exists.
-- **Vegetation migration** — battle-map tree tech into streamed chunks.
-- **Lighting/atmosphere migration** — battle-map theme lighting in ground mode.
-- **Referee integration** — extractLocalTerrainPatch reads prop semantics into
+- **Vegetation migration** - battle-map tree tech into streamed chunks.
+- **Lighting/atmosphere migration** - battle-map theme lighting in ground mode.
+- **Referee integration** - extractLocalTerrainPatch reads prop semantics into
   tiles (proves decision 3 end-to-end).
 - Each visual packet closes with a rendered eyeball (visual-inspection rule)
   including the FPS readout.
@@ -162,14 +162,14 @@ AND (later) combat.
 ## Explicitly out of scope
 
 - Performance optimization (own campaign, after).
-- Combat mechanics (fight-in-place slice 1 — next campaign, depends on this).
+- Combat mechanics (fight-in-place slice 1 - next campaign, depends on this).
 - Building generator (separate project; its output will later feed the same
   prop/referee schema).
-- Interactivity beyond combat semantics (lootable/searchable props — later).
+- Interactivity beyond combat semantics (lootable/searchable props - later).
 
 ## Related
 
-- `2026-07-02-fight-in-place-combat-design.md` — the consumer of prop
+- `2026-07-02-fight-in-place-combat-design.md` - the consumer of prop
   semantics; also records the locked mesh-LOS/cover decision this wave's
   blocks-sight data feeds.
 - Plan-map nodes: `world-props` (this wave), `battlemap-polish-migration`

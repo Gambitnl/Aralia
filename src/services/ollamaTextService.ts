@@ -156,9 +156,7 @@ async function generateText(
         rateLimitHit: false
       }
     };
-    // DEBT: Cast error to any to access message property on unknown catch variable.
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  } catch (error: any) {
+  } catch (error: unknown) {
     // A thrown error usually means Ollama is unreachable; try Gemini before
     // giving up so an offline local server doesn't block narrative generation.
     const fallback = await tryGeminiFallback(taskType, prompt, systemInstruction);
@@ -166,13 +164,14 @@ async function generateText(
       return fallback;
     }
 
+    const errorMessage = error instanceof Error ? error.message : String(error);
     return {
       success: false,
-      error: error.message || 'Unknown error in Ollama text generation',
+      error: errorMessage || 'Unknown error in Ollama text generation',
       data: null,
       metadata: {
         promptSent: prompt,
-        rawResponse: error.message || 'Unknown error',
+        rawResponse: errorMessage || 'Unknown error',
         rateLimitHit: false
       }
     };

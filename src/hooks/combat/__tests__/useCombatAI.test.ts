@@ -6,11 +6,13 @@
  * cap. The mocked planner below lets the tests prove the hook waits for async
  * abilities and stops after the bounded move/action sequence.
  */
+import React from 'react';
 import { renderHook, act } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { useCombatAI } from '../useCombatAI';
 import { CombatCharacter, BattleMapData, CombatAction } from '../../../types/combat';
 import { AI_THINKING_DELAY_MS } from '../../../config/combatConfig';
+import { AIConfigProvider } from '../../../context/AIConfigContext';
 
 const mockEvaluateCombatTurn = vi.fn();
 
@@ -275,5 +277,90 @@ describe('useCombatAI', () => {
 
     expect(mockEvaluateCombatTurn).toHaveBeenCalledTimes(2);
     expect(mockEndTurn).toHaveBeenCalledTimes(1);
+  });
+
+  it('reads the thinking delay from AIConfigContext instead of the difficulty table', async () => {
+    const customDelay = 4000;
+    // 4000ms is far outside the 500/1000/1500 difficulty table, so only the
+    // provider value can be what the hook waits for.
+    expect(Object.values(AI_THINKING_DELAY_MS)).not.toContain(customDelay);
+
+    mockEvaluateCombatTurn.mockReturnValue(endTurnAction);
+    const mockExecuteAbility = vi.fn().mockResolvedValue(undefined);
+
+    const wrapper = ({ children }: { children: React.ReactNode }) => React.createElement(
+      AIConfigProvider,
+      { value: { thinkingDelayMs: { easy: customDelay, normal: customDelay, hard: customDelay } } },
+      children
+    );
+
+    renderHook(() => useCombatAI({
+      difficulty: 'easy',
+      characters: [mockCharacter, playerTarget],
+      mapData: mockMapData,
+      currentCharacterId: mockCharacter.id,
+      executeAction: mockExecuteAction,
+      executeAbility: mockExecuteAbility,
+      endTurn: mockEndTurn,
+      autoCharacters: new Set()
+    }), { wrapper });
+
+    // The old hardcoded easy delay has fully elapsed and nothing has planned.
+    act(() => {
+      vi.advanceTimersByTime(AI_THINKING_DELAY_MS.easy);
+    });
+    await act(async () => {
+      await Promise.resolve();
+    });
+    expect(mockEvaluateCombatTurn).not.toHaveBeenCalled();
+
+    // Reaching the provider's delay starts the turn.
+    act(() => {
+      vi.advanceTimersByTime(customDelay - AI_THINKING_DELAY_MS.easy);
+    });
+    await act(async () => {
+      await Promise.resolve();
+    });
+    expect(mockEvaluateCombatTurn).toHaveBeenCalledTimes(1);
+    expect(mockEndTurn).toHaveBeenCalledTimes(1);
+  });
+
+  it('lets a per-monster override beat the difficulty delay for that creature only', async () => {
+    const monsterDelay = 7000;
+    mockEvaluateCombatTurn.mockReturnValue(endTurnAction);
+    const mockExecuteAbility = vi.fn().mockResolvedValue(undefined);
+
+    const wrapper = ({ children }: { children: React.ReactNode }) => React.createElement(
+      AIConfigProvider,
+      { value: { perMonsterOverrides: { [mockCharacter.id]: monsterDelay } } },
+      children
+    );
+
+    renderHook(() => useCombatAI({
+      difficulty: 'easy',
+      characters: [mockCharacter, playerTarget],
+      mapData: mockMapData,
+      currentCharacterId: mockCharacter.id,
+      executeAction: mockExecuteAction,
+      executeAbility: mockExecuteAbility,
+      endTurn: mockEndTurn,
+      autoCharacters: new Set()
+    }), { wrapper });
+
+    act(() => {
+      vi.advanceTimersByTime(AI_THINKING_DELAY_MS.hard);
+    });
+    await act(async () => {
+      await Promise.resolve();
+    });
+    expect(mockEvaluateCombatTurn).not.toHaveBeenCalled();
+
+    act(() => {
+      vi.advanceTimersByTime(monsterDelay - AI_THINKING_DELAY_MS.hard);
+    });
+    await act(async () => {
+      await Promise.resolve();
+    });
+    expect(mockEvaluateCombatTurn).toHaveBeenCalledTimes(1);
   });
 });

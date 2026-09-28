@@ -41,7 +41,7 @@
  */
 import React, { lazy, Suspense, useEffect, useMemo, useRef } from 'react';
 import { getAbilityModifierValue } from '../../utils/character/statUtils';
-import { GameState, Action, Location, NPC, Item, PlayerCharacter, MissingChoice, MapTile, GamePhase } from '../../types';
+import { GameState, Action, Location, NPC, Item, PlayerCharacter, MissingChoice, WorldCellView, GamePhase } from '../../types';
 import { AppAction } from '../../state/actionTypes';
 import { STARTER_SHIP_COST } from '../../state/reducers/navalReducer';
 import { NPCS } from '../../data/world/npcs';
@@ -78,7 +78,9 @@ const MerchantModal = lazy(() => import('../Trade/MerchantModal'));
 const GameGuideModal = lazy(() => import('../ui/GameGuideModal'));
 const MissingChoiceModal = lazy(() => import('../ui/MissingChoiceModal'));
 const TempleModal = lazy(() => import('../Religion/TempleModal'));
-// REVIEW: Verify that DialogueInterface is indeed a named export. If it is the default export, this lazy loading pattern .then(module => ({ default: module.DialogueInterface })) will fail. (Consistency check with Glossary import at line 35).
+// Verified 2026-09-09: DialogueInterface.tsx exports ONLY `export const DialogueInterface` (no default export),
+// so the `.then(module => ({ default: module.DialogueInterface }))` shim below is required and correct.
+// Preserved as a note rather than deleted: if that module ever gains a default export, this shim must be dropped.
 const DialogueInterface = lazy(() => import('../Dialogue/DialogueInterface').then(module => ({ default: module.DialogueInterface })));
 const ThievesGuildInterface = lazy(() => import('../Crime/ThievesGuild/ThievesGuildInterface'));
 const ThievesGuildSafehouse = lazy(() => import('../Crime/ThievesGuild/ThievesGuildSafehouse').then(module => ({ default: module.ThievesGuildSafehouse })));
@@ -95,13 +97,18 @@ const InvestmentBoard = lazy(() => import('../Economy/InvestmentBoard'));
 const LedgerBook = lazy(() => import('../Economy/LedgerBook'));
 const CourierPouch = lazy(() => import('../Economy/CourierPouch'));
 const CommerceDesk = lazy(() => import('../Economy/CommerceDesk'));
+const SalvageModal = lazy(() => import('../Crafting/SalvageModal'));
+const BankModal = lazy(() => import('../Economy/BankModal'));
+const RealEstateModal = lazy(() => import('../Economy/RealEstateModal'));
+const ShopModal = lazy(() => import('../Economy/ShopModal'));
+const TradeRouteModal = lazy(() => import('../Economy/TradeRouteModal'));
 
 interface GameModalsProps {
     gameState: GameState;
     dispatch: React.Dispatch<AppAction>;
     onAction: (action: Action) => void;
-    onTileClick: (x: number, y: number, tile: MapTile, travelMeta?: import('../../types/travelMeta').TravelMeta) => void;
-    onEnter3DAtCell?: (x: number, y: number, tile: MapTile) => void;
+    onTileClick: (x: number, y: number, cell: WorldCellView, travelMeta?: import('../../types/travelMeta').TravelMeta) => void;
+    onEnter3DAtCell?: (x: number, y: number, cell: WorldCellView) => void;
     playerWorldPos?: GameState['playerWorldPos'];
     allow3DEntry?: boolean;
     currentLocation: Location;
@@ -235,18 +242,59 @@ const GameModals: React.FC<GameModalsProps> = ({
         { id: 'courier', isOpen: gameState.isCourierPouchVisible, close: () => dispatch({ type: 'TOGGLE_COURIER_POUCH' }), locksBackgroundScroll: true },
         { id: 'ledger', isOpen: gameState.isEconomyLedgerVisible, close: () => dispatch({ type: 'TOGGLE_ECONOMY_LEDGER' }), locksBackgroundScroll: true },
         { id: 'commerce', isOpen: gameState.isCommerceDeskVisible, close: () => dispatch({ type: 'TOGGLE_COMMERCE_DESK' }), locksBackgroundScroll: true },
+        { id: 'salvage', isOpen: Boolean(gameState.isSalvageModalVisible), close: () => dispatch({ type: 'TOGGLE_SALVAGE_MODAL' }), locksBackgroundScroll: true },
+        { id: 'bank', isOpen: Boolean(gameState.isBankModalVisible), close: () => dispatch({ type: 'TOGGLE_BANK_MODAL' }), locksBackgroundScroll: true },
+        { id: 'real-estate', isOpen: Boolean(gameState.isRealEstateModalVisible), close: () => dispatch({ type: 'TOGGLE_REAL_ESTATE_MODAL' }), locksBackgroundScroll: true },
+        { id: 'shop', isOpen: Boolean(gameState.isShopModalVisible), close: () => dispatch({ type: 'TOGGLE_SHOP_MODAL' }), locksBackgroundScroll: true },
+        { id: 'trade-route-modal', isOpen: Boolean(gameState.isTradeRouteModalVisible), close: () => dispatch({ type: 'TOGGLE_TRADE_ROUTE_MODAL' }), locksBackgroundScroll: false },
         { id: 'map', isOpen: gameState.isMapVisible, close: () => onAction({ type: 'toggle_map', label: 'Close Map' }), locksBackgroundScroll: true },
-        // Scroll-lock-only (own Escape in child, or intentionally no fallback close).
-        { id: 'character-sheet', isOpen: gameState.characterSheetModal.isOpen, locksBackgroundScroll: true },
-        { id: 'dev-menu', isOpen: Boolean(gameState.isDevMenuVisible && canUseDevTools()), locksBackgroundScroll: true },
-        { id: 'party', isOpen: gameState.isPartyOverlayVisible, locksBackgroundScroll: true },
-        { id: 'dossier', isOpen: gameState.isLogbookVisible, locksBackgroundScroll: true },
-        { id: 'discovery', isOpen: gameState.isDiscoveryLogVisible, locksBackgroundScroll: true },
-        { id: 'gemini-log', isOpen: Boolean(gameState.isGeminiLogViewerVisible), locksBackgroundScroll: true },
-        { id: 'unified-log', isOpen: Boolean(gameState.isUnifiedLogViewerVisible), locksBackgroundScroll: true },
-        { id: 'npc-test', isOpen: gameState.isNpcTestModalVisible, locksBackgroundScroll: true },
+        // ----- UI-2 Escape audit (2026-09-09) -----
+        // Every overlay below was mounted by this file (or by DebugModals, which
+        // reads the same gameState flags) but had NO Escape route at all: it was
+        // either absent from this registry entirely, or present with only a
+        // scroll-lock entry while its child bound nothing. Each one was checked
+        // for a child Escape binding before being given a fallback `close`, so
+        // none of these dismisses two overlays with one key.
+        // Ordering is nesting order: a modal opened FROM another must sit above
+        // it, so Escape peels the stack one layer at a time.
+        { id: 'character-sheet', isOpen: gameState.characterSheetModal.isOpen, close: handleCloseCharacterSheet, locksBackgroundScroll: true },
+        // Both rest dialogs open FROM the Party Overlay and handle Escape
+        // themselves (ModalDialog's focus trap). They carry no fallback close,
+        // but their position still matters: sitting above the Party Overlay is
+        // what tells the shared handler to stand down while one of them is up,
+        // instead of closing the overlay underneath them.
         { id: 'long-rest', isOpen: Boolean(gameState.isLongRestModalVisible), locksBackgroundScroll: true },
         { id: 'short-rest', isOpen: Boolean(gameState.isShortRestModalVisible), locksBackgroundScroll: true },
+        // Party Overlay is the parent of the character sheet and of both rest
+        // dialogs, so it must come after all three.
+        { id: 'party', isOpen: gameState.isPartyOverlayVisible, close: handleClosePartyOverlay, locksBackgroundScroll: true },
+        // Heist Planning is deliberately NOT Escape-closeable: its only close
+        // action is ABORT_HEIST, which throws away the planned job. A stray
+        // Escape must not cost the player a heist; the window's ✕ stays the
+        // single, deliberate way out. It sits here, above the guild surfaces it
+        // is planned from, so that while it is up Escape does not reach past it
+        // and close the Thieves Guild interface underneath.
+        { id: 'heist-planning', isOpen: gameState.activeHeist?.phase === 'Planning', locksBackgroundScroll: true },
+        { id: 'thieves-guild-safehouse', isOpen: Boolean(gameState.isThievesGuildSafehouseVisible && gameState.thievesGuild), close: () => dispatch({ type: 'TOGGLE_THIEVES_GUILD_SAFEHOUSE' }), locksBackgroundScroll: true },
+        { id: 'thieves-guild', isOpen: gameState.isThievesGuildVisible, close: () => dispatch({ type: 'TOGGLE_THIEVES_GUILD' }), locksBackgroundScroll: true },
+        { id: 'dialogue', isOpen: Boolean(gameState.isDialogueInterfaceOpen && gameState.activeDialogueSession), close: () => dispatch({ type: 'END_DIALOGUE_SESSION' }), locksBackgroundScroll: true },
+        { id: 'naval-dashboard', isOpen: gameState.isNavalDashboardVisible, close: () => dispatch({ type: 'TOGGLE_NAVAL_DASHBOARD' }), locksBackgroundScroll: true },
+        // Dev tools. They are reachable only behind canUseDevTools(), but a
+        // developer is still a user and these were the last overlays a player
+        // build could strand open.
+        { id: 'party-editor', isOpen: Boolean(gameState.isPartyEditorVisible && canUseDevTools()), close: () => dispatch({ type: 'TOGGLE_PARTY_EDITOR_MODAL' }), locksBackgroundScroll: true },
+        { id: 'noble-house-list', isOpen: Boolean(gameState.isNobleHouseListVisible), close: () => dispatch({ type: 'TOGGLE_NOBLE_HOUSE_LIST' }), locksBackgroundScroll: true },
+        { id: 'gemini-log', isOpen: Boolean(gameState.isGeminiLogViewerVisible), close: () => dispatch({ type: 'TOGGLE_GEMINI_LOG_VIEWER' }), locksBackgroundScroll: true },
+        { id: 'unified-log', isOpen: Boolean(gameState.isUnifiedLogViewerVisible), close: () => dispatch({ type: 'TOGGLE_UNIFIED_LOG_VIEWER' }), locksBackgroundScroll: true },
+        { id: 'npc-test', isOpen: gameState.isNpcTestModalVisible, close: () => dispatch({ type: 'TOGGLE_NPC_TEST_MODAL' }), locksBackgroundScroll: true },
+        // Scroll-lock-only (own Escape in child, or intentionally no fallback close).
+        // These bind Escape themselves and must not also appear in the fallback
+        // chain — DevMenu, DossierPane and DiscoveryLogPane each install their
+        // own `window` keydown listener. They are bottom-of-stack surfaces, so
+        // unlike the rest dialogs above their position carries no extra meaning.
+        { id: 'dev-menu', isOpen: Boolean(gameState.isDevMenuVisible && canUseDevTools()), locksBackgroundScroll: true },
+        { id: 'dossier', isOpen: gameState.isLogbookVisible, locksBackgroundScroll: true },
+        { id: 'discovery', isOpen: gameState.isDiscoveryLogVisible, locksBackgroundScroll: true },
     ];
     useModalOrchestration(modalEntries);
 
@@ -888,6 +936,65 @@ const GameModals: React.FC<GameModalsProps> = ({
                         <CommerceDesk
                             isOpen={gameState.isCommerceDeskVisible}
                             onClose={() => dispatch({ type: 'TOGGLE_COMMERCE_DESK' })}
+                        />
+                    </ErrorBoundary>
+                </Suspense>
+            )}
+
+            {/* Salvage Modal — equipment breakdown workshop interface */}
+            {gameState.isSalvageModalVisible && (
+                <Suspense key="salvage" fallback={<LoadingSpinner />}>
+                    <ErrorBoundary fallbackMessage="Error in Salvage Modal.">
+                        <SalvageModal
+                            onClose={() => dispatch({ type: 'TOGGLE_SALVAGE_MODAL' })}
+                        />
+                    </ErrorBoundary>
+                </Suspense>
+            )}
+
+            {/* Bank Modal — loans, credit, and investments */}
+            {gameState.isBankModalVisible && (
+                <Suspense key="bank" fallback={<LoadingSpinner />}>
+                    <ErrorBoundary fallbackMessage="Error in Bank Modal.">
+                        <BankModal
+                            isOpen={gameState.isBankModalVisible}
+                            onClose={() => dispatch({ type: 'TOGGLE_BANK_MODAL' })}
+                        />
+                    </ErrorBoundary>
+                </Suspense>
+            )}
+
+            {/* Real Estate Modal — property deeds and commercial management */}
+            {gameState.isRealEstateModalVisible && (
+                <Suspense key="real-estate" fallback={<LoadingSpinner />}>
+                    <ErrorBoundary fallbackMessage="Error in Real Estate Modal.">
+                        <RealEstateModal
+                            isOpen={gameState.isRealEstateModalVisible}
+                            onClose={() => dispatch({ type: 'TOGGLE_REAL_ESTATE_MODAL' })}
+                        />
+                    </ErrorBoundary>
+                </Suspense>
+            )}
+
+            {/* Shop Modal — merchant trading and wares */}
+            {gameState.isShopModalVisible && (
+                <Suspense key="shop" fallback={<LoadingSpinner />}>
+                    <ErrorBoundary fallbackMessage="Error in Shop Modal.">
+                        <ShopModal
+                            isOpen={gameState.isShopModalVisible}
+                            onClose={() => dispatch({ type: 'TOGGLE_SHOP_MODAL' })}
+                        />
+                    </ErrorBoundary>
+                </Suspense>
+            )}
+
+            {/* Trade Route Modal — caravan logistics and market intelligence */}
+            {gameState.isTradeRouteModalVisible && (
+                <Suspense key="trade-route-modal" fallback={<LoadingSpinner />}>
+                    <ErrorBoundary fallbackMessage="Error in Trade Route Modal.">
+                        <TradeRouteModal
+                            isOpen={gameState.isTradeRouteModalVisible}
+                            onClose={() => dispatch({ type: 'TOGGLE_TRADE_ROUTE_MODAL' })}
                         />
                     </ErrorBoundary>
                 </Suspense>

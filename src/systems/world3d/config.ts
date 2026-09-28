@@ -18,7 +18,7 @@ export const WORLD3D_CONFIG = {
   CHUNK_WORLD_SIZE: 128,
   /** How many world meters one WorldData grid cell spans. Must be a multiple of CHUNK_WORLD_SIZE. */
   METERS_PER_CELL: 1024,
-  /** Vertices per chunk edge for the placeholder heightfield (Plan 3 refines per-LOD). */
+  /** Baseline vertices per chunk edge for the heightfield mesh (refined per-LOD below). */
   HEIGHTFIELD_RESOLUTION: 17,
   /**
    * Per-LOD-tier mesh resolution (vertices per chunk edge). Distant chunks use

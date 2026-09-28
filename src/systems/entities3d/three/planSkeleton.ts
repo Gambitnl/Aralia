@@ -49,7 +49,7 @@
  * ignores them rather than skinning them (Remy-approved design, 2026-07-24).
  * What is preserved: PlanDriver, TreadmillLeg, chain math, and the segment
  * renderer are all untouched; bodyTech 'segments' remains the default.
- * Deferred: creature SMOOTH joint weights, species gaits (quad/hexapod/etc.).
+ * Deferred (agora-6816, agora-bc64): creature SMOOTH joint weights, species gaits (quad/hexapod/etc.).
  */
 import { Bone, Quaternion, Vector3 } from 'three';
 import type { Frame, PlanSpec, SegmentSink } from '../types';
@@ -558,6 +558,25 @@ export function createPlanPoseSink(skeleton: BuiltPlanSkeleton, decorativeDelega
     collar: (id, rootX, rootY, rootZ, ax, ay, az, limbR, reach) => {
       decorativeDelegate?.collar?.(id, rootX, rootY, rootZ, ax, ay, az, limbR, reach);
     },
+    // GG-153 (agora-2976): the dorsal crest LOFT. The plan driver only emits
+    // `sink.fin('crest', …)` when the sink implements fin() — this sink did
+    // not, so the skinned path silently took the driver's per-blade fallback
+    // (body-tone `crest.N` cones, no web ribbon) while the segment path drew
+    // the accent-toned serrated fin. Forwarding fin() to the anchor-path
+    // delegate restores the same crest on both paths. Like every other
+    // decorative emission this is the segment renderer's to draw — the crest
+    // rides the live spine and owns no bone.
+    // Attached ONLY when the delegate can actually draw a fin: the driver
+    // reads `sink.fin` as a capability probe, so an always-present stub would
+    // suppress the per-blade fallback and drop the crest entirely on sinks
+    // with no delegate (parity captures, wireframe).
+    ...(decorativeDelegate?.fin
+      ? {
+        fin: (id: string, base: number[], top: number[], widths: number[]): void => {
+          decorativeDelegate.fin!(id, base, top, widths);
+        },
+      }
+      : {}),
   };
 
   /**

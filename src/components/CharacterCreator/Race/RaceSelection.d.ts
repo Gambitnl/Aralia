@@ -17,24 +17,19 @@
  * subraces (variants) under their base parent races (e.g., High Elf and
  * Wood Elf under 'Elf') to keep the selection sidebar manageable.
  *
- * Recent updates focus on 'State Synchronization' and 'Choice Isolation'.
- * - Refined the `useEffect` used to reset racial choices (like Keen
- *   Senses or Spellcasting Ability). It now depends on `effectiveRaceId`
- *   to ensure that switching between similar subraces or groups correctly
- *   clears stale local state.
- * - Added `eslint-disable` for `react-hooks/set-state-in-effect`. While
- *   resetting state in an effect can cause extra renders, it is currently
- *   required here to ensure that "hidden" choices for a newly selected
- *   race don't inherit values from the previous one.
- * - Improved darkvision and speed extraction logic in `transformRaceData`
- *   to handle variations in trait text formatting across different race
- *   definitions.
+ * The per-race draft is owned by a reducer (agora-b6fc), not by mirrored
+ * component state. `buildRaceDraft` derives the draft for the race being
+ * viewed from the saved selections, and `raceDraftReducer` stores an edited
+ * draft beside the `RaceDraftKey` it was edited against, so a stale edit
+ * cannot survive a race change. Those pieces are exported and are part of
+ * this module's public surface, which is why they appear below.
  *
  * @file src/components/CharacterCreator/Race/RaceSelection.tsx
  */
 import React from 'react';
 import { Race, RacialSelectionData } from '../../../types';
 import { RacialChoiceData } from './RaceDetailPane';
+type AbilityScoreName = 'Intelligence' | 'Wisdom' | 'Charisma';
 interface RaceSelectionProps {
     races: Race[];
     onRaceSelect: (raceId: string, choices?: RacialChoiceData) => void;
@@ -42,5 +37,51 @@ interface RaceSelectionProps {
     racialSelections?: Record<string, RacialSelectionData>;
     onBack?: () => void;
 }
+export interface RaceDraft {
+    spellAbility: AbilityScoreName | null;
+    keenSensesSkillId: string | null;
+    centaurNaturalAffinitySkillId: string | null;
+    changelingInstinctSkillIds: Set<string>;
+    changelingSize: 'Small' | 'Medium' | null;
+    skillIds: string[];
+    toolIds: string[];
+    cantripIds: string[];
+}
+/** Everything the derived draft depends on. Compared by identity. */
+export interface RaceDraftKey {
+    raceId: string | null;
+    race: Race | undefined;
+    racialSelections: Record<string, RacialSelectionData>;
+}
+export declare const buildRaceDraft: ({ raceId, race, racialSelections }: RaceDraftKey) => RaceDraft;
+export declare const isSameRaceDraftKey: (a: RaceDraftKey, b: RaceDraftKey) => boolean;
+export type RaceDraftAction = {
+    key: RaceDraftKey;
+} & ({
+    field: 'spellAbility';
+    value: AbilityScoreName | null;
+} | {
+    field: 'keenSensesSkillId';
+    value: string | null;
+} | {
+    field: 'centaurNaturalAffinitySkillId';
+    value: string | null;
+} | {
+    field: 'changelingSize';
+    value: 'Small' | 'Medium' | null;
+} | {
+    field: 'changelingInstinctSkillIds';
+    skillId: string;
+} | {
+    field: 'skillIds' | 'toolIds' | 'cantripIds';
+    id: string;
+    maxChoices: number;
+});
+export interface RaceDraftState {
+    key: RaceDraftKey;
+    draft: RaceDraft;
+}
+export declare const createRaceDraftState: (key: RaceDraftKey) => RaceDraftState;
+export declare const raceDraftReducer: (state: RaceDraftState, action: RaceDraftAction) => RaceDraftState;
 declare const RaceSelection: React.FC<RaceSelectionProps>;
 export default RaceSelection;

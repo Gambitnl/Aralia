@@ -65,7 +65,8 @@
 
                                                        ],
                                      "excludeCreatureTypes":  [
-
+                                                                  "Construct",
+                                                                  "Undead"
                                                               ],
                                      "sizes":  [
 
@@ -125,7 +126,8 @@
 
                                                                                  ],
                                                                "excludeCreatureTypes":  [
-
+                                                                                            "Construct",
+                                                                                            "Undead"
                                                                                         ],
                                                                "sizes":  [
 
@@ -164,7 +166,7 @@
                                           "saveModifiers":  [
                                                                 {
                                                                     "type":  "advantage",
-                                                                    "reason":  "The target has Advantage on the Wisdom saving throw if the caster or the caster\u0027s allies are fighting it.",
+                                                                    "reason":  "The target has Advantage on the Wisdom saving throw if the caster or the caster's allies are fighting it.",
                                                                     "condition":  "caster_or_allies_fighting_target"
                                                                 }
                                                             ],
@@ -194,12 +196,12 @@
                                         "bonusPerLevel":  "",
                                         "customFormula":  ""
                                     },
-                        "description":  "One visible creature within 30 feet makes a Wisdom save, with Advantage if the caster or the caster\u0027s allies are fighting it; on a failed save, it is Charmed for up to 1 hour and the condition ends early if the caster or allies damage it.",
+                        "description":  "One visible creature within 30 feet makes a Wisdom save, with Advantage if the caster or the caster's allies are fighting it; on a failed save, it is Charmed for up to 1 hour and the condition ends early if the caster or allies damage it.",
                         "conditionalEndings":  [
                                                    {
                                                        "trigger":  "caster_or_ally_damages_target",
                                                        "scope":  "effect",
-                                                       "description":  "The Charmed condition ends early if the caster or the caster\u0027s allies damage the target."
+                                                       "description":  "The Charmed condition ends early if the caster or the caster's allies damage the target."
                                                    }
                                                ],
                         "socialEffect":  {

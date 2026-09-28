@@ -24,6 +24,11 @@ const STEEL = '#aab4bf';
  * instead of one bowl under the toon ramp. */
 const DARK_STEEL = '#6e7784';
 const LEATHER = '#6e4a32';
+/** Fallback palette-aware helpers: prefer the class-specific palette fields
+ * when present, fall back to the hardcoded constants. The metallic surface
+ * type tells toonMaterial to lighten and cool the color for a metal read. */
+function metalHex(ctx: { palette: { metalHex?: string } }): string { return ctx.palette.metalHex ?? STEEL; }
+function leatherHex(ctx: { palette: { leatherHex?: string } }): string { return ctx.palette.leatherHex ?? LEATHER; }
 /** round 22 (humanoid-anatomy): the shadow a plate casts on the mass it is
  * strapped to. Near-black and near-neutral so it can never quantize up into
  * the steel's lit band — the same rule BOOT_TINT learned in round 21b. */
@@ -53,8 +58,8 @@ const shieldOff: PartDef = {
     const group = new Group();
     const disc = new Mesh(new CylinderGeometry(u, u, u * 0.12, 18), ctx.material(ctx.palette.accentHex));
     disc.rotation.x = Math.PI / 2;
-    const rim = new Mesh(new TorusGeometry(u, u * 0.06, 6, 18), ctx.material(STEEL));
-    const boss = new Mesh(new SphereGeometry(u * 0.22, 10, 8), ctx.material(STEEL));
+    const rim = new Mesh(new TorusGeometry(u, u * 0.06, 6, 18), ctx.material(metalHex(ctx), 'metallic'));
+    const boss = new Mesh(new SphereGeometry(u * 0.22, 10, 8), ctx.material(metalHex(ctx), 'metallic'));
     boss.position.z = u * 0.1;
     group.add(disc, rim, boss);
     // round 21: the CARRY. Round 20 also read the shield as "hanging beside
@@ -62,10 +67,10 @@ const shieldOff: PartDef = {
     // face — the enarme the forearm slides through and the grip bar the fist
     // closes on — so the back of the shield reads as harness in the side, 3/4
     // and top panels, which is exactly where the fist is now visible behind it.
-    const enarme = new Mesh(new CylinderGeometry(u * 0.07, u * 0.07, u * 1.05, 6), ctx.material(LEATHER));
+    const enarme = new Mesh(new CylinderGeometry(u * 0.07, u * 0.07, u * 1.05, 6), ctx.material(leatherHex(ctx)));
     enarme.rotation.z = Math.PI / 2;
     enarme.position.set(0, u * 0.34, -u * 0.12);
-    const gripBar = new Mesh(new CylinderGeometry(u * 0.07, u * 0.07, u * 0.86, 6), ctx.material(LEATHER));
+    const gripBar = new Mesh(new CylinderGeometry(u * 0.07, u * 0.07, u * 0.86, 6), ctx.material(leatherHex(ctx)));
     gripBar.rotation.z = Math.PI / 2;
     gripBar.position.set(0, -u * 0.18, -u * 0.12);
     group.add(enarme, gripBar);
@@ -115,7 +120,7 @@ const helmet: PartDef = {
     // loft's own brow shelf, sockets, and lidded eyes stay visible under it.
     const r = hr(ctx.frame) * 0.98;
     const group = new Group();
-    const dome = new Mesh(new SphereGeometry(r, 12, 8, 0, Math.PI * 2, 0, Math.PI * 0.46), ctx.material(STEEL));
+    const dome = new Mesh(new SphereGeometry(r, 12, 8, 0, Math.PI * 2, 0, Math.PI * 0.46), ctx.material(metalHex(ctx), 'metallic'));
     dome.position.y = r * 0.32;
     // round 17 (humanoid-anatomy): footprint widened 0.88 → 0.96 wide and
     // 1.04 deep — the narrow dome read as a beanie floating on the skull in
@@ -132,17 +137,17 @@ const helmet: PartDef = {
     // y ≈ 0.445 r with radius ≈ 0.99 r), two hanging cheek guards that give the
     // helmet a silhouette below the rim in the front and 3/4 panels, and a
     // darker crown band that breaks the dome into two value plates.
-    const brim = new Mesh(new TorusGeometry(r * 0.99, r * 0.1, 6, 18), ctx.material(DARK_STEEL));
+    const brim = new Mesh(new TorusGeometry(r * 0.99, r * 0.1, 6, 18), ctx.material(metalHex(ctx), 'metallic'));
     brim.rotation.x = Math.PI / 2;
     brim.position.y = r * 0.445;
     brim.scale.set(0.96, 1.04, 1);
-    const crownBand = new Mesh(new TorusGeometry(r * 0.78, r * 0.06, 5, 16), ctx.material(DARK_STEEL));
+    const crownBand = new Mesh(new TorusGeometry(r * 0.78, r * 0.06, 5, 16), ctx.material(metalHex(ctx), 'metallic'));
     crownBand.rotation.x = Math.PI / 2;
     crownBand.position.y = r * 0.86;
     crownBand.scale.set(0.96, 1.04, 1);
     group.add(brim, crownBand);
     for (const sgn of [-1, 1]) {
-      const cheek = new Mesh(new BoxGeometry(r * 0.14, r * 0.62, r * 0.72), ctx.material(STEEL));
+      const cheek = new Mesh(new BoxGeometry(r * 0.14, r * 0.62, r * 0.72), ctx.material(metalHex(ctx), 'metallic'));
       cheek.position.set(sgn * r * 0.9, r * 0.14, -r * 0.02);
       cheek.rotation.z = sgn * 0.12;
       group.add(cheek);
@@ -284,13 +289,13 @@ const pauldrons: PartDef = {
     //     rests on, and it is what stops the pauldron from floating.
     for (const sgn of [-1, 1]) {
       const x = sgn * cx;
-      const dome = new Mesh(new CylinderGeometry(r * 0.42, r * 0.88, r * 0.55, 9), ctx.material(STEEL));
+      const dome = new Mesh(new CylinderGeometry(r * 0.42, r * 0.88, r * 0.55, 9), ctx.material(metalHex(ctx), 'metallic'));
       dome.position.set(x, cy + deltR * 0.5, cz);
       dome.rotation.z = sgn * -0.35;
-      const rim = new Mesh(new CylinderGeometry(r * 0.95, r * 1.08, r * 0.3, 9), ctx.material(STEEL));
+      const rim = new Mesh(new CylinderGeometry(r * 0.95, r * 1.08, r * 0.3, 9), ctx.material(metalHex(ctx), 'metallic'));
       rim.position.set(x, cy + deltR * 0.28, cz);
       rim.rotation.z = sgn * -0.35;
-      const edge = new Mesh(new CylinderGeometry(r * 1.14, r * 1.1, r * 0.16, 9), ctx.material(DARK_STEEL));
+      const edge = new Mesh(new CylinderGeometry(r * 1.14, r * 1.1, r * 0.16, 9), ctx.material(metalHex(ctx), 'metallic'));
       edge.position.set(x, cy + deltR * 0.11, cz);
       edge.rotation.z = sgn * -0.35;
       const seat = new Mesh(new CylinderGeometry(r * 1.02, r * 0.72, r * 0.22, 9), ctx.material(PLATE_SHADOW));
@@ -335,7 +340,7 @@ const beltPouch: PartDef = {
   buildMesh(ctx) {
     const r = hr(ctx.frame);
     const group = new Group();
-    const pouch = new Mesh(new SphereGeometry(r * 0.35, 8, 6), ctx.material(LEATHER));
+    const pouch = new Mesh(new SphereGeometry(r * 0.35, 8, 6), ctx.material(leatherHex(ctx)));
     pouch.scale.set(1, 0.85, 0.7);
     pouch.position.set(r * 0.95, -r * 0.1, r * 0.55);
     const flap = new Mesh(new BoxGeometry(r * 0.5, r * 0.12, r * 0.45), ctx.material('#54402c'));
@@ -353,7 +358,7 @@ const quiverBack: PartDef = {
     const h = heightM(ctx.frame);
     const r = hr(ctx.frame);
     const group = new Group();
-    const tube = new Mesh(new CylinderGeometry(r * 0.32, r * 0.28, h * 0.28, 10), ctx.material(LEATHER));
+    const tube = new Mesh(new CylinderGeometry(r * 0.32, r * 0.28, h * 0.28, 10), ctx.material(leatherHex(ctx)));
     for (let i = 0; i < 3; i++) {
       const arrow = new Mesh(new CylinderGeometry(r * 0.035, r * 0.035, h * 0.14, 4), ctx.material('#8a6742'));
       arrow.position.set((i - 1) * r * 0.12, h * 0.19, (i % 2) * r * 0.08);

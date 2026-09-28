@@ -364,7 +364,15 @@ for (const id of ids) {
     };
     let clusters = [];
     let usedGap = 0;
-    for (let gap = 0.0026; gap >= 0.0011; gap -= 0.0002) {
+    // Floor 0.9mm, was 1.1mm. Re-swept on the SCULPTS 2026-09-09 (board task
+    // agora-ceb7 — they had never been measured): figure B splits at 2.0mm /
+    // 1.6mm, figure A's right hand at 1.2mm, and figure A's LEFT hand needs
+    // 1.0mm — one step below the old floor, so it reported "tip band never
+    // split into 4, best 3" and silently kept its heuristic landmarks. The
+    // loop stops at the FIRST gap that yields four clusters, so every body
+    // that already split is untouched; only a hand that found nothing walks
+    // into the new steps.
+    for (let gap = 0.0026; gap >= 0.0009; gap -= 0.0002) {
       clusters = clusterAt(gap * H);
       usedGap = gap;
       if (clusters.length >= 4) break;

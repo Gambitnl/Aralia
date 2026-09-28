@@ -16,7 +16,8 @@ import { rollAbilityCheck, type CheckResult } from '../../../../../utils/charact
 import { calculateProficiencyBonus, rollSavingThrow, type SavingThrowResult } from '../../../../../utils/character/savingThrowUtils';
 import { getAbilityModifierValue } from '../../../../../utils/character/statUtils';
 import { canAffordActionCost, consumeActionCost, resetEconomy } from '../../../../../utils/combat/actionEconomyUtils';
-import { resolveAttack, rollDice, type AttackResult } from '../../../../../utils/combat/combatUtils';
+import { resolveAttack, type AttackResult } from '../../../../../utils/combat/combatUtils';
+import { rollDice } from '../../../../../systems/dice/rollers';
 import { createQuickCharacter, createQuickCombatCharacter } from '../../../../../utils/sandbox/quickCharacterGenerator';
 import { Button } from '../../../../ui/Button';
 import type { PlayerCharacter, Race } from '../../../../../types';

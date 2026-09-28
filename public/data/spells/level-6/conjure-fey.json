@@ -134,7 +134,7 @@
                                        "formOptions":  [
                                                            "Fey creature appearance chosen by the caster"
                                                        ],
-                                       "objectDescription":  "Medium Feywild spirit that serves as the origin for the caster\u0027s repeatable teleport-and-melee-spell-attack loop.",
+                                       "objectDescription":  "Medium Feywild spirit that serves as the origin for the caster's repeatable teleport-and-melee-spell-attack loop.",
                                        "statBlock":  {
                                                          "name":  "Fey Spirit",
                                                          "type":  "Fey",

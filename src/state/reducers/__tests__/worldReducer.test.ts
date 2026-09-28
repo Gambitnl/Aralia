@@ -8,7 +8,8 @@
 
 import { describe, it, expect, vi } from "vitest";
 import { worldReducer } from "../worldReducer";
-import { GameState, MapData } from "../../../types";
+// Grid retirement (agora-608b): `MapData` was imported but never used here.
+import { GameState } from "../../../types";
 import { WeatherState } from "../../../types/environment";
 import { getGameDay } from "../../../utils/core";
 import { createMockGameState } from "../../../utils/core";

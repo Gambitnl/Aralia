@@ -88,22 +88,21 @@ test('unhandled rejection writes attributable crash evidence before exit', () =>
   assert.match(crashLog, new RegExp(message));
 });
 
-test('daemon CLI records a fatal listener error in its runtime directory', async () => {
-  // Occupy an operating-system-assigned port so the real daemon CLI fails after installing its
-  // handlers. This proves server.mjs wiring, not only the helper in isolation.
+test('daemon CLI ends a double start on a held port with a plain message, not a fatal log (WF-G108)', async () => {
+  // WF-G108 (2026-09-09): this case used to expect EADDRINUSE to reach the fatal handler.
+  // server.mjs gained a busy-port pre-probe on 2026-08-27 (5/5 recorded crashes were a second
+  // `npm run agora` racing a live daemon), so a held port now ends with exit 0 and one
+  // explanatory line, and NO crash log. The test proves that contract instead of the old one.
+  // The two cases above still prove that a real fatal reaches daemon-crash.log with exit 1.
   const portHolder = net.createServer();
   await new Promise((resolve, reject) => {
     portHolder.once('error', reject);
-    // Match server.mjs by omitting a host. Binding only IPv4 localhost can coexist with the
-    // daemon's unspecified-address listener on Windows and would fail to induce the crash.
-    portHolder.listen(0, resolve);
+    portHolder.listen(0, '127.0.0.1', resolve);
   });
   const address = portHolder.address();
   assert.equal(typeof address, 'object');
 
-  // Give the failed daemon a fresh runtime directory, then launch it on the occupied port. The
-  // listener error is uncaught by design and should flow through the production fatal handler.
-  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'agora-server-fatal-'));
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'agora-server-busy-'));
   const child = spawnSync(process.execPath, [
     serverFile,
     '--port',
@@ -116,16 +115,13 @@ test('daemon CLI records a fatal listener error in its runtime directory', async
     timeout: 10_000,
   });
 
-  // Release the occupied port after the child has finished attempting to bind it.
   await new Promise((resolve) => portHolder.close(resolve));
 
-  // Capture the durable evidence before removing the disposable runtime directory.
   const logFile = path.join(tempDir, 'daemon-crash.log');
-  const crashLog = fs.existsSync(logFile) ? fs.readFileSync(logFile, 'utf8') : '';
+  const crashLogExists = fs.existsSync(logFile);
   fs.rmSync(tempDir, { recursive: true, force: true });
 
-  // The real daemon entrypoint must fail visibly and preserve the operating-system error name.
-  assert.equal(child.status, 1, child.stderr);
-  assert.match(crashLog, /Agora fatal uncaughtException/);
-  assert.match(crashLog, /EADDRINUSE/);
+  assert.equal(child.status, 0, child.stderr);
+  assert.match(child.stdout, /already listening on http:\/\/localhost:\d+/);
+  assert.equal(crashLogExists, false, 'a double start is not a fatal failure and must not write daemon-crash.log');
 });

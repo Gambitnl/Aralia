@@ -136,4 +136,35 @@ describe('CommandExecutor', () => {
     expect(initialState).toEqual(initialStateSnapshot)
     expect(initialStateSnapshot.combatLog).toHaveLength(0)
   })
+
+  /**
+   * agora-f821.55: Remy reversed the June T3 rollback policy on 2026-09-20.
+   * The rollback wrapper and the optional `undo` member are gone, so there is
+   * exactly one execution path. This pins the deletion: a future re-add has to
+   * argue with a red test instead of slipping back in as a dead fallback.
+   */
+  it('exposes only the non-rollback execution path', () => {
+    expect((CommandExecutor as unknown as Record<string, unknown>).executeWithRollback).toBeUndefined()
+    expect(typeof CommandExecutor.execute).toBe('function')
+  })
+
+  it('leaves a failed run at the state before the failed command, with no rollback attempt', async () => {
+    const initialState = { characters: [], combatLog: [] } as unknown as CombatState
+    const undoSpy = vi.fn()
+
+    const cmd = {
+      id: 'boom',
+      description: 'Explodes',
+      metadata: makeMetadata('boom'),
+      execute: vi.fn().mockRejectedValue(new Error('boom')),
+      undo: undoSpy,
+    }
+
+    const result = await CommandExecutor.execute([cmd], initialState)
+
+    expect(result.success).toBe(false)
+    expect(result.finalState).toBe(initialState)
+    // An `undo` a caller happens to define is never reached: nothing rolls back.
+    expect(undoSpy).not.toHaveBeenCalled()
+  })
 })

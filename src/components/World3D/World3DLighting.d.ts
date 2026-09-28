@@ -34,6 +34,7 @@
  * WebGL + WebGPU safe: standard three lights/materials only, no TSL.
  */
 import React from 'react';
+import * as THREE from 'three';
 import { type CanopyInterior } from './canopyInterior';
 export interface SunState {
     /** Unit-ish sun direction (points FROM origin TOWARD the sun). */
@@ -52,11 +53,18 @@ export interface SunState {
     skyHorizon: number;
 }
 /**
- * Simple analytic time-of-day model. Daylight-only for now (the streamed world
- * has no night mode yet): hours outside ~6..20 clamp to the nearest daylight edge.
- * Pure and deterministic so it can be tested and later driven by the game clock.
+ * Analytic time-of-day model, FULL 24 HOURS (night-sky port, 2026-08-26).
+ * Daytime (h in 6..20) is unchanged from the earlier clamp-to-daylight
+ * version; hours outside that window now dim through a cool moonlit night
+ * instead of freezing at golden-hour dusk. Pure and deterministic.
  */
 export declare function sunFromTime(hours: number): SunState;
+/**
+ * TRUE astronomical sun direction at `hours` — unclamped, may point below the
+ * horizon at night. Consumed by the physically-based night sky (NightSky →
+ * TakramSkySystem). Pure; allocates a Vector3 unless `target` is given.
+ */
+export declare function trueSunVector(hours: number, target?: THREE.Vector3): THREE.Vector3;
 /**
  * Default time-of-day: late-afternoon golden hour. A lower sun gives a warmer
  * key colour, long dramatic shadows, and a richly-scattered (non-washed) sky —

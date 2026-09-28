@@ -34,15 +34,21 @@ import type { SaveAdvantageModifier } from '@/utils/character/savingThrowUtils';
 // ============================================================================
 // Source Condition Vocabulary
 // ============================================================================
-// These are the only fighting predicates currently authored as executable data.
-// Both map to the combat runtime's existing team boundary, which is also used by
-// Fast Friends when it resolves its fighting-target repeat save.
+// These are the fighting predicates currently authored as executable data. All of
+// them map to the combat runtime's existing team boundary, which Fast Friends also
+// uses when it resolves its fighting-target repeat save.
+//
+// 'fighting_caster_or_allies' is that same predicate under the spelling the save-
+// outcome resolver (utils/character/savingThrowUtils) and StatusConditionCommand
+// already produce and execute. Accepting it here removes a split vocabulary for one
+// rule; it does not add a rule.
 // ============================================================================
 
 const FIGHTING_TARGET_CONDITIONS = new Set([
   'caster_fighting_target',
   'caster_or_allies_fighting_target',
-  'caster_or_companions_fighting_target'
+  'caster_or_companions_fighting_target',
+  'fighting_caster_or_allies'
 ]);
 
 /** Return every creature family stored on either live character surface. */
@@ -110,7 +116,15 @@ const matchesTargetFilter = (
  *
  * A missing condition means the modifier depends only on its structured target
  * filter. Known fighting predicates use the same team comparison as the proven
- * Fast Friends runtime. Every unknown token remains deferred to its own owner.
+ * Fast Friends runtime, matched after the same trim and lower-case normalization
+ * the save-outcome resolver applies, so one token cannot execute in one resolver
+ * and stay inert in the other because of casing.
+ *
+ * Every token outside that vocabulary stays inert here. That is deferral, not a
+ * gap: the only such token in the authored corpus, 'caster_says_true_name', is
+ * already executed by the summoning subsystem from its own trueNameSpoken input
+ * (commands/effects/utility/summons.ts). Reading it here as well would apply the
+ * same Disadvantage twice.
  */
 const matchesSourceCondition = (
   condition: string | undefined,
@@ -118,7 +132,7 @@ const matchesSourceCondition = (
   target: CombatCharacter
 ): boolean => {
   if (!condition) return true;
-  if (!FIGHTING_TARGET_CONDITIONS.has(condition)) return false;
+  if (!FIGHTING_TARGET_CONDITIONS.has(condition.trim().toLowerCase())) return false;
 
   return caster.team !== target.team;
 };

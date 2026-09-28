@@ -3,7 +3,7 @@
 Absorbed into planmap topic `whole-game-systems-audit` on 2026-07-15 (wave
 10R). The folder is deleted; git history is the archive. This campaign is
 ACTIVE (codex-game-systems-audit, pass started 2026-07-11): this doc is now
-its runbook + coverage ledger. Continue the campaign planmap-first — the
+its runbook + coverage ledger. Continue the campaign planmap-first - the
 topic's features are the wave/item rows.
 
 ## Why the campaign exists
@@ -26,7 +26,7 @@ final whole-game pass finds no unregistered gaps.
   ownership; this campaign owns coverage, routing, and planmap sync.
 - D2: Every confirmed actionable issue gets a linked planmap feature or topic
   in the same pass.
-- D3: Runtime proof is required — source and tests alone cannot verify a
+- D3: Runtime proof is required - source and tests alone cannot verify a
   reachable player surface (the opening pass found a pointer obstruction no
   test exposed).
 
@@ -74,16 +74,16 @@ domains (`docs/architecture/domains/*.md`), 16 top-level `GamePhase` branches
 | W11 Information and UI | Glossary; guide; logs; modals; accessibility; previews | not_reviewed | Keyboard/accessibility modal matrix |
 | W12 Services and closure | Ollama; Gemini; loaders; offline/error; performance; final sweep | not_reviewed | Failure injection and closure audit |
 
-Waves route findings into owner topics: W03 → town/conversation-panel/
-dialogue/companions/party-ui/quests/quest-log/logbook; W04 → combat/
+Waves route findings into owner topics: W03 -> town/conversation-panel/
+dialogue/companions/party-ui/quests/quest-log/logbook; W04 -> combat/
 battle-map/3d-combat-map/dice/encounter-generator/command runtimes/
-visibility; W05 → character-sheet/racial-mechanics/spells/creatures/
-item_categorization; W06 → trade-ui/economy-player-surface/crafting/
-crafting-ui; W07 → intrigue/crime/crime-ui/organization/religion/rituals;
-W08 → naval/naval-ui/planar/underdark/realmsmith-service; W09 → time/events/
-history/environment/physics/worldsim-service; W10 → world3d/world-3d-ui/
-three-d-modal/3d-combat-map/worldforge; W11 → glossary-ui/ui-primitives/
-design-preview/design-preview-scenarios/types-ui; W12 → service projects,
+visibility; W05 -> character-sheet/racial-mechanics/spells/creatures/
+item_categorization; W06 -> trade-ui/economy-player-surface/crafting/
+crafting-ui; W07 -> intrigue/crime/crime-ui/organization/religion/rituals;
+W08 -> naval/naval-ui/planar/underdark/realmsmith-service; W09 -> time/events/
+history/environment/physics/worldsim-service; W10 -> world3d/world-3d-ui/
+three-d-modal/3d-combat-map/worldforge; W11 -> glossary-ui/ui-primitives/
+design-preview/design-preview-scenarios/types-ui; W12 -> service projects,
 testing overhaul, audit tooling.
 
 ## W02 item state (the active wave, as of 2026-07-11)
@@ -91,8 +91,8 @@ testing overhaul, audit tooling.
 Verified: world-generation run lock (WF-G10); canonical atlas initial render;
 Classic keyboard/touch travel (WF-G12); cell-native travel target/marker
 (Travel G6/G9/G19/G20); discovery persistence + journal handoff (Travel G7);
-World3D sparse + dense-town performance (W3D-G29 0.61→32.55 FPS, W3D-G30
-8.12→33.12 FPS).
+World3D sparse + dense-town performance (W3D-G29 0.61->32.55 FPS, W3D-G30
+8.12->33.12 FPS).
 
 In review: atlas pan/zoom/layer/reset (drag-pan, lost-map recovery, overlay
 tint matrix, Classic parity remain); cell inspection (full

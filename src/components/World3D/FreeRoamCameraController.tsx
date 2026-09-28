@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 07/09/2026, 23:30:23
+ * Dependents: components/Combat/InPlaceCombatScene.tsx, components/World3D/WebGPUProbeScene.tsx, components/World3D/World3DScene.tsx
+ * Imports: 1 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file FreeRoamCameraController.tsx
  * @description Free-roam orbit/pan camera for the streamed 3D world. Reports its look-at
@@ -28,6 +44,8 @@ export interface CameraFrameRequest {
   nonce: number;
   target: readonly [number, number, number];
   height: number;
+  /** Town inspection shows facades; callers omitting this retain overhead views. */
+  oblique?: boolean;
 }
 
 interface FreeRoamCameraControllerProps {
@@ -60,6 +78,12 @@ const FreeRoamCameraController: React.FC<FreeRoamCameraControllerProps> = ({
   const lastReported = useRef(new THREE.Vector2(NaN, NaN));
   // Last frame-request nonce we acted on, so a command applies exactly once.
   const appliedFrameNonce = useRef<number | null>(null);
+  // Keep the initial target prop stable while controls pan or frame a town.
+  // Streamer rerenders must not reapply the spawn target over that live pose.
+  const controlsInitialTarget = React.useMemo<[number, number, number]>(
+    () => [initialTarget[0], initialTarget[1], initialTarget[2]],
+    [initialTarget[0], initialTarget[1], initialTarget[2]],
+  );
 
   useFrame((three, delta) => {
     const controls = controlsRef.current;
@@ -71,7 +95,7 @@ const FreeRoamCameraController: React.FC<FreeRoamCameraControllerProps> = ({
     if (frameRequest && frameRequest.nonce !== appliedFrameNonce.current) {
       appliedFrameNonce.current = frameRequest.nonce;
       const [tx, ty, tz] = frameRequest.target;
-      const off = frameRequest.height * 0.12;
+      const off = frameRequest.height * (frameRequest.oblique ? 0.8 : 0.12);
       three.camera.position.set(tx + off, ty + frameRequest.height, tz + off);
       controls.target.set(tx, ty, tz);
       controls.update();
@@ -113,7 +137,7 @@ const FreeRoamCameraController: React.FC<FreeRoamCameraControllerProps> = ({
   return (
     <MapControls
       ref={controlsRef}
-      target={[initialTarget[0], initialTarget[1], initialTarget[2]]}
+      target={controlsInitialTarget}
       minDistance={minDistance}
       maxDistance={maxDistance}
       minPolarAngle={Math.PI * 0.1}

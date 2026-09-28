@@ -218,6 +218,7 @@ export function assembleEntity(blueprint: EntityBlueprint, options: AssembleOpti
     // cubes) draw ONE surface via the depth prepass — interior shells never
     // show through. Floating mist (the ghost) keeps its layered look.
     oneSurface: !!blueprint.planSpec && blueprint.planSpec.stance !== 'floating',
+    bodyTech,
   });
   bodyRoot.add(body.root);
 
@@ -230,6 +231,13 @@ export function assembleEntity(blueprint: EntityBlueprint, options: AssembleOpti
           // renderer so nothing that renders today is dropped in skinned mode.
           createSkinnedPlan(frame, blueprint.planSpec, {
             colorHex: palette.skinHex,
+            // GG-152 (agora-2976): the belly tone the segment renderer already
+            // takes as bellyHex above. Without it the skinned half of the A/B
+            // read as one flat tone against the segment half's countershaded
+            // trunk. Gels are excluded on BOTH paths (segmentBody skips the
+            // countershade when opacity < 1) — one gel is one tint.
+            bellyHex:
+              (blueprint.planSpec.opacity ?? 1) < 1 ? undefined : palette.secondaryHex,
             outlineThickness,
             opacity: blueprint.planSpec?.opacity,
             weights: options.skinnedWeights,
@@ -335,7 +343,7 @@ export function assembleEntity(blueprint: EntityBlueprint, options: AssembleOpti
       frame,
       palette,
       params,
-      material: (hex) => toonMaterial(hex),
+      material: (hex, surface) => toonMaterial(hex, surface),
     });
     if (wireframe) {
       // clean edge lines for parts too — no fill, no material.wireframe soup

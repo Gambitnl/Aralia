@@ -50,7 +50,7 @@ import {
   canAffordActionCost,
   consumeActionCost,
 } from '../../../utils/combat/actionEconomyUtils';
-import { rollDamage } from '../../../utils/combat/combatUtils';
+import { rollDamage } from '../../dice/rollers';
 import { applyDamageAndCheckDowned } from '../../../utils/combat/deathSaveUtils';
 import { ResistanceCalculator } from '../../../utils/combat/resistanceUtils';
 import type { ActiveSpellZone } from '../effects';

@@ -46,6 +46,11 @@
  *    (on top of the existing woodpile rule).
  *  • Roads → sparse trailside markers: milestone at intervals, rare shrine /
  *    fingerpost. Deliberately SPARSE point props only.
+ *  • Street dead ends → one feature per lane end: rough nature, a storage yard
+ *    with its work kit, a cemetery (ONE per town), or a shrine. Ported from the
+ *    retired RealmSmith prototype (deepdive finding F11).
+ *  • Farm plots carrying a `crop` → that crop's own working kit, so two farms
+ *    in one town read apart (deepdive finding F8).
  *
  * ── PLACEMENT GAPS (catalog entries with tags but NO rule yet) ───────────────
  * `PropPlacementContext` cannot yet express these strawman anchors; the defs
@@ -97,6 +102,13 @@ export interface CtxBuilding {
    * in a high-status ward. Drives ornamental dressing (planters/statue/hedge).
    */
   wealthy?: boolean;
+  /**
+   * The one crop this farmstead grows (SLICE C — farmstead crop identity).
+   * A `farm` plot with a crop dresses its yard with that crop's working kit on
+   * top of the generic farm backbone, so two farms in one town read apart. See
+   * `town/farmCrops.ts` for the vocabulary and the seeded assignment.
+   */
+  crop?: string;
 }
 
 /** A polyline (road / wall) in ground meters — subset of GroundPolyline. */
@@ -141,6 +153,19 @@ export interface CtxHiddenSite {
   zM: number;
 }
 
+/**
+ * A terminal (degree-1) node of the town street graph — a lane that simply
+ * stops. Produced by `town/townStreetNetwork.ts` `streetDeadEnds`.
+ */
+export interface CtxDeadEnd {
+  /** Stable anchor id; the dressing seed path hangs off it. */
+  id: string;
+  xM: number;
+  zM: number;
+  /** Heading from the tip back along the street, radians. */
+  inwardRad: number;
+}
+
 /** A town gatehouse placement (road gate through the wall ring). */
 export interface CtxGatehouse {
   xM: number;
@@ -178,6 +203,8 @@ export interface PropPlacementContext {
   walls?: CtxPolyline[];
   /** Road gatehouses (the ring's road openings) — anchors gate dressing. */
   gatehouses?: CtxGatehouse[];
+  /** Street dead ends — anchors the dead-end dressing (nature/storage/cemetery/shrine). */
+  deadEnds?: CtxDeadEnd[];
   /** River centerlines crossing the window — the `riverbank` context. */
   rivers?: CtxPolyline[];
   /** Hidden/discovery sites — a 'ruin' kind seeds the `ruin` context. */
@@ -464,6 +491,61 @@ const DEFILE_DRESSING: Array<[string, number]> = [
   ['fallen-log', 0.14], ['rubble-pile', 0.12],
 ];
 
+/** Dead-end nature dressing — the lane just runs out into rough ground. */
+const DEAD_END_NATURE: Array<[string, number]> = [
+  ['bush', 0.34], ['tree-stump', 0.2], ['boulder', 0.16],
+  ['fern-clump', 0.12], ['bramble-patch', 0.1], ['fallen-log', 0.08],
+];
+
+/** Dead-end storage dressing — the lane end used as a yard to stack goods in. */
+const DEAD_END_STORAGE: Array<[string, number]> = [
+  ['crate', 0.26], ['crate-stack', 0.2], ['barrel', 0.18],
+  ['sack', 0.14], ['woodpile', 0.12], ['cart', 0.1],
+];
+
+/**
+ * The working half of the storage feature. RealmSmith built a two-by-two
+ * workshop hut here (`DoodadGenerator.ts`, retired 2026-09-23); this engine emits PROPS ONLY,
+ * and a building can only come from the town plan, so the outbuilding reads as
+ * its yard kit — bench tools, a grindstone, a woodpile, an anvil — rather than
+ * being faked with a prop shaped like a shed.
+ */
+const DEAD_END_WORKYARD: Array<[string, number]> = [
+  ['tool-rack', 0.34], ['grindstone', 0.24], ['woodpile', 0.22], ['anvil', 0.2],
+];
+
+/** Dead-end shrine dressing — the focal stone the lane end was kept clear for. */
+const DEAD_END_SHRINE: Array<[string, number]> = [
+  ['wayside-shrine', 0.42], ['cairn', 0.24], ['standing-stone', 0.2], ['well', 0.14],
+];
+
+/**
+ * Working kit per farm crop (SLICE C — farmstead crop identity, RealmSmith F8).
+ * Keyed by the `FarmCrop` vocabulary in `town/farmCrops.ts`; a crop with no
+ * entry dresses nothing, so an unknown crop string is visible as a bare farm
+ * rather than silently dressed as wheat.
+ */
+const CROP_DRESSING: Record<string, Array<[string, number]>> = {
+  // Cereal: cut and stacked, watched by a scarecrow, bagged for the mill.
+  grain: [
+    ['haystack', 0.3], ['scarecrow', 0.24], ['sack', 0.22],
+    ['plough', 0.14], ['cart', 0.1],
+  ],
+  // Roots: lifted with the plough, carried in baskets, stored loose.
+  roots: [
+    ['plough', 0.3], ['produce-basket', 0.26], ['sack', 0.2],
+    ['cart', 0.14], ['crate', 0.1],
+  ],
+  // Orchard fruit: hives for the blossom, baskets at picking, hedged rows.
+  'orchard-fruit': [
+    ['beehive', 0.3], ['produce-basket', 0.26], ['bush', 0.24], ['hedge-run', 0.2],
+  ],
+  // Flax: retted in barrels, dried on frames, bundled off to the weaver.
+  flax: [
+    ['barrel', 0.3], ['net-drying-rack', 0.26], ['sack', 0.24], ['trestle-table', 0.2],
+  ],
+};
+
 /** Weighted pick; weights need not sum to 1 (normalized by total). */
 function pickWeighted(rng: SeededRandom, entries: Array<[string, number]>): string {
   let total = 0;
@@ -622,7 +704,9 @@ function placeBuildingSideProps(basePath: SeedPath, ctx: PropPlacementContext): 
     } else if (b.role === 'temple') {
       // Strawman §10 graveyard / temple yard: gravestone ROWS (grid + jitter),
       // a couple of prominent tombs, a brazier pair at the temple door.
-      out.push(...placeGraveRows(rng, ctx, b));
+      const graveRows = rng.nextInt(2, 5);
+      const graveCols = rng.nextInt(3, 7);
+      out.push(...placeGraveRows(rng, ctx, b.xM, b.zM, graveRows, graveCols));
       out.push(...cluster(rng, ctx, 'tomb', b.xM, b.zM, R * 2, rng.nextInt(1, 3)));
       out.push(...cluster(rng, ctx, 'brazier', b.xM, b.zM, R, 2));
     } else if (b.role === 'farm') {
@@ -632,6 +716,16 @@ function placeBuildingSideProps(basePath: SeedPath, ctx: PropPlacementContext): 
       out.push(...cluster(rng, ctx, 'cart', b.xM, b.zM, R * 1.5, rng.nextInt(1, 3)));
       out.push(...cluster(rng, ctx, 'sack', b.xM, b.zM, R, rng.nextInt(3, 9)));
       out.push(...placeFenceRun(rng, ctx, b));
+      // SLICE C — crop identity: the working kit of the ONE crop this farm
+      // grows, on top of the generic farm backbone above. A plot with no crop
+      // signal places nothing extra (no default crop is invented).
+      const cropPool = b.crop ? CROP_DRESSING[b.crop] : undefined;
+      if (cropPool) {
+        const cropDress = rng.nextInt(3, 7); // 3-6 pieces of the crop's kit
+        for (let j = 0; j < cropDress; j++) {
+          out.push(...cluster(rng, ctx, pickWeighted(rng, cropPool), b.xM, b.zM, R * 1.6, 1));
+        }
+      }
     }
 
     // ── SLICE B context signals riding on the plot ──────────────────────────
@@ -715,6 +809,100 @@ function placeGates(basePath: SeedPath, ctx: PropPlacementContext): PropInstance
       out.push(...cluster(rng, ctx, pickWeighted(rng, GATE_DRESSING), cx, cz, CELL_METERS, 1));
     }
   });
+  return out;
+}
+
+// ── Dead-end street dressing (RealmSmith F11 port) ──────────────────────────
+
+/** What a street dead end is dressed as. */
+export type DeadEndFeature = 'nature' | 'storage' | 'cemetery' | 'shrine';
+
+/**
+ * Feature odds at one dead end, ported from `DoodadGenerator.ts` (retired 2026-09-23):
+ * most lane ends just run out into rough ground, a few are working yards, the
+ * shrine is the readable one, and the cemetery is rare AND capped (below).
+ */
+const DEAD_END_WEIGHTS: Array<[string, number]> = [
+  ['nature', 0.4], ['storage', 0.2], ['cemetery', 0.1], ['shrine', 0.3],
+];
+
+/** How far past the tip, along the street's own heading, the dressing sits. */
+const DEAD_END_OFFSET_M = CELL_METERS * 2;
+/** Dressing that lands back on pavement is dropped, not nudged. */
+const DEAD_END_PAVEMENT_CLEAR_M = CELL_METERS;
+
+/**
+ * Dress every street dead end (`town/townStreetNetwork.ts` `streetDeadEnds`).
+ *
+ * ONE CEMETERY PER TOWN (`DoodadGenerator.ts`, retired 2026-09-23). The cap cannot be a
+ * running flag here, because the anchor order of the context must not decide
+ * which lane end gets the graveyard: every dead end rolls its own feature from
+ * its OWN seed stream, then the cemetery is awarded to the lowest-id roller and
+ * every other cemetery roll falls back to nature — exactly the prototype's
+ * downgrade, but order-independent.
+ *
+ * Props sit PAST the tip, along the street's own heading, so the dressing reads
+ * as what the lane ran into. Anything that still lands on pavement is dropped.
+ */
+function placeDeadEnds(basePath: SeedPath, ctx: PropPlacementContext): PropInstance[] {
+  const ends = ctx.deadEnds ?? [];
+  if (ends.length === 0) return [];
+  const stream = streamPath(basePath, 'dead-ends');
+
+  // Pass 1 — every end rolls its feature from its own stream.
+  const rolled = ends.map((end) => {
+    const rng = rngFromPath(childSeedPath(stream, `end:${end.id}`));
+    return { end, rng, feature: pickWeighted(rng, DEAD_END_WEIGHTS) as DeadEndFeature };
+  });
+
+  // Pass 2 — apply the town-wide cemetery cap.
+  const cemeteryId = rolled
+    .filter((r) => r.feature === 'cemetery')
+    .map((r) => r.end.id)
+    .sort()[0];
+  for (const r of rolled) {
+    if (r.feature === 'cemetery' && r.end.id !== cemeteryId) r.feature = 'nature';
+  }
+
+  // Pass 3 — dress.
+  const out: PropInstance[] = [];
+  for (const { end, rng, feature } of rolled) {
+    const outwardRad = end.inwardRad + Math.PI;
+    const cx = end.xM + Math.cos(outwardRad) * DEAD_END_OFFSET_M;
+    const cz = end.zM + Math.sin(outwardRad) * DEAD_END_OFFSET_M;
+    const keep = (candidates: PropInstance[]): void => {
+      for (const inst of candidates) {
+        if (nearAnyRoad(ctx, inst.xM, inst.zM, DEAD_END_PAVEMENT_CLEAR_M)) continue;
+        out.push(inst);
+      }
+    };
+
+    if (feature === 'storage') {
+      const stacked = rng.nextInt(3, 7); // 3-6 stacked goods
+      for (let j = 0; j < stacked; j++) {
+        keep(cluster(rng, ctx, pickWeighted(rng, DEAD_END_STORAGE), cx, cz, CELL_METERS * 1.6, 1));
+      }
+      const yardKit = rng.nextInt(2, 5); // 2-4 pieces of the work yard
+      for (let j = 0; j < yardKit; j++) {
+        keep(cluster(rng, ctx, pickWeighted(rng, DEAD_END_WORKYARD), cx, cz, CELL_METERS * 2.4, 1));
+      }
+    } else if (feature === 'cemetery') {
+      // A churchyard's worth of stones, tighter than the temple yard's grid.
+      const rows = rng.nextInt(2, 4); // 2-3
+      const cols = rng.nextInt(2, 6); // 2-5
+      keep(placeGraveRows(rng, ctx, cx, cz, rows, cols));
+      keep(cluster(rng, ctx, 'tomb', cx, cz, CELL_METERS * 2, rng.next() < 0.5 ? 1 : 0));
+      keep(cluster(rng, ctx, 'stone-cross', cx, cz, CELL_METERS, 1));
+    } else if (feature === 'shrine') {
+      keep(cluster(rng, ctx, pickWeighted(rng, DEAD_END_SHRINE), cx, cz, CELL_METERS * 0.6, 1));
+      keep(cluster(rng, ctx, 'brazier', cx, cz, CELL_METERS * 1.4, rng.nextInt(0, 3)));
+    } else {
+      const wild = rng.nextInt(2, 6); // 2-5 pieces of rough ground
+      for (let j = 0; j < wild; j++) {
+        keep(cluster(rng, ctx, pickWeighted(rng, DEAD_END_NATURE), cx, cz, CELL_METERS * 2, 1));
+      }
+    }
+  }
   return out;
 }
 
@@ -885,16 +1073,21 @@ function placeFenceRun(rng: SeededRandom, ctx: PropPlacementContext, b: CtxBuild
  * seeded grid+jitter". A small oriented grid (2–4 rows × 3–6 stones) offset to
  * one side of the plot so it reads as a yard, not a plaza.
  */
-function placeGraveRows(rng: SeededRandom, ctx: PropPlacementContext, b: CtxBuilding): PropInstance[] {
+function placeGraveRows(
+  rng: SeededRandom,
+  ctx: PropPlacementContext,
+  cx: number,
+  cz: number,
+  rows: number,
+  cols: number,
+): PropInstance[] {
   const out: PropInstance[] = [];
-  const rows = rng.nextInt(2, 5);
-  const cols = rng.nextInt(3, 7);
   const yardAng = uniform(rng, 0, Math.PI * 2);
   const rowDx = Math.cos(yardAng), rowDz = Math.sin(yardAng);
   const colDx = -rowDz, colDz = rowDx;
   // Yard origin: a few cells off the plot center.
-  const ox = b.xM + rowDx * CELL_METERS * 3;
-  const oz = b.zM + rowDz * CELL_METERS * 3;
+  const ox = cx + rowDx * CELL_METERS * 3;
+  const oz = cz + rowDz * CELL_METERS * 3;
   for (let r = 0; r < rows; r++) {
     for (let c = 0; c < cols; c++) {
       const jx = uniform(rng, -0.25, 0.25) * CELL_METERS;
@@ -1113,6 +1306,7 @@ export function placePropsInstrumented(
     ['building-sides', placeBuildingSideProps(seedPath, ctx)],
     ['roadside', placeRoadside(seedPath, ctx)],
     ['gates', placeGates(seedPath, ctx)],
+    ['dead-ends', placeDeadEnds(seedPath, ctx)],
     ['ruins', placeRuins(seedPath, ctx)],
     ['riverbanks', placeRiverbanks(seedPath, ctx)],
     ['defiles', placeDefiles(seedPath, ctx)],

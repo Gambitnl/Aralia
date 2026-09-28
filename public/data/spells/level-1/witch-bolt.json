@@ -272,7 +272,7 @@
                                                    {
                                                        "trigger":  "target_outside_spell_range",
                                                        "scope":  "spell",
-                                                       "description":  "The spell ends if the target is ever outside the spell\u0027s range."
+                                                       "description":  "The spell ends if the target is ever outside the spell's range."
                                                    },
                                                    {
                                                        "trigger":  "target_has_total_cover_from_caster",
@@ -296,7 +296,7 @@
                       "prompt":  "Ask the caster to choose one creature within 60 feet and make the ranged spell attack; on later turns, prompt whether the caster spends the Bonus Action for automatic Lightning damage while range and cover conditions still hold.",
                       "playerInputRequired":  true
                   },
-    "description":  "A beam of crackling energy lances toward a creature within range, forming a sustained arc of lightning between you and the target. Make a ranged spell attack against it. On a hit, the target takes 2d12 Lightning damage. On each of your subsequent turns, you can take a Bonus Action to deal 1d12 Lightning damage to the target automatically, even if the first attack missed. The spell ends if the target is ever outside the spell\u0027s range or if it has Total Cover from you.",
+    "description":  "A beam of crackling energy lances toward a creature within range, forming a sustained arc of lightning between you and the target. Make a ranged spell attack against it. On a hit, the target takes 2d12 Lightning damage. On each of your subsequent turns, you can take a Bonus Action to deal 1d12 Lightning damage to the target automatically, even if the first attack missed. The spell ends if the target is ever outside the spell's range or if it has Total Cover from you.",
     "higherLevels":  "Using a Higher-Level Spell Slot. The initial damage increases by 1d12 for each spell slot level above 1.",
     "tags":  [
                  "damage",

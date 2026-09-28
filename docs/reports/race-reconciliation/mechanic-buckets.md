@@ -121,7 +121,7 @@ This report separates race mechanics by the capability-backed status Aralia can 
 - Aralia races touched: 19
 - Example Aralia race IDs: astral_elf, autumn_eladrin, bugbear, drow, harengon, high_elf, hill_dwarf, mountain_dwarf, pallid_elf, runeward_dwarf
 - Example vendor candidates: none
-- Example traits: Keen Senses, Sneaky, Leporine Senses, Stonecunning, Cat’s Talent, Persuasive
+- Example traits: Keen Senses, Sneaky, Leporine Senses, Stonecunning, Cat's Talent, Persuasive
 - Recommended next step: Add this race skill trait to character assembly before treating it as enforced.
 
 ### natural_weapon
@@ -171,7 +171,7 @@ This report separates race mechanics by the capability-backed status Aralia can 
 - Aralia races touched: 8
 - Example Aralia race IDs: aarakocra, fairy, half_elf_aquatic, protector_aasimar, sea_elf, simic_hybrid, tabaxi, triton
 - Example vendor candidates: none
-- Example traits: Flight, Swim Speed, Radiant Soul, Child of the Sea, Friend of the Sea, Animal Enhancement (1st Level), Cat’s Claws, Emissary of the Sea
+- Example traits: Flight, Swim Speed, Radiant Soul, Child of the Sea, Friend of the Sea, Animal Enhancement (1st Level), Cat's Claws, Emissary of the Sea
 - Recommended next step: Fly, swim, climb, and burrow speeds are not separate PlayerCharacter movement fields.
 
 ### shapeshifting_or_disguise

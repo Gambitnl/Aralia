@@ -16,7 +16,10 @@ import {
     GAME_EPOCH_DAY,
     GAME_EPOCH_HOUR,
     GAME_EPOCH_MINUTE,
-    GAME_EPOCH_SECOND
+    GAME_EPOCH_SECOND,
+    validateGameTime,
+    MIN_GAME_YEAR,
+    MAX_GAME_YEAR
 } from '../timeUtils';
 
 describe('timeUtils', () => {
@@ -128,6 +131,46 @@ describe('timeUtils', () => {
             const t = new Date(Date.UTC(351, 5, 10, 21, 0));
             expect(getDayPartLabel(t)).toBe('Evening');
             expect(getDayPartLabel(new Date(t.getTime()))).toBe('Evening');
+        });
+    });
+
+    describe('G1 contract validation', () => {
+        it('epoch date is valid', () => {
+            expect(validateGameTime(getGameEpoch())).toEqual({ valid: true });
+        });
+
+        it('typical in-world date is valid', () => {
+            expect(validateGameTime(new Date(Date.UTC(351, 5, 15, 12, 0)))).toEqual({ valid: true });
+        });
+
+        it('far-future date within bounds is valid', () => {
+            expect(validateGameTime(new Date(Date.UTC(9999, 11, 31, 23, 59, 59)))).toEqual({ valid: true });
+        });
+
+        it('date before epoch is invalid', () => {
+            const result = validateGameTime(new Date(Date.UTC(350, 11, 31)));
+            expect(result.valid).toBe(false);
+            if (!result.valid) {
+                expect(result.reason).toContain('before the epoch');
+            }
+        });
+
+        it('date after max year is invalid', () => {
+            const result = validateGameTime(new Date(Date.UTC(10000, 0, 1)));
+            expect(result.valid).toBe(false);
+            if (!result.valid) {
+                expect(result.reason).toContain('exceeds maximum');
+            }
+        });
+
+        it('NaN date is invalid', () => {
+            const result = validateGameTime(new Date('invalid'));
+            expect(result.valid).toBe(false);
+        });
+
+        it('MIN_GAME_YEAR and MAX_GAME_YEAR match the contract', () => {
+            expect(MIN_GAME_YEAR).toBe(351);
+            expect(MAX_GAME_YEAR).toBe(9999);
         });
     });
 });

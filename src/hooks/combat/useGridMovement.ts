@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 13/08/2026, 08:01:16
+ * Last Sync: 20/09/2026, 21:00:39
  * Dependents: hooks/useBattleMap.ts
- * Imports: 5 files
+ * Imports: 6 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -39,7 +39,7 @@
 import { useState, useCallback, useMemo } from 'react';
 import { BattleMapData, BattleMapTile, CombatCharacter, CharacterPosition } from '../../types/combat';
 import { findPath } from '../../utils/spatial/pathfinding';
-import { getCharacterSizeMultiplier } from '../../utils/combat';
+import { getCharacterSizeMultiplier, resolveCombatantTerrainMovementPolicy } from '../../utils/combat';
 import {
   buildAerialRoute,
   getAerialWaypointRejection,
@@ -47,9 +47,11 @@ import {
 import { calculateMovementModeTotal } from '../../utils/combat/actionEconomyUtils';
 import { getElevationTransitionCostFeet } from '../../utils/spatial/elevationGeometry';
 // calculateMovementCost: base cost of a single step (5 or 10 ft depending on diagonal parity)
-// getTileMovementMultiplier: normalizes tile terrain cost to a multiplier (1 = normal, 2 = difficult)
+// getPolicyAwareTileMovementMultiplier: the tile's multiplier as THIS mover experiences
+//   it, with the difficult-terrain surcharge dropped only where the mover's race-aware
+//   terrain policy covers that square (GG-257).
 // calculateStepMovementCost: combines the above two (kept imported for potential future use)
-import { calculateMovementCost, getTileMovementMultiplier, calculateStepMovementCost } from '../../utils/combat';
+import { calculateMovementCost, getPolicyAwareTileMovementMultiplier, calculateStepMovementCost } from '../../utils/combat';
 
 interface UseGridMovementProps {
   mapData: BattleMapData | null;
@@ -110,7 +112,10 @@ export function useGridMovement({ mapData, characterPositions, selectedCharacter
     const movementRemaining = movement ? Math.max(0, movementModeTotal - movement.used) : 0;
 
     const isProne = selectedCharacter.conditions?.some(c => c.name === 'Prone' || c.name === 'prone') || false;
-    const ignoreDifficultTerrain = selectedCharacter.modifiers?.ignoreDifficultTerrain || selectedCharacter.ignoreDifficultTerrain || false;
+    // The mover's qualified terrain waiver. Earth Walk covers ground and floors
+    // only and Timberwalk plants and undergrowth only, so the policy is asked per
+    // tile below instead of blanket-waiving every difficult square (GG-257).
+    const terrainPolicy = resolveCombatantTerrainMovementPolicy(selectedCharacter);
     
     // Multi-tile movement: Large creatures occupy 2x2, Huge 3x3, etc.
     const multiplier = getCharacterSizeMultiplier(selectedCharacter.stats.size);
@@ -156,7 +161,7 @@ export function useGridMovement({ mapData, characterPositions, selectedCharacter
                 }
 
                 // If any part of the creature is in difficult terrain, the whole movement is hampered
-                const terrainMult = getTileMovementMultiplier(checkTile.movementCost);
+                const terrainMult = getPolicyAwareTileMovementMultiplier(checkTile, terrainPolicy);
                 if (terrainMult > maxTerrainMultiplier) {
                   maxTerrainMultiplier = terrainMult;
                 }
@@ -180,9 +185,11 @@ export function useGridMovement({ mapData, characterPositions, selectedCharacter
           if (canPass) {
             const { cost: baseCost, isDiagonal } = calculateMovementCost(dx, dy, diagonalCount);
             const crawlCost = isProne ? 1 : 0;
+            // maxTerrainMultiplier is already policy-aware for every footprint square,
+            // so a waived square contributes 1 and an uncovered one still costs double.
             const effectiveTerrainMultiplier = isFlying
               ? 1
-              : (maxTerrainMultiplier > 1 && ignoreDifficultTerrain) ? 1 : maxTerrainMultiplier;
+              : maxTerrainMultiplier;
             const stepCost = baseCost * (effectiveTerrainMultiplier + crawlCost)
               + (isFlying ? 0 : maxElevationCostFeet);
 
@@ -229,7 +236,7 @@ export function useGridMovement({ mapData, characterPositions, selectedCharacter
       // This is a separate check from the BFS above because calculatePath
       // receives a character parameter that might differ from selectedCharacter.
       const isProne = character.conditions?.some(c => c.name === 'Prone' || c.name === 'prone') || false;
-      const ignoreDifficultTerrain = character.modifiers?.ignoreDifficultTerrain || character.ignoreDifficultTerrain || false;
+      const terrainPolicy = resolveCombatantTerrainMovementPolicy(character);
 
       // Pass crawling state to the A* pathfinder in physicsUtils, which adds
       // +1 foot per foot to every step's cost when isCrawling is true.
@@ -247,9 +254,9 @@ export function useGridMovement({ mapData, characterPositions, selectedCharacter
           ).map(waypoint => mapData.tiles.get(`${waypoint.position.x}-${waypoint.position.y}`))
             .filter((tile): tile is BattleMapTile => Boolean(tile))
         : findPath(startTile, targetTile, mapData, {
-            isCrawling: isProne,
-            ignoreDifficultTerrain: ignoreDifficultTerrain
-          }, multiplier);
+            // The A* pathfinder prices each square through the same policy.
+            isCrawling: isProne
+          }, multiplier, terrainPolicy);
       setActivePath(path);
     }
   }, [mapData, characterPositions, validMoves]);

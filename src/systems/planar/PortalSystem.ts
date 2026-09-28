@@ -1,7 +1,8 @@
 
 import { Portal, PortalRequirement } from '../../types/planes';
-import { GameState } from '../../types/index';
-import { getTimeOfDay, TimeOfDay } from '../../utils/core';
+import { GameState, PlayerCharacter } from '../../types/index';
+import { getTimeOfDay, getSeason, TimeOfDay, Season } from '../../utils/core';
+import { getMoonPhase, getHoliday, HOLIDAYS, MoonPhase } from '../time/CalendarSystem';
 
 export interface PortalActivationResult {
   success: boolean;
@@ -39,19 +40,7 @@ export class PortalSystem {
         if (!gameState.gameTime) {
              return { met: false, reason: "Time is undefined." };
         }
-        const timeOfDay = getTimeOfDay(gameState.gameTime);
-
-        if (req.value === 'Night') {
-             if (timeOfDay !== TimeOfDay.Night) return { met: false, reason: "Portal only opens at night." };
-             return { met: true };
-        }
-        if (req.value === 'Day') {
-             if (timeOfDay !== TimeOfDay.Day) return { met: false, reason: "Portal only opens during the day." };
-             return { met: true };
-        }
-
-        // Fail closed for unsupported time conditions (e.g. "Full Moon" not yet implemented)
-        return { met: false, reason: `Time condition '${req.value}' not currently met.` };
+        return this.checkTimeCondition(req.value, gameState.gameTime);
       }
 
       case 'condition':
@@ -63,12 +52,80 @@ export class PortalSystem {
         return { met: false, reason: `Unknown condition: ${req.value}` };
 
       case 'spell':
-         // This would check if a spell is currently active or was cast on the portal?
-         return { met: false, reason: `Requires spell: ${req.value}` };
+         return this.checkSpellCondition(req.value, gameState);
 
       default:
         return { met: false, reason: "Unknown requirement type" };
     }
+  }
+
+  /**
+   * Evaluates a calendar condition against the game clock.
+   *
+   * Four vocabularies are understood, in this order: time of day (Dawn/Day/Dusk/Night),
+   * moon phase (the 28-day cycle in CalendarSystem, so "Full Moon" is a real check
+   * rather than a closed door), season, and holiday. A value from none of them is
+   * reported as unrecognized instead of as an unmet condition, because a portal keyed
+   * to a condition the game cannot evaluate is authoring data that needs fixing.
+   */
+  private static checkTimeCondition(value: string, gameTime: Date): { met: boolean; reason?: string } {
+    const timeOfDay = getTimeOfDay(gameTime);
+    if (Object.values(TimeOfDay).includes(value as TimeOfDay)) {
+      if (timeOfDay !== value) {
+        return { met: false, reason: `The portal only opens at ${value}; it is ${timeOfDay}.` };
+      }
+      return { met: true };
+    }
+
+    if (Object.values(MoonPhase).includes(value as MoonPhase)) {
+      const phase = getMoonPhase(gameTime);
+      if (phase !== value) {
+        return { met: false, reason: `The portal waits for the ${value}; the moon shows ${phase}.` };
+      }
+      return { met: true };
+    }
+
+    if (Object.values(Season).includes(value as Season)) {
+      const season = getSeason(gameTime);
+      if (season !== value) {
+        return { met: false, reason: `The portal only opens in ${value}; it is ${season}.` };
+      }
+      return { met: true };
+    }
+
+    const namedHoliday = HOLIDAYS.find(holiday => holiday.name === value);
+    if (namedHoliday) {
+      const today = getHoliday(gameTime);
+      if (today?.id !== namedHoliday.id) {
+        return { met: false, reason: `The portal only opens on ${namedHoliday.name}.` };
+      }
+      return { met: true };
+    }
+
+    return { met: false, reason: `Unrecognized time condition '${value}'.` };
+  }
+
+  /**
+   * Evaluates a spell condition against the magic currently running on the party.
+   *
+   * A party member carrying an active effect whose name or source names the spell
+   * satisfies the requirement. Magic bound to the portal itself is NOT covered:
+   * `Portal` has no field recording spells cast upon it, so that half stays unbuilt
+   * rather than faked (see the PK-14 report).
+   */
+  private static checkSpellCondition(value: string, gameState: GameState): { met: boolean; reason?: string } {
+    const wanted = value.trim().toLowerCase();
+    const party: PlayerCharacter[] = gameState.party ?? [];
+    const isActive = party.some(pc =>
+      (pc.activeEffects ?? []).some(effect =>
+        effect.name.trim().toLowerCase() === wanted || effect.source.trim().toLowerCase() === wanted
+      )
+    );
+
+    if (!isActive) {
+      return { met: false, reason: `Requires the magic of ${value} to be active.` };
+    }
+    return { met: true };
   }
 
   static activate(portal: Portal, gameState: GameState): PortalActivationResult {

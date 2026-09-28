@@ -1,19 +1,3 @@
-// @dependencies-start
-/**
- * ARCHITECTURAL ADVISORY:
- * SHARED UTILITY: Multiple systems rely on these exports.
- *
- * Last Sync: 17/08/2026, 09:34:36
- * Dependents: commands/effects/AttackRollModifierCommand.ts, commands/effects/GrantedActionCommand.ts, commands/effects/GraspingVineCommand.ts, commands/effects/ReactiveEffectCommand.ts, commands/factory/AbilityCommandFactory.ts, commands/factory/SpellCommandFactory.ts, components/DesignPreview/steps/raceDomain/leaves/halfOrcRaceLeaf.tsx
- * Imports: 19 files
- *
- * MULTI-AGENT SAFETY:
- * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
- * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
- */
-// @dependencies-end
-
 /**
  * This file resolves damage applications on characters during combat.
  *
@@ -26,14 +10,33 @@
  *
  * @file src/commands/effects/DamageCommand.ts
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 09/09/2026, 14:55:02
+ * Dependents: commands/effects/AttackRollModifierCommand.ts, commands/effects/GrantedActionCommand.ts, commands/effects/GraspingVineCommand.ts, commands/effects/ReactiveEffectCommand.ts, commands/factory/AbilityCommandFactory.ts, commands/factory/SpellCommandFactory.ts, components/DesignPreview/steps/raceDomain/leaves/halfOrcRaceLeaf.tsx
+ * Imports: 20 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import { BaseEffectCommand } from '../base/BaseEffectCommand'
 import { CombatState, CombatCharacter, StatusEffect, ActiveEffect, ActiveEnvironmentalControl, ActiveSpellEmanation, ActiveSpellGuardian, Position, SelectedSpellTarget } from '../../types/combat'
 import { isDamageEffect } from '../../types/spells'
 import type { DamageEffect } from '../../types/spells'
 import { checkConcentration } from '../../utils/character';
 import { calculateSpellDC, rollSavingThrow, calculateSaveDamage, resolveSaveOutcomeOverride } from '../../utils/character';
-import type { SavingThrowModifier } from '../../utils/character';
-import { rollDamage as rollDamageUtil, calculateCover, generateId } from '../../utils/combat';
+import type { SavingThrowModifier, SavingThrowResult } from '../../utils/character';
+import type { SavingThrowAbility } from '../../types/spellEffectTypes';
+import { calculateCover, generateId } from '../../utils/combat';
+import { rollDamage as rollDamageUtil } from '../../systems/dice/rollers';
 import { BreakConcentrationCommand, breakFriendsConcentrationForCaster } from './ConcentrationCommands'
 import { ResistanceCalculator } from '../../utils/combat/resistanceUtils';
 import { getPlanarSpellModifier } from '../../utils/planar';
@@ -41,12 +44,15 @@ import { StatusConditionCommand } from './StatusConditionCommand';
 import { SavePenaltySystem } from '../../systems/combat/SavePenaltySystem';
 import { applyDamageAndCheckDowned, isIncapacitated } from '../../utils/combat/deathSaveUtils';
 import { combatEvents } from '../../systems/events/CombatEvents';
-import { getStateTagForDamageType } from '../../types/elemental';
+import { SeededRandom } from '../../utils/random/seededRandom';
+import { CONDUCTIVITY_RULES, getStateTagForDamageType, StateTag, type ConductivityRule } from '../../types/elemental';
+import { resolveConductivityPropagation, type ConductiveNode } from '../../utils/combat/aoeCalculations';
 import { applyStateToTags } from '../../systems/physics/ElementalInteractionSystem';
 import { breakTauntsForEvent } from '../../systems/combat/tauntConstraint';
 import { getRecurringMechanics } from '../../hooks/spellEffectUtils';
 import { resolveOnDamageSpellEffect } from '../../systems/spells/effects/onDamageSpellEffects';
 import { resolveSourceSaveAdvantageModifiers } from '../../systems/spells/mechanics/sourceSaveModifierResolution';
+import { getStatusDiscriminator } from '../../types/combatMessages';
 import {
   getAlliedProtectionClaimId,
   resolveAlliedProtectionReactionWindow,
@@ -93,6 +99,36 @@ const DAMAGE_VERBS: Record<string, string[]> = {
 
 /** Fallback verbs when damage type is unknown or not in DAMAGE_VERBS */
 const DEFAULT_VERBS = ['damages', 'hits', 'strikes', 'hurts'];
+
+/**
+ * Pick one flavor verb for a damage log line.
+ *
+ * The verb is cosmetic, but the project rule is that `src` holds no
+ * `Math.random`: every draw comes from a seeded source so a replayed combat
+ * reads back the same log text. The draw uses the command's injected damage
+ * RNG when a caller supplied one (deterministic proofs and scenario labs thread
+ * one through the whole transaction), and otherwise a `SeededRandom` keyed on
+ * the combat seed and the index this entry takes in the combat log.
+ *
+ * @param verbs - The candidate verbs for this damage type.
+ * @param combatSeed - Seed of the battle map this combat runs on.
+ * @param logIndex - Number of entries already in the combat log.
+ * @param injectedRng - Optional unit-interval source supplied by the caller.
+ * @returns The chosen verb.
+ */
+export function selectDamageVerb(
+  verbs: string[],
+  combatSeed: number,
+  logIndex: number,
+  injectedRng?: () => number
+): string {
+  // Fold the seed into the LCG's own range before mixing so a clock-derived
+  // map seed cannot push the product past the exact-integer range.
+  const mixedSeed = (Math.abs(Math.trunc(combatSeed)) % 2147483647) * 7919 + logIndex * 104729 + 1;
+  const unit = injectedRng ? injectedRng() : new SeededRandom(mixedSeed).next();
+  const index = Math.min(verbs.length - 1, Math.floor(unit * verbs.length));
+  return verbs[index];
+}
 
 /**
  * Command to apply damage to targets.
@@ -278,10 +314,11 @@ export class DamageCommand extends BaseEffectCommand<DamageEffect> {
         );
 
         // Roll the save: 1d20 + ability mod + proficiency (if proficient) + modifiers
-        const saveResult = resolveSaveOutcomeOverride(
+        let saveResult = resolveSaveOutcomeOverride(
           this.effect.condition.saveOutcomeOverrides,
           target,
-          dc
+          dc,
+          caster.team
         ) ?? rollSavingThrow(
           target,
           this.effect.condition.saveType,
@@ -290,6 +327,22 @@ export class DamageCommand extends BaseEffectCommand<DamageEffect> {
           undefined,
           structuredSaveModifiers
         );
+
+        // A failed save is the trigger for Lucky Footwork-style racial
+        // reactions (agora-db71.12). racialTraits emits them with
+        // trigger.type 'on_failed_saving_throw', and until now no consumer
+        // existed, so the d4 could never be added. The offer happens here,
+        // before the save outcome is priced into damage, because the die is
+        // added to the SAVE, not to the damage.
+        const savedByReaction = await this.offerFailedSaveReactions(
+            currentState,
+            target.id,
+            this.effect.condition.saveType,
+            dc,
+            saveResult
+        );
+        currentState = savedByReaction.state;
+        saveResult = savedByReaction.saveResult;
 
         // Adjust damage based on save outcome:
         // - Failed save: full damage
@@ -465,7 +518,15 @@ export class DamageCommand extends BaseEffectCommand<DamageEffect> {
       finalDamage = alliedProtection.finalDamage;
 
       // --- RACIAL REACTIONS (e.g. Stone's Endurance) ---
-      if (this.context.requestReaction && target.modifiers?.reactions && finalDamage > 0) {
+      // The offer costs the target's Reaction, so a creature that already spent
+      // it is never asked. Reading the live copy out of currentState matters:
+      // an earlier hit this round may have spent the Reaction inside this very
+      // command. Mirrors offerFailedSaveReactions.
+      const reactor = currentState.characters.find(character => character.id === target.id)
+        ?? targetAfterResistance;
+      const reactorCanReact = !reactor.actionEconomy.reaction.used
+        && reactor.actionEconomy.reaction.remaining > 0;
+      if (this.context.requestReaction && target.modifiers?.reactions && finalDamage > 0 && reactorCanReact) {
         const validReactions = target.modifiers.reactions.filter(r => r.trigger?.type === 'on_target_takes_damage');
         if (validReactions.length > 0) {
           // Map to mock Spells so the UI can render them
@@ -489,6 +550,15 @@ export class DamageCommand extends BaseEffectCommand<DamageEffect> {
           if (choice) {
             const chosenReaction = validReactions.find(r => r.id === choice);
             if (chosenReaction) {
+              // Spend the Reaction on acceptance, before any effect branch. The
+              // creature has committed to this trait, so a second hit in the
+              // same round no longer reaches the offer above.
+              currentState = this.updateCharacter(currentState, target.id, {
+                actionEconomy: {
+                  ...reactor.actionEconomy,
+                  reaction: { ...reactor.actionEconomy.reaction, used: true, remaining: 0 }
+                }
+              });
               if (chosenReaction.effect?.type === 'DEFENSIVE' && chosenReaction.effect.defenseType === 'damage_reduction') {
                 const damageReduction = chosenReaction.effect.damageReduction;
                 if (!damageReduction) continue;
@@ -565,7 +635,7 @@ export class DamageCommand extends BaseEffectCommand<DamageEffect> {
       // Elemental damage contacts the target and resolves against its existing
       // stateTags (e.g. Wet + Cold -> Frozen, Wet + Fire -> Smoke). This is the
       // command-level wiring from damage element into the physics state engine.
-      currentState = this.applyElementalState(currentState, target);
+      currentState = this.applyElementalState(currentState, target, finalDamage);
 
       // --- SLASHER FEAT LOGIC ---
       if (caster.feats?.includes('slasher') && this.effect.damage.type.toLowerCase() === 'slashing' && finalDamage > 0) {
@@ -1399,7 +1469,11 @@ export class DamageCommand extends BaseEffectCommand<DamageEffect> {
       currentState = this.addLogEntry(currentState, {
         type: 'status',
         message: `${caster.name}'s Slasher feat slows ${target.name} by 10ft!`,
-        characterId: target.id
+        characterId: target.id,
+        // agora-db71.10: the emitter knows which status it just applied, so it says so.
+        // The adapter's live lookup can only classify a record whose named effect is still
+        // on the character when the record is converted; a stamp survives that.
+        eventClass: getStatusDiscriminator(slasherSlow.type)?.eventClass
       });
     }
 
@@ -1447,7 +1521,8 @@ export class DamageCommand extends BaseEffectCommand<DamageEffect> {
    */
   private applyElementalState(
     state: CombatState,
-    target: CombatCharacter
+    target: CombatCharacter,
+    finalDamage: number
   ): CombatState {
     if (!isDamageEffect(this.effect)) return state;
 
@@ -1474,6 +1549,152 @@ export class DamageCommand extends BaseEffectCommand<DamageEffect> {
       data: { stateTags: newStates }
     });
 
+    // The charge does not stop at the creature it hit. Everything standing in
+    // the same puddle is part of the same circuit.
+    return this.propagateConductivity(nextState, currentTarget, finalDamage);
+  }
+
+  /**
+   * Spreads an elemental charge out of the struck creature and through whatever
+   * conducts it (agora-db71.11).
+   *
+   * WHAT WAS MISSING: resolveConductivityPropagation and CONDUCTIVITY_RULES were
+   * built and tested but had no consumer, so a lightning bolt into a soaked pack
+   * of kobolds stopped at the one it hit. This is the consumer.
+   *
+   * THE RULES ARE NOT RE-DECIDED HERE. Which pairs conduct, how far a hop reaches,
+   * what share each hop takes and how many hops there are all live in
+   * CONDUCTIVITY_RULES. This method only supplies the battlefield and pays out the
+   * result, so retuning the mechanic never means editing the damage pipeline.
+   *
+   * WHY EVERY MATCHING RULE RUNS: the table is keyed by the conducting pair, so one
+   * damage type may conduct through more than one medium once a second rule exists.
+   * Each matching rule propagates in turn, and every creature already reached is
+   * carried into the next call as alreadyDamagedIds, so no creature is billed twice
+   * however many media overlap.
+   *
+   * WHY THE FULL ROSTER IS HANDED OVER: the propagation module documents that it
+   * ignores non-conductors itself. Pre-filtering here would quietly put that rule
+   * in two places.
+   *
+   * @param state - Combat state after the direct hit has been applied.
+   * @param struckTarget - The creature the strike landed on. It conducts, but is
+   *   never billed again, because the direct hit already charged it.
+   * @param finalDamage - Damage the direct hit actually dealt, after resistances.
+   * @returns The state with every reached creature damaged and charged.
+   */
+  private propagateConductivity(
+    state: CombatState,
+    struckTarget: CombatCharacter,
+    finalDamage: number
+  ): CombatState {
+    if (!isDamageEffect(this.effect)) return state;
+    // A strike that dealt nothing has no charge to pass on.
+    if (finalDamage <= 0) return state;
+
+    const charge = getStateTagForDamageType(this.effect.damage.type);
+    if (!charge) return state;
+
+    const conductingRules: ConductivityRule[] = Object.values(CONDUCTIVITY_RULES)
+      .filter(rule => rule.charge === charge);
+    if (conductingRules.length === 0) return state;
+
+    const nodes: ConductiveNode[] = state.characters.map(character => ({
+      id: character.id,
+      position: character.position,
+      stateTags: character.stateTags
+    }));
+
+    let nextState = state;
+    const alreadyDamagedIds = [struckTarget.id];
+
+    for (const rule of conductingRules) {
+      const hits = resolveConductivityPropagation({
+        origin: struckTarget.position,
+        nodes,
+        rule,
+        alreadyDamagedIds: [...alreadyDamagedIds]
+      });
+
+      for (const hit of hits) {
+        alreadyDamagedIds.push(hit.id);
+        nextState = this.applyConductedHit(
+          nextState,
+          hit.id,
+          hit.damageFraction,
+          hit.appliedState,
+          finalDamage,
+          hit.hop
+        );
+      }
+    }
+
+    return nextState;
+  }
+
+  /**
+   * Pays out one conducted hit: the hop share of the damage, then the charge.
+   *
+   * The share runs through ResistanceCalculator and applyDamageAndCheckDowned, the
+   * same two steps the direct hit uses, so resistance, vulnerability, immunity,
+   * temporary hit points and going down all behave exactly as they do for a
+   * creature hit head-on. A conducted hit is never a critical: the critical
+   * belonged to the attack roll that started the chain, not to the water.
+   *
+   * The charge is applied even when the damage lands as zero. Lightning immunity
+   * says the creature is not hurt by the current, not that the current is not
+   * touching it, and the state is what makes that creature a relay for the next hop.
+   */
+  private applyConductedHit(
+    state: CombatState,
+    reachedId: string,
+    damageFraction: number,
+    appliedState: StateTag,
+    finalDamage: number,
+    hop: number
+  ): CombatState {
+    if (!isDamageEffect(this.effect)) return state;
+
+    const reached = state.characters.find(character => character.id === reachedId);
+    if (!reached) return state;
+
+    // Rounded down, the way 5e halves a damage roll.
+    const conductedDamage = Math.floor(finalDamage * damageFraction);
+
+    const afterResistance = ResistanceCalculator.applyResistances(
+      conductedDamage,
+      this.effect.damage.type,
+      reached,
+      this.context.caster,
+      this.context.isMagical,
+      {
+        spellZones: state.spellZones,
+        characters: state.characters
+      }
+    );
+
+    const damaged = applyDamageAndCheckDowned(reached, afterResistance, false);
+    const { newStates } = applyStateToTags(reached.stateTags || [], appliedState);
+
+    let nextState = this.updateCharacter(state, reachedId, {
+      currentHP: damaged.currentHP,
+      tempHP: damaged.tempHP,
+      temporaryHitPointSource: damaged.temporaryHitPointSource,
+      deathSaves: damaged.deathSaves,
+      statusEffects: damaged.statusEffects,
+      conditions: damaged.conditions,
+      damagedThisTurn: damaged.damagedThisTurn,
+      stateTags: newStates
+    });
+
+    nextState = this.addLogEntry(nextState, {
+      type: 'status',
+      message: `The charge conducts to ${reached.name} for ${afterResistance} ${this.effect.damage.type} damage (hop ${hop}).`,
+      characterId: reachedId,
+      targetIds: [reachedId],
+      data: { stateTags: newStates }
+    });
+
     return nextState;
   }
 
@@ -1490,8 +1711,12 @@ export class DamageCommand extends BaseEffectCommand<DamageEffect> {
 
     const damageType = this.effect.damage.type.toLowerCase();
     const verbs = DAMAGE_VERBS[damageType] || DEFAULT_VERBS;
-    const verbIndex = Math.floor(Math.random() * verbs.length);
-    const verb = verbs[verbIndex];
+    const verb = selectDamageVerb(
+      verbs,
+      state.mapData?.seed ?? 0,
+      state.combatLog?.length ?? 0,
+      this.context.damageRng
+    );
 
     const sourceName = this.context.spellName;
     let logMessage = '';
@@ -1682,6 +1907,109 @@ export class DamageCommand extends BaseEffectCommand<DamageEffect> {
   }
 
   /**
+   * Offers every racial reaction whose trigger is a failed saving throw, then
+   * applies the chosen one to the save that just failed.
+   *
+   * This is the missing consumer for `trigger: { type: 'on_failed_saving_throw' }`
+   * (Harengon Lucky Footwork and anything shaped like it). The reaction adds its
+   * die to the save total, so a reaction can turn a failure into a success and
+   * the caller then prices the NEW outcome. A successful save, a creature with
+   * no such reaction, a mismatched ability, or a spent Reaction all return the
+   * save untouched.
+   *
+   * The Reaction is spent on acceptance, the same way the sibling on-damage
+   * racial reaction block above now spends it (agora-db71.23).
+   */
+  private async offerFailedSaveReactions(
+    state: CombatState,
+    targetId: string,
+    saveType: SavingThrowAbility,
+    dc: number,
+    saveResult: SavingThrowResult
+  ): Promise<{ state: CombatState; saveResult: SavingThrowResult }> {
+    if (saveResult.success) return { state, saveResult };
+    if (!this.context.requestReaction) return { state, saveResult };
+
+    const target = state.characters.find(character => character.id === targetId);
+    if (!target) return { state, saveResult };
+    if (target.actionEconomy.reaction.used || target.actionEconomy.reaction.remaining <= 0) {
+      return { state, saveResult };
+    }
+
+    // A save reaction has to name the ability it rescues. `condition.type` is
+    // 'save' and `condition.saveType` is the ability, both written by
+    // data/races/racialTraits.ts.
+    const validReactions = (target.modifiers?.reactions ?? []).filter(reaction => (
+      reaction.trigger?.type === 'on_failed_saving_throw'
+      && (reaction as { condition?: { type?: string; saveType?: string } }).condition?.saveType === saveType
+      && reaction.effect?.type === 'ATTACK_ROLL_MODIFIER'
+      && (reaction.effect as { savingThrowModifier?: { modifier?: string; dice?: string } })
+        .savingThrowModifier?.modifier === 'bonus'
+    ));
+    if (validReactions.length === 0) return { state, saveResult };
+
+    const reactionSpells = validReactions.map(reaction => ({
+      id: reaction.id,
+      name: reaction.name,
+      description: reaction.description,
+      level: 0,
+      school: 'Abjuration',
+      classes: [],
+      subClasses: [],
+      castingTime: { value: 1, unit: 'reaction' },
+      range: { type: 'self', distance: 0 },
+      components: { v: false, s: false, m: false },
+      duration: { type: 'instantaneous', concentration: false },
+      targeting: { type: 'self', validTargets: [] },
+      effects: [reaction.effect]
+    }));
+
+    // The reaction-prompt contract has no failed-save trigger label yet, so the
+    // nearest existing channel carries the offer. The options are the named
+    // reactions themselves, so the player still sees exactly what they are
+    // choosing. Widening the label is a cross-file change (see the task result).
+    const choice = await this.context.requestReaction(
+      targetId,
+      targetId,
+      'on_take_damage',
+      reactionSpells
+    );
+    if (!choice) return { state, saveResult };
+
+    const chosen = validReactions.find(reaction => reaction.id === choice);
+    const dice = (chosen?.effect as { savingThrowModifier?: { dice?: string } } | undefined)
+      ?.savingThrowModifier?.dice;
+    if (!chosen || !dice) return { state, saveResult };
+
+    const bonus = rollDamageUtil(dice, false, 1, this.context.damageRng);
+    const total = saveResult.total + bonus;
+    const nextSaveResult: SavingThrowResult = {
+      ...saveResult,
+      total,
+      success: total >= dc,
+      modifiersApplied: [
+        ...(saveResult.modifiersApplied ?? []),
+        { source: chosen.name, value: bonus }
+      ]
+    };
+
+    let nextState = this.updateCharacter(state, targetId, {
+      actionEconomy: {
+        ...target.actionEconomy,
+        reaction: { ...target.actionEconomy.reaction, used: true, remaining: 0 }
+      }
+    });
+    nextState = this.addLogEntry(nextState, {
+      type: 'status',
+      message: `${target.name} uses ${chosen.name}, adding ${bonus} to the ${saveType} save `
+        + `(${total} vs DC ${dc}) — ${nextSaveResult.success ? 'the save now succeeds' : 'the save still fails'}.`,
+      characterId: targetId
+    });
+
+    return { state: nextState, saveResult: nextSaveResult };
+  }
+
+  /**
    * Builds the saving-throw modifier granted by map cover.
    *
    * Cover only affects Dexterity saves in the 5e rules this command is modeling.
@@ -1759,275 +2087,13 @@ export class DamageCommand extends BaseEffectCommand<DamageEffect> {
   }
 }
 
-export function recordGuardianOfFaithDamage(
-  state: CombatState,
-  guardianId: string,
-  damageDealt: number,
-  options: {
-    targetId?: string;
-  } = {}
-): CombatState {
-  const guardian = state.activeSpellGuardians?.find(record => record.id === guardianId);
-
-  if (!guardian) {
-    return state;
-  }
-
-  const totalDamageDealt = guardian.damageCap.dealtDamage + damageDealt;
-  const shouldVanish = guardian.damageCap.vanishWhenReached &&
-    totalDamageDealt >= guardian.damageCap.maxTotalDamage;
-  const updatedGuardian: ActiveSpellGuardian = {
-    ...guardian,
-    active: !shouldVanish,
-    damageCap: {
-      ...guardian.damageCap,
-      dealtDamage: totalDamageDealt
-    }
-  };
-
-  if (shouldVanish) {
-    return {
-      ...state,
-      activeSpellGuardians: (state.activeSpellGuardians || []).filter(record => record.id !== guardianId),
-      combatLog: [
-        ...state.combatLog,
-        {
-          id: generateId(),
-          timestamp: Date.now(),
-          type: 'status',
-          message: `${guardian.spellName || 'Guardian of Faith'} vanishes after dealing ${totalDamageDealt} damage.`,
-          characterId: guardian.casterId,
-          targetIds: options.targetId ? [options.targetId] : undefined,
-          data: {
-            spellGuardianSurface: 'guardian_of_faith',
-            guardianId,
-            targetId: options.targetId,
-            damageDealt,
-            totalDamageDealt,
-            vanishReason: 'damage_cap_reached'
-          }
-        }
-      ]
-    };
-  }
-
-  return {
-    ...state,
-    activeSpellGuardians: (state.activeSpellGuardians || []).map(record =>
-      record.id === guardianId ? updatedGuardian : record
-    ),
-    combatLog: [
-      ...state.combatLog,
-      {
-        id: generateId(),
-        timestamp: Date.now(),
-        type: 'damage',
-        message: `${guardian.spellName || 'Guardian of Faith'} has dealt ${totalDamageDealt} total damage.`,
-        characterId: guardian.casterId,
-        targetIds: options.targetId ? [options.targetId] : undefined,
-        data: {
-          spellGuardianSurface: 'guardian_of_faith',
-          guardianId,
-          targetId: options.targetId,
-          damageDealt,
-          totalDamageDealt
-        }
-      }
-    ]
-  };
-}
-
-export function moveFaithfulHoundGuardian(
-  state: CombatState,
-  guardianId: string,
-  nextPosition: Position,
-  options: {
-    casterPosition: Position;
-  }
-): CombatState {
-  const guardian = state.activeSpellGuardians?.find(record => record.id === guardianId);
-
-  if (!guardian || guardian.kind !== 'faithful_hound') {
-    return state;
-  }
-
-  const maxDistanceFeet = guardian.separationEnding?.maxDistanceFeet ?? 300;
-  const distanceFromCasterFeet = getGridDistanceFeet(options.casterPosition, nextPosition);
-  if (distanceFromCasterFeet > maxDistanceFeet) {
-    return {
-      ...state,
-      activeSpellGuardians: (state.activeSpellGuardians || []).filter(record => record.id !== guardianId),
-      combatLog: [
-        ...state.combatLog,
-        {
-          id: generateId(),
-          timestamp: Date.now(),
-          type: 'status',
-          message: `${guardian.spellName || "Mordenkainen's Faithful Hound"} ends because it is too far from its caster.`,
-          characterId: guardian.casterId,
-          data: {
-            spellGuardianSurface: 'faithful_hound',
-            guardianId,
-            endingReason: 'beyond_max_distance',
-            distanceFromCasterFeet,
-            maxDistanceFeet
-          }
-        }
-      ]
-    };
-  }
-
-  const movedGuardian: ActiveSpellGuardian = {
-    ...guardian,
-    position: nextPosition
-  };
-
-  return {
-    ...state,
-    activeSpellGuardians: (state.activeSpellGuardians || []).map(record =>
-      record.id === guardianId ? movedGuardian : record
-    ),
-    combatLog: [
-      ...state.combatLog,
-      {
-        id: generateId(),
-        timestamp: Date.now(),
-        type: 'movement',
-        message: `${guardian.spellName || "Mordenkainen's Faithful Hound"} moves up to ${guardian.movement?.maxDistanceFeet ?? 30} feet.`,
-        characterId: guardian.casterId,
-        data: {
-          spellGuardianSurface: 'faithful_hound',
-          guardianId,
-          moveReason: 'magic_action',
-          position: nextPosition
-        }
-      }
-    ]
-  };
-}
-
-export function recordConjureElementalRestraint(
-  state: CombatState,
-  guardianId: string,
-  options: {
-    targetId: string;
-    failedSave: boolean;
-  }
-): CombatState {
-  const guardian = state.activeSpellGuardians?.find(record => record.id === guardianId);
-
-  if (!guardian || guardian.kind !== 'conjure_elemental' || !options.failedSave) {
-    return state;
-  }
-
-  const updatedGuardian: ActiveSpellGuardian = {
-    ...guardian,
-    elementalSpirit: {
-      ...guardian.elementalSpirit,
-      restrainedTargetId: options.targetId
-    }
-  };
-
-  return {
-    ...state,
-    activeSpellGuardians: (state.activeSpellGuardians || []).map(record =>
-      record.id === guardianId ? updatedGuardian : record
-    ),
-    combatLog: [
-      ...state.combatLog,
-      {
-        id: generateId(),
-        timestamp: Date.now(),
-        type: 'status',
-        message: `${guardian.spellName || 'Conjure Elemental'} restrains ${options.targetId}.`,
-        characterId: guardian.casterId,
-        targetIds: [options.targetId],
-        data: {
-          spellGuardianSurface: 'conjure_elemental',
-          guardianId,
-          restrainedTargetId: options.targetId,
-          damageDice: guardian.elementalSpirit?.initialDamageDice ?? guardian.triggerPolicy.damageDice,
-          damageType: guardian.elementalSpirit?.damageType ?? guardian.triggerPolicy.damageType
-        }
-      }
-    ]
-  };
-}
-
-export function resolveConjureElementalRepeatSave(
-  state: CombatState,
-  guardianId: string,
-  options: {
-    targetId: string;
-    failedSave: boolean;
-  }
-): CombatState {
-  const guardian = state.activeSpellGuardians?.find(record => record.id === guardianId);
-
-  if (!guardian || guardian.kind !== 'conjure_elemental') {
-    return state;
-  }
-
-  const repeatDamageDice = guardian.elementalSpirit?.repeatDamageDice ?? '4d8';
-  if (options.failedSave) {
-    return {
-      ...state,
-      combatLog: [
-        ...state.combatLog,
-        {
-          id: generateId(),
-          timestamp: Date.now(),
-          type: 'damage',
-          message: `${guardian.spellName || 'Conjure Elemental'} deals repeat damage to ${options.targetId}.`,
-          characterId: guardian.casterId,
-          targetIds: [options.targetId],
-          data: {
-            spellGuardianSurface: 'conjure_elemental',
-            guardianId,
-            repeatSaveOutcome: 'failed',
-            damageDice: repeatDamageDice,
-            damageType: guardian.elementalSpirit?.damageType ?? guardian.triggerPolicy.damageType
-          }
-        }
-      ]
-    };
-  }
-
-  const updatedGuardian: ActiveSpellGuardian = {
-    ...guardian,
-    elementalSpirit: {
-      ...guardian.elementalSpirit,
-      restrainedTargetId: undefined
-    }
-  };
-
-  return {
-    ...state,
-    activeSpellGuardians: (state.activeSpellGuardians || []).map(record =>
-      record.id === guardianId ? updatedGuardian : record
-    ),
-    combatLog: [
-      ...state.combatLog,
-      {
-        id: generateId(),
-        timestamp: Date.now(),
-        type: 'status',
-        message: `${options.targetId} is no longer restrained by ${guardian.spellName || 'Conjure Elemental'}.`,
-        characterId: guardian.casterId,
-        targetIds: [options.targetId],
-        data: {
-          spellGuardianSurface: 'conjure_elemental',
-          guardianId,
-          repeatSaveOutcome: 'succeeded',
-          releasedTargetId: options.targetId
-        }
-      }
-    ]
-  };
-}
-
-function getGridDistanceFeet(from: Position, to: Position): number {
-  const dx = to.x - from.x;
-  const dy = to.y - from.y;
-  return Math.sqrt((dx * dx) + (dy * dy)) * 5;
-}
+// The guardian and emanation lifecycle mutators below used to live in this
+// file. They moved to ./damage/guardianSummonHelpers because they never touch
+// DamageCommand instance state. This re-export keeps the original module path
+// as the public entry point, so no dependent import needed rewiring.
+export {
+  recordGuardianOfFaithDamage,
+  moveFaithfulHoundGuardian,
+  recordConjureElementalRestraint,
+  resolveConjureElementalRepeatSave,
+} from './damage/guardianSummonHelpers';

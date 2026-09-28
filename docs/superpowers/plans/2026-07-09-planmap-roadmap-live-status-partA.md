@@ -1,16 +1,16 @@
-# Plan-map live status on the roadmap (Part A) — Implementation Plan
+# Plan-map live status on the roadmap (Part A) - Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Make the feature-tree roadmap display the plan-map's honest, reconciled status (plus READY/FOCUS badges) live in the browser, read from the plan-map's own `topics.json`, with an on-demand Refresh button.
 
-**Architecture:** The plan-map's `public/planmap/topics.json` stays the sole owner of status; the roadmap only reads it and only displays it. The roadmap's node generator (which runs live, served at `/Aralia/api/roadmap/data` — there is no baked `roadmap.json`) stamps an optional `planmapTopic` tag onto curated nodes. At load, the roadmap app also fetches `topics.json`, and a pure overlay function computes each tagged node's status, READY, and FOCUS from it. The "what counts as READY" rule is extracted into one shared, dual-use module that both the plan-map viewer and the roadmap import.
+**Architecture:** The plan-map's `public/planmap/topics.json` stays the sole owner of status; the roadmap only reads it and only displays it. The roadmap's node generator (which runs live, served at `/Aralia/api/roadmap/data` - there is no baked `roadmap.json`) stamps an optional `planmapTopic` tag onto curated nodes. At load, the roadmap app also fetches `topics.json`, and a pure overlay function computes each tagged node's status, READY, and FOCUS from it. The "what counts as READY" rule is extracted into one shared, dual-use module that both the plan-map viewer and the roadmap import.
 
 **Tech Stack:** Vanilla ES module (`.mjs`) for the shared pure logic; TypeScript + React for the roadmap app; Vite dev server (`base: '/Aralia/'`); Vitest (`npm run test`, jsdom, globals).
 
 ## Global Constraints
 
-- **One-directional only.** The roadmap never writes to `topics.json`. Data flows plan-map → roadmap, never back. (Spec: Principle.)
+- **One-directional only.** The roadmap never writes to `topics.json`. Data flows plan-map -> roadmap, never back. (Spec: Principle.)
 - **No new fields on the plan-map data model.** `topics.json` gains nothing. (Spec: Out of scope.)
 - **Plan-map spelling/plain-language house style:** US English spelling everywhere; plain wording in any user-facing copy.
 - **Vite base path is `/Aralia/`.** All app-origin fetches are absolute under it (e.g. `/Aralia/planmap/topics.json`, `/Aralia/api/roadmap/data`).
@@ -23,19 +23,19 @@
 ## File Structure
 
 **Created:**
-- `public/planmap/ready-derive.mjs` — shared pure readiness logic (dual-use: vitest + browser `window.PlanmapReady` + roadmap import). One responsibility: "is a topic dead / actionable".
-- `public/planmap/ready-derive.test.mjs` — tests for the shared module.
-- `devtools/roadmap/src/components/debug/roadmap/modules/planmap-overlay.ts` — pure overlay: given roadmap nodes + parsed topics.json, return nodes with `planmapStatus`/`planmapReady`/`planmapFocus`/base `status` set. Also the plan-map→roadmap status mapping and the node-tagging helper.
-- `devtools/roadmap/src/components/debug/roadmap/modules/planmap-overlay.test.ts` — tests for the overlay + mapping + tagging.
-- `devtools/roadmap/scripts/roadmap-validate-planmap-links.ts` — CLI validator: error on unknown `planmapTopic`, warn on unclaimed plan-map topics.
+- `public/planmap/ready-derive.mjs` - shared pure readiness logic (dual-use: vitest + browser `window.PlanmapReady` + roadmap import). One responsibility: "is a topic dead / actionable".
+- `public/planmap/ready-derive.test.mjs` - tests for the shared module.
+- `devtools/roadmap/src/components/debug/roadmap/modules/planmap-overlay.ts` - pure overlay: given roadmap nodes + parsed topics.json, return nodes with `planmapStatus`/`planmapReady`/`planmapFocus`/base `status` set. Also the plan-map->roadmap status mapping and the node-tagging helper.
+- `devtools/roadmap/src/components/debug/roadmap/modules/planmap-overlay.test.ts` - tests for the overlay + mapping + tagging.
+- `devtools/roadmap/scripts/roadmap-validate-planmap-links.ts` - CLI validator: error on unknown `planmapTopic`, warn on unclaimed plan-map topics.
 
 **Modified:**
-- `public/planmap/index.html` — import `ready-derive.mjs`; replace the inline `isDead`/`isActionable` with `window.PlanmapReady`; add `?topic=` deep-link focus (small, and it seeds Part B).
-- `devtools/roadmap/scripts/roadmap-server-logic.ts:28-45` — add optional `planmapTopic`/`planmapStatus`/`planmapReady`/`planmapFocus` fields to `RoadmapNode`.
-- `devtools/roadmap/scripts/roadmap-engine/generate.ts` — add `PLANMAP_TOPIC_BY_NODE_ID` map + `attachPlanmapTopic` helper; wrap the three `nodes.push({...})` sites.
-- `devtools/roadmap/src/components/debug/roadmap/modules/roadmap-bootstrap-loader.ts:69-97` — add a 4th, non-fatal `topics.json` fetch; return parsed topics.
-- `devtools/roadmap/src/components/debug/roadmap/RoadmapVisualizer.tsx` — apply overlay after load; render status pill + READY/FOCUS badges; add a Refresh button.
-- `package.json` — add `roadmap:validate-planmap` script.
+- `public/planmap/index.html` - import `ready-derive.mjs`; replace the inline `isDead`/`isActionable` with `window.PlanmapReady`; add `?topic=` deep-link focus (small, and it seeds Part B).
+- `devtools/roadmap/scripts/roadmap-server-logic.ts:28-45` - add optional `planmapTopic`/`planmapStatus`/`planmapReady`/`planmapFocus` fields to `RoadmapNode`.
+- `devtools/roadmap/scripts/roadmap-engine/generate.ts` - add `PLANMAP_TOPIC_BY_NODE_ID` map + `attachPlanmapTopic` helper; wrap the three `nodes.push({...})` sites.
+- `devtools/roadmap/src/components/debug/roadmap/modules/roadmap-bootstrap-loader.ts:69-97` - add a 4th, non-fatal `topics.json` fetch; return parsed topics.
+- `devtools/roadmap/src/components/debug/roadmap/RoadmapVisualizer.tsx` - apply overlay after load; render status pill + READY/FOCUS badges; add a Refresh button.
+- `package.json` - add `roadmap:validate-planmap` script.
 
 ---
 
@@ -47,9 +47,9 @@
 
 **Interfaces:**
 - Produces:
-  - `slug(s: string): string` — lowercases, `[^a-z0-9]+`→`-`, trims `-`, `slice(0,40)` (matches the plan-map's local slug).
-  - `isDead(topic): boolean` — `status === 'done' || status === 'superseded'`.
-  - `isActionable(topic, byId): boolean` — topic is alive and every hard dep is satisfied (chosen deps and unknown-id deps don't block; feature-targeted deps satisfied when that feature is dead, falling back to whole-topic when the feature slug doesn't resolve).
+  - `slug(s: string): string` - lowercases, `[^a-z0-9]+`->`-`, trims `-`, `slice(0,40)` (matches the plan-map's local slug).
+  - `isDead(topic): boolean` - `status === 'done' || status === 'superseded'`.
+  - `isActionable(topic, byId): boolean` - topic is alive and every hard dep is satisfied (chosen deps and unknown-id deps don't block; feature-targeted deps satisfied when that feature is dead, falling back to whole-topic when the feature slug doesn't resolve).
   - Also attaches `window.PlanmapReady = { slug, isDead, isActionable }` when `window` exists.
 - `topic` shape used: `{ id, status, deps?: (string | { id, kind?, feature? })[], features?: { title, status }[] }`.
 
@@ -123,7 +123,7 @@ describe('isActionable', () => {
   it('unresolved feature slug falls back to whole-topic deadness', () => {
     const dep = { id: 'dep', status: 'active', features: [{ title: 'Ship It', status: 'done' }] };
     const t = { id: 'a', status: 'parked', deps: [{ id: 'dep', kind: 'hard', feature: 'no-such-feature' }] };
-    // dep topic is alive → not satisfied
+    // dep topic is alive -> not satisfied
     expect(isActionable(t, index([t, dep]))).toBe(false);
   });
 
@@ -137,7 +137,7 @@ describe('isActionable', () => {
 - [ ] **Step 2: Run test to verify it fails**
 
 Run: `npx vitest run public/planmap/ready-derive.test.mjs`
-Expected: FAIL — cannot resolve `./ready-derive.mjs` (module does not exist yet).
+Expected: FAIL - cannot resolve `./ready-derive.mjs` (module does not exist yet).
 
 - [ ] **Step 3: Write the module**
 
@@ -146,7 +146,7 @@ Create `public/planmap/ready-derive.mjs`:
 ```js
 // Pure readiness derivation for the plan-map. Dual-use: imported by vitest, loaded
 // in the browser (attaches window.PlanmapReady), and imported by the roadmap tool.
-// No DOM, no fetch — just data in, boolean out. One home for "what counts as READY".
+// No DOM, no fetch - just data in, boolean out. One home for "what counts as READY".
 
 export const slug = (s) => String(s ?? '')
   .toLowerCase()
@@ -174,7 +174,7 @@ export const isActionable = (t, byId) => !isDead(t) &&
     if (d.feature) {
       const f = featureOf(byId, d.id, d.feature);
       if (f) return featureDead(f);
-      // slug didn't resolve (data race / typo) — fall back to whole topic.
+      // slug didn't resolve (data race / typo) - fall back to whole topic.
     }
     return isDead(byId[d.id]);
   });
@@ -247,7 +247,7 @@ Find the block starting around line 766:
       if (d.feature) {
         const f = featureOf(d.id, d.feature);
         if (f) return featureDead(f);
-        // slug didn't resolve (data race / typo) — fall back to whole topic.
+        // slug didn't resolve (data race / typo) - fall back to whole topic.
       }
       return isDead(byId[d.id]);
     });
@@ -259,14 +259,14 @@ Replace the whole block with:
   const isActionable = t => window.PlanmapReady.isActionable(t, byId);
 ```
 
-Leave `depList`, `slug`, `featureOf`, `featureDead` in place — they are still used elsewhere in `buildAndShow` (e.g. dep rendering). Only the two readiness predicates move to the shared module.
+Leave `depList`, `slug`, `featureOf`, `featureDead` in place - they are still used elsewhere in `buildAndShow` (e.g. dep rendering). Only the two readiness predicates move to the shared module.
 
 - [ ] **Step 4: Add `?topic=` deep-link focus**
 
 Find the first-render line (around line 1643):
 
 ```js
-    buildAndShow(data.topics);   // live map, first render → fits
+    buildAndShow(data.topics);   // live map, first render -> fits
 ```
 
 Immediately after it, add:
@@ -282,7 +282,7 @@ Note: `byId` and `pinNode` are in scope at this point (both declared inside `bui
 - [ ] **Step 5: Verify the module logic still passes**
 
 Run: `npx vitest run public/planmap/ready-derive.test.mjs`
-Expected: PASS (unchanged — this task did not touch the module).
+Expected: PASS (unchanged - this task did not touch the module).
 
 - [ ] **Step 6: Eyeball the plan-map (required by the visual-inspection rule)**
 
@@ -308,8 +308,8 @@ git commit -m "refactor(planmap): use shared ready-derive module; add ?topic= fo
 **Interfaces:**
 - Produces:
   - `RoadmapNode` gains optional `planmapTopic?: string`, `planmapStatus?: string`, `planmapReady?: boolean`, `planmapFocus?: boolean`.
-  - `PLANMAP_TOPIC_BY_NODE_ID: Record<string, string>` — maps a roadmap node id to a plan-map topic id.
-  - `attachPlanmapTopic<T extends { id: string }>(node: T, map: Record<string, string>): T` — returns the node with `planmapTopic` set when `map[node.id]` exists, unchanged otherwise.
+  - `PLANMAP_TOPIC_BY_NODE_ID: Record<string, string>` - maps a roadmap node id to a plan-map topic id.
+  - `attachPlanmapTopic<T extends { id: string }>(node: T, map: Record<string, string>): T` - returns the node with `planmapTopic` set when `map[node.id]` exists, unchanged otherwise.
 
 - [ ] **Step 1: Add the type fields**
 
@@ -353,7 +353,7 @@ describe('attachPlanmapTopic', () => {
 - [ ] **Step 2b: Run it to verify it fails**
 
 Run: `npx vitest run devtools/roadmap/scripts/roadmap-engine/planmap-tag.test.ts`
-Expected: FAIL — `attachPlanmapTopic` / `PLANMAP_TOPIC_BY_NODE_ID` not exported.
+Expected: FAIL - `attachPlanmapTopic` / `PLANMAP_TOPIC_BY_NODE_ID` not exported.
 
 - [ ] **Step 3: Add the map + helper to `generate.ts`**
 
@@ -364,7 +364,7 @@ In `devtools/roadmap/scripts/roadmap-engine/generate.ts`, near `CURATED_SUBFEATU
 // plan-map topic. Keyed by node id because the id is stable and unique; find a
 // node's id from the live /Aralia/api/roadmap/data payload, or by the deterministic
 // formula sub_<slug(pillarNodeId)>_<slug(stableLabel)>. Start empty; wire entries in
-// as they are curated. The roadmap only READS the plan-map — never the reverse.
+// as they are curated. The roadmap only READS the plan-map - never the reverse.
 export const PLANMAP_TOPIC_BY_NODE_ID: Record<string, string> = {
   // 'sub_pillar_rendering_beautification_wave': 'world-props',
 };
@@ -380,7 +380,7 @@ export const attachPlanmapTopic = <T extends { id: string }>(
 
 In the same file, wrap each of the three `nodes.push({...})` object literals with `attachPlanmapTopic(...)`.
 
-Milestone node (line 2791) — change `nodes.push({` ... `});` to `nodes.push(attachPlanmapTopic({` ... `}));`. Concretely, line 2791 becomes:
+Milestone node (line 2791) - change `nodes.push({` ... `});` to `nodes.push(attachPlanmapTopic({` ... `}));`. Concretely, line 2791 becomes:
 
 ```ts
         nodes.push(attachPlanmapTopic({
@@ -433,8 +433,8 @@ git commit -m "feat(roadmap): add planmapTopic node tag + generator wiring"
 **Interfaces:**
 - Consumes: `isActionable`, `isDead` from `public/planmap/ready-derive.mjs` (Task 1); `RoadmapNode` from `../../../../../../../scripts/roadmap-server-logic` (verify the relative depth when creating the file; `roadmap-server-logic.ts` lives at `devtools/roadmap/scripts/`).
 - Produces:
-  - `mapPlanmapStatusToBase(status: string): 'planned' | 'active' | 'done'` — `done→done`, `active→active`, everything else (`specced`/`parked`/`superseded`)→`planned`.
-  - `applyPlanmapOverlay(nodes: RoadmapNode[], topics: PlanmapTopic[] | null): RoadmapNode[]` — for each node with a `planmapTopic` that resolves, set `planmapStatus`, `planmapReady`, `planmapFocus`, and base `status`. Nodes without a tag, or whose tag does not resolve, are returned unchanged. `null` topics returns nodes unchanged.
+  - `mapPlanmapStatusToBase(status: string): 'planned' | 'active' | 'done'` - `done->done`, `active->active`, everything else (`specced`/`parked`/`superseded`)->`planned`.
+  - `applyPlanmapOverlay(nodes: RoadmapNode[], topics: PlanmapTopic[] | null): RoadmapNode[]` - for each node with a `planmapTopic` that resolves, set `planmapStatus`, `planmapReady`, `planmapFocus`, and base `status`. Nodes without a tag, or whose tag does not resolve, are returned unchanged. `null` topics returns nodes unchanged.
   - `type PlanmapTopic = { id: string; status: string; focus?: boolean; deps?: unknown[]; features?: unknown[] }`.
 
 - [ ] **Step 1: Write the failing test**
@@ -509,17 +509,17 @@ describe('applyPlanmapOverlay', () => {
 - [ ] **Step 2: Run to verify it fails**
 
 Run: `npx vitest run devtools/roadmap/src/components/debug/roadmap/modules/planmap-overlay.test.ts`
-Expected: FAIL — module not found.
+Expected: FAIL - module not found.
 
 - [ ] **Step 3: Write the module**
 
 Create `devtools/roadmap/src/components/debug/roadmap/modules/planmap-overlay.ts`. First confirm the two relative import paths from this file:
-- to `public/planmap/ready-derive.mjs`: seven levels up to repo root, then down — `../../../../../../../public/planmap/ready-derive.mjs`.
+- to `public/planmap/ready-derive.mjs`: seven levels up to repo root, then down - `../../../../../../../public/planmap/ready-derive.mjs`.
 - to `roadmap-server-logic.ts` (at `devtools/roadmap/scripts/`): `../../../../scripts/roadmap-server-logic`.
 
 ```ts
 import type { RoadmapNode } from '../../../../scripts/roadmap-server-logic';
-// One home for the READY rule — shared with the plan-map viewer and vitest.
+// One home for the READY rule - shared with the plan-map viewer and vitest.
 import { isActionable, isDead } from '../../../../../../../public/planmap/ready-derive.mjs';
 
 export type PlanmapTopic = {
@@ -548,7 +548,7 @@ export const applyPlanmapOverlay = (
     const topicId = node.planmapTopic;
     if (!topicId) return node;
     const topic = byId[topicId];
-    if (!topic) return node; // unresolved tag — leave the node as-is
+    if (!topic) return node; // unresolved tag - leave the node as-is
     return {
       ...node,
       planmapStatus: topic.status,
@@ -565,7 +565,7 @@ Note: `isActionable` already returns `false` for a dead topic, so `!isDead(topic
 - [ ] **Step 4: Run to verify it passes**
 
 Run: `npx vitest run devtools/roadmap/src/components/debug/roadmap/modules/planmap-overlay.test.ts`
-Expected: PASS. If the `.mjs` import fails to resolve under Vitest, correct the `../` depth (count from `modules/` to repo root) and re-run — do not change the module's logic.
+Expected: PASS. If the `.mjs` import fails to resolve under Vitest, correct the `../` depth (count from `modules/` to repo root) and re-run - do not change the module's logic.
 
 - [ ] **Step 5: Commit**
 
@@ -617,7 +617,7 @@ it('tolerates a missing topics.json (returns null planmapTopics)', async () => {
 - [ ] **Step 2: Run to verify the new tests fail**
 
 Run: `npx vitest run devtools/roadmap/src/components/debug/roadmap/modules/roadmap-bootstrap-loader.test.ts`
-Expected: FAIL — `planmapTopics` is undefined.
+Expected: FAIL - `planmapTopics` is undefined.
 
 - [ ] **Step 3: Add the fetch + return field**
 
@@ -679,7 +679,7 @@ In the load `useEffect` (lines 785-803), change the destructure + `setData`:
 - [ ] **Step 5: Run to verify tests pass**
 
 Run: `npx vitest run devtools/roadmap/src/components/debug/roadmap/modules/roadmap-bootstrap-loader.test.ts`
-Expected: PASS (including the pre-existing "passes the AbortSignal to every fetch call" test, which asserts `signals.length >= 3` — a 4th fetch still satisfies it).
+Expected: PASS (including the pre-existing "passes the AbortSignal to every fetch call" test, which asserts `signals.length >= 3` - a 4th fetch still satisfies it).
 
 - [ ] **Step 6: Commit**
 
@@ -703,7 +703,7 @@ Search `RoadmapVisualizer.tsx` for where `graph` / `graph.nodes` is derived from
 
 - [ ] **Step 2: Render the plan-map status pill and badges**
 
-In the branch card status row (around line 3386, next to the existing status pill), add — after the existing `<span ...>{node.status}</span>`:
+In the branch card status row (around line 3386, next to the existing status pill), add - after the existing `<span ...>{node.status}</span>`:
 
 ```tsx
 {node.planmapStatus && (
@@ -726,7 +726,7 @@ const mapPlanmapBaseForChip = (raw: string): 'done' | 'active' | 'planned' =>
   raw === 'done' ? 'done' : raw === 'active' ? 'active' : 'planned';
 ```
 
-(Reuse `mapPlanmapStatusToBase` from `planmap-overlay.ts` instead if you prefer a single mapping home — import it and call it here. Either is acceptable; do not define two diverging mappings.)
+(Reuse `mapPlanmapStatusToBase` from `planmap-overlay.ts` instead if you prefer a single mapping home - import it and call it here. Either is acceptable; do not define two diverging mappings.)
 
 - [ ] **Step 3: Eyeball the roadmap**
 
@@ -748,7 +748,7 @@ git commit -m "feat(roadmap): show plan-map status pill + READY/FOCUS badges"
 
 - [ ] **Step 1: Add a refresh handler**
 
-Near the existing data-refresh code (lines 1640-1649), add a handler that re-fetches both the roadmap data and topics.json and re-applies the overlay. Match the file's existing hook-import style — if hooks are named imports (`import { useCallback } from 'react'`), use `useCallback(...)`; if the file uses the `React.` namespace, use `React.useCallback(...)`:
+Near the existing data-refresh code (lines 1640-1649), add a handler that re-fetches both the roadmap data and topics.json and re-applies the overlay. Match the file's existing hook-import style - if hooks are named imports (`import { useCallback } from 'react'`), use `useCallback(...)`; if the file uses the `React.` namespace, use `React.useCallback(...)`:
 
 ```ts
 const refreshPlanmapStatus = useCallback(async () => {
@@ -798,7 +798,7 @@ git commit -m "feat(roadmap): add on-demand Refresh status button"
 - Test: `devtools/roadmap/scripts/roadmap-validate-planmap-links.test.ts`
 
 **Interfaces:**
-- Produces: `checkPlanmapLinks(nodes: { id: string; planmapTopic?: string }[], topics: { id: string }[]): { errors: string[]; warnings: string[] }` — errors for each `planmapTopic` naming a topic id absent from `topics`; warnings for each topic id no node claims.
+- Produces: `checkPlanmapLinks(nodes: { id: string; planmapTopic?: string }[], topics: { id: string }[]): { errors: string[]; warnings: string[] }` - errors for each `planmapTopic` naming a topic id absent from `topics`; warnings for each topic id no node claims.
 
 - [ ] **Step 1: Write the failing test**
 
@@ -832,7 +832,7 @@ describe('checkPlanmapLinks', () => {
 - [ ] **Step 2: Run to verify it fails**
 
 Run: `npx vitest run devtools/roadmap/scripts/roadmap-validate-planmap-links.test.ts`
-Expected: FAIL — module not found.
+Expected: FAIL - module not found.
 
 - [ ] **Step 3: Write the validator**
 
@@ -885,7 +885,7 @@ In root `package.json`, in the `roadmap:*` group, add:
     "roadmap:validate-planmap": "tsx devtools/roadmap/scripts/roadmap-validate-planmap-links.ts",
 ```
 
-Use the same runner (`tsx` / `ts-node` / `vite-node`) the sibling `roadmap:*` scripts use — copy the exact invocation prefix from a neighboring script such as `roadmap:audit-all`.
+Use the same runner (`tsx` / `ts-node` / `vite-node`) the sibling `roadmap:*` scripts use - copy the exact invocation prefix from a neighboring script such as `roadmap:audit-all`.
 
 - [ ] **Step 5: Run the test to verify it passes**
 

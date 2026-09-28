@@ -15,6 +15,20 @@
 
                    ],
     "ritual":  true,
+    "ritualData": {
+      "requirements": [
+        {
+          "type": "custom",
+          "value": "component:somatic",
+          "description": "The ritual needs a free hand for its gestures throughout."
+        },
+        {
+          "type": "custom",
+          "value": "uninterrupted_casting",
+          "description": "Ritual casting adds 10 minutes to the casting time and must run uninterrupted."
+        }
+      ]
+    },
     "rarity":  "common",
     "attackType":  "",
     "castingTime":  {
@@ -162,7 +176,7 @@
                                                                    ]
                                       },
                         "utilityType":  "sensory",
-                        "description":  "Perceive through the willing Beast\u0027s senses as well as your own for the duration, gaining the benefit of any special senses it has.",
+                        "description":  "Perceive through the willing Beast's senses as well as your own for the duration, gaining the benefit of any special senses it has.",
                         "scaling":  {
                                         "type":  "slot_level",
                                         "bonusPerLevel":  "",
@@ -223,7 +237,7 @@
                       "prompt":  "",
                       "playerInputRequired":  false
                   },
-    "description":  "You touch a willing Beast. For the duration, you can perceive through the Beast\u0027s senses as well as your own. When perceiving through the Beast\u0027s senses, you benefit from any special senses it has.",
+    "description":  "You touch a willing Beast. For the duration, you can perceive through the Beast's senses as well as your own. When perceiving through the Beast's senses, you benefit from any special senses it has.",
     "higherLevels":  "",
     "tags":  [
                  "divination",

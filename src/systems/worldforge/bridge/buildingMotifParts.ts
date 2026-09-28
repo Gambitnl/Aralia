@@ -555,6 +555,19 @@ export function buildBuildingMotifParts(
         break;
       }
       case 'battlements': {
+        // Continuous parapets support the merlons on all four sides. Previously
+        // isolated blocks suggested loose ornaments rather than a defensible roof.
+        const parapetHeight = 0.65;
+        for (const z of [frontFaceZ + outerWallM / 2, rearFaceZ - outerWallM / 2]) {
+          add(motif, { x: 0, z, w: widthM + outerWallM * 2, d: Math.max(0.42, outerWallM), h: parapetHeight, baseY: wallTopM, colorHex: style.wallColor });
+        }
+        for (const x of [-sideFaceX + outerWallM / 2, sideFaceX - outerWallM / 2]) {
+          add(motif, { x, z: 0, w: Math.max(0.42, outerWallM), d: depthM + outerWallM * 2, h: parapetHeight, baseY: wallTopM, colorHex: style.wallColor });
+          const count = Math.max(3, Math.min(16, Math.round(depthM / 1.1)));
+          for (let index = 0; index < count; index++) {
+            add(motif, { x, z: -depthM / 2 + (index + 0.5) * depthM / count, w: Math.max(0.42, outerWallM), d: Math.min(0.72, depthM / (count * 1.5)), h: 0.72, baseY: wallTopM + parapetHeight, colorHex: style.wallColor });
+          }
+        }
         const merlonCount = Math.max(5, Math.min(9, Math.round(widthM / 1.1)));
         const merlonWidthM = Math.min(0.72, widthM / (merlonCount * 1.5));
         for (const z of [frontFaceZ + outerWallM / 2, rearFaceZ - outerWallM / 2]) {
@@ -566,7 +579,7 @@ export function buildBuildingMotifParts(
               w: merlonWidthM,
               d: 0.42,
               h: 0.72 + style.motifVariant * 0.12,
-              baseY: wallTopM,
+              baseY: wallTopM + parapetHeight,
               colorHex: style.wallColor,
             });
           }

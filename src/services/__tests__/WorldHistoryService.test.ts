@@ -113,14 +113,17 @@ describe('WorldHistoryService.createSkirmishEvent importance', () => {
   });
 
   it('marks a major power swing as high importance for the retention pruner', () => {
-    const upset = WorldHistoryService.createSkirmishEvent(
-      withPower('e', 'House Underdog', 90),
+    // Renamed from "upset": the winner here is the STRONGER faction (90 vs 20),
+    // so this is a rout, not an upset. The old name implied the formula reads
+    // the direction of the swing, which it does not (see the symmetry test).
+    const rout = WorldHistoryService.createSkirmishEvent(
+      withPower('e', 'House Dominant', 90),
       withPower('f', 'House Fallen', 20),
       gameTime,
     );
 
     // history G5 acceptance: major swings should survive importance-aware pruning.
-    expect(upset.importance).toBeGreaterThanOrEqual(80);
+    expect(rout.importance).toBeGreaterThanOrEqual(80);
   });
 
   it('keeps a near-even clash close to the base importance', () => {
@@ -142,5 +145,111 @@ describe('WorldHistoryService.createSkirmishEvent importance', () => {
 
     expect(rout.importance).toBeLessThanOrEqual(100);
     expect(rout.importance).toBeGreaterThanOrEqual(80);
+  });
+
+  // HIST-3 verification: the pre-existing tests only pinned inequalities and a
+  // single exact value, so the formula could have drifted anywhere inside the
+  // band without failing. These cases pin the whole documented mapping
+  // (importance = clamp(20, 100, base 40 + |winnerPower - loserPower|)) so a
+  // later tweak to the curve has to be a deliberate, visible edit.
+  it.each([
+    // [winner power, loser power, expected importance, battle outcome]
+    [50, 50, 40, 'perfectly even trade of blows'],
+    [55, 45, 50, 'slight edge'],
+    [60, 35, 65, 'clear advantage'],
+    [80, 20, 100, 'decisive rout (lands exactly on the ceiling)'],
+    [100, 0, 100, 'total mismatch (clamped at the ceiling)'],
+  ])(
+    'scores a %i vs %i skirmish at importance %i (%s)',
+    (winnerPower, loserPower, expected) => {
+      const event = WorldHistoryService.createSkirmishEvent(
+        withPower('w', 'House Victor', winnerPower as number),
+        withPower('l', 'House Vanquished', loserPower as number),
+        gameTime,
+      );
+
+      expect(event.importance).toBe(expected);
+    },
+  );
+
+  it('never scores below the documented importance floor', () => {
+    // The floor (20) is currently unreachable because base is 40 and disparity
+    // is non-negative. Preserved as a guard so a future curve that can subtract
+    // (e.g. a "mundane border scuffle" penalty) still cannot produce a value
+    // the retention pruner would treat as noise-tier or negative.
+    for (const [winnerPower, loserPower] of [[0, 0], [1, 0], [0, 100], [100, 100]]) {
+      const event = WorldHistoryService.createSkirmishEvent(
+        withPower('w', 'House Victor', winnerPower),
+        withPower('l', 'House Vanquished', loserPower),
+        gameTime,
+      );
+
+      expect(event.importance).toBeGreaterThanOrEqual(20);
+      expect(event.importance).toBeLessThanOrEqual(100);
+      expect(Number.isInteger(event.importance)).toBe(true);
+    }
+  });
+
+  it('scores an upset the same as the mirrored rout (known formula limitation)', () => {
+    // The formula reads the MAGNITUDE of the power gap, not its direction, so a
+    // weak faction toppling a strong one is currently indistinguishable from
+    // the strong faction winning as expected. Pinned deliberately: this records
+    // present behavior rather than endorsing it, so if outcome-direction
+    // weighting is added later this test fails and forces the intent to be
+    // restated instead of silently changing the ledger.
+    const upset = WorldHistoryService.createSkirmishEvent(
+      withPower('u1', 'House Underdog', 20),
+      withPower('u2', 'House Toppled', 90),
+      gameTime,
+    );
+    const rout = WorldHistoryService.createSkirmishEvent(
+      withPower('r1', 'House Toppled', 90),
+      withPower('r2', 'House Underdog', 20),
+      gameTime,
+    );
+
+    expect(upset.importance).toBe(rout.importance);
+    expect(upset.importance).toBe(100);
+  });
+
+  it('falls back to the base importance when power is not a usable number', () => {
+    // Defensive branch in deriveSkirmishImportance: Faction.power is typed
+    // required, but save migrations and hand-authored faction data have shipped
+    // undefined/NaN before, and a NaN importance would poison the pruner's sort.
+    const missingPower = { ...makeFaction('m', 'House Unknown') } as Faction;
+    delete (missingPower as Partial<Faction>).power;
+    const nanPower = { ...makeFaction('n', 'House Broken'), power: Number.NaN };
+
+    const fromMissing = WorldHistoryService.createSkirmishEvent(
+      missingPower,
+      withPower('o', 'House Ordinary', 50),
+      gameTime,
+    );
+    const fromNaN = WorldHistoryService.createSkirmishEvent(
+      withPower('p', 'House Ordinary', 50),
+      nanPower,
+      gameTime,
+    );
+
+    expect(fromMissing.importance).toBe(40);
+    expect(fromNaN.importance).toBe(40);
+  });
+
+  it('records the skirmish as a MAJOR_BATTLE with both combatants tagged', () => {
+    // Importance is only useful to the pruner alongside the event shape it
+    // rides on; pin the fields the history ledger and its filters read.
+    const event = WorldHistoryService.createSkirmishEvent(
+      withPower('v', 'House Victor', 70),
+      withPower('x', 'House Vanquished', 30),
+      gameTime,
+    );
+
+    expect(event.type).toBe('MAJOR_BATTLE');
+    expect(event.importance).toBe(80);
+    expect(event.participants.map(participant => participant.role)).toEqual([
+      'instigator',
+      'victim',
+    ]);
+    expect(event.tags).toEqual(expect.arrayContaining(['war', 'faction_conflict', 'v', 'x']));
   });
 });

@@ -25,6 +25,14 @@ import {
   cosine2sNormalization,
   logGamma,
   directionalSpectrum,
+  donelanBeta,
+  sech2Spread,
+  ewansLobeRad,
+  ewansLobeBeta,
+  ewansSpread,
+  EWANS_MAX_LOBE_RAD,
+  hasselmannPower,
+  elfouhailyTaper,
   buildCascadeSpectrum,
   significantWaveHeightM,
   empiricalFetchLimitedHsM,
@@ -33,6 +41,7 @@ import {
 } from '../oceanSpectrum';
 import { GRAVITY_MS2, DEFAULT_CASCADES, type CascadeParams } from '../oceanConfig';
 import { realizeCascade } from '../oceanFieldReference';
+import { OCEAN_SEA_STATES } from '../oceanSeaStates';
 import { ifft2d } from '../oceanFftReference';
 
 const U = 11.5;
@@ -117,6 +126,54 @@ describe('JONSWAP', () => {
         / Math.pow(omegaP, 4);
       expect(Math.abs(m0 - predicted) / predicted).toBeLessThan(0.02);
     }
+  });
+
+  it('tailPower 4 doubles the energy one octave above the peak and touches nothing else', () => {
+    // Toba / Donelan / Phillips (1985): omega^-4 above the peak. At the peak
+    // and below it the two tails must agree exactly, so the change is a
+    // short-wave change only.
+    const omegaP = jonswapPeakOmega(U, F);
+    expect(jonswapS(omegaP, U, F, 4)).toBeCloseTo(jonswapS(omegaP, U, F), 12);
+    expect(jonswapS(0.7 * omegaP, U, F, 4)).toBeCloseTo(jonswapS(0.7 * omegaP, U, F), 12);
+    expect(jonswapS(2 * omegaP, U, F, 4) / jonswapS(2 * omegaP, U, F)).toBeCloseTo(2, 9);
+    expect(jonswapS(4 * omegaP, U, F, 4) / jonswapS(4 * omegaP, U, F)).toBeCloseTo(4, 9);
+    // And a cascade carries it through the wavevector spectrum.
+    const base: CascadeParams = { ...WIND_SEA, cutoffLowM: 0, cutoffHighM: Infinity };
+    const kHigh = (2 * omegaP) ** 2 / GRAVITY_MS2;
+    const ratio = directionalSpectrum(kHigh, 0, { ...base, tailPower: 4 })
+      / directionalSpectrum(kHigh, 0, base);
+    expect(ratio).toBeCloseTo(2, 6);
+  });
+
+  it('the Elfouhaily taper keeps the peak and brings omega^-4 back toward JONSWAP', () => {
+    // Elfouhaily et al. (1997): exp(-(U/cp)/sqrt(10) (w/wp - 1)) above the
+    // peak. For the Water Pro sea (15 m/s, 47 m peak, U/cp = 1.75) it is
+    // 0.870, 0.607 and 0.392 at 30, 13 and 6.5 m, so omega^-4 with the
+    // taper sits 1.089, 1.154 and 1.056 times JONSWAP there: the step a
+    // tapered omega^-4 band would make against an omega^-5 band at 6.5 m is
+    // gone (2.69 without it).
+    const u = 15;
+    const f = 49_800;
+    const wp = jonswapPeakOmega(u, f);
+    expect(elfouhailyTaper(wp, wp, u)).toBe(1);
+    expect(elfouhailyTaper(0.8 * wp, wp, u)).toBe(1);
+    const at = (lambdaM: number) => Math.sqrt((GRAVITY_MS2 * 2 * Math.PI) / lambdaM);
+    const cases: [number, number, number][] = [[30, 0.870, 1.089], [13, 0.607, 1.154], [6.5, 0.392, 1.056]];
+    for (const [lambdaM, taper, overJonswap] of cases) {
+      expect(elfouhailyTaper(at(lambdaM), wp, u)).toBeCloseTo(taper, 3);
+      expect(jonswapS(at(lambdaM), u, f, 4, true) / jonswapS(at(lambdaM), u, f)).toBeCloseTo(overJonswap, 3);
+    }
+    // Off unless asked for: the default call is the untapered spectrum, and
+    // the peak and the low side are the same with it on.
+    expect(jonswapS(at(13), u, f, 4, false)).toBe(jonswapS(at(13), u, f, 4));
+    expect(jonswapS(wp, u, f, 4, true)).toBeCloseTo(jonswapS(wp, u, f), 12);
+    expect(jonswapS(0.7 * wp, u, f, 4, true)).toBeCloseTo(jonswapS(0.7 * wp, u, f), 12);
+    // And a cascade carries it through the wavevector spectrum.
+    const base: CascadeParams = { ...WIND_SEA, windSpeedMs: u, fetchM: f, cutoffLowM: 0, cutoffHighM: Infinity, tailPower: 4 };
+    const kHigh = (2 * wp) ** 2 / GRAVITY_MS2;
+    const ratio = directionalSpectrum(kHigh, 0, { ...base, tailTaper: true })
+      / directionalSpectrum(kHigh, 0, base);
+    expect(ratio).toBeCloseTo(elfouhailyTaper(2 * wp, wp, u), 6);
   });
 
   it('lands on the fetch-limited growth law within the spread of the two fits', () => {
@@ -237,6 +294,211 @@ describe('directional spreading', () => {
       expect(s).toBeGreaterThanOrEqual(0.1);
       expect(s).toBeLessThanOrEqual(40);
     }
+  });
+
+  it('Donelan-Banner: the sech^2 form integrates to exactly one on the full turn', () => {
+    // Donelan's 0.5 beta sech^2 integrates to tanh(beta pi) on [-pi, pi],
+    // 0.90 at the Banner short-wave width. The implementation must put that
+    // tenth back, or the chop loses energy the JONSWAP tail promised.
+    for (const beta of [0.3, 0.46, 0.7, 1.24, 2.28, 4]) {
+      let total = 0;
+      const steps = 20000;
+      const dt = (2 * Math.PI) / steps;
+      for (let i = 0; i < steps; i += 1) {
+        total += sech2Spread(-Math.PI + i * dt, 1.9, beta) * dt;
+      }
+      expect(total).toBeCloseTo(1, 4);
+    }
+  });
+
+  it('Donelan-Banner: is narrowest at the peak and widens into the chop', () => {
+    // The published branch values: 2.28 at the peak, 1.24 where the Donelan
+    // and Banner branches meet at 1.6 fp, and continuous there.
+    const wp = 1.145;
+    expect(donelanBeta(wp, wp)).toBeCloseTo(2.28, 6);
+    expect(donelanBeta(1.6 * wp, wp)).toBeCloseTo(1.24, 1);
+    expect(donelanBeta(1.6 * wp - 1e-6, wp)).toBeCloseTo(donelanBeta(1.6 * wp + 1e-6, wp), 2);
+    expect(donelanBeta(3 * wp, wp)).toBeLessThan(donelanBeta(1.6 * wp, wp));
+    expect(donelanBeta(0.7 * wp, wp)).toBeLessThan(donelanBeta(wp, wp));
+    // Half-width at half height is 0.88 / beta: 22 degrees at the peak.
+    const halfWidthDeg = (0.881 / donelanBeta(wp, wp)) * (180 / Math.PI);
+    expect(halfWidthDeg).toBeGreaterThan(20);
+    expect(halfWidthDeg).toBeLessThan(24);
+  });
+
+  it('Donelan-Banner: conserves energy through the change of variables too', () => {
+    // The same 2-D-equals-1-D check as below, on the other spreading model,
+    // so the sech^2 normalization is held by the energy it delivers and not
+    // only by its own integral.
+    const p: CascadeParams = {
+      name: 't', patchM: 1, windSpeedMs: U, fetchM: F, windDirRad: 0.3, depthM: 1000,
+      cutoffLowM: 0, cutoffHighM: Infinity, choppiness: 1,
+      dispLod: { startM: 0, endM: 1, floor: 1 }, normalLod: { startM: 0, endM: 1, floor: 1 },
+      drivesFoam: false, spreading: 'donelan',
+    };
+    let twoD = 0;
+    const nK = 900; const nT = 240; const dTheta = (2 * Math.PI) / nT;
+    const kMin = 1e-4; const kMax = 30; const ratio = Math.pow(kMax / kMin, 1 / nK);
+    for (let i = 0; i < nK; i += 1) {
+      const k0 = kMin * Math.pow(ratio, i); const k1 = k0 * ratio;
+      const k = Math.sqrt(k0 * k1); const dk = k1 - k0;
+      for (let j = 0; j < nT; j += 1) {
+        const th = -Math.PI + (j + 0.5) * dTheta;
+        twoD += directionalSpectrum(k * Math.cos(th), k * Math.sin(th), p) * k * dk * dTheta;
+      }
+    }
+    let oneD = 0;
+    const dw = 0.0005;
+    for (let w = dw; w < 20; w += dw) oneD += jonswapS(w, U, F) * dw;
+    expect(Math.abs(twoD - oneD) / oneD).toBeLessThan(0.02);
+  });
+
+  it('energyScale scales the variance linearly, so a decayed swell keeps its period', () => {
+    const full = buildCascadeSpectrum(SWELL, 64, 5);
+    const tenth = buildCascadeSpectrum({ ...SWELL, energyScale: 0.1 }, 64, 5);
+    expect(tenth.m0 / full.m0).toBeCloseTo(0.1, 9);
+    // The peak does not move: the spectrum shape is untouched.
+    expect(Array.from(tenth.wave)).toEqual(Array.from(full.wave));
+  });
+});
+
+describe('Ewans bimodal spreading', () => {
+  const wp = 1.145;
+
+  it('integrates to exactly one on the full turn at every frequency', () => {
+    // Two sech^2 lobes at half weight each. Each lobe is normalized on
+    // [-pi, pi] by sech2Spread, so the pair must integrate to 1 whether the
+    // lobes overlap (at the peak) or stand apart (in the chop).
+    for (const r of [0.5, 1, 1.25, 1.5, 2, 3]) {
+      let total = 0;
+      const steps = 20000;
+      const dt = (2 * Math.PI) / steps;
+      for (let i = 0; i < steps; i += 1) {
+        total += ewansSpread(-Math.PI + i * dt, 1.9, r * wp, wp) * dt;
+      }
+      expect(total).toBeCloseTo(1, 4);
+    }
+  });
+
+  it('separates the lobes with frequency, continuously at the peak, and caps them', () => {
+    // Ewans (1998): 14.93 degrees at and below the peak, exp(5.453 - 2.75 fp/f)
+    // above it. The two branches meet at the peak.
+    const deg = (rad: number) => rad * (180 / Math.PI);
+    expect(deg(ewansLobeRad(0.5 * wp, wp))).toBeCloseTo(14.92, 2);
+    expect(deg(ewansLobeRad(wp, wp))).toBeCloseTo(14.92, 2);
+    expect(deg(ewansLobeRad(wp + 1e-6, wp))).toBeCloseTo(14.92, 2);
+    expect(deg(ewansLobeRad(1.5 * wp, wp))).toBeCloseTo(37.5, 0);
+    expect(deg(ewansLobeRad(2 * wp, wp))).toBeCloseTo(59.0, 0);
+    // The fit would give 93 degrees at 3 fp; the cap holds it at 60.
+    expect(ewansLobeRad(3 * wp, wp)).toBeCloseTo(EWANS_MAX_LOBE_RAD, 9);
+    // Lobe width: 16.7 degrees at the peak, 11.6 by 1.5 fp, as a sech^2 beta.
+    expect(0.749 / ewansLobeBeta(wp, wp) * (180 / Math.PI)).toBeCloseTo(16.74, 1);
+    expect(0.749 / ewansLobeBeta(1.5 * wp, wp) * (180 / Math.PI)).toBeCloseTo(11.6, 0);
+  });
+
+  it('is bimodal above the peak: two maxima either side of the wind, a dip on it', () => {
+    const mean = 1.75;
+    const omega = 2 * wp;
+    const lobe = ewansLobeRad(omega, wp);
+    const onWind = ewansSpread(mean, mean, omega, wp);
+    const left = ewansSpread(mean - lobe, mean, omega, wp);
+    const right = ewansSpread(mean + lobe, mean, omega, wp);
+    expect(left).toBeCloseTo(right, 9);
+    expect(left).toBeGreaterThan(onWind * 2);
+    // At the peak the two lobes are 30 degrees apart and 17 degrees wide, so
+    // they merge into one flat-topped hump: no dip on the wind (measured
+    // 6% above the lobe centers), and nowhere near a single narrow lobe.
+    const peakOn = ewansSpread(mean, mean, wp, wp);
+    const peakOff = ewansSpread(mean + ewansLobeRad(wp, wp), mean, wp, wp);
+    expect(peakOn).toBeGreaterThanOrEqual(peakOff);
+    expect(peakOn).toBeLessThan(peakOff * 1.2);
+  });
+
+  it('conserves energy through the change of variables too', () => {
+    const p: CascadeParams = {
+      name: 't', patchM: 1, windSpeedMs: U, fetchM: F, windDirRad: 0.3, depthM: 1000,
+      cutoffLowM: 0, cutoffHighM: Infinity, choppiness: 1,
+      dispLod: { startM: 0, endM: 1, floor: 1 }, normalLod: { startM: 0, endM: 1, floor: 1 },
+      drivesFoam: false, spreading: 'ewans',
+    };
+    let twoD = 0;
+    const nK = 900; const nT = 240; const dTheta = (2 * Math.PI) / nT;
+    const kMin = 1e-4; const kMax = 30; const ratio = Math.pow(kMax / kMin, 1 / nK);
+    for (let i = 0; i < nK; i += 1) {
+      const k0 = kMin * Math.pow(ratio, i); const k1 = k0 * ratio;
+      const k = Math.sqrt(k0 * k1); const dk = k1 - k0;
+      for (let j = 0; j < nT; j += 1) {
+        const th = -Math.PI + (j + 0.5) * dTheta;
+        twoD += directionalSpectrum(k * Math.cos(th), k * Math.sin(th), p) * k * dk * dTheta;
+      }
+    }
+    let oneD = 0;
+    const dw = 0.0005;
+    for (let w = dw; w < 20; w += dw) oneD += jonswapS(w, U, F) * dw;
+    expect(Math.abs(twoD - oneD) / oneD).toBeLessThan(0.02);
+  });
+});
+
+describe('Hasselmann 1980 spreading', () => {
+  it('is 9.77 at the peak for every wave age, and continuous there', () => {
+    for (const [u, wp] of [[15, 1.145], [11.5, 0.9], [20, 0.6]]) {
+      expect(hasselmannPower(wp, wp, u)).toBeCloseTo(9.77, 6);
+      expect(hasselmannPower(wp - 1e-6, wp, u)).toBeCloseTo(9.77, 3);
+      expect(hasselmannPower(wp + 1e-6, wp, u)).toBeCloseTo(9.77, 3);
+    }
+  });
+
+  it('narrows below the peak as (f/fp)^4.06 and widens above it with the wave age', () => {
+    const wp = 1.145;
+    // Below the peak the power is wave-age independent.
+    expect(hasselmannPower(0.7 * wp, wp, 15)).toBeCloseTo(9.77 * Math.pow(0.7, 4.06), 6);
+    // Above it, U/cp = 15 / (9.81 / 1.145) = 1.75, so mu = -2.33 - 1.45 * 0.58 = -3.17.
+    const cp = GRAVITY_MS2 / wp;
+    const mu = -2.33 - 1.45 * (15 / cp - 1.17);
+    expect(mu).toBeCloseTo(-3.17, 2);
+    expect(hasselmannPower(1.5 * wp, wp, 15)).toBeCloseTo(9.77 * Math.pow(1.5, mu), 6);
+    // A younger sea (faster wind on the same peak) spreads its chop wider.
+    expect(hasselmannPower(2 * wp, wp, 20)).toBeLessThan(hasselmannPower(2 * wp, wp, 15));
+    // And the clamp holds at the short end.
+    expect(hasselmannPower(6 * wp, wp, 15)).toBeGreaterThanOrEqual(0.1);
+  });
+
+  it('sits between Donelan and Mitsuyasu at the peak of the Water Pro sea', () => {
+    // Half-width at half height: cosine-2s of the half angle gives
+    // 2 acos(2^(-1/(2s))); sech^2 gives 0.881 / beta.
+    const wp = 1.145;
+    const hw = (s: number) => 2 * Math.acos(Math.pow(2, -1 / (2 * s))) * (180 / Math.PI);
+    const hasselmann = hw(hasselmannPower(wp, wp, 15));
+    const mitsuyasu = hw(spreadingPower(wp, wp, 15));
+    const donelan = (0.881 / donelanBeta(wp, wp)) * (180 / Math.PI);
+    expect(hasselmann).toBeGreaterThan(29);
+    expect(hasselmann).toBeLessThan(31);
+    expect(donelan).toBeLessThan(hasselmann);
+    expect(hasselmann).toBeLessThan(mitsuyasu);
+  });
+
+  it('conserves energy through the change of variables too', () => {
+    const p: CascadeParams = {
+      name: 't', patchM: 1, windSpeedMs: U, fetchM: F, windDirRad: 0.3, depthM: 1000,
+      cutoffLowM: 0, cutoffHighM: Infinity, choppiness: 1,
+      dispLod: { startM: 0, endM: 1, floor: 1 }, normalLod: { startM: 0, endM: 1, floor: 1 },
+      drivesFoam: false, spreading: 'hasselmann',
+    };
+    let twoD = 0;
+    const nK = 900; const nT = 240; const dTheta = (2 * Math.PI) / nT;
+    const kMin = 1e-4; const kMax = 30; const ratio = Math.pow(kMax / kMin, 1 / nK);
+    for (let i = 0; i < nK; i += 1) {
+      const k0 = kMin * Math.pow(ratio, i); const k1 = k0 * ratio;
+      const k = Math.sqrt(k0 * k1); const dk = k1 - k0;
+      for (let j = 0; j < nT; j += 1) {
+        const th = -Math.PI + (j + 0.5) * dTheta;
+        twoD += directionalSpectrum(k * Math.cos(th), k * Math.sin(th), p) * k * dk * dTheta;
+      }
+    }
+    let oneD = 0;
+    const dw = 0.0005;
+    for (let w = dw; w < 20; w += dw) oneD += jonswapS(w, U, F) * dw;
+    expect(Math.abs(twoD - oneD) / oneD).toBeLessThan(0.02);
   });
 });
 
@@ -447,6 +709,61 @@ describe('the realized field carries the variance the spectrum promised', () => 
     const a = rmsSlope(0);
     const b = rmsSlope(2.5);
     expect(Math.abs(a - b) / a).toBeLessThan(1e-6);
+  });
+
+  it('sharpens CRESTS, not troughs: height and Jacobian anticorrelate', () => {
+    // THE SIGN GATE. Tessendorf's -i (k/|k|) displacement, under this
+    // pipeline's transform convention, moved surface points away from the
+    // crest: measured on h = cos(kx), the Jacobian was 1.79 at the crest and
+    // 0.21 in the trough, so the sea had rounded crests over cusped troughs
+    // and its foam sat in the troughs. Deep-water orbital motion converges on
+    // the crest. The kernels negate the choppiness; this holds it there.
+    const spec = buildCascadeSpectrum({ ...WIND_SEA, choppiness: 1 }, 64, 2026);
+    const f = realizeCascade(spec, 9.5);
+    const n = f.height.length;
+    let mh = 0; let mj = 0;
+    const jac = new Float64Array(n);
+    for (let i = 0; i < n; i += 1) {
+      jac[i] = (1 + f.dxdx[i]) * (1 + f.dzdz[i]) - f.dxdz[i] * f.dxdz[i];
+      mh += f.height[i]; mj += jac[i];
+    }
+    mh /= n; mj /= n;
+    let shj = 0; let shh = 0; let sjj = 0;
+    for (let i = 0; i < n; i += 1) {
+      const a = f.height[i] - mh; const b = jac[i] - mj;
+      shj += a * b; shh += a * a; sjj += b * b;
+    }
+    const corr = shj / Math.sqrt(shh * sjj);
+    // Measured -0.92 on the wind sea. A wrong sign gives +0.92.
+    expect(corr).toBeLessThan(-0.5);
+  });
+
+  it('sharpens CRESTS on a single wave: the exact Gerstner check', () => {
+    // One wave h = cos(kx) along +x, choppiness 1. Surface points must move
+    // TOWARD x = 0 on both sides of the crest, so Dx is negative just past
+    // it and positive just before it, and the Jacobian is smallest AT it.
+    const n = 64; const L = 64; const dk = (2 * Math.PI) / L; const half = n / 2;
+    const wave = new Float32Array(4 * n * n); const h0 = new Float32Array(4 * n * n);
+    for (let z = 0; z < n; z += 1) {
+      for (let x = 0; x < n; x += 1) {
+        const idx = (z * n + x) * 4;
+        const kx = (x - half) * dk; const kz = (z - half) * dk; const k = Math.hypot(kx, kz);
+        wave[idx] = Math.sqrt(GRAVITY_MS2 * k); wave[idx + 1] = kx; wave[idx + 2] = kz;
+        wave[idx + 3] = k > 1e-9 ? 1 / k : 0;
+      }
+    }
+    // hhat(+k) = a/2 from slot 0 at +k; hhat(-k) = conj(h0(+k)) = a/2 in the
+    // mirror's conjugate slot. Together they make h = a cos(kx) at t = 0.
+    const ip = (half * n + (half + 8)) * 4; const im = (half * n + (half - 8)) * 4;
+    h0[ip] = 0.5; h0[im + 2] = 0.5;
+    const f = realizeCascade({ n, params: { ...WIND_SEA, patchM: L, choppiness: 1 }, h0, wave, m0: 0 }, 0);
+    const at = (x: number) => half * n + x;
+    const jac = (x: number) => (1 + f.dxdx[at(x)]) * (1 + f.dzdz[at(x)]) - f.dxdz[at(x)] ** 2;
+    expect(f.height[at(0)]).toBeCloseTo(1, 6);
+    expect(f.dispX[at(1)]).toBeLessThan(-0.5);
+    expect(f.dispX[at(7)]).toBeGreaterThan(0.5);
+    expect(jac(0)).toBeLessThan(jac(4));
+    expect(jac(0)).toBeCloseTo(1 - 2 * Math.PI * 8 / L, 6);
   });
 
   it('has slope fields that converge to a finite difference at second order', () => {
@@ -674,3 +991,66 @@ describe('the shipped sea state', () => {
   });
 });
 
+/**
+ * The judged Water Pro sea, round 4 (oceanSeaStates.ts): the fold budget its
+ * comment claims. Foam is drawn where the Jacobian falls under 0.60, so the
+ * share of the surface under 0.60 is the whitecap coverage the sea can show.
+ */
+describe('the Water Pro sea state', () => {
+  const sea = OCEAN_SEA_STATES.waterpro;
+  const SEED = 0x0cea9;
+
+  it('folds inside the stage A share of the Monahan whitecap fraction, and never through', () => {
+    // Monahan and O'Muircheartaigh (1980): W = 3.84e-6 U^3.41 = 4.0% at
+    // 15 m/s, of which the actively breaking crest is a tenth to a third:
+    // 0.4 to 1.3%. The EXACT determinant of the summed deformation gradient,
+    // every cascade realized at 42 s and sampled on the chop's 89 m patch at
+    // 512 x 512. Measured 1.11% under 0.60, 0.10% under 0.50, minimum 0.38.
+    const fields = sea.map((c, ci) => realizeCascade(
+      buildCascadeSpectrum(c, 256, (SEED ^ (ci * 0x9e3779b9)) >>> 0), 42,
+    ));
+    const n = 256;
+    const bil = (f: Float64Array, patch: number, x: number, z: number) => {
+      const tx = ((x / patch) % 1) * n;
+      const tz = ((z / patch) % 1) * n;
+      const x0 = Math.floor(tx); const z0 = Math.floor(tz);
+      const fx = tx - x0; const fz = tz - z0;
+      const x1 = (x0 + 1) % n; const z1 = (z0 + 1) % n;
+      return (f[z0 * n + x0] * (1 - fx) + f[z0 * n + x1] * fx) * (1 - fz)
+        + (f[z1 * n + x0] * (1 - fx) + f[z1 * n + x1] * fx) * fz;
+    };
+    const G = 512;
+    const L = 89;
+    let under06 = 0;
+    let under0 = 0;
+    for (let gz = 0; gz < G; gz += 1) {
+      for (let gx = 0; gx < G; gx += 1) {
+        const x = (gx / G) * L;
+        const z = (gz / G) * L;
+        let a = 0; let b = 0; let c = 0;
+        sea.forEach((p, ci) => {
+          a += bil(fields[ci].dxdx, p.patchM, x, z);
+          b += bil(fields[ci].dzdz, p.patchM, x, z);
+          c += bil(fields[ci].dxdz, p.patchM, x, z);
+        });
+        const jac = (1 + a) * (1 + b) - c * c;
+        if (jac < 0.6) under06 += 1;
+        if (jac < 0) under0 += 1;
+      }
+    }
+    const share = under06 / (G * G);
+    expect(share).toBeGreaterThan(0.004);
+    expect(share).toBeLessThan(0.013);
+    expect(under0).toBe(0);
+  });
+
+  it('keeps the ripple, chop and sea on one heading and the distant swell on another', () => {
+    // One wind makes the ripple, the chop and the sea: they share its heading.
+    // The swell came from somewhere else, 50 degrees off it.
+    const byName = (name: string) => sea.find((c) => c.name === name) as CascadeParams;
+    const wind = byName('sea').windDirRad;
+    expect(byName('ripple').windDirRad).toBe(wind);
+    expect(byName('chop').windDirRad).toBe(wind);
+    expect(Math.abs(byName('swell').windDirRad - wind)).toBeCloseTo(0.88, 6);
+  });
+});

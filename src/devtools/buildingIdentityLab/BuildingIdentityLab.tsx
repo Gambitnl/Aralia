@@ -30,7 +30,7 @@ import { computeOccupancy } from '@/systems/worldforge/interior/occupancy';
 import { rootSeedPath } from '@/systems/worldforge/seedPath';
 import type { ClimateClass } from '@/systems/worldforge/town/architectureStyle';
 import { householdForPlot } from '@/systems/worldforge/town/householdBrief';
-import PreviewBuilding3D from '@/components/DesignPreview/steps/PreviewBuilding3D';
+import PreviewBuilding3D from './PreviewBuilding3D';
 import {
   blueprintForHarnessPlot,
   buildHarnessTown,

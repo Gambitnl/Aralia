@@ -80,11 +80,7 @@ npm run validate:spells
 npx vitest run src/utils/combat/__tests__/combatUtils_*.test.ts --reporter=verbose
 ```
 
-Evidence:
-
-- `docs/tasks/spells/evidence/jules-env-config-spell-phase1-typecheck-failed-2026-05-21.png`
-- `docs/tasks/spells/evidence/jules-env-config-spell-phase1-focused-test-path-failed-2026-05-21.png`
-- `docs/tasks/spells/evidence/jules-env-config-spell-phase1-package2-scoped-snapshot-passed-2026-05-21.png`
+Evidence: (images removed 2026-09-04)
 
 ## Confirmed Non-Actions
 

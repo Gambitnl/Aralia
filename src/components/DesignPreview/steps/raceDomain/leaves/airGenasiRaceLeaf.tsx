@@ -33,9 +33,9 @@ import type {
  * transaction inside the Tactical Sandbox Race domain.
  *
  * The parent Race shell supplies canonical race data and the event callback.
- * This leaf creates a production combat actor, translates the canonical
- * Lightning Resistance trait into the actor field required by the existing
- * character bridge, and sends a lightning or fire packet through
+ * This leaf creates a production combat actor, reads the canonical Lightning
+ * Resistance the shared racial parser projects onto that actor, and sends a
+ * lightning or fire packet through
  * calculateDamage and ResistanceCalculator. The UI also shows canonical speed
  * and spell-progression facts, while clearly marking breath and spell casting
  * as unsupported here because this leaf has no native execution helper for them.
@@ -101,10 +101,10 @@ export function getCanonicalAirGenasiSpellProgression(
 // Production Combat Actor And Damage Transaction
 // ============================================================================
 // The quick-character generator is the production construction seam used by
-// the wider Design Preview sandbox. Its current persistent-to-combat bridge
-// does not project resistance from readable Race trait text, so this narrow
-// adapter materializes only the parsed canonical defense before native damage
-// resolution. It does not calculate or apply half damage itself.
+// the wider Design Preview sandbox. Its persistent-to-combat bridge now
+// projects the Lightning Resistance the shared racial parser reads out of the
+// canonical trait row, so this leaf reads that defense rather than
+// materializing one of its own. It does not calculate or apply half damage.
 // ============================================================================
 
 export interface AirGenasiResistanceScenarioState {
@@ -123,22 +123,13 @@ const AIR_GENASI_ACTOR_CONFIG: QuickCharacterConfig = {
   stats: [10, 12, 12, 10, 10, 10],
 };
 
-function materializeCanonicalAirGenasiResistances(
+/** Does the production actor already carry every canonical defense? */
+function hasProductionAirGenasiResistances(
   character: CombatCharacter,
   race: Race,
-): CombatCharacter {
-  const canonicalResistances = getCanonicalAirGenasiDamageResistances(race);
-
-  // Preserve any production-projected defenses and add only defenses named by
-  // the supplied canonical Race. The native calculator remains authoritative.
-  return {
-    ...character,
-    id: AIR_GENASI_ACTOR_ID,
-    resistances: [...new Set([
-      ...(character.resistances ?? []),
-      ...canonicalResistances,
-    ])],
-  };
+): boolean {
+  const projected = new Set((character.resistances ?? []).map(type => type.toLowerCase()));
+  return getCanonicalAirGenasiDamageResistances(race).every(type => projected.has(type));
 }
 
 export function createAirGenasiResistanceScenario(
@@ -155,7 +146,19 @@ export function createAirGenasiResistanceScenario(
     };
   }
 
-  const actor = materializeCanonicalAirGenasiResistances(generatedActor, race);
+  const actor: CombatCharacter = { ...generatedActor, id: AIR_GENASI_ACTOR_ID };
+  if (!hasProductionAirGenasiResistances(actor, race)) {
+    // The shared racial parser owns this projection. If it stops supplying the
+    // canonical defense, say so rather than quietly re-adding it here.
+    return {
+      actor: null,
+      damageType: 'lightning',
+      rawDamage: AIR_GENASI_RESISTANCE_DAMAGE,
+      finalDamage: null,
+      outcome: 'Resistance boundary unavailable: the production racial parser did not project the canonical Air Genasi resistance.',
+    };
+  }
+
   const canonicalResistanceReady = hasCanonicalAirGenasiLightningResistance(race);
   return {
     actor,
@@ -273,7 +276,7 @@ const AirGenasiRaceLeafContent: React.FC<RaceDomainLeafProps> = ({
 
       {/* This boundary is explicit so future character-assembly work can move the projection upstream. */}
       <p data-testid="air-genasi-assembly-boundary">
-        Assembly boundary: canonical trait text is materialized into CombatCharacter.resistances in this leaf because the shared character bridge only reads legacy race.resistance data.
+        Assembly boundary: CombatCharacter.resistances is projected by the shared racial parser at the persistent-to-combat bridge; this leaf reads that defense and holds no resistance adapter of its own.
       </p>
       <p data-testid="air-genasi-unsupported-boundaries">
         Unsupported boundary: Unending Breath and Mingle with the Wind spell execution are not claimed here; this leaf shows their canonical data facts only because no native execution helper is part of this transaction.

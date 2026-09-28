@@ -16,10 +16,19 @@
  */
 import React from 'react';
 import { Spell, Class as CharClass } from '../../../types';
+import { type RulesEdition } from '../../../config/rulesEdition';
+/** One Sorcerous Origin offered at level 1, derived from SUBCLASSES.sorcerer by the caller. */
+export interface SorcerousOriginOption {
+    id: string;
+    name: string;
+    description: string;
+}
 interface SorcererFeatureSelectionProps {
     spellcastingInfo: NonNullable<CharClass['spellcasting']>;
+    origins: SorcerousOriginOption[];
+    rulesEdition: RulesEdition;
     allSpells: Record<string, Spell>;
-    onSorcererFeaturesSelect: (cantrips: Spell[], spellsL1: Spell[]) => void;
+    onSorcererFeaturesSelect: (cantrips: Spell[], spellsL1: Spell[], originId?: string) => void;
     onBack: () => void;
 }
 declare const SorcererFeatureSelection: React.FC<SorcererFeatureSelectionProps>;

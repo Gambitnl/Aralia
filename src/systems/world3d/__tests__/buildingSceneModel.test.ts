@@ -20,6 +20,7 @@ import { briefFromHousehold } from '../../worldforge/town/householdBrief';
 import { computeOccupancy, HEARTH_KINDS } from '../../worldforge/interior/occupancy';
 import { windowsLitAt } from '../../worldforge/bridge/buildingOccupancy';
 import { getSemanticAssetKey } from '../../worldforge/bridge/forgeMaterials';
+import { furnishingSpec } from '../../worldforge/bridge/interiorParts';
 import type { BuildingAgeBand } from '../../worldforge/interior/blueprintTypes';
 
 /** Smith-family bundle — the same matched (plan, household, occupancy)
@@ -43,6 +44,25 @@ const barePlan = (seed = 759381890) =>
   generateBuilding({
     buildingId: 1, type: 'tavern', seedPath: rootSeedPath(seed), storeys: 2, basement: true,
   });
+
+it('shows every visible furnishing at production scale, including rotated beds and tables', () => {
+  const plan = barePlan(792767481);
+  const scene = buildingSceneModel(plan, { upToLevel: 0, hour: 12 });
+  const source = plan.floors.filter(f => f.level <= 0).flatMap(floor =>
+    floor.furnishings.map(f => ({ floor, f })));
+  const rendered = scene.boxes.filter(b => b.kind === 'furniture' || b.kind === 'hearth');
+  expect(rendered).toHaveLength(source.length);
+  expect(rendered.some(b => b.kind === 'furniture')).toBe(true);
+  source.forEach(({ floor, f }, i) => {
+    const spec = furnishingSpec(f.kind);
+    const rotated = f.rotation === 90 || f.rotation === 270;
+    expect(rendered[i]).toMatchObject({ x: f.x, y: f.y, level: floor.level });
+    expect(rendered[i].w * 0.3048).toBeCloseTo(rotated ? spec.d : spec.w);
+    expect(rendered[i].d * 0.3048).toBeCloseTo(rotated ? spec.w : spec.d);
+    expect(rendered[i].h * 0.3048).toBeCloseTo(spec.h);
+    if (!HEARTH_KINDS.has(f.kind)) expect(rendered[i].emissive).toBeUndefined();
+  });
+});
 
 /** Styled tavern — carries plan.roof + plan.styleResolved (BGv2 Task 5). */
 const styledPlan = (seed = 1) =>

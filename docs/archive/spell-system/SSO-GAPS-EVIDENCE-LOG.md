@@ -1,16 +1,16 @@
-> **ARCHIVED 2026-07-01 — SSO gap evidence log (formerly `docs/tasks/spell-system-overhaul/GAPS.md`).**
+> **ARCHIVED 2026-07-01 - SSO gap evidence log (formerly `docs/tasks/spell-system-overhaul/GAPS.md`).**
 >
 > This append-only log preserves ~297 verified-closed gap entries as historical evidence. The ~30 still-open
 > SSO-* gap rows (the registry table near the end of this file, statuses `open`/`waiting`) were extracted and
 > re-homed on 2026-07-01 into the live child-lane gap files:
 >
-> - Execution/verification debt → `docs/projects/spells/subprojects/structured-spell-execution/GAPS.md` (rows G13-G20)
-> - Targeting/object/area/terrain/LoS/geometry rows → `docs/projects/spells/subprojects/targeting-object-area/GAPS.md` (new row G8; rows G2-G7 now cite their carried SSO IDs)
-> - Summon and familiar rows → `docs/projects/spells/subprojects/summons-controlled-entities/GAPS.md` (rows G3-G7)
-> - Cross-cutting presentation-matrix rendered-proof debt → `docs/projects/spells/GAPS.md` (row G62)
+> - Execution/verification debt -> `docs/projects/spells/subprojects/structured-spell-execution/GAPS.md` (rows G13-G20)
+> - Targeting/object/area/terrain/LoS/geometry rows -> `docs/projects/spells/subprojects/targeting-object-area/GAPS.md` (new row G8; rows G2-G7 now cite their carried SSO IDs)
+> - Summon and familiar rows -> `docs/projects/spells/subprojects/summons-controlled-entities/GAPS.md` (rows G3-G7)
+> - Cross-cutting presentation-matrix rendered-proof debt -> `docs/projects/spells/GAPS.md` (row G62)
 >
 > Every re-homed row cites its original `SSO-*` ID, and all `SSO-*` row IDs remain searchable in this file.
-> Rows not re-homed were already covered by (or resolved under) existing child-lane rows — see the new rows'
+> Rows not re-homed were already covered by (or resolved under) existing child-lane rows - see the new rows'
 > citations and the child-lane resolved rows. Live work starts from `docs/projects/spells/SUBPROJECTS.md`.
 
 # Structured Spell Execution Gaps
@@ -7954,7 +7954,7 @@ Evidence added this pass:
 
 Remaining work:
 - Run the schema registry/check flow and targeted spell-data validation when verification is allowed.
-- Do not reopen the broad “schema lacks trigger model” claim unless a future check shows a concrete drift.
+- Do not reopen the broad "schema lacks trigger model" claim unless a future check shows a concrete drift.
 
 ## 2026-06-01 - Valid target semantics status refresh
 

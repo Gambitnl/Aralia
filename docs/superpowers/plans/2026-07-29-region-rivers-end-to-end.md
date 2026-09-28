@@ -2,9 +2,9 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Make one river course serve the whole stack — the region tier generates a real sub-cell course that follows terrain and passes through river-bearing burgs, the terrain carves to that exact line, and the town inherits it at true scale instead of drawing a 30× shrunk copy of its cell.
+**Goal:** Make one river course serve the whole stack - the region tier generates a real sub-cell course that follows terrain and passes through river-bearing burgs, the terrain carves to that exact line, and the town inherits it at true scale instead of drawing a 30x shrunk copy of its cell.
 
-**Architecture:** The region heightfield is already a pure function of world position (IDW over FMG cell heights, plus world-feet-indexed noise and ridge fields, all seeded from the WORLD seed). We extract that math into a point sampler so a river course can consult terrain without breaking seam purity. A new pure module turns a river's FMG cell-center anchors into a dense course: resample, pull toward river-bearing burgs, relax downhill perpendicular to flow, smooth. Because the course is a pure function of `(atlas, riverId, worldSeed)`, the region tier and the town tier each compute it independently and get the identical line — the same discipline `canonicalTownSeedPath` already uses, so no artifact needs threading between them.
+**Architecture:** The region heightfield is already a pure function of world position (IDW over FMG cell heights, plus world-feet-indexed noise and ridge fields, all seeded from the WORLD seed). We extract that math into a point sampler so a river course can consult terrain without breaking seam purity. A new pure module turns a river's FMG cell-center anchors into a dense course: resample, pull toward river-bearing burgs, relax downhill perpendicular to flow, smooth. Because the course is a pure function of `(atlas, riverId, worldSeed)`, the region tier and the town tier each compute it independently and get the identical line - the same discipline `canonicalTownSeedPath` already uses, so no artifact needs threading between them.
 
 **Tech Stack:** TypeScript, Vitest, existing Worldforge modules (`generateRegion.ts`, `canonicalTown.ts`, `groundChunkLoader.ts`, `worldFeetNoise.ts`).
 
@@ -15,7 +15,7 @@
 - **Determinism.** Same `(atlas, worldSeed, riverId)` must always yield the identical course, array-for-array. Seed via `seedPath.ts` helpers, never `Math.random`.
 - **US English spelling** in all comments and docs.
 - **Feet are canon** at the region/town tier; meters only after `FEET_TO_METERS` at the ground bake.
-- **Towns are generated, not authored.** A town is a pure function of `(atlas, burgId, worldSeed)` and is rebuilt every time, so there is no per-town data to migrate. Changing the river input changes the GENERATOR and every town re-derives from it — that is the intended systemic change. Recorded test snapshots of generated output still need regenerating; read each diff, but expect it.
+- **Towns are generated, not authored.** A town is a pure function of `(atlas, burgId, worldSeed)` and is rebuilt every time, so there is no per-town data to migrate. Changing the river input changes the GENERATOR and every town re-derives from it - that is the intended systemic change. Recorded test snapshots of generated output still need regenerating; read each diff, but expect it.
 - **Nothing to migrate, including saves.** `WorldDelta` keys on a positional `plotId`, so in principle a plan change renumbers saved player edits. In practice no such edit can exist: the only code constructing `modify-plot`, `remove-plot` or `add-building` is the replay engine itself and `pipeline.test.ts`. No UI or game code emits one, and `delta/types.ts:66` records that no shipped saves exist. Checked 2026-07-29. If a plot-editing feature ever ships, revisit this before changing the town generator again.
 - Run tests with `npx vitest run <path>`.
 
@@ -38,7 +38,7 @@ The river course must ask "how high is the land at this world point?" without a 
   - `makeRegionReliefField(worldSeed: number, baseSpanFt: number): (x: Feet, y: Feet, baseH: number) => number`
   - `makeRegionNaturalHeight(candidates: HeightCandidate[], idwRadiusFt: number, worldSeed: number, baseSpanFt: number): (x: Feet, y: Feet) => number`
 
-`makeRegionNaturalHeight` returns clamped `0..1` natural terrain with **no settlement floor** — a river must not route around a town's dry-land pad.
+`makeRegionNaturalHeight` returns clamped `0..1` natural terrain with **no settlement floor** - a river must not route around a town's dry-land pad.
 
 - [ ] **Step 1: Write the failing test**
 
@@ -78,7 +78,7 @@ describe('region terrain field', () => {
   it('is a pure function of world position', () => {
     const a = makeRegionNaturalHeight(CANDS, 20000, 12345, 8000);
     const b = makeRegionNaturalHeight(CANDS, 20000, 12345, 8000);
-    // Two independently built samplers must agree exactly — this is what makes
+    // Two independently built samplers must agree exactly - this is what makes
     // neighboring windows read the same terrain at a shared point.
     for (const [x, y] of [[1234, 5678], [9000, 100], [4321, 8765]]) {
       expect(a(x, y)).toBe(b(x, y));
@@ -97,7 +97,7 @@ describe('region terrain field', () => {
   it('adds relief that varies with position but stays bounded', () => {
     const relief = makeRegionReliefField(4242, 8000);
     const samples = [0, 2000, 4000, 6000, 8000].map((x) => relief(x, 0, 0.5));
-    // Not a constant — the field has structure.
+    // Not a constant - the field has structure.
     expect(new Set(samples).size).toBeGreaterThan(1);
     for (const s of samples) expect(Math.abs(s)).toBeLessThan(0.5);
   });
@@ -107,20 +107,20 @@ describe('region terrain field', () => {
 - [ ] **Step 2: Run test to verify it fails**
 
 Run: `npx vitest run src/systems/worldforge/region/__tests__/regionTerrainField.test.ts`
-Expected: FAIL — `Failed to resolve import "../regionTerrainField"`.
+Expected: FAIL - `Failed to resolve import "../regionTerrainField"`.
 
 - [ ] **Step 3: Write the module**
 
 ```ts
 // src/systems/worldforge/region/regionTerrainField.ts
 /**
- * @file regionTerrainField.ts — the region's terrain as POINT SAMPLERS rather
+ * @file regionTerrainField.ts - the region's terrain as POINT SAMPLERS rather
  * than a grid.
  *
  * `generateHeightfield` rasterizes exactly this math onto a window grid. River
  * routing needs the same surface at arbitrary world points and with no window
  * at all, because a course must be generated from the FULL unclipped river and
- * only clipped afterward (seam purity — see generateRegion.ts:865). Extracting
+ * only clipped afterward (seam purity - see generateRegion.ts:865). Extracting
  * the math here means the grid and the router cannot drift apart.
  *
  * Everything here is a pure function of WORLD position and the WORLD seed. The
@@ -144,7 +144,7 @@ const PERSISTENCE = 0.5;
 const BASE_AMPLITUDE = 0.18;
 
 /**
- * Radius-limited IDW over cell heights — the base surface, before noise.
+ * Radius-limited IDW over cell heights - the base surface, before noise.
  * Weight is Franke-Little / local Shepard: ~1/d² near the cell and exactly 0 at
  * the radius, so the field stays continuous as cells cross the neighborhood
  * edge.
@@ -239,7 +239,7 @@ Expected: PASS, 5 tests.
 
 - [ ] **Step 5: Guard the existing heightfield against drift**
 
-`generateHeightfield` keeps its own grid loops for now — the settlement floor and water discipline are interleaved between base and noise, so a naive swap would change output. Add a test that the sampler agrees with the grid on a window that has **no** settlement floor, which is the honest equivalence claim.
+`generateHeightfield` keeps its own grid loops for now - the settlement floor and water discipline are interleaved between base and noise, so a naive swap would change output. Add a test that the sampler agrees with the grid on a window that has **no** settlement floor, which is the honest equivalence claim.
 
 ```ts
 // append to src/systems/worldforge/region/__tests__/regionTerrainField.test.ts
@@ -254,7 +254,7 @@ it('agrees with the rasterized heightfield away from settlement pads', () => {
   expect(region.townSites).toHaveLength(0);
   const hf = region.heightfield;
   expect(hf.width).toBeGreaterThan(0);
-  // Spot-check that the grid is a real surface, not a constant — the sampler
+  // Spot-check that the grid is a real surface, not a constant - the sampler
   // equivalence proper is asserted once generateHeightfield is refactored.
   const vals = new Set<number>();
   for (let i = 0; i < hf.samples.length; i += 997) vals.add(hf.samples[i]);
@@ -278,7 +278,7 @@ git commit -m "feat(worldforge): world-pure region terrain point sampler"
 
 ### Task 2: Generate a sub-cell river course
 
-The pure geometry core. No atlas, no artifact — anchors in, dense course out.
+The pure geometry core. No atlas, no artifact - anchors in, dense course out.
 
 **Files:**
 - Create: `src/systems/worldforge/region/riverCourse.ts`
@@ -290,7 +290,7 @@ The pure geometry core. No atlas, no artifact — anchors in, dense course out.
   - `interface RiverCourseOptions { sampleHeight: (x: Feet, y: Feet) => number; attractors: Array<{ x: Feet; y: Feet; radiusFt: Feet }>; targetSegmentFt: Feet; widthFt: Feet; }`
   - `generateRiverCourse(anchors: Array<[Feet, Feet]>, opts: RiverCourseOptions): Array<[Feet, Feet]>`
 
-Four stages, in order: resample to `targetSegmentFt`, pull toward attractors, relax downhill perpendicular to flow, Chaikin-smooth. **The first and last anchors never move** — they are shared with the neighboring river segment and with adjacent windows, so moving them would tear the seam.
+Four stages, in order: resample to `targetSegmentFt`, pull toward attractors, relax downhill perpendicular to flow, Chaikin-smooth. **The first and last anchors never move** - they are shared with the neighboring river segment and with adjacent windows, so moving them would tear the seam.
 
 - [ ] **Step 1: Write the failing test**
 
@@ -299,7 +299,7 @@ Four stages, in order: resample to `targetSegmentFt`, pull toward attractors, re
 import { describe, it, expect } from 'vitest';
 import { generateRiverCourse, type RiverCourseOptions } from '../riverCourse';
 
-/** Flat terrain — isolates resampling and attraction from relaxation. */
+/** Flat terrain - isolates resampling and attraction from relaxation. */
 const FLAT: RiverCourseOptions = {
   sampleHeight: () => 0.5,
   attractors: [],
@@ -371,14 +371,14 @@ describe('generateRiverCourse', () => {
 - [ ] **Step 2: Run test to verify it fails**
 
 Run: `npx vitest run src/systems/worldforge/region/__tests__/riverCourse.test.ts`
-Expected: FAIL — `Failed to resolve import "../riverCourse"`.
+Expected: FAIL - `Failed to resolve import "../riverCourse"`.
 
 - [ ] **Step 3: Write the module**
 
 ```ts
 // src/systems/worldforge/region/riverCourse.ts
 /**
- * @file riverCourse.ts — turn a river's FMG cell-center anchors into a real
+ * @file riverCourse.ts - turn a river's FMG cell-center anchors into a real
  * sub-cell course.
  *
  * At canonical scale, FMG cell centers are ~70,000 ft apart while a region
@@ -404,7 +404,7 @@ export interface RiverCourseOptions {
   attractors: Array<{ x: Feet; y: Feet; radiusFt: Feet }>;
   /** Desired spacing between course points. */
   targetSegmentFt: Feet;
-  /** Channel width — bounds how far one relaxation step may move a point. */
+  /** Channel width - bounds how far one relaxation step may move a point. */
   widthFt: Feet;
 }
 
@@ -531,7 +531,7 @@ export function generateRiverCourse(
 Run: `npx vitest run src/systems/worldforge/region/__tests__/riverCourse.test.ts`
 Expected: PASS, 6 tests.
 
-If the valley test fails, the relaxation bias gain (`* 4`) is the dial — raise it or raise `RELAX_ITERATIONS`. Do not "fix" it by moving endpoints.
+If the valley test fails, the relaxation bias gain (`* 4`) is the dial - raise it or raise `RELAX_ITERATIONS`. Do not "fix" it by moving endpoints.
 
 - [ ] **Step 5: Commit**
 
@@ -552,7 +552,7 @@ Today `generateRiverBanks` stores the **raw** clipped centerline (`generateRegio
 
 **Interfaces:**
 - Consumes: `generateRiverCourse`, `RiverCourseOptions` (Task 2); `makeRegionNaturalHeight`, `HeightCandidate` (Task 1).
-- Produces: `RegionRiverBank.centerline` is now the clipped slice of the generated course — dense, terrain-following, and identical to the carved line.
+- Produces: `RegionRiverBank.centerline` is now the clipped slice of the generated course - dense, terrain-following, and identical to the carved line.
 
 - [ ] **Step 1: Write the failing test**
 
@@ -610,11 +610,11 @@ describe('region river banks carry a real course', () => {
 - [ ] **Step 2: Run test to verify it fails**
 
 Run: `npx vitest run src/systems/worldforge/region/__tests__/riverBanksCourse.test.ts`
-Expected: FAIL — first test reports `2` is not greater than `20`.
+Expected: FAIL - first test reports `2` is not greater than `20`.
 
 - [ ] **Step 3: Rewrite `generateRiverBanks`**
 
-Replace the body of `generateRiverBanks` (`generateRegion.ts:827-876`). The signature gains the pieces the course needs. Note it now builds the course from the FULL line, carves with it, and stores its clipped slice — one line, three uses.
+Replace the body of `generateRiverBanks` (`generateRegion.ts:827-876`). The signature gains the pieces the course needs. Note it now builds the course from the FULL line, carves with it, and stores its clipped slice - one line, three uses.
 
 ```ts
 function generateRiverBanks(
@@ -647,7 +647,7 @@ function generateRiverBanks(
     // windows read the same river at a shared world point (seam purity). The
     // artifact stores a clipped SLICE of this exact line and the heightfield is
     // carved along it, so the drawn river and the carved channel can no longer
-    // disagree — they were three separate lines before (raw stored, smoothed
+    // disagree - they were three separate lines before (raw stored, smoothed
     // carved, smoothed-again at draw).
     const course = generateRiverCourse(anchors, {
       sampleHeight: naturalHeight,
@@ -678,7 +678,7 @@ import { generateRiverCourse } from './riverCourse';
 import { makeRegionNaturalHeight, type HeightCandidate } from './regionTerrainField';
 ```
 
-In `generateRegion`, insert this immediately before the existing `const rivers = generateRiverBanks(` call (around line 234). The in-scope names there are `pack`, `feetPerPixel`, `resolutionFt`, `idwRadiusFt`, `regionPath`, and `opts.world` — there is no `cellPoints` or `cellHeights` local, so read `pack.cells.p` and `pack.cells.h` directly.
+In `generateRegion`, insert this immediately before the existing `const rivers = generateRiverBanks(` call (around line 234). The in-scope names there are `pack`, `feetPerPixel`, `resolutionFt`, `idwRadiusFt`, `regionPath`, and `opts.world` - there is no `cellPoints` or `cellHeights` local, so read `pack.cells.p` and `pack.cells.h` directly.
 
 A burg attracts only the river its own cell carries (`cells.r`), which is exactly the atlas's statement of intent:
 
@@ -718,7 +718,7 @@ A burg attracts only the river its own cell carries (`cells.r`), which is exactl
     heightCandidates,
     idwRadiusFt,
     worldSeedFromPath(regionPath),
-    // 80 lattice cells at the heightfield's resolution — the same macro-landform
+    // 80 lattice cells at the heightfield's resolution - the same macro-landform
     // wavelength generateHeightfield uses, so river and terrain read one field.
     80 * resolutionFt,
   );
@@ -734,7 +734,7 @@ Expected: PASS, 2 tests.
 - [ ] **Step 6: Run the region and bridge suites for fallout**
 
 Run: `npx vitest run src/systems/worldforge/region src/systems/worldforge/bridge`
-Expected: PASS. Heightfield goldens and seam probes WILL shift — the carve now follows a different line. Read each diff and confirm it is the intended course change before updating any golden.
+Expected: PASS. Heightfield goldens and seam probes WILL shift - the carve now follows a different line. Read each diff and confirm it is the intended course change before updating any golden.
 
 - [ ] **Step 7: Commit**
 
@@ -777,7 +777,7 @@ describe('region river drawing', () => {
 - [ ] **Step 2: Run test to verify it fails**
 
 Run: `npx vitest run src/components/Worldforge/__tests__/regionDrawRiver.test.ts`
-Expected: FAIL — the call is still present.
+Expected: FAIL - the call is still present.
 
 - [ ] **Step 3: Make the change**
 
@@ -818,9 +818,9 @@ git commit -m "fix(worldforge): draw the stored river course instead of re-smoot
 
 ### Task 5: Give the town the real course at true scale
 
-The core fix. `getCanonicalTownPlan` currently feeds the generator `cellWaterPolylines`, which rides `canonAffine` — the cell bounding box normalized to `CANON_TOWN_SPAN`. For Epicea that is a 30× shrink, so a river 4,045 ft away is drawn 135 ft from town center.
+The core fix. `getCanonicalTownPlan` currently feeds the generator `cellWaterPolylines`, which rides `canonAffine` - the cell bounding box normalized to `CANON_TOWN_SPAN`. For Epicea that is a 30x shrink, so a river 4,045 ft away is drawn 135 ft from town center.
 
-Replace that with the same course the region tier generates, mapped into the normalized town frame by the **inverse of the town placement** rather than by the cell affine. Because `generateRiverCourse` is pure, the town computes the identical line without needing the region artifact — the same discipline as `canonicalTownSeedPath`.
+Replace that with the same course the region tier generates, mapped into the normalized town frame by the **inverse of the town placement** rather than by the cell affine. Because `generateRiverCourse` is pure, the town computes the identical line without needing the region artifact - the same discipline as `canonicalTownSeedPath`.
 
 **Files:**
 - Create: `src/systems/worldforge/town/townRiverCourse.ts`
@@ -829,7 +829,7 @@ Replace that with the same course the region tier generates, mapped into the nor
 
 **Interfaces:**
 - Consumes: `generateRiverCourse` (Task 2), `makeRegionNaturalHeight` (Task 1), `townSpanFtForBurg`, `CANON_TOWN_SPAN`.
-- Produces: `townRiverCourseCanon(atlas: TownAtlas, worldSeed: number, burgId: number): Pt[][]` — the burg's river in the NORMALIZED town frame, at true relative scale, clipped to the town's own square.
+- Produces: `townRiverCourseCanon(atlas: TownAtlas, worldSeed: number, burgId: number): Pt[][]` - the burg's river in the NORMALIZED town frame, at true relative scale, clipped to the town's own square.
 
 - [ ] **Step 1: Write the failing test**
 
@@ -880,18 +880,18 @@ describe('town river course', () => {
 - [ ] **Step 2: Run test to verify it fails**
 
 Run: `npx vitest run src/systems/worldforge/town/__tests__/townRiverCourse.test.ts`
-Expected: FAIL — `Failed to resolve import "../townRiverCourse"`.
+Expected: FAIL - `Failed to resolve import "../townRiverCourse"`.
 
 - [ ] **Step 3: Write the module**
 
 ```ts
 // src/systems/worldforge/town/townRiverCourse.ts
 /**
- * @file townRiverCourse.ts — the burg's river in the normalized town frame, at
+ * @file townRiverCourse.ts - the burg's river in the normalized town frame, at
  * TRUE scale.
  *
  * The old path fed the town generator `cellWaterPolylines`, which rides
- * `canonAffine` — the burg CELL's bounding box normalized to CANON_TOWN_SPAN.
+ * `canonAffine` - the burg CELL's bounding box normalized to CANON_TOWN_SPAN.
  * A cell is ~80,000 ft across and a town ~2,900 ft, so that transform shrank
  * every inherited feature by ~30x. Epicea's river genuinely runs 4,045 ft from
  * the burg, well outside a 2,936 ft town, and was drawn 135 ft from town center
@@ -916,7 +916,7 @@ type TownAtlas = Pick<FmgWorldResult, 'pack'>;
 const REGION_RESOLUTION_FT = 100;
 const NOISE_BASE_CELLS = 80;
 
-/** Cache the world-pure height sampler per atlas — it is expensive to rebuild. */
+/** Cache the world-pure height sampler per atlas - it is expensive to rebuild. */
 const heightCache = new WeakMap<object, (x: number, y: number) => number>();
 
 function naturalHeightFor(atlas: TownAtlas, worldSeed: number): (x: number, y: number) => number {
@@ -948,7 +948,7 @@ function naturalHeightFor(atlas: TownAtlas, worldSeed: number): (x: number, y: n
 /**
  * The burg's river in the normalized town frame (origin at town center,
  * CANON_TOWN_SPAN across), clipped to the town square. Empty when the burg's
- * cell carries no river — a dry town gets no river rather than an invented one.
+ * cell carries no river - a dry town gets no river rather than an invented one.
  */
 export function townRiverCourseCanon(
   atlas: TownAtlas,
@@ -1007,7 +1007,7 @@ export function townRiverCourseCanon(
 import { CANON_TOWN_SPAN } from './canonicalTown';
 ```
 
-If the trailing import creates a cycle at runtime, move `CANON_TOWN_SPAN` into `townScale.ts` and re-export it from `canonicalTown.ts` — that constant is scale data and belongs there anyway.
+If the trailing import creates a cycle at runtime, move `CANON_TOWN_SPAN` into `townScale.ts` and re-export it from `canonicalTown.ts` - that constant is scale data and belongs there anyway.
 
 - [ ] **Step 4: Run test to verify it passes**
 
@@ -1072,7 +1072,7 @@ Confirm `worldSeed` is in scope in `MapPane`'s `useMemo` and add it to the depen
 - [ ] **Step 7: Typecheck and run the town and bridge suites**
 
 Run: `npx tsc --noEmit && npx vitest run src/systems/worldforge/town src/systems/worldforge/bridge`
-Expected: typecheck clean. Every river town's generated plan changes — bridges and riverside docks move or disappear, which is the intended result of placing the river truthfully. Towns are generated fresh from `(atlas, burgId, worldSeed)`, so there is nothing to migrate; only recorded snapshots of generated output need regenerating. Read each diff to confirm it is the course change and not a collapse (empty plans, zero wards, NaN coordinates).
+Expected: typecheck clean. Every river town's generated plan changes - bridges and riverside docks move or disappear, which is the intended result of placing the river truthfully. Towns are generated fresh from `(atlas, burgId, worldSeed)`, so there is nothing to migrate; only recorded snapshots of generated output need regenerating. Read each diff to confirm it is the course change and not a collapse (empty plans, zero wards, NaN coordinates).
 
 - [ ] **Step 8: Commit**
 
@@ -1119,7 +1119,7 @@ describe('the town river and the world river are the same river', () => {
     }));
 
     // Every point of the town channel must sit on the region course. Before
-    // this pass they were 3,400-4,900 ft apart — two rivers in one town.
+    // this pass they were 3,400-4,900 ft apart - two rivers in one town.
     for (const p of town!.centerlineM!) {
       const nearest = Math.min(
         ...coursePts.map((c) => Math.hypot(c.x - p.x, c.z - p.z)),
@@ -1144,7 +1144,7 @@ Expected: on the pre-Task-3 code, FAIL. After Tasks 3 and 5, PASS.
 
 - [ ] **Step 3: Update the envelope-containment test**
 
-The existing `keeps the river inside the town envelope it was scaled into` test asserts the OLD shrunk behavior. Replace its intent — the river is now allowed to leave the envelope, because a real river runs on past the town:
+The existing `keeps the river inside the town envelope it was scaled into` test asserts the OLD shrunk behavior. Replace its intent - the river is now allowed to leave the envelope, because a real river runs on past the town:
 
 ```ts
   it('lets the river run past the town instead of being penned inside it', () => {
@@ -1177,7 +1177,7 @@ Expected: PASS, all tests.
 - [ ] **Step 5: Full suite**
 
 Run: `npx vitest run --maxWorkers=4`
-Expected: PASS. Investigate every failure — do not regenerate a golden without reading its diff.
+Expected: PASS. Investigate every failure - do not regenerate a golden without reading its diff.
 
 - [ ] **Step 6: Commit**
 
@@ -1213,7 +1213,7 @@ Repeat for Reararesto (burg 19, river 13) so the result is not tuned to one burg
 
 - [ ] **Step 5: Report with screenshots**
 
-Post the shots and an honest read. If the course looks wrong — too straight, too wiggly, cutting a ridge — the dials are `RELAX_ITERATIONS`, the relaxation bias gain, and `targetSegmentFt` in `riverCourse.ts`.
+Post the shots and an honest read. If the course looks wrong - too straight, too wiggly, cutting a ridge - the dials are `RELAX_ITERATIONS`, the relaxation bias gain, and `targetSegmentFt` in `riverCourse.ts`.
 
 ---
 
@@ -1221,8 +1221,8 @@ Post the shots and an honest read. If the course looks wrong — too straight, t
 
 Deliberately excluded, each named in the audit as its own step:
 
-- **Crossings** (audit finding 3) — zero region bridges and fords generate today. Re-derive after this lands, since rivers and roads now have enough vertices to actually meet.
-- **Roads** (finding 4) — still 6-7 points across a 25,000 ft window. Same treatment as rivers.
+- **Crossings** (audit finding 3) - zero region bridges and fords generate today. Re-derive after this lands, since rivers and roads now have enough vertices to actually meet.
+- **Roads** (finding 4) - still 6-7 points across a 25,000 ft window. Same treatment as rivers.
 - **Biome sites** (finding 6), **markers and zones** (findings 5 and 7).
 - **The harbour apron.** Coast still rides `canonAffine`. A shoreline is defined by the cell's own coast edges, so the shrink argument does not apply the same way; it needs its own look.
 

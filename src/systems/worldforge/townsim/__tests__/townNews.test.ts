@@ -29,6 +29,7 @@ describe('selectTownNews', () => {
     ev({ id: 4, kind: 'birth', day: 1008, summary: 'C was born.' }),
     ev({ id: 5, kind: 'festival', day: 1009, summary: 'Harvest festival.' }),
     ev({ id: 6, kind: 'building', day: 1007, summary: 'A home was rebuilt.' }),
+    ev({ id: 7, kind: 'player_intervention', day: 1006, summary: 'Aria organized repairs.' }),
   ]);
   const currentDay = 1010;
 
@@ -41,6 +42,7 @@ describe('selectTownNews', () => {
     expect(byId.get(4)).toBe('gossip'); // birth
     expect(byId.get(5)).toBe('gossip'); // festival
     expect(byId.get(6)).toBe('notice'); // property lifecycle
+    expect(byId.get(7)).toBe('notice'); // player action echoes through town
   });
 
   it('returns most-recent first', () => {

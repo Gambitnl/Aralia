@@ -1,6 +1,6 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { evaluateCombatTurn } from '../combatAI';
+import { evaluateCombatTurn, evaluateSummonAbility } from '../combatAI';
 import {
   createMockCombatCharacter
 } from '../../core/factories';
@@ -845,5 +845,852 @@ describe('combatAI', () => {
     expect(result.type).toBe('move');
     // The hero wants to approach the goblin at (3, 0), but cannot move to (2, 0) because the downed Rogue blocks it!
     expect(result.targetPosition).not.toEqual({ x: 2, y: 0 });
+  });
+
+  // ============================================================================
+  // ALLIED PARTY COMBAT AI TACTICS (G31) TESTS
+  // ============================================================================
+
+  describe('Allied Party Tactics — Triage Healing', () => {
+    it('should prioritize emergency healing on a critically wounded ally (<30% HP) over a basic attack', () => {
+      const cureWounds: Ability = {
+        id: 'cure-wounds',
+        name: 'Cure Wounds',
+        description: 'Heals 10 HP',
+        type: 'spell',
+        range: 6,
+        targeting: 'single_ally',
+        cost: { type: 'action', spellSlotLevel: 1 },
+        effects: [{ type: 'heal', value: 10 }],
+        icon: 'heal',
+        tags: [],
+      };
+
+      const fireBolt: Ability = {
+        id: 'fire-bolt',
+        name: 'Fire Bolt',
+        description: 'Deals 10 fire damage',
+        type: 'attack',
+        range: 6,
+        targeting: 'single_enemy',
+        cost: { type: 'action' },
+        effects: [{ type: 'damage', damageType: 'fire', value: 10 }],
+        icon: 'fire',
+        tags: [],
+      };
+
+      const cleric = createMockCombatCharacter({
+        id: 'cleric',
+        name: 'Cleric Ally',
+        team: 'player',
+        position: { x: 0, y: 0 },
+        abilities: [cureWounds, fireBolt]
+      });
+
+      // Critically wounded ally (4/20 HP = 20% HP)
+      const criticalFighter = createMockCombatCharacter({
+        id: 'fighter',
+        name: 'Fighter Carry',
+        team: 'player',
+        position: { x: 0, y: 2 },
+        currentHP: 4,
+        maxHP: 20
+      });
+
+      // Healthy enemy in range
+      const enemyOrc = createMockCombatCharacter({
+        id: 'orc',
+        name: 'Orc Warrior',
+        team: 'enemy',
+        position: { x: 0, y: 4 },
+        currentHP: 20,
+        maxHP: 20
+      });
+
+      const result = evaluateCombatTurn(cleric, [cleric, criticalFighter, enemyOrc], mapData);
+
+      // Triage healing must rescue the critically wounded fighter rather than attacking
+      expect(result.type).toBe('ability');
+      expect(result.abilityId).toBe('cure-wounds');
+      expect(result.targetCharacterIds).toContain(criticalFighter.id);
+    });
+
+    it('should prefer attacking over healing when ally is only lightly scratched (>70% HP)', () => {
+      const cureWounds: Ability = {
+        id: 'cure-wounds',
+        name: 'Cure Wounds',
+        description: 'Heals 10 HP',
+        type: 'spell',
+        range: 6,
+        targeting: 'single_ally',
+        cost: { type: 'action', spellSlotLevel: 1 },
+        effects: [{ type: 'heal', value: 10 }],
+        icon: 'heal',
+        tags: [],
+      };
+
+      const fireBolt: Ability = {
+        id: 'fire-bolt',
+        name: 'Fire Bolt',
+        description: 'Deals 10 fire damage',
+        type: 'attack',
+        range: 6,
+        targeting: 'single_enemy',
+        cost: { type: 'action' },
+        effects: [{ type: 'damage', damageType: 'fire', value: 10 }],
+        icon: 'fire',
+        tags: [],
+      };
+
+      const cleric = createMockCombatCharacter({
+        id: 'cleric',
+        name: 'Cleric Ally',
+        team: 'player',
+        position: { x: 0, y: 0 },
+        abilities: [cureWounds, fireBolt]
+      });
+
+      // Lightly bruised ally (18/20 HP = 90% HP)
+      const healthyFighter = createMockCombatCharacter({
+        id: 'fighter',
+        name: 'Fighter Carry',
+        team: 'player',
+        position: { x: 0, y: 2 },
+        currentHP: 18,
+        maxHP: 20
+      });
+
+      // Healthy enemy in range
+      const enemyOrc = createMockCombatCharacter({
+        id: 'orc',
+        name: 'Orc Warrior',
+        team: 'enemy',
+        position: { x: 0, y: 4 },
+        currentHP: 20,
+        maxHP: 20
+      });
+
+      const result = evaluateCombatTurn(cleric, [cleric, healthyFighter, enemyOrc], mapData);
+
+      // Cleric attacks the enemy rather than wasting an action topping off 2 HP
+      expect(result.type).toBe('ability');
+      expect(result.abilityId).toBe('fire-bolt');
+      expect(result.targetCharacterIds).toContain(enemyOrc.id);
+    });
+  });
+
+  describe('Allied Party Tactics — Spell Slot Budgeting', () => {
+    it('should not waste a 3rd-level spell slot on a trivial 2 HP foe when a cantrip suffices', () => {
+      const cantrip: Ability = {
+        id: 'fire-bolt',
+        name: 'Fire Bolt',
+        description: 'Deals 10 fire damage',
+        type: 'attack',
+        range: 6,
+        targeting: 'single_enemy',
+        cost: { type: 'action', spellSlotLevel: 0 },
+        effects: [{ type: 'damage', damageType: 'fire', value: 10 }],
+        icon: 'fire',
+        tags: [],
+      };
+
+      const lightningBolt: Ability = {
+        id: 'lightning-bolt',
+        name: 'Lightning Bolt',
+        description: 'Deals 28 lightning damage',
+        type: 'spell',
+        range: 6,
+        targeting: 'single_enemy',
+        cost: { type: 'action', spellSlotLevel: 3 },
+        effects: [{ type: 'damage', damageType: 'lightning', value: 28 }],
+        icon: 'lightning',
+        tags: [],
+      };
+
+      const wizard = createMockCombatCharacter({
+        id: 'wizard',
+        name: 'Wizard Ally',
+        team: 'player',
+        position: { x: 0, y: 0 },
+        abilities: [cantrip, lightningBolt],
+        spellSlots: {
+          level_1: { current: 4, max: 4 },
+          level_2: { current: 3, max: 3 },
+          level_3: { current: 2, max: 2 },
+          level_4: { current: 0, max: 0 },
+          level_5: { current: 0, max: 0 },
+          level_6: { current: 0, max: 0 },
+          level_7: { current: 0, max: 0 },
+          level_8: { current: 0, max: 0 },
+          level_9: { current: 0, max: 0 },
+        }
+      });
+
+      // Trivial dying goblin (2/15 HP)
+      const trivialGoblin = createMockCombatCharacter({
+        id: 'goblin',
+        name: 'Goblin Minion',
+        team: 'enemy',
+        position: { x: 0, y: 3 },
+        currentHP: 2,
+        maxHP: 15
+      });
+
+      const result = evaluateCombatTurn(wizard, [wizard, trivialGoblin], mapData);
+
+      // Wizard must budget spell slots and finish the 2 HP goblin with Fire Bolt instead of Lightning Bolt
+      expect(result.type).toBe('ability');
+      expect(result.abilityId).toBe('fire-bolt');
+      expect(result.targetCharacterIds).toContain(trivialGoblin.id);
+    });
+
+    it('should spend a 3rd-level spell slot on a healthy high-threat enemy', () => {
+      const cantrip: Ability = {
+        id: 'fire-bolt',
+        name: 'Fire Bolt',
+        description: 'Deals 10 fire damage',
+        type: 'attack',
+        range: 6,
+        targeting: 'single_enemy',
+        cost: { type: 'action', spellSlotLevel: 0 },
+        effects: [{ type: 'damage', damageType: 'fire', value: 10 }],
+        icon: 'fire',
+        tags: [],
+      };
+
+      const lightningBolt: Ability = {
+        id: 'lightning-bolt',
+        name: 'Lightning Bolt',
+        description: 'Deals 28 lightning damage',
+        type: 'spell',
+        range: 6,
+        targeting: 'single_enemy',
+        cost: { type: 'action', spellSlotLevel: 3 },
+        effects: [{ type: 'damage', damageType: 'lightning', value: 28 }],
+        icon: 'lightning',
+        tags: [],
+      };
+
+      const wizard = createMockCombatCharacter({
+        id: 'wizard',
+        name: 'Wizard Ally',
+        team: 'player',
+        position: { x: 0, y: 0 },
+        abilities: [cantrip, lightningBolt],
+        spellSlots: {
+          level_1: { current: 4, max: 4 },
+          level_2: { current: 3, max: 3 },
+          level_3: { current: 2, max: 2 },
+          level_4: { current: 0, max: 0 },
+          level_5: { current: 0, max: 0 },
+          level_6: { current: 0, max: 0 },
+          level_7: { current: 0, max: 0 },
+          level_8: { current: 0, max: 0 },
+          level_9: { current: 0, max: 0 },
+        }
+      });
+
+      // Healthy high-HP boss enemy (50/50 HP)
+      const bossOgre = createMockCombatCharacter({
+        id: 'ogre',
+        name: 'Ogre Chieftain',
+        team: 'enemy',
+        position: { x: 0, y: 3 },
+        currentHP: 50,
+        maxHP: 50
+      });
+
+      const result = evaluateCombatTurn(wizard, [wizard, bossOgre], mapData);
+
+      // Against a high-HP threat, the wizard unleashes Lightning Bolt
+      expect(result.type).toBe('ability');
+      expect(result.abilityId).toBe('lightning-bolt');
+      expect(result.targetCharacterIds).toContain(bossOgre.id);
+    });
+  });
+
+  describe('Allied Party Tactics — Threat Management & Interception', () => {
+    it('should move a frontline tank into an interception position to screen a vulnerable concentrating backliner', () => {
+      const meleeStrike: Ability = {
+        id: 'sword-strike',
+        name: 'Longsword Strike',
+        description: 'Melee attack dealing 10 damage',
+        type: 'attack',
+        range: 1,
+        targeting: 'single_enemy',
+        cost: { type: 'action' },
+        effects: [{ type: 'damage', damageType: 'slashing', value: 10 }],
+        icon: 'sword',
+        tags: [],
+      };
+
+      // Paladin frontliner tank
+      const paladin = createMockCombatCharacter({
+        id: 'paladin',
+        name: 'Paladin Tank',
+        team: 'player',
+        position: { x: 0, y: 0 },
+        currentHP: 30,
+        maxHP: 30,
+        armorClass: 18,
+        class: { id: 'paladin', name: 'Paladin' } as any,
+        abilities: [meleeStrike]
+      });
+
+      // Squishy Wizard backliner concentrating on a spell
+      const wizard = createMockCombatCharacter({
+        id: 'wizard',
+        name: 'Wizard Backliner',
+        team: 'player',
+        position: { x: 0, y: 1 },
+        currentHP: 14,
+        maxHP: 14,
+        armorClass: 12,
+        class: { id: 'wizard', name: 'Wizard' } as any,
+        concentratingOn: {
+          spellId: 'web',
+          spellName: 'Web',
+          spellLevel: 2,
+          startedTurn: 1,
+          effectIds: [],
+          canDropAsFreeAction: true
+        }
+      });
+
+      // Approaching melee hostile 6 tiles away
+      const meleeOrc = createMockCombatCharacter({
+        id: 'orc',
+        name: 'Orc Raider',
+        team: 'enemy',
+        position: { x: 6, y: 1 },
+        currentHP: 20,
+        maxHP: 20,
+        abilities: [{ ...meleeStrike, id: 'orc-axe', name: 'Greataxe' }]
+      });
+
+      const result = evaluateCombatTurn(paladin, [paladin, wizard, meleeOrc], mapData);
+
+      // Paladin is out of melee range of the orc, so they move into an interception position between Wizard and Orc
+      expect(result.type).toBe('move');
+      expect(result.targetPosition?.x).toBeGreaterThan(0);
+      expect(result.targetPosition?.y).toBe(1); // On the direct screening corridor to protect the wizard
+    });
+
+    it('should prioritize peeling for a vulnerable ally by attacking the adjacent melee hostile', () => {
+      const meleeStrike: Ability = {
+        id: 'sword-strike',
+        name: 'Longsword Strike',
+        description: 'Melee attack dealing 10 damage',
+        type: 'attack',
+        range: 1,
+        targeting: 'single_enemy',
+        cost: { type: 'action' },
+        effects: [{ type: 'damage', damageType: 'slashing', value: 10 }],
+        icon: 'sword',
+        tags: [],
+      };
+
+      const fighter = createMockCombatCharacter({
+        id: 'fighter',
+        name: 'Fighter Tank',
+        team: 'player',
+        position: { x: 2, y: 2 },
+        abilities: [meleeStrike]
+      });
+
+      // Vulnerable wizard backliner adjacent to fighter
+      const wizard = createMockCombatCharacter({
+        id: 'wizard',
+        name: 'Wizard Backliner',
+        team: 'player',
+        position: { x: 2, y: 3 },
+        class: { id: 'wizard', name: 'Wizard' } as any,
+        concentratingOn: {
+          spellId: 'hypnotic-pattern',
+          spellName: 'Hypnotic Pattern',
+          spellLevel: 2,
+          startedTurn: 1,
+          effectIds: [],
+          canDropAsFreeAction: true
+        }
+      });
+
+      // Enemy 1: Melee hostile adjacent to both Fighter and Wizard (threatening the wizard!)
+      const threateningGoblin = createMockCombatCharacter({
+        id: 'goblin-1',
+        name: 'Goblin Threatening Wizard',
+        team: 'enemy',
+        position: { x: 3, y: 3 },
+        currentHP: 15,
+        maxHP: 15
+      });
+
+      // Enemy 2: Melee hostile adjacent to Fighter but away from Wizard
+      const distantGoblin = createMockCombatCharacter({
+        id: 'goblin-2',
+        name: 'Goblin Flanking',
+        team: 'enemy',
+        position: { x: 2, y: 1 },
+        currentHP: 15,
+        maxHP: 15
+      });
+
+      const result = evaluateCombatTurn(fighter, [fighter, wizard, threateningGoblin, distantGoblin], mapData);
+
+      // Fighter must prioritize peeling the threatening goblin off the concentrating wizard
+      expect(result.type).toBe('ability');
+      expect(result.targetCharacterIds).toContain(threateningGoblin.id);
+    });
+  });
+
+  describe('Allied Party Tactics — Buff & Support Priority', () => {
+    it('should prioritize casting protective buffs (Bless) on party carry early in combat', () => {
+      const bless: Ability = {
+        id: 'bless',
+        name: 'Bless',
+        description: 'Blesses up to 3 allies with +1d4 to attacks and saves',
+        type: 'spell',
+        range: 6,
+        targeting: 'single_ally',
+        cost: { type: 'action', spellSlotLevel: 1 },
+        effects: [
+          {
+            type: 'status',
+            statusEffect: {
+              id: 'blessed-status',
+              name: 'Blessed',
+              type: 'buff',
+              duration: 10,
+              source: 'Bless',
+              description: 'Adds +1d4 to attack rolls and saving throws'
+            }
+          }
+        ],
+        icon: 'bless',
+        tags: ['buff', 'concentration'],
+      };
+
+      const fireBolt: Ability = {
+        id: 'fire-bolt',
+        name: 'Fire Bolt',
+        description: 'Deals 10 fire damage',
+        type: 'attack',
+        range: 6,
+        targeting: 'single_enemy',
+        cost: { type: 'action' },
+        effects: [{ type: 'damage', damageType: 'fire', value: 10 }],
+        icon: 'fire',
+        tags: [],
+      };
+
+      const cleric = createMockCombatCharacter({
+        id: 'cleric',
+        name: 'Cleric Ally',
+        team: 'player',
+        position: { x: 0, y: 0 },
+        abilities: [bless, fireBolt]
+      });
+
+      // Martial party carry (Barbarian)
+      const barbarianCarry = createMockCombatCharacter({
+        id: 'barbarian',
+        name: 'Barbarian Carry',
+        team: 'player',
+        position: { x: 0, y: 2 },
+        currentHP: 30,
+        maxHP: 30,
+        class: { id: 'barbarian', name: 'Barbarian' } as any
+      });
+
+      // Distant enemy
+      const enemyGoblin = createMockCombatCharacter({
+        id: 'goblin',
+        name: 'Goblin',
+        team: 'enemy',
+        position: { x: 0, y: 5 },
+        currentHP: 20,
+        maxHP: 20
+      });
+
+      const result = evaluateCombatTurn(cleric, [cleric, barbarianCarry, enemyGoblin], mapData);
+
+      // Cleric casts Bless on the party carry early in combat rather than casting Fire Bolt
+      expect(result.type).toBe('ability');
+      expect(result.abilityId).toBe('bless');
+      expect(result.targetCharacterIds).toContain(barbarianCarry.id);
+    });
+
+    it('should not recast Bless on an ally that is already Blessed', () => {
+      const bless: Ability = {
+        id: 'bless',
+        name: 'Bless',
+        description: 'Blesses ally',
+        type: 'spell',
+        range: 6,
+        targeting: 'single_ally',
+        cost: { type: 'action', spellSlotLevel: 1 },
+        effects: [
+          {
+            type: 'status',
+            statusEffect: {
+              id: 'blessed-status',
+              name: 'Blessed',
+              type: 'buff',
+              duration: 10,
+              source: 'Bless',
+              description: 'Adds +1d4 to attack rolls and saving throws'
+            }
+          }
+        ],
+        icon: 'bless',
+        tags: ['buff', 'concentration'],
+      };
+
+      const fireBolt: Ability = {
+        id: 'fire-bolt',
+        name: 'Fire Bolt',
+        description: 'Deals 10 fire damage',
+        type: 'attack',
+        range: 6,
+        targeting: 'single_enemy',
+        cost: { type: 'action' },
+        effects: [{ type: 'damage', damageType: 'fire', value: 10 }],
+        icon: 'fire',
+        tags: [],
+      };
+
+      const cleric = createMockCombatCharacter({
+        id: 'cleric',
+        name: 'Cleric Ally',
+        team: 'player',
+        position: { x: 0, y: 0 },
+        abilities: [bless, fireBolt],
+        concentratingOn: {
+          spellId: 'bless',
+          spellName: 'Bless',
+          spellLevel: 2,
+          startedTurn: 1,
+          effectIds: [],
+          canDropAsFreeAction: true
+        },
+        statusEffects: [
+          {
+            id: 'active-bless-cleric',
+            name: 'Blessed',
+            type: 'buff',
+            duration: 9,
+            source: 'Bless',
+            description: 'Active bless'
+          }
+        ]
+      });
+
+      // Barbarian already Blessed
+      const blessedBarbarian = createMockCombatCharacter({
+        id: 'barbarian',
+        name: 'Barbarian Carry',
+        team: 'player',
+        position: { x: 0, y: 2 },
+        currentHP: 30,
+        maxHP: 30,
+        class: { id: 'barbarian', name: 'Barbarian' } as any,
+        statusEffects: [
+          {
+            id: 'active-bless',
+            name: 'Blessed',
+            type: 'buff',
+            duration: 9,
+            source: 'Bless',
+            description: 'Active bless'
+          }
+        ]
+      });
+
+      const enemyGoblin = createMockCombatCharacter({
+        id: 'goblin',
+        name: 'Goblin',
+        team: 'enemy',
+        position: { x: 0, y: 5 },
+        currentHP: 20,
+        maxHP: 20
+      });
+
+      const result = evaluateCombatTurn(cleric, [cleric, blessedBarbarian, enemyGoblin], mapData);
+
+      // Barbarian already has Bless and Cleric is concentrating, so Cleric attacks the Goblin
+      expect(result.type).toBe('ability');
+      expect(result.abilityId).toBe('fire-bolt');
+      expect(result.targetCharacterIds).toContain(enemyGoblin.id);
+    });
+
+    it('should avoid breaking active high-value concentration for a lower-priority buff', () => {
+      const shieldOfFaith: Ability = {
+        id: 'shield-of-faith',
+        name: 'Shield of Faith',
+        description: '+2 AC',
+        type: 'spell',
+        range: 6,
+        targeting: 'single_ally',
+        cost: { type: 'bonus', spellSlotLevel: 1 },
+        effects: [
+          {
+            type: 'status',
+            statusEffect: {
+              id: 'shield-of-faith-status',
+              name: 'Shield of Faith',
+              type: 'buff',
+              duration: 10,
+              source: 'Shield of Faith',
+              description: '+2 AC'
+            }
+          }
+        ],
+        icon: 'shield',
+        tags: ['buff', 'concentration'],
+      };
+
+      const fireBolt: Ability = {
+        id: 'fire-bolt',
+        name: 'Fire Bolt',
+        description: 'Deals 10 fire damage',
+        type: 'attack',
+        range: 6,
+        targeting: 'single_enemy',
+        cost: { type: 'action' },
+        effects: [{ type: 'damage', damageType: 'fire', value: 10 }],
+        icon: 'fire',
+        tags: [],
+      };
+
+      // Cleric concentrating on high-value Spirit Guardians
+      const cleric = createMockCombatCharacter({
+        id: 'cleric',
+        name: 'Cleric Ally',
+        team: 'player',
+        position: { x: 0, y: 0 },
+        abilities: [shieldOfFaith, fireBolt],
+        concentratingOn: {
+          spellId: 'spirit-guardians',
+          spellName: 'Spirit Guardians',
+          spellLevel: 2,
+          startedTurn: 1,
+          effectIds: [],
+          canDropAsFreeAction: true
+        }
+      });
+
+      const fighter = createMockCombatCharacter({
+        id: 'fighter',
+        name: 'Fighter Carry',
+        team: 'player',
+        position: { x: 0, y: 2 },
+        currentHP: 20,
+        maxHP: 20
+      });
+
+      const enemyGoblin = createMockCombatCharacter({
+        id: 'goblin',
+        name: 'Goblin',
+        team: 'enemy',
+        position: { x: 0, y: 4 },
+        currentHP: 20,
+        maxHP: 20
+      });
+
+      const result = evaluateCombatTurn(cleric, [cleric, fighter, enemyGoblin], mapData);
+
+      // Cleric preserves Spirit Guardians concentration and attacks with Fire Bolt
+      expect(result.type).toBe('ability');
+      expect(result.abilityId).toBe('fire-bolt');
+      expect(result.targetCharacterIds).toContain(enemyGoblin.id);
+    });
+  });
+  // ==========================================================================
+  // Summon scoring (agora-db71.28)
+  // ==========================================================================
+  describe('summon_creature scoring', () => {
+    const summonBeast: Ability = {
+      id: 'summon-beast',
+      name: 'Summon Beast',
+      description: 'Calls a Bestial Spirit to fight alongside the caster.',
+      type: 'spell',
+      range: 18,
+      targeting: 'area',
+      cost: { type: 'action', spellSlotLevel: 2 },
+      effects: [
+        {
+          type: 'summon_creature',
+          summonEntityType: 'creature',
+          summonCount: 1,
+          summonPersistent: false,
+        },
+      ],
+      icon: 'beast-icon',
+      tags: [],
+    };
+
+    const noOpUtility: Ability = {
+      id: 'prestidigitation',
+      name: 'Prestidigitation',
+      description: 'A harmless trick with no combat effect.',
+      type: 'spell',
+      range: 2,
+      targeting: 'self',
+      cost: { type: 'action' },
+      effects: [],
+      icon: 'spark-icon',
+      tags: [],
+    };
+
+    it('scores a summon above a no-op ability for a caster with a free action', () => {
+      const caster = createMockCombatCharacter({
+        id: 'conjurer',
+        name: 'Conjurer',
+        team: 'player',
+        position: { x: 0, y: 0 },
+        abilities: [summonBeast, noOpUtility],
+      });
+
+      const summonScore = evaluateSummonAbility(caster, summonBeast, [caster]);
+      const noOpScore = evaluateSummonAbility(caster, noOpUtility, [caster]);
+
+      expect(noOpScore).toBe(0);
+      expect(summonScore).toBeGreaterThan(noOpScore);
+    });
+
+    it('chooses the summon over a no-op utility when the planner runs a full turn', () => {
+      const caster = createMockCombatCharacter({
+        id: 'conjurer',
+        name: 'Conjurer',
+        team: 'player',
+        position: { x: 0, y: 0 },
+        abilities: [noOpUtility, summonBeast],
+      });
+      const goblin = createMockCombatCharacter({
+        id: 'goblin',
+        name: 'Goblin',
+        team: 'enemy',
+        position: { x: 0, y: 3 },
+        currentHP: 20,
+        maxHP: 20,
+      });
+
+      const result = evaluateCombatTurn(caster, [caster, goblin], mapData);
+
+      expect(result.type).toBe('ability');
+      expect(result.abilityId).toBe('summon-beast');
+    });
+
+    it('values a fighting spirit above a floating object', () => {
+      const caster = createMockCombatCharacter({
+        id: 'conjurer',
+        team: 'player',
+        position: { x: 0, y: 0 },
+      });
+      const floatingDisk: Ability = {
+        ...summonBeast,
+        id: 'tensers-floating-disk',
+        name: "Tenser's Floating Disk",
+        effects: [
+          {
+            type: 'summon_creature',
+            summonEntityType: 'object',
+            summonCount: 1,
+            summonPersistent: false,
+          },
+        ],
+      };
+
+      expect(evaluateSummonAbility(caster, summonBeast, [caster])).toBeGreaterThan(
+        evaluateSummonAbility(caster, floatingDisk, [caster])
+      );
+    });
+
+    it('scores a multi-creature summon above a single-creature summon', () => {
+      const caster = createMockCombatCharacter({
+        id: 'conjurer',
+        team: 'player',
+        position: { x: 0, y: 0 },
+      });
+      const pack: Ability = {
+        ...summonBeast,
+        id: 'conjure-animals',
+        name: 'Conjure Animals',
+        effects: [
+          {
+            type: 'summon_creature',
+            summonEntityType: 'creature',
+            summonCount: 4,
+            summonPersistent: false,
+          },
+        ],
+      };
+
+      expect(evaluateSummonAbility(caster, pack, [caster])).toBeGreaterThan(
+        evaluateSummonAbility(caster, summonBeast, [caster])
+      );
+    });
+
+    it('rewards a persistent summon over an identical temporary one', () => {
+      const caster = createMockCombatCharacter({
+        id: 'conjurer',
+        team: 'player',
+        position: { x: 0, y: 0 },
+      });
+      const persistent: Ability = {
+        ...summonBeast,
+        effects: [
+          {
+            type: 'summon_creature',
+            summonEntityType: 'creature',
+            summonCount: 1,
+            summonPersistent: true,
+          },
+        ],
+      };
+
+      expect(evaluateSummonAbility(caster, persistent, [caster])).toBeGreaterThan(
+        evaluateSummonAbility(caster, summonBeast, [caster])
+      );
+    });
+
+    it('refuses to recast a summon this caster already has on the field', () => {
+      const caster = createMockCombatCharacter({
+        id: 'conjurer',
+        team: 'player',
+        position: { x: 0, y: 0 },
+        abilities: [summonBeast],
+      });
+      const spirit = createMockCombatCharacter({
+        id: 'bestial-spirit',
+        name: 'Bestial Spirit',
+        team: 'player',
+        position: { x: 1, y: 0 },
+        isSummon: true,
+        summonMetadata: { casterId: 'conjurer', spellId: 'summon-beast' },
+      });
+
+      expect(evaluateSummonAbility(caster, summonBeast, [caster, spirit])).toBe(0);
+    });
+
+    it('refuses a concentration summon while another concentration spell is live', () => {
+      const concentrationSummon: Ability = { ...summonBeast, tags: ['concentration'] };
+      const caster = createMockCombatCharacter({
+        id: 'conjurer',
+        team: 'player',
+        position: { x: 0, y: 0 },
+        abilities: [concentrationSummon],
+        concentratingOn: {
+          spellId: 'spirit-guardians',
+          spellName: 'Spirit Guardians',
+          spellLevel: 2,
+          startedTurn: 1,
+          effectIds: [],
+          canDropAsFreeAction: true
+        },
+      });
+
+      expect(evaluateSummonAbility(caster, concentrationSummon, [caster])).toBe(0);
+    });
   });
 });

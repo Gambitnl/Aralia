@@ -101,8 +101,9 @@ export function getBeastMasterFeatures(character: PlayerCharacter) {
 // The subclass grant is real, but the searched runtime has no complete,
 // subclass-aware Primal Companion transaction. Generic summon ownership and allied
 // team metadata are not proof of Beast Master binding, scaling, or command actions.
+// Runtime implementation is tracked in Agora task agora-7bd9.
 export const BEAST_MASTER_RUNTIME_BOUNDARY =
-  "Unsupported boundary: canonical Primal Companion (primal_companion) is present, but the available SummoningCommand and useSummons paths are generic spell-driven summon systems rather than Beast Master runtime. No subclass-aware production path was found to bind this Ranger to a Primal Beast, choose Beast of the Land, Sea, or Sky, scale its stat block from the Ranger, or command its actions and Beast's Strike through the action economy. Generic caster ownership and allied team metadata prove only generic summon behavior. This demo does not simulate a companion spawn, stat block, scaling, action, bonus action, attack, resource, damage, or combat log outcome."
+  "Unsupported boundary: canonical Primal Companion (primal_companion) is present, but the available SummoningCommand and useSummons paths are generic spell-driven summon systems rather than Beast Master runtime. Runtime implementation is tracked in Agora task agora-7bd9. No subclass-aware production path was found to bind this Ranger to a Primal Beast, choose Beast of the Land, Sea, or Sky, scale its stat block from the Ranger, or command its actions and Beast's Strike through the action economy. Generic caster ownership and allied team metadata prove only generic summon behavior. This demo does not simulate a companion spawn, stat block, scaling, action, bonus action, attack, resource, damage, or combat log outcome."
 
 // ============================================================================
 // Beast Master demonstration surface

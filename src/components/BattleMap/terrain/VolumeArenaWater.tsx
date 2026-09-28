@@ -50,7 +50,7 @@ import { canUseDevTools } from '../../../utils/core';
 import { BATTLE_MAP_ELEVATION_METERS_PER_UNIT } from '../../../config/mapConfig';
 import { ShallowWaterField } from '@/systems/worldforge/terrain/shallowWater';
 import { volumeBed, bedColumn, type VolumeBed } from '@/systems/worldforge/terrain/volumeSurface';
-import { wetQuadIndices, DRY_M, TUCK_M, RELIEF_PER_CELL } from '@/components/DesignPreview/steps/waterSheet';
+import { wetQuadIndices, DRY_M, TUCK_M, RELIEF_PER_CELL } from './waterSheet';
 import { createWaterMaterial, getBiomeWaterColors } from './WaterSystem';
 import type { ArenaVolumeHandle } from './createArenaVolumeClient';
 

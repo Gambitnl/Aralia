@@ -4,6 +4,7 @@ import { GlossarySpellsOfTheMarkTable } from './GlossarySpellsOfTheMarkTable';
 import { GlossaryContentRenderer } from './GlossaryContentRenderer';
 import { ArtificerInfusionsTable } from './ArtificerInfusionsTable';
 import { GlossaryItemStatBlock } from './GlossaryItemStatBlock';
+import { ConditionTable, CoverObscurementTable, CombatActionsTable, WeaponMasteryTable } from '../Compendium';
 import ImageModal from '../ImageModal';
 import { GlossaryEntry } from '../../types';
 
@@ -206,6 +207,31 @@ export const GlossaryEntryTemplate: React.FC<GlossaryEntryTemplateProps> = ({
                                     onNavigate={onNavigate}
                                 />
                             )}
+                        </div>
+                    )}
+
+                    {/* Interactive PHB 2024 Rule Tables for Overview Entries */}
+                    {(entry.id === 'conditions' || entry.id === 'condition' || entry.id === 'condition_summary') && (
+                        <div className="my-6">
+                            <ConditionTable onNavigate={onNavigate} />
+                        </div>
+                    )}
+
+                    {(entry.id === 'cover' || entry.id === 'cover_and_obscurement' || entry.id === 'obscured_areas') && (
+                        <div className="my-6">
+                            <CoverObscurementTable onNavigate={onNavigate} />
+                        </div>
+                    )}
+
+                    {(entry.id === 'actions' || entry.id === 'action' || entry.id === 'action_economy') && (
+                        <div className="my-6">
+                            <CombatActionsTable onNavigate={onNavigate} />
+                        </div>
+                    )}
+
+                    {(entry.id === 'weapon_mastery' || entry.id === 'weapon_masteries' || entry.id === 'weapon_properties') && (
+                        <div className="my-6">
+                            <WeaponMasteryTable onNavigate={onNavigate} />
                         </div>
                     )}
 

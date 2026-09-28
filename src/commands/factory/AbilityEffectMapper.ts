@@ -20,6 +20,20 @@ const getEffectMagnitudeFormula = (abilityEffect: AbilityEffect): string => {
   return '0';
 };
 
+// Movement and teleport abilities carry their reach in feet on the same flat
+// `value` field that damage uses. MovementCommand reads `distance` off the
+// mapped SpellEffect, so dropping it here turns every translated push, pull,
+// or blink into a zero-foot move that resolves without anyone leaving a tile.
+const getEffectDistanceFeet = (abilityEffect: AbilityEffect): number | undefined => {
+  if (typeof abilityEffect.value === 'number' && Number.isFinite(abilityEffect.value) && abilityEffect.value > 0) {
+    return abilityEffect.value;
+  }
+
+  // An absent or non-positive value is left undefined rather than coerced to 0,
+  // so the command layer can tell "no authored distance" from "moves nowhere".
+  return undefined;
+};
+
 const KNOWN_CONDITION_NAMES: ReadonlySet<ConditionName> = new Set([
   ...Object.values(ConditionType),
   'Slowed',
@@ -71,14 +85,18 @@ export class AbilityEffectMapper {
           },
         };
       case 'movement':
-      case 'teleport':
+      case 'teleport': {
+        const distance = getEffectDistanceFeet(abilityEffect);
+
         return {
           type: 'MOVEMENT',
           trigger: { type: 'immediate' },
           condition: { type: 'always' },
-          movementType: abilityEffect.type === 'teleport' ? 'teleport' : 'push', // Defaulting to push, needs refinement
+          movementType: abilityEffect.type === 'teleport' ? 'teleport' : 'push', // AbilityEffect has no push/pull discriminator yet
+          ...(distance === undefined ? {} : { distance }),
           duration: { type: 'special' },
         };
+      }
       default:
         console.warn(`Ability effect type ${abilityEffect.type} not directly mappable to SpellEffect`);
         return null;

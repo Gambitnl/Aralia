@@ -245,7 +245,7 @@
                       "prompt":  "Apply Freedom of Movement to the touched willing target: ignore Difficult Terrain, block magical Speed reduction and magical Paralyzed/Restrained, set Swim Speed equal to Speed, and let the target spend 5 feet of movement to automatically escape nonmagical restraints or Grappled.",
                       "playerInputRequired":  true
                   },
-    "description":  "You touch a willing creature. For the duration, the target\u0027s movement is unaffected by Difficult Terrain, and spells and other magical effects can neither reduce the target\u0027s Speed nor cause the target to have the Paralyzed or Restrained conditions. The target also has a Swim Speed equal to its Speed. In addition, the target can spend 5 feet of movement to automatically escape from nonmagical restraints, such as manacles or a creature imposing the Grappled condition on it.",
+    "description":  "You touch a willing creature. For the duration, the target's movement is unaffected by Difficult Terrain, and spells and other magical effects can neither reduce the target's Speed nor cause the target to have the Paralyzed or Restrained conditions. The target also has a Swim Speed equal to its Speed. In addition, the target can spend 5 feet of movement to automatically escape from nonmagical restraints, such as manacles or a creature imposing the Grappled condition on it.",
     "higherLevels":  "You can target one additional creature for each spell slot level above 4.",
     "tags":  [
                  "abjuration",

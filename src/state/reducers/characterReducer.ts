@@ -57,7 +57,7 @@ import {
 } from '../../utils/character';
 import { getMaxPreparedSpells } from '../../utils/character/getMaxPreparedSpells';
 import { isWeaponProficient } from '../../utils/character';
-import { rollDice } from '../../utils/combat/combatUtils';
+import { rollDice } from '../../systems/dice/rollers';
 import { ITEMS, CLASSES_DATA } from '../../constants';
 import { generateId } from '../../utils/core/idGenerator';
 import { isWildernessLocationId } from '../../utils/location/cellLocationId';
@@ -439,6 +439,65 @@ export function characterReducer(state: GameState, action: AppAction): Partial<G
             return {
                 party: newParty,
                 inventory: state.inventory.filter(item => item.id !== itemId),
+                characterSheetModal: newCharacterSheetModalState,
+            };
+        }
+
+        case 'APPLY_HEALERS_KIT': {
+            const { kitItemId, kitUsesRemaining, targetCharacterId, stabilized, healing, hitPointDice } = action.payload;
+            const charIndex = state.party.findIndex(c => c.id === targetCharacterId);
+            if (charIndex === -1) return {};
+
+            const target = { ...state.party[charIndex] };
+
+            if (healing > 0) {
+                target.hp = Math.min(target.maxHp, target.hp + healing);
+            }
+            if (hitPointDice) {
+                target.hitPointDice = hitPointDice;
+            }
+            if (stabilized) {
+                // Refresh the Stable marker rather than stacking duplicates, the
+                // same contract the combat stabilization path keeps
+                // (src/commands/effects/utility/combatSupport.ts).
+                target.statusEffects = [
+                    ...(target.statusEffects || []).filter(existing => existing.name !== 'Stable'),
+                    {
+                        id: generateId(),
+                        name: 'Stable',
+                        // The party-side StatusEffect union has no neutral band;
+                        // Stable is a beneficial state, so it files under 'buff'.
+                        type: 'buff' as const,
+                        duration: 0,
+                        source: "Healer's Kit",
+                        description: `${target.name} is stable and is no longer making death saves.`,
+                        effect: { type: 'condition' },
+                    },
+                ];
+                target.conditions = [
+                    ...(target.conditions || []).filter(condition => condition !== 'Stable'),
+                    'Stable',
+                ];
+            }
+
+            const newParty = [...state.party];
+            newParty[charIndex] = target;
+
+            // A kit with no uses left is spent and leaves the inventory; otherwise
+            // the remaining-use counter is written back onto the kit instance.
+            const newInventory = kitUsesRemaining <= 0
+                ? state.inventory.filter(item => item.id !== kitItemId)
+                : state.inventory.map(item => (
+                    item.id === kitItemId ? { ...item, usesRemaining: kitUsesRemaining } : item
+                ));
+
+            const newCharacterSheetModalState = state.characterSheetModal.isOpen && state.characterSheetModal.character?.id === target.id
+                ? { ...state.characterSheetModal, character: target }
+                : state.characterSheetModal;
+
+            return {
+                party: newParty,
+                inventory: newInventory,
                 characterSheetModal: newCharacterSheetModalState,
             };
         }
@@ -1287,6 +1346,48 @@ export function characterReducer(state: GameState, action: AppAction): Partial<G
                 : state.characterSheetModal;
 
             return { inventory: newInventory, party: newParty, characterSheetModal: newCharacterSheetModalState };
+        }
+
+        // Persist where an item is stowed. The character sheet used to keep
+        // container assignments in local component state, so they were lost on
+        // unmount and never reached a save. The assignment now lives on the item
+        // itself (`Item.containerId`), which the sheet already reads (agora-17eb).
+        case 'MOVE_ITEM_TO_CONTAINER': {
+            const { itemId, containerId } = action.payload;
+
+            // An item cannot be stowed inside itself; that would build a cycle the
+            // sheet's recursive weight walk has to defend against.
+            if (containerId === itemId) return {};
+
+            // The target must be a container the party actually carries. An
+            // unknown id is a bug at the dispatch site, not something to guess at.
+            if (containerId !== null) {
+                const target = state.inventory.find(entry => entry.id === containerId);
+                const targetIsContainer =
+                    !!target &&
+                    (target.isContainer === true ||
+                        typeof target.capacitySlots === 'number' ||
+                        typeof target.capacityWeight === 'number');
+                if (!targetIsContainer) return {};
+            }
+
+            let moved = false;
+            const newInventory = state.inventory.map(item => {
+                if (item.id !== itemId) return item;
+                if ((item.containerId ?? null) === containerId) return item;
+                moved = true;
+                if (containerId === null) {
+                    // Back in the root backpack: drop the pointer rather than
+                    // storing a sentinel the item type does not define.
+                    const { containerId: _dropped, ...rest } = item;
+                    return rest;
+                }
+                return { ...item, containerId };
+            });
+
+            if (!moved) return {};
+
+            return { inventory: newInventory };
         }
 
         case 'SELL_ALL_JUNK': {

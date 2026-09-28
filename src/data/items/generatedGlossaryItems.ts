@@ -337,7 +337,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "weight": 10,
     "slot": "MainHand",
     "damageDice": "6d8",
-    "damageType": "N",
+    "damageType": "Necrotic",
     "properties": [
       "AF",
       "RLD",
@@ -5026,7 +5026,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "weight": 2,
     "slot": "MainHand",
     "damageDice": "3d6",
-    "damageType": "R",
+    "damageType": "Radiant",
     "properties": [
       "AF",
       "RLD"
@@ -5041,7 +5041,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "weight": 7,
     "slot": "MainHand",
     "damageDice": "3d8",
-    "damageType": "R",
+    "damageType": "Radiant",
     "properties": [
       "AF",
       "RLD",
@@ -6734,7 +6734,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "icon": "/assets/icons/items/psychic_blade.svg",
     "slot": "MainHand",
     "damageDice": "1d6",
-    "damageType": "Y",
+    "damageType": "Psychic",
     "properties": [
       "Finesse",
       "Thrown"
@@ -9281,7 +9281,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "weight": 3,
     "slot": "MainHand",
     "damageDice": "1d8",
-    "damageType": "R",
+    "damageType": "Radiant",
     "properties": [
       "Finesse",
       "Versatile"

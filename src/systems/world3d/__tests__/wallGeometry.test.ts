@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { buildWallMesh } from '../wallGeometry';
 import type { ChunkData } from '../types';
+import { heightToMeters } from '../config';
 
 const baseChunk = (): ChunkData => ({
   cx: 0,
@@ -20,6 +21,20 @@ const run = (colorHex?: string) => ({
 });
 
 describe('buildWallMesh', () => {
+  it('builds a closed rampart with outward normals, a 2.4 m thickness and 4.8 m exposed height', () => {
+    const mesh = buildWallMesh({ ...baseChunk(), walls: [{ points: [{ x: 0.01, y: 0.05 }, { x: 0.1, y: 0.05 }], width: [0.1,0.1] }] });
+    const ys = Array.from(mesh.positions).filter((_,i) => i % 3 === 1);
+    const zs = Array.from(mesh.positions).filter((_,i) => i % 3 === 2);
+    expect(Math.max(...ys) - heightToMeters(50)).toBeCloseTo(4.8, 4);
+    expect(Math.max(...zs) - Math.min(...zs)).toBeCloseTo(2.4, 4);
+    expect(mesh.indices.length).toBe(36);
+    for (let i = 0; i < mesh.positions.length; i += 3) {
+      const dy = mesh.positions[i+1] - (Math.min(...ys)+Math.max(...ys))/2;
+      const dz = mesh.positions[i+2] - (Math.min(...zs)+Math.max(...zs))/2;
+      if (Math.abs(mesh.normals[i+1]) > 0.9) expect(dy * mesh.normals[i+1]).toBeGreaterThan(0);
+      if (Math.abs(mesh.normals[i+2]) > 0.9) expect(dz * mesh.normals[i+2]).toBeGreaterThan(0);
+    }
+  });
   it('returns empty geometry (including colors) when there are no walls', () => {
     const mesh = buildWallMesh(baseChunk());
     expect(mesh.positions).toHaveLength(0);

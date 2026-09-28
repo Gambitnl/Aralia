@@ -190,7 +190,14 @@
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",
-        "customFormula": ""
+        "customFormula": "",
+        "scalingTiers": {
+          "3": "up to 1 minute, Concentration",
+          "4": "up to 10 minutes, Concentration",
+          "5": "8 hours, no Concentration",
+          "7": "24 hours, no Concentration",
+          "9": "until dispelled, no Concentration"
+        }
       },
       "grantedActions": [],
       "attackAugments": [],

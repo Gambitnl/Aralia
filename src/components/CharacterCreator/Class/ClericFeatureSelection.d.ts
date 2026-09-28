@@ -17,11 +17,20 @@
  */
 import React from 'react';
 import { DivineOrderOption, Spell, Class as CharClass } from '../../../types';
+import { type RulesEdition } from '../../../config/rulesEdition';
+/** One Divine Domain offered at level 1, derived from SUBCLASSES.cleric by the caller. */
+export interface DivineDomainOption {
+    id: string;
+    name: string;
+    description: string;
+}
 interface ClericFeatureSelectionProps {
     divineOrders: DivineOrderOption[];
+    divineDomains: DivineDomainOption[];
+    rulesEdition: RulesEdition;
     spellcastingInfo: NonNullable<CharClass['spellcasting']>;
     allSpells: Record<string, Spell>;
-    onClericFeaturesSelect: (order: 'Protector' | 'Thaumaturge', cantrips: Spell[], spellsL1: Spell[]) => void;
+    onClericFeaturesSelect: (order: 'Protector' | 'Thaumaturge', cantrips: Spell[], spellsL1: Spell[], domainId?: string) => void;
     onBack: () => void;
 }
 declare const ClericFeatureSelection: React.FC<ClericFeatureSelectionProps>;

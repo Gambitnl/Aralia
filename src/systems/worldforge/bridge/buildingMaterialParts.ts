@@ -375,6 +375,9 @@ function wallCourseParts(
   colorHex: string,
 ): BuildingMaterialPart[] {
   if (!hasVisibleCourses(construction)) return [];
+  // Ashlar keeps get mortar joints from the stone surface map. Proud horizontal
+  // timber-like strips made the fortress read as a boarded house.
+  if (construction.kitId === 'keep-ashlar') return [];
   const parts: BuildingMaterialPart[] = [];
   const usableHeightFt = Math.max(0, storeyHeightFt - 1);
   const desiredRows = Math.floor(usableHeightFt / construction.wallCourseFt);
@@ -793,7 +796,6 @@ function wealthyRoofDressingParts(
       for (let step = 0; step < stepCount; step += 1) {
         const fromFt = ridgeAcrossFt + direction * spanFt * (step / stepCount);
         const toFt = ridgeAcrossFt + direction * spanFt * ((step + 1) / stepCount);
-        const slopeFraction = (step + 0.5) / stepCount;
         parts.push(materialPartOnRun(
           'bargeboard',
           run,
@@ -801,8 +803,10 @@ function wealthyRoofDressingParts(
           blueprint.depthFt,
           (fromFt + toFt) / 2,
           Math.abs(toFt - fromFt) + 0.08,
-          wallTopFt + primary.zFt * (1 - slopeFraction) - 0.12,
-          0.28,
+          // Adjacent steps overlap vertically, forming a continuous rake board
+          // rather than disconnected wooden blocks suspended beside the roof.
+          wallTopFt + primary.zFt * (1 - (step + 1) / stepCount) - 0.12,
+          primary.zFt / stepCount + 0.28,
           colorHex,
           0.42,
         ));

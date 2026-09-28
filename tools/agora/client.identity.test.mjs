@@ -24,7 +24,7 @@ before(async () => {
   app = createAgoraServer({ dir: serverDir });
   await new Promise((resolve) => app.listen(0, resolve));
   baseUrl = `http://127.0.0.1:${app.server.address().port}`;
-  env = { AGORA_DIR: clientDir, AGORA_PET: 'gf-sd' };
+  env = { AGORA_DIR: clientDir, AGORA_AGENT_ID: 'identity-test', AGORA_PET: 'gf-sd' };
 });
 
 after(async () => {

@@ -13,7 +13,7 @@ The Character Creator flow contains an explicit TODO to add portrait generation 
   - `src/components/CharacterCreator/NameAndReview.tsx:110`
 - `PlayerCharacter` already has fields intended for portrait generation:
   - `src/types/character.ts:452` `visualDescription?: string`
-  - `src/types/character.ts:455` `portraitUrl?: string` (comment says “Base64 data URL”)
+  - `src/types/character.ts:455` `portraitUrl?: string` (comment says "Base64 data URL")
 - Character Creator state is persisted to local storage on every change:
   - `src/components/CharacterCreator/CharacterCreator.tsx` (`SafeStorage` with key `aralia_character_creation_state`)
 - There is an existing portrait generation service, but it is not wired into the UI:
@@ -22,7 +22,7 @@ The Character Creator flow contains an explicit TODO to add portrait generation 
 
 ## Goal
 
-Implement the TODO by adding an in-flow “Generate Portrait” action in the `NameAndReview` step that:
+Implement the TODO by adding an in-flow "Generate Portrait" action in the `NameAndReview` step that:
 
 - Generates a character portrait derived from chosen race/class and a user-editable description.
 - Displays progress, success (portrait preview), and failure states.
@@ -33,7 +33,7 @@ Implement the TODO by adding an in-flow “Generate Portrait” action in the `N
 
 - No mid-flow portrait generation (keep it in the final step).
 - No server deployment story beyond local/dev; the plan includes an integration seam so this can evolve.
-- No overhaul of the visuals system; this is additive to the existing “portraitUrl” display.
+- No overhaul of the visuals system; this is additive to the existing "portraitUrl" display.
 
 ## Proposed UX / UI Changes
 
@@ -45,15 +45,15 @@ In `src/components/CharacterCreator/NameAndReview.tsx`:
 - Add a secondary button (only when a portrait exists): `Regenerate`.
 - Add a tertiary action (only when generating): `Cancel`.
 - Add a small disclosure line under the button:
-  - “Portrait generation requires local AI tooling.”
-  - If the backend is unavailable, show an inline actionable error (“Start local server” link to docs section).
+  - "Portrait generation requires local AI tooling."
+  - If the backend is unavailable, show an inline actionable error ("Start local server" link to docs section).
 
 ### 2. Description Input (Prompt Control)
 
 Add a text area near the portrait card:
 
 - Label: `Portrait Description (optional)`
-- Helper text: “Used for AI portrait generation. Avoid real personal data.”
+- Helper text: "Used for AI portrait generation. Avoid real personal data."
 - Default value: auto-assembled string derived from:
   - Race name, class name
   - Selected visuals (gender, hair style, clothing)
@@ -63,8 +63,8 @@ Keep this description in creator state so it round-trips during the final step.
 
 ### 3. Loading + Error States
 
-- While generating: replace avatar placeholder with a “generating” overlay:
-  - Spinner + text: “Summoning your likeness…”
+- While generating: replace avatar placeholder with a "generating" overlay:
+  - Spinner + text: "Summoning your likeness..."
   - Disable `Begin Adventure!` only if you decide portrait is required (recommendation: do not block).
 - On error: show a compact error panel with:
   - Retry button
@@ -112,8 +112,8 @@ Reducer changes:
 Backtracking rules:
 
 - Do not clear portrait on `GO_BACK` from `NameAndReview` by default.
-- Clear portrait if the “inputs to portrait” change:
-  - Race change, class change, visuals change, description change (optional, but recommended to clear on “major” changes only).
+- Clear portrait if the "inputs to portrait" change:
+  - Race change, class change, visuals change, description change (optional, but recommended to clear on "major" changes only).
 
 ### 2. Thread Portrait Into Preview + Final Assembly
 
@@ -150,11 +150,11 @@ Define explicit limits:
 
 ## Backend / Integration Design
 
-### 1. Provide a Single “Portrait Backend” Abstraction
+### 1. Provide a Single "Portrait Backend" Abstraction
 
-Create a small service boundary, so the UI doesn’t care if the portrait comes from:
+Create a small service boundary, so the UI doesn't care if the portrait comes from:
 
-1. Existing “Agent Uplink” (`PortraitService.ts`) via `localhost:8000`.
+1. Existing "Agent Uplink" (`PortraitService.ts`) via `localhost:8000`.
 2. image-gen fallback or another future provider behind the same backend interface.
 
 Proposed interface:
@@ -190,15 +190,15 @@ Add a dev-only local server endpoint (Node/Express or Vite dev server middleware
 - Start a portrait-generation job
 - Store/serve the generated image under a stable URL (so state stores only the URL)
 
-This aligns with the TODO’s AI-backend intent and avoids pushing provider concerns into the browser.
+This aligns with the TODO's AI-backend intent and avoids pushing provider concerns into the browser.
 
 ## UI Polish Opportunities (Optional Enhancements)
 
-- Add a small “style” selector:
-  - `Portrait Style`: “Oil painting”, “Ink sketch”, “Pixel portrait”, etc.
-- Add a “seed” control for reproducibility.
+- Add a small "style" selector:
+  - `Portrait Style`: "Oil painting", "Ink sketch", "Pixel portrait", etc.
+- Add a "seed" control for reproducibility.
 - Add a subtle animation when the portrait appears (fade + scale-in).
-- Add “Use as token” toggle if there’s a token system; store as separate field later.
+- Add "Use as token" toggle if there's a token system; store as separate field later.
 
 ## Testing Plan
 
@@ -206,12 +206,12 @@ This aligns with the TODO’s AI-backend intent and avoids pushing provider conc
   - Reducer transitions for portrait state in `src/components/CharacterCreator/state/__tests__/characterCreatorReducer.test.ts`.
   - Service parsing behavior (already exists for polling): `src/services/__tests__/PortraitService.test.ts`.
 - Integration tests (React):
-  - Add a test that clicking “Generate Portrait” calls the backend abstraction and updates UI state.
+  - Add a test that clicking "Generate Portrait" calls the backend abstraction and updates UI state.
 - E2E (Playwright):
-  - Update `tests/character-creator-flow.spec.ts` to tolerate the new button and validate it doesn’t block completion.
+  - Update `tests/character-creator-flow.spec.ts` to tolerate the new button and validate it doesn't block completion.
   - Add a mocked path (feature-flag portrait generation off by default in CI).
 - Accessibility:
-  - Ensure no new violations in the “Character Creator Accessibility” suite in `tests/character-creator-flow.spec.ts`.
+  - Ensure no new violations in the "Character Creator Accessibility" suite in `tests/character-creator-flow.spec.ts`.
 
 ## Rollout / Feature Flag
 
@@ -230,12 +230,12 @@ When disabled:
    - Confirm:
      - Loading state appears.
      - On success, the portrait appears.
-     - “Begin Adventure!” works and the character in gameplay retains the portrait.
+     - "Begin Adventure!" works and the character in gameplay retains the portrait.
 2. Automated checks:
    - Run unit tests relevant to reducer/service changes.
    - Run Playwright Character Creator flow tests.
 3. Persistence checks:
-   - Refresh mid-creation and ensure the portrait-related state doesn’t break load.
+   - Refresh mid-creation and ensure the portrait-related state doesn't break load.
    - Validate localStorage size remains reasonable (no huge base64 payloads).
 
 ### Session Hygiene

@@ -417,3 +417,27 @@ export function getNameBases(): NameBase[] {
       },
     ];
   }
+
+// ----------------------------------------------------------------------------
+// The real-world / fantasy boundary (WF-G146, 2026-09-09).
+// ----------------------------------------------------------------------------
+// The first 32 bases are real-world cultures ported from Azgaar; the eleven
+// after them are the fantasy bases by Dopu. The seat namer in
+// tools/agora/seat-names.ts must never draw a seat from a real-world culture,
+// and until now it restated this boundary as a list of 32 culture names in
+// its own test. The boundary is data, so it is declared HERE, once, and
+// consumers read it. `getNameBases()` itself is unchanged: every existing
+// index, including the 32-42 the seat namer resolves to, stays where it is.
+
+/** How many leading entries of `getNameBases()` are real-world cultures. */
+export const REAL_WORLD_BASE_COUNT = 32;
+
+/** The fantasy bases only, in their `getNameBases()` order, with their original indices. */
+export function fantasyNameBases(): NameBase[] {
+  return getNameBases().slice(REAL_WORLD_BASE_COUNT);
+}
+
+/** True when the base at `index` is a fantasy base a seat may be named from. */
+export function isFantasyBaseIndex(index: number): boolean {
+  return Number.isInteger(index) && index >= REAL_WORLD_BASE_COUNT && index < getNameBases().length;
+}

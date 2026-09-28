@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { applyRacialSpellGrantsByLevel, resolveRacialResourceId } from '../../../../../utils/character/characterUtils';
-import { createPlayerCombatCharacter } from '../../../../../utils/combat/combatUtils';
+import { createPlayerCombatCharacter, spendCombatLimitedUse } from '../../../../../utils/combat/combatUtils';
 import { canAffordActionCost, consumeActionCost, resetEconomy } from '../../../../../utils/combat/actionEconomyUtils';
 import { applyRuntimeStatusCondition, removeRuntimeStatusCondition } from '../../../../../utils/combat/statusConditionUtils';
 import { calculateProficiencyBonus } from '../../../../../utils/character/savingThrowUtils';
@@ -142,16 +142,15 @@ function createFirbolgActor(race: Race): CombatCharacter | null {
   const resource = assembledCharacter.limitedUses?.[FIRBOLG_HIDDEN_STEP_RESOURCE_ID];
   if (!resource || !hasFirbolgPowerfulBuildProjection(generatedActor)) return null;
 
-  // DEBT: The production persistent-to-combat bridge currently drops racial
-  // limitedUses. Carry only this parsed entry across the explicit preview
-  // boundary; a shared bridge fix should remove this adapter in a later task.
+  // agora-0ad6 landed: createPlayerCombatCharacter projects player.limitedUses
+  // onto the combat actor, so the parsed Hidden Step entry arrives on its own.
+  // Fail honestly if it does not rather than re-attaching a second copy.
+  if (!generatedActor.limitedUses?.[FIRBOLG_HIDDEN_STEP_RESOURCE_ID]) return null;
+
   return resetEconomy({
     ...generatedActor,
     id: FIRBOLG_HIDDEN_STEP_ACTOR_ID,
     name: `${race.name} · Hidden Step Tester`,
-    limitedUses: {
-      [FIRBOLG_HIDDEN_STEP_RESOURCE_ID]: { ...resource },
-    },
   });
 }
 
@@ -285,17 +284,17 @@ export function resolveFirbolgHiddenStep(
 
   // Payment is last among the guards and happens before applying Invisible, so
   // a successful result always shows one Bonus Action and one charge spent.
+  // spendCombatLimitedUse is the shared immutable payer (agora-0ad6).
   const paidActor = consumeActionCost(actor, { type: 'bonus' });
-  const actorWithResource: CombatCharacter = {
-    ...paidActor,
-    limitedUses: {
-      ...(paidActor.limitedUses ?? {}),
-      [FIRBOLG_HIDDEN_STEP_RESOURCE_ID]: {
-        ...resource,
-        current: resource.current - 1,
-      },
-    },
-  };
+  const payment = spendCombatLimitedUse(paidActor, FIRBOLG_HIDDEN_STEP_RESOURCE_ID);
+  if (!payment.paid) {
+    return {
+      ...scenario,
+      outcome: 'Hidden Step rejected atomically: the shared resource payer refused the charge; uses and status are unchanged.',
+      lastResolution: { status: 'rejected', reason: 'resource_unavailable' },
+    };
+  }
+  const actorWithResource: CombatCharacter = payment.character;
   const records = createInvisibleRecords();
   const applied = applyRuntimeStatusCondition(actorWithResource, records.status, records.condition);
   const nextResource = getFirbolgHiddenStepResource(applied.character);
@@ -399,7 +398,7 @@ function FirbolgRaceLeafContent({ race, state, onScenarioEvent }: RaceDomainLeaf
         {' '}<strong>Speech of Beast and Leaf:</strong> {getCanonicalFirbolgSpeechTrait(race) ?? 'Canonical fact unavailable.'}
       </p>
       <p data-testid="firbolg-hidden-step-assembly-boundary">
-        Assembly boundary: production quick-character assembly and canonical racial parsing supply Firbolg Magic, Powerful Build, and the PB/Long Rest resource; the leaf carries only the parsed resource across the current combat bridge.
+        Assembly boundary: production quick-character assembly and canonical racial parsing supply Firbolg Magic, Powerful Build, and the PB/Long Rest resource; the combat bridge projects that resource and spendCombatLimitedUse pays it, so this leaf carries no resource adapter of its own.
       </p>
       <p data-testid="firbolg-hidden-step-lifecycle-boundary">
         Lifecycle boundary: native paired status storage/removal is exercised here, while the mounted attack, damage-roll, saving-throw, and start-of-next-turn event bus is not wired into this leaf. The controls simulate one deterministic break and the next-turn expiry without claiming full combat-loop proof; no spell cast, carrying calculation, social check, 2D, or 3D system is invented.

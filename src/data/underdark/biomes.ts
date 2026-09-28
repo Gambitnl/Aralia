@@ -77,7 +77,7 @@ export const UNDERDARK_BIOMES: Record<string, UnderdarkBiome> = {
         name: 'Shadowfell Rift',
         description: 'A tear in reality where the Plane of Shadow bleeds through. Colors are drained to grey.',
         nativeDepthLayers: ['lower', 'abyss'],
-        baseLightLevel: 'darkness', // TODO: If Shadowfell darkness needs special rules, add a distinct 'magical_darkness' light level to the union in src/types/underdark.ts.
+        baseLightLevel: 'magical_darkness', // Planar gloom: doubles sanity decay (UnderdarkMechanics)
         sanityModifier: 3.0, // Soul-crushing despair
         hazards: ['Life Drain', 'Shadow Monsters', 'Memory Loss'],
         resources: ['Shadowstuff'],

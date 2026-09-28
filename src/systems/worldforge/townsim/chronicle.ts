@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 30/08/2026, 01:48:18
+ * Dependents: components/Worldforge/LivingWorldPreview.tsx, systems/worldforge/townsim/chronicleForLocation.ts
+ * Imports: 2 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file chronicle.ts — Turn a town's append-only LifeEvent log into a readable,
  * year-grouped history ("Town Chronicle"). This is the play-and-eyeball surface
@@ -14,7 +30,16 @@ export interface ChronicleRange {
 }
 
 /** Named, headline-worthy event kinds whose summaries appear verbatim. */
-const HEADLINE_KINDS = new Set<LifeEvent['kind']>(['death', 'role_succession', 'marriage', 'economy', 'disaster']);
+const HEADLINE_KINDS = new Set<LifeEvent['kind']>([
+  'death',
+  'role_succession',
+  'marriage',
+  'economy',
+  'disaster',
+  // Player interventions are rare causal receipts, so preserve their exact
+  // wording in the readable chronicle instead of collapsing them into a count.
+  'player_intervention',
+]);
 
 /**
  * One line per year that had events, e.g.:

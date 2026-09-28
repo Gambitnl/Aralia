@@ -18,10 +18,9 @@ const DynamicMannequinSlotIcon: React.FC<DynamicMannequinSlotIconProps> = ({
   slotType,
   fallbackIcon,
 }) => {
-  // TODO: Enable dynamic SVG loading when mannequin icon assets are created.
-  // The SVGs should be placed in public/assets/icons/mannequin/[proficiency]/[slot].svg
-  // and the path construction below should be updated to use '/assets/icons/mannequin/...'
-  // For now, always use the fallback icon to prevent 404 errors.
+  // Dynamic SVG loading is pending asset creation, tracked in Agora task agora-d1c7.14.
+  // When SVG assets are authored and placed under public/assets/icons/mannequin/[proficiency]/[slot].svg,
+  // toggle MANNEQUIN_SVGS_EXIST to true. For now, always use the fallback icon to prevent 404 errors.
   const MANNEQUIN_SVGS_EXIST = false;
 
   const [svgSrc, setSvgSrc] = useState<string | null>(null);

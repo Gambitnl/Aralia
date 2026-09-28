@@ -38,6 +38,8 @@ export const LOCATIONS: Record<string, Location> = {
     id: 'clearing',
     name: 'Forest Clearing',
     baseDescription: 'You are in a sun-dappled clearing...',
+    // Descriptions must not promise directional travel: named exits do not
+    // render as actions since grid retirement. Point at the World Map instead.
     exits: { 'North': 'forest_path', 'East': 'ancient_ruins_entrance', 'South': 'hidden_grove' },
     itemIds: ['old_map_fragment'],
     mapCoordinates: { x: 15, y: 10 },

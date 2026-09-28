@@ -20,6 +20,7 @@
  */
 
 export * from './geometry';
+export * from './vectorMath';
 export * from './lineOfSight';
 export * from './locationUtils';
 export * from './worldMapOverlayMath';

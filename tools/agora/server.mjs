@@ -22,15 +22,17 @@
 // See docs/superpowers/specs/2026-06-27-agora-agent-coordination-design.md
 
 import http from 'node:http';
+import net from 'node:net';
 import fs from 'node:fs';
 import path from 'node:path';
 import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { createStore } from './store.mjs';
+import { createStore, TASK_DEP_TYPES, DEFAULT_TASK_DEP_TYPE } from './store.mjs';
 import { attachActivityMirror } from './activityMirror.mjs';
 import { installFatalErrorHandlers } from './fatalErrorLog.mjs';
 import { renderDocPage } from './mdRender.mjs';
-import { indexGaps } from './gapIndex.mjs';
+import { indexGaps, OPEN_STATUSES } from './gapIndex.mjs';
+import { appendGapRow, updateGapRow, resolveGapsFile } from './gapAppend.mjs';
 import { parseGlossaryFile, GLOSSARY_TAGS } from './glossaryParse.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -42,6 +44,30 @@ const DEFAULT_PORT = 4319;
 const REPO_ROOT = path.resolve(__dirname, '..', '..');
 const DEFAULT_DIR = path.join(REPO_ROOT, '.agent', 'agora');
 const DASHBOARD_DIR = path.join(__dirname, 'dashboard');
+
+// WF-G171: every new task must carry an explicit campaign decision.
+//
+// 50 of 51 open tasks on 2026-09-17 had an empty campaignId, because omitting
+// it was free. In `required` mode `POST /tasks` refuses a task that names no
+// campaign and declares no standalone reason.
+//
+// THE DAEMON AGENTS TALK TO IS ALWAYS `required`. The CLI bootstrap at the
+// bottom of this file passes it, so the rule holds on the board that matters.
+// `AGORA_CAMPAIGN_INTAKE=legacy` is the operator's documented escape hatch for
+// a board that still has to absorb a campaignless batch.
+//
+// An IMPORTED server defaults to `legacy` instead, and that default is the
+// measured escape hatch the fix was allowed to keep: 30 suites across nine
+// files that predate this rule build a server with `createAgoraServer({ dir })`
+// and create tasks over HTTP with a bare title, and `orchestrate.mjs` seeds a
+// wave the same way. A test that means to exercise the gate asks for it with
+// `createAgoraServer({ dir, campaignIntake: 'required' })`.
+const CAMPAIGN_INTAKE_MODES = new Set(['required', 'legacy']);
+const DEFAULT_CAMPAIGN_INTAKE = 'legacy';
+function resolveCampaignIntake(raw) {
+  const value = String(raw == null ? '' : raw).trim().toLowerCase();
+  return CAMPAIGN_INTAKE_MODES.has(value) ? value : DEFAULT_CAMPAIGN_INTAKE;
+}
 
 const SWEEP_INTERVAL_MS = 30000;
 const SSE_PING_INTERVAL_MS = 20000;
@@ -91,6 +117,7 @@ function makeRouter() {
     get: (p, h) => add('GET', p, h),
     post: (p, h) => add('POST', p, h),
     delete: (p, h) => add('DELETE', p, h),
+    patch: (p, h) => add('PATCH', p, h), // WF-G130
     match,
   };
 }
@@ -143,7 +170,8 @@ function bearerToken(req) {
 // Factory: build the server + store WITHOUT starting the listener or hooking
 // signals (so tests can boot on an ephemeral port). Call returned .listen()/.close().
 // ---------------------------------------------------------------------------
-export function createAgoraServer({ dir = DEFAULT_DIR, storeFactory, activityFile, syncDelayMs, syncRunner } = {}) {
+export function createAgoraServer({ dir = DEFAULT_DIR, storeFactory, activityFile, syncDelayMs, syncRunner, seatRosterPath, gapsRepoRoot = REPO_ROOT, campaignIntake = process.env.AGORA_CAMPAIGN_INTAKE } = {}) {
+  const campaignIntakeMode = resolveCampaignIntake(campaignIntake);
   // Lazy import keeps the factory synchronous for the common path while still
   // allowing tests to inject a store. Default uses the real store.mjs.
   // (storeFactory is primarily a seam for tests; production uses the default.)
@@ -151,8 +179,25 @@ export function createAgoraServer({ dir = DEFAULT_DIR, storeFactory, activityFil
     // eslint-disable-next-line no-param-reassign -- intentional default
     storeFactory = defaultStoreFactory;
   }
-  const store = storeFactory({ dir });
+  const store = storeFactory({ dir, seatRosterPath });
   const startedAt = Date.now();
+  // WF-G147 (2026-09-09): event-loop lag sampler. A 500 ms timer measures how
+  // late it fires; the worst value of the last minute is what a stalled
+  // probe should be compared against. Under the 4-worker load the monitor
+  // reported DAEMON_DOWN once while the process was alive, and nothing could
+  // say whether the daemon or the machine had paused.
+  const loop = { lagMs: 0, maxLagMs: 0, samples: [] };
+  let lagExpected = Date.now() + 500;
+  const lagTimer = setInterval(() => {
+    const now = Date.now();
+    const lag = Math.max(0, now - lagExpected);
+    lagExpected = now + 500;
+    loop.lagMs = lag;
+    loop.samples.push({ at: now, lag });
+    while (loop.samples.length && loop.samples[0].at < now - 60000) loop.samples.shift();
+    loop.maxLagMs = loop.samples.reduce((m, x) => Math.max(m, x.lag), 0);
+  }, 500);
+  if (lagTimer.unref) lagTimer.unref();
 
   // Freshness trigger (planning-surface-freshness Task 7): any successful task
   // mutation schedules ONE sync-surfaces run; new events inside the window ride
@@ -266,6 +311,8 @@ export function createAgoraServer({ dir = DEFAULT_DIR, storeFactory, activityFil
         handle: body.handle, note: body.note, model: body.model, reasoningEffort: body.reasoningEffort, sessionId, role: body.role,
         type: body.type, spawnedBy: body.spawnedBy, campaign: body.campaign, cwd: body.cwd,
         petSlug: body.petSlug,
+        // D-AB: the seat is taken at sign-in, so it travels with registration.
+        seat: body.seat,
       });
     } catch (error) {
       if (error && error.code === 'AGORA_PET_CATALOG_EXHAUSTED') {
@@ -297,6 +344,11 @@ export function createAgoraServer({ dir = DEFAULT_DIR, storeFactory, activityFil
       pet: agent.pet,
       requestedPetSlug: agent.requestedPetSlug,
       petSubstituted: agent.petSubstituted,
+      // D-AB: which durable identity this session took, or why it did not.
+      // A silent miss would leave every campaign this session claims without
+      // a durable owner, and nothing would say so.
+      seatId: agent.seatId || '',
+      seatError: agent.seatError || '',
     });
   });
 
@@ -376,7 +428,9 @@ export function createAgoraServer({ dir = DEFAULT_DIR, storeFactory, activityFil
         reason: body.reason,
         ttlMs: typeof body.ttlMs === 'number' ? body.ttlMs : undefined,
       });
-      if (result.ok) return sendJson(res, 201, { lock: result.lock });
+      // WF-G91: warnings name held paths that look like the same file under
+      // another root prefix; the lock is still granted.
+      if (result.ok) return sendJson(res, 201, { lock: result.lock, warnings: result.warnings || [] });
       if (result.conflict) return sendJson(res, 409, { conflict: result.conflict });
       return sendJson(res, 400, { error: result.error || 'bad lock request' });
     }),
@@ -385,6 +439,29 @@ export function createAgoraServer({ dir = DEFAULT_DIR, storeFactory, activityFil
   router.get('/locks', async (_req, res) => {
     sendJson(res, 200, { locks: store.listLocks() });
   });
+
+  // WF-G122: release SOME tokens of a lock; the record keeps its id and expiry.
+  router.post(
+    '/locks/:id/shrink',
+    withAuth(async (req, res, ctx) => {
+      let body = {};
+      try {
+        body = await readJsonBody(req);
+      } catch (error) {
+        return sendJson(res, 400, { error: error.message });
+      }
+      const result = store.shrinkLock({
+        lockId: ctx.params.id,
+        agentId: ctx.agent.id,
+        paths: Array.isArray(body.paths) ? body.paths : [],
+        globs: Array.isArray(body.globs) ? body.globs : [],
+      });
+      if (result.ok) return sendJson(res, 200, { lock: result.lock, released: result.released });
+      if (result.error === 'lock not found') return sendJson(res, 404, { error: result.error });
+      if (/holder/.test(result.error || '')) return sendJson(res, 403, { error: result.error });
+      return sendJson(res, 400, { error: result.error });
+    }),
+  );
 
   router.post(
     '/locks/:id/renew',
@@ -482,6 +559,10 @@ export function createAgoraServer({ dir = DEFAULT_DIR, storeFactory, activityFil
         paths: Array.isArray(body.paths) ? body.paths : [],
         globs: Array.isArray(body.globs) ? body.globs : [],
         wave: body.wave,
+        // WF-G207: the Plan Map topic or feature this effort serves. It is what
+        // rank 1 of the membership mapping compares against, so the board and
+        // the Plan Map hold the relationship ONCE and cannot disagree.
+        planmapRef: body.planmapRef || body.planmap,
       });
       if (result.ok) return sendJson(res, 201, { campaign: result.campaign, warnings: result.warnings || [] });
       if (result.conflict) return sendJson(res, 409, { error: result.error, conflict: result.conflict });
@@ -513,11 +594,117 @@ export function createAgoraServer({ dir = DEFAULT_DIR, storeFactory, activityFil
         campaignId: ctx.params.id,
         agentId: ctx.agent.id,
         state: body.state,
+        reason: typeof body.reason === 'string' ? body.reason : undefined, // WF-G86 / WF-G83
       });
       if (result.ok) return sendJson(res, 200, { campaign: result.campaign });
       if (result.error === 'campaign not found') return sendJson(res, 404, { error: result.error });
       if (/owner/.test(result.error || '')) return sendJson(res, 403, { error: result.error });
       return sendJson(res, 400, { error: result.error || 'bad campaign state request' });
+    }),
+  );
+
+  // ======================= Charters, read model, and triage =======================
+  // Design §6, §7, §10, §72. The rules live in campaign-model.mjs; these routes
+  // only carry a request to the store and map its refusal to a status code.
+  function charterStatus(result) {
+    if (result.error === 'campaign not found' || /task not found/.test(result.error || '')) return 404;
+    if (/only |needs approval from|may not approve|needs recorded human approval|command channel/.test(result.error || '')) return 403;
+    if (/already|still live|adoptable/.test(result.error || '')) return 409;
+    return 400;
+  }
+
+  async function readBodyOrEmpty(req) {
+    try {
+      return await readJsonBody(req);
+    } catch {
+      return {};
+    }
+  }
+
+  // One read: the campaign, its charter and live validity, tasks with computed
+  // start, completion and agent trail, and progress. Token-free, like /campaigns.
+  router.get('/campaigns/:id', async (_req, res, ctx) => {
+    const view = store.campaignView(ctx.params.id);
+    if (!view.ok) return sendJson(res, 404, { error: view.error });
+    sendJson(res, 200, view);
+  });
+
+  router.post(
+    '/campaigns/:id/charter',
+    withAuth(async (req, res, ctx) => {
+      const body = await readBodyOrEmpty(req);
+      const result = store.putCharter({
+        campaignId: ctx.params.id,
+        agentId: ctx.agent.id,
+        body: body.charter,
+        summary: body.summary,
+      });
+      if (!result.ok) return sendJson(res, charterStatus(result), result);
+      sendJson(res, 200, result);
+    }),
+  );
+
+  router.post(
+    '/campaigns/:id/charter/approve',
+    withAuth(async (req, res, ctx) => {
+      const body = await readBodyOrEmpty(req);
+      const result = store.approveCharter({ campaignId: ctx.params.id, agentId: ctx.agent.id, note: body.note });
+      if (!result.ok) return sendJson(res, charterStatus(result), result);
+      sendJson(res, 200, result);
+    }),
+  );
+
+  // §10 step 2: the report is a GET and it cannot change a record — the store
+  // function behind it never emits. The read-only server on 4321 serves the same
+  // report from a snapshot, for when this daemon is the thing that is broken.
+  router.get('/campaigns/:id/triage', async (_req, res, ctx) => {
+    const report = store.triageReport(ctx.params.id);
+    if (!report.ok) return sendJson(res, 404, { error: report.error });
+    sendJson(res, 200, report);
+  });
+
+  // `start` and `finish` are registered before `:taskId`, because the router
+  // takes the first pattern that matches and all three have the same length.
+  router.post(
+    '/campaigns/:id/triage/start',
+    withAuth(async (req, res, ctx) => {
+      const body = await readBodyOrEmpty(req);
+      const result = store.startTriage({ campaignId: ctx.params.id, agentId: ctx.agent.id, reason: body.reason });
+      if (!result.ok) return sendJson(res, charterStatus(result), result);
+      sendJson(res, 200, result);
+    }),
+  );
+
+  router.post(
+    '/campaigns/:id/triage/finish',
+    withAuth(async (req, res, ctx) => {
+      const body = await readBodyOrEmpty(req);
+      const result = store.finishTriage({ campaignId: ctx.params.id, agentId: ctx.agent.id, reason: body.reason });
+      if (!result.ok) return sendJson(res, charterStatus(result), result);
+      scheduleSyncSoon();
+      sendJson(res, 200, result);
+    }),
+  );
+
+  router.post(
+    '/campaigns/:id/triage/:taskId',
+    withAuth(async (req, res, ctx) => {
+      const body = await readBodyOrEmpty(req);
+      const result = store.applyDisposition({
+        campaignId: ctx.params.id,
+        taskId: ctx.params.taskId,
+        agentId: ctx.agent.id,
+        disposition: body.disposition,
+        reason: body.reason,
+        toAgentId: body.toAgentId,
+        blocker: body.blocker,
+        supersededBy: body.supersededBy,
+        approvalQuote: body.approvalQuote,
+        evidence: body.evidence,
+      });
+      if (!result.ok) return sendJson(res, charterStatus(result), result);
+      scheduleSyncSoon();
+      sendJson(res, 200, result);
     }),
   );
 
@@ -534,6 +721,35 @@ export function createAgoraServer({ dir = DEFAULT_DIR, storeFactory, activityFil
       if (!body.title || typeof body.title !== 'string') {
         return sendJson(res, 400, { error: 'title (string) is required' });
       }
+      // WF-G171: the campaign decision is made HERE or not at all. A task that
+      // reaches the board without one cannot be repaired by guesswork later.
+      const askedCampaign = typeof body.campaignId === 'string' ? body.campaignId.trim() : '';
+      const wantsStandalone = body.standalone === true || /^(none|standalone)$/i.test(askedCampaign);
+      const standaloneReason = typeof body.standaloneReason === 'string' ? body.standaloneReason.trim() : '';
+      if (campaignIntakeMode === 'required') {
+        if (wantsStandalone && !standaloneReason) {
+          return sendJson(res, 400, {
+            error: 'a standalone task needs "standaloneReason": say why this work belongs to no campaign (WF-G171)',
+            campaignIntake: campaignIntakeMode,
+          });
+        }
+        if (!wantsStandalone && !askedCampaign && !store.defaultCampaignFor(ctx.agent.id)) {
+          return sendJson(res, 400, {
+            error: 'a new task needs an explicit campaign decision: send "campaignId": "<id>", or "standalone": true with "standaloneReason": "<why>" (WF-G171). GET /campaigns lists the open efforts.',
+            campaignIntake: campaignIntakeMode,
+          });
+        }
+        // WF-G293: a title plus campaign decision is not a work packet. Do
+        // not send a worker to reconstruct the ask from a title alone.
+        const hasBody = typeof body.body === 'string' && body.body.trim().length > 0;
+        const hasRefs = Array.isArray(body.refs)
+          && body.refs.some((ref) => typeof ref === 'string' && ref.trim().length > 0);
+        if (!hasBody && !hasRefs) {
+          return sendJson(res, 400, {
+            error: 'a new task needs a non-empty body or one or more refs; title-only work is not dispatchable (WF-G293)',
+          });
+        }
+      }
       let task;
       try {
         task = store.createTask({
@@ -542,16 +758,268 @@ export function createAgoraServer({ dir = DEFAULT_DIR, storeFactory, activityFil
           body: body.body,
           category: typeof body.category === 'string' ? body.category : undefined,
           campaignId: typeof body.campaignId === 'string' ? body.campaignId : undefined,
+          // `campaignId: "none"` already reads as standalone inside the store,
+          // so only the explicit boolean is forwarded; forwarding both would
+          // make the store demand a reason for a legacy `"none"` caller.
+          standalone: body.standalone === true,
+          standaloneReason: standaloneReason || undefined,
           wave: typeof body.wave === 'string' ? body.wave : undefined,
           deps: Array.isArray(body.deps) ? body.deps : [],
           priority: typeof body.priority === 'number' ? body.priority : undefined,
           refs: Array.isArray(body.refs) ? body.refs : [],
+          deliverable: body.deliverable,
         });
       } catch (e) {
-        return sendJson(res, 400, { error: e.message }); // e.g. unknown dep
+        // Unknown dep id, unknown campaign, or an unknown dependency TYPE. The
+        // last one is a refusal on purpose: a typo must not quietly become the
+        // default edge.
+        return sendJson(res, 400, { error: e.message });
       }
       scheduleSyncSoon();
       sendJson(res, 201, { task });
+    }),
+  );
+
+  // The dependency vocabulary, served rather than only documented. A client
+  // that can read the list can validate before it posts, instead of learning
+  // the ten names from a 400.
+  router.get('/tasks/dep-types', async (req, res) => {
+    sendJson(res, 200, {
+      depTypes: Object.entries(TASK_DEP_TYPES).map(([type, spec]) => ({
+        type,
+        blocking: spec.blocking,
+        summary: spec.summary,
+      })),
+      defaultType: DEFAULT_TASK_DEP_TYPE,
+    });
+  });
+
+  // WF-G128 (2026-09-09): read ONE task by id. Until now a caller had to list
+  // the whole board and guess the task's `?state=` to find it (the liveness
+  // scenario test had to GET /tasks?state=open and .find()). Registered AFTER
+  // `/tasks/dep-types`, which this router would otherwise capture as an id.
+  router.get('/tasks/:id', async (req, res, ctx) => {
+    const wanted = String(ctx.params.id || '').trim().toLowerCase();
+    if (!wanted || wanted === 'dep-types') return sendJson(res, 404, { error: 'task not found' });
+    const task = store.listTasks({}).find((t) => String(t.id).toLowerCase() === wanted);
+    if (!task) return sendJson(res, 404, { error: `task not found: ${ctx.params.id}` });
+    return sendJson(res, 200, { task });
+  });
+
+  // D-K/D-O/r9q1: work out which effort each job belongs to, place what is
+  // certain, list every tie, and never write a guess as a fact. ?dry=1 shows
+  // the verdict for every job without writing one.
+  router.post(
+    '/tasks/membership/infer',
+    withAuth(async (req, res, ctx) => {
+      let body = {};
+      try { body = await readJsonBody(req); } catch { body = {}; }
+      const result = store.inferTaskMembership({
+        agentId: ctx.agent.id,
+        note: typeof body.note === 'string' ? body.note : undefined,
+        dryRun: ctx.query.get('dry') === '1' || body.dryRun === true,
+      });
+      if (!result.ok) return sendJson(res, 403, { error: result.error });
+      if (!result.dryRun) scheduleSyncSoon();
+      sendJson(res, 200, result);
+    }),
+  );
+
+  // D-S: give every task a hierarchical id. Pass ?dry=1 to see exactly what
+  // would change without changing it — this renames the whole board, so the
+  // preview is not a nicety.
+  router.post(
+    '/tasks/ids/migrate',
+    withAuth(async (req, res, ctx) => {
+      let body = {};
+      try {
+        body = await readJsonBody(req);
+      } catch {
+        body = {};
+      }
+      const result = store.migrateIds({
+        agentId: ctx.agent.id,
+        note: typeof body.note === 'string' ? body.note : undefined,
+        dryRun: ctx.query.get('dry') === '1' || body.dryRun === true,
+      });
+      if (!result.ok) return sendJson(res, 403, { error: result.error });
+      if (!result.dryRun) scheduleSyncSoon();
+      sendJson(res, 200, result);
+    }),
+  );
+
+  // D-T: give every untyped dep its type, in ONE journal event that edits no
+  // past event. Idempotent — a second call finds nothing and writes nothing.
+  router.post(
+    '/tasks/deps/migrate',
+    withAuth(async (req, res, ctx) => {
+      let body = {};
+      try {
+        body = await readJsonBody(req);
+      } catch {
+        body = {};
+      }
+      const result = store.migrateTaskDeps({
+        agentId: ctx.agent.id,
+        note: typeof body.note === 'string' ? body.note : undefined,
+        // Same gate as /tasks/ids/migrate. It was missing here, so `--dry`
+        // reached a store that had no dry branch and wrote anyway. WF-G105.
+        dryRun: ctx.query.get('dry') === '1' || body.dryRun === true,
+      });
+      if (!result.ok) return sendJson(res, 403, { error: result.error });
+      if (!result.dryRun) scheduleSyncSoon();
+      sendJson(res, 200, result);
+    }),
+  );
+
+  // ===========================================================================
+  // Seats — durable identity for campaign ownership (phase 3)
+  // ===========================================================================
+  router.get('/seats', (req, res) => {
+    sendJson(res, 200, { seats: store.listSeats() });
+  });
+
+  router.post(
+    '/seats',
+    withAuth(async (req, res, ctx) => {
+      let body = {};
+      try {
+        body = await readJsonBody(req);
+      } catch {
+        body = {};
+      }
+      const result = store.createSeat({
+        agentId: ctx.agent.id,
+        name: typeof body.name === 'string' ? body.name : '',
+        note: typeof body.note === 'string' ? body.note : undefined,
+      });
+      // A refused NAME is the caller's mistake; a refused ROLE is permission.
+      if (!result.ok) return sendJson(res, /needs one of/.test(result.error) ? 403 : 400, { error: result.error });
+      scheduleSyncSoon();
+      sendJson(res, 200, result);
+    }),
+  );
+
+  router.post(
+    '/seats/release',
+    withAuth(async (req, res, ctx) => {
+      let body = {};
+      try {
+        body = await readJsonBody(req);
+      } catch {
+        body = {};
+      }
+      const seatId = (typeof body.seat === 'string' && body.seat) ? body.seat : (ctx.agent.seatId || '');
+      if (!seatId) {
+        return sendJson(res, 400, {
+          error: 'you are not sitting in a seat. Sign in with --seat <name>, or name one: seat release <name>',
+        });
+      }
+      const result = store.releaseSeat({
+        seatId: store.resolveSeatId(seatId) /* WF-G140 */,
+        agentId: ctx.agent.id,
+        why: typeof body.why === 'string' ? body.why : undefined,
+      });
+      if (!result.ok) return sendJson(res, 400, { error: result.error });
+      scheduleSyncSoon();
+      sendJson(res, 200, result);
+    }),
+  );
+
+  router.post(
+    '/seats/rename',
+    withAuth(async (req, res, ctx) => {
+      let body = {};
+      try {
+        body = await readJsonBody(req);
+      } catch {
+        body = {};
+      }
+      const seatId = String(body.seat || '');
+      const result = store.renameSeat({
+        seatId: store.resolveSeatId(seatId) /* WF-G140 */,
+        agentId: ctx.agent.id,
+        name: typeof body.name === 'string' ? body.name : '',
+        why: typeof body.why === 'string' ? body.why : undefined,
+      });
+      if (!result.ok) return sendJson(res, /needs one of/.test(result.error) ? 403 : 400, { error: result.error });
+      scheduleSyncSoon();
+      sendJson(res, 200, result);
+    }),
+  );
+
+  router.post(
+    '/seats/diary',
+    withAuth(async (req, res, ctx) => {
+      let body = {};
+      try {
+        body = await readJsonBody(req);
+      } catch {
+        body = {};
+      }
+      const seatId = typeof body.seat === 'string' && body.seat ? body.seat : (ctx.agent.seatId || '');
+      if (!seatId) {
+        return sendJson(res, 400, {
+          error: 'you are not sitting in a seat, so there is no diary to write to. '
+            + 'Sign in with --seat <name>, or name one: seat diary <text> --seat <name>',
+        });
+      }
+      const result = store.seatDiary({
+        seatId: store.resolveSeatId(seatId) /* WF-G140 */,
+        agentId: ctx.agent.id,
+        text: typeof body.text === 'string' ? body.text : '',
+      });
+      if (!result.ok) return sendJson(res, 400, { error: result.error });
+      sendJson(res, 200, result);
+    }),
+  );
+
+  // D-AC: close campaigns that hold no work and that nobody is on.
+  // Control-plane only, because `setCampaignState` allows only the OWNER to
+  // close a campaign and every owner is a session that has ended — which made
+  // this cleanup impossible to perform by any other path.
+  router.post(
+    '/campaigns/sweep',
+    withAuth(async (req, res, ctx) => {
+      let body = {};
+      try {
+        body = await readJsonBody(req);
+      } catch {
+        body = {};
+      }
+      // The PREVIEW is the default. A caller has to say `?apply=1` to write,
+      // so the printed list always comes before anything closes (D-AC).
+      const apply = ctx.query.get('apply') === '1' || body.apply === true;
+      const result = store.sweepEmptyCampaigns({
+        agentId: ctx.agent.id,
+        minAgeDays: Number.isFinite(Number(body.minAgeDays)) ? Number(body.minAgeDays) : undefined,
+        dryRun: !apply,
+        note: typeof body.note === 'string' ? body.note : undefined,
+      });
+      if (!result.ok) return sendJson(res, 403, { error: result.error });
+      if (!result.dryRun) scheduleSyncSoon();
+      sendJson(res, 200, result);
+    }),
+  );
+
+  // WF-G104: repoint every dependency at the id its target carries now.
+  router.post(
+    '/tasks/deps/canonicalize',
+    withAuth(async (req, res, ctx) => {
+      let body = {};
+      try {
+        body = await readJsonBody(req);
+      } catch {
+        body = {};
+      }
+      const result = store.migrateDepIds({
+        agentId: ctx.agent.id,
+        note: typeof body.note === 'string' ? body.note : undefined,
+        dryRun: ctx.query.get('dry') === '1' || body.dryRun === true,
+      });
+      if (!result.ok) return sendJson(res, 403, { error: result.error });
+      if (!result.dryRun) scheduleSyncSoon();
+      sendJson(res, 200, result);
     }),
   );
 
@@ -581,6 +1049,8 @@ export function createAgoraServer({ dir = DEFAULT_DIR, storeFactory, activityFil
         if (result.task) scheduleSyncSoon();
         return sendJson(res, 200, { task: result.task || null });
       }
+      // WF-G127: an unknown lane is a caller error (400), like GET /tasks?campaign=.
+      if (/^unknown campaign/.test(result.error || '')) return sendJson(res, 400, { error: result.error });
       return sendJson(res, 409, { error: result.error });
     }),
   );
@@ -656,12 +1126,104 @@ export function createAgoraServer({ dir = DEFAULT_DIR, storeFactory, activityFil
         resultDisposition: body.resultDisposition,
         finding: body.finding,
         evidence: body.evidence,
+        reason: typeof body.reason === 'string' ? body.reason : undefined, // WF-G86
       });
       if (result.ok) {
         scheduleSyncSoon();
         return sendJson(res, 200, { task: result.task });
       }
       if (result.error === 'task not found') return sendJson(res, 404, { error: result.error });
+      return sendJson(res, 400, { error: result.error });
+    }),
+  );
+
+  // WF-G130: edit a task's authored fields in place (creator or claimant).
+  router.patch(
+    '/tasks/:id',
+    withAuth(async (req, res, ctx) => {
+      let body;
+      try {
+        body = await readJsonBody(req);
+      } catch (e) {
+        return sendJson(res, 400, { error: e.message });
+      }
+      const fields = {};
+      for (const key of ['title', 'body', 'appendBody', 'priority', 'refs', 'deliverable', 'design', 'wave']) {
+        if (body[key] !== undefined) fields[key] = body[key];
+      }
+      const result = store.editTask({
+        taskId: ctx.params.id,
+        agentId: ctx.agent.id,
+        fields,
+        reason: typeof body.reason === 'string' ? body.reason : undefined,
+      });
+      if (result.ok) {
+        scheduleSyncSoon();
+        return sendJson(res, 200, { task: result.task, changed: result.changed });
+      }
+      if (result.error === 'task not found') return sendJson(res, 404, { error: result.error });
+      if (/only the creator/.test(result.error)) return sendJson(res, 403, { error: result.error });
+      return sendJson(res, 400, { error: result.error });
+    }),
+  );
+
+  // WF-G153: support POST /tasks/:id/edit as an alias to PATCH /tasks/:id
+  router.post(
+    '/tasks/:id/edit',
+    withAuth(async (req, res, ctx) => {
+      let body;
+      try {
+        body = await readJsonBody(req);
+      } catch (e) {
+        return sendJson(res, 400, { error: e.message });
+      }
+      const fields = {};
+      for (const key of ['title', 'body', 'appendBody', 'priority', 'refs', 'deliverable', 'design', 'wave']) {
+        if (body[key] !== undefined) fields[key] = body[key];
+      }
+      const result = store.editTask({
+        taskId: ctx.params.id,
+        agentId: ctx.agent.id,
+        fields,
+        reason: typeof body.reason === 'string' ? body.reason : undefined,
+      });
+      if (result.ok) {
+        scheduleSyncSoon();
+        return sendJson(res, 200, { task: result.task, changed: result.changed });
+      }
+      if (result.error === 'task not found') return sendJson(res, 404, { error: result.error });
+      if (/only the creator/.test(result.error)) return sendJson(res, 403, { error: result.error });
+      return sendJson(res, 400, { error: result.error });
+    }),
+  );
+
+  // WF-G169: move one task to another campaign, or make it standalone. The
+  // campaign is not an authored field, so PATCH /tasks/:id refuses it; this is
+  // the guarded path that records prior campaign, new campaign, actor and
+  // reason in the task's own history.
+  router.post(
+    '/tasks/:id/campaign',
+    withAuth(async (req, res, ctx) => {
+      let body;
+      try {
+        body = await readJsonBody(req);
+      } catch (e) {
+        return sendJson(res, 400, { error: e.message });
+      }
+      const result = store.setTaskCampaign({
+        taskId: ctx.params.id,
+        agentId: ctx.agent.id,
+        campaignId: typeof body.campaignId === 'string' ? body.campaignId : undefined,
+        standalone: body.standalone === true || body.campaignId === null,
+        reason: typeof body.reason === 'string' ? body.reason : undefined,
+      });
+      if (result.ok) {
+        scheduleSyncSoon();
+        return sendJson(res, 200, result);
+      }
+      if (result.error === 'task not found') return sendJson(res, 404, { error: result.error });
+      if (/^unknown campaign/.test(result.error)) return sendJson(res, 404, { error: result.error });
+      if (/needs one of/.test(result.error)) return sendJson(res, 403, { error: result.error });
       return sendJson(res, 400, { error: result.error });
     }),
   );
@@ -719,7 +1281,16 @@ export function createAgoraServer({ dir = DEFAULT_DIR, storeFactory, activityFil
     const state = ctx.query.get('state') || undefined;
     const ready = ctx.query.get('ready') === '1' || ctx.query.get('ready') === 'true';
     const category = ctx.query.get('category') || undefined;
-    sendJson(res, 200, { tasks: store.listTasks({ state, ready, category }) });
+    // WF-G88: accept the same `campaignId` lane filter that claim-next takes.
+    // An unknown id is a 400, never a silent full-board response: the old
+    // behavior ignored the parameter, so a typo returned every task and looked
+    // like a successful filter.
+    const campaignId = ctx.query.get('campaignId') || ctx.query.get('campaign') || undefined;
+    try {
+      sendJson(res, 200, { tasks: store.listTasks({ state, ready, category, campaignId }) });
+    } catch (e) {
+      sendJson(res, 400, { error: e.message });
+    }
   });
 
   // ============================== Messaging ==============================
@@ -814,7 +1385,7 @@ export function createAgoraServer({ dir = DEFAULT_DIR, storeFactory, activityFil
     let gaps = [];
     for (const root of GAPS_ROOTS) {
       try {
-        gaps = gaps.concat(indexGaps({ root }));
+        gaps = gaps.concat(indexGaps({ root: path.join(gapsRepoRoot, root) }));
       } catch {
         // a missing root (e.g. gitignored docs/projects absent) is not fatal
       }
@@ -822,6 +1393,175 @@ export function createAgoraServer({ dir = DEFAULT_DIR, storeFactory, activityFil
     gapsCache = { at: Date.now(), gaps };
     return gaps;
   }
+
+  // WF-G205 / WF-G184: the accepted Suggested agent values for ONE registry.
+  // A registry declares `suggested_agent_values` in its YAML header when the
+  // column is closed; only such a registry is validated. The list itself is
+  // tools/agora/agents.json plus `human-operator`, exactly the list
+  // validateWorkflowGapRows checks the file against afterwards.
+  function validateSuggestedAgentForRegistry(file, value, repoRoot) {
+    let raw;
+    try {
+      raw = fs.readFileSync(file, 'utf8');
+    } catch {
+      return null; // a missing registry is reported by the append itself
+    }
+    if (!/^suggested_agent_values:/m.test(raw.slice(0, 4000))) return null;
+    let keys;
+    try {
+      const registry = JSON.parse(fs.readFileSync(path.join(repoRoot, 'tools', 'agora', 'agents.json'), 'utf8'));
+      keys = [...Object.keys(registry.agents || {}), 'human-operator'].sort();
+    } catch {
+      return null; // no registry to check against — do not block the append
+    }
+    const wanted = String(value || '').trim();
+    if (!wanted) {
+      return `suggestedAgent is required for this registry — it is routing data. One of: ${keys.join(', ')}`;
+    }
+    if (!keys.includes(wanted)) {
+      return `suggestedAgent "${wanted}" is not a tools/agora/agents.json key. One of: ${keys.join(', ')}`;
+    }
+    return null;
+  }
+
+  // ============================== Gap intake (WF-G113) ==============================
+  // One-row appends to a GAPS.md registry were the hottest lock on the board:
+  // every worker owed one, ids raced, and 3-hour locks held for a single row
+  // blocked six workers who then filed by hand. The daemon owns the write now.
+  //
+  // Serialization is THIS promise chain, not an Agora file lock — the whole
+  // point is that a worker should not need a lock for a one-row append. Every
+  // POST /gaps is queued behind the previous one, so two concurrent callers
+  // read the registry at different moments and allocate different ids.
+  let gapWriteChain = Promise.resolve();
+  function serializeGapWrite(fn) {
+    const next = gapWriteChain.then(fn, fn);
+    // Keep the chain alive after a rejection; each caller sees its own error.
+    gapWriteChain = next.then(() => {}, () => {});
+    return next;
+  }
+
+  router.post(
+    '/gaps',
+    withAuth(async (req, res, ctx) => {
+      let body;
+      try {
+        body = await readJsonBody(req);
+      } catch (e) {
+        return sendJson(res, 400, { error: e.message });
+      }
+      if (!body.gap || typeof body.gap !== 'string' || !body.gap.trim()) {
+        return sendJson(res, 400, { error: 'gap (string) is required — say what is missing or wrong' });
+      }
+      let file;
+      try {
+        file = resolveGapsFile(body.project, gapsRepoRoot);
+      } catch (e) {
+        return sendJson(res, 400, { error: e.message });
+      }
+      // WF-G205 / WF-G184: a registry that DECLARES suggested_agent_values in
+      // its header (the workflow registry does) has its own validator reject an
+      // em dash in that column afterwards. Reject it here instead, so the row
+      // is never written and the test suite never goes red over a row the
+      // daemon itself created. Registries that declare nothing are untouched.
+      const agentError = validateSuggestedAgentForRegistry(file, body.suggestedAgent, gapsRepoRoot);
+      if (agentError) return sendJson(res, 400, { error: agentError });
+      // Provenance is taken from the authenticated agent, never from the body:
+      // the registries require the exact Agora handle, UUID and task/thread of
+      // whoever filed the row, and a caller cannot forge those here.
+      const values = {
+        gap: body.gap,
+        evidence: body.evidence || '',
+        whyItMatters: body.why || body.whyItMatters || '',
+        nextAction: body.next || body.nextAction || '',
+        nextProof: body.proof || body.nextProof || '',
+        severity: body.severity || 'medium',
+        classification: body.classification || '',
+        surface: body.surface || '',
+        suggestedAgent: body.suggestedAgent || '',
+        detectedDuring: body.detectedDuring || '',
+        notes: body.notes || '',
+        registeredBy: ctx.agent.handle,
+        registrantAgentId: ctx.agent.id,
+        registrantTaskId: ctx.agent.sessionId || '',
+      };
+      try {
+        const result = await serializeGapWrite(() => appendGapRow(file, values, { repoRoot: gapsRepoRoot }));
+        gapsCache = null; // the index just went stale by our own hand
+        return sendJson(res, 201, {
+          id: result.id,
+          file: path.relative(gapsRepoRoot, result.file).split(path.sep).join('/'),
+          line: result.line,
+          row: result.row,
+        });
+      } catch (e) {
+        // WF-G206 / WF-G180: a transient Windows open failure is NOT a broken
+        // registry. gapAppend already retried it for ~1.4 s and the message
+        // names the file, the errno and the likely holder, so the caller gets
+        // 503 (try again) instead of a bare 500 that reads as a refusal.
+        if (e && e.transient) {
+          return sendJson(res, 503, { error: `gap append could not open the registry: ${e.message}`, retryable: true });
+        }
+        return sendJson(res, 500, { error: `gap append failed: ${e.message}` });
+      }
+    }),
+  );
+
+  // WF-G124: rewrite the named cells of one existing row, same serialized
+  // chain as the append, so a worker can repair or resolve its own row without
+  // the registry lock. The id and the provenance cells cannot be changed here.
+  router.post(
+    '/gaps/:id',
+    withAuth(async (req, res, ctx) => {
+      let body;
+      try {
+        body = await readJsonBody(req);
+      } catch (e) {
+        return sendJson(res, 400, { error: e.message });
+      }
+      let file;
+      try {
+        file = resolveGapsFile(body.project, gapsRepoRoot);
+      } catch (e) {
+        return sendJson(res, 400, { error: e.message });
+      }
+      const patch = {
+        status: body.status,
+        severity: body.severity,
+        classification: body.classification,
+        surface: body.surface,
+        suggestedAgent: body.suggestedAgent,
+        gap: body.gap,
+        evidence: body.evidence,
+        whyItMatters: body.why ?? body.whyItMatters,
+        nextAction: body.next ?? body.nextAction,
+        nextProof: body.proof ?? body.nextProof,
+        notes: body.notes,
+        note: body.note === undefined ? undefined : `${body.note} (${ctx.agent.handle}, ${new Date().toISOString().slice(0, 10)})`,
+        detectedDuring: body.detectedDuring,
+        suspectedOwner: body.suspectedOwner,
+        routingDecision: body.routingDecision,
+        destination: body.destination,
+      };
+      try {
+        const result = await serializeGapWrite(() => updateGapRow(file, ctx.params.id, patch));
+        gapsCache = null;
+        return sendJson(res, 200, {
+          id: result.id,
+          file: path.relative(gapsRepoRoot, result.file).split(path.sep).join('/'),
+          line: result.line,
+          row: result.row,
+          changed: result.changed,
+        });
+      } catch (e) {
+        if (e && e.transient) {
+          return sendJson(res, 503, { error: `gap update could not open the registry: ${e.message}`, retryable: true });
+        }
+        const status = /no row with id/.test(e.message) ? 404 : 400;
+        return sendJson(res, status, { error: `gap update failed: ${e.message}` });
+      }
+    }),
+  );
 
   router.get('/gaps', async (_req, res, ctx) => {
     let gaps = getGapIndex();
@@ -921,8 +1661,13 @@ export function createAgoraServer({ dir = DEFAULT_DIR, storeFactory, activityFil
         tasks: store.listTasks().length,
         campaigns: store.listCampaigns().length,
         messages: store.getMessages({ since: 0 }).length,
+        // Open rows in the workflow registry (tools/agora/WORKFLOW_GAPS.md), for the dashboard header.
+        gapsOpen: getGapIndex().filter((g) => g.project === 'workflow' && OPEN_STATUSES.has(g.status)).length,
       },
       lastSeq: store.lastSeq,
+      // WF-G147: how responsive the process has been, and what the last snapshot cost.
+      loop: { lagMs: loop.lagMs, maxLagMs60s: loop.maxLagMs },
+      snapshot: store.getSnapshotStats ? store.getSnapshotStats() : null,
     });
   });
 
@@ -1124,8 +1869,13 @@ export function createAgoraServer({ dir = DEFAULT_DIR, storeFactory, activityFil
 }
 
 // Default store factory — uses the real store.mjs (imported at top).
-function defaultStoreFactory({ dir }) {
-  return createStore({ dir });
+function defaultStoreFactory({ dir, seatRosterPath }) {
+  // seatRosterPath is undefined in production, so the store picks its own
+  // default under the repo. A test passes its own path, or null to switch
+  // the tracked mirror off entirely.
+  return seatRosterPath === undefined
+    ? createStore({ dir })
+    : createStore({ dir, seatRosterPath });
 }
 
 // ---------------------------------------------------------------------------
@@ -1181,7 +1931,33 @@ if (isMainModule()) {
       : path.resolve(process.cwd(), activityRaw);
   } else activityFile = DEFAULT_ACTIVITY_FILE;
 
-  const app = createAgoraServer({ dir, activityFile });
+  // Busy-port pre-probe (added 2026-08-27). Every recorded "agora won't start" failure
+  // (5/5 entries in daemon-crash.log, all EADDRINUSE at Object.listen) came from a second
+  // `npm run agora` racing a live daemon, so probe the port first and end a double start
+  // with a plain explanatory message instead of a fatal stack. A genuine bind failure on a
+  // free port still surfaces unchanged through installFatalErrorHandlers. The small race
+  // window between this probe and listen() is accepted as rare and remains fatal-logged.
+  const portHeld = await new Promise((resolve) => {
+    const socket = net.connect({ host: '127.0.0.1', port });
+    socket.setTimeout(800);
+    socket.once('connect', () => { socket.destroy(); resolve(true); });
+    socket.once('timeout', () => { socket.destroy(); resolve(false); });
+    socket.once('error', () => { socket.destroy(); resolve(false); });
+  });
+  if (portHeld) {
+    console.log(
+      `Agora is already listening on http://localhost:${port} — leaving that daemon alone.`,
+    );
+    process.exit(0);
+  }
+
+  // WF-G171: the live daemon always enforces the campaign decision at intake.
+  // AGORA_CAMPAIGN_INTAKE=legacy is the operator's documented way back.
+  const app = createAgoraServer({
+    dir,
+    activityFile,
+    campaignIntake: process.env.AGORA_CAMPAIGN_INTAKE || 'required',
+  });
   app.listen(port, () => {
     // eslint-disable-next-line no-console
     console.log(

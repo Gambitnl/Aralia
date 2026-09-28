@@ -76,17 +76,7 @@ export function getCanonicalFireGenasiDamageResistances(
 
   // A future data edit should not create duplicate actor defenses or duplicate
   // visible facts if the same trait is accidentally authored twice.
-  if (damageTypes.length > 0) return [...new Set(damageTypes)];
-
-  // DEBT: The shared racial parser currently finds the defense phrase but its
-  // token normalizer can return no damage type for this authored wording. This
-  // bounded fallback preserves the canonical Fire Genasi transaction until the
-  // shared parser is repaired; it recognizes only the exact Fire Resistance
-  // phrase and never invents a new race or defense.
-  const canonicalFireFallback = race.traits.some(trait => (
-    /resistance\s+to\s+fire\s+damage/i.test(trait)
-  ));
-  return canonicalFireFallback ? ['Fire'] : [];
+  return [...new Set(damageTypes)];
 }
 
 /**
@@ -128,10 +118,9 @@ export function getCanonicalFireGenasiSpellAbilityChoices(
   const choice = getRacialSpellCastingAbilityChoicesForRace(race.id)[0];
   if (choice?.availableAbilities?.length) return choice.availableAbilities;
 
-  // DEBT: The production legacy-race choice adapter preserves its canonical
-  // source text and required spell ids but does not expose availableAbilities.
-  // Parse only the three ability names from that canonical text until the
-  // shared choice projection is widened.
+  // Racial spell choice adapter availableAbilities exposure is tracked in Agora task agora-c859.
+  // The production legacy-race choice adapter preserves its canonical source text and required spell ids
+  // but does not expose availableAbilities; parse the ability names until the shared choice projection is widened.
   const sourceText = choice?.sourceTraitDescription
     ?? race.racialSpellChoice?.traitDescription
     ?? '';
@@ -144,10 +133,10 @@ export function getCanonicalFireGenasiSpellAbilityChoices(
 // Production Combat Actor And Damage Transaction
 // ============================================================================
 // The quick-character generator is the production construction seam used by
-// the wider Design Preview sandbox. Its persistent-to-combat bridge does not
-// currently project readable Race trait text into CombatCharacter.resistances,
-// so this narrow adapter materializes only the parsed canonical defense before
-// native damage resolution. It does not calculate half damage or mutate HP.
+// the wider Design Preview sandbox. Its persistent-to-combat bridge now
+// projects the Fire Resistance the shared racial parser reads out of the
+// canonical trait row, so this leaf reads that defense rather than
+// materializing one of its own. It does not calculate half damage or mutate HP.
 // ============================================================================
 
 export interface FireGenasiResistanceScenarioState {
@@ -165,26 +154,14 @@ const FIRE_GENASI_ACTOR_CONFIG: QuickCharacterConfig = {
   stats: [10, 12, 12, 10, 10, 10],
 };
 
-/**
- * Attach the parsed canonical defense to the production actor while preserving
- * any defenses the production bridge already supplied.
- */
-function materializeCanonicalFireGenasiResistances(
+/** Does the production actor already carry every canonical defense? */
+function hasProductionFireGenasiResistances(
   character: CombatCharacter,
   race: Race,
-): CombatCharacter {
-  const canonicalResistances = getCanonicalFireGenasiDamageResistances(race);
-
-  // The native calculator remains authoritative; this adapter only bridges the
-  // current gap between readable racial trait data and the combat actor field.
-  return {
-    ...character,
-    id: FIRE_GENASI_ACTOR_ID,
-    resistances: [...new Set([
-      ...(character.resistances ?? []),
-      ...canonicalResistances,
-    ])],
-  };
+): boolean {
+  const projected = new Set((character.resistances ?? []).map(type => type.toLowerCase()));
+  return getCanonicalFireGenasiDamageResistances(race)
+    .every(type => projected.has(type.toLowerCase()));
 }
 
 /**
@@ -204,7 +181,18 @@ export function createFireGenasiResistanceScenario(
     };
   }
 
-  const actor = materializeCanonicalFireGenasiResistances(generatedActor, race);
+  const actor: CombatCharacter = { ...generatedActor, id: FIRE_GENASI_ACTOR_ID };
+  if (!hasProductionFireGenasiResistances(actor, race)) {
+    // The shared racial parser owns this projection. If it stops supplying the
+    // canonical defense, say so rather than quietly re-adding it here.
+    return {
+      actor: null,
+      rawDamage: FIRE_GENASI_RESISTANCE_DAMAGE,
+      finalDamage: null,
+      outcome: 'Resistance boundary unavailable: the production racial parser did not project the canonical Fire Genasi resistance.',
+    };
+  }
+
   const canonicalResistanceReady = hasCanonicalFireGenasiFireResistance(race);
   return {
     actor,
@@ -320,7 +308,7 @@ const FireGenasiRaceLeafContent: React.FC<RaceDomainLeafProps> = ({
 
       {/* This boundary remains visible because the shared actor bridge does not yet project trait text upstream. */}
       <p data-testid="fire-genasi-assembly-boundary">
-        Assembly boundary: canonical trait text is materialized into CombatCharacter.resistances in this leaf because the shared character bridge does not yet project this Fire Resistance.
+        Assembly boundary: CombatCharacter.resistances is projected by the shared racial parser at the persistent-to-combat bridge; this leaf reads that defense and holds no resistance adapter of its own.
       </p>
       <p data-testid="fire-genasi-spell-boundary">
         Unsupported boundary: this leaf does not claim Reach to the Blaze spell casting or spell-slot or rest-resource projection; it shows canonical spell facts and level gates only.

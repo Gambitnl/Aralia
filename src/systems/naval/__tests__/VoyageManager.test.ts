@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
-import { VoyageManager } from '../VoyageManager';
+import { VoyageManager, VoyageFactionContext } from '../VoyageManager';
 import { CrewMember, Ship } from '../../../types/naval';
+import { PlayerFactionStanding } from '../../../types/factions';
 import { CrewManager } from '../CrewManager';
 import { WeatherState } from '../../../types/environment';
 import { SeededRandom } from '../../../utils/random';
@@ -167,5 +168,63 @@ describe('VoyageManager', () => {
         expect(first.newState).toEqual(second.newState);
         expect(first.updatedShip).toEqual(second.updatedShip);
         expect(first.remainingFunds).toBe(second.remainingFunds);
+    });
+
+    /**
+     * Faction wiring (agora-db71.8). advanceDay is where a hull saved before
+     * Ship.factionId existed gets its flag stamped on, and where the player's
+     * standing with that flag reaches the daily mutiny check.
+     */
+    describe('faction context', () => {
+        const standing = (factionId: string, publicStanding: number): PlayerFactionStanding => ({
+            factionId,
+            publicStanding,
+            secretStanding: 0,
+            rankId: 'outsider',
+            favorsOwed: 0,
+            renown: 0,
+            history: [],
+        });
+
+        const contextFor = (publicStanding: number): VoyageFactionContext => ({
+            standings: { house_vane: standing('house_vane', publicStanding) },
+            portFactions: { 7: 'house_vane' },
+        });
+
+        it('leaves the hull unflagged when the caller passes no faction context', () => {
+            const ship = createMockShip();
+            const voyage = VoyageManager.startVoyage(ship, 500);
+            const result = VoyageManager.advanceDay(voyage, ship, mockWeather, 1000, noEventRng);
+
+            expect(result.updatedShip.factionId).toBeUndefined();
+        });
+
+        it('stamps an old save with the faction holding its docked port', () => {
+            const ship = { ...createMockShip(), dockedPortBurgId: 7 };
+            const voyage = VoyageManager.startVoyage(ship, 500);
+            const result = VoyageManager.advanceDay(voyage, ship, mockWeather, 1000, noEventRng, contextFor(0));
+
+            expect(result.updatedShip.factionId).toBe('house_vane');
+        });
+
+        it('keeps a flag the save already recorded', () => {
+            const ship = { ...createMockShip(), dockedPortBurgId: 7, factionId: 'unseen_hand' };
+            const voyage = VoyageManager.startVoyage(ship, 500);
+            const result = VoyageManager.advanceDay(voyage, ship, mockWeather, 1000, noEventRng, contextFor(0));
+
+            expect(result.updatedShip.factionId).toBe('unseen_hand');
+        });
+
+        it('carries bad standing through to the crew as extra unrest', () => {
+            const ship = { ...createMockShip(), dockedPortBurgId: 7 };
+            const voyage = VoyageManager.startVoyage(ship, 500);
+
+            const friendly = VoyageManager.advanceDay(voyage, ship, mockWeather, 1000, noEventRng, contextFor(50));
+            const hated = VoyageManager.advanceDay(voyage, ship, mockWeather, 1000, noEventRng, contextFor(-100));
+
+            expect(hated.updatedShip.crew.unrest).toBeGreaterThan(friendly.updatedShip.crew.unrest);
+            expect(hated.updatedShip.crew.members.map(m => m.loyalty))
+                .toEqual(friendly.updatedShip.crew.members.map(m => m.loyalty));
+        });
     });
 });

@@ -34,7 +34,7 @@ export interface SeaEncounterOutcome {
   hostile: boolean;
   /**
    * Combat foes for a hostile encounter, sized for an early party. Reuses the
-   * land `TravelEncounterMonster` stub shape so the existing
+   * land `TravelEncounterMonster` descriptor shape so the existing
    * `handleStartBattleMapEncounter` path resolves them against the bestiary.
    */
   monsters?: TravelEncounterMonster[];

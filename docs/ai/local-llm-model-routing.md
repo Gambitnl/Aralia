@@ -1,4 +1,4 @@
-# Local LLM Model Routing — Reference
+# Local LLM Model Routing - Reference
 
 Recommendation spec for routing Aralia's Ollama tasks across a small fleet of
 local models on a 32 GB RAM / RTX 2070 SUPER 8 GB box. Treated as the source
@@ -21,7 +21,7 @@ behavior. For Aralia we want models that are:
 - Not constantly overthinking
 - Able to summarize conversation state cleanly
 
-**Do not use one model for all of this.** Use a small router with 2–4 local
+**Do not use one model for all of this.** Use a small router with 2-4 local
 models, each handling a category they're best suited for.
 
 ---
@@ -60,27 +60,27 @@ ollama pull gemma3:4b-it-q4_K_M
 
 ### Model notes
 
-- **`granite4.1:8b-q4_K_M`** — 5.3 GB, text-only, 128K advertised context. Better
+- **`granite4.1:8b-q4_K_M`** - 5.3 GB, text-only, 128K advertised context. Better
   practical VRAM headroom than Qwen3.5 9B. Granite 4.1's improved tool calling,
   instruction following, and chat capabilities are exactly what we want for
   game-state-aware outputs.
-- **`granite4.1:3b-q6_K`** — 2.8 GB, text-only, 128K advertised context. The
+- **`granite4.1:3b-q6_K`** - 2.8 GB, text-only, 128K advertised context. The
   boring-but-useful workhorse. Use for high-volume calls where style matters
   less than speed and format obedience.
-- **`phi4-mini:3.8b-q4_K_M`** — 2.5 GB, 128K advertised context. Solid small
+- **`phi4-mini:3.8b-q4_K_M`** - 2.5 GB, 128K advertised context. Solid small
   utility model supporting reasoning, math, multilingual, and function calling.
-- **`qwen3:8b-q4_K_M`** — 5.2 GB, text input, 40K advertised context. Good
+- **`qwen3:8b-q4_K_M`** - 5.2 GB, text input, 40K advertised context. Good
   general baseline; supports tool/thinking features in the Qwen3 family.
-- **`qwen3.5:9b-q4_K_M`** — 6.6 GB, 9.65B params, text/image input. Smartest
+- **`qwen3.5:9b-q4_K_M`** - 6.6 GB, 9.65B params, text/image input. Smartest
   candidate that's still *probably* comfortable on 8 GB VRAM. Closer to the
-  edge — test latency before making it the always-on default.
-- **`adi0adi/ollama_stheno-8b_v3.1_q6k`** — community roleplay model. Directly
+  edge - test latency before making it the always-on default.
+- **`adi0adi/ollama_stheno-8b_v3.1_q6k`** - community roleplay model. Directly
   relevant for companion banter and NPC dialogue, but **do not trust it for
   mechanical decisions or oracle logic**.
 
 ---
 
-## Task → model routing table
+## Task -> model routing table
 
 | Aralia task | Best model type | Recommended model |
 |---|---|---|
@@ -215,7 +215,7 @@ Do not feed the entire world into the model. Feed compact state:
 ```
 
 **Context window:** start at 4K. Ollama's current defaults are 4K for GPUs
-below 24 GiB VRAM, 32K for 24–48 GiB, 256K for 48 GiB+. An 8 GB card is
+below 24 GiB VRAM, 32K for 24-48 GiB, 256K for 48 GiB+. An 8 GB card is
 firmly in the 4K-first category.
 
 ---
@@ -278,7 +278,7 @@ use a schema.**
 
 An 8 GB GPU cannot comfortably keep several 8B-ish models loaded at once. Use
 one currently-active model and unload/swap as needed. Ollama's API supports
-`keep_alive` — keep a model loaded, unload immediately with `0`, or use
+`keep_alive` - keep a model loaded, unload immediately with `0`, or use
 durations like `10m`.
 
 Suggested defaults:
@@ -344,7 +344,7 @@ Utility tasks: `name_generation`, `tile_inspection`, `loot_dressing`,
   summarization, action suggestions
 - **Weakness:** can be more "LLM assistant" than "game narrator"; thinking-mode
   behavior depends on client/settings. Ollama supports enabling, disabling, or
-  hiding "thinking" for supported models — for runtime game output, **disable
+  hiding "thinking" for supported models - for runtime game output, **disable
   it.**
 
 ### `qwen3.5:9b-q4_K_M`
@@ -372,7 +372,7 @@ Utility tasks: `name_generation`, `tile_inspection`, `loot_dressing`,
 | `deepseek-r1:*` | Better for deliberate reasoning than snappy gameplay; can overthink and add latency |
 | `mistral-nemo:latest` | Interesting 12B model but 7.1 GB leaves little room on an 8 GB card |
 | `rocinante-12b-v1.1:q4-k-m` | Good narrative candidate but 7.5 GB is too close to the ceiling |
-| `qwen3.5:27b-*` | Starts at 17 GB for Q4_K_M — wrong hardware tier |
+| `qwen3.5:27b-*` | Starts at 17 GB for Q4_K_M - wrong hardware tier |
 | `gemma4:26b` / 3rd-party 26B variants | Wrong hardware tier |
 
 ---

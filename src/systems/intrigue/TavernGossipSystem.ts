@@ -7,10 +7,12 @@
  */
 
 import { GameState, WorldRumor } from '../../types';
+import { ItemType } from '../../types';
 import { Secret } from '../../types/identity';
 import { SecretGenerator } from './SecretGenerator';
 import { getGameDay } from '../../utils/core';
 import { SeededRandom } from '@/utils/random';
+import { isRumorStale, townRumorToWorldRumor } from './RumorMillSystem';
 
 export interface PurchaseableRumor {
     id: string;
@@ -19,6 +21,30 @@ export interface PurchaseableRumor {
     title: string; // The "hook" text shown before buying
     content?: string; // The actual info (hidden until bought)
     payload?: WorldRumor | Secret; // The data object to add to state
+    /** Quest a 'lead' points at. Buying the lead accepts this quest. */
+    questId?: string;
+}
+
+/** The PurchaseableRumor id a WorldRumor is offered under. */
+function gossipOfferId(rumorId: string): string {
+    return `gossip_${rumorId}`;
+}
+
+/**
+ * Every gossip offer the player has already bought (agora-5454).
+ *
+ * A purchase leaves a Service item in the inventory whose `sourceId` is the offer id
+ * it came from (see RumorMill.handlePurchase). That receipt IS the player's
+ * rumor knowledge: it is durable, it is already saved with the inventory, and it
+ * survives closing the modal. No second store is needed to answer "have I heard
+ * this?".
+ */
+function heardOfferIds(state: GameState): Set<string> {
+    const heard = new Set<string>();
+    for (const item of state.inventory ?? []) {
+        if (item.type === ItemType.Service && item.sourceId) heard.add(item.sourceId);
+    }
+    return heard;
 }
 
 export class TavernGossipSystem {
@@ -35,15 +61,30 @@ export class TavernGossipSystem {
         const rumors: PurchaseableRumor[] = [];
 
         // 1. Cheap Gossip (World Rumors)
-        // Check active world rumors first
+        // The pool is faction/world news (activeRumors) plus the town's own talk
+        // about the player's deeds, which the rumor mill has spread far enough
+        // that a barkeep could plausibly have picked it up (agora-049c).
         const activeRumors = state.activeRumors || [];
-        // Filter placeholder for future rumor-state gating; currently include all active world rumors.
-        const unknownRumors = activeRumors.filter(() => true);
+        const townTalk = (state.townRumors ?? [])
+            // Talk belongs to the town it happened in.
+            .filter((rumor) => rumor.locationId === state.currentLocationId)
+            // The witness alone is not gossip yet; it is gossip once it has been retold.
+            .filter((rumor) => rumor.reachedNpcs.length > 1)
+            .filter((rumor) => !isRumorStale(rumor, day))
+            .map(townRumorToWorldRumor);
+
+        // Already-heard rumors are not offered again: the barkeep does not sell
+        // you back the thing you paid them for yesterday. What you bought is
+        // still readable on the receipt in your inventory.
+        const heard = heardOfferIds(state);
+        const unknownRumors = [...activeRumors, ...townTalk].filter(
+            (rumor) => !heard.has(gossipOfferId(rumor.id)),
+        );
 
         if (unknownRumors.length > 0) {
             const picked = rng.pick(unknownRumors);
             rumors.push({
-                id: `gossip_${picked.id}`,
+                id: gossipOfferId(picked.id),
                 type: 'rumor',
                 cost: 2 + Math.floor(rng.next() * 5), // 2-6 gp
                 title: "Hear the latest gossip",
@@ -92,7 +133,8 @@ export class TavernGossipSystem {
                 cost: 10 + Math.floor(rng.next() * 10),
                 title: "Ask about work or trouble",
                 content: "I heard there's an old ruin to the north that's been glowing at night.",
-                payload: undefined
+                payload: undefined,
+                questId: 'explore_ruins'
             });
         }
 

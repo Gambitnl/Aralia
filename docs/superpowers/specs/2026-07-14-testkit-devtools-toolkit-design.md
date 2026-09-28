@@ -20,7 +20,7 @@ For "the game is broken in the browser." A checklist the agent follows in order:
 
 1. Confirm the dev server is running; start it via the existing launch config if not.
 2. Open the target URL in a DevTools-MCP page.
-3. Read fresh console messages. Do not trust stale buffers — use the in-page deterministic replay recipe for World3D issues.
+3. Read fresh console messages. Do not trust stale buffers - use the in-page deterministic replay recipe for World3D issues.
 4. List network requests; flag failures and missing chunks.
 5. Probe app state with `evaluate_script` as needed.
 6. If a memory leak is suspected, take a heap snapshot and inspect.
@@ -35,7 +35,7 @@ Embedded gotchas the workflow must state:
 
 For a named surface (3D world, atlas, combat, town preview):
 
-1. `performance_start_trace` → drive the interaction → `performance_stop_trace`.
+1. `performance_start_trace` -> drive the interaction -> `performance_stop_trace`.
 2. `performance_analyze_insight` for the main findings.
 3. Heap snapshot before and after the interaction; report the delta.
 4. Optional Lighthouse audit for 2D surfaces.
@@ -53,7 +53,7 @@ A fixed, editable surface list in the skill:
 - Dungeon preview
 - Combat via `?dummy=1&dev_combat=1`
 
-For each surface: navigate, wait for ready, count console errors, capture a screenshot. Output is a pass/fail table plus the screenshots sent to the user for eyeballing. A surface never passes on numbers alone — the screenshot must exist.
+For each surface: navigate, wait for ready, count console errors, capture a screenshot. Output is a pass/fail table plus the screenshots sent to the user for eyeballing. A surface never passes on numbers alone - the screenshot must exist.
 
 ## Baselines
 

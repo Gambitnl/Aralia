@@ -1,4 +1,4 @@
-# Action Pane — absorbed spec
+# Action Pane - absorbed spec
 
 **Status:** parked (idle). No open gaps as of 2026-07-11.
 
@@ -25,7 +25,7 @@ The Action Pane is the primary player command surface in the PLAYING layout. It 
 
 ## Resolved gap (G1, done 2026-07-11)
 
-**Issue:** `LongRestModal` dispatched `LONG_REST` directly from `GameModals`, bypassing `processAction` and the full `handleLongRest` — skipping planar-rest rules, overnight events, journal rollover, and time advance.
+**Issue:** `LongRestModal` dispatched `LONG_REST` directly from `GameModals`, bypassing `processAction` and the full `handleLongRest` - skipping planar-rest rules, overnight events, journal rollover, and time advance.
 
 **Fix:** Confirmation now emits the gameplay `LONG_REST` action through `onAction`; the handler owns all overnight effects plus the eight-hour advance.
 

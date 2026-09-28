@@ -19,7 +19,7 @@ import type { CombatCharacter, CombatState } from '@/types/combat';
 import type { DamageEffect, Spell, StatusConditionEffect } from '@/types/spells';
 import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '@/utils/core';
 import { resolveSourceSaveAdvantageModifiers } from '@/systems/spells/mechanics/sourceSaveModifierResolution';
-import * as combatUtils from '@/utils/combat/combatUtils';
+import * as diceRollers from '@/systems/dice/rollers';
 import charmPerson from '@/data/spells/level-1/charm-person.json';
 import shatter from '@/data/spells/level-2/shatter.json';
 import fastFriends from '@/data/spells/level-3/fast-friends.json';
@@ -31,13 +31,25 @@ import dominateMonster from '@/data/spells/level-8/dominate-monster.json';
 
 // The shared save roller and damage command both use this module. Mocking its
 // dice functions lets each test prove whether one or two d20s were requested.
+// agora-f821.4 retired the combatUtils roller family; the modules under
+// test roll through systems/dice/rollers now. One hoisted set of mocks
+// stands in for BOTH specifiers, so one vi.mocked(...) pins every die.
+const diceMocks = vi.hoisted(() => ({
+    rollDice: vi.fn(),
+    rollDamage: vi.fn()
+}))
+
+vi.mock('@/systems/dice/rollers', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/systems/dice/rollers')>()
+  return { ...actual, ...diceMocks }
+})
+
 vi.mock('@/utils/combat/combatUtils', async importOriginal => {
   const actual = await importOriginal<typeof import('@/utils/combat/combatUtils')>();
   return {
     ...actual,
-    rollDice: vi.fn(),
-    rollDamage: vi.fn()
-  };
+    ...diceMocks,
+};
 });
 
 /** Build a combatant with neutral saving-throw modifiers and an explicit side. */
@@ -88,7 +100,7 @@ const makeState = (caster: CombatCharacter, target: CombatCharacter): CombatStat
 describe('source-backed spell save modifiers', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(combatUtils.rollDamage).mockReturnValue(8);
+    vi.mocked(diceRollers.rollDamage).mockReturnValue(8);
   });
 
   it('keeps every fighting-rule save modifier on an explicit runtime predicate', () => {
@@ -129,7 +141,7 @@ describe('source-backed spell save modifiers', () => {
 
     // The first result fails and the second succeeds. The target can resist only
     // if the live fighting predicate reaches the shared Advantage roll.
-    vi.mocked(combatUtils.rollDice)
+    vi.mocked(diceRollers.rollDice)
       .mockReturnValueOnce(2)
       .mockReturnValueOnce(20);
 
@@ -139,7 +151,7 @@ describe('source-backed spell save modifiers', () => {
     ).execute(makeState(caster, target));
     const liveTarget = result.characters.find(character => character.id === target.id)!;
 
-    expect(combatUtils.rollDice).toHaveBeenCalledTimes(2);
+    expect(diceRollers.rollDice).toHaveBeenCalledTimes(2);
     expect(liveTarget.conditions).not.toEqual(
       expect.arrayContaining([expect.objectContaining({ name: 'Charmed' })])
     );
@@ -152,7 +164,7 @@ describe('source-backed spell save modifiers', () => {
       candidate.type === 'STATUS_CONDITION' && candidate.statusCondition?.name === 'Charmed'
     )) as StatusConditionEffect;
 
-    vi.mocked(combatUtils.rollDice).mockReturnValue(2);
+    vi.mocked(diceRollers.rollDice).mockReturnValue(2);
 
     const result = await new StatusConditionCommand(
       effect,
@@ -160,7 +172,7 @@ describe('source-backed spell save modifiers', () => {
     ).execute(makeState(caster, target));
     const liveTarget = result.characters.find(character => character.id === target.id)!;
 
-    expect(combatUtils.rollDice).toHaveBeenCalledTimes(1);
+    expect(diceRollers.rollDice).toHaveBeenCalledTimes(1);
     expect(liveTarget.conditions).toEqual(
       expect.arrayContaining([expect.objectContaining({ name: 'Charmed' })])
     );
@@ -173,7 +185,7 @@ describe('source-backed spell save modifiers', () => {
     // The utility-shaped source row must become a StatusConditionCommand before
     // execution. A failed first die and successful second die then prove the
     // normalized fighting predicate reaches that real factory-built boundary.
-    vi.mocked(combatUtils.rollDice)
+    vi.mocked(diceRollers.rollDice)
       .mockReturnValueOnce(2)
       .mockReturnValueOnce(20);
 
@@ -190,7 +202,7 @@ describe('source-backed spell save modifiers', () => {
     const result = await statusCommand!.execute(makeState(caster, target));
     const liveTarget = result.characters.find(character => character.id === target.id)!;
 
-    expect(combatUtils.rollDice).toHaveBeenCalledTimes(2);
+    expect(diceRollers.rollDice).toHaveBeenCalledTimes(2);
     expect(liveTarget.conditions).not.toEqual(
       expect.arrayContaining([expect.objectContaining({ name: 'Charmed' })])
     );
@@ -204,7 +216,7 @@ describe('source-backed spell save modifiers', () => {
 
     // A natural 20 followed by a 1 proves Disadvantage: the Construct takes the
     // full eight damage, while the Humanoid uses one successful roll and takes half.
-    vi.mocked(combatUtils.rollDice)
+    vi.mocked(diceRollers.rollDice)
       .mockReturnValueOnce(20)
       .mockReturnValueOnce(1);
     const constructResult = await new DamageCommand(
@@ -212,18 +224,18 @@ describe('source-backed spell save modifiers', () => {
       makeContext(shatter.id, shatter.name, caster, construct)
     ).execute(makeState(caster, construct));
 
-    expect(combatUtils.rollDice).toHaveBeenCalledTimes(2);
+    expect(diceRollers.rollDice).toHaveBeenCalledTimes(2);
     expect(constructResult.characters.find(character => character.id === construct.id)?.currentHP)
       .toBe(construct.currentHP - 8);
 
-    vi.mocked(combatUtils.rollDice).mockClear();
-    vi.mocked(combatUtils.rollDice).mockReturnValue(20);
+    vi.mocked(diceRollers.rollDice).mockClear();
+    vi.mocked(diceRollers.rollDice).mockReturnValue(20);
     const humanoidResult = await new DamageCommand(
       effect,
       makeContext(shatter.id, shatter.name, caster, humanoid)
     ).execute(makeState(caster, humanoid));
 
-    expect(combatUtils.rollDice).toHaveBeenCalledTimes(1);
+    expect(diceRollers.rollDice).toHaveBeenCalledTimes(1);
     expect(humanoidResult.characters.find(character => character.id === humanoid.id)?.currentHP)
       .toBe(humanoid.currentHP - 4);
   });

@@ -24,7 +24,7 @@
  */
 
 import type { CombatCharacter, CombatState } from '../../types/combat';
-import { rollDice } from './combatUtils';
+import { rollDice } from '../../systems/dice/rollers';
 
 export const EXPERIMENTAL_ELIXIR_FEATURE_ID = 'experimental_elixir';
 export const HEALING_ELIXIR_DICE = '2d4';

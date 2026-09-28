@@ -8,6 +8,7 @@
  * this component owns only the body.
  */
 import React from 'react';
+import type { Object3D } from 'three';
 import type { EntityBlueprint } from '@/systems/entities3d/types';
 import type { AnimationState } from './models';
 import { type ControlPose } from '../../controlOptionPose';
@@ -19,6 +20,10 @@ interface EntityModelProps {
     /** G7 shared contract: sustained control-option pose (grovel/halt/…), eased
      * on per frame and eased back off when the directive expires. Null = base. */
     controlPose?: ControlPose | null;
+    /** Render-backend hook: called once with the freshly assembled root so a
+     * caller can rebuild materials the backend cannot draw (WebGPU node swap).
+     * Must be referentially stable. */
+    adaptMaterials?: (root: Object3D) => void;
 }
 export declare const EntityModel: React.FC<EntityModelProps>;
 export {};

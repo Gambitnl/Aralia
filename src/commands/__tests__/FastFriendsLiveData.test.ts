@@ -6,6 +6,29 @@ import type { CombatCharacter, CombatState, Position } from '@/types/combat';
 import type { StatusConditionEffect } from '@/types/spells';
 import fastFriends from '@/data/spells/level-3/fast-friends.json';
 
+// agora-f821.4: this file pins Math.random to make a roll deterministic. Game rolls now
+// run on the audit log's own seed stream, so the pin only reaches them
+// through the roller's supported injected-source seam. Feeding
+// Math.random in as that source keeps every pin below meaning what it
+// meant before the migration.
+vi.mock('../../systems/dice/rollers', async importOriginal => {
+  const actual = await importOriginal<typeof import('../../systems/dice/rollers')>()
+  return {
+    ...actual,
+    rollDice: (notation: string, options: { rng?: () => number } = {}) =>
+      actual.rollDice(notation, { ...options, rng: options.rng ?? Math.random }),
+    rollD20: (options: { rng?: () => number } = {}) =>
+      actual.rollD20({ ...options, rng: options.rng ?? Math.random }),
+    rollDamage: (
+      notation: string,
+      isCritical: boolean,
+      minRoll = 1,
+      rng?: () => number,
+    ) => actual.rollDamage(notation, isCritical, minRoll, rng ?? Math.random),
+  }
+})
+
+
 /**
  * This file proves the live Fast Friends request lifecycle from source data to
  * an executable follow-up action. It covers the initial status bridge, friendly

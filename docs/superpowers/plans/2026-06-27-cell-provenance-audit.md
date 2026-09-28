@@ -1,14 +1,14 @@
-# Cell Provenance Audit — First Slice Implementation Plan
+# Cell Provenance Audit - First Slice Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Prove the Voronoi inheritance contract on one drill path — build an audit that classifies every entity in a generated 3D ground world as *inherited*, *elaborated*, or *orphaned* relative to its parent worldmap cell, fails when any core entity is orphaned, and emits the list of scale-appropriate facts the worldmap cell is missing.
+**Goal:** Prove the Voronoi inheritance contract on one drill path - build an audit that classifies every entity in a generated 3D ground world as *inherited*, *elaborated*, or *orphaned* relative to its parent worldmap cell, fails when any core entity is orphaned, and emits the list of scale-appropriate facts the worldmap cell is missing.
 
 **Architecture:** A pure verification layer under `src/systems/worldforge/provenance/`. It does **not** modify any generator. Given the FMG pack (from `getBridgeAtlas`), a chosen settlement cell, and the region/local/ground artifacts that drill produced, it re-derives the expected provenance of each ground entity and classifies it. A runnable harness drives one golden drill path end-to-end, asserts zero orphaned core entities, writes the upstream gap list, and renders the slice for visual sign-off.
 
 **Tech Stack:** TypeScript, Vitest (`npm test`), the existing Worldforge bridge (`legacySubmapBridge.ts`, `groundChunkLoader.ts`), and the existing render rigs under `.agent/`.
 
-**Scope note (deliberate phasing):** This slice enforces the *orphan-zero* invariant as a hard test (nothing core renders without a parent anchor). The *schema-completeness* gaps (feature traces the worldmap cell does not yet own — forests, ruins, dungeons, camps, roadside taverns) are produced as a **report**, expected to be non-empty, and become the backlog for later upstream worldmap work. This keeps the contract green for what exists while making the missing facts loud and tracked. Retiring the legacy non-Voronoi continent pipeline (from the North Star) is out of scope for this slice.
+**Scope note (deliberate phasing):** This slice enforces the *orphan-zero* invariant as a hard test (nothing core renders without a parent anchor). The *schema-completeness* gaps (feature traces the worldmap cell does not yet own - forests, ruins, dungeons, camps, roadside taverns) are produced as a **report**, expected to be non-empty, and become the backlog for later upstream worldmap work. This keeps the contract green for what exists while making the missing facts loud and tracked. Retiring the legacy non-Voronoi continent pipeline (from the North Star) is out of scope for this slice.
 
 ---
 
@@ -18,10 +18,10 @@
 |------|----------------|
 | `src/systems/worldforge/provenance/types.ts` | Verdict/report/gap types shared across the layer |
 | `src/systems/worldforge/provenance/worldCell.ts` | Read normalized canonical facts off an FMG pack cell; classify cell type |
-| `src/systems/worldforge/provenance/cellSchema.ts` | The canonical cell schema + `auditCellSchema()` → gap list |
+| `src/systems/worldforge/provenance/cellSchema.ts` | The canonical cell schema + `auditCellSchema()` -> gap list |
 | `src/systems/worldforge/provenance/groundProvenance.ts` | Classify each ground-world entity kind into a verdict |
 | `src/systems/worldforge/provenance/cellProvenanceAudit.ts` | Orchestrator: assemble a `ProvenanceReport`, compute `passed` |
-| `src/systems/worldforge/provenance/__tests__/fixtures/drillPath.ts` | Build one deterministic golden drill path (pack→cell→region→local→ground) |
+| `src/systems/worldforge/provenance/__tests__/fixtures/drillPath.ts` | Build one deterministic golden drill path (pack->cell->region->local->ground) |
 | `src/systems/worldforge/provenance/__tests__/*.test.ts` | Unit tests per module |
 | `.agent/scratch/run-provenance-audit.ts` | Runnable harness: run audit on the golden path, print report, write gap list, trigger render |
 
@@ -29,7 +29,7 @@
 
 ## Task 1: Golden drill-path fixture
 
-Build the integration fixture first — it is the highest-risk piece (real bridge wiring). Everything else is pure logic on top of it.
+Build the integration fixture first - it is the highest-risk piece (real bridge wiring). Everything else is pure logic on top of it.
 
 **Files:**
 - Create: `src/systems/worldforge/provenance/__tests__/fixtures/drillPath.ts`
@@ -136,7 +136,7 @@ describe('golden drill path fixture', () => {
 - [ ] **Step 3: Run the test to verify it passes**
 
 Run: `npm test -- src/systems/worldforge/provenance/__tests__/drillPath.fixture.test.ts`
-Expected: PASS. If it fails on `no town tiles` or `towns.length === 0`, the golden seed/grid does not surface a burg — adjust `GRID_COLS`/`GRID_ROWS` upward (e.g. 96) until a burg tile appears, then re-run. Do not proceed until green.
+Expected: PASS. If it fails on `no town tiles` or `towns.length === 0`, the golden seed/grid does not surface a burg - adjust `GRID_COLS`/`GRID_ROWS` upward (e.g. 96) until a burg tile appears, then re-run. Do not proceed until green.
 
 - [ ] **Step 4: Commit**
 
@@ -284,7 +284,7 @@ git commit -m "feat(provenance): cell-fact reader + verdict types"
 
 ## Task 3: Canonical cell schema audit
 
-Defines what facts a cell must own at its altitude and produces the gap list. Feature-trace fields (forest/ruin/dungeon/camp/roadside-tavern) are declared required for the relevant cell type but are **known-missing** from today's FMG pack — so they appear in the gap list. That is the intended upstream backlog.
+Defines what facts a cell must own at its altitude and produces the gap list. Feature-trace fields (forest/ruin/dungeon/camp/roadside-tavern) are declared required for the relevant cell type but are **known-missing** from today's FMG pack - so they appear in the gap list. That is the intended upstream backlog.
 
 **Files:**
 - Create: `src/systems/worldforge/provenance/cellSchema.ts`
@@ -395,7 +395,7 @@ git commit -m "feat(provenance): canonical cell schema audit + feature-trace gap
 
 ---
 
-## Task 4: Ground classifiers — terrain biome, town, buildings
+## Task 4: Ground classifiers - terrain biome, town, buildings
 
 **Files:**
 - Create: `src/systems/worldforge/provenance/groundProvenance.ts`
@@ -523,7 +523,7 @@ git commit -m "feat(provenance): terrain-biome + town/building classifiers"
 
 ---
 
-## Task 5: Ground classifiers — hostiles, features, hidden sites
+## Task 5: Ground classifiers - hostiles, features, hidden sites
 
 **Files:**
 - Modify: `src/systems/worldforge/provenance/groundProvenance.ts`
@@ -750,12 +750,12 @@ export function runCellProvenanceAudit(input: AuditInput): ProvenanceReport {
 }
 ```
 
-Note: `AuditInput` reuses `GoldenDrillPath` so the orchestrator stays decoupled from the bridge — any caller that assembles the same fields (pack, cellId, burgId, biomeIdUsed, region, local, ground) can run it.
+Note: `AuditInput` reuses `GoldenDrillPath` so the orchestrator stays decoupled from the bridge - any caller that assembles the same fields (pack, cellId, burgId, biomeIdUsed, region, local, ground) can run it.
 
 - [ ] **Step 4: Run the test to verify it passes**
 
 Run: `npm test -- src/systems/worldforge/provenance/__tests__/cellProvenanceAudit.test.ts`
-Expected: PASS. If a FAIL-level orphan appears, read its `reason` — it is a real contract violation in the drill output; investigate the offending generator before forcing the test green.
+Expected: PASS. If a FAIL-level orphan appears, read its `reason` - it is a real contract violation in the drill output; investigate the offending generator before forcing the test green.
 
 - [ ] **Step 5: Commit**
 
@@ -766,9 +766,9 @@ git commit -m "feat(provenance): audit orchestrator + zero-orphan invariant"
 
 ---
 
-## Task 7: Runnable harness — gap list + render sign-off
+## Task 7: Runnable harness - gap list + render sign-off
 
-Produces the human-facing proof: the report, the upstream gap list written to disk, and a rendered image of the slice for visual sign-off (per the visual-inspection rule — both signals required).
+Produces the human-facing proof: the report, the upstream gap list written to disk, and a rendered image of the slice for visual sign-off (per the visual-inspection rule - both signals required).
 
 **Files:**
 - Create: `.agent/scratch/run-provenance-audit.ts`
@@ -776,7 +776,7 @@ Produces the human-facing proof: the report, the upstream gap list written to di
 - [ ] **Step 1: Confirm the scratch dir is gitignored**
 
 Run: `git check-ignore .agent/scratch/run-provenance-audit.ts && echo IGNORED || echo TRACKED`
-Expected: `IGNORED` (proof artifacts belong in the gitignored scratch dir). If it prints `TRACKED`, still proceed — the harness is a dev tool, not shipped code.
+Expected: `IGNORED` (proof artifacts belong in the gitignored scratch dir). If it prints `TRACKED`, still proceed - the harness is a dev tool, not shipped code.
 
 - [ ] **Step 2: Write the harness**
 
@@ -849,9 +849,9 @@ git commit -m "feat(provenance): runnable audit harness + gap-list output"
 
 ## Self-Review Notes
 
-- **Spec coverage:** North Star principle 6 (provenance checkable) → Tasks 4–6; principle 3 (detail budget / altitude) → schema audit Task 3 + elaborated-vs-inherited split across classifiers; principle 4 (fail loud at the right altitude) → severity model (`fail` for missing-owned facts, gap list for missing feature traces) + Task 7 gap list; the first-slice "Cell Provenance Audit" with three states → `ProvenanceState` + Task 6 orchestrator; "upstream gap list" → Task 7. Principle 1 (retire legacy continent pipeline) is explicitly out of scope for this slice (noted in header).
-- **Phasing honesty:** schema gaps are reported, not failed — documented in the header and Task 3. The orphan-zero invariant is the hard gate.
-- **Type consistency:** `EntityVerdict`, `ProvenanceState`, `Severity`, `SchemaGap`, `ProvenanceReport` defined once in `types.ts` (Task 2) and used unchanged in Tasks 3–7. `CellFacts` defined in `worldCell.ts` (Task 2), consumed by `cellSchema.ts` and `groundProvenance.ts`. `GoldenDrillPath` defined in Task 1, reused as `AuditInput` in Task 6.
-- **Open integration risk:** Task 1 is the de-risking task — if `getTownTilesForGrid` yields no burg tile at 64×64 for the golden seed, raise the grid resolution (noted inline). All later tasks depend on it being green first.
+- **Spec coverage:** North Star principle 6 (provenance checkable) -> Tasks 4-6; principle 3 (detail budget / altitude) -> schema audit Task 3 + elaborated-vs-inherited split across classifiers; principle 4 (fail loud at the right altitude) -> severity model (`fail` for missing-owned facts, gap list for missing feature traces) + Task 7 gap list; the first-slice "Cell Provenance Audit" with three states -> `ProvenanceState` + Task 6 orchestrator; "upstream gap list" -> Task 7. Principle 1 (retire legacy continent pipeline) is explicitly out of scope for this slice (noted in header).
+- **Phasing honesty:** schema gaps are reported, not failed - documented in the header and Task 3. The orphan-zero invariant is the hard gate.
+- **Type consistency:** `EntityVerdict`, `ProvenanceState`, `Severity`, `SchemaGap`, `ProvenanceReport` defined once in `types.ts` (Task 2) and used unchanged in Tasks 3-7. `CellFacts` defined in `worldCell.ts` (Task 2), consumed by `cellSchema.ts` and `groundProvenance.ts`. `GoldenDrillPath` defined in Task 1, reused as `AuditInput` in Task 6.
+- **Open integration risk:** Task 1 is the de-risking task - if `getTownTilesForGrid` yields no burg tile at 64x64 for the golden seed, raise the grid resolution (noted inline). All later tasks depend on it being green first.
 
 <!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/plans/2026-06-27-cell-provenance-audit.md","sha256WithoutMarker":"5e2fa832bf26c177af5240ba8fb474bda2bd32b9c3963c176eddadd611c4f11e","markedAtUtc":"2026-08-09T20:22:07.603Z"} -->

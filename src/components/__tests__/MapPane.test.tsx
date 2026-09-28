@@ -1,13 +1,14 @@
 import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
-import type { MapData } from '@/types/world';
 import type { Ship } from '@/types/naval';
 import MapPane from '../MapPane';
 
-// These tests protect the first legacy-world-map deprecation slice.
-// The gameplay state still uses MapData tiles for travel/discovery, but the
-// player-facing MapPane should no longer expose the old square grid renderer.
+// These tests protect the legacy-world-map deprecation slice.
+// Grid retirement (agora-608b): MapPane is fully cell-native — it takes no
+// `mapData` prop and renders the Worldforge atlas, so the old `createMapData()`
+// MapTile[][] fixture was dead weight and is gone. Travel/discovery state is
+// cell-native (`playerCell`, explored cell ids), not a tile grid.
 
 describe('MapPane', () => {
   it('restores an undersized saved map window to a usable desktop viewport', async () => {
@@ -345,45 +346,5 @@ function createShip(overrides: Partial<Ship> = {}): Ship {
     weapons: [],
     flags: {},
     ...overrides,
-  };
-}
-
-function createMapData(): MapData {
-  return {
-    gridSize: { rows: 2, cols: 2 },
-    tiles: [
-      [
-        {
-          x: 0,
-          y: 0,
-          biomeId: 'plains',
-          discovered: true,
-          isPlayerCurrent: true,
-        },
-        {
-          x: 1,
-          y: 0,
-          biomeId: 'forest',
-          discovered: true,
-          isPlayerCurrent: false,
-        },
-      ],
-      [
-        {
-          x: 0,
-          y: 1,
-          biomeId: 'water',
-          discovered: false,
-          isPlayerCurrent: false,
-        },
-        {
-          x: 1,
-          y: 1,
-          biomeId: 'mountains',
-          discovered: false,
-          isPlayerCurrent: false,
-        },
-      ],
-    ],
   };
 }

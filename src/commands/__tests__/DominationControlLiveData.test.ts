@@ -16,17 +16,24 @@ import dominateMonster from '@/data/spells/level-8/dominate-monster.json';
  * combat state.
  */
 
-vi.mock('../../utils/character/savingThrowUtils', () => ({
-  calculateSpellDC: vi.fn(() => 15),
-  rollSavingThrow: vi.fn(() => ({
-    roll: 2,
-    modifier: 0,
-    total: 2,
-    dc: 15,
-    success: false,
-    modifiersApplied: []
-  }))
-}));
+vi.mock('../../utils/character/savingThrowUtils', async importOriginal => {
+  // Spread the real module: only the rolled save is stubbed. Anything
+  // else the commands call (resolveSaveOutcomeOverride) is pure and must
+  // keep its real behavior, or it arrives undefined (agora-f821.52).
+  const actual = await importOriginal<typeof import('../../utils/character/savingThrowUtils')>();
+  return {
+    ...actual,
+    calculateSpellDC: vi.fn(() => 15),
+    rollSavingThrow: vi.fn(() => ({
+      roll: 2,
+      modifier: 0,
+      total: 2,
+      dc: 15,
+      success: false,
+      modifiersApplied: []
+    }))
+  };
+});
 
 type DominationCase = {
   spell: typeof dominateBeast;

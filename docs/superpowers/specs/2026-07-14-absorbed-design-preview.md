@@ -1,4 +1,4 @@
-# Design Preview Tool — Absorbed Spec
+# Design Preview Tool - Absorbed Spec
 
 **Absorbed:** 2026-07-15  
 **Evidence:** docs/projects/design-preview (now deleted); verification in `/misc/design.html`
@@ -34,12 +34,12 @@ Use this when a visual pass is requested (from RUNBOOK.md):
 
 ## Implementation Files
 
-- `misc/design.html` — standalone shell
-- `src/design-preview.tsx` — React mount
-- `src/components/DesignPreview/DesignPreviewPage.tsx` — multi-lane router
-- `src/components/DesignPreview/VariantSwitcher.tsx`, `StyleVariants.tsx` — style variants
-- `src/components/DesignPreview/steps/*` — lane implementations (25+ files)
-- `src/md-library-entry.tsx`, `misc/md_library.html` — docs library reuse
+- `misc/design.html` - standalone shell
+- `src/design-preview.tsx` - React mount
+- `src/components/DesignPreview/DesignPreviewPage.tsx` - multi-lane router
+- `src/components/DesignPreview/VariantSwitcher.tsx`, `StyleVariants.tsx` - style variants
+- `src/components/DesignPreview/steps/*` - lane implementations (25+ files)
+- `src/md-library-entry.tsx`, `misc/md_library.html` - docs library reuse
 
 ## Next Steward
 

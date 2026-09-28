@@ -184,7 +184,7 @@ Terrain was never walked below. Water was looked at from one side.
 All four assumptions have since broken. The player walks the ground, the camera
 goes where it likes, and spells cut into the world.
 
-The cheats that remain correct — grass, leaves, the far horizon — are the ones
+The cheats that remain correct - grass, leaves, the far horizon - are the ones
 where the assumption still holds.
 
 ## Recommended order

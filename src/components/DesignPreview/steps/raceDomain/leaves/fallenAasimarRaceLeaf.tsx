@@ -19,7 +19,8 @@ import type { AbilityCost, CombatCharacter } from '../../../../../types/combat';
 import type { PlayerCharacter, Race } from '../../../../../types';
 import { applyRacialSpellGrantsByLevel } from '../../../../../utils/character/characterUtils';
 import { calculateProficiencyBonus } from '../../../../../utils/character/savingThrowUtils';
-import { createPlayerCombatCharacter, calculateDamage, rollDice } from '../../../../../utils/combat/combatUtils';
+import { createPlayerCombatCharacter, calculateDamage, spendCombatLimitedUse } from '../../../../../utils/combat/combatUtils';
+import { rollDice } from '../../../../../systems/dice/rollers';
 import { consumeActionCost, canAffordActionCost } from '../../../../../utils/combat/actionEconomyUtils';
 import { applyHealingAndRestore } from '../../../../../utils/combat/deathSaveUtils';
 import { createQuickCharacter } from '../../../../../utils/sandbox/quickCharacterGenerator';
@@ -175,10 +176,13 @@ export function createFallenAasimarActors(race: Race): FallenAasimarActorAssembl
     };
   }
 
-  // DEBT: The combat bridge currently drops persistent limitedUses, and the
-  // generic prose parser reads the PB dice phrase as PB uses. Preserve the
-  // canonical one-use long-rest rule in this leaf until a shared racial-feature
-  // projection fixes both gaps upstream.
+  // agora-0ad6 landed, so the combat bridge already carries this entry; the
+  // leaf no longer re-attaches it to make it spendable. What stays is a
+  // CORRECTION, not a carry: the shared parser reads "roll a number of d4s
+  // equal to your Proficiency Bonus" as the usage count and reports
+  // maxUses 'proficiency_bonus', while the canonical row says "Once you use
+  // this trait, you can't use it again until you finish a Long Rest". Pin the
+  // canonical once-per-long-rest number until the parser is widened.
   const canonicalHealingHandsResource = {
     ...parsedResource,
     current: 1,
@@ -197,8 +201,8 @@ export function createFallenAasimarActors(race: Race): FallenAasimarActorAssembl
   const actor: CombatCharacter = {
     ...sourceActor,
     id: FALLEN_AASIMAR_ACTOR_ID,
-    // This narrow projection keeps the production-created resource visible to
-    // the leaf while the combat bridge does not yet carry limitedUses.
+    // Only the corrected Healing Hands count is overwritten here; every other
+    // entry is the bridge's own projection.
     limitedUses: {
       ...(sourceActor.limitedUses ?? {}),
       [FALLEN_AASIMAR_HEALING_HANDS_RESOURCE_ID]: canonicalHealingHandsResource,
@@ -270,26 +274,6 @@ function rejectedResolution(
   };
 }
 
-/** Spend one parsed feature resource while preserving immutable actor state. */
-function spendHealingHandsResource(actor: CombatCharacter): CombatCharacter {
-  const resource = actor.limitedUses?.[FALLEN_AASIMAR_HEALING_HANDS_RESOURCE_ID];
-  if (!resource) return actor;
-
-  // DEBT: Feature-resource spending has no shared payer yet. This adapter only
-  // decrements the parser-created key; a future generic racial-feature payer
-  // should replace it without changing the Healing Hands transaction surface.
-  return {
-    ...actor,
-    limitedUses: {
-      ...actor.limitedUses,
-      [FALLEN_AASIMAR_HEALING_HANDS_RESOURCE_ID]: {
-        ...resource,
-        current: Math.max(0, resource.current - 1),
-      },
-    },
-  };
-}
-
 /** Resolve one action, touch target, PB-d4 healing transaction atomically. */
 export function resolveFallenAasimarHealing(
   scenario: FallenAasimarScenarioState,
@@ -322,7 +306,12 @@ export function resolveFallenAasimarHealing(
   const beforeHP = target.currentHP;
   const healedTarget = applyHealingAndRestore(target, rawHealing);
   const actualHealing = healedTarget.currentHP - beforeHP;
-  const paidActor = spendHealingHandsResource(consumeActionCost(actor, HEALING_HANDS_COST));
+  // spendCombatLimitedUse is the shared immutable payer (agora-0ad6). The
+  // charge was already proven available by the resource guards above.
+  const paidActor = spendCombatLimitedUse(
+    consumeActionCost(actor, HEALING_HANDS_COST),
+    FALLEN_AASIMAR_HEALING_HANDS_RESOURCE_ID,
+  ).character;
   const resolution: FallenAasimarHealingResolution = {
     status: 'resolved',
     reason: 'resolved',

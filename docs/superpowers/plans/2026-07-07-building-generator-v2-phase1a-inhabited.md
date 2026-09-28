@@ -1,10 +1,10 @@
-# Building Generator v2 — Phase 1A: Inhabited Buildings — Implementation Plan
+# Building Generator v2 - Phase 1A: Inhabited Buildings - Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Generate each town building FROM the family that lives in it, and make the family visibly use it — room claims, daily schedules bound to furniture, and containers holding real, owned items.
+**Goal:** Generate each town building FROM the family that lives in it, and make the family visibly use it - room claims, daily schedules bound to furniture, and containers holding real, owned items.
 
-**Architecture:** Two layers. The **permanent blueprint** (`BlueprintPlan`) gains additive inputs — a `HouseholdBrief`, frontage, and reserved style/history fields — and its room programs become brief-driven. The **living overlay** (`BuildingOccupancy`) is a new pure module computed from `(plan, named household)`: claims, hourly stations, state flags, container manifests. The overlay is derived data, never saved, and can never move a wall.
+**Architecture:** Two layers. The **permanent blueprint** (`BlueprintPlan`) gains additive inputs - a `HouseholdBrief`, frontage, and reserved style/history fields - and its room programs become brief-driven. The **living overlay** (`BuildingOccupancy`) is a new pure module computed from `(plan, named household)`: claims, hourly stations, state flags, container manifests. The overlay is derived data, never saved, and can never move a wall.
 
 **Tech Stack:** TypeScript, Vitest, the frozen worldforge seed-path RNG (`rngFromPath(streamPath(...))`), pure data modules (zero `three` imports).
 
@@ -12,21 +12,21 @@
 
 ## Global Constraints
 
-- Feet-canon 5 ft grid (`CELL_FT = 5`); all coords feet, cells are 5×5 ft.
+- Feet-canon 5 ft grid (`CELL_FT = 5`); all coords feet, cells are 5x5 ft.
 - Pure data: zero `three` imports in any generator or overlay module.
 - Deterministic: all randomness via `rngFromPath(streamPath(path, '<concern>'))`; **never `Math.random()`**. New concerns get NEW stream names so existing streams are not perturbed.
 - No fallback / graceful degradation: unmapped types/roles **throw**; honest omission over substitution.
 - US spelling everywhere (color, gray, -ize).
-- **Do NOT commit, do NOT branch.** Work only in `master`; the repo auto-snapshots daily at 2am. Each task ends with its tests green and `npx tsc --noEmit` clean on touched files — there is no commit step.
+- **Do NOT commit, do NOT branch.** Work only in `master`; the repo auto-snapshots daily at 2am. Each task ends with its tests green and `npx tsc --noEmit` clean on touched files - there is no commit step.
 - Tests: loop ≥50 seeds for per-seed invariants; use independent oracles (recompute from `rg`/cells, never from the implementation's own helper output).
-- v1 goldens re-freeze ONLY in Task 12, deliberately — earlier tasks must not silently update snapshots.
-- Every coined term already in `tools/agora/GLOSSARY.md` (household brief, living overlay, etc.) — add any NEW term you coin in the same turn.
+- v1 goldens re-freeze ONLY in Task 12, deliberately - earlier tasks must not silently update snapshots.
+- Every coined term already in `tools/agora/GLOSSARY.md` (household brief, living overlay, etc.) - add any NEW term you coin in the same turn.
 
 ## File Structure (what exists / what lands)
 
 ```
 src/systems/worldforge/interior/
-  blueprintTypes.ts      MODIFY  Task 1 (BuildingType 14) + Task 3 (v2 contract delta) — FROZEN after Task 3
+  blueprintTypes.ts      MODIFY  Task 1 (BuildingType 14) + Task 3 (v2 contract delta) - FROZEN after Task 3
   footprint.ts           MODIFY  Task 1 (TYPE_CONFIG for 9 new types)
   partition.ts           MODIFY  Task 1 (roomCapFor for new types)
   program.ts             MODIFY  Task 2 (programs) + Task 7 (brief slots, street-facing, upper floors)
@@ -35,12 +35,12 @@ src/systems/worldforge/interior/
   walls.ts               MODIFY  Task 9 (street-side shopfront glazing)
   generateInterior.ts    MODIFY  Task 1 (ROLE_TO_TYPE, BASEMENT_CHANCE) + Task 11 (brief pass-through)
   generateBuilding.ts    MODIFY  Task 8 (household input, bedroom distribution, memo key, frontage)
-  tradeRooms.ts          CREATE  Task 5 (trade → demanded rooms table)
-  briefProgram.ts        CREATE  Task 6 (brief → building program: bedrooms, extras)
+  tradeRooms.ts          CREATE  Task 5 (trade -> demanded rooms table)
+  briefProgram.ts        CREATE  Task 6 (brief -> building program: bedrooms, extras)
   occupancy.ts           CREATE  Task 10 (living overlay: claims, stations, flags)
   manifests.ts           CREATE  Task 10 (container manifests)
 src/systems/worldforge/town/
-  householdBrief.ts      CREATE  Task 4 (Household/plot → HouseholdBrief)
+  householdBrief.ts      CREATE  Task 4 (Household/plot -> HouseholdBrief)
 src/data/items/
   householdGoods.ts      CREATE  Task 10 (mundane container items)
   index.ts               MODIFY  Task 10 (merge householdGoods into ALL_ITEMS)
@@ -50,11 +50,11 @@ src/components/DesignPreview/steps/PreviewBlueprint.tsx  MODIFY  Task 13 (occupa
 src/systems/worldforge/bridge/ (occupancy exposure)      MODIFY  Task 14
 ```
 
-Dependency order: 1 → 2 → 3 → (4, 5 parallel) → 6 → 7 → 8 → 9 → (10 after 3; 11 after 8) → 12 → 13 → 14. Task 3 freezes `blueprintTypes.ts`; every later task builds on the frozen shape.
+Dependency order: 1 -> 2 -> 3 -> (4, 5 parallel) -> 6 -> 7 -> 8 -> 9 -> (10 after 3; 11 after 8) -> 12 -> 13 -> 14. Task 3 freezes `blueprintTypes.ts`; every later task builds on the frozen shape.
 
 ---
 
-### Task 1: Shared vocabulary — 14 building types
+### Task 1: Shared vocabulary - 14 building types
 
 Close the town↔generator vocabulary gap: grow `BuildingType` from 5 to 14 so the generator speaks every word town generation places. The town population classifier (`src/systems/worldforge/town/population.ts` `BuildingType`, 11 values) must be a strict subset of the new list.
 
@@ -67,7 +67,7 @@ Close the town↔generator vocabulary gap: grow `BuildingType` from 5 to 14 so t
 
 **Interfaces:**
 - Consumes: existing `Footprint`, `genFootprint(path, type)`, `roomCapFor(type)`.
-- Produces: `BuildingType` (14 values) — every later task keys tables on it:
+- Produces: `BuildingType` (14 values) - every later task keys tables on it:
 
 ```ts
 export type BuildingType =
@@ -131,7 +131,7 @@ describe('shared building vocabulary', () => {
 - [ ] **Step 2: Run test to verify it fails**
 
 Run: `npx vitest run src/systems/worldforge/interior/__tests__/vocabulary.test.ts`
-Expected: FAIL — TS errors on the new type values ('townhouse' not assignable) and mapping assertions.
+Expected: FAIL - TS errors on the new type values ('townhouse' not assignable) and mapping assertions.
 
 - [ ] **Step 3: Implement**
 
@@ -173,13 +173,13 @@ Expected: PASS.
 - [ ] **Step 5: Verify no regression + typecheck**
 
 Run: `npx vitest run src/systems/worldforge/interior/` and `npx tsc --noEmit`
-Expected: existing interior tests still green — the 5 original `TYPE_CONFIG` entries are byte-identical so no seed re-rolls yet. TS will force `PROGRAMS`/`RECIPES`/`HEADLINE` records to cover the new keys — add MINIMAL placeholder programs in this task (copy the closest existing type: townhouse/tenement/farmstead ← cottage, smithy ← workshop, inn ← tavern, storehouse ← workshop, temple/keep/civic ← manor) with a `// Task 2 replaces these` comment. Task 2 replaces them with real programs.
+Expected: existing interior tests still green - the 5 original `TYPE_CONFIG` entries are byte-identical so no seed re-rolls yet. TS will force `PROGRAMS`/`RECIPES`/`HEADLINE` records to cover the new keys - add MINIMAL placeholder programs in this task (copy the closest existing type: townhouse/tenement/farmstead ← cottage, smithy ← workshop, inn ← tavern, storehouse ← workshop, temple/keep/civic ← manor) with a `// Task 2 replaces these` comment. Task 2 replaces them with real programs.
 
 ---
 
 ### Task 2: Real room programs for the 9 new types
 
-Each new type gets a real program, headline purpose, and furnish recipes — a temple is a nave with a sanctuary, not a dressed-up manor. Adds 5 new room purposes.
+Each new type gets a real program, headline purpose, and furnish recipes - a temple is a nave with a sanctuary, not a dressed-up manor. Adds 5 new room purposes.
 
 **Files:**
 - Modify: `src/systems/worldforge/interior/blueprintTypes.ts:5-9` (`RoomPurpose`)
@@ -195,7 +195,7 @@ Each new type gets a real program, headline purpose, and furnish recipes — a t
 
 ```ts
 describe('v2 type programs', () => {
-  it('temple headline is nave; keep gets guard-room; smithy gets forge — 50 seeds each', () => {
+  it('temple headline is nave; keep gets guard-room; smithy gets forge - 50 seeds each', () => {
     const expects: Array<[BuildingType, RoomPurpose, RoomPurpose]> = [
       ['temple', 'nave', 'sanctuary'],
       ['keep', 'great-hall', 'guard-room'],
@@ -217,7 +217,7 @@ describe('v2 type programs', () => {
 });
 ```
 
-- [ ] **Step 2: Run to verify it fails** — `npx vitest run src/systems/worldforge/interior/__tests__/program.test.ts` — FAIL (placeholder programs from Task 1).
+- [ ] **Step 2: Run to verify it fails** - `npx vitest run src/systems/worldforge/interior/__tests__/program.test.ts` - FAIL (placeholder programs from Task 1).
 
 - [ ] **Step 3: Implement**
 
@@ -245,7 +245,7 @@ keep:       { slots: [ { purpose: 'guard-room', min: 1, max: 1 }, { purpose: 'ar
 civic:      { slots: [ { purpose: 'study', min: 1, max: 1 }, { purpose: 'storage', min: 0, max: 1 } ], filler: 'private-room' },
 ```
 
-Note: the smithy headline `forge` means the MAIN room is the forge — `HEADLINE` handles it; the `workshop` slot is the secondary workroom. Storage cap stays 1 EXCEPT storehouse/tenement filler (the cap check at `program.ts:278` must exempt the filler purpose when `program.filler === 'storage'` — storehouses are legitimately mostly storerooms).
+Note: the smithy headline `forge` means the MAIN room is the forge - `HEADLINE` handles it; the `workshop` slot is the secondary workroom. Storage cap stays 1 EXCEPT storehouse/tenement filler (the cap check at `program.ts:278` must exempt the filler purpose when `program.filler === 'storage'` - storehouses are legitimately mostly storerooms).
 
 `KIND_HINTS` additions in furnish.ts: `'forge-hearth': 'exterior-wall'`, `'anvil': 'center'`, `'loom': 'wall'`, `'strongbox': 'wall'`, `'writing-desk': 'wall'`.
 
@@ -261,24 +261,24 @@ Note: the smithy headline `forge` means the MAIN room is the forge — `HEADLINE
 
 `PURPOSE_TO_ROLE` additions (total mapping must stay total): `'forge': 'workshop'`, `'counting-room': 'workshop'`, `'servant-room': 'bedroom'`, `'stockroom': 'storage'`, `'brewhouse': 'storage'`.
 
-- [ ] **Step 4: Run to verify pass** — `npx vitest run src/systems/worldforge/interior/` — all green.
-- [ ] **Step 5: Typecheck** — `npx tsc --noEmit` — clean (TS totality on the Records is the safety net).
+- [ ] **Step 4: Run to verify pass** - `npx vitest run src/systems/worldforge/interior/` - all green.
+- [ ] **Step 5: Typecheck** - `npx tsc --noEmit` - clean (TS totality on the Records is the safety net).
 
 ---
 
-### Task 3: v2 contract delta — freeze `blueprintTypes.ts`
+### Task 3: v2 contract delta - freeze `blueprintTypes.ts`
 
 All new contract types land at once, then the file freezes (v1 lesson: contract churn after goldens is the expensive failure). Everything is additive and optional.
 
 **Files:**
 - Modify: `src/systems/worldforge/interior/blueprintTypes.ts`
-- Test: `src/systems/worldforge/interior/__tests__/vocabulary.test.ts` (extend — shape assertions)
+- Test: `src/systems/worldforge/interior/__tests__/vocabulary.test.ts` (extend - shape assertions)
 
-**Interfaces (produces — verbatim, later tasks import these names):**
+**Interfaces (produces - verbatim, later tasks import these names):**
 
 ```ts
 /** Coarse family description the generator designs a house for.
- *  Slots and counts, never names — names stay lazy (town/household.ts). */
+ *  Slots and counts, never names - names stay lazy (town/household.ts). */
 export interface MemberSlot {
   /** Stable tag: 'head', 'spouse', 'child:0', 'elder:0', 'kin:0', 'lodger:0', 'servant:0'. */
   tag: string;
@@ -306,7 +306,7 @@ export interface FrontageInfo {
   entryX: Feet; entryY: Feet;
 }
 
-/** RESERVED for Phase 1B/3 — declared now so phases 1-2 never reopen the
+/** RESERVED for Phase 1B/3 - declared now so phases 1-2 never reopen the
  *  contract. Not populated by Phase 1A. */
 export interface StyleContext {
   cultureId: number; climate: 'temperate' | 'cold' | 'arid' | 'marsh';
@@ -324,7 +324,7 @@ export interface BuildingEvent { day: number; kind: string; payload?: Record<str
 
 Plus on existing types: `BlueprintRoom.forSlot?: string` (the MemberSlot tags this room was programmed for, comma-joined, e.g. `'child:0,child:1'`); `BlueprintPlan.household?: HouseholdBrief` (echo of the input); `BlueprintPlan.frontage?: FrontageInfo`; `BlueprintPlan.style?: StyleContext` and `BlueprintPlan.backstory?: BuildingBackstory` (reserved, undefined in 1A).
 
-- [ ] **Step 1: Write the failing test** — extend `vocabulary.test.ts`:
+- [ ] **Step 1: Write the failing test** - extend `vocabulary.test.ts`:
 
 ```ts
 it('v2 contract fields exist and stay optional (bare v1 call unaffected)', () => {
@@ -338,10 +338,10 @@ it('v2 contract fields exist and stay optional (bare v1 call unaffected)', () =>
 });
 ```
 
-- [ ] **Step 2: Run to verify it fails** — FAIL: TS unknown properties.
-- [ ] **Step 3: Implement** — add the types above to `blueprintTypes.ts`; no behavior change anywhere.
-- [ ] **Step 4: Run to verify pass** — `npx vitest run src/systems/worldforge/interior/` green; `npx tsc --noEmit` clean.
-- [ ] **Step 5: Freeze** — add a header comment to `blueprintTypes.ts`: `// CONTRACT FROZEN for Phase 1A (Task 3). Additions require a deliberate re-freeze task.`
+- [ ] **Step 2: Run to verify it fails** - FAIL: TS unknown properties.
+- [ ] **Step 3: Implement** - add the types above to `blueprintTypes.ts`; no behavior change anywhere.
+- [ ] **Step 4: Run to verify pass** - `npx vitest run src/systems/worldforge/interior/` green; `npx tsc --noEmit` clean.
+- [ ] **Step 5: Freeze** - add a header comment to `blueprintTypes.ts`: `// CONTRACT FROZEN for Phase 1A (Task 3). Additions require a deliberate re-freeze task.`
 
 ---
 
@@ -354,7 +354,7 @@ Coarsen the existing lazy named household into a `HouseholdBrief`, and build one
 - Test: `src/systems/worldforge/town/__tests__/householdBrief.test.ts`
 
 **Interfaces:**
-- Consumes: `generateHousehold(townSeed, homeId, occupants, dwelling?, work?)` → `Household` (`town/household.ts:92`); `BuildingPlot` fields `homeId/occupants/buildingType/district/workRole/workplaceId/proprietorHomeId` (`townEngine.ts:22-49`); `HouseholdBrief`/`MemberSlot` from Task 3.
+- Consumes: `generateHousehold(townSeed, homeId, occupants, dwelling?, work?)` -> `Household` (`town/household.ts:92`); `BuildingPlot` fields `homeId/occupants/buildingType/district/workRole/workplaceId/proprietorHomeId` (`townEngine.ts:22-49`); `HouseholdBrief`/`MemberSlot` from Task 3.
 - Produces:
 
 ```ts
@@ -363,8 +363,8 @@ export function briefFromHousehold(
   opts: { wealth: BriefWealth; worksAtHome: boolean },
 ): HouseholdBrief;
 
-/** Brief for a plot. Residential plot → its household's brief.
- *  Workplace plot (smithy/shop/inn/tavern) → the PROPRIETOR family's brief
+/** Brief for a plot. Residential plot -> its household's brief.
+ *  Workplace plot (smithy/shop/inn/tavern) -> the PROPRIETOR family's brief
  *  with worksAtHome: true (they live over the shop). Returns undefined for
  *  plots with no household (storehouse, civic, temple, keep, unpopulated towns). */
 export function briefForPlot(
@@ -419,7 +419,7 @@ describe('householdBrief', () => {
 });
 ```
 
-- [ ] **Step 2: Run to verify it fails** — module not found.
+- [ ] **Step 2: Run to verify it fails** - module not found.
 - [ ] **Step 3: Implement `householdBrief.ts`**
 
 ```ts
@@ -428,7 +428,7 @@ import { generateHousehold, type Household } from './household';
 import type { BuildingPlot } from './townEngine';
 import type { SeedPath } from '../seedPath';
 
-/** Servant count by wealth — wealthy homes staff up, others never. */
+/** Servant count by wealth - wealthy homes staff up, others never. */
 const SERVANTS: Record<BriefWealth, number> = { poor: 0, common: 0, wealthy: 2 };
 
 export function briefFromHousehold(
@@ -479,7 +479,7 @@ export function briefForPlot(
 }
 ```
 
-Note: `generateHousehold`'s `work.workplaceType` for a home's workers needs the workplace's type — resolve it via `plot.workplaceId` against `allPlots` (same lookup pattern as the proprietor branch) so a staff household's head gets the right trade noun. Implement that lookup; the test's third case covers the proprietor path.
+Note: `generateHousehold`'s `work.workplaceType` for a home's workers needs the workplace's type - resolve it via `plot.workplaceId` against `allPlots` (same lookup pattern as the proprietor branch) so a staff household's head gets the right trade noun. Implement that lookup; the test's third case covers the proprietor path.
 
 - [ ] **Step 4: Run to verify pass**, then `npx tsc --noEmit` clean.
 
@@ -503,8 +503,8 @@ export interface TradeRoomDemand {
   /** Room prefers adjacency to this purpose. */
   adjacentTo?: RoomPurpose;
 }
-/** Demanded rooms per trade when worksAtHome. Unknown trade → [] (a
- *  labourer/farmer home has no trade room in town — legitimate, not fallback). */
+/** Demanded rooms per trade when worksAtHome. Unknown trade -> [] (a
+ *  labourer/farmer home has no trade room in town - legitimate, not fallback). */
 export function tradeRoomsFor(trade: string): TradeRoomDemand[];
 ```
 
@@ -532,7 +532,7 @@ describe('tradeRoomsFor', () => {
 ```
 
 - [ ] **Step 2: Run to verify it fails.**
-- [ ] **Step 3: Implement** — the full table (trades come from `household.ts` `PROPRIETOR_TRADE`/`STAFF_TRADE` + 'farmer'/'labourer'):
+- [ ] **Step 3: Implement** - the full table (trades come from `household.ts` `PROPRIETOR_TRADE`/`STAFF_TRADE` + 'farmer'/'labourer'):
 
 ```ts
 const TABLE: Record<string, TradeRoomDemand[]> = {
@@ -548,13 +548,13 @@ const TABLE: Record<string, TradeRoomDemand[]> = {
 export const tradeRoomsFor = (trade: string): TradeRoomDemand[] => TABLE[trade] ?? [];
 ```
 
-Staff trades ("smith's apprentice", "serving-hand"…) intentionally hit the `[]` branch — staff work at the workplace, not at home.
+Staff trades ("smith's apprentice", "serving-hand"...) intentionally hit the `[]` branch - staff work at the workplace, not at home.
 
 - [ ] **Step 4: Run to verify pass**; typecheck clean.
 
 ---
 
-### Task 6: Brief program — family → demanded rooms
+### Task 6: Brief program - family -> demanded rooms
 
 Turn a `HouseholdBrief` into (a) extra ground-floor program slots and (b) the bedroom list with sharing, tagged by member slots. Pure, RNG-free (the demand is a function of the family, not of luck).
 
@@ -578,7 +578,7 @@ export interface BriefProgram {
 export function programForBrief(type: BuildingType, brief: HouseholdBrief): BriefProgram;
 ```
 
-**Sharing rules (the spec's, exactly):** head+spouse share room 1; children share 2 per room, grouped in tag order; elders and kin get single rooms; lodgers get single rooms (assigned last → they land in the attic/back); servants share one `servant-room` (a ground/`groundExtra` slot, not a bedroom). Wealth extras: wealthy adds `{ purpose: 'solar', min: 1, max: 1 }` and `{ purpose: 'counting-room', min: 0, max: 1 }`; poor removes nothing but adds nothing.
+**Sharing rules (the spec's, exactly):** head+spouse share room 1; children share 2 per room, grouped in tag order; elders and kin get single rooms; lodgers get single rooms (assigned last -> they land in the attic/back); servants share one `servant-room` (a ground/`groundExtra` slot, not a bedroom). Wealth extras: wealthy adds `{ purpose: 'solar', min: 1, max: 1 }` and `{ purpose: 'counting-room', min: 0, max: 1 }`; poor removes nothing but adds nothing.
 
 - [ ] **Step 1: Write the failing test**
 
@@ -633,7 +633,7 @@ describe('programForBrief', () => {
 ```
 
 - [ ] **Step 2: Run to verify it fails.**
-- [ ] **Step 3: Implement** — direct translation of the sharing rules; `groundExtra` = wealth extras + `servant-room` slot when any servant slots exist + `tradeDemands` mapped to `{ purpose, min: 1, max: 1 }` slots (constraints ride separately in `tradeDemands` for Task 7's placement). Export `ProgramSlot` from `program.ts` (change `interface ProgramSlot` to `export interface ProgramSlot`).
+- [ ] **Step 3: Implement** - direct translation of the sharing rules; `groundExtra` = wealth extras + `servant-room` slot when any servant slots exist + `tradeDemands` mapped to `{ purpose, min: 1, max: 1 }` slots (constraints ride separately in `tradeDemands` for Task 7's placement). Export `ProgramSlot` from `program.ts` (change `interface ProgramSlot` to `export interface ProgramSlot`).
 - [ ] **Step 4: Run to verify pass**; typecheck clean.
 
 ---
@@ -649,7 +649,7 @@ describe('programForBrief', () => {
 **Interfaces:**
 
 ```ts
-// program.ts — extended signature (backward compatible: opts optional)
+// program.ts - extended signature (backward compatible: opts optional)
 export interface AssignOptions {
   extraSlots?: ProgramSlot[];
   tradeDemands?: TradeRoomDemand[];
@@ -662,7 +662,7 @@ export function assignPurposes(
 
 /** Non-ground floors: consume the bedroom queue (largest rooms first, one
  *  assignment per room, forSlot = tags joined with ','), then filler:
- *  level > 0 → 'guest-room', level < 0 → cellar/storage alternating (keeps
+ *  level > 0 -> 'guest-room', level < 0 -> cellar/storage alternating (keeps
  *  v1 basement flavor). Corridors stay corridors. */
 export function assignUpperPurposes(
   path: SeedPath, type: BuildingType, rg: number[][], level: number,
@@ -670,7 +670,7 @@ export function assignUpperPurposes(
 ): BlueprintRoom[];
 ```
 
-**Street-facing scoring:** a room is street-facing when it owns a cell `(cx, cy)` whose north neighbor `rg[cy-1]?.[cx]` is outside (undefined or `< 0`) AND `cy` equals the min occupied `cy` of that column — i.e. it owns an outer edge on the min-y boundary. Compute a `streetRooms: Set<number>` from `rg` alone (independent oracle friendly). A demand with `streetFacing: true` scores `pickBest` +4 for street rooms (dominating the kitchen-style adjacency scores); `adjacentTo: 'x'` scores +1 per shared edge with the already-placed room of purpose `x` (same relaxation rule as pantry: no candidate → size order, honestly relaxed).
+**Street-facing scoring:** a room is street-facing when it owns a cell `(cx, cy)` whose north neighbor `rg[cy-1]?.[cx]` is outside (undefined or `< 0`) AND `cy` equals the min occupied `cy` of that column - i.e. it owns an outer edge on the min-y boundary. Compute a `streetRooms: Set<number>` from `rg` alone (independent oracle friendly). A demand with `streetFacing: true` scores `pickBest` +4 for street rooms (dominating the kitchen-style adjacency scores); `adjacentTo: 'x'` scores +1 per shared edge with the already-placed room of purpose `x` (same relaxation rule as pantry: no candidate -> size order, honestly relaxed).
 
 - [ ] **Step 1: Write the failing tests** (extend `program.test.ts`)
 
@@ -708,18 +708,18 @@ describe('brief-driven placement', () => {
 });
 ```
 
-(Where `buildFloorWithOpts`/`buildUpper` extend the existing shared `buildFloor` fixture — pass the opts through; `minCyOfColumn` is a 3-line test helper scanning `rg`.)
+(Where `buildFloorWithOpts`/`buildUpper` extend the existing shared `buildFloor` fixture - pass the opts through; `minCyOfColumn` is a 3-line test helper scanning `rg`.)
 
 - [ ] **Step 2: Run to verify failure.**
-- [ ] **Step 3: Implement.** Key constraints: NO new draws on the `'program'` stream for scoring (scoring is deterministic like the existing kitchen/pantry pass — stream consumption must not change for existing types called WITHOUT opts, so v1 seeds reproduce until Task 12 re-freezes). `extraSlots` append to the type program's slot list BEFORE the queue is built — this adds one `rng.nextInt` draw per extra slot with `max > min`; keep all extra slots `min === max` so **zero extra draws** happen and the stream stays byte-stable for optless calls.
-- [ ] **Step 4: Run the full interior suite** — all green (optless behavior unchanged is the critical assertion; the existing program tests are the guard).
+- [ ] **Step 3: Implement.** Key constraints: NO new draws on the `'program'` stream for scoring (scoring is deterministic like the existing kitchen/pantry pass - stream consumption must not change for existing types called WITHOUT opts, so v1 seeds reproduce until Task 12 re-freezes). `extraSlots` append to the type program's slot list BEFORE the queue is built - this adds one `rng.nextInt` draw per extra slot with `max > min`; keep all extra slots `min === max` so **zero extra draws** happen and the stream stays byte-stable for optless calls.
+- [ ] **Step 4: Run the full interior suite** - all green (optless behavior unchanged is the critical assertion; the existing program tests are the guard).
 - [ ] **Step 5: Typecheck clean.**
 
 ---
 
 ### Task 8: `generateBuilding` takes the household
 
-The orchestrator: brief in → brief program computed → ground gets extras + trade demands → bedrooms distributed across floors → `forSlot` stamped → brief echoed on the plan → memo key extended.
+The orchestrator: brief in -> brief program computed -> ground gets extras + trade demands -> bedrooms distributed across floors -> `forSlot` stamped -> brief echoed on the plan -> memo key extended.
 
 **Files:**
 - Modify: `src/systems/worldforge/interior/generateBuilding.ts`
@@ -727,7 +727,7 @@ The orchestrator: brief in → brief program computed → ground gets extras + t
 
 **Interfaces:**
 - Consumes: `programForBrief` (Task 6), `assignPurposes`/`assignUpperPurposes` (Task 7).
-- Produces: `GenerateBuildingInput.household?: HouseholdBrief`. Bedroom distribution rule: single-storey → all bedrooms into the ground `bedroomQueue`; multi-storey → ground keeps ZERO family bedrooms (they all queue on upper floors, ground floor is living/trade), leftovers that upper floors could not seat spill back to the ground floor queue on the LAST upper floor pass. Memo key gains a stable brief digest: `slots.map(s=>s.tag).join(',')|trade|worksAtHome|wealth`.
+- Produces: `GenerateBuildingInput.household?: HouseholdBrief`. Bedroom distribution rule: single-storey -> all bedrooms into the ground `bedroomQueue`; multi-storey -> ground keeps ZERO family bedrooms (they all queue on upper floors, ground floor is living/trade), leftovers that upper floors could not seat spill back to the ground floor queue on the LAST upper floor pass. Memo key gains a stable brief digest: `slots.map(s=>s.tag).join(',')|trade|worksAtHome|wealth`.
 
 - [ ] **Step 1: Write the failing tests**
 
@@ -744,7 +744,7 @@ describe('household-driven building', () => {
     ],
   };
 
-  it('the family always sleeps: beds-rooms ≥ bedroom assignments, all tagged — 50 seeds', () => {
+  it('the family always sleeps: beds-rooms ≥ bedroom assignments, all tagged - 50 seeds', () => {
     for (let seed = 0; seed < 50; seed++) {
       const plan = generateBuilding({
         buildingId: seed, type: 'smithy', seedPath: rootSeedPath(seed),
@@ -778,19 +778,19 @@ describe('household-driven building', () => {
 
 - [ ] **Step 2: Capture the briefless snapshot FIRST** (run the third test before touching `generateBuilding.ts` so the snapshot records pre-change output), then verify the other two fail.
 - [ ] **Step 3: Implement** in `generateBuilding.ts`:
-  - `input.household` → `const bp = input.household ? programForBrief(type, input.household) : undefined;`
+  - `input.household` -> `const bp = input.household ? programForBrief(type, input.household) : undefined;`
   - Ground floor: `assignPurposes(groundPath, type, groundRg, bp && { extraSlots: bp.groundExtra, tradeDemands: bp.tradeDemands, bedroomQueue: groundQueue })` where `groundQueue` = all bedrooms when `storeys === 1`, else `[]`.
-  - Upper floors: `assignUpperPurposes(floorPath, type, rg, level, queue)` with one shared mutable `queue` (copy of `bp.bedrooms`) consumed floor by floor; after the last upper floor, if the queue is non-empty, throw is WRONG (families must fit) — instead re-run the ground assignment including the remainder? No: **the honest rule** — leftovers get `forSlot` stamped onto ground-floor rooms whose purpose is already `bedroom` (cottage case), and if none exist the plan carries the misfit visibly: stamp the leftover tags onto the main room (`forSlot` on the hall = "beds in the hall", the spec's crowded-claims answer). No room is invented, no wall moves.
+  - Upper floors: `assignUpperPurposes(floorPath, type, rg, level, queue)` with one shared mutable `queue` (copy of `bp.bedrooms`) consumed floor by floor; after the last upper floor, if the queue is non-empty, throw is WRONG (families must fit) - instead re-run the ground assignment including the remainder? No: **the honest rule** - leftovers get `forSlot` stamped onto ground-floor rooms whose purpose is already `bedroom` (cottage case), and if none exist the plan carries the misfit visibly: stamp the leftover tags onto the main room (`forSlot` on the hall = "beds in the hall", the spec's crowded-claims answer). No room is invented, no wall moves.
   - Basement floors: unchanged (never bedrooms).
-  - `repurpose()` DELETED (replaced by `assignUpperPurposes`). Briefless callers get the SAME v1 behavior via `assignUpperPurposes(..., [])` — implement its no-queue path to reproduce `repurpose`'s exact output (bedroom/guest-room by `id % 3`, cellar/storage by `id % 2`) so the Step 2 snapshot stays green.
+  - `repurpose()` DELETED (replaced by `assignUpperPurposes`). Briefless callers get the SAME v1 behavior via `assignUpperPurposes(..., [])` - implement its no-queue path to reproduce `repurpose`'s exact output (bedroom/guest-room by `id % 3`, cellar/storage by `id % 2`) so the Step 2 snapshot stays green.
   - Memo key: append `|${briefDigest(input.household)}` (`''` when absent).
   - Echo: `result.household = input.household`.
-- [ ] **Step 4: Run to verify pass** — including the briefless snapshot (unchanged) and the full interior suite.
+- [ ] **Step 4: Run to verify pass** - including the briefless snapshot (unchanged) and the full interior suite.
 - [ ] **Step 5: Typecheck clean.**
 
 ---
 
-### Task 9: Frontage — the door faces the street
+### Task 9: Frontage - the door faces the street
 
 Fixed convention (already the 3D bridge's frame, `interiorParts.ts:10-14`): plan min-y edge = street. Entry and shopfront glazing prefer it; the plan records it.
 
@@ -801,13 +801,13 @@ Fixed convention (already the 3D bridge's frame, `interiorParts.ts:10-14`): plan
 - Test: `src/systems/worldforge/interior/__tests__/doors.test.ts`, `walls.test.ts` (extend)
 
 **Interfaces:**
-- Produces: `BlueprintPlan.frontage: FrontageInfo` — ALWAYS set from this task on (`side: 'minY'`, entry position copied from the ground floor's `isEntry` door).
+- Produces: `BlueprintPlan.frontage: FrontageInfo` - ALWAYS set from this task on (`side: 'minY'`, entry position copied from the ground floor's `isEntry` door).
 
 - [ ] **Step 1: Write the failing tests**
 
 ```ts
 // doors.test.ts
-it('street entry sits on a min-y outer edge when the main room offers one — 100 seeds', () => {
+it('street entry sits on a min-y outer edge when the main room offers one - 100 seeds', () => {
   let onStreet = 0, eligible = 0;
   for (let seed = 0; seed < 100; seed++) {
     const { rg, rooms, doors } = build('shop', seed);
@@ -832,13 +832,13 @@ it('plan.frontage is always set and matches the entry door', () => {
 ```
 
 - [ ] **Step 2: Run to verify failure.**
-- [ ] **Step 3: Implement.** In `doors.ts`, the entry-wall pick currently draws a random outer edge of the main room (or main-touching corridor): filter the candidate edge list to min-y-boundary edges FIRST; if that filter empties the list, relax to the full list (constraint relaxation, logged in the doc comment — a main room boxed off the street still gets a door). The pick still draws from the SAME `'doors'` stream — one draw either way, so stream stability holds. In `walls.ts`, the shopfront wide-glazing bias (Wave A A12) adds the same min-y filter for its street runs. In `generateBuilding.ts`, after floors build, set `frontage` from the ground entry.
-- [ ] **Step 4: Run to verify pass**; full interior suite green. NOTE: entry positions WILL shift for seeds whose old random pick was a non-street edge — the existing doors tests assert properties, not positions, so they stay green; goldens shift and that is Task 12's deliberate re-freeze. If any existing test pins an entry coordinate, it re-pins here with a comment `// re-pinned: frontage (v2 Task 9)`.
+- [ ] **Step 3: Implement.** In `doors.ts`, the entry-wall pick currently draws a random outer edge of the main room (or main-touching corridor): filter the candidate edge list to min-y-boundary edges FIRST; if that filter empties the list, relax to the full list (constraint relaxation, logged in the doc comment - a main room boxed off the street still gets a door). The pick still draws from the SAME `'doors'` stream - one draw either way, so stream stability holds. In `walls.ts`, the shopfront wide-glazing bias (Wave A A12) adds the same min-y filter for its street runs. In `generateBuilding.ts`, after floors build, set `frontage` from the ground entry.
+- [ ] **Step 4: Run to verify pass**; full interior suite green. NOTE: entry positions WILL shift for seeds whose old random pick was a non-street edge - the existing doors tests assert properties, not positions, so they stay green; goldens shift and that is Task 12's deliberate re-freeze. If any existing test pins an entry coordinate, it re-pins here with a comment `// re-pinned: frontage (v2 Task 9)`.
 - [ ] **Step 5: Typecheck clean.**
 
 ---
 
-### Task 10: The living overlay — occupancy, manifests, owned items
+### Task 10: The living overlay - occupancy, manifests, owned items
 
 The second layer: pure functions from `(plan, named household)` to claims, hourly stations, state flags, and container manifests with real registry items. Plus `Item.stolenFrom` so taking one can matter later.
 
@@ -888,11 +888,11 @@ export function containerManifests(
 
 **Behavior:**
 - **Claims:** resolve `forSlot` tags to members by tag (Task 4's tag scheme matches `household.members` order); rooms without `forSlot` get no claim; members without a tagged room claim the main room (the visible-misfit rule).
-- **Stations (deterministic, RNG-free):** a fixed day shape per role/ageBand, aligned with the agent-sim's `ActivityKind` bands (`roster/occupantSchedule.ts:26`): sleeping 22–06 at the claimed room's bed (`furnishingIndex` of a `bed` in the claimed room, else the room anchor with no furnishing index); meals 07 and 18 at the largest `table` in the kitchen or main room; work 08–17 — `worksAtHome` heads/spouses at the trade room's workbench/counter/anvil/forge-hearth, others `where: 'out'`; children `chores`/`out` alternating; evening 19–21 `hearthside` in the room with a hearth. All picks are deterministic scans in stable furnishing order — no rng, identical inputs give identical days.
-- **Flags:** `abandoned` = household has zero living members (caller decides; `computeOccupancy` receives the household as-is and sets `abandoned: household.members.length === 0`); `hearthLitHours[h]` = any member home at hour h AND h ∈ 06–08 ∪ 17–22.
-- **Manifests:** for every furnishing whose kind ∈ `CONTAINER_KINDS`, roll entries from a table keyed `(room purpose, container kind, brief.trade, brief.wealth)` using `rngFromPath(streamPath(path, `manifest:${level}:${furnishingIndex}`))` — per-container streams so adding a container never re-rolls its neighbors. Owner = `brief.homeId`.
+- **Stations (deterministic, RNG-free):** a fixed day shape per role/ageBand, aligned with the agent-sim's `ActivityKind` bands (`roster/occupantSchedule.ts:26`): sleeping 22-06 at the claimed room's bed (`furnishingIndex` of a `bed` in the claimed room, else the room anchor with no furnishing index); meals 07 and 18 at the largest `table` in the kitchen or main room; work 08-17 - `worksAtHome` heads/spouses at the trade room's workbench/counter/anvil/forge-hearth, others `where: 'out'`; children `chores`/`out` alternating; evening 19-21 `hearthside` in the room with a hearth. All picks are deterministic scans in stable furnishing order - no rng, identical inputs give identical days.
+- **Flags:** `abandoned` = household has zero living members (caller decides; `computeOccupancy` receives the household as-is and sets `abandoned: household.members.length === 0`); `hearthLitHours[h]` = any member home at hour h AND h ∈ 06-08 ∪ 17-22.
+- **Manifests:** for every furnishing whose kind ∈ `CONTAINER_KINDS`, roll entries from a table keyed `(room purpose, container kind, brief.trade, brief.wealth)` using `rngFromPath(streamPath(path, `manifest:${level}:${furnishingIndex}`))` - per-container streams so adding a container never re-rolls its neighbors. Owner = `brief.homeId`.
 
-`householdGoods.ts` — the mundane items the tables reference, shaped exactly like existing `ITEMS` entries (`src/data/items/index.ts:74-100`):
+`householdGoods.ts` - the mundane items the tables reference, shaped exactly like existing `ITEMS` entries (`src/data/items/index.ts:74-100`):
 
 ```ts
 import type { Item } from '../../types/items';
@@ -913,14 +913,14 @@ export const HOUSEHOLD_GOODS: Record<string, Item> = {
 };
 ```
 
-(If `type: 'misc'` is not in the `Item` type union at `src/types/items.ts:254`, use the closest existing value — check the union in the file and keep every entry compiling; do NOT extend the union.)
+(If `type: 'misc'` is not in the `Item` type union at `src/types/items.ts:254`, use the closest existing value - check the union in the file and keep every entry compiling; do NOT extend the union.)
 
 - [ ] **Step 1: Write the failing tests**
 
 ```ts
 // occupancy.test.ts
 describe('computeOccupancy', () => {
-  it('every member has a station at every hour; home stations point at real rooms — 25 seeds', () => {
+  it('every member has a station at every hour; home stations point at real rooms - 25 seeds', () => {
     for (let seed = 0; seed < 25; seed++) {
       const { plan, household } = fixture(seed); // builds brief via briefFromHousehold, plan via generateBuilding, same household
       const occ = computeOccupancy(plan, household, { worksAtHome: false });
@@ -952,7 +952,7 @@ describe('computeOccupancy', () => {
 
 // manifests.test.ts
 describe('containerManifests', () => {
-  it('every container gets an owned manifest; every itemId resolves in ALL_ITEMS — 25 seeds', () => {
+  it('every container gets an owned manifest; every itemId resolves in ALL_ITEMS - 25 seeds', () => {
     for (let seed = 0; seed < 25; seed++) {
       const { plan, brief, path } = fixture(seed);
       const ms = containerManifests(plan, brief, path);
@@ -987,18 +987,18 @@ describe('containerManifests', () => {
 ```
 
 - [ ] **Step 2: Run to verify failure.**
-- [ ] **Step 3: Implement** `occupancy.ts`, `manifests.ts`, `householdGoods.ts`, the `ALL_ITEMS` merge, and `Item.stolenFrom?: string` (doc comment: `/** homeId of the household this item was stolen from; set when taken from an owned container. */`). Manifest tables: kitchen/pantry/cellar containers → provisions pool (`sack_of_flour`, `wheel_of_cheese`, `salted_pork`, `ale_jug`, `rations`, `clay_pot`); bedroom chests → clothing/domestic (`linen_shirt`, `wool_blanket`, `sewing_kit`, `tallow_candles`, + `silver_piece` qty 1-6, wealthy adds `gold_piece` 1-4); trade rooms → trade pool by `brief.trade` (blacksmith: `smiths_hammer`, `iron_bar`; merchant: `ledger_book`, `gold_piece`; default: `tallow_candles`, `clay_pot`); counting-room strongbox → coin-heavy. 2–4 entries per container (`rng.nextInt(2, 5)`).
+- [ ] **Step 3: Implement** `occupancy.ts`, `manifests.ts`, `householdGoods.ts`, the `ALL_ITEMS` merge, and `Item.stolenFrom?: string` (doc comment: `/** homeId of the household this item was stolen from; set when taken from an owned container. */`). Manifest tables: kitchen/pantry/cellar containers -> provisions pool (`sack_of_flour`, `wheel_of_cheese`, `salted_pork`, `ale_jug`, `rations`, `clay_pot`); bedroom chests -> clothing/domestic (`linen_shirt`, `wool_blanket`, `sewing_kit`, `tallow_candles`, + `silver_piece` qty 1-6, wealthy adds `gold_piece` 1-4); trade rooms -> trade pool by `brief.trade` (blacksmith: `smiths_hammer`, `iron_bar`; merchant: `ledger_book`, `gold_piece`; default: `tallow_candles`, `clay_pot`); counting-room strongbox -> coin-heavy. 2-4 entries per container (`rng.nextInt(2, 5)`).
 - [ ] **Step 4: Run to verify pass**; typecheck clean (includes `src/data/items` and `src/types/items.ts`).
 
 ---
 
-### Task 11: Production wiring — the town path passes the brief
+### Task 11: Production wiring - the town path passes the brief
 
 Every rendered town building now generates from its real family. The plot input grows optional population fields; the adapter prefers the town's own `buildingType` over the role mapping and builds the brief.
 
 **Files:**
 - Modify: `src/systems/worldforge/interior/generateInterior.ts` (`InteriorPlotInput`, `blueprintForPlot`, `generateInterior` memo key)
-- Modify: `src/systems/worldforge/bridge/interiorParts.ts:175,242` call-site plumbing (and the plot-shaping code that builds `InteriorPlotInput` — trace where `plot` objects are constructed, `townPlanAdapter.ts`)
+- Modify: `src/systems/worldforge/bridge/interiorParts.ts:175,242` call-site plumbing (and the plot-shaping code that builds `InteriorPlotInput` - trace where `plot` objects are constructed, `townPlanAdapter.ts`)
 - Test: `src/systems/worldforge/interior/__tests__/generateInterior.test.ts` (extend), `src/systems/worldforge/__integration__/pipeline.test.ts` (extend one case)
 
 **Interfaces:**
@@ -1009,7 +1009,7 @@ export interface InteriorPlotInput {
   footprint: Array<[Feet, Feet]>;
   role: string;
   storeys: number;
-  // v2 (all optional — legacy callers unchanged):
+  // v2 (all optional - legacy callers unchanged):
   /** Town population classification; when present it WINS over role mapping. */
   buildingType?: BuildingType;
   /** The founding household brief (built via town/householdBrief.briefForPlot). */
@@ -1035,27 +1035,27 @@ it('buildingType wins over role; brief flows into the plan', () => {
 ```
 
 - [ ] **Step 2: Run to verify failure.**
-- [ ] **Step 3: Implement** the type + pass-through, then thread the call sites: in `interiorParts.ts`, where the `InteriorPlotInput` is built from the town plan artifact, attach `buildingType`, and `household: briefForPlot(bp, plan.plots, townSeed)` when the artifact carries the population pass (plots with `homeId`). **Trace the actual construction site first** (grep `role:` object literals near `interiorParts.ts:175`); the artifact plot and `BuildingPlot` may be different shapes — if the artifact drops `homeId/occupants/district`, extend the artifact mapping (in `townPlanAdapter.ts`) to carry them through. Unpopulated towns (no population pass) pass no brief — buildings generate briefless exactly as today. `generateTownRoster.ts:138` keeps its briefless call (roster runs before households exist — note this in a comment).
-- [ ] **Step 4: Run to verify pass** — plus `npx vitest run src/systems/worldforge/__integration__/pipeline.test.ts` (the end-to-end guard) and the bridge suites (`src/systems/worldforge/bridge/__tests__/`).
+- [ ] **Step 3: Implement** the type + pass-through, then thread the call sites: in `interiorParts.ts`, where the `InteriorPlotInput` is built from the town plan artifact, attach `buildingType`, and `household: briefForPlot(bp, plan.plots, townSeed)` when the artifact carries the population pass (plots with `homeId`). **Trace the actual construction site first** (grep `role:` object literals near `interiorParts.ts:175`); the artifact plot and `BuildingPlot` may be different shapes - if the artifact drops `homeId/occupants/district`, extend the artifact mapping (in `townPlanAdapter.ts`) to carry them through. Unpopulated towns (no population pass) pass no brief - buildings generate briefless exactly as today. `generateTownRoster.ts:138` keeps its briefless call (roster runs before households exist - note this in a comment).
+- [ ] **Step 4: Run to verify pass** - plus `npx vitest run src/systems/worldforge/__integration__/pipeline.test.ts` (the end-to-end guard) and the bridge suites (`src/systems/worldforge/bridge/__tests__/`).
 - [ ] **Step 5: Typecheck clean.**
 
 ---
 
 ### Task 12: Deliberate golden re-freeze + fuzz sweep
 
-The one place v1 pins move. Tasks 9 (frontage) and 11 (briefs in production) change plan output for town buildings — that was approved in the spec ("interiors re-plan once when v2 lands").
+The one place v1 pins move. Tasks 9 (frontage) and 11 (briefs in production) change plan output for town buildings - that was approved in the spec ("interiors re-plan once when v2 lands").
 
 **Files:**
 - Modify: `src/systems/worldforge/interior/__tests__/__snapshots__/generateInterior.test.ts.snap` (regenerate)
 - Modify: any golden in `src/systems/worldforge/interior/__tests__/` and `bridge/__tests__/` that pins coordinates
 - Test: extend `generateBuilding.test.ts` with a brief-inclusive fuzz loop
 
-- [ ] **Step 1: Run the FULL worldforge suite** — `npx vitest run src/systems/worldforge/` — and list every failure. Expected failures: coordinate-pinning goldens only. Any OTHER failure is a bug from Tasks 1–11: fix it before re-freezing anything.
-- [ ] **Step 2: Re-freeze** — `npx vitest run src/systems/worldforge/ -u`; then `git diff --stat` the snapshot files and eyeball the diff: room/door shifts only, no structural nonsense (a 40-room cottage means a bug, not a new golden).
+- [ ] **Step 1: Run the FULL worldforge suite** - `npx vitest run src/systems/worldforge/` - and list every failure. Expected failures: coordinate-pinning goldens only. Any OTHER failure is a bug from Tasks 1-11: fix it before re-freezing anything.
+- [ ] **Step 2: Re-freeze** - `npx vitest run src/systems/worldforge/ -u`; then `git diff --stat` the snapshot files and eyeball the diff: room/door shifts only, no structural nonsense (a 40-room cottage means a bug, not a new golden).
 - [ ] **Step 3: Add the fuzz sweep**
 
 ```ts
-it('fuzz: 500 random (type × brief) inputs never throw and always seat the family', () => {
+it('fuzz: 500 random (type x brief) inputs never throw and always seat the family', () => {
   const types = ALL_TYPES; // from Task 1's test
   for (let i = 0; i < 500; i++) {
     const rng = rngFromPath(streamPath(rootSeedPath(i), 'fuzz'));
@@ -1074,11 +1074,11 @@ it('fuzz: 500 random (type × brief) inputs never throw and always seat the fami
 });
 ```
 
-- [ ] **Step 4: Full suite green** — `npx vitest run src/systems/worldforge/` + `npx tsc --noEmit`.
+- [ ] **Step 4: Full suite green** - `npx vitest run src/systems/worldforge/` + `npx tsc --noEmit`.
 
 ---
 
-### Task 13: 2D preview — occupancy toggle + household controls (VISUAL EYEBALL)
+### Task 13: 2D preview - occupancy toggle + household controls (VISUAL EYEBALL)
 
 The design preview drives the whole layer without the 3D scene: a family selector, an hour slider, claims labeled on rooms, stations dotted, manifests inspectable.
 
@@ -1088,39 +1088,39 @@ The design preview drives the whole layer without the 3D scene: a family selecto
 - Test: component render test alongside existing preview tests
 
 **Behavior:**
-- New controls: "Household" preset dropdown (none / smith family of 5 / solo elder / wealthy merchant / crowded misfit — family of 9 in a cottage), hour slider 0–23, "occupancy" toggle.
+- New controls: "Household" preset dropdown (none / smith family of 5 / solo elder / wealthy merchant / crowded misfit - family of 9 in a cottage), hour slider 0-23, "occupancy" toggle.
 - With occupancy on: rooms with claims get a small `forSlot` label under the room number; each member's station at the chosen hour renders as a dot at the furnishing (or room anchor), labeled with the member's given name; lit hearths at that hour get a warm halo; container cells get a ⌸ marker whose tooltip (SVG `<title>`) lists the manifest entries.
-- The overlay renders from `computeOccupancy` + `containerManifests` output only — proving the layer is drawable without reaching into the generator.
+- The overlay renders from `computeOccupancy` + `containerManifests` output only - proving the layer is drawable without reaching into the generator.
 
-- [ ] **Step 1: Write a render test** — household preset + hour set, assert the SVG contains `data-claim` labels and exactly `household.members.length` `data-station` dots.
-- [ ] **Step 2: Implement** the SVG overlay (a `<g data-occupancy>` appended by `renderBlueprintSvg` when given an optional `occupancy?: BuildingOccupancy` + `manifests?: ContainerManifest[]` argument — additive, existing callers unchanged) and the preview controls.
+- [ ] **Step 1: Write a render test** - household preset + hour set, assert the SVG contains `data-claim` labels and exactly `household.members.length` `data-station` dots.
+- [ ] **Step 2: Implement** the SVG overlay (a `<g data-occupancy>` appended by `renderBlueprintSvg` when given an optional `occupancy?: BuildingOccupancy` + `manifests?: ContainerManifest[]` argument - additive, existing callers unchanged) and the preview controls.
 - [ ] **Step 3: Tests green + typecheck.**
-- [ ] **Step 4: VISUAL EYEBALL (required — Remy's rule):** start the design preview server (`preview_start`; retry on the known overlapping-restart crash), open `/Aralia/misc/design.html?step=blueprint`, and inspect: smith family at 02:00 (everyone in beds), at 10:00 (smith at the anvil, kids out), at 19:00 (hearthside, hearth halo lit); the crowded-misfit preset (beds-in-hall claims visible on the main room); container tooltips. `preview_screenshot` hangs on this page — inspect via the SVG DOM (`preview_eval` reading attributes) and capture proof via the headless `.agent/scratch/gen-blueprints.mts` pattern (extend it to pass a household). Record findings; fix what reads wrong before calling the task done.
+- [ ] **Step 4: VISUAL EYEBALL (required - Remy's rule):** start the design preview server (`preview_start`; retry on the known overlapping-restart crash), open `/Aralia/misc/design.html?step=blueprint`, and inspect: smith family at 02:00 (everyone in beds), at 10:00 (smith at the anvil, kids out), at 19:00 (hearthside, hearth halo lit); the crowded-misfit preset (beds-in-hall claims visible on the main room); container tooltips. `preview_screenshot` hangs on this page - inspect via the SVG DOM (`preview_eval` reading attributes) and capture proof via the headless `.agent/scratch/gen-blueprints.mts` pattern (extend it to pass a household). Record findings; fix what reads wrong before calling the task done.
 
 ---
 
-### Task 14: 3D consumption — occupants at stations (VISUAL EYEBALL)
+### Task 14: 3D consumption - occupants at stations (VISUAL EYEBALL)
 
 The bridge exposes the overlay for a real town building so the 3D scene can place people and light hearths. Data wiring + minimal consumption; full animation polish belongs to the agent-sim/beautification tracks.
 
 **Files:**
-- Modify: `src/systems/worldforge/bridge/interiorParts.ts` (or a new small `bridge/buildingOccupancy.ts` — export a `occupancyForPlot(plot, seedPath, townSeed, hour)` helper composing `blueprintForPlot` + `briefForPlot` + `generateHousehold` + `computeOccupancy`)
+- Modify: `src/systems/worldforge/bridge/interiorParts.ts` (or a new small `bridge/buildingOccupancy.ts` - export a `occupancyForPlot(plot, seedPath, townSeed, hour)` helper composing `blueprintForPlot` + `briefForPlot` + `generateHousehold` + `computeOccupancy`)
 - Modify: the 3D town/interior scene component that already renders agent-sim commuters (trace from `?phase=agentsim` wiring, `src/routes.ts` slug) to place household members at their stations when inside/near their building, and to drive hearth emissive/light from `hearthLitHours`
 - Test: pure test on `occupancyForPlot` (stations resolve to world-space positions inside the building envelope)
 
-- [ ] **Step 1: Write the failing test** — `occupancyForPlot` returns stations whose feet-space positions all fall inside the plan's footprint cells for 10 seeds.
+- [ ] **Step 1: Write the failing test** - `occupancyForPlot` returns stations whose feet-space positions all fall inside the plan's footprint cells for 10 seeds.
 - [ ] **Step 2: Implement** the bridge helper (pure); then the scene consumption: members at home render as agent bodies at station positions (reuse the existing commuter body rendering), hearth-lit drives the existing hearth furnishing's material/light.
 - [ ] **Step 3: Tests + typecheck green.**
-- [ ] **Step 4: VISUAL EYEBALL (required):** load a real town in 3D (`?phase=agentsim` / Enter-3D per `worldforge-burg-3d-town-handoff` memory), pick a smithy, scrub the clock: dusk — hearth glows, family indoors; night — everyone in bedrooms; midday — smith at the forge, spouse in the house. Use the shoot rig (`shoot.mjs`, per `preview-screenshot-3d-capture` memory — `preview_screenshot` hangs on R3F) for proof captures. Also eyeball one abandoned building (cold hearth, no bodies).
-- [ ] **Step 5: Wrap-up bookkeeping:** flip the plan-map node `building-generator-v2` feature statuses for Phase 1A to `done` in `public/planmap/topics.json` (add feature tiles if none exist yet: one per task cluster — vocabulary, brief pipeline, overlay, wiring, preview, 3D); update the `building-generator-v2` memory file.
+- [ ] **Step 4: VISUAL EYEBALL (required):** load a real town in 3D (`?phase=agentsim` / Enter-3D per `worldforge-burg-3d-town-handoff` memory), pick a smithy, scrub the clock: dusk - hearth glows, family indoors; night - everyone in bedrooms; midday - smith at the forge, spouse in the house. Use the shoot rig (`shoot.mjs`, per `preview-screenshot-3d-capture` memory - `preview_screenshot` hangs on R3F) for proof captures. Also eyeball one abandoned building (cold hearth, no bodies).
+- [ ] **Step 5: Wrap-up bookkeeping:** flip the plan-map node `building-generator-v2` feature statuses for Phase 1A to `done` in `public/planmap/topics.json` (add feature tiles if none exist yet: one per task cluster - vocabulary, brief pipeline, overlay, wiring, preview, 3D); update the `building-generator-v2` memory file.
 
 ---
 
 ## Plan Self-Review (done at write time)
 
-- **Spec coverage (Phase 1A section):** household brief → Tasks 4/6/8; shared vocabulary → Tasks 1/2; frontage minimal slice → Task 9; claims/schedules/flags/manifests → Task 10; town wiring → Task 11; occupancy preview toggle → Task 13; 3D stations → Task 14; goldens re-freeze → Task 12; reserved history/style fields → Task 3. Lot negotiation and full blocks are Phase 2 (not planned here); roofs/styles are Phase 1B (separate plan).
+- **Spec coverage (Phase 1A section):** household brief -> Tasks 4/6/8; shared vocabulary -> Tasks 1/2; frontage minimal slice -> Task 9; claims/schedules/flags/manifests -> Task 10; town wiring -> Task 11; occupancy preview toggle -> Task 13; 3D stations -> Task 14; goldens re-freeze -> Task 12; reserved history/style fields -> Task 3. Lot negotiation and full blocks are Phase 2 (not planned here); roofs/styles are Phase 1B (separate plan).
 - **Determinism:** every RNG use names its stream; Tasks 7/9 explicitly preserve stream draw counts for briefless calls; Task 8 snapshot-guards briefless byte-identity until Task 12's deliberate re-freeze.
 - **Type consistency:** `HouseholdBrief`/`MemberSlot`/`BriefWealth`/`FrontageInfo` defined once in Task 3 and imported everywhere; `ProgramSlot` exported in Task 6; `BedroomAssignment` defined in Task 6, consumed in Tasks 7/8; `BuildingOccupancy`/`ContainerManifest` defined in Task 10, consumed in 13/14.
-- **Known soft spot (flagged, not hidden):** Task 11's artifact-plot field threading depends on the exact `townPlanAdapter.ts` mapping shape — the task starts with a trace step and names the fallback-free rule (unpopulated towns pass no brief).
+- **Known soft spot (flagged, not hidden):** Task 11's artifact-plot field threading depends on the exact `townPlanAdapter.ts` mapping shape - the task starts with a trace step and names the fallback-free rule (unpopulated towns pass no brief).
 
 <!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/plans/2026-07-07-building-generator-v2-phase1a-inhabited.md","sha256WithoutMarker":"b828f8b4646f10154f344a1bacb4a352bfc95c807bde3e9cede775a5f85cf37d","markedAtUtc":"2026-08-09T20:22:07.613Z"} -->

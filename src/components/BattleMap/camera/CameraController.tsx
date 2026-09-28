@@ -40,6 +40,17 @@ import { MapControls } from '@react-three/drei';
 import * as THREE from 'three';
 import { CombatCharacter } from '../../../types/combat';
 import { BATTLE_MAP_CAMERA_MOUSE_BUTTONS } from './battleMapCameraInput';
+import {
+  CameraFocusEventEmitter,
+  type CameraFocusRequest,
+} from '../../../systems/combat/CameraFocusEventEmitter';
+import {
+  TURN_FOCUS_LERP_SECONDS,
+  easeTurnOrbit,
+  focusPointForTile,
+  orbitDestinationForFocus,
+  turnOrbitProgress,
+} from './turnOrbitFocus';
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -84,7 +95,7 @@ interface CameraControllerProps {
   maxDistance?: number;
 }
 
-type CameraMode = 'tactical' | 'panning' | 'cinematic' | 'returning';
+type CameraMode = 'tactical' | 'panning' | 'orbiting' | 'cinematic' | 'returning';
 
 // ---------------------------------------------------------------------------
 // Component
@@ -125,6 +136,20 @@ const CameraController: React.FC<CameraControllerProps> = ({
   // Track previous active character ID for turn-start auto-pan
   const prevActiveId = useRef<string | null>(null);
 
+  // --- Per-turn orbit auto-refocus (9A) state ---------------------------------
+  // A fixed-duration orbit: the camera keeps its current distance and angles and
+  // carries them to the new actor, so the player's chosen viewpoint survives the
+  // turn change instead of being reset. Start/end are captured once when the
+  // move begins; the frame loop only advances a normalized time.
+  const orbitElapsedRef = useRef(0);
+  const orbitStartTargetRef = useRef(new THREE.Vector3());
+  const orbitEndTargetRef = useRef(new THREE.Vector3());
+  const orbitStartCamRef = useRef(new THREE.Vector3());
+  const orbitEndCamRef = useRef(new THREE.Vector3());
+  /** The focus request already consumed, so the prop effect never re-pans it. */
+  const handledFocusRequestRef = useRef<number>(0);
+  const focusedCharacterIdRef = useRef<string | null>(null);
+
   /**
    * Get world position for a character
    */
@@ -154,11 +179,72 @@ const CameraController: React.FC<CameraControllerProps> = ({
     panToPosition(pos);
   }, [getCharacterWorldPos, panToPosition]);
 
-  // Auto-pan to active character on turn change
+  /**
+   * Per-turn orbit auto-refocus (9A). Orbit the camera so it centers on a world
+   * position, preserving the player's current viewing distance and angles, over
+   * exactly {@link TURN_FOCUS_LERP_SECONDS}.
+   *
+   * This is stronger than {@link panToPosition}, which slides only the orbit
+   * target and lets the camera body drift behind it. Carrying the camera-to-
+   * target offset means the framing the player set up (a wide overview, or a
+   * low shoulder angle) is exactly what they get on the new actor.
+   */
+  const orbitToPosition = useCallback((pos: THREE.Vector3) => {
+    const controls = controlsRef.current;
+    if (!controls) {
+      // No controls yet (first frame / headless). Fall back to the pan target so
+      // the request is not lost; the frame loop applies it once controls exist.
+      targetPositionRef.current.copy(pos);
+      modeRef.current = 'panning';
+      return;
+    }
+    const currentTarget = controls.target as THREE.Vector3;
+    const destination = orbitDestinationForFocus(camera.position, currentTarget, pos);
+
+    orbitStartTargetRef.current.copy(currentTarget);
+    orbitEndTargetRef.current.copy(pos);
+    orbitStartCamRef.current.copy(camera.position);
+    orbitEndCamRef.current.set(destination.x, destination.y, destination.z);
+    orbitElapsedRef.current = 0;
+    modeRef.current = 'orbiting';
+  }, [camera]);
+
+  /**
+   * Subscribe to the turn manager's camera-focus channel. The turn boundary
+   * lives in a headless hook far outside this canvas, so it publishes rather
+   * than threading a prop through the whole battle-map stack.
+   *
+   * The retained last request is replayed on mount: the first turn of a fight
+   * starts during combat initialization, before this controller exists, and
+   * without replay that opening turn would frame nothing.
+   */
+  useEffect(() => {
+    const emitter = CameraFocusEventEmitter.getInstance();
+    const consume = (request: CameraFocusRequest) => {
+      if (request.requestId <= handledFocusRequestRef.current) return;
+      handledFocusRequestRef.current = request.requestId;
+      focusedCharacterIdRef.current = request.characterId;
+      // The request carries grid coordinates; convert with the same tile math
+      // the actors use so the camera lands on the token, not beside it.
+      const flat = focusPointForTile(request.position, 0, TILE_SIZE);
+      orbitToPosition(new THREE.Vector3(flat.x, getGroundY(flat.x, flat.z), flat.z));
+    };
+
+    const pending = emitter.getLastRequest();
+    if (pending) consume(pending);
+    return emitter.onFocus(consume);
+  }, [orbitToPosition, getGroundY]);
+
+  // Auto-pan to active character on turn change.
+  // PRESERVED for every caller that drives the camera by prop alone (the design
+  // preview harnesses, and any surface not wired to the focus channel). When the
+  // focus channel already refocused this actor, the pan is skipped so it cannot
+  // overwrite the in-flight orbit with a slower, target-only slide.
   useEffect(() => {
     if (!activeCharacter) return;
     if (activeCharacter.id !== prevActiveId.current) {
       prevActiveId.current = activeCharacter.id;
+      if (focusedCharacterIdRef.current === activeCharacter.id) return;
       snapToCharacter(activeCharacter);
     }
   }, [activeCharacter, snapToCharacter]);
@@ -296,6 +382,22 @@ const CameraController: React.FC<CameraControllerProps> = ({
       poseAtHeight(tx: number, targetY: number, tz: number, distance: number, polarDeg: number, azimuthDeg: number) {
         return poseAround(tx, tz, distance, polarDeg, azimuthDeg, targetY);
       },
+      // Dev-only camera readout. The per-turn orbit refocus (9A) is a MOTION,
+      // and a still screenshot cannot prove where the camera ended up or that it
+      // kept its distance. Exposing the live target/position lets the headless
+      // rig sample the orbit across a turn change and assert the landing tile.
+      state() {
+        const controls = controlsRef.current;
+        const target = controls?.target as THREE.Vector3 | undefined;
+        return {
+          mode: modeRef.current,
+          camera: { x: camera.position.x, y: camera.position.y, z: camera.position.z },
+          target: target ? { x: target.x, y: target.y, z: target.z } : null,
+          distance: target ? camera.position.distanceTo(target) : null,
+          focusedCharacterId: focusedCharacterIdRef.current,
+          focusRequestId: handledFocusRequestRef.current,
+        };
+      },
       // Dev profiling: renderer.info snapshot for headless FPS/draw-call capture.
       // render.calls/triangles reset each frame, so force one explicit render
       // with autoReset off to read a full, stable frame's draw stats.
@@ -415,6 +517,29 @@ const CameraController: React.FC<CameraControllerProps> = ({
       }
 
       controls.update();
+    }
+
+    if (mode === 'orbiting') {
+      // Fixed-duration orbit (9A). Both the target and the camera body travel,
+      // so the framing the player chose is carried to the new actor.
+      orbitElapsedRef.current += delta;
+      const t = turnOrbitProgress(orbitElapsedRef.current, TURN_FOCUS_LERP_SECONDS);
+      const eased = easeTurnOrbit(t);
+
+      const target = controls.target as THREE.Vector3;
+      target.lerpVectors(orbitStartTargetRef.current, orbitEndTargetRef.current, eased);
+      camera.position.lerpVectors(orbitStartCamRef.current, orbitEndCamRef.current, eased);
+      controls.update();
+
+      if (t >= 1) {
+        // Land exactly on the destination so the next manual orbit starts from a
+        // clean state rather than an epsilon away from it.
+        target.copy(orbitEndTargetRef.current);
+        camera.position.copy(orbitEndCamRef.current);
+        targetPositionRef.current.copy(orbitEndTargetRef.current);
+        modeRef.current = 'tactical';
+        controls.update();
+      }
     }
 
     if (mode === 'cinematic') {

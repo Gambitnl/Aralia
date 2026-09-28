@@ -165,7 +165,7 @@
                                                                    ]
                                       },
                         "utilityType":  "other",
-                        "description":  "You touch a creature that has died within the last minute. That creature returns to life with 1 Hit Point. This spell can\u0027t return to life a creature that has died of old age, nor can it restore any missing body parts.",
+                        "description":  "You touch a creature that has died within the last minute. That creature returns to life with 1 Hit Point. This spell can't return to life a creature that has died of old age, nor can it restore any missing body parts.",
                         "revivalLimitations":  {
                                                    "cannotReviveOldAgeDeath":  true,
                                                    "doesNotRestoreMissingBodyParts":  true,
@@ -248,7 +248,7 @@
                       "prompt":  "Choose a creature that died within the last minute; revive it with 1 Hit Point, but do not restore missing body parts and do not allow old-age deaths to be revived.",
                       "playerInputRequired":  true
                   },
-    "description":  "You touch a creature that has died within the last minute. That creature revives with 1 Hit Point. This spell can\u0027t revive a creature that has died of old age, nor does it restore any missing body parts.",
+    "description":  "You touch a creature that has died within the last minute. That creature revives with 1 Hit Point. This spell can't revive a creature that has died of old age, nor does it restore any missing body parts.",
     "higherLevels":  "",
     "tags":  [
 

@@ -7,7 +7,7 @@ import { ItemType } from '@/types/items'
 import type { CombatState, SelectedSpellTarget } from '@/types/combat'
 import type { MovementTriggerDebuff } from '@/systems/spells/effects/triggerHandler'
 import type { Spell } from '@/types/spells'
-import * as combatUtils from '@/utils/combat'
+import * as diceRollers from '@/systems/dice/rollers'
 import boomingBlade from '@/data/spells/level-0/booming-blade.json'
 
 /**
@@ -23,12 +23,25 @@ import boomingBlade from '@/data/spells/level-0/booming-blade.json'
  * the movement-trigger runtime, and shared combat test factories.
  */
 
+// agora-f821.4 retired the combatUtils roller family; the modules under
+// test roll through systems/dice/rollers now. One hoisted set of mocks
+// stands in for BOTH specifiers, so one vi.mocked(...) pins every die.
+const diceMocks = vi.hoisted(() => ({
+    rollD20: vi.fn()
+}))
+
+
+vi.mock('@/systems/dice/rollers', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/systems/dice/rollers')>()
+  return { ...actual, ...diceMocks }
+})
+
 vi.mock('@/utils/combat', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/utils/combat')>()
   return {
     ...actual,
-    rollD20: vi.fn()
-  }
+    ...diceMocks,
+}
 })
 
 const spell = boomingBlade as unknown as Spell
@@ -65,7 +78,7 @@ const createBoomingBladeCaster = (overrides: Partial<ReturnType<typeof createMoc
         description: 'A melee weapon worth enough to satisfy the spell material.',
         category: 'Martial Weapon',
         damageDice: '1d8',
-        damageType: 'slashing',
+        damageType: 'Slashing',
         costInGp: 1,
         properties: []
       })
@@ -97,11 +110,11 @@ const findBoomingDebuff = (state: CombatState): MovementTriggerDebuff | undefine
 
 describe('Booming Blade bridge', () => {
   beforeEach(() => {
-    vi.mocked(combatUtils.rollD20).mockReset()
+    vi.mocked(diceRollers.rollD20).mockReset()
   })
 
   it('turns the cast into a real melee weapon attack and stores the movement rider only after a hit', async () => {
-    vi.mocked(combatUtils.rollD20).mockReturnValue(18)
+    vi.mocked(diceRollers.rollD20).mockReturnValue(18)
     const caster = createBoomingBladeCaster()
     const target = createBoomingBladeTarget()
     const commands = await SpellCommandFactory.createCommands(
@@ -155,7 +168,7 @@ describe('Booming Blade bridge', () => {
   })
 
   it('does not damage or store the delayed rider when the melee weapon attack misses', async () => {
-    vi.mocked(combatUtils.rollD20).mockReturnValue(2)
+    vi.mocked(diceRollers.rollD20).mockReturnValue(2)
     const caster = createBoomingBladeCaster()
     const target = createBoomingBladeTarget()
     const commands = await SpellCommandFactory.createCommands(
@@ -209,7 +222,7 @@ describe('Booming Blade bridge', () => {
     }
 
     expect(attackCommand.ability.effects).toEqual([
-      expect.objectContaining({ dice: '1d8+3', damageType: 'slashing' }),
+      expect.objectContaining({ dice: '1d8+3', damageType: 'Slashing' }),
       expect.objectContaining({ dice: '3d8', damageType: 'Thunder' })
     ])
   })

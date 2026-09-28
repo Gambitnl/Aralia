@@ -41,12 +41,17 @@ export type BuildingType =
   // residential (homes — carry the population)
   | 'cottage' | 'townhouse' | 'tenement' | 'farmstead'
   // non-residential (workplaces/civic — house no permanent residents in the housing math)
-  | 'inn' | 'tavern' | 'shop' | 'smithy' | 'workshop' | 'storehouse' | 'civic';
+  | 'inn' | 'tavern' | 'shop' | 'smithy' | 'workshop' | 'storehouse' | 'civic'
+  // named landmarks — a town holds a CAPPED number of each (see LANDMARK_CAPS)
+  | 'library' | 'guildhall' | 'granary' | 'windmill' | 'lumbermill'
+  | 'school' | 'shrine' | 'barracks' | 'bakery';
 
 /** Typical household size per residential type (0 = non-residential). */
 const CAPACITY: Record<BuildingType, number> = {
   cottage: 4, townhouse: 6, tenement: 14, farmstead: 7,
   inn: 0, tavern: 0, shop: 0, smithy: 0, workshop: 0, storehouse: 0, civic: 0,
+  library: 0, guildhall: 0, granary: 0, windmill: 0, lumbermill: 0,
+  school: 0, shrine: 0, barracks: 0, bakery: 0,
 };
 
 export const RESIDENTIAL_TYPES: ReadonlySet<BuildingType> = new Set<BuildingType>([
@@ -60,8 +65,119 @@ export type WardWealth = 'wealthy' | 'common' | 'poor';
 /** Non-residential building types that employ people (a workplace, not just a store). */
 export const WORKPLACE_TYPES: ReadonlySet<BuildingType> = new Set<BuildingType>([
   'inn', 'tavern', 'shop', 'smithy', 'workshop', 'civic',
+  // landmarks that employ people (a granary is a store, not a workplace)
+  'library', 'guildhall', 'windmill', 'lumbermill', 'school', 'shrine', 'barracks', 'bakery',
 ]);
 export const isWorkplace = (t: BuildingType): boolean => WORKPLACE_TYPES.has(t);
+
+/**
+ * Named landmarks. A town that can hold ONE library, ONE guild hall and two
+ * taverns reads as a place; a town of cottages, shops and smithies reads as
+ * filler. Every landmark is capped per town, so the vocabulary stays a
+ * vocabulary instead of becoming the new generic.
+ */
+export const LANDMARK_TYPES: ReadonlySet<BuildingType> = new Set<BuildingType>([
+  'library', 'guildhall', 'granary', 'windmill', 'lumbermill',
+  'school', 'shrine', 'barracks', 'bakery',
+]);
+export const isLandmark = (t: BuildingType): boolean => LANDMARK_TYPES.has(t);
+
+/** Settlement size band — the scale signal the cap table keys off. */
+type Typology = NonNullable<TownScaleProfile['typology']>;
+
+/**
+ * Per-town landmark caps by typology.
+ *
+ * Modelled on RealmSmith's flat LIMITS table (BuildingGenerator.ts, retired 2026-09-23),
+ * but SCALED by settlement size instead of flat: a hamlet gets a shrine, a
+ * granary and a mill; a capital gets guild halls, libraries and barracks. A type
+ * absent from a tier (cap 0) never appears at that size at all — that is how the
+ * vocabulary grows with the town.
+ */
+const LANDMARK_CAPS: Record<Typology, Partial<Record<BuildingType, number>>> = {
+  hamlet: { shrine: 1, granary: 1, windmill: 1 },
+  village: { shrine: 1, granary: 1, windmill: 1, lumbermill: 1, bakery: 1 },
+  'walled town': {
+    shrine: 2, granary: 2, windmill: 2, lumbermill: 1, bakery: 2,
+    school: 1, library: 1, guildhall: 1, barracks: 1,
+  },
+  city: {
+    shrine: 3, granary: 2, windmill: 2, lumbermill: 1, bakery: 3,
+    school: 1, library: 1, guildhall: 2, barracks: 2,
+  },
+  capital: {
+    shrine: 4, granary: 3, windmill: 2, lumbermill: 2, bakery: 4,
+    school: 2, library: 2, guildhall: 3, barracks: 3,
+  },
+};
+
+/** Tier used when a plan carries no scale profile (same spirit as targetHouseholdFor(null)). */
+const UNSCALED_TIER: Typology = 'village';
+
+/** How many of `type` a town of this size may hold (0 = never appears). */
+export function landmarkCapFor(typology: Typology | null, type: BuildingType): number {
+  return LANDMARK_CAPS[typology ?? UNSCALED_TIER][type] ?? 0;
+}
+
+/**
+ * The remaining landmark allowance for ONE town. Mutable and order-dependent by
+ * design: plots claim landmarks in plot order, which is stable per seed, so the
+ * result is deterministic.
+ */
+export interface LandmarkLedger {
+  /** Landmarks still unclaimed this town, by type. */
+  remaining: Map<BuildingType, number>;
+}
+
+/** Fresh ledger for a town of this size. */
+export function createLandmarkLedger(typology: Typology | null): LandmarkLedger {
+  const caps = LANDMARK_CAPS[typology ?? UNSCALED_TIER];
+  const remaining = new Map<BuildingType, number>();
+  for (const key of Object.keys(caps) as BuildingType[]) {
+    const n = caps[key] ?? 0;
+    if (n > 0) remaining.set(key, n);
+  }
+  return { remaining };
+}
+
+/** Take one allowance of `type`. False when the town's cap is already spent. */
+function claimLandmark(ledger: LandmarkLedger, type: BuildingType): boolean {
+  const left = ledger.remaining.get(type) ?? 0;
+  if (left <= 0) return false;
+  ledger.remaining.set(type, left - 1);
+  return true;
+}
+
+/** Landmarks of the built-up core: learning, trade guilds, the town bakehouse. */
+const CORE_LANDMARKS: readonly BuildingType[] = ['library', 'guildhall', 'school', 'bakery', 'shrine'];
+/** Landmarks of the middle ring: the garrison, a second bakehouse, a wayside shrine. */
+const MID_LANDMARKS: readonly BuildingType[] = ['barracks', 'bakery', 'school', 'shrine'];
+/** Landmarks of the rim: everything that needs wind, a mill race or cart room. */
+const RIM_LANDMARKS: readonly BuildingType[] = ['windmill', 'lumbermill', 'granary', 'shrine'];
+
+/** One plot in this many even ROLLS for a landmark; the caps thin it much further. */
+const LANDMARK_RARITY = 11;
+
+/**
+ * Ring-band edge between the middle ring and the rim. `dist` is the plot's
+ * distance from the town centre over the CORE SPAN, so it runs ~0.04..0.57 with
+ * a median near 0.31 (measured across hamlet/walled-town/capital plans) — NOT
+ * 0..1. The core edge (0.22) is the same one `central` uses; 0.36 puts roughly
+ * the outer quarter of plots on the rim, which is where the mills and the
+ * granary belong.
+ */
+const RIM_DIST = 0.36;
+
+/**
+ * The landmark a plot would like to be, chosen by its ring band. Trades that need
+ * wind, water or cart room sit on the rim; learning and guilds sit in the core.
+ * Returns null for the large majority of plots.
+ */
+function wantedLandmark(dist: number, h: number): BuildingType | null {
+  if (h % LANDMARK_RARITY !== 0) return null;
+  const band = dist < 0.22 ? CORE_LANDMARKS : dist < RIM_DIST ? MID_LANDMARKS : RIM_LANDMARKS;
+  return band[(h >>> 8) % band.length];
+}
 
 /** A rural dwelling in the outskirts (carries rural population). */
 export interface Farmstead {
@@ -171,6 +287,12 @@ function bounds(pts: Pt[]): { w: number; h: number } {
  * read commercial (inn/shop/smithy); other fronts residential; ward interiors as
  * utility outbuildings. Tenements (dense housing) appear only in cities/capitals.
  * Deterministic per building centroid.
+ *
+ * Named landmarks (library, guild hall, granary, …) need the town-wide `ledger`,
+ * because a landmark is defined by being RARE: without a ledger there is nothing
+ * to count against, so no landmark is ever emitted. When a plot wants a landmark
+ * whose cap is spent, it DOWNGRADES to the class-appropriate home rather than
+ * falling back to another trade — the same downgrade RealmSmith applies.
  */
 export function classifyBuilding(
   plot: BuildingPlot,
@@ -179,6 +301,7 @@ export function classifyBuilding(
   typology: TownScaleProfile['typology'] | null,
   hash: (x: number, y: number) => number,
   district?: WardWealth,
+  ledger?: LandmarkLedger,
 ): BuildingType {
   const c = polygonCentroid(plot.polygon);
   const dist = Math.hypot(c[0] - townCenter[0], c[1] - townCenter[1]) / (townSpan || 1); // 0=centre
@@ -196,6 +319,10 @@ export function classifyBuilding(
   // Better wards lean to refined residences + fine shops; poor wards to tenements,
   // workshops and taverns. The home fallback for a front shifts by class too.
   const homeFront: BuildingType = wealthy ? 'townhouse' : poor ? (dense ? 'tenement' : 'cottage') : (dense ? 'townhouse' : 'cottage');
+  // Named landmarks outrank the generic trades: a plot that rolls one either
+  // claims the town's remaining allowance or downgrades to a home.
+  const wanted = wantedLandmark(dist, h);
+  if (wanted) return ledger && claimLandmark(ledger, wanted) ? wanted : homeFront;
   if (central) {
     // Commercial heart: tenements crowd the poor centre; the rich centre stays low.
     if (dense && !wealthy && h % (poor ? 4 : 5) === 0) return 'tenement';
@@ -226,6 +353,8 @@ export function hashPoint(x: number, y: number): number {
 /** Employee homes (excluding the proprietor's) a workplace of each type supports. */
 const STAFF_CAPACITY: Partial<Record<BuildingType, number>> = {
   smithy: 3, shop: 3, workshop: 4, inn: 6, tavern: 4, civic: 8,
+  bakery: 3, windmill: 2, lumbermill: 4, library: 2, school: 3,
+  guildhall: 4, barracks: 8, shrine: 2,
 };
 
 /**
@@ -312,8 +441,11 @@ export function assignTownPopulation(input: AssignPopulationInput): TownPopulati
 
   // 1. Classify every building (class-shaded by its ward district) + tag a home id.
   const byType: Partial<Record<BuildingType, number>> = {};
+  // One ledger per town: landmark caps are a TOWN property, and plots claim them
+  // in plot order (stable per seed), so the outcome is deterministic.
+  const landmarks = createLandmarkLedger(typology);
   plots.forEach((p, i) => {
-    const t = classifyBuilding(p, townCenter, townSpan, typology, hashPoint, p.district);
+    const t = classifyBuilding(p, townCenter, townSpan, typology, hashPoint, p.district, landmarks);
     p.buildingType = t;
     p.residential = isResidential(t);
     p.homeId = `b${i}`;
