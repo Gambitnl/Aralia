@@ -17,6 +17,23 @@
  * by the piece that needs them, with the measurement that justifies each value.
  * `shallow` (the caustics piece) is the only one with a real depth.
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 29/09/2026, 19:24:38
+ * Dependents: components/DesignPreview/steps/sidebyside/SideBySideOcean.tsx
+ * Imports: 1 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import { DEFAULT_CASCADES, type CascadeLod, type CascadeParams } from './oceanConfig';
 
 /**
@@ -731,8 +748,174 @@ const SHALLOW_CASCADES: readonly CascadeParams[] = [
   },
 ];
 
+/**
+ * LAKE: calm fresh water under a light breeze. Added by the skip-stones
+ * piece (`oceanExtras/skip.ts`, `?sea=lake&extras=skip`, Remy 2026-09-28),
+ * whose stones need water a stone can skip on, and whose touch splash is
+ * judged against a clip of a lake (`ref/real/splash/skip`, "Rock skipping
+ * in slow motion2.webm", TonyRaccoon, CC BY 3.0: glassy water with small
+ * wavelets and long reflections). It changes no other sea state.
+ *
+ * THE WIND. U10 = 2 m/s, the bottom of Beaufort 2 ("small wavelets, still
+ * short; crests have a glassy appearance and do not break"), over a 1 km
+ * fetch: a lake or a sheltered bay. JONSWAP puts the peak at 0.94 m (T 0.78
+ * s) and Hs at 3.5 cm; the empirical fetch law (Hasselmann et al. 1973)
+ * gives 3.2 cm. Monahan's whitecap fraction at 2 m/s is 4e-5: none.
+ *
+ * THE LAYOUT keeps the rule of the other states (each band's longest wave
+ * at least three times in its patch; prime patches, so the sum repeats at
+ * 7 x 41 = 287 m) for a sea whose energy is all under a meter or two:
+ *
+ *   ripple   7 m patch, 0.055-0.6 m (texel 2.7 cm, so the shortest wave has
+ *            2 texels, as the other ripples do). A 13 m patch stops at
+ *            10 cm, and at 0.5 m over the water, where the splash is judged,
+ *            the 5 to 10 cm wavelets are what the near water shows.
+ *   wavelet  41 m patch, 0.6-20 m, the 0.94 m peak 43 times over, texel
+ *            16 cm (3.75 texels on its shortest wave). It reaches 20 m
+ *            because the surface shades the water's body from a cascade
+ *            that does (`BODY_WAVE_MIN_M` in oceanSurface.ts); the 41 m
+ *            patch holds a 20 m wave only twice, against the three-times
+ *            rule, but this wind puts no energy there (the band over 13 m
+ *            carries under 1e-4 of the variance, measured), so nothing tiles.
+ *
+ * THE RIPPLE KEEPS 0.26 OF ITS ENERGY (`energyScale`). With JONSWAP's
+ * omega^-5 tail at full energy the 0.055-0.6 m band alone resolved a
+ * mean-square slope of 0.0157, over Cox and Munk's whole clean-surface
+ * value at 2 m/s (0.003 + 0.00512 U = 0.0132), which includes the
+ * capillaries no cascade carries. The judged open sea (`waterpro`) resolves
+ * 56% of Cox and Munk (0.045 of 0.080) and leaves the rest to the shader;
+ * 0.26 gives the lake the same share: 0.0075 of 0.0132 (ripple 0.0041,
+ * wavelet 0.0034). A light wind is under JONSWAP's saturated tail at the
+ * shortest waves: their growth needs a wind well over their phase speed.
+ * Measured on the CPU reference, 256 grid, seed 0x0cea9, t = 42 s
+ * (`.agent/scratch/ocean-gauntlet/skip/lakeMeasure.ts`): Hs 1.0 cm
+ * (ripple) and 3.3 cm (wavelet), 3.5 cm together.
+ *
+ * CHOPPINESS 0.8 on both: the ripple's own Jacobian minimum is 0.80, the
+ * wavelet's 0.80, and their deficits summed (as the surface sums them) fall
+ * to 0.667 at worst and under 0.7 on 0.0006% of the surface: the fold foam
+ * starts at 0.60 (oceanSurface.ts), so this sea draws none. At least one
+ * cascade must drive foam (oceanField.ts), so both do; neither folds.
+ *
+ * DEPTH 20 m: a lake's. At 20 m every wave this wind makes is a deep-water
+ * wave (kh over 6 at 13 m), so TMA and the dispersion leave it alone.
+ *
+ * THE FADES. The mesh is 0.24 m between vertices at its center, so a ripple
+ * under 0.5 m cannot be geometry past a few meters: its displacement fades
+ * from 4 to 12 m and its normal (a per-pixel read) from 20 to 110 m, the
+ * `waterpro` ripple's range scaled by the shortest wave (5.5 cm against
+ * 10 cm). The wavelet's 0.94 m peak needs spacing under 0.47 m, which the
+ * mesh keeps to about 15 m; its geometry fades from 15 to 60 m and its
+ * normal from 150 to 700 m. Past that the lake is a mirror of the sky,
+ * which a calm lake is.
+ */
+const LAKE_WIND_MS = 2;
+const LAKE_FETCH_M = 1_000;
+const LAKE_DEPTH_M = 20;
+const LAKE_RIPPLE_ENERGY = 0.26;
+const LAKE_CASCADES: readonly CascadeParams[] = [
+  {
+    name: 'ripple',
+    patchM: 7,
+    windSpeedMs: LAKE_WIND_MS,
+    fetchM: LAKE_FETCH_M,
+    windDirRad: DIR_WATERPRO,
+    depthM: LAKE_DEPTH_M,
+    cutoffLowM: 0,
+    cutoffHighM: 0.6,
+    choppiness: 0.8,
+    dispLod: { startM: 4, endM: 12, floor: 0 },
+    normalLod: { startM: 20, endM: 110, floor: 0 },
+    drivesFoam: true,
+    spreading: 'donelan',
+    energyScale: LAKE_RIPPLE_ENERGY,
+  },
+  {
+    name: 'wavelet',
+    patchM: 41,
+    windSpeedMs: LAKE_WIND_MS,
+    fetchM: LAKE_FETCH_M,
+    windDirRad: DIR_WATERPRO,
+    depthM: LAKE_DEPTH_M,
+    cutoffLowM: 0.6,
+    cutoffHighM: 20,
+    choppiness: 0.8,
+    dispLod: { startM: 15, endM: 60, floor: 0 },
+    normalLod: { startM: 150, endM: 700, floor: 0 },
+    drivesFoam: true,
+    spreading: 'donelan',
+  },
+];
+
+/**
+ * SURF: a long swell from a distant storm running onto a rocky shore under
+ * a fair sky, with a fresh breeze over it. Added by the rocks piece
+ * (`oceanRocks.ts`, `?extras=rocks&sea=surf`, 2026-09-29), which is judged
+ * against two clips of real surf on rocks: Joe Mabel's Kalaloch Beach,
+ * Washington, at dusk, and a rocky shore in daylight (Freestocks). Both show
+ * long swell lines arriving at the camera and a sea whitened at the rocks
+ * more than offshore. No other state changes.
+ *
+ * - THE LAYOUT is `waterpro`'s, as judged: 13 / 89 / 421 / 1291 m patches,
+ *   every band's longest wave three times or more in its patch, round 4's
+ *   choppiness, normal fades and spreading. Only the winds, the swell's
+ *   energy and the headings differ.
+ * - THE HEADING: the swell travels straight onshore, toward -Z; the local
+ *   wind sea 20 degrees off it (SURF_WIND_OFF_RAD), a breeze across the
+ *   coast. A camera on the -Z side of the rocks looking toward +Z therefore
+ *   stands on the shore with the waves coming at it, as in both clips, and
+ *   the shared test sun (30 degrees up, 30 degrees left of -Z) is behind
+ *   it, so the rocks are lit from the front as in the daylight clip.
+ *   NOTE THE SIGN: in this pipeline a cascade's waves travel toward
+ *   `windDirRad` + pi, not toward `windDirRad` (measured on the CPU
+ *   reference, `rocks/travelDir.ts` in the gauntlet scratch: the swell
+ *   band with windDirRad = pi / 2 moved its pattern 10.1 m toward -Z in
+ *   0.5 s, its 254 m peak's phase speed of 19.9 m/s; the time factor
+ *   e^{+i omega t} on e^{i k.x} runs each wave toward -k). So the value
+ *   written is pi / 2 (SURF_FROM_RAD): the waves come from +Z.
+ * - THE LOCAL WIND SEA: U10 = 12 m/s (Beaufort 6, "large waves begin to
+ *   form; white foam crests are more extensive everywhere") over the Water
+ *   Pro fetch, 49.8 km: peak 40.6 m (T 5.1 s), Hs 1.77 m over its three
+ *   bands. At the Water Pro sea's own 15 m/s the combined fold fell under
+ *   0.6 on 0.42% of the surface (candidate s15); at 12 m/s on 0.14%, the
+ *   low side of the stage A share of Monahan's 1.85% whitecap fraction at
+ *   12 m/s. The clips' white water is the surf at the rocks, which the rocks
+ *   piece draws; the sea offshore breaks less.
+ * - THE SWELL: a 16 m/s storm wind over 600 km: peak 254 m, T 12.7 s, the
+ *   period of a winter swell on an open ocean coast (the northeast Pacific's
+ *   winter swell runs 11 to 16 s). It keeps 4.5% of that storm's variance
+ *   (`energyScale`, SURF_SWELL_ENERGY): Hs 1.64 m at a steepness of 0.006;
+ *   a swell some thousands of kilometers from its storm keeps a tenth or
+ *   less (Snodgrass et al. 1966). At 12% it reached 2.69 m and the sea 3.22
+ *   m, which buried the rocks' 2.4 m top at every large crest.
+ *
+ * Measured on the CPU (`rocks/measureSurf.ts` in the gauntlet scratch, a
+ * copy of `waves/measure.ts`, candidate s12c, seed 0x0cea9 at 42.0 s):
+ * total Hs 2.42 m; the combined Jacobian minimum 0.47, under 0.7 on 1.64%,
+ * under 0.6 on 0.14%, under 0.5 on 0.00%, no cell folds through; the
+ * swell's own minimum 0.97. (Candidate s12d, the same sea turned by pi:
+ * 0.43, 1.87%, 0.17%.)
+ */
+const SURF_WIND_MS = 12;
+const SURF_WIND_OFF_RAD = 0.35;
+const SURF_SWELL_WIND_MS = 16;
+const SURF_SWELL_FETCH_M = 600_000;
+const SURF_SWELL_ENERGY = 0.045;
+/** The heading written into `windDirRad`: the waves come FROM +Z and travel toward -Z (see NOTE THE SIGN). */
+const SURF_FROM_RAD = Math.PI / 2;
+const SURF_CASCADES = WATERPRO_CASCADES.map((c): CascadeParams => (c.name === 'swell'
+  ? {
+    ...c,
+    windSpeedMs: SURF_SWELL_WIND_MS,
+    fetchM: SURF_SWELL_FETCH_M,
+    energyScale: SURF_SWELL_ENERGY,
+    windDirRad: SURF_FROM_RAD,
+  }
+  : { ...c, windSpeedMs: SURF_WIND_MS, windDirRad: SURF_FROM_RAD - SURF_WIND_OFF_RAD }));
+
 export const OCEAN_SEA_STATES: Readonly<Record<string, readonly CascadeParams[]>> = {
   default: DEFAULT_CASCADES,
+  lake: LAKE_CASCADES,
   shallow: SHALLOW_CASCADES,
   storm: STORM_CASCADES,
   waterpro: WATERPRO_CASCADES,
@@ -742,6 +925,7 @@ export const OCEAN_SEA_STATES: Readonly<Record<string, readonly CascadeParams[]>
   'waterpro-swell': WATERPRO_CASCADES,
   'waterpro-r3': WATERPRO_R3_CASCADES,
   choppy: CHOPPY_CASCADES,
+  surf: SURF_CASCADES,
 };
 
 /**

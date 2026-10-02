@@ -10,7 +10,18 @@
  *
  * THE CONTROLS
  *
- *   drag (left button)   look around: yaw and pitch, no roll
+ *   drag (left button)   look around: yaw and pitch, no roll. The view
+ *                        turns the way the mouse moves (drag right, look
+ *                        right; drag up, look up), as in a game.
+ *   drag (right button)  pan: the camera slides sideways and up or down in
+ *                        its own screen plane, and the scene follows the
+ *                        cursor. The context menu is off over the canvas.
+ *
+ *   HISTORY. 2026-09-25: the look first shipped game-style, then turned to
+ *   "grab the scene" (drag left, look right). 2026-09-29, Remy: "(hold) right
+ *   click to rotate", so both buttons turned the view. Same day, Remy: "camera
+ *   control appears inverted. and right click should be 'panning'". So the
+ *   look is game-style again, and the right button pans.
  *   W A S D              fly forward, left, back, right, along the view
  *   E / Q                up / down
  *   Shift                four times faster
@@ -53,6 +64,8 @@ const SPEED_PER_M_OF_HEIGHT = 0.6;
 const SHIFT_GAIN = 4;
 /** One wheel notch moves this many seconds of flight at the current speed. */
 const WHEEL_SECONDS = 0.35;
+/** A right-button pan moves this many seconds of flight per pixel of drag. */
+const PAN_SECONDS_PER_PX = 0.012;
 
 const FLY_KEYS = new Set(['KeyW', 'KeyA', 'KeyS', 'KeyD', 'KeyQ', 'KeyE', 'ShiftLeft', 'ShiftRight']);
 
@@ -60,7 +73,7 @@ export function attachFreeLook(camera: THREE.PerspectiveCamera, dom: HTMLElement
   let yaw = 0;
   let pitch = 0;
   const held = new Set<string>();
-  let drag: { id: number; x: number; y: number } | null = null;
+  let drag: { id: number; x: number; y: number; pan: boolean } | null = null;
 
   const euler = new THREE.Euler(0, 0, 0, 'YXZ');
   const fwd = new THREE.Vector3();
@@ -87,13 +100,14 @@ export function attachFreeLook(camera: THREE.PerspectiveCamera, dom: HTMLElement
   dom.style.outline = 'none';
   dom.style.touchAction = 'none';
   dom.style.cursor = 'grab';
-  dom.title = 'Drag to look around. W A S D to fly, E up, Q down, Shift faster, wheel forward or back.';
+  dom.title = 'Left-drag to look around, right-drag to pan. W A S D to fly, E up, Q down, Shift faster, wheel forward or back.';
 
   const onDown = (e: PointerEvent) => {
-    if (e.button !== 0) return;
+    // 0 = left (look), 2 = right (pan). The middle button is left free.
+    if (e.button !== 0 && e.button !== 2) return;
     dom.focus();
     syncFromCamera();
-    drag = { id: e.pointerId, x: e.clientX, y: e.clientY };
+    drag = { id: e.pointerId, x: e.clientX, y: e.clientY, pan: e.button === 2 };
     dom.setPointerCapture(e.pointerId);
     dom.style.cursor = 'grabbing';
   };
@@ -104,12 +118,21 @@ export function attachFreeLook(camera: THREE.PerspectiveCamera, dom: HTMLElement
     drag.x = e.clientX;
     drag.y = e.clientY;
     if (dx === 0 && dy === 0) return;
-    // GRAB THE SCENE: the sea follows the cursor, as in a street-view panorama
-    // and the Water Pro demo. A drag to the left turns the view right, and a
-    // drag up tilts it down. (The first build used game-style mouse look, the
-    // other way round, and a drag up threw the view into the sky.)
-    yaw += dx * LOOK_RAD_PER_PX;
-    pitch = Math.max(-PITCH_LIMIT_RAD, Math.min(PITCH_LIMIT_RAD, pitch + dy * LOOK_RAD_PER_PX));
+    if (drag.pan) {
+      // PAN: slide the camera in its own screen plane. The scene follows the
+      // cursor, so a drag to the right moves the camera left. The step scales
+      // with the flight speed, so a pan from high up covers more ground.
+      camera.getWorldDirection(fwd);
+      right.crossVectors(fwd, camera.up).normalize();
+      move.crossVectors(right, fwd).normalize();
+      const k = speed() * PAN_SECONDS_PER_PX;
+      camera.position.addScaledVector(right, -dx * k);
+      camera.position.addScaledVector(move, dy * k);
+      return;
+    }
+    // LOOK, game-style: drag right to look right, drag up to look up.
+    yaw -= dx * LOOK_RAD_PER_PX;
+    pitch = Math.max(-PITCH_LIMIT_RAD, Math.min(PITCH_LIMIT_RAD, pitch - dy * LOOK_RAD_PER_PX));
     applyLook();
   };
   const onUp = (e: PointerEvent) => {
@@ -118,6 +141,8 @@ export function attachFreeLook(camera: THREE.PerspectiveCamera, dom: HTMLElement
     if (dom.hasPointerCapture(e.pointerId)) dom.releasePointerCapture(e.pointerId);
     dom.style.cursor = 'grab';
   };
+  // A right-button drag would open the browser's menu on release.
+  const onContextMenu = (e: MouseEvent) => e.preventDefault();
   const onWheel = (e: WheelEvent) => {
     e.preventDefault();
     camera.getWorldDirection(fwd);
@@ -139,6 +164,7 @@ export function attachFreeLook(camera: THREE.PerspectiveCamera, dom: HTMLElement
   dom.addEventListener('pointermove', onMove);
   dom.addEventListener('pointerup', onUp);
   dom.addEventListener('pointercancel', onUp);
+  dom.addEventListener('contextmenu', onContextMenu);
   dom.addEventListener('wheel', onWheel, { passive: false });
   dom.addEventListener('keydown', onKeyDown);
   dom.addEventListener('keyup', onKeyUp);
@@ -170,6 +196,7 @@ export function attachFreeLook(camera: THREE.PerspectiveCamera, dom: HTMLElement
       dom.removeEventListener('pointermove', onMove);
       dom.removeEventListener('pointerup', onUp);
       dom.removeEventListener('pointercancel', onUp);
+      dom.removeEventListener('contextmenu', onContextMenu);
       dom.removeEventListener('wheel', onWheel);
       dom.removeEventListener('keydown', onKeyDown);
       dom.removeEventListener('keyup', onKeyUp);

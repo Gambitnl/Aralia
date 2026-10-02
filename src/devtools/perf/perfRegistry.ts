@@ -1,19 +1,3 @@
-// @dependencies-start
-/**
- * ARCHITECTURAL ADVISORY:
- * SHARED UTILITY: Multiple systems rely on these exports.
- *
- * Last Sync: 09/08/2026, 17:09:28
- * Dependents: components/World3D/World3DScene.tsx, devtools/perf/PerfOverlay.tsx, devtools/perf/PerfProbe.tsx, devtools/perf/index.ts
- * Imports: 1 files
- *
- * MULTI-AGENT SAFETY:
- * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
- * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
- */
-// @dependencies-end
-
 /**
  * The list of 3D surfaces currently being measured.
  *
@@ -26,6 +10,22 @@
  * canvas host to sit under one provider, and several of them are mounted by
  * lazy chunks, portals, or the game shell rather than by the design preview.
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 29/09/2026, 00:50:48
+ * Dependents: components/World3D/World3DScene.tsx, devtools/buildingIdentityLab/BuildingSceneDiagnostics.tsx, devtools/perf/PerfFpsText.tsx, devtools/perf/PerfOverlay.tsx, devtools/perf/PerfWindowBadge.tsx, devtools/perf/index.ts, devtools/perf/rendererProbe.ts
+ * Imports: 1 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
 
 import { PerfSession, type SceneDiagnostics } from './perfSession';
 
@@ -99,6 +99,41 @@ export function clearPerfSessions(): void {
 }
 
 /**
+ * An id no live session holds yet, built from `base`.
+ *
+ * The renderer probe names a surface after the window it sits in, and two
+ * canvases in one window would otherwise share an id and so share a session.
+ * Two renderers feeding one session count every display frame twice.
+ */
+export function uniquePerfSessionId(base: string): string {
+  if (!sessions.has(base)) return base;
+  for (let n = 2; ; n++) {
+    const candidate = `${base}-${n}`;
+    if (!sessions.has(candidate)) return candidate;
+  }
+}
+
+/* A REQUEST TO SHOW ONE SURFACE, across React roots.
+ *
+ * The panel lives in a React root of its own (see PerfOverlayHost.tsx), so a
+ * badge in a window title bar cannot reach its state. A plain listener set is
+ * the one channel both roots can see without sharing a React tree. */
+const panelListeners = new Set<(id: string) => void>();
+
+/** Open the performance panel on the surface with this id. */
+export function requestPerfPanel(id: string): void {
+  for (const fn of panelListeners) fn(id);
+}
+
+/** Listen for `requestPerfPanel`. Returns the unsubscribe. */
+export function subscribePerfPanelRequests(fn: (id: string) => void): () => void {
+  panelListeners.add(fn);
+  return () => {
+    panelListeners.delete(fn);
+  };
+}
+
+/**
  * The same readings, reachable from a headless capture script.
  *
  * The screenshot rigs drive a real browser and read the page through
@@ -116,5 +151,7 @@ if (typeof window !== 'undefined') {
         .join('\n\n'),
     record: (id: string) => getPerfSession(id)?.startRecording(),
     stop: (id: string) => getPerfSession(id)?.stopRecording() ?? null,
+    // Added 2026-09-29 with the renderer probe. Existing keys keep their shape.
+    open: (id: string) => requestPerfPanel(id),
   };
 }

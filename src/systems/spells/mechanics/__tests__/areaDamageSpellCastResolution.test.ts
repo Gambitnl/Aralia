@@ -12,8 +12,8 @@
  */
 
 import { describe, expect, it, vi } from 'vitest';
-import burningHandsData from '../../../../data/spells/level-1/burning-hands.json';
-import fireballData from '../../../../data/spells/level-3/fireball.json';
+import burningHandsData from '@/data/spells/level-1/burning-hands.json';
+import fireballData from '@/data/spells/level-3/fireball.json';
 import type {
   BattleMapData,
   BattleMapTile,

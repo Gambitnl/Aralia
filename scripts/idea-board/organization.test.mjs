@@ -13,7 +13,7 @@ test('idea focus shows only the exact ID in every connected project and scope', 
     assert.deepEqual(new Set(groups.map((group) => group.id)), new Set(concepts[id].connections.map((link) => `${link.project}/${link.scope}`)));
     assert.ok(groups.every((group) => group.records.length === 1 && group.records[0].id === id));
   }
-  assert.equal(new Set(ideaProjectGroups(data.records, 'IB-0010').map((group) => group.projectId)).size, 3);
+  assert.equal(new Set(ideaProjectGroups(data.records, 'IB-0010').map((group) => group.projectId)).size, 4);
   assert.deepEqual(ideaProjectGroups(data.records, 'missing'), []);
 });
 
@@ -83,4 +83,16 @@ test('separate generator project mappings are explicitly suggestions', () => {
   const links = Object.values(concepts).flatMap((concept) => concept.connections).filter((link) => link.project === 'dd-generator');
   assert.ok(links.length > 0);
   assert.ok(links.every((link) => link.level === 'suggested'));
+});
+
+test('Crimson Ledger is a separate project with tentative creator research', () => {
+  const project = projects.find((item) => item.id === 'crimson-ledger');
+  assert.equal(project?.name, 'Crimson Ledger');
+  assert.deepEqual(project.scopes.map((scope) => scope.id), ['creator', 'campaigns']);
+  const links = Object.values(concepts).flatMap((concept) => concept.connections).filter((link) => link.project === project.id);
+  assert.deepEqual(links.length, 2);
+  assert.ok(links.every((link) => link.scope === 'creator' && link.level === 'suggested'));
+  assert.deepEqual(groupRecords(data.records, 'project', project.id).flatMap((group) => group.records.map((record) => record.id)).sort(), ['IB-0008', 'IB-0010']);
+  assert.deepEqual(groupRecords(data.records, 'project', project.id + '/campaigns'), []);
+  assert.ok(!matchesProject(data.records.find((record) => record.id === 'IB-0010'), project.id + '/campaigns'));
 });

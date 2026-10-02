@@ -119,6 +119,25 @@
  * on the aligned fibers' width on screen as the curls are, the clock on
  * nothing the camera does.
  *
+ * ROUND 10 (2026-09-29): THE SEA'S ONE FOAM FIELD, AND THE FILL. Under
+ * the new test sun the view from above lost both orders; its foam was the
+ * same as the winning frame's, so the verdicts' foam gaps were the real
+ * ones: "stamped fur" hair fill, one flat gray, thresholded edges, short
+ * hatch strokes, one size of patch. Each change is behind a control whose
+ * off value draws round 9 at 0 pixels at both judged poses:
+ * `cells` (the fourth tile, FOAM_CELLS_*: bubble cells at 0.45 m and 1.8 m
+ * and long streaks, in place of the hair where the hair was read), `warp`
+ * (the store read at a point moved by streaky noise, so an outline is
+ * combed into strands and its sides are irregular), `skirt` (a grained veil
+ * from the coarse store round every patch, keyed off where a bubble is
+ * resolved on screen), `freshBright` with `ageLight` (fresh brighter, old
+ * dimmer, by the foam's own age) and `groupGain` 0.4 (whitecaps gather in
+ * the wave groups). THE SOURCE TERM: `oceanFoamSources(field)` is the one
+ * way a piece writes foam production into this store (`OceanFoamSource`,
+ * a window buffer source for the wake's cover, timed discs for the rocks,
+ * the reef's depth-limited breaking in `sourceAt`); with no source the step
+ * kernels are round 9's node for node.
+ *
  * WHAT IS STILL OPEN. From above the masses' cores are less dense than
  * the reference's rafts. `tailDim` (the light falling with the coverage)
  * is built and off: it cost the eye-level near flecks. The spray piece
@@ -131,6 +150,7 @@ import * as THREE from 'three/webgpu';
 import {
   Fn,
   If,
+  Loop,
   dFdx,
   dFdy,
   exp2,
@@ -163,6 +183,7 @@ import {
 } from 'three/tsl';
 import type { OceanField } from './oceanField';
 import { createOceanSampler } from './oceanSampler';
+import { oceanBathymetryFor } from './oceanBathymetry';
 import { OCEAN_SUN_DIR, oceanSkyRadiance } from './oceanSky';
 import {
   FOAM_DEFICIT_HI,
@@ -191,6 +212,19 @@ import {
   FOAM_LACE_YOUNG_HAIR,
   FOAM_LACE_OLD_HAIR,
   FOAM_LACE_FRINGE_HAIR,
+  FOAM_CELLS_ALONG_M,
+  FOAM_CELLS_ACROSS_M,
+  FOAM_CELLS_S_COUNT,
+  FOAM_CELLS_L_COUNT,
+  FOAM_SALT_CELLS,
+  FOAM_LACE_STREAK,
+  FOAM_SALT_STREAK,
+  FOAM_LACE_YOUNG_CELLS,
+  FOAM_LACE_OLD_CELLS,
+  FOAM_LACE_FRINGE_CELLS,
+  foamTileCellS,
+  foamTileCellL,
+  foamTileStreak,
   FOAM_AGE_TAU_S,
   FOAM_AGE_B0,
   FOAM_AGE_B1,
@@ -309,6 +343,9 @@ type TslNode = any;
  */
 export const FOAM_DECK_RATIO = 2.2;
 
+/** The salt of the store read's warp noise (round 10, `warp`). */
+const FOAM_WARP_SALT = 0x2b71;
+
 /** The surface's foam color with no sun, scene-linear luminance: 0.7 x (0.86, 0.90, 0.92). */
 const SURFACE_FOAM_NO_SUN = 0.7 * (0.2126 * 0.86 + 0.7152 * 0.90 + 0.0722 * 0.92);
 
@@ -335,6 +372,249 @@ export interface OceanFoamReader {
    * the water is white.
    */
   coverageAt(sample: TslNode): TslNode;
+}
+
+/**
+ * A SOURCE OF FOAM (round 10, GG-291, GG-341: the sea's ONE foam field).
+ * Any piece that makes white water on the sea (a wake, a hull, a rock's
+ * wash, a river mouth) writes it into this store's PRODUCTION TERM instead
+ * of drawing a foam of its own, so its foam drifts, merges, ages and is
+ * drawn as the whitecaps' foam is, and outlives the piece's own window.
+ *
+ * `at(x, tS)` is TSL, legal in a compute kernel (no screen derivatives): at the
+ * grid coordinate `x` (vec2, meters, the surface's `vSample`, the label the
+ * store's texel centers use) and the step's sea time node `tS` (seconds)
+ * it returns vec2(strength, freshness), both 0
+ * to 1. The step lays foam there as a full break does at that strength
+ * (F gains FOAM_PRODUCTION_PER_S x dt x strength, the larger of it and the
+ * breaker's), and the freshness joins the age clock A (the larger of A
+ * decayed and it), so foam a piece makes fresh draws as fresh. The area is
+ * the piece's own: `at` answers 0 outside it.
+ *
+ * `beforeStep(renderer, tS, restep)` is called before every foam step with
+ * that step's sea time. `restep` is true in a pinned warm-up, where the
+ * store is rebuilt from rest over FOAM_WARMUP_S: the source must bring its
+ * own state to tS (it may enqueue compute; the sea has been re-stepped to
+ * tS before it is called). In a live step it may update uniforms only.
+ */
+export interface OceanFoamSource {
+  readonly name: string;
+  at(x: TslNode, tS: TslNode): TslNode;
+  beforeStep?(renderer: THREE.WebGPURenderer, tS: number, restep: boolean): void;
+}
+
+/** The sources registered on one sea, and a count that changes with them. */
+export interface OceanFoamSourceSet {
+  /** Add a source; returns the function that removes it. */
+  add(source: OceanFoamSource): () => void;
+  list(): readonly OceanFoamSource[];
+  readonly version: number;
+  /**
+   * A source's data changed (a timed disc list, a window): a pinned store
+   * must be built again from rest to hold it. Bumps `epoch`.
+   */
+  invalidate(): void;
+  readonly epoch: number;
+}
+
+const SOURCE_SETS = new WeakMap<OceanField, { list: OceanFoamSource[]; version: number; epoch: number }>();
+
+/**
+ * The foam sources of a sea (round 10). A piece calls
+ * `oceanFoamSources(ctx.field).add(source)` in its mount, in any order
+ * against the foam's own mount: the foam store reads the set at each step
+ * and rebuilds its step kernels when the set changes. With no source the
+ * kernels are round 9's node for node.
+ */
+export function oceanFoamSources(field: OceanField): OceanFoamSourceSet {
+  let e = SOURCE_SETS.get(field);
+  if (!e) {
+    e = { list: [], version: 0, epoch: 0 };
+    SOURCE_SETS.set(field, e);
+  }
+  const entry = e;
+  return {
+    add(source) {
+      if (entry.list.some((x) => x.name === source.name)) {
+        throw new Error(`[ocean] A foam source named "${source.name}" is already on this sea.`);
+      }
+      entry.list.push(source);
+      entry.version += 1;
+      return () => {
+        const i = entry.list.indexOf(source);
+        if (i >= 0) {
+          entry.list.splice(i, 1);
+          entry.version += 1;
+        }
+      };
+    },
+    list: () => entry.list,
+    get version() { return entry.version; },
+    invalidate() { entry.epoch += 1; },
+    get epoch() { return entry.epoch; },
+  };
+}
+
+/** One timed disc of foam production (rocks round 2): a grid (label) point, radius, strength 0 to 1, laying from t0S to t1S. */
+export interface OceanFoamDisc {
+  readonly xM: number;
+  readonly zM: number;
+  readonly rM: number;
+  readonly s: number;
+  readonly t0S: number;
+  readonly t1S: number;
+  /**
+   * Rocks round 5: the disc's edge, 0 to 1. At 0 (the default, every disc
+   * before round 5) the disc is flat to 0.6 of its radius and falls to 0 at
+   * its rim; at 1 it falls from its middle, a soft cone, so a row of
+   * overlapping discs lays one continuous band with a soft edge.
+   */
+  readonly soft?: number;
+}
+
+/**
+ * Slots of a disc source. Rocks round 2: three rocks lay about ten discs a
+ * wave hit, a hit every 10 to 15 s (96). Rocks round 5: 256. At the judged
+ * hit the rocks hold about 180 to 340 live discs; at 96 the newest were kept
+ * and the older collar dropped out, so the collar came out thin or in
+ * blotches (the round-4 judges: "almost no foam at the base").
+ */
+export const FOAM_DISC_SLOTS = 256;
+
+/**
+ * TIMED DISCS (the rocks builder's round-2 patch, folded into the one
+ * registry by foam round 10): up to `slots` discs of production, each laying
+ * only while the step's sea time is inside its span, so a pinned warm-up
+ * replays them at their own times. A box round every live disc keeps the loop
+ * off every texel far from them. For a piece whose water turns white (a
+ * rock's collar, a splash landing, a cascade entering the sea). After
+ * `setDiscs` on a pinned page, call `oceanFoamSources(field).invalidate()`.
+ * Freshness is the strength: a disc lays fresh foam.
+ */
+export function oceanFoamDiscSource(name: string, slots = FOAM_DISC_SLOTS): OceanFoamSource & { setDiscs(list: readonly OceanFoamDisc[]): void } {
+  const srcA: THREE.Vector4[] = [];
+  const srcB: THREE.Vector4[] = [];
+  for (let k = 0; k < slots; k += 1) {
+    srcA.push(new THREE.Vector4(0, 0, 1, 0));
+    srcB.push(new THREE.Vector4(0, -1, 0, 0));
+  }
+  const uSrcA = uniformArray(srcA, 'vec4');
+  const uSrcB = uniformArray(srcB, 'vec4');
+  const uSrcCount = uniform(0, 'int');
+  const uSrcBox = uniform(new THREE.Vector4(0, 0, 0, 0));
+  return {
+    name,
+    at(x, tS) {
+      const out = float(0).toVar();
+      If(uSrcCount.greaterThan(int(0))
+        .and(x.x.greaterThanEqual(uSrcBox.x)).and(x.y.greaterThanEqual(uSrcBox.y))
+        .and(x.x.lessThanEqual(uSrcBox.z)).and(x.y.lessThanEqual(uSrcBox.w)), () => {
+        Loop({ start: int(0), end: uSrcCount, type: 'int', condition: '<' }, ({ i }: { i: TslNode }) => {
+          const a = uSrcA.element(i);
+          const b = uSrcB.element(i);
+          const live = tS.greaterThanEqual(b.x).and(tS.lessThanEqual(b.y));
+          const dN = x.sub(vec2(a.x, a.y)).length().div(max(a.z, float(0.05)));
+          // Rocks round 5: b.z is the edge's softness (0: round 2's disc, 1: a soft cone).
+          const v = float(1).sub(smoothstep(float(0.6).mul(float(1).sub(b.z)), float(1), dN)).mul(a.w);
+          out.assign(max(out, select(live, v, float(0))));
+        });
+      });
+      return vec2(out, out);
+    },
+    setDiscs(list) {
+      if (list.length > slots) {
+        throw new Error(`[ocean] ${list.length} foam discs asked, the source "${name}" holds ${slots}.`);
+      }
+      let x0 = Infinity; let z0 = Infinity; let x1 = -Infinity; let z1 = -Infinity;
+      for (let k = 0; k < slots; k += 1) {
+        const d = list[k];
+        if (d) {
+          srcA[k].set(d.xM, d.zM, Math.max(d.rM, 0.05), Math.min(Math.max(d.s, 0), 1));
+          srcB[k].set(d.t0S, d.t1S, Math.min(Math.max(d.soft ?? 0, 0), 1), 0);
+          x0 = Math.min(x0, d.xM - d.rM); z0 = Math.min(z0, d.zM - d.rM);
+          x1 = Math.max(x1, d.xM + d.rM); z1 = Math.max(z1, d.zM + d.rM);
+        } else {
+          srcA[k].set(0, 0, 1, 0);
+          srcB[k].set(0, -1, 0, 0);
+        }
+      }
+      uSrcCount.value = list.length;
+      if (list.length > 0) uSrcBox.value.set(x0, z0, x1, z1);
+    },
+  };
+}
+
+/**
+ * A source read from a WINDOW BUFFER (round 10): a vec4 storage buffer of
+ * `nu` x `nv` texels of `texelM` meters, laid over the water by a window
+ * whose corner is (oxM, ozM) and whose u axis is (hx, hz), v the axis a
+ * quarter turn from it (the wake's layout, `sampleWindow` in oceanWake.ts).
+ * The amount is channel `channel`, bilinear; strength is smoothstep(`lo`,
+ * `hi`, amount) times `gain`, freshness smoothstep(`freshLo`, `freshHi`,
+ * amount). `window()` is read before each foam step (null: the source is
+ * off); `restep(renderer, tS)` brings the buffer to sea time tS in a
+ * warm-up. The wake's cover is the first such source (GG-291); a rock's
+ * wash that lives in a buffer can be another.
+ */
+export function oceanFoamWindowSource(o: {
+  name: string;
+  buffer: THREE.StorageBufferAttribute;
+  channel: 0 | 1 | 2 | 3;
+  nu: number;
+  nv: number;
+  texelM: number;
+  window: () => { oxM: number; ozM: number; hx: number; hz: number } | null;
+  restep?: (renderer: THREE.WebGPURenderer, tS: number) => void;
+  lo?: number;
+  hi?: number;
+  gain?: number;
+  freshLo?: number;
+  freshHi?: number;
+}): OceanFoamSource {
+  const buf = storage(o.buffer, 'vec4', o.buffer.count).toReadOnly();
+  const uWin = uniform(new THREE.Vector4(0, 0, 1, 0));
+  const uOn = uniform(0);
+  const uGain = uniform(o.gain ?? 1);
+  const { nu, nv, texelM } = o;
+  const sync = () => {
+    const w = o.window();
+    uOn.value = w ? 1 : 0;
+    if (w) uWin.value.set(w.oxM, w.ozM, w.hx, w.hz);
+  };
+  return {
+    name: o.name,
+    at(x) {
+      // The window's own clock is its buffer (`restep`); tS is not needed.
+      const out = vec2(0, 0).toVar();
+      If(uOn.greaterThan(float(0.5)), () => {
+        const d = x.sub(vec2(uWin.x, uWin.y));
+        const tu = d.x.mul(uWin.z).add(d.y.mul(uWin.w)).div(texelM);
+        const tv = d.x.mul(uWin.w).negate().add(d.y.mul(uWin.z)).div(texelM);
+        const inside = tu.greaterThanEqual(float(0)).and(tu.lessThan(float(nu - 1)))
+          .and(tv.greaterThanEqual(float(0))).and(tv.lessThan(float(nv - 1)));
+        const cu = clamp(tu, float(0), float(nu - 1.001));
+        const cv = clamp(tv, float(0), float(nv - 1.001));
+        const bu = floor(cu);
+        const bv = floor(cv);
+        const fu = cu.sub(bu);
+        const fv = cv.sub(bv);
+        const i0 = int(bu);
+        const j0 = int(bv);
+        const at = (di: number, dj: number) => buf.element(j0.add(int(dj)).mul(int(nu)).add(i0.add(int(di))));
+        const v4 = mix(mix(at(0, 0), at(1, 0), fu), mix(at(0, 1), at(1, 1), fu), fv);
+        const amt = select(inside, [v4.x, v4.y, v4.z, v4.w][o.channel], float(0));
+        out.assign(vec2(
+          smoothstep(float(o.lo ?? 0.05), float(o.hi ?? 0.5), amt).mul(uGain),
+          smoothstep(float(o.freshLo ?? 0.2), float(o.freshHi ?? 0.8), amt),
+        ));
+      });
+      return out;
+    },
+    beforeStep(renderer, tS, restep) {
+      if (restep && o.restep) o.restep(renderer, tS);
+      sync();
+    },
+  };
 }
 
 export interface OceanFoamOptions {
@@ -431,7 +711,10 @@ export function createOceanFoam(field: OceanField, opts: OceanFoamOptions = {}):
     // start a breaker: see FOAM_BREAKER_GATE_LO.
     gateLo: uniform(FOAM_BREAKER_GATE_LO),
     gateHi: uniform(FOAM_BREAKER_GATE_HI),
-    groupGain: uniform(FOAM_GROUP_GAIN),
+    // Round 10: 0.4 (FOAM_GROUP_GAIN 0.3 is round 9's): the whitecaps
+    // gather in the wave groups' maxima with open sea between them (sweep
+    // c4 to c9; at 0.8 the eye-level near water flooded with flecks).
+    groupGain: uniform(0.4),
     // 1: a steep wind-sea crest starts a breaker on its own; 0: only where a fold rides it.
     gateAlone: uniform(1),
     // Coverage from F: c = smoothstep(cov0, cov1, F). 0.4 (round 4, second
@@ -622,7 +905,9 @@ export function createOceanFoam(field: OceanField, opts: OceanFoamOptions = {}):
     ageB1: uniform(FOAM_AGE_B1),
     ageA0: uniform(0.05),
     ageA1: uniform(0.7),
-    ageLight: uniform(0.35),
+    // Round 10: 0.5 (0.35 in round 9), with `freshBright` 0.4: old foam
+    // dimmer and fresh foam brighter, the verdicts' "one flat mid-gray".
+    ageLight: uniform(0.5),
     ageCov: uniform(0.4),
     ageTex: uniform(1),
     // THE HEAD TAKES THE CREST'S MASS (round 9, `headG`): the breaker B is
@@ -695,6 +980,50 @@ export function createOceanFoam(field: OceanField, opts: OceanFoamOptions = {}):
     // is softer, as the reference's filaments are. Shipped 0.6 (r9h S
     // against F at 2x: the threads lose their hard edge).
     hairAA: uniform(0.6),
+    // ROUND 10, each 0 for round 9 exactly (uniform branches).
+    // `cells` 1: where the hair is read (the aligned fibers under 3 px wide
+    // on screen) the threshold texture is the bubble cells and the streaks
+    // (FOAM_LACE_YOUNG_CELLS, FOAM_LACE_OLD_CELLS, FOAM_LACE_FRINGE_CELLS,
+    // the fourth tile) in place of the hair, and the anti-aliasing is sized
+    // to `cellAAm` meters.
+    cells: uniform(1),
+    cellAAm: uniform(0.18),
+    // `warp` m: the store is read at a point moved along the wind by value
+    // noise `warpLenA` m along and `warpLenB` m across (and `warpX` m across
+    // the wind on a coarser noise), so a patch's outline is combed into
+    // strands of its own foam along the wind and its sides are irregular,
+    // in world space; the interior, where F is high all round, keeps its
+    // coverage. 0: round 9.
+    // Shipped (sweeps c1 to c9): 1.5 m along on noise 14 m by 2.5 m and 2 m
+    // across; at 4 m on 8 m by 1.2 m the ends were spiky flames.
+    warp: uniform(1.5),
+    warpX: uniform(2),
+    warpLenA: uniform(14),
+    warpLenB: uniform(2.5),
+    // `freshBright`: the body's light times 1 + freshBright x the
+    // freshness A, so a fresh raft is brighter than an old one by the
+    // foam's own age (the round-9 light fell only for old foam). 0: round 9.
+    freshBright: uniform(0.4),
+    // THE SKIRT (round 10, `skirt`): the reference's masses feather over 5
+    // to 15 m into a see-through veil; ours stopped at the lace threshold's
+    // edge, "hard, thresholded-noise edges". The coarse level's F (2 m
+    // texels, the spread's own blur) from skirt0 to skirt1 draws a veil of
+    // up to `skirt` alpha, grained by the lace (`skirtGrain`), the larger
+    // of it and the drawn lace. 0: round 9.
+    // Shipped (sweeps c3 to c9): 0.45 from F 0.03 to 0.7, grained in full.
+    skirt: uniform(0.45),
+    skirt0: uniform(0.03),
+    skirt1: uniform(0.7),
+    skirtGrain: uniform(1),
+    // How much of the skirt belongs to OLD foam only (the freshness A):
+    // at 1 a fresh raft has none, so the near water at eye level, which lies
+    // under fresh trails, keeps round 9's crisp flecks.
+    // Shipped 0.5: a fresh raft keeps half its skirt.
+    skirtOld: uniform(0.5),
+    // The bubble's radius on screen, px, over which the skirt fades out.
+    // Shipped 1.5 (off by 3 px): at 2.5 the skirt drew a speckled net
+    // over the eye-level water 20 to 40 m out (sweep c7).
+    skirtPx: uniform(1.5),
     breakerTurn: uniform(FOAM_BREAKER_TURN_RAD),
     // THE CREST SEGMENT (round 7, FOAM_SEG_*): the gate's argument is cut
     // by up to segDepth where the segment field (fine across the wind at
@@ -803,7 +1132,18 @@ export function createOceanFoam(field: OceanField, opts: OceanFoamOptions = {}):
     aa: uniform(0.1),
     // 0 shipped; the others draw one term as the alpha, see `shade`.
     debug: uniform(0),
+    // THE REEF (rocks round 2, folded in by foam round 10): the
+    // depth-limited breaking share's weight, read only where the sea has a
+    // shelf (oceanBathymetry.ts). 0.4 by the rocks builder's measure: at 1
+    // the whole shelf 14 m in front of the daylight camera drew as solid
+    // blotches of white, where the references (sl_002 to sl_004, k2) show
+    // white water at the rock and its flanks and streaks beyond
+    // (rocks/reefProbe.mjs, gains 1, 0.4 and 0.15).
+    reefGain: uniform(0.4),
   };
+
+  // THE REEF (rocks round 2): the sea's one depth description.
+  const bathy = oceanBathymetryFor(bufs);
 
   // Stamp slots (x, z, radius, strength), all off.
   const stamps: THREE.Vector4[] = [];
@@ -852,7 +1192,24 @@ export function createOceanFoam(field: OceanField, opts: OceanFoamOptions = {}):
     });
     // z, w: the gain on breaking here (swell and group) and the wind sea's
     // own fold under that gain, for the display texture (see LevelGpu).
-    return { s: vec4(sFold, mix(sFold.mul(gateT), gateT, tune.gateAlone), g.mul(gg), dWind.mul(g).mul(gg)), lay };
+    // THE REEF (rocks round 2, oceanBathymetry.ts): where the sea has a
+    // shelf, a crest high for the depth under it breaks. The share seeds the
+    // breaker (s.y) and the lay, so the reef's white water is laid and runs
+    // as every breaker's is. With no shelf the branch is not taken, sDepth
+    // is 0, and max(x, 0) is x for these non-negative signals: the store is
+    // bit for bit what it was.
+    const sDepth = float(0).toVar();
+    If(bathy.uCount.greaterThan(int(0)), () => {
+      let eta: TslNode = float(0);
+      for (let ci = 0; ci < cascades.length; ci += 1) {
+        eta = eta.add(sampler.sampleCascade(sampler.disp, x, ci, cascades[ci].patchM).y);
+      }
+      sDepth.assign(bathy.breakShare(eta, bathy.depthAt(x)).mul(tune.reefGain));
+    });
+    return {
+      s: vec4(max(sFold, sDepth), max(mix(sFold.mul(gateT), gateT, tune.gateAlone), sDepth), g.mul(gg), dWind.mul(g).mul(gg)),
+      lay: max(lay, sDepth),
+    };
   };
 
   /**
@@ -899,7 +1256,9 @@ export function createOceanFoam(field: OceanField, opts: OceanFoamOptions = {}):
     /** uniform(Vector2): the window origin, and the one the last step used. */
     readonly uOrigin: TslNode;
     readonly uPrev: TslNode;
-    readonly kernel: TslNode;
+    kernel: TslNode;
+    /** Build the step kernel with the given sources (round 10); with none it is round 9's kernel. */
+    readonly build: (srcs: readonly OceanFoamSource[]) => TslNode;
     readonly copy: TslNode;
     /** (F, R, B, gain) per cell, for the read. */
     readonly dispTex: THREE.StorageTexture;
@@ -974,7 +1333,7 @@ export function createOceanFoam(field: OceanField, opts: OceanFoamOptions = {}):
     const bStepX = breakerStep.x / level.texelM;
     const bStepZ = breakerStep.y / level.texelM;
 
-    const kernel = Fn(() => {
+    const build = (srcs: readonly OceanFoamSource[]) => Fn(() => {
       const i = int(instanceIndex);
       const cx = bitAnd(i, int(n - 1));
       const cz = shiftRight(i, int(logN));
@@ -1071,6 +1430,15 @@ export function createOceanFoam(field: OceanField, opts: OceanFoamOptions = {}):
       s = s.mul(float(1 / taps));
       lay = lay.mul(float(1 / taps));
       const stampV = stampAt(xc);
+      // THE SOURCES (round 10): the largest strength and freshness any
+      // registered piece writes here. Compile-time: with none, no node.
+      let srcS: TslNode = null;
+      let srcA: TslNode = null;
+      for (const src of srcs) {
+        const v = src.at(xc, uStepT).toVar();
+        srcS = srcS === null ? v.x : max(srcS, v.x);
+        srcA = srcA === null ? v.y : max(srcA, v.y);
+      }
       // `foamBreakerStep` and `foamStep`: the breaker keeps the stronger of
       // its own decayed self and the fold under it, and lays foam down.
       // THE BREAKER'S OWN LIFE (round 5, `foamBreakerLifeDecay`): its decay
@@ -1106,7 +1474,8 @@ export function createOceanFoam(field: OceanField, opts: OceanFoamOptions = {}):
       // THE DEPOSIT FOLLOWS THE FOLD UNDER THE BREAKER (round 6,
       // FOAM_LAY_TEX): at layTex 0 the product is bPow itself (x 1).
       const bLay = bPow.mul(float(1).sub(tune.layTex).add(tune.layTex.mul(lay)));
-      const fNew = min(fKept.add(tune.prodPerStep.mul(max(bLay, stampV))), tune.fMax);
+      const layHere = srcS === null ? max(bLay, stampV) : max(max(bLay, stampV), srcS);
+      const fNew = min(fKept.add(tune.prodPerStep.mul(layHere)), tune.fMax);
       // THE FOLD-LAID FOAM G (round 6, `foamLayStep`): its own fade, laid
       // where the crest folds at `inPlace` of the rate, no transport.
       const gOld = own.w;
@@ -1123,7 +1492,8 @@ export function createOceanFoam(field: OceanField, opts: OceanFoamOptions = {}):
       const aNew = float(0).toVar();
       If(tune.ageClock.greaterThan(float(0)), () => {
         const aOld = select(held(wx, wz), curA.element(i), float(0));
-        aNew.assign(max(aOld.mul(tune.ageDecay), smoothstep(tune.ageB0, tune.ageB1, bNew)));
+        const aB = max(aOld.mul(tune.ageDecay), smoothstep(tune.ageB0, tune.ageB1, bNew));
+        aNew.assign(srcA === null ? aB : max(aB, srcA));
         nxtA.element(i).assign(aNew);
       });
       // THE DISPLAY COPY: what the surface reads, as a filterable half-float
@@ -1133,6 +1503,7 @@ export function createOceanFoam(field: OceanField, opts: OceanFoamOptions = {}):
       textureStore(dispTex, uvec2(uint(cx), uint(cz)), vec4(fNew, rNew, bNew, s.z));
       textureStore(dispTex2, uvec2(uint(cx), uint(cz)), vec4(gNew, lay, aNew, float(0)));
     })().compute(n * n);
+    const kernel = build([]);
 
     const copy = Fn(() => {
       const i = int(instanceIndex);
@@ -1142,7 +1513,7 @@ export function createOceanFoam(field: OceanField, opts: OceanFoamOptions = {}):
       });
     })().compute(n * n);
 
-    return { level, attr, next, attrA, nextA, ro, uOrigin, uPrev, kernel, copy, dispTex, dispTex2, win: null };
+    return { level, attr, next, attrA, nextA, ro, uOrigin, uPrev, kernel, build, copy, dispTex, dispTex2, win: null };
   });
 
   /* --- the lace's CDF table, measured once ---------------------------- */
@@ -1156,7 +1527,7 @@ export function createOceanFoam(field: OceanField, opts: OceanFoamOptions = {}):
   // Five tables, one after the other: the young lace's, the old lace's,
   // the young lace's with the curl grain (round 6), and the young and old
   // laces from above, with the curls and the wisps (round 7).
-  const cdfAll = new Float32Array(FOAM_LACE_CDF_KNOTS * 11);
+  const cdfAll = new Float32Array(FOAM_LACE_CDF_KNOTS * 14);
   cdfAll.set(foamLaceCdfTable(32768, FOAM_LACE_YOUNG), 0);
   cdfAll.set(foamLaceCdfTable(32768, FOAM_LACE_OLD), FOAM_LACE_CDF_KNOTS);
   cdfAll.set(foamLaceCdfTable(32768, FOAM_LACE_YOUNG, FOAM_LACE, true), 2 * FOAM_LACE_CDF_KNOTS);
@@ -1172,6 +1543,10 @@ export function createOceanFoam(field: OceanField, opts: OceanFoamOptions = {}):
   cdfAll.set(foamLaceCdfTable(32768, FOAM_LACE_YOUNG_HAIR, FOAM_LACE, true, true, true, true), 8 * FOAM_LACE_CDF_KNOTS);
   cdfAll.set(foamLaceCdfTable(32768, FOAM_LACE_OLD_HAIR, FOAM_LACE, true, true, true, true), 9 * FOAM_LACE_CDF_KNOTS);
   cdfAll.set(foamLaceCdfTable(32768, FOAM_LACE_FRINGE_HAIR, FOAM_LACE, true, true, true, true), 10 * FOAM_LACE_CDF_KNOTS);
+  // The cell tables (round 10): young, old and the fringe, the fourth tile.
+  cdfAll.set(foamLaceCdfTable(32768, FOAM_LACE_YOUNG_CELLS, FOAM_LACE, false, false, false, false, true), 11 * FOAM_LACE_CDF_KNOTS);
+  cdfAll.set(foamLaceCdfTable(32768, FOAM_LACE_OLD_CELLS, FOAM_LACE, false, false, false, false, true), 12 * FOAM_LACE_CDF_KNOTS);
+  cdfAll.set(foamLaceCdfTable(32768, FOAM_LACE_FRINGE_CELLS, FOAM_LACE, false, false, false, false, true), 13 * FOAM_LACE_CDF_KNOTS);
   const layerMeans = foamLaceLayerMeans();
   const curlMean = foamLaceLayerMeans(16384, FOAM_LACE, true).fiber;
   const aboveMeans = foamLaceLayerMeans(16384, FOAM_LACE, true, true, true);
@@ -1179,6 +1554,10 @@ export function createOceanFoam(field: OceanField, opts: OceanFoamOptions = {}):
   const dotMean = aboveMeans.dot ?? 0;
   const wispFineMean = aboveMeans.wispFine ?? 0;
   const hairMean = foamLaceLayerMeans(16384, FOAM_LACE, true, true, true, true).hair ?? 0;
+  const cellsMeans = foamLaceLayerMeans(16384, FOAM_LACE, false, false, false, false, true);
+  const cellSMean = cellsMeans.cellS ?? 0;
+  const cellLMean = cellsMeans.cellL ?? 0;
+  const streakMean = cellsMeans.streak ?? 0;
   const cdfAttr = new THREE.StorageBufferAttribute(cdfAll, 1);
   const cdfRO = storage(cdfAttr, 'float', cdfAll.length).toReadOnly();
 
@@ -1430,6 +1809,15 @@ export function createOceanFoam(field: OceanField, opts: OceanFoamOptions = {}):
   laceTile3.magFilter = THREE.LinearFilter;
   laceTile3.minFilter = THREE.LinearFilter;
   laceTile3.generateMipmaps = false;
+  // The fourth tile (round 10, FOAM_CELLS_*): the bubble cells at two
+  // scales and the streaks, on their own 86.4 m by 57.6 m period.
+  const laceTile4 = new THREE.StorageTexture(tileN, tileN);
+  laceTile4.type = THREE.HalfFloatType;
+  laceTile4.wrapS = THREE.RepeatWrapping;
+  laceTile4.wrapT = THREE.RepeatWrapping;
+  laceTile4.magFilter = THREE.LinearFilter;
+  laceTile4.minFilter = THREE.LinearFilter;
+  laceTile4.generateMipmaps = false;
   const bakeKernel = Fn(() => {
     const i = int(instanceIndex);
     const x = bitAnd(i, int(tileN - 1));
@@ -1449,6 +1837,10 @@ export function createOceanFoam(field: OceanField, opts: OceanFoamOptions = {}):
     const hairL = tileFiber(st, FOAM_LACE_HAIR, FOAM_SALT_HAIR);
     const hairF = tileFiber(st, FOAM_LACE_HAIR_FINE, FOAM_SALT_HAIR_FINE);
     textureStore(laceTile3, uvec2(uint(x), uint(z)), vec4(hairL, hairF, float(0), float(0)));
+    const cS = tileCell(st, FOAM_CELLS_S_COUNT, FOAM_SALT_CELLS[0]);
+    const cL = tileCell(st, FOAM_CELLS_L_COUNT, FOAM_SALT_CELLS[1]);
+    const stk = tileFiber(st, FOAM_LACE_STREAK, FOAM_SALT_STREAK);
+    textureStore(laceTile4, uvec2(uint(x), uint(z)), vec4(cS, cL, stk, float(0)));
   })().compute(tileN * tileN);
   let baked = false;
 
@@ -1467,8 +1859,11 @@ export function createOceanFoam(field: OceanField, opts: OceanFoamOptions = {}):
    * no mips; a layer finer than the pixel goes to its mean instead, by r1,
    * rF, rC and rS, so the level-0 read never shows as aliasing).
    */
-  const laceLayers = (a: TslNode, b: TslNode, r1: TslNode, rF: TslNode, rC: TslNode, rS: TslNode, rAligned: TslNode, rW: TslNode, rD: TslNode, rH: TslNode): {
+  const laceLayers = (a: TslNode, b: TslNode, r1: TslNode, rF: TslNode, rC: TslNode, rS: TslNode, rAligned: TslNode, rW: TslNode, rD: TslNode, rH: TslNode,
+    r4: { s: TslNode; l: TslNode; k: TslNode },
+  ): {
     cell1: TslNode; fiber: TslNode; clump: TslNode; strand: TslNode; wisp: TslNode; dot: TslNode; wispFine: TslNode; hair: TslNode;
+    cellS: TslNode; cellL: TslNode; streak: TslNode;
   } => {
     const L = FOAM_LACE;
     const tc = tileCoords(a, b);
@@ -1500,6 +1895,18 @@ export function createOceanFoam(field: OceanField, opts: OceanFoamOptions = {}):
     // branch where the fine regime can draw it (`hair` on), the min of
     // its two channels; its mean elsewhere. At `hair` 0 nothing here runs.
     const hair = float(hairMean).toVar();
+    // The bubble cells and the streaks (round 10): the fourth tile, fetched
+    // only where the fine regime can draw them (`cells` on, the aligned
+    // fibers under 3 px wide, the streaks resolved); their means elsewhere.
+    const cellS = float(cellSMean).toVar();
+    const cellL = float(cellLMean).toVar();
+    const streak = float(streakMean).toVar();
+    If(tune.cells.greaterThan(float(0)).and(rAligned.lessThan(float(1))).and(r4.l.greaterThan(float(0))), () => {
+      const t4 = texture(laceTile4, vec2(a.div(FOAM_CELLS_ALONG_M), b.div(FOAM_CELLS_ACROSS_M))).level(float(0));
+      cellS.assign(mix(float(cellSMean), t4.x, r4.s));
+      cellL.assign(mix(float(cellLMean), t4.y, r4.l));
+      streak.assign(mix(float(streakMean), t4.z, r4.k));
+    });
     If(tune.curl.greaterThan(float(0.5)).and(rAligned.lessThan(float(1))), () => {
       const fc = float(curlMean).toVar();
       If(rF.greaterThan(float(0)), () => {
@@ -1509,7 +1916,7 @@ export function createOceanFoam(field: OceanField, opts: OceanFoamOptions = {}):
         dot.assign(mix(float(dotMean), t2c.z, rD));
         wispFine.assign(mix(float(wispFineMean), t2c.w, rW));
       });
-      If(tune.hair.greaterThan(float(0)).and(rH.greaterThan(float(0))), () => {
+      If(tune.hair.greaterThan(float(0)).and(rH.greaterThan(float(0))).and(tune.cells.lessThan(float(1))), () => {
         const t3 = texture(laceTile3, tc.fb).level(float(0));
         hair.assign(mix(float(hairMean), min(t3.x, t3.y), rH));
       });
@@ -1531,16 +1938,22 @@ export function createOceanFoam(field: OceanField, opts: OceanFoamOptions = {}):
       dot,
       wispFine,
       hair,
+      cellS,
+      cellL,
+      streak,
     };
   };
 
   /** `foamLaceMix` on nodes: the wisp term only for weights that carry one, so the others are round 6's sum exactly. */
-  const mixLace = (l: { cell1: TslNode; fiber: TslNode; clump: TslNode; strand: TslNode; wisp?: TslNode; dot?: TslNode; wispFine?: TslNode; hair?: TslNode }, wt: FoamLaceWeights): TslNode => {
+  const mixLace = (l: { cell1: TslNode; fiber: TslNode; clump: TslNode; strand: TslNode; wisp?: TslNode; dot?: TslNode; wispFine?: TslNode; hair?: TslNode; cellS?: TslNode; cellL?: TslNode; streak?: TslNode }, wt: FoamLaceWeights): TslNode => {
     let sum = l.cell1.mul(wt.cell1).add(l.fiber.mul(wt.fiber)).add(l.clump.mul(wt.clump)).add(l.strand.mul(wt.strand));
     if (wt.wisp && l.wisp) sum = sum.add(l.wisp.mul(wt.wisp));
     if (wt.dot && l.dot) sum = sum.add(l.dot.mul(wt.dot));
     if (wt.wispFine && l.wispFine) sum = sum.add(l.wispFine.mul(wt.wispFine));
     if (wt.hair && l.hair) sum = sum.add(l.hair.mul(wt.hair));
+    if (wt.cellS && l.cellS) sum = sum.add(l.cellS.mul(wt.cellS));
+    if (wt.cellL && l.cellL) sum = sum.add(l.cellL.mul(wt.cellL));
+    if (wt.streak && l.streak) sum = sum.add(l.streak.mul(wt.streak));
     return sum;
   };
 
@@ -1576,8 +1989,18 @@ export function createOceanFoam(field: OceanField, opts: OceanFoamOptions = {}):
 
       // THE STORE: (F, R, B, gain), the fine level where it holds this water
       // and the pixel is not much coarser than its texel, else the coarse.
-      const d0 = sampleDisplay(levels[0], y);
-      const d1 = sampleDisplay(levels[1], y);
+      // THE STORE'S READ POINT (round 10, `warp`): moved along the wind by
+      // streaky value noise, so the outline is combed into strands. At
+      // warp 0 it is y exactly.
+      const yS = y.toVar();
+      If(tune.warp.greaterThan(float(0)).or(tune.warpX.greaterThan(float(0))), () => {
+        const n1 = valueNoise(yA.div(tune.warpLenA), yB.div(tune.warpLenB), FOAM_WARP_SALT);
+        const n2 = valueNoise(yA.div(tune.warpLenA.mul(0.45)).add(3.7), yB.div(tune.warpLenB.mul(0.5)).add(1.3), FOAM_WARP_SALT + 1);
+        const n3 = valueNoise(yA.div(tune.warpLenA.mul(1.5)).add(7.1), yB.div(tune.warpLenB.mul(4)).add(5.9), FOAM_WARP_SALT + 2);
+        yS.addAssign(wA.mul(n1.add(n2.mul(0.5)).mul(tune.warp)).add(wB.mul(n3.mul(tune.warpX))));
+      });
+      const d0 = sampleDisplay(levels[0], yS);
+      const d1 = sampleDisplay(levels[1], yS);
       const t0 = FOAM_LEVELS[0].texelM;
       const fineW = d0.w.mul(float(1).sub(smoothstep(float(t0 * 2), float(t0 * 6), longM))).toVar();
       const both = mix(d1.t.xy.mul(d1.w), d0.t.xy, fineW).toVar();
@@ -1879,7 +2302,13 @@ export function createOceanFoam(field: OceanField, opts: OceanFoamOptions = {}):
 
       // THE LACE: the young and the old lace, each made uniform by its own
       // measured CDF, blended by age.
-      const lay = laceLayers(yA, yB, rCell1, rFiber, rClump, rStrand, rAligned, rWisp, rDot, rHair);
+      // The bubble cells and the streaks (round 10): each goes to its mean
+      // under about a pixel and a half of cell, or 0.4 px of streak width.
+      const rCellS = smoothstep(float(1.0), float(2.5), cellsPx(FOAM_CELLS_ALONG_M / FOAM_CELLS_S_COUNT, FOAM_CELLS_ACROSS_M / FOAM_CELLS_S_COUNT)).toVar();
+      const rCellL = smoothstep(float(1.0), float(2.5), cellsPx(FOAM_CELLS_ALONG_M / FOAM_CELLS_L_COUNT, FOAM_CELLS_ACROSS_M / FOAM_CELLS_L_COUNT)).toVar();
+      const streakWm = 2 * FOAM_LACE_STREAK.fiberHalfWCells * (FOAM_CELLS_ACROSS_M / FOAM_LACE_STREAK.fiberCount);
+      const rStreak = smoothstep(float(0.4), float(1), cellsPx(streakWm, streakWm)).toVar();
+      const lay = laceLayers(yA, yB, rCell1, rFiber, rClump, rStrand, rAligned, rWisp, rDot, rHair, { s: rCellS, l: rCellL, k: rStreak });
       // The young lace's table: the curl table where the curls draw (read
       // only inside the branch on `curl`), and from above (`uAbove`) the
       // table with the wisps (round 7), inside a branch on `wisp`.
@@ -1926,6 +2355,14 @@ export function createOceanFoam(field: OceanField, opts: OceanFoamOptions = {}):
           tC.assign(mix(tC, cdfRead(mixLace(lay, FOAM_LACE_YOUNG_HAIR), 8), hairK));
           texO.assign(mix(texO, cdfRead(mixLace(lay, FOAM_LACE_OLD_HAIR), 9), hairK));
         });
+        // THE BUBBLE CELLS (round 10, `cells`): where the aligned fibers are
+        // under 3 px wide and the large cells resolve, the cell tables, at
+        // every angle.
+        If(tune.cells.greaterThan(float(0)), () => {
+          const cellK = tune.cells.mul(float(1).sub(rAligned)).mul(rCellL);
+          tC.assign(mix(tC, cdfRead(mixLace(lay, FOAM_LACE_YOUNG_CELLS), 11), cellK));
+          texO.assign(mix(texO, cdfRead(mixLace(lay, FOAM_LACE_OLD_CELLS), 12), cellK));
+        });
         texY.assign(mix(tC, texY, rAligned));
       });
       If(tune.fringe.greaterThan(float(0)), () => {
@@ -1935,6 +2372,10 @@ export function createOceanFoam(field: OceanField, opts: OceanFoamOptions = {}):
         // the bubbles stay, as round 8 drew them.
         If(tune.hairFringe.greaterThan(float(0)), () => {
           tF.assign(mix(tF, cdfRead(mixLace(lay, FOAM_LACE_FRINGE_HAIR), 10), tune.hairFringe.mul(float(1).sub(rAligned)).mul(rHair)));
+        });
+        // The fringe as streaks and large cells (round 10, `cells`).
+        If(tune.cells.greaterThan(float(0)), () => {
+          tF.assign(mix(tF, cdfRead(mixLace(lay, FOAM_LACE_FRINGE_CELLS), 13), tune.cells.mul(float(1).sub(rAligned)).mul(rCellL)));
         });
         texY.assign(mix(texY, tF, fringeW));
         texO.assign(mix(texO, tF, fringeW));
@@ -2038,6 +2479,10 @@ export function createOceanFoam(field: OceanField, opts: OceanFoamOptions = {}):
       If(tune.hair.greaterThan(float(0)), () => {
         aaW.assign(mix(float(fiberW), float(hairWm).mul(tune.hairAA), tune.hair.mul(float(1).sub(rAligned))));
       });
+      // Sized to `cellAAm` where the cells carry the texture (round 10).
+      If(tune.cells.greaterThan(float(0)), () => {
+        aaW.assign(mix(aaW, tune.cellAAm, tune.cells.mul(float(1).sub(rAligned))));
+      });
       const w = tune.edge.add(tune.coreSoft.mul(c)).add(shortM.div(aaW).mul(tune.aa)).min(float(0.5)).toVar();
       const thr = c.mul(w.mul(2).add(1)).sub(w);
       const laceSharp = clamp(thr.sub(tex).div(w.mul(2)).add(0.5), float(0), float(1));
@@ -2053,7 +2498,27 @@ export function createOceanFoam(field: OceanField, opts: OceanFoamOptions = {}):
       const veilMean = c.mul(0.15 + 1.4 / 2.5).min(float(1));
       const drawnLace = mix(mix(laceMean, veilMean, share), drawnSharp, resolved).toVar();
 
-      const drawn = drawnLace;
+      const drawn = drawnLace.toVar();
+      // THE SKIRT (round 10): a veil from the coarse store round every
+      // patch, in world space. Uniform branch.
+      If(tune.skirt.greaterThan(float(0)), () => {
+        const fSk = d1.t.x.mul(d1.w);
+        // The grain: the SMALL bubble cells' walls and the streaks (the
+        // fourth tile, 0.45 m cells, 3 px from above), so the veil is a fine
+        // scatter of bubbles combed along the wind, not a haze; the lace's
+        // own texture drew the 1.8 m cells as a large net (sweep c6).
+        const grainRaw = max(float(1).sub(smoothstep(float(0.05), float(0.5), lay.cellS)),
+          float(1).sub(smoothstep(float(0.1), float(0.7), lay.streak)).mul(0.8));
+        const grainK = mix(float(1), grainRaw, tune.skirtGrain);
+        // THE SKIRT IS THE UNRESOLVED BUBBLES: where a bubble is over
+        // skirtPx pixels on screen (the near water at eye level, 5 to 15 px)
+        // the lace draws them itself and the veil would be a milky haze over
+        // resolved water (sweep c5), so it fades out, as the fringe does
+        // (`fringePx`): a key on a texture's size on screen, the same foam.
+        const skSmall = float(1).sub(smoothstep(tune.skirtPx, tune.skirtPx.mul(2), cellsPx(dotM, dotM)));
+        const skK = tune.skirt.mul(mix(float(1), float(1).sub(freshA), tune.skirtOld)).mul(skSmall);
+        drawn.assign(max(drawn, smoothstep(tune.skirt0, tune.skirt1, fSk).mul(skK).mul(grainK).mul(farK)));
+      });
 
       // Debug: 1 coverage, 2 the lace value, 3 the breaker B, 4 the age,
       // 5 the crest, 6 the fold here (ungated), 7 F over its cap, 8 the
@@ -2102,6 +2567,11 @@ export function createOceanFoam(field: OceanField, opts: OceanFoamOptions = {}):
         const fr = select(tune.ageOnBody.greaterThan(float(0.5)), freshW, freshA);
         bright.mulAssign(mix(mix(float(1).sub(tune.ageLight), float(1), fr), float(1), coreShare));
       });
+      // FRESH IS BRIGHTER (round 10, `freshBright`): by the freshness A,
+      // in world space. Uniform branch.
+      If(tune.freshBright.greaterThan(float(0)), () => {
+        bright.mulAssign(float(1).add(tune.freshBright.mul(freshA)));
+      });
       alphaV.assign(alpha);
       brightV.assign(bright);
       }).Else(() => {
@@ -2122,7 +2592,26 @@ export function createOceanFoam(field: OceanField, opts: OceanFoamOptions = {}):
       oceanSkyRadiance(vec3(0, 0.5, 0.866), uSun, 0, uOvercast).dot(vec3(0.2126, 0.7152, 0.0722)),
     );
   })().compute(1);
-  const foamNodes = [deckKernel, ...levels.flatMap((l) => [l.kernel, l.copy])];
+  const foamNodes: unknown[] = [deckKernel, ...levels.flatMap((l) => [l.kernel, l.copy])];
+  // The sources (round 10): the set this store's kernels were built with.
+  const sourceSet = oceanFoamSources(field);
+  let builtVersion = 0;
+  let seenEpoch = 0;
+  let sources: readonly OceanFoamSource[] = [];
+  const syncSources = () => {
+    if (sourceSet.epoch !== seenEpoch) {
+      seenEpoch = sourceSet.epoch;
+      forceRestart = true;
+    }
+    if (sourceSet.version === builtVersion) return;
+    builtVersion = sourceSet.version;
+    sources = sourceSet.list().slice();
+    for (const lv of levels) lv.kernel = lv.build(sources);
+    foamNodes.length = 0;
+    foamNodes.push(deckKernel, ...levels.flatMap((l) => [l.kernel, l.copy]));
+    // A store built without a source is not the store with it.
+    forceRestart = true;
+  };
   const camPos = new THREE.Vector3();
   const camDir = new THREE.Vector3();
 
@@ -2150,8 +2639,8 @@ export function createOceanFoam(field: OceanField, opts: OceanFoamOptions = {}):
     },
     invalidate() { forceRestart = true; },
     async mirrorCheck(renderer, count = 4096) {
-      const out = new THREE.StorageBufferAttribute(new Float32Array(count * 12), 4);
-      const outW = storage(out, 'vec4', count * 3);
+      const out = new THREE.StorageBufferAttribute(new Float32Array(count * 16), 4);
+      const outW = storage(out, 'vec4', count * 4);
       const kernel = Fn(() => {
         const i = int(instanceIndex);
         // Seeds that reach negative indices and large ones.
@@ -2164,10 +2653,13 @@ export function createOceanFoam(field: OceanField, opts: OceanFoamOptions = {}):
         const t4 = texture(laceTile, uv).level(float(0));
         const t4c = texture(laceTile2, uv).level(float(0));
         const t4h = texture(laceTile3, uv).level(float(0));
-        outW.element(i.mul(int(3))).assign(vec4(hash(seed), t4.x, t4.y, t4c.x));
-        outW.element(i.mul(int(3)).add(int(1))).assign(vec4(t4c.y, t4c.z, t4c.w, float(0)));
+        const t4k = texture(laceTile4, uv).level(float(0));
+        outW.element(i.mul(int(4))).assign(vec4(hash(seed), t4.x, t4.y, t4c.x));
+        outW.element(i.mul(int(4)).add(int(1))).assign(vec4(t4c.y, t4c.z, t4c.w, float(0)));
         // The hair channels (round 9), the third tile.
-        outW.element(i.mul(int(3)).add(int(2))).assign(vec4(t4h.x, t4h.y, float(0), float(0)));
+        outW.element(i.mul(int(4)).add(int(2))).assign(vec4(t4h.x, t4h.y, float(0), float(0)));
+        // The bubble cells and the streaks (round 10), the fourth tile.
+        outW.element(i.mul(int(4)).add(int(3))).assign(vec4(t4k.x, t4k.y, t4k.z, float(0)));
       })().compute(count);
       renderer.compute(kernel as never);
       const raw = new Float32Array(await (renderer as unknown as {
@@ -2177,7 +2669,7 @@ export function createOceanFoam(field: OceanField, opts: OceanFoamOptions = {}):
       let laceMaxErr = 0;
       const L = FOAM_LACE;
       for (let i = 0; i < count; i += 1) {
-        hashMaxErr = Math.max(hashMaxErr, Math.abs(raw[12 * i] - pcgHash01(i * 7919 - 500000)));
+        hashMaxErr = Math.max(hashMaxErr, Math.abs(raw[16 * i] - pcgHash01(i * 7919 - 500000)));
         const k = (i * 7919 + 13) | 0;
         const tx = k & (tileN - 1);
         const tz = ((k >> 10) + i * 31) & (tileN - 1);
@@ -2195,9 +2687,12 @@ export function createOceanFoam(field: OceanField, opts: OceanFoamOptions = {}):
           foamTileDot(s0, t0),
           foamTileWispFine(s0, t0),
         ];
-        for (let c = 0; c < 6; c += 1) laceMaxErr = Math.max(laceMaxErr, Math.abs(raw[12 * i + 1 + c] - cpu[c]));
-        laceMaxErr = Math.max(laceMaxErr, Math.abs(raw[12 * i + 8] - foamTileHair(s0, t0)));
-        laceMaxErr = Math.max(laceMaxErr, Math.abs(raw[12 * i + 9] - foamTileHairFine(s0, t0)));
+        for (let c = 0; c < 6; c += 1) laceMaxErr = Math.max(laceMaxErr, Math.abs(raw[16 * i + 1 + c] - cpu[c]));
+        laceMaxErr = Math.max(laceMaxErr, Math.abs(raw[16 * i + 8] - foamTileHair(s0, t0)));
+        laceMaxErr = Math.max(laceMaxErr, Math.abs(raw[16 * i + 9] - foamTileHairFine(s0, t0)));
+        laceMaxErr = Math.max(laceMaxErr, Math.abs(raw[16 * i + 12] - foamTileCellS(s0, t0)));
+        laceMaxErr = Math.max(laceMaxErr, Math.abs(raw[16 * i + 13] - foamTileCellL(s0, t0)));
+        laceMaxErr = Math.max(laceMaxErr, Math.abs(raw[16 * i + 14] - foamTileStreak(s0, t0)));
       }
       return { hashMaxErr, laceMaxErr, count };
     },
@@ -2258,6 +2753,7 @@ export function createOceanFoam(field: OceanField, opts: OceanFoamOptions = {}):
         renderer.compute(bakeKernel as never);
         baked = true;
       }
+      syncSources();
       const tStart = performance.now();
       const target = Math.floor(simTimeS / FOAM_DT_S + 1e-6);
       const want = windowsFor(camera, target * FOAM_DT_S);
@@ -2301,15 +2797,31 @@ export function createOceanFoam(field: OceanField, opts: OceanFoamOptions = {}):
         uFresh.value = fresh ? 1 : 0;
         uStep.value = s;
         uStepT.value = tS;
-        if (plan.restepSea) {
-          field.kernels.uTime.value = tS;
-          renderer.compute([...fftNodes, ...foamNodes] as never);
+        if (sources.length === 0) {
+          if (plan.restepSea) {
+            field.kernels.uTime.value = tS;
+            renderer.compute([...fftNodes, ...foamNodes] as never);
+          } else {
+            renderer.compute(foamNodes as never);
+          }
         } else {
+          // With sources (round 10): the sea first, then each source at
+          // this step's time, then the foam, so every read in the foam's
+          // call sees tS. A warm-up step is then three calls, not one.
+          if (plan.restepSea) {
+            field.kernels.uTime.value = tS;
+            renderer.compute(fftNodes as never);
+          }
+          for (const src of sources) src.beforeStep?.(renderer, tS, plan.restepSea);
           renderer.compute(foamNodes as never);
         }
         fresh = false;
       }
-      if (plan.restepSea && plan.steps > 0) field.step(renderer, simTimeS);
+      if (plan.restepSea && plan.steps > 0) {
+        field.step(renderer, simTimeS);
+        // The sources back at the frame's own time (round 10).
+        for (const src of sources) src.beforeStep?.(renderer, simTimeS, true);
+      }
       uFresh.value = 0;
       if (plan.steps > 0 || plan.clear) {
         probe.cursorStep = plan.firstStep + plan.steps;
@@ -2327,6 +2839,7 @@ export function createOceanFoam(field: OceanField, opts: OceanFoamOptions = {}):
       laceTile.dispose();
       laceTile2.dispose();
       laceTile3.dispose();
+      laceTile4.dispose();
       for (const lv of levels) { lv.dispTex.dispose(); lv.dispTex2.dispose(); }
     },
   };

@@ -9,7 +9,7 @@
 import { describe, expect, it } from 'vitest';
 import type { BattleMapData, BattleMapTile, CombatCharacter, TurnState } from '../../../../types/combat';
 import type { Spell } from '../../../../types';
-import healingWordData from '../../../../data/spells/level-1/healing-word.json';
+import healingWordData from '@/data/spells/level-1/healing-word.json';
 import { createMockCombatCharacter } from '../../../../utils/core';
 import {
   createHitPointSpellAction,

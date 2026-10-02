@@ -12,9 +12,25 @@ import { render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import SpellContext, { SpellProvider } from '../SpellContext';
 import { spellService } from '../../services/SpellService';
-import spellBundle from '@/data/spells_bundle.json';
-import spellManifest from '@/data/spells_manifest.json';
-import lightSpell from '@/data/spells/level-0/light.json';
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
+
+// READ THE PUBLIC COPY, WHICH IS THE FILE THE APP ACTUALLY FETCHES.
+// These three used to be imported from src/data/. Every one of those paths
+// was a hand-made link to the public file: two names for one file, made by
+// hand on 12 August, created by no script and repaired by no script. This
+// test says in its own header that it proves the loaders can read the
+// CURRENT PUBLIC corpus, so it now reads that corpus directly. An import
+// would also have bundled 4.5 MB of JSON into the test module graph.
+// process.cwd() is the repository root under Vitest, and it is the same
+// anchor the spell parity test already uses. `import.meta.url` is not a
+// usable file URL in this jsdom environment; it resolved to `undefined`.
+const readPublicJson = <T,>(relativePath: string): T =>
+  JSON.parse(readFileSync(path.join(process.cwd(), 'public', relativePath), 'utf8')) as T;
+
+const spellBundle = readPublicJson<Record<string, unknown>>('data/spells_bundle.json');
+const spellManifest = readPublicJson<Record<string, { path: string }>>('data/spells_manifest.json');
+const lightSpell = readPublicJson<unknown>('data/spells/level-0/light.json');
 
 // ============================================================================
 // Runtime Asset Mocks
@@ -39,8 +55,8 @@ vi.mock('../../utils/core/logger', () => ({
   },
 }));
 
-const spellBundleRecord = spellBundle as Record<string, unknown>;
-const spellManifestRecord = spellManifest as Record<string, { path: string }>;
+const spellBundleRecord = spellBundle;
+const spellManifestRecord = spellManifest;
 
 const SpellCountProbe = () => {
   const spells = useContext(SpellContext);

@@ -14,8 +14,6 @@ import type { WorldGenDiagnostics } from '../../types/world';
 interface DebugHUDProps {
     /** Number of chunks currently loaded. */
     chunkCount: number;
-    /** Current FPS value. */
-    fps: number;
     /** Player world position (or null). */
     playerPos: {
         x: number;

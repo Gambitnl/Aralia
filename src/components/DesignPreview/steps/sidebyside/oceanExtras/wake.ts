@@ -472,11 +472,25 @@ export default async function mount(ctx: OceanExtraContext): Promise<OceanExtra>
     },
   };
 
+  /** The sea time of the last frame step, for the camera follow. */
+  let lastSimT = 42;
+
   return {
     update(simTime) {
       if (hold) return;
+      lastSimT = simTime;
       wake.step(ctx.renderer, simTime);
       boat.update(ctx.renderer, wake.course.at(simTime));
+    },
+    /**
+     * PIN THE CAMERA TO THE SHIP (Remy, 2026-09-28). The hull's center on the
+     * course and its heading at the last step, 2 m up (about the deck), for
+     * the viewer's "Pin camera to ship" button. Read only while that button
+     * is on, so no capture changes.
+     */
+    followTarget: () => {
+      const p = wake.course.at(lastSimT);
+      return { xM: p.xM, yM: 2, zM: p.zM, headingRad: p.headingRad };
     },
     dispose() {
       surface.setWake?.(null);
