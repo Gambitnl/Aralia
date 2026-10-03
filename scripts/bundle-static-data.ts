@@ -17,11 +17,10 @@
  */
 import fs from 'fs';
 import path from 'path';
+import { generateSpellArtifacts } from './spells/artifacts';
 
 // Define paths for data directories and output bundles
 const PUBLIC_DIR = path.join(process.cwd(), 'public');
-const SPELLS_MANIFEST_PATH = path.join(PUBLIC_DIR, 'data', 'spells_manifest.json');
-const SPELLS_BUNDLE_PATH = path.join(PUBLIC_DIR, 'data', 'spells_bundle.json');
 
 const GLOSSARY_MAIN_INDEX_PATH = path.join(PUBLIC_DIR, 'data', 'glossary', 'index', 'main.json');
 const GLOSSARY_BUNDLE_PATH = path.join(PUBLIC_DIR, 'data', 'glossary_bundle.json');
@@ -32,44 +31,9 @@ const GLOSSARY_BUNDLE_PATH = path.join(PUBLIC_DIR, 'data', 'glossary_bundle.json
 // Reads all individual spell JSON files referenced by spells_manifest.json
 // and packs them into a single key-value dictionary in spells_bundle.json.
 // ============================================================================
-export function bundleSpells() {
-  console.log('Bundling spells...');
-  if (!fs.existsSync(SPELLS_MANIFEST_PATH)) {
-    console.warn(`Spells manifest not found at ${SPELLS_MANIFEST_PATH}. Skipping spells bundle.`);
-    return;
-  }
-
-  const manifest = JSON.parse(fs.readFileSync(SPELLS_MANIFEST_PATH, 'utf-8'));
-  const bundledSpells: Record<string, any> = {};
-
-  let count = 0;
-  let missing = 0;
-
-  for (const [id, info] of Object.entries<any>(manifest)) {
-    if (!info || !info.path) continue;
-
-    // Normalize path to remove any leading slash before joining with public directory
-    const cleanPath = String(info.path).startsWith('/') || String(info.path).startsWith('\\')
-      ? String(info.path).slice(1)
-      : String(info.path);
-    const absolutePath = path.join(PUBLIC_DIR, cleanPath);
-
-    if (fs.existsSync(absolutePath)) {
-      try {
-        const spellData = JSON.parse(fs.readFileSync(absolutePath, 'utf-8'));
-        bundledSpells[id] = spellData;
-        count++;
-      } catch (err) {
-        console.error(`Failed to parse spell file ${absolutePath}:`, err);
-      }
-    } else {
-      console.warn(`Spell file missing: ${absolutePath}`);
-      missing++;
-    }
-  }
-
-  fs.writeFileSync(SPELLS_BUNDLE_PATH, JSON.stringify(bundledSpells, null, 2), 'utf-8');
-  console.log(`Successfully bundled ${count} spells into ${SPELLS_BUNDLE_PATH}. (Missing: ${missing})`);
+export async function bundleSpells() {
+  // Validate sources first, so a missing or invalid definition cannot produce a partial bundle.
+  await generateSpellArtifacts();
 }
 
 // ============================================================================
@@ -130,7 +94,7 @@ export function bundleGlossary() {
 // ============================================================================
 // Main Execution
 // ============================================================================
-function main() {
+async function main() {
   const args = process.argv.slice(2);
   const spellsOnly = args.includes('--spells');
   const glossaryOnly = args.includes('--glossary');
@@ -138,11 +102,11 @@ function main() {
   console.log('--- Starting static data bundling ---');
 
   if (spellsOnly) {
-    bundleSpells();
+    await bundleSpells();
   } else if (glossaryOnly) {
     bundleGlossary();
   } else {
-    bundleSpells();
+    await bundleSpells();
     bundleGlossary();
   }
 
@@ -150,5 +114,5 @@ function main() {
 }
 
 if (process.argv[1] && process.argv[1].includes('bundle-static-data')) {
-  main();
+  main().catch(error => { console.error(error.message); process.exitCode = 1; });
 }

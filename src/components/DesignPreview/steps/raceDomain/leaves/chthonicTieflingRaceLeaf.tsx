@@ -15,7 +15,13 @@
 // @dependencies-end
 
 import React, { useState } from 'react';
-import spellBundle from '../../../../../data/spells_bundle.json';
+// The Design Preview leaves need a few dozen spells, not the 4.5 MB corpus.
+// This file is generated from the race definitions themselves by
+// scripts/spells/generate-racial-spell-subset.mjs; run that script after any
+// change to a racial spell grant. The old import pulled in
+// src/data/spells_bundle.json, which was a hand-made hard link to the public
+// copy that no script created and no script repaired.
+import spellBundle from '../../../../../data/racialSpellSubset.generated.json';
 import { getRacialSpellCastingAbilityChoicesForRace } from '../../../../../data/races';
 import type {
   AbilityScoreName,

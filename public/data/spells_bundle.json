@@ -2524,6 +2524,11 @@
     "effects": [
       {
         "type": "SUMMONING",
+        "scaling": {
+          "type": "slot_level",
+          "bonusPerLevel": "+2 Undead",
+          "customFormula": ""
+        },
         "description": "Animate one pile of bones or one corpse of a Medium or Small Humanoid within 10 feet, creating one persistent Undead for 24 hours: bones become a Skeleton and a corpse becomes a Zombie.",
         "trigger": {
           "type": "immediate"
@@ -2646,6 +2651,7 @@
           {
             "actionType": "bonus_action",
             "name": "Mentally Command Animated Undead",
+            "frequency": "each_turn",
             "rangeFeet": 60,
             "description": "On each of the caster's turns, the caster can use a Bonus Action to mentally command one or more Undead made by this spell within 60 feet, giving the same command to multiple controlled Undead."
           }
@@ -9714,7 +9720,14 @@
         "scaling": {
           "type": "slot_level",
           "bonusPerLevel": "",
-          "customFormula": ""
+          "customFormula": "",
+          "scalingTiers": {
+            "3": "up to 1 minute, Concentration",
+            "4": "up to 10 minutes, Concentration",
+            "5": "8 hours, no Concentration",
+            "7": "24 hours, no Concentration",
+            "9": "until dispelled, no Concentration"
+          }
         },
         "grantedActions": [],
         "attackAugments": [],
@@ -12950,7 +12963,7 @@
         },
         "scaling": {
           "type": "slot_level",
-          "bonusPerLevel": "",
+          "bonusPerLevel": "+2 pillars",
           "customFormula": ""
         },
         "description": "If a pillar is blocked by a ceiling or other obstacle, a creature on the pillar makes a Dexterity save, taking 6d6 Bludgeoning damage on a failed save or no damage on a success.",
@@ -14754,7 +14767,10 @@
       "maxTargets": 1,
       "filter": {
         "creatureTypes": [],
-        "excludeCreatureTypes": [],
+        "excludeCreatureTypes": [
+          "Construct",
+          "Undead"
+        ],
         "sizes": [],
         "alignments": [],
         "hasCondition": [],
@@ -14804,7 +14820,10 @@
           "saveEffect": "negates_condition",
           "targetFilter": {
             "creatureTypes": [],
-            "excludeCreatureTypes": [],
+            "excludeCreatureTypes": [
+              "Construct",
+              "Undead"
+            ],
             "sizes": [],
             "alignments": [],
             "hasCondition": [],
@@ -17768,7 +17787,10 @@
       "maxTargets": 1,
       "filter": {
         "creatureTypes": [],
-        "excludeCreatureTypes": [],
+        "excludeCreatureTypes": [
+          "Construct",
+          "Undead"
+        ],
         "sizes": [],
         "alignments": [],
         "hasCondition": [],
@@ -17818,7 +17840,10 @@
           "saveEffect": "negates_condition",
           "targetFilter": {
             "creatureTypes": [],
-            "excludeCreatureTypes": [],
+            "excludeCreatureTypes": [
+              "Construct",
+              "Undead"
+            ],
             "sizes": [],
             "alignments": [],
             "hasCondition": [],
@@ -18558,7 +18583,10 @@
       "maxTargets": 1,
       "filter": {
         "creatureTypes": [],
-        "excludeCreatureTypes": [],
+        "excludeCreatureTypes": [
+          "Construct",
+          "Undead"
+        ],
         "sizes": [],
         "alignments": [],
         "hasCondition": [],
@@ -18608,7 +18636,10 @@
           "saveEffect": "negates_condition",
           "targetFilter": {
             "creatureTypes": [],
-            "excludeCreatureTypes": [],
+            "excludeCreatureTypes": [
+              "Construct",
+              "Undead"
+            ],
             "sizes": [],
             "alignments": [],
             "hasCondition": [],
@@ -18710,7 +18741,10 @@
           "saveEffect": "negates_condition",
           "targetFilter": {
             "creatureTypes": [],
-            "excludeCreatureTypes": [],
+            "excludeCreatureTypes": [
+              "Construct",
+              "Undead"
+            ],
             "sizes": [],
             "alignments": [],
             "hasCondition": [],
@@ -18799,7 +18833,10 @@
           "type": "always",
           "targetFilter": {
             "creatureTypes": [],
-            "excludeCreatureTypes": [],
+            "excludeCreatureTypes": [
+              "Construct",
+              "Undead"
+            ],
             "sizes": [],
             "alignments": [],
             "hasCondition": [],
@@ -19727,7 +19764,7 @@
         ],
         "scaling": {
           "type": "slot_level",
-          "bonusPerLevel": "",
+          "bonusPerLevel": "+5 feet Sphere radius",
           "customFormula": ""
         },
         "description": "Each creature in the 10-foot-radius Sphere centered on a point within 90 feet makes a Wisdom save or becomes Confused for up to 1 minute with concentration. While Confused, the target cannot take Bonus Actions or Reactions, rolls 1d10 at the start of each turn to determine that turn behavior from the spell table, and repeats the Wisdom save at the end of each turn to end the spell on itself; each slot level above 4 adds 5 feet to the Sphere radius.",
@@ -19940,7 +19977,7 @@
         ],
         "scaling": {
           "type": "slot_level",
-          "bonusPerLevel": "",
+          "bonusPerLevel": "+1d10",
           "customFormula": ""
         },
         "description": "Creates the summoned creature group as a persistent combat effect; form selection, creature count, and detailed command behavior are deferred to separate summoning work.",
@@ -24570,7 +24607,7 @@
       "requiredCost": "reaction",
       "targetBinding": "triggering_spell_caster",
       "maxRangeFeet": 60,
-      "notes": "Routes Counterspell through the shared pre-command spell-interruption gate so the original spell can be stopped before its effects execute."
+      "notes": "Routes Counterspell through the shared pre-command spell-interruption gate so the original spell can be stopped before its effects execute. Empty-effects contract: Counterspell deliberately carries no rows in `effects`; its whole mechanic is the interruption described in `interruptionState`, which the reaction gate executes. The spell-to-ability factory therefore builds an ability with an empty effect list for it, and the corpus test in src/utils/character/__tests__/spellAbilityFactory.test.ts allows an empty list only for spells that declare `interruptionState`."
     },
     "interruptionState": {
       "event": "visible_creature_casts_spell",
@@ -26295,7 +26332,7 @@
         ],
         "scaling": {
           "type": "slot_level",
-          "bonusPerLevel": "",
+          "bonusPerLevel": "+5 feet Cube size",
           "customFormula": ""
         },
         "grantedActions": [],
@@ -32287,7 +32324,10 @@
       "maxTargets": 1,
       "filter": {
         "creatureTypes": [],
-        "excludeCreatureTypes": [],
+        "excludeCreatureTypes": [
+          "Construct",
+          "Undead"
+        ],
         "sizes": [],
         "alignments": [],
         "hasCondition": [],
@@ -32337,7 +32377,10 @@
           "saveEffect": "half",
           "targetFilter": {
             "creatureTypes": [],
-            "excludeCreatureTypes": [],
+            "excludeCreatureTypes": [
+              "Construct",
+              "Undead"
+            ],
             "sizes": [],
             "alignments": [],
             "hasCondition": [],
@@ -32406,7 +32449,10 @@
           "saveEffect": "negates_condition",
           "targetFilter": {
             "creatureTypes": [],
-            "excludeCreatureTypes": [],
+            "excludeCreatureTypes": [
+              "Construct",
+              "Undead"
+            ],
             "sizes": [],
             "alignments": [],
             "hasCondition": [],
@@ -34119,7 +34165,13 @@
         "scaling": {
           "type": "slot_level",
           "bonusPerLevel": "",
-          "customFormula": ""
+          "customFormula": "",
+          "scalingTiers": {
+            "4": "up to 1 minute",
+            "5": "up to 10 minutes",
+            "6": "up to 1 hour",
+            "7": "up to 8 hours"
+          }
         },
         "description": "One visible Beast within 60 feet makes a Wisdom save, with Advantage if the caster or the caster's allies are fighting it; on a failed save, it is Charmed for up to 1 minute, and each time it takes damage it repeats the Wisdom save, ending the spell on itself on a success.",
         "conditionalEndings": [],
@@ -34232,7 +34284,10 @@
       "maxTargets": 1,
       "filter": {
         "creatureTypes": [],
-        "excludeCreatureTypes": [],
+        "excludeCreatureTypes": [
+          "Construct",
+          "Undead"
+        ],
         "sizes": [],
         "alignments": [],
         "hasCondition": [],
@@ -34280,7 +34335,10 @@
           "type": "always",
           "targetFilter": {
             "creatureTypes": [],
-            "excludeCreatureTypes": [],
+            "excludeCreatureTypes": [
+              "Construct",
+              "Undead"
+            ],
             "sizes": [],
             "alignments": [],
             "hasCondition": [],
@@ -34414,7 +34472,10 @@
           "type": "save",
           "targetFilter": {
             "creatureTypes": [],
-            "excludeCreatureTypes": [],
+            "excludeCreatureTypes": [
+              "Construct",
+              "Undead"
+            ],
             "sizes": [],
             "alignments": [],
             "hasCondition": [],
@@ -34446,7 +34507,10 @@
               "type": "advantage",
               "appliesTo": {
                 "creatureTypes": [],
-                "excludeCreatureTypes": [],
+                "excludeCreatureTypes": [
+                  "Construct",
+                  "Undead"
+                ],
                 "sizes": [],
                 "alignments": [],
                 "hasCondition": [],
@@ -34483,7 +34547,11 @@
         "scaling": {
           "type": "slot_level",
           "bonusPerLevel": "",
-          "customFormula": ""
+          "customFormula": "",
+          "scalingTiers": {
+            "8": "up to 1 hour",
+            "9": "up to 8 hours"
+          }
         },
         "description": "One visible creature within 60 feet has Advantage on the Wisdom save if you or your allies are fighting it; on a failed save, it is Charmed for the concentration duration, linked telepathically for commands, and repeats the save whenever it takes damage, ending the spell on a success.",
         "statusCondition": {
@@ -38209,7 +38277,12 @@
         "scaling": {
           "type": "slot_level",
           "bonusPerLevel": "",
-          "customFormula": ""
+          "customFormula": "",
+          "scalingTiers": {
+            "3": "+1 to attack rolls, 1d4 extra damage",
+            "5": "+2 to attack rolls, 2d4 extra damage",
+            "7": "+3 to attack rolls, 3d4 extra damage"
+          }
         },
         "description": "The touched weapon deals an extra 1d4 damage of the chosen Acid, Cold, Fire, Lightning, or Thunder type when it hits.",
         "conditionalEndings": []
@@ -38817,7 +38890,10 @@
       "maxTargets": 1,
       "filter": {
         "creatureTypes": [],
-        "excludeCreatureTypes": [],
+        "excludeCreatureTypes": [
+          "Construct",
+          "Undead"
+        ],
         "sizes": [],
         "alignments": [],
         "hasCondition": [],
@@ -38867,7 +38943,10 @@
           "saveEffect": "negates_condition",
           "targetFilter": {
             "creatureTypes": [],
-            "excludeCreatureTypes": [],
+            "excludeCreatureTypes": [
+              "Construct",
+              "Undead"
+            ],
             "sizes": [],
             "alignments": [],
             "hasCondition": [],
@@ -43919,7 +43998,10 @@
       "maxTargets": 1,
       "filter": {
         "creatureTypes": [],
-        "excludeCreatureTypes": [],
+        "excludeCreatureTypes": [
+          "Construct",
+          "Undead"
+        ],
         "sizes": [],
         "alignments": [],
         "hasCondition": [],
@@ -43967,7 +44049,10 @@
           "type": "save",
           "targetFilter": {
             "creatureTypes": [],
-            "excludeCreatureTypes": [],
+            "excludeCreatureTypes": [
+              "Construct",
+              "Undead"
+            ],
             "sizes": [],
             "alignments": [],
             "hasCondition": [],
@@ -44031,7 +44116,10 @@
           "type": "always",
           "targetFilter": {
             "creatureTypes": [],
-            "excludeCreatureTypes": [],
+            "excludeCreatureTypes": [
+              "Construct",
+              "Undead"
+            ],
             "sizes": [],
             "alignments": [],
             "hasCondition": [],
@@ -44141,7 +44229,10 @@
           "type": "save",
           "targetFilter": {
             "creatureTypes": [],
-            "excludeCreatureTypes": [],
+            "excludeCreatureTypes": [
+              "Construct",
+              "Undead"
+            ],
             "sizes": [],
             "alignments": [],
             "hasCondition": [],
@@ -47576,7 +47667,7 @@
         },
         "scaling": {
           "type": "slot_level",
-          "bonusPerLevel": "",
+          "bonusPerLevel": "+2 pieces of ammunition",
           "customFormula": ""
         },
         "description": "A target hit by a ranged weapon attack using ammunition drawn from the touched quiver takes an extra 1d6 Fire damage.",
@@ -51046,7 +51137,9 @@
       "lineOfSight": true,
       "maxTargets": 1,
       "filter": {
-        "creatureTypes": [],
+        "creatureTypes": [
+          "Humanoid"
+        ],
         "excludeCreatureTypes": [],
         "sizes": [],
         "alignments": [],
@@ -51096,7 +51189,9 @@
           "saveType": "Wisdom",
           "saveEffect": "negates_condition",
           "targetFilter": {
-            "creatureTypes": [],
+            "creatureTypes": [
+              "Humanoid"
+            ],
             "excludeCreatureTypes": [],
             "sizes": [],
             "alignments": [],
@@ -52666,7 +52761,12 @@
         "scaling": {
           "type": "slot_level",
           "bonusPerLevel": "",
-          "customFormula": ""
+          "customFormula": "",
+          "scalingTiers": {
+            "5": "30 days",
+            "7": "365 days",
+            "9": "until ended by remove curse, greater restoration, or wish"
+          }
         },
         "grantedActions": [],
         "attackAugments": [],
@@ -54001,8 +54101,8 @@
         },
         "scaling": {
           "type": "slot_level",
-          "bonusPerLevel": "",
-          "customFormula": ""
+          "bonusPerLevel": "+1d8",
+          "customFormula": "A spell glyph can store a spell of up to the level of the slot used to cast Glyph of Warding."
         },
         "description": "When the explosive rune is triggered, each creature in the 20-foot-radius Sphere centered on the glyph makes a Dexterity save, taking 5d8 Acid, Cold, Fire, Lightning, or Thunder damage chosen when the glyph was created on a failure or half as much on a success; the glyph breaks harmlessly if moved more than 10 feet from where it was cast, and each slot level above 3 adds +1d8 damage.",
         "conditionalEndings": [
@@ -54593,7 +54693,7 @@
         },
         "scaling": {
           "type": "slot_level",
-          "bonusPerLevel": "",
+          "bonusPerLevel": "+1 creature grappled",
           "customFormula": ""
         },
         "description": "On the triggering melee spell attack hit from the vine, a Huge or smaller target gains the Grappled condition for up to 1 minute and can use an action to make the spell-save-DC escape check.",
@@ -60748,7 +60848,13 @@
         "scaling": {
           "type": "slot_level",
           "bonusPerLevel": "",
-          "customFormula": ""
+          "customFormula": "",
+          "scalingTiers": {
+            "1": "up to 1 hour",
+            "2": "up to 4 hours",
+            "3": "up to 8 hours",
+            "5": "up to 24 hours"
+          }
         },
         "grantedActions": [],
         "attackAugments": [],
@@ -60975,7 +61081,10 @@
       "maxTargets": 1,
       "filter": {
         "creatureTypes": [],
-        "excludeCreatureTypes": [],
+        "excludeCreatureTypes": [
+          "Construct",
+          "Undead"
+        ],
         "sizes": [],
         "alignments": [],
         "hasCondition": [],
@@ -61023,7 +61132,10 @@
           "type": "always",
           "targetFilter": {
             "creatureTypes": [],
-            "excludeCreatureTypes": [],
+            "excludeCreatureTypes": [
+              "Construct",
+              "Undead"
+            ],
             "sizes": [],
             "alignments": [],
             "hasCondition": [],
@@ -62704,7 +62816,12 @@
         "scaling": {
           "type": "slot_level",
           "bonusPerLevel": "",
-          "customFormula": ""
+          "customFormula": "",
+          "scalingTiers": {
+            "1": "up to 1 hour",
+            "3": "up to 8 hours",
+            "5": "up to 24 hours"
+          }
         },
         "grantedActions": [],
         "attackAugments": [],
@@ -74717,7 +74834,7 @@
         },
         "scaling": {
           "type": "slot_level",
-          "bonusPerLevel": "",
+          "bonusPerLevel": "+1 hour duration",
           "customFormula": ""
         },
         "grantedActions": [],
@@ -76382,7 +76499,11 @@
         "scaling": {
           "type": "slot_level",
           "bonusPerLevel": "",
-          "customFormula": ""
+          "customFormula": "",
+          "scalingTiers": {
+            "3": "10 minutes, Concentration",
+            "4": "until dispelled, no Concentration"
+          }
         },
         "grantedActions": [],
         "attackAugments": [],
@@ -77728,7 +77849,13 @@
         "scaling": {
           "type": "slot_level",
           "bonusPerLevel": "",
-          "customFormula": ""
+          "customFormula": "",
+          "scalingTiers": {
+            "6": "24 hours",
+            "7": "10 days",
+            "8": "30 days",
+            "9": "366 days"
+          }
         },
         "grantedActions": [],
         "attackAugments": [],
@@ -80913,7 +81040,10 @@
       "maxTargets": 1,
       "filter": {
         "creatureTypes": [],
-        "excludeCreatureTypes": [],
+        "excludeCreatureTypes": [
+          "Construct",
+          "Undead"
+        ],
         "sizes": [],
         "alignments": [],
         "hasCondition": [],
@@ -80963,7 +81093,10 @@
           "saveEffect": "none",
           "targetFilter": {
             "creatureTypes": [],
-            "excludeCreatureTypes": [],
+            "excludeCreatureTypes": [
+              "Construct",
+              "Undead"
+            ],
             "sizes": [],
             "alignments": [],
             "hasCondition": [],
@@ -81032,7 +81165,10 @@
           "saveEffect": "none",
           "targetFilter": {
             "creatureTypes": [],
-            "excludeCreatureTypes": [],
+            "excludeCreatureTypes": [
+              "Construct",
+              "Undead"
+            ],
             "sizes": [],
             "alignments": [],
             "hasCondition": [],
@@ -82870,7 +83006,10 @@
       "maxTargets": 1,
       "filter": {
         "creatureTypes": [],
-        "excludeCreatureTypes": [],
+        "excludeCreatureTypes": [
+          "Construct",
+          "Undead"
+        ],
         "sizes": [],
         "alignments": [],
         "hasCondition": [],
@@ -82918,7 +83057,10 @@
           "type": "always",
           "targetFilter": {
             "creatureTypes": [],
-            "excludeCreatureTypes": [],
+            "excludeCreatureTypes": [
+              "Construct",
+              "Undead"
+            ],
             "sizes": [],
             "alignments": [],
             "hasCondition": [],
@@ -83085,7 +83227,10 @@
           "saveEffect": "negates_condition",
           "targetFilter": {
             "creatureTypes": [],
-            "excludeCreatureTypes": [],
+            "excludeCreatureTypes": [
+              "Construct",
+              "Undead"
+            ],
             "sizes": [],
             "alignments": [],
             "hasCondition": [],
@@ -83211,7 +83356,10 @@
           "saveEffect": "negates_condition",
           "targetFilter": {
             "creatureTypes": [],
-            "excludeCreatureTypes": [],
+            "excludeCreatureTypes": [
+              "Construct",
+              "Undead"
+            ],
             "sizes": [],
             "alignments": [],
             "hasCondition": [],
@@ -87592,7 +87740,10 @@
       "maxTargets": 1,
       "filter": {
         "creatureTypes": [],
-        "excludeCreatureTypes": [],
+        "excludeCreatureTypes": [
+          "Construct",
+          "Undead"
+        ],
         "sizes": [],
         "alignments": [],
         "hasCondition": [],
@@ -87642,7 +87793,10 @@
           "saveEffect": "negates_condition",
           "targetFilter": {
             "creatureTypes": [],
-            "excludeCreatureTypes": [],
+            "excludeCreatureTypes": [
+              "Construct",
+              "Undead"
+            ],
             "sizes": [],
             "alignments": [],
             "hasCondition": [],
@@ -87799,7 +87953,10 @@
           "type": "always",
           "targetFilter": {
             "creatureTypes": [],
-            "excludeCreatureTypes": [],
+            "excludeCreatureTypes": [
+              "Construct",
+              "Undead"
+            ],
             "sizes": [],
             "alignments": [],
             "hasCondition": [],
@@ -89819,7 +89976,14 @@
         "scaling": {
           "type": "slot_level",
           "bonusPerLevel": "",
-          "customFormula": ""
+          "customFormula": "",
+          "scalingTiers": {
+            "5": "24 hours",
+            "6": "10 days",
+            "7": "30 days",
+            "8": "180 days",
+            "9": "a year and a day"
+          }
         },
         "grantedActions": [],
         "attackAugments": [],
@@ -89957,7 +90121,14 @@
         "scaling": {
           "type": "slot_level",
           "bonusPerLevel": "",
-          "customFormula": ""
+          "customFormula": "",
+          "scalingTiers": {
+            "5": "24 hours",
+            "6": "10 days",
+            "7": "30 days",
+            "8": "180 days",
+            "9": "a year and a day"
+          }
         },
         "description": "On a failed Charisma save, the Celestial, Elemental, Fey, or Fiend gains the Bound condition and serves the caster for the 24-hour base duration; higher slots extend Bound to 10 days at slot 6, 30 days at slot 7, 180 days at slot 8, or a year and a day at slot 9.",
         "conditionalEndings": [
@@ -91617,7 +91788,10 @@
       "maxTargets": 1,
       "filter": {
         "creatureTypes": [],
-        "excludeCreatureTypes": [],
+        "excludeCreatureTypes": [
+          "Construct",
+          "Undead"
+        ],
         "sizes": [],
         "alignments": [],
         "hasCondition": [],
@@ -91665,7 +91839,10 @@
           "type": "always",
           "targetFilter": {
             "creatureTypes": [],
-            "excludeCreatureTypes": [],
+            "excludeCreatureTypes": [
+              "Construct",
+              "Undead"
+            ],
             "sizes": [],
             "alignments": [],
             "hasCondition": [],
@@ -91733,7 +91910,10 @@
           "type": "always",
           "targetFilter": {
             "creatureTypes": [],
-            "excludeCreatureTypes": [],
+            "excludeCreatureTypes": [
+              "Construct",
+              "Undead"
+            ],
             "sizes": [],
             "alignments": [],
             "hasCondition": [],
@@ -91885,7 +92065,10 @@
       "maxTargets": 1,
       "filter": {
         "creatureTypes": [],
-        "excludeCreatureTypes": [],
+        "excludeCreatureTypes": [
+          "Construct",
+          "Undead"
+        ],
         "sizes": [],
         "alignments": [],
         "hasCondition": [],
@@ -91933,7 +92116,10 @@
           "type": "always",
           "targetFilter": {
             "creatureTypes": [],
-            "excludeCreatureTypes": [],
+            "excludeCreatureTypes": [
+              "Construct",
+              "Undead"
+            ],
             "sizes": [],
             "alignments": [],
             "hasCondition": [],
@@ -92031,7 +92217,10 @@
           "type": "always",
           "targetFilter": {
             "creatureTypes": [],
-            "excludeCreatureTypes": [],
+            "excludeCreatureTypes": [
+              "Construct",
+              "Undead"
+            ],
             "sizes": [],
             "alignments": [],
             "hasCondition": [],
@@ -92111,7 +92300,10 @@
           "type": "always",
           "targetFilter": {
             "creatureTypes": [],
-            "excludeCreatureTypes": [],
+            "excludeCreatureTypes": [
+              "Construct",
+              "Undead"
+            ],
             "sizes": [],
             "alignments": [],
             "hasCondition": [],
@@ -92186,7 +92378,10 @@
           "type": "always",
           "targetFilter": {
             "creatureTypes": [],
-            "excludeCreatureTypes": [],
+            "excludeCreatureTypes": [
+              "Construct",
+              "Undead"
+            ],
             "sizes": [],
             "alignments": [],
             "hasCondition": [],
@@ -92384,7 +92579,10 @@
       "maxTargets": 1,
       "filter": {
         "creatureTypes": [],
-        "excludeCreatureTypes": [],
+        "excludeCreatureTypes": [
+          "Construct",
+          "Undead"
+        ],
         "sizes": [],
         "alignments": [],
         "hasCondition": [],
@@ -92439,7 +92637,10 @@
           "type": "always",
           "targetFilter": {
             "creatureTypes": [],
-            "excludeCreatureTypes": [],
+            "excludeCreatureTypes": [
+              "Construct",
+              "Undead"
+            ],
             "sizes": [],
             "alignments": [],
             "hasCondition": [],
@@ -92545,7 +92746,10 @@
           "type": "always",
           "targetFilter": {
             "creatureTypes": [],
-            "excludeCreatureTypes": [],
+            "excludeCreatureTypes": [
+              "Construct",
+              "Undead"
+            ],
             "sizes": [],
             "alignments": [],
             "hasCondition": [],
@@ -92615,7 +92819,10 @@
           "type": "always",
           "targetFilter": {
             "creatureTypes": [],
-            "excludeCreatureTypes": [],
+            "excludeCreatureTypes": [
+              "Construct",
+              "Undead"
+            ],
             "sizes": [],
             "alignments": [],
             "hasCondition": [],
@@ -102507,7 +102714,7 @@
         },
         "scaling": {
           "type": "slot_level",
-          "bonusPerLevel": "",
+          "bonusPerLevel": "+1d6",
           "customFormula": ""
         },
         "description": "On the triggering weapon hit, the target takes 1d6 Fire damage as the smite damage rider.",
@@ -102600,7 +102807,7 @@
         ],
         "scaling": {
           "type": "slot_level",
-          "bonusPerLevel": "",
+          "bonusPerLevel": "+1d6",
           "customFormula": ""
         },
         "description": "On the triggering melee weapon hit, the target gains the Ignited condition for up to 1 minute; at the start of each of its turns, it takes 1d6 Fire damage and then makes a Constitution save that ends the spell on a success.",
@@ -109706,9 +109913,15 @@
         "utilityType": "other",
         "description": "Choose one creature within 15 feet that has 0 Hit Points and is not dead; the creature becomes Stable and is no longer dying. The range increases to 30 feet at level 5, 60 feet at level 11, and 120 feet at level 17.",
         "scaling": {
-          "type": "slot_level",
+          "type": "character_level",
           "bonusPerLevel": "",
-          "customFormula": ""
+          "customFormula": "",
+          "scalingTiers": {
+            "1": "15 feet",
+            "5": "30 feet",
+            "11": "60 feet",
+            "17": "120 feet"
+          }
         },
         "grantedActions": [],
         "attackAugments": [],
@@ -117512,7 +117725,12 @@
         "scaling": {
           "type": "slot_level",
           "bonusPerLevel": "",
-          "customFormula": ""
+          "customFormula": "",
+          "scalingTiers": {
+            "3": "the rolled number of demons",
+            "6": "twice the rolled number of demons",
+            "8": "three times the rolled number of demons"
+          }
         },
         "grantedActions": [],
         "attackAugments": [],
@@ -120564,7 +120782,10 @@
       "maxTargets": 1,
       "filter": {
         "creatureTypes": [],
-        "excludeCreatureTypes": [],
+        "excludeCreatureTypes": [
+          "Construct",
+          "Undead"
+        ],
         "sizes": [],
         "alignments": [],
         "hasCondition": [],
@@ -120614,7 +120835,10 @@
           "saveEffect": "negates_condition",
           "targetFilter": {
             "creatureTypes": [],
-            "excludeCreatureTypes": [],
+            "excludeCreatureTypes": [
+              "Construct",
+              "Undead"
+            ],
             "sizes": [],
             "alignments": [],
             "hasCondition": [],
@@ -120694,7 +120918,10 @@
           "saveEffect": "negates_condition",
           "targetFilter": {
             "creatureTypes": [],
-            "excludeCreatureTypes": [],
+            "excludeCreatureTypes": [
+              "Construct",
+              "Undead"
+            ],
             "sizes": [],
             "alignments": [],
             "hasCondition": [],
@@ -129271,7 +129498,10 @@
       "maxTargets": 1,
       "filter": {
         "creatureTypes": [],
-        "excludeCreatureTypes": [],
+        "excludeCreatureTypes": [
+          "Construct",
+          "Undead"
+        ],
         "sizes": [],
         "alignments": [],
         "hasCondition": [],
@@ -129321,7 +129551,10 @@
           "saveEffect": "none",
           "targetFilter": {
             "creatureTypes": [],
-            "excludeCreatureTypes": [],
+            "excludeCreatureTypes": [
+              "Construct",
+              "Undead"
+            ],
             "sizes": [],
             "alignments": [],
             "hasCondition": [],
@@ -129390,7 +129623,10 @@
           "saveEffect": "none",
           "targetFilter": {
             "creatureTypes": [],
-            "excludeCreatureTypes": [],
+            "excludeCreatureTypes": [
+              "Construct",
+              "Undead"
+            ],
             "sizes": [],
             "alignments": [],
             "hasCondition": [],

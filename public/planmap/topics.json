@@ -3350,6 +3350,58 @@
       "verified": "2026-09-09"
     },
     {
+      "id": "combat-gridless",
+      "title": "Gridless combat (BG3 style)",
+      "sub": "Combat leaves the 5 ft square grid: free positions, a drawn movement path, straight-line range and reach, and true-shape areas, as Baldur's Gate 3 does. Rulings come from the Gridless Combat question sheet.",
+      "campaign": "combat",
+      "status": "active",
+      "link": "docs/architecture/COMBAT_RANGE_METRIC_IMPACT_MAP.md",
+      "status_note": "Question sheet published 2026-09-30 (https://claude.ai/artifact/FcxNo9bDmdiDLDMh1kMTBz), nine questions; absorbs TODO Sweep Rulings Q8, Q10 (GG-268), Q11 (GG-269). The range part of agora-79fa.4 waits on it. Reopens the 2026-07-02 fight-in-place decision \"invisible 5 ft referee\".",
+      "tier": "strategic",
+      "updated": "2026-09-30",
+      "verified": "2026-09-30",
+      "deps": [
+        {
+          "id": "combat-elevation",
+          "kind": "chosen",
+          "why": "cylinder height and the vertical part of a straight-line distance land with elevation (ruling Q3, 2026-09-13); BG3 ignores height for range except on high ground"
+        }
+      ],
+      "features": [
+        {
+          "title": "Rulings on the Gridless Combat question sheet (positions, units, movement, reach, area hits, self cube, square spells, grid display, build order)",
+          "status": "active",
+          "decision": true,
+          "status_note": "https://claude.ai/artifact/FcxNo9bDmdiDLDMh1kMTBz"
+        },
+        {
+          "title": "One straight-line ruler: spell range, edge-to-edge melee reach, true-shape area hits (still on squares)",
+          "status": "parked",
+          "status_note": "Proposed first slice (sheet q9). Closes the range part of agora-79fa.4 and GG-203."
+        },
+        {
+          "title": "Free positions with a fine hidden terrain grid for paths, walls and surfaces",
+          "status": "parked",
+          "status_note": "Sheet q1. Position {x,y} is used in 131 source files; BG3 keeps a hidden 0.5 m AI grid."
+        },
+        {
+          "title": "Movement spent along a drawn path; opportunity attacks checked along the path",
+          "status": "parked",
+          "status_note": "Sheet q3. Today useActionExecutor checks only the two ends of a move."
+        },
+        {
+          "title": "Self cubes start at the caster edge with free aim; Square spell shape",
+          "status": "parked",
+          "status_note": "Sheet q6 (GG-268) and q7 (GG-269). resolveCubeAxis snaps aim to four map directions today."
+        },
+        {
+          "title": "Board display: range rings, path line, grid policy, measure tool (2D board and both 3D views)",
+          "status": "parked",
+          "status_note": "Sheet q8. No range ring and no path line exist today."
+        }
+      ]
+    },
+    {
       "id": "combat-chronicles",
       "title": "Fight chronicles (replay + retellings)",
       "sub": "A finished fight is saved as a chronicle: a scrubbable animated replay with the narrated log as captions, and NPCs retell garbled versions in taverns via the living-world rumor system.",
@@ -6489,8 +6541,8 @@
         {
           "title": "Cube centering, range distance rule (cylinder height decided: waits on combat-elevation)",
           "status": "parked",
-          "status_note": "Agora task agora-79fa.4 from TODO at src/systems/spells/targeting/gridAlgorithms/cylinder.ts:22 (sweep 2026-09-13). Ruling 2026-09-13 (Q3): cylinder keeps its circle footprint; height lands with combat-elevation. Cube anchor and range metric still wait on rulings Q4, Q5. Cube: face anchor shipped 2026-09-23 (ruling Q4). Range metric still waits on Q8.",
-          "verified": "2026-09-23"
+          "status_note": "Agora task agora-79fa.4 from TODO at src/systems/spells/targeting/gridAlgorithms/cylinder.ts:22 (sweep 2026-09-13). Ruling 2026-09-13 (Q3): cylinder keeps its circle footprint; height lands with combat-elevation. Cube anchor and range metric still wait on rulings Q4, Q5. Cube: face anchor shipped 2026-09-23 (ruling Q4). Range metric waits on the Gridless Combat sheet (plan-map combat-gridless), which absorbed Q8 on 2026-09-30.",
+          "verified": "2026-09-30"
         },
         {
           "title": "UTILITY effect coverage in spellAbilityFactory",
@@ -6696,7 +6748,7 @@
       "sub": "Ground 3D rivers render at a shared computed waterline instead of under the carved bed, and a riverWaterlineAt query lets fords, bridges, and docks anchor to real submerged water.",
       "link": "docs/superpowers/specs/2026-07-18-ground3d-water-surface-design.md",
       "open": 8,
-      "updated": "2026-09-09",
+      "updated": "2026-09-29",
       "features": [
         {
           "title": "Rivers can be above sea level: sea/lake/river kinds + descending river surface; meters-not-encoded depths (2026-07-27)",
@@ -6729,7 +6781,25 @@
         {
           "title": "Rivers flow: water moves along the river course, with foam over rocks and slow eddies at the banks",
           "status": "active",
-          "status_note": "Remy approved 2026-09-27 (\"also rivers and water flowing in rivers\"); the bar is real river video (q29: the Merced, the Nerang, a stream close-up). Round 1 (2026-09-28) built a momentum shallow-water solver over a seeded judged reach (src/systems/world3d/river/, solved once in a worker), a two-phase flow-map water material, and a bed and bank material; open it at ?step=water&river=1; doc docs/architecture/domains/world3d-river-water.md. Drawn speeds match the model within 4% except the slow pool. Blind judges: round 1 LOST (the white water reads as flat decals, the rocks as gray eggs on top of the water). Not yet in the game: the in-game ribbons need a flow map per river course."
+          "status_note": "Remy approved 2026-09-27 (\"also rivers and water flowing in rivers\"); the bar is real river video (q29: the Merced, the Nerang, a stream close-up). Round 1 (2026-09-28) built a momentum shallow-water solver over a seeded judged reach (src/systems/world3d/river/, solved once in a worker), a two-phase flow-map water material, and a bed and bank material; open it at ?step=water&river=1; doc docs/architecture/domains/world3d-river-water.md. Drawn speeds match the model within 4% except the slow pool. Blind judges: round 1 LOST (the white water reads as flat decals, the rocks as gray eggs on top of the water). Not yet in the game: the in-game ribbons need a flow map per river course. Round 5 (2026-09-28) was a variant round: the white slabs fixed, then V1 rock contact, V2 white water placed by the flow, V3 depth and direction, V4 stones and wet margins, V5 = V2 + V3. All eight judgments lost at high confidence, and every judge named the same four gaps whatever the lever, so round 6 ships them together, with the white water rebuilt as see-through streaks and Remy's width, depth and flow controls. WebGPU (2026-09-30, Remy: \"can we move this to webGPU?\"): the scene draws with three's WebGPURenderer and TSL node materials, the ocean's renderer, with no WebGL path (the one water, GG-341); the five judged frames differ from WebGL only by filter and rounding (0.6 to 25.6 % of pixels over 8/255, each pair looked at); the WebGPU frame is CPU-bound on three 0.172 (16.9 against 11.0 ms at bank-along, GG-362), and the three 0.172 workarounds are listed in GG-363 and GG-364."
+        },
+        {
+          "title": "River floaters: a paper boat and a few ducks carried by the river's flow",
+          "status": "active",
+          "status_note": "Remy asked 2026-09-28: a paper boat floating down the river (a test of the flow and the buoyancy), and ducks that paddle different ways while the flow plainly carries them. Added to rivers round 4, after its flow work. The boat relaxes to the surface velocity, spins with half the local curl, bobs on the drawn waves, slides round rocks, runs aground in shallow water, and starts again upstream; a \"Pin camera to the paper boat\" button follows it. Each duck's ground velocity is its paddle plus the current, with its body facing its paddle heading, so the crab angle shows the carry. Proof: the boat's speed against the surface speed, each duck's ground minus water velocity against its paddle, and motion strips. Procedural mallards for now; Savi's Tidewrack mallards can swap in later with Remy's download OK."
+        },
+        {
+          "title": "River controls: sliders for the river's width, depth and flow in the river scene",
+          "status": "done",
+          "status_note": "Remy asked 2026-09-28: \"in the river flow, i'd like to get some controls on the rivers width and depth, is it possible to make a UI that let's me control the river?\" A panel in step=water&river=1 with sliders for channel width, channel depth and flow (the discharge), because the three are tied (flow = width x depth x mean speed); the mean speed and Froude number show live. On release the reach rebuilds (bed, banks, low-water thread, the seeded rock field scaled to the channel, the flow field and the surface); the paper boat and the ducks carry on in the new flow; Reset river returns the shipped values; the panel is hidden in captures, so the judged frames do not change. Routed to the rivers builder for round 5 step 2. BUILT 2026-09-29 by the ocean gauntlet lead (Remy: \"i don't see the controls to change the river shape?\"): the River shape panel under the camera buttons, with width x0.6 to x1.6, depth x0.5 to x2 and flow 0.5 to 12 m3/s; a release rebuilds the reach and solves its flow (22 s for one step); the camera stays; the mean speed, depth, Froude number and wet area show; Reset river; &rw= &rd= &rq= in the address. The default draws the judged river bit for bit (riverShape.test.ts). Checked in headless Chrome at a slider step and at two extremes. See the domain doc world3d-river-water.md. LIVE since 2026-09-29 (the live river editor): in a browser the sliders act while dragged, as bed patches over the judged reach; the rebuild on release now runs only in a static page (a capture or &live=0)."
+        },
+        {
+          "title": "Live river editor: grab the river and reshape it live, with the flow running live",
+          "status": "done",
+          "status_note": "Remy asked 2026-09-29: \"make it so i can grab the river and i can manipulate the river shape live, without reloading\". BUILT 2026-09-29. In a browser the river scene (?step=water&river=1) runs its solver live in a worker, and a second worker turns the running field into flow maps about 4 times a second; the captures keep the steady field (0 px over 8/255 against a baseline, with and without the cache). An edit is a BED PATCH over the judged reach: the ground, the rocks, the stones, the plants and the solver's bed change in place near the change, and the water keeps flowing and fills the new shape (the front reaches a moved bend in 0.3 s and fills it by 20 s). The River shape sliders act while dragged (width 3.1, depth 3.4, flow 14.8 updates a second). The EDIT MODE (the panel's \"Edit the river's path\" button; Esc leaves) puts blue path handles on the course line's control points (a drag moves the river's path: 4.9 updates a second, 182 ms a round trip) and amber bank handles (a drag widens or narrows the channel there: 9.7 a second, 68 ms). &rc= keeps the edit in the address; Top up refills a drained pool at once. The design s keeps the pools and the sill in place when a point moves. Limits measured: the solver held in every extreme; a channel pushed against the grid edge spills past its wet ceiling and shows the mesh seam. Code: riverLive.ts, riverMapWorker.ts, riverEditHandles.ts, riverLiveClient.ts. Doc: docs/architecture/domains/world3d-river-water.md, \"The live river editor\". NODE HEIGHTS (Remy 2026-09-29: \"make it so that i can make the river nodes be able to go up and down individually\"), BUILT 2026-09-29. Each control point has a green height handle beside its path handle (drag up or down, -3 to +5 m, 1 cm steps; its label names the height in meters and what it does to the water; \"Reset height\" per point, \"Reset river\" for all; &rc=...h9:-1.58). The bed follows a smoothstep between points (no overshoot, local to the neighbors) and a mound over the middle 70 % of the channel, so a large raise is a dry hump with a side channel on each side. A raised stretch gets an edited design level: a minimax flood finds the pass over it, and the water ponds upstream to the pass + 0.2 m. Each patch reports each point as deeper, shallower (a riffle), split (a dry hump, water goes round) or block (a pond that spills over the pass, with its side and length), and the panel shows the water that edits took or added and warns of water at the grid edge (GG-342 and GG-343 reported, not fixed). Measured: point 9 -1.5 m deepens the middle from 0.60 to 1.84 m; point 17 +2 m makes it 0.59 m from 1.15 m; point 17 +4.5 m stands 2.98 m over a 2.45 m bank with the water 6.5 m wide beside it; point 9 +1.6 m ponds 25 m and spills over the right side at 3.55 m, 0 breach cells at 90 s of flow. Height drags: 7.3 to 9.8 updates a second, 57 to 115 ms a round trip. A heights-only patch copies the judged outside fields, so a height changes the ground only under its mound. The judged frames stay 0 px (max 0, no cache). Tests: riverNodeHeight.test.ts (12). Open: GG-349 (the pass flood sees only the band), GG-350 (the fields refresh cut moves the ground up to about 1 cm on a course or width edit), GG-351 (the mound shape is fixed); GLOBAL_GAPS.",
+          "history": {
+            "built": "2026-09-29"
+          }
         }
       ],
       "verified": "2026-09-09",
@@ -7097,9 +7167,9 @@
     {
       "id": "perf-toolkit-3d",
       "title": "Universal 3D performance toolkit",
-      "sub": "A shared PerfProbe measurement core plus an Alt+P overlay instrument every 3D canvas with fps, GPU and CPU frame time, a CPU-vs-GPU bottleneck verdict, and a stall log naming what changed on each slow frame.",
+      "sub": "One tracker for every 3D page: a renderer probe measures every three.js canvas (R3F, raw WebGL, raw WebGPU) at its render and compute calls, with no scene wiring; one staple import per page entry; an fps pill, an Alt+P panel and a badge in each Design Preview window title.",
       "campaign": "tooling",
-      "status": "done",
+      "status": "active",
       "deps": [],
       "features": [
         {
@@ -7128,23 +7198,145 @@
           "open": 0
         },
         {
-          "title": "WebGPU GPU timing (blocked: three r172 resolves timestamps only in renderAsync, which R3F does not call)",
+          "title": "WebGPU GPU timing (blocked: three r172 timestamp queries record only the first pass; GG-334)",
           "status": "parked",
-          "open": 1
+          "open": 1,
+          "status_note": "The panel says \"not measured on WebGPU\" instead of a number."
         },
         {
           "title": "Stall log: keeps each slow frame and ranks what CHANGED against its own baseline — names the span, the GPU, unattributed CPU, or time outside the measured frame",
           "status": "done",
           "open": 0
+        },
+        {
+          "title": "Renderer probe: every three.js canvas measured with no scene wiring (R3F, raw WebGL, raw WebGPU)",
+          "status": "done",
+          "open": 0
+        },
+        {
+          "title": "Staple import at every 3D page entry (Design Preview, game dev build, Building Lab, Character Atelier)",
+          "status": "done",
+          "open": 0
+        },
+        {
+          "title": "Window badge: fps in every Design Preview window title bar",
+          "status": "done",
+          "open": 0
+        },
+        {
+          "title": "Retire duplicate fps counters (game Debug HUD, fluids, entity debugger, golem, WebGPU probe)",
+          "status": "done",
+          "open": 0
+        },
+        {
+          "title": "Count every pass without touching gl.info.autoReset",
+          "status": "done",
+          "open": 0
+        },
+        {
+          "title": "Stable ids for the ocean and river surfaces (GG-333)",
+          "status": "active",
+          "open": 1,
+          "status_note": "PreviewWater.tsx was locked by skip-builder-1 on 2026-09-29."
+        },
+        {
+          "title": "Ocean facts strip: relabel or drop the constant GPU timestamp rows (GG-332)",
+          "status": "active",
+          "open": 1,
+          "decision": false,
+          "status_note": "Owned by the ocean gauntlet lead."
+        },
+        {
+          "title": "Time-window the CPU and GPU means so a load stall cannot push shares past 100% (GG-335)",
+          "status": "specced",
+          "open": 1
+        },
+        {
+          "title": "Measure canvases not drawn by three (Pixi battle board, dice) (GG-336)",
+          "status": "parked",
+          "open": 1
+        },
+        {
+          "title": "Vsync floor named: frame time against work (the longer of GPU and CPU), the display wait, and headroom in ms and percent",
+          "status": "done",
+          "open": 0
+        },
+        {
+          "title": "GPU time per render pass on WebGL (one query segment per pass, nested passes included); each pass named, with CPU ms and triangles",
+          "status": "done",
+          "open": 0
+        },
+        {
+          "title": "Triangles by group (userData.perfGroup, name, named parent; unnamed split by kind)",
+          "status": "done",
+          "open": 0
+        },
+        {
+          "title": "Slow frames named by measured causes: CPU parts that add up, texture and buffer uploads, shader compiles, GPU readbacks, Chrome long-frame reports, GC notes",
+          "status": "done",
+          "open": 0
+        },
+        {
+          "title": "A budget the reader sets (display rate, 60 or 30 fps); each pass shows its share",
+          "status": "done",
+          "open": 0
+        },
+        {
+          "title": "What the camera sees: mounted, in view and drawn triangles, nearest water, screen share per group (WebGL)",
+          "status": "done",
+          "open": 0
+        },
+        {
+          "title": "Memory that moves: geometries, textures, programs and heap per second, with a growing flag",
+          "status": "done",
+          "open": 0
+        },
+        {
+          "title": "Compare mode: a marked column beside the live one, with deltas and the A/B rule",
+          "status": "done",
+          "open": 0
+        },
+        {
+          "title": "Name the river and ocean passes and groups (patch ready; owners apply it, GG-352)",
+          "status": "active",
+          "open": 1,
+          "decision": false,
+          "status_note": ".agent/scratch/perf-diagnose/nameWaterPasses.patch.mjs; edits listed in docs/architecture/domains/perf-tools.md"
+        },
+        {
+          "title": "Screen share on WebGPU (GG-355)",
+          "status": "parked",
+          "open": 1
+        },
+        {
+          "title": "Name the cause of a slow frame under 50 ms outside the frame callback (GG-356)",
+          "status": "specced",
+          "open": 1
+        },
+        {
+          "title": "Time the GPU work between WebGL passes (GG-358)",
+          "status": "specced",
+          "open": 1
+        },
+        {
+          "title": "One template for every 3D page: a change to src/devtools/perf reaches every renderer; the main game shows it only while dev mode is on",
+          "status": "done",
+          "open": 0,
+          "decision": true,
+          "status_note": "Remy 2026-09-30, question sheet q1: \"if i ever make a change to the FPS tracker, that change is carried automatically to each other 3d renderer (not in the main game, unless dev mode is enabled)\". src/App.tsx mounts PerfOverlay under gameState.isDevModeEnabled; checked in the rendered game with dev mode off and on."
         }
       ],
       "history": {
-        "built": "2026-08-08"
+        "built": "2026-08-08",
+        "unified": "2026-09-29",
+        "diagnosed": "2026-09-29",
+        "templateRuling": "2026-09-30"
       },
       "tier": "strategic",
-      "updated": "2026-09-09",
-      "verified": "2026-09-09",
-      "status_note": "Built 2026-08-08/09 across all 19 3D surfaces plus the game shell; WebGPU GPU timing remains blocked because three r172 only resolves timestamps inside renderAsync, which R3F does not call."
+      "updated": "2026-09-30",
+      "verified": "2026-09-30",
+      "status_note": "Remy 2026-09-29 on the river: \"what more should be added for this to be more indicative?\" Built the same day: the panel diagnoses a frame, not only gauges it (vsync floor, GPU per pass, triangles by group, named slow-frame causes, budget, camera view and screen share, memory per second, compare). Open: scene names for the river and ocean (patch ready, GG-352), WebGPU GPU time (GG-334), WebGPU screen share (GG-355), slow frames under 50 ms (GG-356), GC time (GG-357). Findings routed: the river meter readback (GG-353), the live flow-map uploads (GG-354), the world3d main pass (GG-359).",
+      "link": "docs/architecture/domains/perf-tools.md"
     },
     {
       "id": "visual-quality-perfection",
@@ -7252,7 +7444,7 @@
       "sub": "FFT wave field for maritime travel - a ship needs a surface, not a particle solver",
       "campaign": "travel",
       "status": "active",
-      "updated": "2026-09-26",
+      "updated": "2026-09-30",
       "deps": [],
       "features": [
         {
@@ -7273,7 +7465,7 @@
         {
           "title": "Water Pro gauntlet: blind-judged parity, piece by piece",
           "status": "active",
-          "status_note": "Started 2026-09-23. Bar = Three.js Water Pro (live demo + 2 videos), plus water-simulation-v9 for see-through water, caustics, underwater and touch ripples, plus real video for the beach draining and the rivers (Remy, q28 and q29). Each piece: a builder and fresh blind critics, one per side order; a piece wins only when ours is picked in both orders on every judged view. 2026-09-28: NINE PIECES WON (shading, waves, foam, spray, rain, caustics and shallows, underwater, buoyancy, and now the wake). The wake won with round 11's look once the quarter bar became a live Water Pro capture at our pose (Remy, q30): rounds 12 to 17 had tuned toward a soft video frame and lost. Shading and waves still win on the latest distance frame. Open: distance (lost rounds 3 to 9; a swap test on 2026-09-28 showed the judges blamed the last 25 px of sea while rounds 10 and 11 found the judges' stated reasons fail every measured check, so round 11 judged five variants instead: only a lower sun, closer to Water Pro's, won both orders, and shading still wins under it; it moves the sun in the scenes judged on the Water Pro sea, so it waits on Remy's ruling, question 31 on the Water and Land sheet), beach (rounds 1 to 4 lost; round 5 is briefed), rivers (round 1 lost all three views; round 2 runs). Builders and critics run on Opus."
+          "status_note": "Started 2026-09-23. Bar = Three.js Water Pro (live demo + 2 videos), plus water-simulation-v9 for see-through water, caustics, underwater and touch ripples, plus real video for the beach draining and the rivers (Remy, q28 and q29). Each piece: a builder and fresh blind critics, one per side order; a piece wins only when ours is picked in both orders on every judged view. 2026-09-28: SEVEN PIECES HOLD under the lower sun that Remy ruled into every ocean scene (q31): shading, waves, spray, rain, caustics and shallows, underwater and the far distance, each judged again in both orders. Three pieces are open again: foam (the storm-high view lost both orders), the wake (its chase view split 1-1) and buoyancy (its strip split 1-1). In all three the foam, wake or motion did not change; only the water behind moved, and each view had first won at medium or low confidence, so a narrow win is close to a coin flip. Foam round 10 and wake round 19 are briefed on the gaps every judge names (hairy gray foam ovals with no bright fresh cores; three stripes behind the stern in place of one churned band; a buoy base that reads as a flat disk). Earlier: ten pieces had won before the sun change. The wake won with round 11's look once the quarter bar became a live Water Pro capture at our pose (Remy, q30): rounds 12 to 17 had tuned toward a soft video frame and lost. Shading and waves still win on the latest distance frame. The distance history: (lost rounds 3 to 9; a swap test on 2026-09-28 showed the judges blamed the last 25 px of sea while rounds 10 and 11 found the judges' stated reasons fail every measured check, so round 11 judged five variants instead: only a lower sun, closer to Water Pro's, won both orders, and shading still wins under it; it moves the sun in the scenes judged on the Water Pro sea, so it waits on Remy's ruling, question 31 on the Water and Land sheet), beach (view 1, the shore foam, WON both orders in round 8; view 2, the draining, lost; round 9 runs), rivers (rounds 1 to 3 lost; round 4 runs, with the paper boat and ducks), rocks and splash (no bar yet). Builders and critics run on Opus. FOAM ROUND 10 (2026-09-29) WINS AGAIN, both views in both orders plus a fresh control (fm10h-A/B medium, fm10e-A low, fm10e-B medium, ctl-fm10e-B2 medium). Built: the foam store as the sea's one foam field (oceanFoamSources(field).add: a window-buffer source for the wake and timed discs for the rocks' reef breaking); bubble cells, a warped read, a grained skirt, age-lit fresh foam, grouped whitecaps. The lead applied the nearHeight fix to oceanSurface.ts (the 2026-09-25 eye-distance change had faded the troughs' darkening for a camera 140 m up). GG-348 confirmed on the GPU sampler; its patch (foam/r10/gg348_patch.py) and the wake-as-source patch wait. Open: the read costs about 1.54 ms at eye level against a 1.3 ms budget; dry-brush streaks, hard-edged patches and confetti near foam."
         },
         {
           "title": "Ocean performance pass: GPU and CPU frame time, quality held",
@@ -7288,7 +7480,32 @@
         {
           "title": "Beach: waves run up the sand and drain into it, wet sand darkens and dries, waves push shells, sticks and seaweed",
           "status": "active",
-          "status_note": "Remy approved 2026-09-27 (\"go ahead and build it\"). Bars (q28): Water Pro v3 shoreline foam (ref/video-v3 t0007) and real Manly Beach footage for the draining (ref/real/beach b010). Built in src/systems/world3d/ocean/oceanBeach.ts with a swash solver (run-up R2% 0.82 m against Stockdon's 0.72 m, an exact water ledger), wet sand that darkens and dries, a wet line, foam, debris pushed by the swash, and a glint share from the seabed reader so the sea draws no glints on the beach face; the scenes with no beach are unchanged (0 px). Rounds 1 to 4 lost both views; round 4 lost at high confidence because its new swash rim reads as a pen line of one width. Round 5 (briefed): a foam band of changing width with older foam lines above it, a see-through sheet, gloss next to the water, a sharp ragged wet line, and dry sand with relief."
+          "status_note": "Remy approved 2026-09-27 (\"go ahead and build it\"). Bars (q28): Water Pro v3 shoreline foam (ref/video-v3 t0007) and real Manly Beach footage for the draining (ref/real/beach b010). Built in src/systems/world3d/ocean/oceanBeach.ts with a swash solver (run-up R2% 0.82 m against Stockdon's 0.72 m, an exact water ledger), wet sand that darkens and dries, a wet line, foam, debris pushed by the swash, and a glint share from the seabed reader so the sea draws no glints on the beach face; the scenes with no beach are unchanged (0 px). Rounds 1 to 7 lost both views. 2026-09-28, round 8 (foam opacity and contrast measured against both bars and matched per zone; a break-up into dashes, specks and seaward streaks): VIEW 1, the shore foam against Water Pro, WON BOTH ORDERS (high, medium), the first beach win, and it is now locked. View 2, the draining against Manly, lost at high confidence: the wet band reads as a flat brown decal and not a thin film, the rills read as drawn arcs, and the swash lip is a soft halo. Round 9 runs: the sheet as a film that thins up the beach and reflects the sky, glossy wet sand that turns matte as it dries, no drawn rills, lace across the swash sheet, one continuous bore band, per-zone color matched to Manly, and the sea crest specks faded over the beach. Round 9 (2026-09-28) lost BOTH views, view 1 too (medium), which round 8 had won: its drain streaks and even backwash lace read as one gray streak texture over the swash sheet (\"a tiled bump map\", \"brushed fur\"). Round 10 is a variant round on round 8's look (a glassy film; a broken front with old swash lines; the drying edge; foam that feeds the swash), each version judged on view 2 and checked on view 1. Round 10 step 2 (2026-09-29: every lever together, the rills off, the sea-crest hide) lost BOTH views; a fresh control judge still picks round 8's view 1 (high), and even round 8 plus the hidden fixes lost view 1. Round 11 ships round 8's exact look again (the later levers behind switches, no Discard when the crest hide is off) and tries levers not yet tried on the draining view: the sand's grain and color toward Manly's, one continuous band for the strong bore only, and old swash lines with round 8's front kept. Round 11 (2026-09-29): round 8's look is back at 0 px (the later levers behind &beachlevers=1 and &beachhide=1), and its view-2 versions (the sand toward Manly's gold and grain, one bore band) lost at high confidence. 22 versions have lost the draining view since round 3 (counted from _lead/keys.json; 15 recorded judgments, all high). Asked on the Water and Land sheet (q34, round 24): Remy judges it in the live compare (recommended), or the builder matches the real frame by measure, or the draining view is parked. The beach builder waits for that answer. Remy ruled 2026-09-29 (sheet q34): keep going with judges, and match the real frame by measure. Round 12 runs (_lead/prompt-beach12.md): measure the Manly frames per zone (widths, Lab, luma percentiles, the film's see-through share, the foam line's lace coverage, the wet sand's darkening and sheen), match every number behind &beachmatch=1 with round 8 still the default at 0 px, then capture."
+        },
+        {
+          "title": "Waves cresting against rocks: waves rise, break and wash over rocks in the surf, with white water on the rock faces",
+          "status": "active",
+          "status_note": "Remy asked 2026-09-28 (\"cresting of waves against rocks\"). A new gauntlet piece. No rock stands out of the ocean viewer's sea today (the seabed's coral heads are always under water). Starting points: the beach's swash solver reads a bed height field, so rock cells in it give run-up and drain-off over rock; the river's rock-face term grows white water where flow hits a rock. Bar: Water Pro v3 shows foam round rocks but no wave that crashes on one; a real clip of waves crashing on rocks waits on Remy's download OK. Bar ruled 2026-09-28 (sheet q33): real footage, asked for clip by clip; each download needs Remy's yes in the chat, with its name, source, license and size. Downloaded 2026-09-28 with Remy's yes for each clip: Kalaloch Beach clips 01 and 02 (Joe Mabel, CC BY-SA 4.0) and Big Waves Hitting Shore and Sea Lions (Freestocks, CC BY 3.0), in .agent/scratch/ocean-gauntlet/ref/real/ with stills; judged frames k2_004, k2_012, k2_014 and sl_002 to sl_005. Brief: _lead/prompt-rocks1.md, next free builder slot. Round 1 is building (2026-09-29, an Opus builder). ROUND 1 BUILT 2026-09-29 (the rocks builder): `?sea=surf&extras=rocks`, three rocks on a new surf sea state (Hs 2.42 m, a 12.7 s swell); run-up (Seelig and Ahrens 1981), depth-limited breaking on a 2.5 m reef, a flip-through burst (Peregrine 2003), weir wash-over (Henderson 1966), foam and wet rock, all driven by the FFT sea at each face; 15 tests; 0 px on the judged scenes; 1.0 to 1.7 ms. BOTH VIEWS LOST (high; progress/r-rk1k-A, r-rk1d-A): the spray has no launch and no body, no breaking wave and no white water round the rock, the rock is a smooth hump, and the falls read as stuck dashes. Round 2 runs with all four fixed together, the white water written into the sea's one foam field (Remy's one-water rule, GG-341), and a shared splash module (oceanSplash.ts). The builder's wave-direction finding is GG-348. ROUND 2 (2026-09-29): a sea-owned reef (oceanBathymetry.ts: shelves, shoal gains, the breaking share) and the shoal patch applied to oceanSurface.ts (0 px with no shelf); jointed lobed rocks; one shared splash module (oceanSplashMath.ts, oceanSplash.ts: sheet, ligament, drop, mist and fall kinds, an optical-depth light); the white water as timed sources for the sea's one foam field (patch for oceanFoam.ts handed to the foam builder); 23 tests; +2.1 to +2.7 ms pinned. BOTH VIEWS LOST AGAIN (high; r-rk2k-A, r-rk2d-A): the spray is a cloud of sprites with no light, the rock has no stone surface, the white water is a flat decal. Two sea findings: the far water at fov 4.4 has 2.4x the clip's contrast from the reflected-radiance term (GG-276 dashes), and skyGradient ignores the sun's elevation so a dusk clip cannot be matched. Round 3 is briefed (_lead/prompt-rocks3.md): the burst as a lit volume, a stone surface with pour-off sheets, the white water as an aerated apron; it waits for a builder slot."
+        },
+        {
+          "title": "Splash when water hits an object: sheets, drops and a spray plume off a rock, piling, hull or buoy, and the foam collar left behind",
+          "status": "specced",
+          "status_note": "Remy asked 2026-09-28 (\"water splash when water colides with objects in water\"). A new gauntlet piece. The buoy's splash burst (oceanExtras/buoys.ts: a strike drive from the whitecap, the rise and the flow at the hull; a seeded pool of 2048 drops with gravity and drag) is the one collision splash today; it becomes a shared module fed a contact (position, radius, flow in, rise speed). Keep the buoy's blind win and its switch contract. Bar: Water Pro's buoy frames for a floating object; a real clip of waves hitting rocks waits on Remy's download OK. Bar ruled 2026-09-28 (sheet q33): real footage, asked for clip by clip; each download needs Remy's yes in the chat, with its name, source, license and size. Downloaded 2026-09-28 with Remy's yes: Rock skipping in slow motion 2 (TonyRaccoon, CC BY 3.0), stills in ref/real/splash/skip/; judged frames sk_017 to sk_020. The skip-stones builder builds the touch splash to it. Round 1 (2026-09-29), the skip stones' touch splash against clip frame sk_018: LOST (high): a clear glassy sheet \"like cellophane\" where the clip has a white aerated crown with thick jets, a froth ring and drops of many sizes; round 2 is briefed. Round 2 (the skip stones splash, 2026-09-29) LOST (high): one milky, even, faceted sheet, where the clip shows a thin, mostly see-through, lopsided wall that tears into ragged jets and drops of many sizes, with froth at its base. Round 1 had lost as too clear (\"cellophane\"). Remy's one-water rule (GG-341) points to one splash for every object: the rocks round 2 builds a shared module (oceanSplash.ts), and the skip stones and buoy splashes move onto it."
+        },
+        {
+          "title": "Skip stones: throw a stone at calm water and see whether it skips, by throw angle, tilt, spin and stone type",
+          "status": "active",
+          "status_note": "Remy asked 2026-09-28: \"a modal where i can throw rocks into the water, and see if it will or wont skip based on angle of the throw and the type of rock\". A Skip stones view in the Design Preview water window, on a calm lake sea state in the ocean viewer. Controls: stone type (flat slate, round pebble, thick chunk, pumice that floats, clay disc), speed, flight angle, tilt, spin, release height; presets for the best throw and for throws that fail on purpose. Physics from Clanet, Hersen and Bocquet (Nature, 2004: a best tilt near 20 degrees, a closing window of flight angles, a minimum speed) and Rosellini et al. (J. Fluid Mech., 2005: lift on the immersed area, loss per bounce); spin keeps the tilt steady. Each touch leaves a splash and ripple rings, and a readout says why the stone sank. Brief: .agent/scratch/ocean-gauntlet/_lead/prompt-skip1.md. Starts in the next free builder slot. ROUND 1 BUILT 2026-09-29 (the skip-stones builder): the Skip stones button on the water page opens ?step=water&ocean=1&sea=lake&extras=skip, a new calm lake sea (Hs 3.5 cm); five stones; a rigid-body throw in a worker with Rosellini et al. (2005) per-face forces, Savitsky's planing center under a Wagner spray root; a crown splash with drops, its reflection, the cavity and Cauchy-Poisson rings; a readout of the skips and why the run ended; 23 tests; 0 px on the judged scenes; +1.4 ms while a splash is in the air. Open: the best throw skips only 3 times at 12 m/s because the tilt drifts per touch (GG-340); round 2 is briefed (_lead/prompt-skip2.md). ROUND 2 BUILT 2026-09-29 (the skip builder): an exact torque-free top in flight, the air's center of pressure at the quarter chord, new presets (the best throw skips 8 times on flat water, 15 on the lake; GG-340 narrowed, the drift at a tilt of 15 to 25 still open); 26 tests; 0 px on the judged scenes. The splash lost again (progress/r-spl2-A, high): the crown now reads milky and faceted, \"like a cut-crystal vase\". The next splash round waits for the shared splash module the rocks round 2 builds."
+        },
+        {
+          "title": "Live compare: our ocean and the Water Pro demo side by side, both live, so Remy judges the narrow views by eye",
+          "status": "active",
+          "status_note": "Remy ruled 2026-09-28 (Water and Land sheet, q32, own answer): \"let me view both side by side in a live view\". The trigger: under the new sun three narrow wins flipped with unchanged content (the storm foam from high above, the wake from behind, the buoy). The ocean viewer's pane mode gets a second pane: the live Water Pro demo (threejswaterpro.com sends no frame-blocking headers), or its video clip where the reference is a video (the buoy). A picker names each judged view, the three flipped ones first. The lead builds it. BUILT 2026-09-28/29 in SideBySideOcean.tsx: the Compare live with Water Pro button (&wp=1) and a judged-view list (&view=<id>, pose through __OCEAN__.setPose). Bar kinds: live (the Water Pro iframe), clip (a frame player over <dir>/index.json) and video (a real clip in a loop, added 2026-09-29). Views: storm-foam-high, wake-behind, buoy, beach-drain (the Manly drone clip), beach-shore (the Water Pro v3 foam still), open-sea. Proof shots in _lead/tmp/live-*.png, no page errors."
+        },
+        {
+          "title": "One water: rain, rivers, lakes, the beach and the sea as one system, so a river flows into the sea and becomes it",
+          "status": "specced",
+          "status_note": "Remy, 2026-09-29: \"this water system should all technically be 'one system' ... the river water should naturally flow towards the sea and when it gets to the sea, it's not like two different systems meet.\" Today the water is five systems that never meet (GG-341): the FFT ocean and its beach (WebGPU, Design Preview only), the river reach (its own solver, WebGL, ends at an outlet sill), the land page water (virtual-pipe grid, GPU fluid, particles), the game world's static river ribbons and lakes, and no sea in the game world. One water means one depth and flow state for the whole map, fed by rain and springs, run down the world's river network into lakes and the sea; the FFT waves as detail on top where the water is deep and open, fading in shallow water and against a river's current; one look that reads depth, speed, silt and foam; one foam field (GG-291); one water ledger; one renderer. The path waits on the Water and Land sheet (q35, round 25). Proof: a river mouth where the river's plume fades into the sea and sea waves die against the current, with no seam. RIVER ON WEBGPU, STEP DONE 2026-09-30 (Remy: \"can we move this to webGPU?\"): the river scene draws with three's WebGPURenderer, the ocean's renderer; there is no WebGL path. Its shaders are TSL node graphs term by term (the water, the banks, the canopy, the leaf cards, the sky, the passes), the mirror's oblique clip is built for WebGPU's 0..1 depth, and the probes read back asynchronously. Seven three 0.172 faults were worked around in the river only (a double fog pass, the hemisphere light's normal and space, alpha to coverage, a caster's alpha on its shadow, per-camera shadow maps, the instance count, MSAA mips). Against the WebGL frames: 0.6 to 25.6 % of pixels over 8/255 (leaf-edge and reflection speckle; every pair looked at), the exposures within 0.5 %; two captures 0 px apart; the floaters' CPU mirror within 1e-5 m; the live editor, the node heights, the resets and the flip fix all work. Cost: CPU-bound, 16.9 against 11.0 ms at bank-along and 52 against 60 fps on the page (GG-362). Open: GG-362, GG-363 (the workarounds on a three upgrade), GG-364 (the same faults on other WebGPU pages). Doc: world3d-river-water.md, \"The renderer (WebGPU)\". Next: the shared water state."
         }
       ],
       "verified": "2026-09-09"
@@ -8134,12 +8351,12 @@
     {
       "id": "nightly-git-save",
       "title": "Nightly git save to GitHub",
-      "sub": "The 02:00 whole-tree commit and push, the only off-disk copy; off since 2026-08-26 (GG-310)",
+      "sub": "The 02:00 whole-tree commit and push to the PUBLIC repo; the only off-disk copy. Task still OFF on 2026-09-30 (GG-310)",
       "campaign": "tooling",
-      "status": "specced",
-      "updated": "2026-09-28",
+      "status": "active",
+      "updated": "2026-09-30",
       "deps": [],
-      "status_note": "Cause found 2026-09-28: the GG-117 guard refused every save while any Agora agent was present, and Codex session 01a0542f disabled the Windows task on 2026-08-30T22:11Z. The fix (hold back only locked paths, save the rest) is ready as diffs in .agent/scratch/gg310-snapshot-fix with a 16/16 harness. Waiting on q1 of the sheet https://claude.ai/artifact/Sa1Ck2xMRru5i7HBgVKBHC. Remy enables the Windows task himself.",
+      "status_note": "Backup review 2026-09-30: the task is still Disabled, so no save has run since the 2026-09-28 run by hand. The review measured six weak spots (GG-365 to GG-370) plus the Agent Matrix repo with no remote (GG-371), and asks Remy seven questions. Sheet: https://claude.ai/artifact/MhyjMWQP9oUSHdpaLJisUv Earlier: hold-back guard installed 2026-09-28, first save 4448b9d97, worktree 38af archived and pruned 2026-09-30.",
       "features": [
         {
           "title": "Find why the save stopped",
@@ -8155,19 +8372,58 @@
         },
         {
           "title": "Hold back agent-locked files instead of refusing the whole save",
-          "status": "specced",
-          "decision": true
+          "status": "done"
         },
         {
           "title": "Run the first save once",
-          "status": "parked"
+          "status": "done"
         },
         {
-          "title": "Decide the leftover 38af worktree",
+          "title": "Take the 38af worktree out of git so nightly pushes pass the hygiene check",
+          "status": "done"
+        },
+        {
+          "title": "Remy deletes the 38af worktree (one command) so nightly pushes pass the hygiene check",
+          "status": "done",
+          "decision": false
+        },
+        {
+          "title": "Remy switches the nightly Windows task back on",
+          "status": "parked",
+          "decision": true
+        },
+        {
+          "title": "Remy ticks the catch-up setting for a missed night when he switches the task on (GG-368, sheet q1)",
+          "status": "parked",
+          "decision": true
+        },
+        {
+          "title": "Warn when the newest nightly save is older than 36 hours (GG-365, sheet q2)",
+          "status": "parked",
+          "decision": true
+        },
+        {
+          "title": "Keep a private second copy of the work git ignores (GG-366, GG-371, sheet q3 and q4)",
+          "status": "parked",
+          "decision": true
+        },
+        {
+          "title": "Scan each nightly save for secrets before the upload: gitleaks in the run, plus GitHub non-provider patterns (GG-367, sheet q5, decided Both)",
+          "status": "active",
+          "decision": true
+        },
+        {
+          "title": "Hold back new big pictures and models from the public save (GG-370, sheet q6)",
+          "status": "parked",
+          "decision": true
+        },
+        {
+          "title": "Decide what happens to a half-done file that has no lock (GG-369, sheet q7)",
           "status": "parked",
           "decision": true
         }
-      ]
+      ],
+      "link": "docs/architecture/domains/nightly-git-save.md"
     }
   ]
 }

@@ -104,7 +104,14 @@ export function mountConstellation(host, data, openLedger) {
       return render('[data-query]');
     }
     if (button.hasAttribute('data-mode')) { view.mode = button.dataset.mode; return render(`[data-mode="${view.mode}"]`); }
-    if (button.hasAttribute('data-project')) { view.project = button.dataset.project; return render(`[data-project="${view.project}"]`); }
+    if (button.hasAttribute('data-project')) {
+      view.project = button.dataset.project;
+      render(`[data-project="${view.project}"]`);
+      // A long project rail can outgrow the filtered results. Keep the new
+      // results in view rather than leaving the reader below an empty center.
+      host.querySelector('.explore-space')?.scrollIntoView({ block: 'start' });
+      return;
+    }
     if (button.hasAttribute('data-record')) {
       view.selected = button.dataset.record;
       render(`[data-record="${view.selected}"][data-group="${button.dataset.group}"]`);

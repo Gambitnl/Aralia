@@ -20,6 +20,7 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import WebGPUProbeScene from './WebGPUProbeScene';
+import { PerfFpsText } from '@/devtools/perf/PerfFpsText';
 import {
   createGroundWorkerChunkLoader,
   type DisposableChunkLoader,
@@ -33,11 +34,13 @@ import {
 /** Worldforge world seed for the ground sandbox (matches World3DDemo). */
 const PROBE_WF_SEED = 42;
 
-/** Live-verified backend + FPS + MISSING report surfaced by the scene. */
+/**
+ * Live-verified backend + MISSING report surfaced by the scene. The fps in the
+ * badge is the shared perf session 'webgpu-probe', not a field here.
+ */
 export interface ProbeStatus {
   /** 'webgpu' only ever appears when the renderer reports a real WebGPU backend. */
   backend: 'webgpu' | 'unknown';
-  fps: number;
   /** Ordered list of things the probe could not render on the node path. */
   missing: string[];
 }
@@ -49,7 +52,7 @@ type GpuCheck =
   | { state: 'unavailable'; reason: string };
 
 const WebGPUProbe: React.FC = () => {
-  const [status, setStatus] = useState<ProbeStatus>({ backend: 'unknown', fps: 0, missing: [] });
+  const [status, setStatus] = useState<ProbeStatus>({ backend: 'unknown', missing: [] });
   const [gpu, setGpu] = useState<GpuCheck>({ state: 'checking' });
   // Runtime failure surfaced by the scene (renderer inited but backend != WebGPU,
   // or init threw). FAIL-FAST: any such case tears the scene down to the error pane.
@@ -289,7 +292,9 @@ const WebGPUProbe: React.FC = () => {
             >
               <span style={{ width: 10, height: 10, borderRadius: '50%', background: '#8ff0a4' }} />
               WebGPU
-              <span style={{ opacity: 0.85, fontWeight: 500 }}>· {status.fps} fps</span>
+              <span style={{ opacity: 0.85, fontWeight: 500 }}>
+                · <PerfFpsText sessionId="webgpu-probe" /> fps
+              </span>
             </div>
 
             {status.missing.length > 0 && (

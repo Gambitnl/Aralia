@@ -66,6 +66,227 @@ const CAMERA_PRESETS: Record<
 };
 
 /**
+ * LIVE COMPARE (Remy, 2026-09-28, the Water and Land sheet, question 32: "let
+ * me view both side by side in a 'live' view").
+ *
+ * WHY. Under the new test sun three narrow wins flipped although nothing in
+ * them changed: the storm foam from high above, the wake from behind, and the
+ * buoy. One blind judge per side order is a noisy test for a narrow view, so
+ * Remy judges those views by eye, ours live beside the bar live.
+ *
+ * WHAT. Each entry is one judged view: the sea and the pieces it runs (`qs`,
+ * read once at start, so a pick reloads the page), the camera pose the judges
+ * saw (the capture rigs' own numbers), and the bar. The bar is the live Water
+ * Pro demo where the judged reference came from the demo, and the reference
+ * frames where it came from a video.
+ *
+ * WHAT DOES NOT CHANGE. The pane opens only with `&wp=1` or its button, and
+ * only in the pane layout. `full=1`, which every capture uses, returns before
+ * any of this, so no judged frame changes.
+ *
+ * UNCERTAIN. The Water Pro demo cannot be posed from here (it exposes no
+ * camera API), so its pane says what to click, and Remy sets its camera.
+ */
+interface JudgedView {
+  id: string;
+  label: string;
+  /** Why the view is in the list. */
+  why: string;
+  /** The URL parameters the view runs with. */
+  qs: string;
+  /** The judged camera pose; none when the view follows the ship. */
+  pose?: { pos: [number, number, number]; look: [number, number, number]; fov: number };
+  bar:
+    | { kind: 'live'; how: string }
+    | { kind: 'clip'; dir: string; how: string }
+    // A real clip, played in a loop (the beach's draining bar, 2026-09-29).
+    | { kind: 'video'; src: string; how: string };
+}
+
+const WATER_PRO_URL = 'https://www.threejswaterpro.com/';
+
+/**
+ * The reference frames live in the gauntlet's scratch folder, which exists on
+ * the lead's machine only (it is gitignored). The clip player says so when
+ * the index cannot be read, rather than show an empty frame.
+ */
+const GAUNTLET_REF = `${import.meta.env.BASE_URL}.agent/scratch/ocean-gauntlet/ref`;
+
+const JUDGED_VIEWS: JudgedView[] = [
+  {
+    id: 'storm-foam-high',
+    label: 'Storm foam from high above (flipped)',
+    why: 'Won narrowly before the sun change, then lost both orders with the foam unchanged.',
+    qs: 'sea=storm&extras=foam',
+    pose: { pos: [-44.8, 138, 3.8], look: [0, 0, 0], fov: 50 },
+    bar: { kind: 'live', how: 'In Water Pro, pick the Storm preset. Its own camera looks down from above, as the judges saw it.' },
+  },
+  {
+    id: 'wake-behind',
+    label: 'The wake from behind (flipped)',
+    why: 'Split one to one under the new sun, with the wake unchanged.',
+    qs: 'sea=waterpro&extras=wake&follow=1',
+    bar: { kind: 'live', how: 'In Water Pro, press Boat, then click the sea and hold W to sail. Its camera follows from behind.' },
+  },
+  {
+    id: 'buoy',
+    label: 'The buoy (flipped)',
+    why: 'Split one to one under the new sun, with the same motion as the strip that won.',
+    qs: 'sea=choppy&extras=buoys',
+    pose: { pos: [0, 7, 0], look: [0, -4.6, -100], fov: 50 },
+    bar: {
+      kind: 'clip',
+      dir: `${GAUNTLET_REF}/video-buoy-choppy`,
+      how: 'The judged reference is a Water Pro video, not the demo: its frames play here, 0.3 s apart. The demo has buoys too, but only small ones far off.',
+    },
+  },
+  // THE BEACH (2026-09-29). The draining view has lost 22 versions (rounds 3
+  // to 11, counted from keys.json) against the real Manly clip, while the judges'
+  // stated reasons fail the lead's measures, so Remy looks himself. The poses
+  // are the beach rig's judged ones (beach-seq and beach-top) as world poses.
+  // The beach runs live here, so its swash is at any moment of its cycle,
+  // where a judged frame pins one sea time (42 s and 138 s).
+  {
+    id: 'beach-drain',
+    label: 'The beach draining, from straight above (losing)',
+    why: '22 versions lost this view against real drone footage, and every recorded judge was sure; the judges keep calling our swash sheet an opaque slab.',
+    qs: 'sea=shallow&extras=beach',
+    pose: { pos: [-26.886, 137, -120.453], look: [-26.907, 117, -120.425], fov: 8.35 },
+    bar: {
+      kind: 'video',
+      src: `${GAUNTLET_REF}/real/beach-manly-overhead.webm`,
+      how: 'The bar is real drone footage of Manly Beach (MGA Photography, CC BY 3.0), played in a loop. Compare the thin water sheet that drains back, and the wet sand it leaves.',
+    },
+  },
+  {
+    id: 'beach-shore',
+    label: 'The shore foam (round 8 wins it)',
+    why: 'Round 8 won this view against Water Pro in both orders, and again with a fresh judge.',
+    qs: 'sea=shallow&extras=beach',
+    pose: { pos: [-48.583, 19, -131.552], look: [-43.128, 0.206, -127.425], fov: 50 },
+    bar: {
+      kind: 'clip',
+      dir: `${GAUNTLET_REF}/live/wp-beach`,
+      how: 'The bar is one still from the Water Pro v3 video, its Dynamic foam shot (the demo cannot be posed on a beach from here).',
+    },
+  },
+  {
+    id: 'open-sea',
+    label: 'The open sea, waves (holds)',
+    why: 'Held both orders under the new sun; a control to calibrate your eye.',
+    qs: 'sea=waterpro',
+    pose: { pos: [0, 12, 0], look: [0, -15.4, -200], fov: 52 },
+    bar: { kind: 'live', how: 'Water Pro opens on its own open sea; drag it to look out toward the horizon.' },
+  },
+];
+
+/**
+ * Plays the reference frames of a video bar, at their own spacing. It reads
+ * `<dir>/index.json` ({ frames, stepS }), which the lead writes next to the
+ * frames. No index, no picture: the pane says why.
+ */
+const ClipPlayer: React.FC<{ dir: string }> = ({ dir }) => {
+  const [index, setIndex] = useState<{ frames: string[]; stepS: number } | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [frame, setFrame] = useState(0);
+  const [playing, setPlaying] = useState(true);
+  useEffect(() => {
+    let live = true;
+    fetch(`${dir}/index.json`)
+      .then((r) => {
+        const type = r.headers.get('content-type') ?? '';
+        // The dev server answers a missing file with the page itself (HTML),
+        // so a 200 alone does not prove the index is there.
+        if (!r.ok || !type.includes('json')) throw new Error(`no frame index at ${dir}/index.json`);
+        return r.json();
+      })
+      .then((j) => { if (live) setIndex(j); })
+      .catch((e: unknown) => { if (live) setError(String(e instanceof Error ? e.message : e)); });
+    return () => { live = false; };
+  }, [dir]);
+  useEffect(() => {
+    if (!index || !playing || index.frames.length < 2) return;
+    const id = window.setInterval(() => setFrame((f) => (f + 1) % index.frames.length), index.stepS * 1000);
+    return () => window.clearInterval(id);
+  }, [index, playing]);
+  if (error) {
+    return (
+      <p className="absolute inset-0 m-0 whitespace-pre-wrap p-6 text-xs text-rose-300">
+        {'The reference frames are not on this machine, so there is nothing to play.\n\n' + error
+          + '\n\nThey live in the ocean gauntlet\'s scratch folder, which git ignores.'}
+      </p>
+    );
+  }
+  if (!index) return <p className="absolute inset-0 m-0 p-6 text-xs text-sky-400">Reading the reference frames...</p>;
+  return (
+    <div className="absolute inset-0 flex flex-col bg-black">
+      <img
+        src={`${dir}/${index.frames[frame]}`}
+        alt={`Water Pro reference, frame ${frame + 1} of ${index.frames.length}`}
+        className="min-h-0 w-full flex-1 object-contain"
+      />
+      <div className="flex flex-shrink-0 items-center gap-2 border-t border-gray-800 px-2 py-1 text-[11px] text-gray-400">
+        <button
+          type="button"
+          onClick={() => setPlaying((p) => !p)}
+          className="h-6 rounded border border-gray-700 px-2 text-gray-200 hover:bg-gray-800"
+        >
+          {playing ? 'Pause' : 'Play'}
+        </button>
+        <input
+          type="range"
+          min={0}
+          max={index.frames.length - 1}
+          value={frame}
+          onChange={(e) => { setPlaying(false); setFrame(Number(e.target.value)); }}
+          className="min-w-0 flex-1"
+          aria-label="Reference frame"
+        />
+        <span className="font-mono">{frame + 1}/{index.frames.length}</span>
+      </div>
+    </div>
+  );
+};
+
+/** The bar's pane: the live Water Pro demo, or the reference frames of a video bar. */
+const WaterProPane: React.FC<{ view: JudgedView | null }> = ({ view }) => {
+  const bar = view?.bar ?? { kind: 'live' as const, how: 'Pick a judged view above to open ours at the pose the judges saw.' };
+  return (
+    <ComparePane
+      side="bar"
+      title={bar.kind === 'live' ? 'Three.js Water Pro, live (the bar)' : bar.kind === 'video' ? 'Real footage (the bar)' : 'Three.js Water Pro video (the bar)'}
+      caption={bar.how}
+      state="ready"
+      facts={[
+        ['source', bar.kind === 'live' ? 'threejswaterpro.com' : bar.kind === 'video' ? 'video file' : 'video frames'],
+        ['view', view ? view.label : 'none picked'],
+      ]}
+    >
+      {bar.kind === 'live' ? (
+        <iframe
+          src={WATER_PRO_URL}
+          title="Three.js Water Pro demo, live"
+          allow="webgpu; fullscreen; autoplay"
+          className="absolute inset-0 h-full w-full border-0"
+        />
+      ) : bar.kind === 'video' ? (
+        <video
+          src={bar.src}
+          autoPlay
+          loop
+          muted
+          playsInline
+          controls
+          className="absolute inset-0 h-full w-full bg-black object-contain"
+        />
+      ) : (
+        <ClipPlayer dir={bar.dir} />
+      )}
+    </ComparePane>
+  );
+};
+
+/**
  * Debug channels. Each isolates one term of the shading.
  *
  * These exist because the first look at the sea showed a white sheet in the
@@ -174,6 +395,45 @@ export const SideBySideOcean: React.FC = () => {
   });
   const [debug, setDebug] = useState<number>(() => Number(urlParam('dbg') ?? 0) || 0);
   const [readout, setReadout] = useState<OceanReadout | null>(null);
+  // PIN THE CAMERA (2026-09-28). `&follow=1` starts pinned. The button shows
+  // only when a mounted piece has something to follow (`followTarget`).
+  const [follow, setFollow] = useState<boolean>(() => urlParam('follow') === '1');
+  const [canFollow, setCanFollow] = useState(false);
+  const followRef = useRef(follow);
+  followRef.current = follow;
+  // LIVE COMPARE (Remy, sheet q32). `&wp=1` opens the Water Pro pane, and
+  // `&view=` names a judged view, whose pose goes on once the sea is ready.
+  const [compare, setCompare] = useState<boolean>(() => urlParam('wp') === '1');
+  const [viewId] = useState<string | null>(() => urlParam('view'));
+  const judgedView = JUDGED_VIEWS.find((v) => v.id === viewId) ?? null;
+  // True while a judged view's own pose is on, so no preset button claims it.
+  const [judgedPoseOn, setJudgedPoseOn] = useState(false);
+  useEffect(() => {
+    if (state !== 'ready' || !judgedView?.pose) return;
+    const p = judgedView.pose;
+    globalThis.__OCEAN__?.setPose(p.pos, p.look, p.fov);
+    setJudgedPoseOn(true);
+  }, [state, judgedView]);
+  const toggleCompare = () => {
+    const next = !compare;
+    const u = new URL(window.location.href);
+    if (next) u.searchParams.set('wp', '1');
+    else u.searchParams.delete('wp');
+    window.history.replaceState(null, '', u.toString());
+    setCompare(next);
+  };
+  // A judged view runs its own sea and pieces, which the page reads at start,
+  // so opening one reloads the page with that view's parameters.
+  const openView = (id: string) => {
+    const v = JUDGED_VIEWS.find((j) => j.id === id);
+    if (!v) return;
+    const u = new URL(window.location.href);
+    for (const k of ['sea', 'extras', 'follow', 'cam', 'view', 't']) u.searchParams.delete(k);
+    for (const [k, val] of new URLSearchParams(v.qs)) u.searchParams.set(k, val);
+    u.searchParams.set('wp', '1');
+    u.searchParams.set('view', v.id);
+    window.location.assign(u.toString());
+  };
 
   const mountRef = useRef<HTMLDivElement | null>(null);
   const applyPresetRef = useRef<((name: string) => void) | null>(null);
@@ -428,6 +688,72 @@ ${String(e)}`);
       for (const [name, x] of extras) {
         if (x.probe) probe.extras[name] = x.probe;
       }
+
+      /* PIN THE CAMERA TO THE SHIP (Remy, 2026-09-28: "add a button that i
+       * can 'pin the camera' to the ship. so that my camera keeps following
+       * the ship and keeps the ship centered"). While the button is on, each
+       * frame keeps the camera at its distance from the piece's follow target,
+       * turns the view by the target's change of heading, and looks at the
+       * target. Free look runs first, so a drag orbits the camera around the
+       * ship, the wheel and W / S move nearer or farther, and A D E Q swing it
+       * round. Off (the default, and always in a capture, where the button is
+       * hidden), this does nothing, so no judged frame changes. */
+      const followExtra = [...extras.values()].find((x) => typeof x.followTarget === 'function') ?? null;
+      setCanFollow(followExtra !== null);
+      let followState: { headingRad: number; last: THREE.Vector3 } | null = null;
+      const followFwd = new THREE.Vector3();
+      const followTgt = new THREE.Vector3();
+      const Y_AXIS = new THREE.Vector3(0, 1, 0);
+      /**
+       * The lowest a pinned camera sits: 1 m over the tallest crests of this
+       * sea (1.2 x the significant wave height), and never under 1.5 m.
+       * (Remy, 2026-09-28: with a fixed 1.5 m floor, a level view on the
+       * Water Pro sea, 2.4 m waves, put the camera INSIDE the swell; from
+       * below, the surface is not drawn (it draws its front side only, which
+       * the underwater piece relies on), so the frame went white with blue
+       * "tears" where the backs of nearer crests showed. This sea's floor is
+       * 3.9 m.)
+       */
+      const FOLLOW_MIN_Y_M = Math.max(1.5, 1.2 * field.significantWaveHeightM + 1.0);
+      const followStep = () => {
+        if (!followRef.current || !followExtra?.followTarget) {
+          followState = null;
+          return;
+        }
+        const t = followExtra.followTarget();
+        if (!t) return;
+        followTgt.set(t.xM, t.yM, t.zM);
+        if (!followState) {
+          // A camera far from the ship, or on top of it, starts from a chase
+          // view 45 m behind and 18 m up; a near one keeps its own view. (The
+          // first build kept any camera within 150 m, and from the default
+          // view the ship was a speck at about 100 m.)
+          const d0 = camera.position.distanceTo(followTgt);
+          if (d0 > 60 || d0 < 4) {
+            const hx = Math.cos(t.headingRad);
+            const hz = Math.sin(t.headingRad);
+            camera.position.set(t.xM - 45 * hx, 18, t.zM - 45 * hz);
+            camera.lookAt(followTgt);
+          }
+          followState = { headingRad: t.headingRad, last: followTgt.clone() };
+        }
+        // The distance to where the ship WAS: the wheel and the fly keys
+        // changed it this frame, and the ship has moved since.
+        const dist = Math.max(4, camera.position.distanceTo(followState.last));
+        camera.getWorldDirection(followFwd);
+        let dh = t.headingRad - followState.headingRad;
+        dh = Math.atan2(Math.sin(dh), Math.cos(dh));
+        // The heading runs from +X toward +Z, and a positive turn about
+        // three's +Y runs the other way, so the view turns by -dh.
+        followFwd.applyAxisAngle(Y_AXIS, -dh);
+        camera.position.copy(followTgt).addScaledVector(followFwd, -dist);
+        if (camera.position.y < FOLLOW_MIN_Y_M) camera.position.y = FOLLOW_MIN_Y_M;
+        camera.lookAt(followTgt);
+        followState.headingRad = t.headingRad;
+        followState.last.copy(followTgt);
+        // The next drag starts from this view, not from the one before it.
+        freeLook?.syncFromCamera();
+      };
 
       const triangles = field.surface.mesh.geometry.index
         ? field.surface.mesh.geometry.index.count / 3
@@ -703,6 +1029,7 @@ ${String(e)}`);
         // Held flight keys move the camera by real time, even when the sea's
         // clock is pinned; with no key held this does nothing.
         freeLook?.update(dt / 1000);
+        followStep();
         const tExtras = performance.now();
         renderer.render(scene, camera);
         const tRender = performance.now();
@@ -778,6 +1105,9 @@ ${String(e)}`);
 
   const choosePreset = useCallback((name: string) => {
     setPreset(name);
+    setJudgedPoseOn(false);
+    // A preset is a fixed view, so it lets go of the ship.
+    setFollow(false);
     applyPresetRef.current?.(name);
   }, []);
 
@@ -808,6 +1138,8 @@ ${String(e)}`);
     const PIECE_NAMES: Record<string, string> = {
       wake: 'Wake', buoys: 'Buoyancy', seabed: 'Caustics and shallows', underwater: 'Underwater',
       foam: 'Foam', rain: 'Rain', spray: 'Spray',
+      // 2026-09-29: the two newest pieces, so their nameplates read as words.
+      beach: 'Beach and swash', skip: 'Skip stones',
     };
     const plateExtras = (urlParam('extras') ?? '').split(',').map((e) => e.trim()).filter((e) => e && e !== 'none');
     const plateSea = urlParam('sea');
@@ -837,6 +1169,22 @@ ${String(e)}`);
             <div className="mt-0.5 text-[11px] leading-tight" style={{ color: 'rgba(214, 233, 240, 0.85)' }}>{plateFacts}</div>
           </div>
         )}
+        {canFollow && navigator.webdriver !== true && (
+          <button
+            type="button"
+            onClick={() => setFollow((f) => !f)}
+            className="absolute right-3 top-3 select-none rounded-md px-3 py-2 text-[13px] font-semibold text-white"
+            style={{
+              background: follow ? 'rgba(2, 132, 199, 0.9)' : 'rgba(8, 20, 28, 0.62)',
+              boxShadow: '0 1px 6px rgba(0, 0, 0, 0.35)',
+            }}
+            title={follow
+              ? 'The camera follows the ship and keeps it centered. Drag to orbit, the wheel to move nearer or farther. Press to let go.'
+              : 'Keep the camera on the ship as it sails, with the ship in the middle of the view.'}
+          >
+            {follow ? 'Camera pinned to ship' : 'Pin camera to ship'}
+          </button>
+        )}
         {state === 'unavailable' && (
           <pre className="absolute inset-0 m-0 whitespace-pre-wrap p-6 text-sm text-red-300">{reason}</pre>
         )}
@@ -857,13 +1205,49 @@ ${String(e)}`);
               onClick={() => choosePreset(name)}
               disabled={state !== 'ready'}
               className={`h-7 rounded px-2 text-xs font-medium transition-colors disabled:cursor-not-allowed disabled:text-gray-700 ${
-                preset === name ? 'bg-sky-600 text-white' : 'text-gray-400 hover:bg-gray-800'
+                preset === name && !judgedPoseOn ? 'bg-sky-600 text-white' : 'text-gray-400 hover:bg-gray-800'
               }`}
             >
               {name}
             </button>
           ))}
         </div>
+        {canFollow && (
+          <button
+            type="button"
+            onClick={() => setFollow((f) => !f)}
+            disabled={state !== 'ready'}
+            title="Keep the camera on the ship as it sails, with the ship in the middle of the view. Drag to orbit, the wheel to move nearer or farther."
+            className={`h-7 rounded px-2 text-xs font-medium transition-colors disabled:cursor-not-allowed disabled:text-gray-700 ${
+              follow ? 'bg-sky-600 text-white' : 'border border-gray-700 text-gray-300 hover:bg-gray-800'
+            }`}
+          >
+            {follow ? 'Camera pinned to ship' : 'Pin camera to ship'}
+          </button>
+        )}
+        <button
+          type="button"
+          onClick={toggleCompare}
+          title="Show the bar beside our sea, both live: the Three.js Water Pro demo, or its video frames where the judges' reference was a video."
+          className={`h-7 rounded px-2 text-xs font-medium transition-colors ${
+            compare ? 'bg-emerald-700 text-white' : 'border border-gray-700 text-gray-300 hover:bg-gray-800'
+          }`}
+        >
+          {compare ? 'Hide Water Pro' : 'Compare live with Water Pro'}
+        </button>
+        {compare && (
+          <select
+            value={judgedView?.id ?? ''}
+            onChange={(e) => openView(e.target.value)}
+            title="Open ours at the sea, pieces and camera the judges saw. The page reloads."
+            className="h-7 rounded border border-gray-700 bg-gray-900 px-2 text-xs text-gray-200"
+          >
+            <option value="">Pick a judged view...</option>
+            {JUDGED_VIEWS.map((v) => (
+              <option key={v.id} value={v.id}>{v.label}</option>
+            ))}
+          </select>
+        )}
         <span className="text-xs text-gray-400">Channel</span>
         <div className="flex gap-1 rounded-md border border-gray-700 bg-gray-900 p-0.5">
           {DEBUG_CHANNELS.map((label, mode) => (
@@ -881,8 +1265,8 @@ ${String(e)}`);
           ))}
         </div>
         <p className="text-[11px] text-gray-500">
-          JONSWAP with a TMA depth correction, {readout?.cascades ?? 3} cascades (13 m, 97 m and
-          1291 m patches), {OCEAN_FFT_N}x{OCEAN_FFT_N} FFT on the GPU. Seed 0x0cea9. The URL
+          JONSWAP with a TMA depth correction, {readout?.cascades ?? 3} cascades (each listed
+          below with its patch size; the lake sea has two), {OCEAN_FFT_N}x{OCEAN_FFT_N} FFT on the GPU. Seed 0x0cea9. The URL
           carries <code>cam</code>, <code>dbg</code> and <code>t</code>.
         </p>
         {readout && (
@@ -892,25 +1276,33 @@ ${String(e)}`);
         )}
       </div>
 
+      {/* ONE PANE, THE WHOLE WINDOW (Remy, 2026-09-28: "add the design preview
+       * menu and window modal to the different views"). The left pane was an
+       * empty "No shipping ocean" frame that took half the window, so the sea
+       * got the other half, and the links on the progress page had to open
+       * full-screen (`full=1`) to show it at a useful size. The reason that
+       * pane was empty still stands, so it moves into this one line, with the
+       * full text on hover; the sea now fills the window. `full=1` is
+       * unchanged, and every capture still uses it. */}
+      <p
+        className="flex-shrink-0 text-[11px] text-gray-500"
+        title={
+          'Aralia ships nothing to compare the FFT sea against.\n\n'
+          + 'The volumetric water in src/systems/worldforge/terrain/ answers a different '
+          + 'question: what a finite body of water DOES when disturbed. It is not an open '
+          + 'sea, and drawing it here would invent a comparison that does not exist.\n\n'
+          + 'A sine-wave stand-in would be worse. It would look like an ocean and be wrong '
+          + 'in every measurable way.'
+        }
+      >
+        No shipping ocean to compare against: the game has no open-water surface today, so this
+        sea is judged on its own here, and against Three.js Water Pro in the ocean gauntlet.
+      </p>
       <div className="flex min-h-0 flex-1 gap-3">
-        <ComparePane
-          side="none"
-          title="No shipping ocean"
-          caption="The game has no open-water surface today. This pane is empty on purpose."
-          state="unavailable"
-          reason={
-            'Aralia ships nothing to compare the FFT sea against.\n\n'
-            + 'The volumetric water in src/systems/worldforge/terrain/ answers a different '
-            + 'question: what a finite body of water DOES when disturbed. It is not an open '
-            + 'sea, and drawing it here would invent a comparison that does not exist.\n\n'
-            + 'A sine-wave stand-in would be worse. It would look like an ocean and be wrong '
-            + 'in every measurable way.'
-          }
-        />
         <ComparePane
           side="newly-built"
           title="createOceanField — FFT open-ocean surface"
-          caption="New capability with no counterpart. Judge it on its own, not against a left pane."
+          caption="New capability with no counterpart in the game. Judge it on its own."
           state={state}
           reason={reason ?? undefined}
           progress="Starting WebGPU and building the wave field..."
@@ -926,7 +1318,13 @@ ${String(e)}`);
         >
           <div ref={mountRef} className="absolute inset-0" />
         </ComparePane>
+        {compare && <WaterProPane view={judgedView} />}
       </div>
+      {compare && judgedView && (
+        <p className="flex-shrink-0 text-[11px] text-emerald-300">
+          {judgedView.label}: {judgedView.why} {judgedView.bar.how}
+        </p>
+      )}
     </div>
   );
 };

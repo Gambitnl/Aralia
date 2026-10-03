@@ -28,8 +28,8 @@
 
 import type { CombatCharacter } from '../../../../types/combat';
 import type { Spell } from '../../../../types';
-import healingWordData from '../../../../data/spells/level-1/healing-word.json';
-import cureWoundsData from '../../../../data/spells/level-1/cure-wounds.json';
+import healingWordData from '@/data/spells/level-1/healing-word.json';
+import cureWoundsData from '@/data/spells/level-1/cure-wounds.json';
 import {
   createHitPointSpellAction,
   resolveHitPointAction,

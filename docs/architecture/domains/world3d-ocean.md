@@ -1,6 +1,6 @@
 # World3D ocean: the FFT sea surface
 
-Verified: 2026-09-28 against `src/systems/world3d/ocean/` (beach round 7: every beach foam drawn with the wake's round-11 lace method on the wake's own image, read-only from oceanWakeMath.ts; the foam's age carried by the swash field and read as the wake's tear, fold and age opacity; a smooth film with a thickness gradient; a lumpy front bead; a softer wet line with drying blotches and shine near the water; rills at the draining view's scale; the five judged scenes and the d10 no-beach views 0 pixels, the cost re-measured; beach round 6: the film's foam a faint net lace of the swash tile's two Worley nets in patches, stretched down the fall line in the backwash, in place of round 5's threads; a continuous swash front, thicker at its scallops and lobes, with trailing lace; a high-water mark of dark grains and bubbles; the draining view re-fitted to the Manly frame's zone widths (138 s); the wrack at the upper swash limit; the five judged scenes 0 pixels against a fresh baseline, the cost re-measured; distance round 10: after the lead's swap test put the pick on the mid field and the low sky, the sun glitter reaches about 220 m on a slanted view and thins into a path, the mid field loses some saturation, the low clouds bake with the air thinning with height, the layer following the Earth, grey shaded sides and a thinner far layer, the background's last rows over the line take the reference's cyan; the tunes off draw round 9 to 0 pixels on the eight open-sea poses, the five judged scenes and the caustics view; the sweep; the cost re-measured; beach round 5: the swash front as a foam band of changing width with clusters, gaps and cusped scallops and older run-up lines, the look's read smoothed over five rows, the wet sand darkest at the water with a crisp ragged wet line, the film's low-sky share calibrated to the Manly frame, the reader's path over the swash grid through the shore hook's optional `waterColumn`, backwash threads, rills, the dry sand's sunlit relief, the five judged scenes and the no-beach scenes 0 pixels, the cost re-measured; wake round 18: the quarter view's bar is now a live Water Pro capture at our side camera, `quarter-m`, its pose set by a calibrated drag and its crop placed off its own stern; round 11's look won the live quarter view and the chase view in both orders and is the shipped default, the frames with no `wakelook` 0 pixels against the judged round-11 frames, the four no-boat scenes 0 pixels, the first frame in 22 s against round 17's 88 s; beach round 4: the swash front's rim of lace at the sheet's edge, the backwash's foam stretched down the fall line, the breaker's foam in segments, wet sand darker by its immersed grains and smoother, its GGX sheen, the wet line without the along-shore wander and with a damp fringe, fine-grained dry sand, a clearer surf, the sea's glints cut over the beach face through the shore hook's optional `waterGlint`, clumped and varied wrack, the five judged scenes and the no-beach scenes 0 pixels, the cost re-measured; the seabed reader's optional `glint` share, landed by the lead, which the beach now sets; distance round 9: the far water blended toward the color of its footprint's mean (the flat sea's fresnel and mirror ray with the mean bend and the unresolved spread, the deep body at the flat angle) from 380 m to 1 km of eye distance on the grazing share, so the last rows under the line fade into faint streaks; the tune off draws round 8's eight open-sea poses, the five judged scenes and the caustics view to 0 pixels; the sweep; the cost re-measured; distance round 8: the long waves modulate the short waves' roughness by their own compression (the sea band's and the swell's horizontal Jacobian from the mip taps), the far sheen tinted to the reference's cyan grey after the far tone, the far tone kept off the dark marks, the far and mid bodies a bluer navy, the dash calmed at the line and its sheen side cut under it, the fresnel flattening relaxed from 500 m to the line calm, every change behind a tune whose off value draws round 7's eight open-sea poses, the five judged scenes and the caustics view to 0 pixels, the sweep, the cost re-measured; beach round 3: the re-framed judged pose along the shore at 42 s with the grid to 24 m, the lace without its stipple (a soft edge, a see-through rim, a halo, two turned reads), the bore's foam line curved by a wider wander, damp drained sand between the film and the dry sand, patchy dry sand and gravel, the sheet's glints as the sea's lobe, a second judged view straight down at 148 s matched to a Manly Beach drone frame, the five judged scenes 0 pixels, the cost re-measured; beach round 2: the crop found wholly under the backwash film at every instant from 36 to 48 s, the swash foam tile drawn with the foam piece's coverage-true threshold and a gentle flow map, the film's caustic web and ripples, the veil and milk weaker, stranded foam wetting the sand, a smooth grain through the hook's optional `grain`, debris in real proportion with contact shadows, the five judged scenes 0 pixels, the cost re-measured; beach round 1: a new piece, the swash on a sand cay in the lagoon (2D shallow water with momentum forced by the FFT sea's own height at the grid's edge), the sheet soaking into the registry's sand with an exact ledger, the wet sand drying from the top down, shells, sticks and weed pushed by the sheet, the seabed's optional island and shore hook with LAGOON_SEABED's map bit for bit unchanged, the five judged scenes 0 pixels against the seabed files before the piece; wake round 17: the foam's edge, grain and opacity profile measured against the references, a graded margin of translucent lace under the threshold, a wider cover ramp, fine bubble holes from the second field at 1 m, clots, the foam thinning toward its holes, milky water under and round the sheet, the arms as soft translucent lines, a faster fade; the halo, the world blur and the bubble dots built and off (two of them cost minutes of shader compile), `r16`, `r15`, `r14` and `r11` 0 pixels against the round-16 files on one surface, the no-boat scenes 0 pixels, the cost re-measured; distance round 7: the far read's span along the view capped at 4 short axes at grazing footprints, the short cascades' far slope times 2.0 and the long ones' times 0.35 on the same share, the far mean ray's elevation capped at 30 degrees, the calm's opening at 1.7, every change behind a tune whose off value draws round 6's eight open-sea poses, the five judged scenes and the caustics view to 0 pixels, the sweep, the cost re-measured; wake round 16: the quarter pose re-matched as `quarter-m` with the white band's width, the trail drawn as one connected sheet down its core with a clear edge, holes of mixed size, a cellular lace that opens with age, the arms as lines on the wake's own crests, the calm lane that damps the wake's own waves under the sheet, a soft edge from a coarser mip with its orbit proof, the wake edge and the flakes measured against the references, `r15`, `r14`, `r13` and `r11` 0 pixels against the round-15 files on one surface, the no-boat scenes 0 pixels, the cost re-measured; distance round 6: the clouds fade into the haze by their structure (a new haze copy, the clouds blurred along the azimuth, read by the ray's elevation), the far texture's energy read coarser so it draws long horizontal streaks, the calm lighter and the far haze at 3.5 km so the streaks reach the line, all three far terms keyed on how drawn out the footprint is, the lobe clouds at 0.4, every change behind a tune whose off value draws round 5's eight open-sea poses, the five judged scenes and the caustics view to 0 pixels, the sweep, the cost re-measured; wake round 15: the trail graded by its age, a young bright core in a milky film over a whiter glow, the lace opening into a network of strands, then streaks, then gone, the arms as lines, the hairlines gone, the age thirds and the glow measured against the references, the quarter pose measured against the reference's and a re-matched pose proposed, `r14`, `r13` and `r11` 0 pixels against the round-14 files on one surface, the no-boat scenes 0 pixels, the cost re-measured; distance round 5: the thin bright haze (a pale near-neutral glow, a cool foot, no plain dim) fitted to the reference's low-sky profile, the far water reflecting the clouds' mean over its lobe of rays (the sky's new lobe copy), the calm's fresnel opening at 0.7, the near low rays ending at 150 m, a navy mid-field body, the far haze at 2.5 km, every change behind a tune whose off value draws round 4's eight open-sea poses and the five judged scenes to 0 pixels (the wake view above its trail; the trail's own files changed during the round), the height, heading and pitch sweep, the cost re-measured; wake round 14: the trail, a ranked gradient-noise field of many octaves in place of the lace, the net and the layer, sheared by the jet and the lanes, eaten by the wake's own amount with a dense race, filaments at the thin edges, graded holes, opaque foam lit at 0.66, spreading arms, the old trail dissolving, the hole statistics of both judged crops measured against the references', `r11` and `r13` 0 pixels against the round-13 files on today's surface, the no-boat scenes 0 pixels, the cost re-measured; distance round 4: the far texture calmed where the long footprint passes 80 to 300 m, the far dashes soft, the far water toward the haze's tone, the far body less violet, the sky band with a flat foot and a cooler line, every change behind a tune whose off value draws round 3's judged poses and the five judged scenes to 0 pixels, the height, heading and pitch sweep, the cost re-measured; distance round 3: the far texture read from the field, the normal mip's w as each level's mean squared slope with two turned reads against the patch's repeat, in place of the round-2 dashes, grain and far tap jitter; the far haze closing over the last 30 rows (3 km, power 1.3) and thinned with the eye's height; the sky band darkening into the line; every change behind a tune whose off values draw the five judged scenes and the judged poses to 0 pixels over 8/255; a sweep over height, heading and pitch; the cost re-measured; wake round 13: the layer opaque, lit by its slope toward the sun with a mean of 1, the wake's own slope and the raft's grain, dark popped bubbles, the bubble glow kept under the core, round 11's arms back, `r11` and `r12` against their judged frames 0 pixels in the judged crops, the no-boat scenes 0 pixels, the cost re-measured; wake round 12: the trail's core a layer of foam (`wakeMassImage`: thickness, veins and relief in one texture; a density across and along the trail, boils, a few popped bubbles, a ragged crest line, its own relief and band-profile light, soft streaks in the alpha), the lace kept at the sides and the thinner arms, `r11` against round 11's judged frames 0 pixels, the no-boat scenes 0 pixels, the cost re-measured; buoyancy round 16: the roll drag at about 11% of critical and the mooring a third as stiff for a lean that reaches 19 degrees across the view at the crest, the splash drops only where the water meets the flare hard, the collar and the white on the steel from a stricter event, the darker water and the float's shadow, every change behind a switch whose off value draws strip e15a to the pixel, the cost re-measured; the wake reader's optional `opacity` field (2026-09-26); buoyancy round 15: the judged window at 52.0 s, the navigation buoy with 176 kg carried high for a 3.1 s roll that follows the wave face, the splash drops keeping their own light, the collar in streaks along the flow, the wet band and its drain, the darker water at the hull, every change behind a switch whose off value draws strip d14w to the pixel, the cost re-measured; wake round 11: the reader's `opacity` share for the young core, the solid band as a dense lace, two-octave voids ringed with lace that clear the whole glow, the swell keys cut, round 9's edge lines back, `r10` against round 10's judged frames 0 pixels, the cost re-measured; buoyancy round 14: the collar, the white on the steel, the lace and the trail deposit driven by a per-angle event state with a dimmer foam white, a breaking crest's push through the step's new external force, the judged window measured as one no crest reaches and a strike window proposed, every change behind a switch whose off value draws strip b13f to the pixel, the cost re-measured; wake round 10: the core band's young foam one near-solid mass torn by voids of a low-frequency field, cut by round 8's boils, the stern wave's lip torn by the same field, the crest pile gated to the band, the sides and the crests' thin foam cut, `r9` against round 9's judged frames 0 pixels, the cost re-measured; buoyancy round 13: the wash as a broken collar round the waterline on every side and broken streaks off the flanks, the foam field stopped by the hull, the roll damping at 0.6 of round 12's after the mooring was found to hold the lean, a pinned run's sea center set from the camera, every change behind a switch whose off value draws strip s13j to the pixel, the cost re-measured; wake round 9: the core band's clumped raft for 4 s more with its own fade, the thin sides, firmer edge lines, the clump shade, round 5's on-screen stretch key back at gentler values and over the net too with its orbit proof, `r8` against round 8's judged frames 0 pixels, the cost re-measured; underwater round 5: the level view's light split into its four terms, the clear open-sea water, no sun in the blurred window, the fine tile toward the sun, the share gain at 0.65, a third snow population, the near-flake fade and a 3.5 mm largest flake, every new path behind a control whose off value reproduces round 4 bit for bit, the cost re-measured on a quiet GPU; wake round 8: the core's dark boils, clumps and bubble grain, the lane's own turbulent lumps through the back-face cap, the glow keyed on the shaped amount, the fine net drawn out 3 times, the last view-keyed look path off, `r7` against round 7's judged frames 0 pixels, the cost re-measured on a quiet GPU; underwater round 4: the level-view fan found mirrored and a pose proposed that matches the reference's, the underside's curve drop that took out the row of dots, the march's 0.4 m mid by the step's foot with an interleaved-noise start, the snow's pixel floor and gain, `benchPiece` through the viewer's paused bench, every new path behind a control whose off value reproduces round 3 bit for bit, the cost re-measured; wake round 7: the core band down the track that ages 1.2 s later and keeps its white on the back slope and in the troughs, the net's soft wall ramp and coarser tile, the aerated milky glow, the haze gated by the amount, `r6` against round 6's judged frames 0 pixels, the cost re-measured; wake round 6: the trail's one structure in world space, the net lace, the trail's edge and its two lines, the stern wave's back slope, the edge haze, the glints dead across the lane through the reader's `glint`, every path behind a control whose off value (`r5`) draws round 5b bit for bit, the cost re-measured; the sea's dense center follows the camera and the buoy's patch and probe follow it; the near and far looks measure from the eye in 3D; the wake reader's optional `glint` share; the glint fix: each pixel reads the 3x3 spark cells with three gates, the near lit share by the cell's area on screen; the underwater piece mounted on every page; underwater round 3: the level pose measured against the reference and re-matched (1.5 m down, 8 degrees up, the sun 80 degrees off the view), the ceiling's edge cap and its blurred mirror on the long waves' facet, the shafts integrated across each step of a coherent march on the fixed range, the wide mid lens tile, the sheet level at 1.0, the focus ramp at 0.4 m, every new path behind a control whose off value reproduces round 2 bit for bit, the cost re-measured; wake round 5b: the structure paths world-space at every view after the lead's ruling, the on-screen key kept for the lace's stretch alone with its mix re-equalized and an orbit proof, the chase view retuned to hold round 2's traits; wake round 5: the mat torn into clumps at its edges and tail, pinholes, a dark rim, foam piled on the wake's crests, a thinning tail, the flat-plane side ratio; round 4's film and wisps off; the cost re-measured; wake round 4: round 2's read restored behind look controls and proved against the round-2 frame, round 3's changes kept as named values, the trail's age read from the breaking buffer as a world-space key for the quarter view's fade, wisps and shade, the back-face cap with a knee, the cost re-measured; foam round 9: the hair fill with a floor per fiber so the filament count follows the coverage, the age clock A in its own buffer, the light and coverage graded by the foam's own age, old foam torn into windrows and given a halo, the fresh rafts compact, the round-8 fine and fringe tables kept behind their controls; buoyancy round 12: the wash as foam in the water that leaves the hull, the field at 24 m and 6 s with the Stokes drift, the wake and pile deposits, the ring's vertices on the GPU at the inverted grid point of the patch's formula, out to 5.3 R with 520 sampler slots gone, the impact gates and the cling at the far pose's scale, the splash burst, the cost re-measured; buoyancy round 11: the ring's mark gated to the camera side, in patches, sized by the run-up; the `setReflector` hook designed with the buoy's reader, and landed in `oceanSurface.ts` by the lead with 0 pixels changed on the five judged scenes; heave damping to half of critical on three strips of the pinned window; buoyancy round 10: the heave resonance against the chop measured by a linear RAO map and the CPU sea, heave damping at critical, the cost re-measured; foam round 6: round 4 restored bit for bit, the fold-laid field G with its own fade, the head on the lay ramp, the curl grain by scale, the round-5 controls off; foam rounds 7 and 8: the view from above carried by G with the crest crackle and the wisps, the round-7 pitch key removed (GG-311) so the look holds at every angle, G on a wide ramp, the fine regime's wisp-led texture, the crest lines and small breaks of every fold, fringes dissolving into bubbles, the crest segment and the curve built and off; buoyancy round 9: 750 kg carried high for a 4.8 s roll period, the waterline line back at rest, the design waterline 0.60 m up the flare with the probes re-laid against the lathe's buoyancy curve, no rim line and a bounded deck image over an awash deck, the cost re-measured; buoyancy round 8: the `choppy` sea re-measured against the reference, a 16 m chop on a doubled 47 m swell, the buoy's phase against wave period as the reason, the counted window chosen by lean phase, the wash thresholds on the new sea; buoyancy round 7: the near hull's fill light at the sea's grazing brightness and the paint's sky sheen, the resting waterline rim nearly off and the wash drawn from a threshold on the per-angle foam state, the plunge weighted to the up-wave face, the impact drive on the run-up heights the deposit uses, the foam field's downwind drift, the hull under the water as a band that fades with depth, the cost re-measured; foam round 5: the deposit at the breaker's strength squared, each breaker's own life, the spread at 0.15, the read's body and core kept apart, age by density, the tear, the crumbled core rim, the fold's dusting, wider and shorter fibers, the net-first young lace; buoyancy round 6: the near hull as a sea floor the surface sees through its water via the routed `setSeabed` hook, the ring's rim and cling cut down, pitch damping back to 30% on a measured lag, the cost re-measured; buoyancy round 5: the young `choppy` sea, the ring and its reads on the waterline center, the water standing up against the hull, the waterline rim, the lighter reflection and shadow, pitch damping 15%, the piece's measured cost; performance pass: one compute call, filtered atlases for the normal mips and the render-side plane reads, the FFT in workgroup memory, deck noise only under overcast, the sky mesh drawn last, lit-only sparks; see Frame cost). Earlier, 2026-09-24 (waves round 4: waterpro heading and chop spreading, Elfouhaily taper, grazing-view attribution; buoyancy round 4: pressure at depth, added mass, band kinematics, deeper light-buoy draft, shared sampler (GG-273), run-up, breaking crests and an advected foam grid, a carried fine patch, contact trial; shading round 4 takeover: baked cumulus sky, glitter points, far slope restore, GG-274 contact foam, GG-276 visible share; spray round 3: strands rooted on drawn foam, bowed ribbons, then plume body (lift, falloff, soft bottom, world streaks, dimmer head); spray round 2 and rain round 4 sections added by the lead; distance round: blue sky rising from the horizon with a thin blue-white glow, far reflection bends and spread, the far residual dashes, the far haze, the 25 km skirt, storm unchanged; distance round 2: the horizon haze band, one-row far dashes, far grain, gust patches, the finer far read, the bends' far share, Earth curvature); wake round 1: the Kelvin wake as a closed-form forced field, touches, white water, the hull; wake round 2: the foam lace and its read; wake round 3: back-face cap, foam volume, core grain; the lead landed the `setWake` hook in `oceanSurface.ts`; underwater round 1: the underside, Snell's window, the path light and the camera, the shafts buffer, marine snow, the waterline; underwater round 2: caustic-sheet shafts, the water by its chlorophyll, the closed-form window edge and its glow, the storm's surface bubble layer, denser snow, the exposure refit; foam round 1: the persistent foam field, its store, breaker, residual and baked lace, drawn through `setFoam`; foam round 4: the breakers' own headings, the spread, the crackle lace and the read's three kinds of foam (head, trail, old), the grazing veil; foam cost split: the A/B rerun alone, the read named as the cost, the step's GPU and CPU share, the timestamp and fence probe traps).
+Verified: 2026-09-30 against `src/systems/world3d/ocean/` (rocks round 4: the burst gated on a struck face that looks at the sea and leaned back over it, still air in front of the windward face (`SplashEnv.airShare`), the volume splatted as ellipsoids along the flight with its detail stretched on the flight axis and a smooth jitter, lower light floors, the drops under the plume, the rock without its 2 cm speckle and with a soaked band and a shape-following sheen, stronger pour-off, gentler foam discs, a narrower reef flat; the sky dusk patch proven 0 px on seven of eight views and `under` traced to the underwater "no sun" marker (fix: `patchSkyDuskUnder.mjs`), the dusk water measured and a body patch written (`patchSurfaceDusk.mjs`); rocks round 3: the plume as a lit volume (`SplashVolume`, depth-tested slices), fractured plates and pitted stone that keeps its relief wet, the water on the rock as a shell of geometry, the white water as a timed-disc source in the one foam field, the sky's dusk as a patch script for the lead; foam round 10: the store as the sea's one foam field with a source term (`oceanFoamSources`, window and disc sources, the reef folded in), the fourth lace tile of bubble cells and streaks, the warped store read, the skirt, fresh brighter and old dimmer, the storm's lost dark areas traced to the surface's eye distance, GG-348 measured on the GPU; rocks round 2: the one splash model (`oceanSplashMath.ts`, `oceanSplash.ts`: sheet, ligament, drop, mist and fall, lit through its own optical depth), the sea-owned bathymetry module (`oceanBathymetry.ts`: reef shelves, break share, shoal gains), the rocks' white water as timed sources for the one foam field, a lobed jointed rock, the pour-off ending in foam; the reef, shoal and foam paths and the telephoto normal fade delivered as patch scripts for the lead; rocks round 1: a new piece, rocks in the surf on the new `surf` sea (`?extras=rocks&sea=surf`): the run-up, the burst, the wash-over and the cascade from closed-form face relations driven by the FFT sea's own water at each face, spray and falls as particles, foam round the base through the wake's lace, the wet line and the streaming film, a fine patch of the ocean round each rock; the five judged scenes and three no-extras views 0 pixels against the file without the `surf` state, the cost measured A/B; beach round 16: the match runs its own swash (BEACH_MATCH_SWASH: a larger run-up, a faster-draining sand, the lace riding up), measured by a motion strip against Manly's; the default beach bit for bit unchanged; beach round 14: the judges' flat sheet measured (`beach/r12/sheet.py`): its streaks, glints and edge already at Manly's; the missing wet-sand gradient, old swash marks and seaward surf streaks added inside `&beachmatch=1`; the default 0 pixels; beach round 13: the shape faults the round-12 judge named measured on Manly and ours (`beach/r12/shape.py`), and matched inside `&beachmatch=1`: a soft face, no rills, a faint broken rim, a drying gradient, the surf's thread net; the default 0 pixels at all four beach poses; beach round 12: the match by measure behind the build option `match` (`&beachmatch=1`): each zone of the draining view measured on the Manly stills and on ours the same way (`beach/r12/measure.py`), the sand gold, the damp and wet sand darker, no sheen, a gray-olive film, the foam line by its real width with a dark face before it, the strong bore's surf as a coarse lace net in lines along the shore, a cool-white foam; 45 of 60 numbers inside the Manly spread (round 8: 22); the default 0 pixels at all four beach poses; the cost measured against round 8 in the same minutes; beach round 11: round 8's look ships again as the default, with round 8's node graph and cost; the levers of rounds 9 to 11 and the sea-crest hide are build options (`levers`, `crestHide`); the default draws r8fin at 0 pixels at all four beach poses; the cost against round 8 in the same minutes; three new draining-view levers built for a variant round (`vSand`, `vBand`, `vOld`); the five judged scenes and the no-beach views 0 pixels; beach round 10: a variant round on round 8's look, each lever behind a tune whose off value draws round 8 to the pixel; step 2 ships every lever together (the glassy film, the broken front and older swash lines, the drying edge, the foam that feeds the swash, the hidden fixes, the dappled see-through sheet, the surf speckle hidden, the foam trails, the sea's crest polygon hidden through the seabed reader's optional `hide`) with round 8's drawn rills off; the see-through share measured against Manly by `beach/seeThrough.py`; view 1's foam cores held at 155 to 158; the five judged scenes and the no-beach views 0 pixels, the cost re-measured; beach round 9: view 1 locked after its win, checked frame by frame; the sheet as a film (a sky share that grows as it thins, drain streaks, an olive-gray body with depth); fresh wet sand darker and drying in patches; no drawn rills; lace dragged back on the backwash; a strong bore as one band with a rolled front and a dark face, a weaker one kept in cores; the sea's own foam faded over the beach patch through the seabed reader's optional `seaFoam`; the per-zone colors measured against Manly by `beach/zoneHSL.py`; the five judged scenes and the no-beach views 0 pixels, the cost re-measured; beach round 8, under the test sun: the swash foam faint and see-through, measured against both references by `beach/foamContrast.py` (1.2 to 1.4 times the water under it), its opacity by the sheet's depth, no wake clumps; one thin lumpy line on the true edge, the scallops in the state's read; old foam breaking into specks and seaward streaks; the sheet brown and see-through with a silver sheen at its thinnest and a crisp edge; shine at the water and lighter damp sand up the beach; darker, narrower rills; the surf's teal body; the five judged scenes and the test sun's no-beach views 0 pixels, the cost re-measured; distance round 11: the test sun, 30 degrees up and 30 degrees left of -Z, for every sea state and every piece after Remy's ruling on question 31, with the spark cells' lit share at 0.15 and the far ray cap at 0.25; `OCEAN_TEST_SUN` false draws round 10 to the pixel on every judged view, the sweep and the six sea states; every judged view of the won pieces re-shot; the cost re-measured; beach round 7: every beach foam drawn with the wake's round-11 lace method on the wake's own image, read-only from oceanWakeMath.ts; the foam's age carried by the swash field and read as the wake's tear, fold and age opacity; a smooth film with a thickness gradient; a lumpy front bead; a softer wet line with drying blotches and shine near the water; rills at the draining view's scale; the five judged scenes and the d10 no-beach views 0 pixels, the cost re-measured; beach round 6: the film's foam a faint net lace of the swash tile's two Worley nets in patches, stretched down the fall line in the backwash, in place of round 5's threads; a continuous swash front, thicker at its scallops and lobes, with trailing lace; a high-water mark of dark grains and bubbles; the draining view re-fitted to the Manly frame's zone widths (138 s); the wrack at the upper swash limit; the five judged scenes 0 pixels against a fresh baseline, the cost re-measured; distance round 10: after the lead's swap test put the pick on the mid field and the low sky, the sun glitter reaches about 220 m on a slanted view and thins into a path, the mid field loses some saturation, the low clouds bake with the air thinning with height, the layer following the Earth, grey shaded sides and a thinner far layer, the background's last rows over the line take the reference's cyan; the tunes off draw round 9 to 0 pixels on the eight open-sea poses, the five judged scenes and the caustics view; the sweep; the cost re-measured; beach round 5: the swash front as a foam band of changing width with clusters, gaps and cusped scallops and older run-up lines, the look's read smoothed over five rows, the wet sand darkest at the water with a crisp ragged wet line, the film's low-sky share calibrated to the Manly frame, the reader's path over the swash grid through the shore hook's optional `waterColumn`, backwash threads, rills, the dry sand's sunlit relief, the five judged scenes and the no-beach scenes 0 pixels, the cost re-measured; wake round 18: the quarter view's bar is now a live Water Pro capture at our side camera, `quarter-m`, its pose set by a calibrated drag and its crop placed off its own stern; round 11's look won the live quarter view and the chase view in both orders and is the shipped default, the frames with no `wakelook` 0 pixels against the judged round-11 frames, the four no-boat scenes 0 pixels, the first frame in 22 s against round 17's 88 s; beach round 4: the swash front's rim of lace at the sheet's edge, the backwash's foam stretched down the fall line, the breaker's foam in segments, wet sand darker by its immersed grains and smoother, its GGX sheen, the wet line without the along-shore wander and with a damp fringe, fine-grained dry sand, a clearer surf, the sea's glints cut over the beach face through the shore hook's optional `waterGlint`, clumped and varied wrack, the five judged scenes and the no-beach scenes 0 pixels, the cost re-measured; the seabed reader's optional `glint` share, landed by the lead, which the beach now sets; distance round 9: the far water blended toward the color of its footprint's mean (the flat sea's fresnel and mirror ray with the mean bend and the unresolved spread, the deep body at the flat angle) from 380 m to 1 km of eye distance on the grazing share, so the last rows under the line fade into faint streaks; the tune off draws round 8's eight open-sea poses, the five judged scenes and the caustics view to 0 pixels; the sweep; the cost re-measured; distance round 8: the long waves modulate the short waves' roughness by their own compression (the sea band's and the swell's horizontal Jacobian from the mip taps), the far sheen tinted to the reference's cyan grey after the far tone, the far tone kept off the dark marks, the far and mid bodies a bluer navy, the dash calmed at the line and its sheen side cut under it, the fresnel flattening relaxed from 500 m to the line calm, every change behind a tune whose off value draws round 7's eight open-sea poses, the five judged scenes and the caustics view to 0 pixels, the sweep, the cost re-measured; beach round 3: the re-framed judged pose along the shore at 42 s with the grid to 24 m, the lace without its stipple (a soft edge, a see-through rim, a halo, two turned reads), the bore's foam line curved by a wider wander, damp drained sand between the film and the dry sand, patchy dry sand and gravel, the sheet's glints as the sea's lobe, a second judged view straight down at 148 s matched to a Manly Beach drone frame, the five judged scenes 0 pixels, the cost re-measured; beach round 2: the crop found wholly under the backwash film at every instant from 36 to 48 s, the swash foam tile drawn with the foam piece's coverage-true threshold and a gentle flow map, the film's caustic web and ripples, the veil and milk weaker, stranded foam wetting the sand, a smooth grain through the hook's optional `grain`, debris in real proportion with contact shadows, the five judged scenes 0 pixels, the cost re-measured; beach round 1: a new piece, the swash on a sand cay in the lagoon (2D shallow water with momentum forced by the FFT sea's own height at the grid's edge), the sheet soaking into the registry's sand with an exact ledger, the wet sand drying from the top down, shells, sticks and weed pushed by the sheet, the seabed's optional island and shore hook with LAGOON_SEABED's map bit for bit unchanged, the five judged scenes 0 pixels against the seabed files before the piece; wake round 17: the foam's edge, grain and opacity profile measured against the references, a graded margin of translucent lace under the threshold, a wider cover ramp, fine bubble holes from the second field at 1 m, clots, the foam thinning toward its holes, milky water under and round the sheet, the arms as soft translucent lines, a faster fade; the halo, the world blur and the bubble dots built and off (two of them cost minutes of shader compile), `r16`, `r15`, `r14` and `r11` 0 pixels against the round-16 files on one surface, the no-boat scenes 0 pixels, the cost re-measured; distance round 7: the far read's span along the view capped at 4 short axes at grazing footprints, the short cascades' far slope times 2.0 and the long ones' times 0.35 on the same share, the far mean ray's elevation capped at 30 degrees, the calm's opening at 1.7, every change behind a tune whose off value draws round 6's eight open-sea poses, the five judged scenes and the caustics view to 0 pixels, the sweep, the cost re-measured; wake round 16: the quarter pose re-matched as `quarter-m` with the white band's width, the trail drawn as one connected sheet down its core with a clear edge, holes of mixed size, a cellular lace that opens with age, the arms as lines on the wake's own crests, the calm lane that damps the wake's own waves under the sheet, a soft edge from a coarser mip with its orbit proof, the wake edge and the flakes measured against the references, `r15`, `r14`, `r13` and `r11` 0 pixels against the round-15 files on one surface, the no-boat scenes 0 pixels, the cost re-measured; distance round 6: the clouds fade into the haze by their structure (a new haze copy, the clouds blurred along the azimuth, read by the ray's elevation), the far texture's energy read coarser so it draws long horizontal streaks, the calm lighter and the far haze at 3.5 km so the streaks reach the line, all three far terms keyed on how drawn out the footprint is, the lobe clouds at 0.4, every change behind a tune whose off value draws round 5's eight open-sea poses, the five judged scenes and the caustics view to 0 pixels, the sweep, the cost re-measured; wake round 15: the trail graded by its age, a young bright core in a milky film over a whiter glow, the lace opening into a network of strands, then streaks, then gone, the arms as lines, the hairlines gone, the age thirds and the glow measured against the references, the quarter pose measured against the reference's and a re-matched pose proposed, `r14`, `r13` and `r11` 0 pixels against the round-14 files on one surface, the no-boat scenes 0 pixels, the cost re-measured; distance round 5: the thin bright haze (a pale near-neutral glow, a cool foot, no plain dim) fitted to the reference's low-sky profile, the far water reflecting the clouds' mean over its lobe of rays (the sky's new lobe copy), the calm's fresnel opening at 0.7, the near low rays ending at 150 m, a navy mid-field body, the far haze at 2.5 km, every change behind a tune whose off value draws round 4's eight open-sea poses and the five judged scenes to 0 pixels (the wake view above its trail; the trail's own files changed during the round), the height, heading and pitch sweep, the cost re-measured; wake round 14: the trail, a ranked gradient-noise field of many octaves in place of the lace, the net and the layer, sheared by the jet and the lanes, eaten by the wake's own amount with a dense race, filaments at the thin edges, graded holes, opaque foam lit at 0.66, spreading arms, the old trail dissolving, the hole statistics of both judged crops measured against the references', `r11` and `r13` 0 pixels against the round-13 files on today's surface, the no-boat scenes 0 pixels, the cost re-measured; distance round 4: the far texture calmed where the long footprint passes 80 to 300 m, the far dashes soft, the far water toward the haze's tone, the far body less violet, the sky band with a flat foot and a cooler line, every change behind a tune whose off value draws round 3's judged poses and the five judged scenes to 0 pixels, the height, heading and pitch sweep, the cost re-measured; distance round 3: the far texture read from the field, the normal mip's w as each level's mean squared slope with two turned reads against the patch's repeat, in place of the round-2 dashes, grain and far tap jitter; the far haze closing over the last 30 rows (3 km, power 1.3) and thinned with the eye's height; the sky band darkening into the line; every change behind a tune whose off values draw the five judged scenes and the judged poses to 0 pixels over 8/255; a sweep over height, heading and pitch; the cost re-measured; wake round 13: the layer opaque, lit by its slope toward the sun with a mean of 1, the wake's own slope and the raft's grain, dark popped bubbles, the bubble glow kept under the core, round 11's arms back, `r11` and `r12` against their judged frames 0 pixels in the judged crops, the no-boat scenes 0 pixels, the cost re-measured; wake round 12: the trail's core a layer of foam (`wakeMassImage`: thickness, veins and relief in one texture; a density across and along the trail, boils, a few popped bubbles, a ragged crest line, its own relief and band-profile light, soft streaks in the alpha), the lace kept at the sides and the thinner arms, `r11` against round 11's judged frames 0 pixels, the no-boat scenes 0 pixels, the cost re-measured; buoyancy round 16: the roll drag at about 11% of critical and the mooring a third as stiff for a lean that reaches 19 degrees across the view at the crest, the splash drops only where the water meets the flare hard, the collar and the white on the steel from a stricter event, the darker water and the float's shadow, every change behind a switch whose off value draws strip e15a to the pixel, the cost re-measured; the wake reader's optional `opacity` field (2026-09-26); buoyancy round 15: the judged window at 52.0 s, the navigation buoy with 176 kg carried high for a 3.1 s roll that follows the wave face, the splash drops keeping their own light, the collar in streaks along the flow, the wet band and its drain, the darker water at the hull, every change behind a switch whose off value draws strip d14w to the pixel, the cost re-measured; wake round 11: the reader's `opacity` share for the young core, the solid band as a dense lace, two-octave voids ringed with lace that clear the whole glow, the swell keys cut, round 9's edge lines back, `r10` against round 10's judged frames 0 pixels, the cost re-measured; buoyancy round 14: the collar, the white on the steel, the lace and the trail deposit driven by a per-angle event state with a dimmer foam white, a breaking crest's push through the step's new external force, the judged window measured as one no crest reaches and a strike window proposed, every change behind a switch whose off value draws strip b13f to the pixel, the cost re-measured; wake round 10: the core band's young foam one near-solid mass torn by voids of a low-frequency field, cut by round 8's boils, the stern wave's lip torn by the same field, the crest pile gated to the band, the sides and the crests' thin foam cut, `r9` against round 9's judged frames 0 pixels, the cost re-measured; buoyancy round 13: the wash as a broken collar round the waterline on every side and broken streaks off the flanks, the foam field stopped by the hull, the roll damping at 0.6 of round 12's after the mooring was found to hold the lean, a pinned run's sea center set from the camera, every change behind a switch whose off value draws strip s13j to the pixel, the cost re-measured; wake round 9: the core band's clumped raft for 4 s more with its own fade, the thin sides, firmer edge lines, the clump shade, round 5's on-screen stretch key back at gentler values and over the net too with its orbit proof, `r8` against round 8's judged frames 0 pixels, the cost re-measured; underwater round 5: the level view's light split into its four terms, the clear open-sea water, no sun in the blurred window, the fine tile toward the sun, the share gain at 0.65, a third snow population, the near-flake fade and a 3.5 mm largest flake, every new path behind a control whose off value reproduces round 4 bit for bit, the cost re-measured on a quiet GPU; wake round 8: the core's dark boils, clumps and bubble grain, the lane's own turbulent lumps through the back-face cap, the glow keyed on the shaped amount, the fine net drawn out 3 times, the last view-keyed look path off, `r7` against round 7's judged frames 0 pixels, the cost re-measured on a quiet GPU; underwater round 4: the level-view fan found mirrored and a pose proposed that matches the reference's, the underside's curve drop that took out the row of dots, the march's 0.4 m mid by the step's foot with an interleaved-noise start, the snow's pixel floor and gain, `benchPiece` through the viewer's paused bench, every new path behind a control whose off value reproduces round 3 bit for bit, the cost re-measured; wake round 7: the core band down the track that ages 1.2 s later and keeps its white on the back slope and in the troughs, the net's soft wall ramp and coarser tile, the aerated milky glow, the haze gated by the amount, `r6` against round 6's judged frames 0 pixels, the cost re-measured; wake round 6: the trail's one structure in world space, the net lace, the trail's edge and its two lines, the stern wave's back slope, the edge haze, the glints dead across the lane through the reader's `glint`, every path behind a control whose off value (`r5`) draws round 5b bit for bit, the cost re-measured; the sea's dense center follows the camera and the buoy's patch and probe follow it; the near and far looks measure from the eye in 3D; the wake reader's optional `glint` share; the glint fix: each pixel reads the 3x3 spark cells with three gates, the near lit share by the cell's area on screen; the underwater piece mounted on every page; underwater round 3: the level pose measured against the reference and re-matched (1.5 m down, 8 degrees up, the sun 80 degrees off the view), the ceiling's edge cap and its blurred mirror on the long waves' facet, the shafts integrated across each step of a coherent march on the fixed range, the wide mid lens tile, the sheet level at 1.0, the focus ramp at 0.4 m, every new path behind a control whose off value reproduces round 2 bit for bit, the cost re-measured; wake round 5b: the structure paths world-space at every view after the lead's ruling, the on-screen key kept for the lace's stretch alone with its mix re-equalized and an orbit proof, the chase view retuned to hold round 2's traits; wake round 5: the mat torn into clumps at its edges and tail, pinholes, a dark rim, foam piled on the wake's crests, a thinning tail, the flat-plane side ratio; round 4's film and wisps off; the cost re-measured; wake round 4: round 2's read restored behind look controls and proved against the round-2 frame, round 3's changes kept as named values, the trail's age read from the breaking buffer as a world-space key for the quarter view's fade, wisps and shade, the back-face cap with a knee, the cost re-measured; foam round 9: the hair fill with a floor per fiber so the filament count follows the coverage, the age clock A in its own buffer, the light and coverage graded by the foam's own age, old foam torn into windrows and given a halo, the fresh rafts compact, the round-8 fine and fringe tables kept behind their controls; buoyancy round 12: the wash as foam in the water that leaves the hull, the field at 24 m and 6 s with the Stokes drift, the wake and pile deposits, the ring's vertices on the GPU at the inverted grid point of the patch's formula, out to 5.3 R with 520 sampler slots gone, the impact gates and the cling at the far pose's scale, the splash burst, the cost re-measured; buoyancy round 11: the ring's mark gated to the camera side, in patches, sized by the run-up; the `setReflector` hook designed with the buoy's reader, and landed in `oceanSurface.ts` by the lead with 0 pixels changed on the five judged scenes; heave damping to half of critical on three strips of the pinned window; buoyancy round 10: the heave resonance against the chop measured by a linear RAO map and the CPU sea, heave damping at critical, the cost re-measured; foam round 6: round 4 restored bit for bit, the fold-laid field G with its own fade, the head on the lay ramp, the curl grain by scale, the round-5 controls off; foam rounds 7 and 8: the view from above carried by G with the crest crackle and the wisps, the round-7 pitch key removed (GG-311) so the look holds at every angle, G on a wide ramp, the fine regime's wisp-led texture, the crest lines and small breaks of every fold, fringes dissolving into bubbles, the crest segment and the curve built and off; buoyancy round 9: 750 kg carried high for a 4.8 s roll period, the waterline line back at rest, the design waterline 0.60 m up the flare with the probes re-laid against the lathe's buoyancy curve, no rim line and a bounded deck image over an awash deck, the cost re-measured; buoyancy round 8: the `choppy` sea re-measured against the reference, a 16 m chop on a doubled 47 m swell, the buoy's phase against wave period as the reason, the counted window chosen by lean phase, the wash thresholds on the new sea; buoyancy round 7: the near hull's fill light at the sea's grazing brightness and the paint's sky sheen, the resting waterline rim nearly off and the wash drawn from a threshold on the per-angle foam state, the plunge weighted to the up-wave face, the impact drive on the run-up heights the deposit uses, the foam field's downwind drift, the hull under the water as a band that fades with depth, the cost re-measured; foam round 5: the deposit at the breaker's strength squared, each breaker's own life, the spread at 0.15, the read's body and core kept apart, age by density, the tear, the crumbled core rim, the fold's dusting, wider and shorter fibers, the net-first young lace; buoyancy round 6: the near hull as a sea floor the surface sees through its water via the routed `setSeabed` hook, the ring's rim and cling cut down, pitch damping back to 30% on a measured lag, the cost re-measured; buoyancy round 5: the young `choppy` sea, the ring and its reads on the waterline center, the water standing up against the hull, the waterline rim, the lighter reflection and shadow, pitch damping 15%, the piece's measured cost; performance pass: one compute call, filtered atlases for the normal mips and the render-side plane reads, the FFT in workgroup memory, deck noise only under overcast, the sky mesh drawn last, lit-only sparks; see Frame cost). Earlier, 2026-09-24 (waves round 4: waterpro heading and chop spreading, Elfouhaily taper, grazing-view attribution; buoyancy round 4: pressure at depth, added mass, band kinematics, deeper light-buoy draft, shared sampler (GG-273), run-up, breaking crests and an advected foam grid, a carried fine patch, contact trial; shading round 4 takeover: baked cumulus sky, glitter points, far slope restore, GG-274 contact foam, GG-276 visible share; spray round 3: strands rooted on drawn foam, bowed ribbons, then plume body (lift, falloff, soft bottom, world streaks, dimmer head); spray round 2 and rain round 4 sections added by the lead; distance round: blue sky rising from the horizon with a thin blue-white glow, far reflection bends and spread, the far residual dashes, the far haze, the 25 km skirt, storm unchanged; distance round 2: the horizon haze band, one-row far dashes, far grain, gust patches, the finer far read, the bends' far share, Earth curvature); wake round 1: the Kelvin wake as a closed-form forced field, touches, white water, the hull; wake round 2: the foam lace and its read; wake round 3: back-face cap, foam volume, core grain; the lead landed the `setWake` hook in `oceanSurface.ts`; underwater round 1: the underside, Snell's window, the path light and the camera, the shafts buffer, marine snow, the waterline; underwater round 2: caustic-sheet shafts, the water by its chlorophyll, the closed-form window edge and its glow, the storm's surface bubble layer, denser snow, the exposure refit; foam round 1: the persistent foam field, its store, breaker, residual and baked lace, drawn through `setFoam`; foam round 4: the breakers' own headings, the spread, the crackle lace and the read's three kinds of foam (head, trail, old), the grazing veil; foam cost split: the A/B rerun alone, the read named as the cost, the step's GPU and CPU share, the timestamp and fence probe traps).
 
 ## What it is
 
@@ -19,7 +19,9 @@ the sea and a ship's heave is deterministic.
 | File | Owns |
 |---|---|
 | `oceanConfig.ts` | `CascadeParams`, the unit rule (public feet, internal meters), `DEFAULT_CASCADES` |
-| `oceanSeaStates.ts` | Named sea states picked by `?sea=<name>`: `default`, `storm`, `waterpro`, `waterpro-swell` (alias of `waterpro` since round 3 put the swell in), `choppy`, plus `waterpro-r3` (round 3 as judged, kept one round for A/B) |
+| `oceanSeaStates.ts` | Named sea states picked by `?sea=<name>`: `default`, `storm`, `waterpro`, `waterpro-swell` (alias of `waterpro` since round 3 put the swell in), `choppy`, `surf` (the rocks piece's onshore swell), plus `waterpro-r3` (round 3 as judged, kept one round for A/B) |
+| `oceanRocksMath.ts` | The rocks' model and its numbers, no three import: the rock's shape (a superquadric cut by joint planes) and its face table, the face relations (run-up, surf breaking, the burst, the weir), the sea history, the fixed-step simulation (faces, the top's basin, spray and falls, the foam grid) |
+| `oceanRocks.ts` | The rocks on the GPU: the sea read at each face (a compute kernel through `createOceanSampler`, with a readback), the pinned re-integration and the live ring, the rock material (wetness, swash, cascade, sheet), the spray quads, the fine water patch, the foam on the sea's parcels. Mounted by `oceanExtras/rocks.ts` (`?extras=rocks&sea=surf`) |
 | `oceanSpectrum.ts` | JONSWAP (omega^-5 or omega^-4 tail, optional Elfouhaily taper), TMA, dispersion, directional spreading (Mitsuyasu or Hasselmann cosine-2s, Donelan-Banner sech^2, or Ewans bimodal), the seeded initial spectrum h0(k) built on the CPU |
 | `oceanCompute.ts` | The GPU kernels: `pack` (evolve to time t, 4 complex fields per cascade), `hAxis` and `vAxis` (the 8 radix-2 Stockham stages of one axis in workgroup memory, one dispatch each), `unpack` (displacement, normal, folding Jacobian), `planeAtlas` (the bordered `dispTex` and `normTex` atlases) |
 | `oceanFieldReference.ts`, `oceanFftReference.ts` | The same pipeline on the CPU, used only by tests and by the GPU cross-check |
@@ -27,7 +29,7 @@ the sea and a ship's heave is deterministic.
 | `oceanReflector.ts` | The contract of the routed `setReflector` hook on the surface: a reader gets the mirrored view ray (`ReflectorShadeInput`) and returns a radiance and a coverage (`ReflectorShadeOutput`) that the surface mixes into the reflected radiance before the Fresnel weight. With no reader the surface is unchanged to the pixel (0 pixels on the five judged scenes when it landed, 2026-09-25). First reader: the buoy (`oceanExtras/buoys.ts`) |
 | `oceanSampler.ts` | The one bilinear read of a cascade plane and the per-cascade range fade, shared by the mesh and (GG-273) the buoyancy probe. With `{ filtered: true }` (the render-side readers) it reads `disp` and `norm` through the atlases: one hardware-filtered fetch |
 | `oceanNormalMip.ts` | A mip chain of the normal buffer, rebuilt each frame after the FFT, copied into a bordered texture atlas, read anisotropically by the shader (one filtered fetch per level). Its w holds each level's mean squared slope (distance round 3), so a read returns the mean slope and the slope energy under it; `sampleTop` reads a patch's mean |
-| `oceanSky.ts` | The sky the water reflects and the viewer draws: a clear-sky gradient (blue rising from the horizon, a blue-white glow low over it, a greyer haze band dimming into the line; its horizon terms on the shared `OCEAN_SKY_TUNE` uniforms), cumulus marched ONCE into a texture (`OceanSky.bake`), the storm deck, the sun; `oceanSkyRadiance(..., upSpread)` averages the gradient over a band of elevations for a rough reflector; the lobe copy (distance round 5: the clouds averaged over a far pixel's tall, thin lobe of rays, `oceanSkyLobeClouds`, `oceanSkyCloudOver`); the haze copy (distance round 6: the clouds blurred along the azimuth, which every cloud read fades toward with falling elevation) |
+| `oceanSky.ts` | The sky the water reflects and the viewer draws: a clear-sky gradient (blue rising from the horizon, a blue-white glow low over it, a greyer haze band dimming into the line; its horizon terms on the shared `OCEAN_SKY_TUNE` uniforms), cumulus marched ONCE into a texture (`OceanSky.bake`), the storm deck, the sun (`OCEAN_SUN_DIR`: since distance round 11 the test sun, 30 degrees up and 30 degrees left of -Z, for every piece; with `OCEAN_TEST_SUN` false, round 10's `OCEAN_SUN_DIR_ROUND10`, 60 degrees up and 40 left); `oceanSkyRadiance(..., upSpread)` averages the gradient over a band of elevations for a rough reflector; the lobe copy (distance round 5: the clouds averaged over a far pixel's tall, thin lobe of rays, `oceanSkyLobeClouds`, `oceanSkyCloudOver`); the haze copy (distance round 6: the clouds blurred along the azimuth, which every cloud read fades toward with falling elevation) |
 | `oceanField.ts` | The one object a caller builds: `createOceanField({ seed, n, cascades, sunDir })` |
 | `oceanBuoyancy.ts` | A floating rigid body on the sea, CPU only: per-probe Froude-Krylov pressure, added mass as a 6 x 6 mass matrix, drag and form drag, mooring, fixed-step integration; the water at depth (`bandDepthDecay`, `createBandKinematics`, `probeWaterAtDepth`); `probeHydrostatics`; `invertDisplacement` for the choppy surface |
 | `oceanBuoyancyProbe.ts` | The surface height above a set of world points, read from the GPU `disp` buffers through the surface's own sampler (`createOceanSampler`, the same sampling and LOD as the mesh), plus the inversion, with a readback; kinematic slots also return each band's displacement at the new and the two previous grid points |
@@ -94,7 +96,19 @@ energy so every field is exactly real.
   the sea's surface pokes above the sand at its wave crests landward of the
   still-water line, and its glints drew white chips on the beach face). The
   surface multiplies its specular by it after the wake's share; without it,
-  no node is added.
+  no node is added. It may also return a `seaFoam` share
+  (`SeabedShadeOutput.seaFoam`, beach round 9, from the shore hook's optional
+  `waterSeaFoam`): the share of the sea's own foam (whitecaps and the
+  persistent foam field) a water point keeps. The beach fades the sea's foam
+  out over its patch, where it draws its own surf foam from its swash grid.
+  The surface multiplies its foam alpha by it; without it, no node is added
+  (the five judged scenes 0 pixels against round 8's frames). And a `hide`
+  (`SeabedShadeOutput.hide`, beach round 10, from the shore hook's optional
+  `waterHide`): over 0.5 the surface discards its fragment, so the beach's own
+  water shows where the sea's crest stood over its sheet. Without it, no node
+  is added. Since beach round 11 the beach builds `hide` only with its
+  `crestHide` option, and `seaFoam` only with its `levers` option: the
+  default beach adds neither to the surface's shader.
 - **Near and far looks measure from the eye, in 3D** (2026-09-25). `dist0`
   and `distGrid` in `oceanSurface.ts` key about 20 terms (the glint fade,
   the far slope gain, the dashes, grain and sheen, the Fresnel flatten,
@@ -2168,6 +2182,93 @@ file. The judged frame is the `open-horizon` pose of
   ms, from 60 m 2.642 against 2.808 (medians). Most of it is the spark shape
   math of the lit cells the glitter now adds; the compute did not move. The
   sky bake runs once, at load.
+- **The test sun (distance round 11).** Round 10 lost both orders. The
+  judges' stated reasons failed every check the lead made (band swaps, scale
+  swaps, a tile check, the row profile). So round 11 rendered five variants,
+  one lever at full strength each, and the lead judged each against the
+  reference. V1, the sun lowered and turned, WON both orders (d11v1-A medium,
+  d11v1-B medium): the first full distance win in eleven rounds. Shading
+  under it won both orders too (sh16v1-A medium, sh16v1-B high). V2 (regions
+  of roughness 50 to 300 m across) lost (medium), and V3 (a far cloud deck
+  and a haze densest at the line) lost (low). V4 (fine grain to the line)
+  and V5 (V2 with V3) were not judged. Their code stays in
+  `distance11/final11.py` only. Remy ruled on question 31 of the Water and
+  Land sheet (2026-09-28): "Move the sun in every ocean scene".
+  - `OCEAN_TEST_SUN` (oceanSky.ts, THE TEST SUN). The default sun
+    `OCEAN_SUN_DIR` stands 30 degrees up and 30 degrees left of -Z
+    (`OCEAN_TEST_SUN_EL_DEG`, `OCEAN_TEST_SUN_AZ_DEG`). Before, it stood 60
+    degrees up and 40 left; that vector is now `OCEAN_SUN_DIR_ROUND10`. It
+    is one sun for the whole viewer and every sea state. createOceanSky falls
+    back to it, and the water, the cloud bake, foam, spray, wake, seabed,
+    beach, buoys and underwater pieces read it through `OceanSky.sunDir` or
+    the constant. Step 1's V1 moved the sun on the GPU in the sky and the
+    water only. Step 2 moves it at the source, and it draws V1's judged frame
+    to 0 pixels over 8/255 (largest change 1).
+  - Two cuts go with it (oceanSurface.ts, THE LOWER SUN NEEDS TWO CUTS). The
+    spark cells' lit share is times `sparkShare` 0.15: the share saturates on
+    a lobe this close to the view, and the lower sun lit a near-solid sheet
+    of glitter that `sparkDensity` could not thin. `farRayCap` is 0.25 (14.5
+    degrees) in place of 0.5: 0.5 is the test sun's own elevation, and the
+    capped far rows reflected the sun's glow. Both defaults follow the
+    switch.
+  - The off value is `OCEAN_TEST_SUN` false. It draws round 10 to the pixel
+    (0 pixels over 8/255, largest change 0 or 1) in these places:
+    `open-horizon` and `ref-open` against `ours/d10-*`; every re-shot view
+    below against the same minutes' tracked round-10 frames, the twelve
+    buoy strip frames included; 20 open-sea poses (the sweep); and
+    `open-horizon` in all six sea states. A capture that wants another sun
+    still passes `?sun=<elevation>,<azimuth>` to the viewer.
+  - What moved: the share of pixels over 8/255 in each judged crop, against
+    the same minutes' round-10 frames. The new frames are
+    `ours/sun-<piece>-<view>.png`.
+    - distance and shading `open-horizon` 75.8%; waves `ref-open` 77.5%;
+    - caustics `shallow-top` 88.7%, `shallow-high` 84.0%, `shallow-eye`
+      86.5% (the caustic web is dimmer under the lower sun);
+    - underwater `under-up` 54.9%, `under-level-r4` under the shipped sun
+      74.9%;
+    - wake `chase` 45.9%, `quarter-m` 41.1%;
+    - the buoy strip's counted frames (crop 748 367 288 311) 49 to 52%
+      under the shipped sun (`buoyancy/sun-f16-counted/`); the body states
+      are identical, only the light moved.
+    - 0 pixels: foam `storm-high` and `storm-away`, spray `storm-deck`, rain
+      `storm-away`, underwater `under-storm`. Under full overcast nothing
+      reads the sun's direction.
+    Two judged views used a probe sun: `under-level-r4` (`?sun=40,30`) and
+    the buoy strip (`?sun=20,111`). Under their probe suns they move 0% and
+    0.2 to 0.6% (the spark cut). The ruling asks for one sun, so the `sun-`
+    frames use the shipped one. The probe frames stay beside them
+    (`ours/sun-underwater-probe-under-level-r4.png`,
+    `buoyancy/sun-f16p-counted/`). The five judged scenes against a fresh
+    baseline (whole frames): open 36.2%, storm 0.0%, shallow 61.3%, wake
+    37.4%, under 59.9%.
+  - Sweep (`distance11/out/sweepTable.txt`, `sweep-on-sheet.png`): the test
+    sun moves 4.6 to 47.5% of the pixels at every height, heading and
+    pitch. The share is largest where the view faces the sun (eye level
+    47.5%, turned 45 degrees left 43.4%) and smallest facing away (turned
+    180 degrees 4.6%, 135 degrees 8.3%) or from above (the plan view 5.5%).
+    The glitter path sits left of the view axis looking down -Z and right of
+    it turned 45 degrees left, where the sun's place puts it. No step shows
+    between neighboring poses.
+  - The glint map at the judged pose (`distance11/v1_glintmap.txt`): the
+    path's column spread per 70-row band from 140 rows under the line is
+    144, 152, 127, 123, 179 and 180 px (the reference 115, 107, 143, 117,
+    129 and 136; round 10 168 to 242). Its mean column is 270 to 411 px
+    against the reference's 177 to 318, so our path sits 30 to 90 px right
+    of the reference's.
+  - Cost: 0.072 ms more of the surface's draw (2.1%) at `open-horizon` and
+    -0.005 ms from 60 m; the whole frame +0.11 and +0.08 ms. That is six
+    alternated rounds of `bench(400)` in the same minutes, the tracked
+    round-10 files against the working copies, a page load each
+    (`distance11/perfRunPose.mjs`, `out/pf11b.log`): the draw 3.455 against
+    3.526 ms, from 60 m 3.986 against 3.981 (medians). The GPU was not quiet
+    (round 10's draw was 2.29 ms on the same pose). The code adds one
+    multiply; the glitter path now in the frame lights more spark cells.
+  - Open, kept for a later polish round by the lead's word: the V1 judges
+    called the glitter "like sequins", hard-edged white chips over too much
+    of the frame, and the far water a little milky (GG-330). The clouds show
+    repeating sharp V-shaped edges. In the shallow eye view the reflected
+    clouds draw thin pale outlines, which the dimmer caustic web now leaves
+    easier to see (GG-331).
 - **Haze and the horizon.** 1.6e-4 per meter (2e-4 before) and a second
   term, 1 - exp(-(d / 6 km)^2), taken by max, so the water's last rows meet
   the sky's own value. Distance round 3 closes the second term earlier:
@@ -2231,7 +2332,10 @@ file. The judged frame is the `open-horizon` pose of
   0), and from distance round 10 `farGlint`, `midDesat` and the sky's
   `skyLineTint` (round 9's frame: all 0) with the cloud tunes `lowAirH`,
   `curveK`, `maxM`, `lowMs`, `lowSun`, `lowBase` and `coverFar` (round 9's
-  bake: 0, 0, 60000, 1, 1, 1 and 0, through `setSkyTune`);
+  bake: 0, 0, 60000, 1, 1, 1 and 0, through `setSkyTune`), and from
+  distance round 11 `sparkShare` (round 10's frame: 1 and `farRayCap` 0.5,
+  the two defaults with `OCEAN_TEST_SUN` false in oceanSky.ts, which puts
+  back round 10's sun);
   the probe's `setTune`, `getTune`,
   `setSkyTune` and `setContact` drive them from a rig (`setSkyTune({})`
   re-bakes after a sky change). Defaults are the shipped values.
@@ -3895,7 +3999,9 @@ scenes above the water changed 0 pixels (open, storm, shallow, wake).
 - **Open:** the storm from below keeps a blue cast at its foot (GG-294);
   the underside is a second full vertex pass over the 512 x 512 grid
   (GG-295); the level view is judged under a 40 degree sun passed by
-  `?sun=40,30`, not the shipped 60 (GG-297); at `under-level-r4` the
+  `?sun=40,30`, not the shipped sun (60 degrees up until distance round
+  11, the test sun 30 degrees up since; the level view is re-shot under it,
+  `ours/sun-underwater-under-level-r4.png`; GG-297); at `under-level-r4` the
   ceiling toward the sun reads as ripple streaks, not the reference's
   mottle (GG-299, GG-317); the up view moved with round 5's water and needs
   a re-judge, the storm moved 0.2% with the snow; the storm's surface pattern
@@ -3950,7 +4056,15 @@ streaks where round 8 dropped them at F 0.4; a fresh raft keeps a
 compact outline (the eye-level near water lies under fresh trails, so
 the halo there is what round 4 called "a net of lines" when every trail
 had it). Both views moved (10.08% of the frame from above, 4.44% at
-eye level, over 8/255) and both are judged again.
+eye level, over 8/255) and both are judged again. Round 9 WON both views
+in both orders; under the test sun (2026-09-28) the view from above then
+LOST both orders with the same foam, only the sea behind it changed (the
+cause is under Round 10). Round 10 (2026-09-29) makes the store the sea's
+ONE FOAM FIELD (a source term every piece writes into, the wake's cover the
+first source, the rocks' reef and timed discs folded in) and answers the
+verdicts' foam gaps from above, each behind a control whose off value draws
+round 9 at 0 pixels at both judged poses (outside the viewer's new fps
+label, which no crop holds).
 
 - **The store.** Two toroidal clipmap levels in world space, 512^2 at 0.5 m
   and 512^2 at 2 m, each texel (F, B, R, G): F the foam, B the active
@@ -4427,6 +4541,100 @@ eye level, over 8/255) and both are judged again.
   (0.242% of pixels, round 8's pair 0.242%) and `ours/foamR9sp*-storm-eye.png`
   (6.181%, round 8's pair 6.320%); determinism `pinnedDiff.mjs r9pd`; the
   mirror check on the shipped page with the hair channels (hash 0, lace 0.00053, float16 rounding).
+- **The source term (round 10, GG-291, GG-341).** `oceanFoamSources(field)`
+  is the one way a piece writes foam production into the store: `add` an
+  `OceanFoamSource` whose `at(x, tS)` (TSL, legal in compute) returns
+  (strength, freshness) at a grid point and step time. The step lays the
+  larger of the breaker's, the stamps' and every source's strength at the
+  full-break rate, and the age clock takes the larger of its own and the
+  sources' freshness, so a piece's foam drifts, merges, ages and draws as the
+  whitecaps' foam does. `beforeStep(renderer, tS, restep)` runs before each
+  step; in a pinned warm-up (`restep`) the source brings its own state to the
+  step's time, and the step is then three compute calls (the sea, the
+  sources, the foam) in place of one. The set's `version` rebuilds the step
+  kernels (with no source they are round 9's node for node) and `invalidate()`
+  rebuilds a pinned store after a source's data changes. Two kinds ship:
+  `oceanFoamWindowSource` (a vec4 buffer laid over the water by a rotated
+  window, the wake's layout: the wake's cover, buffer A's z) and
+  `oceanFoamDiscSource` (the rocks builder's 96 timed discs with a box test,
+  replayed at their own times in a warm-up). The reef's depth-limited
+  breaking (`oceanBathymetry.ts`, `reefGain` 0.4, the rocks builder's
+  patch) seeds the breaker and the lay in `sourceAt` where the sea has a
+  shelf. The wake's registration and `?wakefoam=field` (the wake's own lace
+  off, its white water drawn only by the foam read) are a patch to
+  `oceanExtras/wake.ts` (`foam/r10/patch_wake_mount.py`), proved on served
+  copies: `foam/r10/s-wk-high.png`, `s-wk-chase.png` (the wake alone, the
+  wake's lace with the field, the field alone). The pinned store holds 30 s,
+  so a wake trail's decay past the wake's 70 s window is not in a pinned
+  frame; live, F carries it on at 7 s.
+- **The view from above, round 10.** Sweeps `foam/r10/b-c1.json` to
+  `b-c9.json` on the private rig (`foam/r10/serve10.mjs`, working copies
+  served to one browser). `cells` 1: where the hair was read (the aligned
+  fibers under 3 px wide on screen) the threshold texture is a FOURTH TILE,
+  FOAM_CELLS_*: bubble cells at 0.45 m and 1.8 m (Worley nets, 1.5 times
+  longer along the wind) and long streaks (8 to 19 m, 0.24 to 0.55 m wide,
+  within 0.1 rad of the wind, a floor per streak so the count follows the
+  coverage), through their own tables (FOAM_LACE_YOUNG_CELLS {small 0.6,
+  large 0.25}, FOAM_LACE_OLD_CELLS {large 0.35, streak 0.4},
+  FOAM_LACE_FRINGE_CELLS {streak 0.55, large 0.3}); the hair fetch is skipped
+  there. `warp` 1.5 m and `warpX` 2 m: the store is read at a point moved
+  along the wind by value noise 14 m by 2.5 m and across it on a coarser one,
+  so an outline is combed into strands of its own foam (at 4 m on 8 by 1.2 m
+  the ends were spiky flames). `skirt` 0.45: the coarse level's F from 0.03 to
+  0.7 draws a veil grained by the small cells' walls and the streaks, round
+  every patch, half of it for a fresh raft (`skirtOld` 0.5), faded out where
+  a bubble is over 1.5 px on screen (`skirtPx`; at 2.5 it drew a speckled net
+  over the eye-level water 20 to 40 m out, and without the key a milky haze
+  on the near water): a key on a texture's size on screen, the same foam.
+  `freshBright` 0.4 and `ageLight` 0.5 (0.35): fresh foam brighter and old
+  dimmer by the foam's own age. `groupGain` 0.4 (0.3): the whitecaps gather
+  in the wave groups with open sea between (0.8 flooded the eye-level near
+  water with flecks). The tilt sweep `foam/tilt-r10.png` (shipped, round-9
+  state, read bypassed; 40 m, 8 to 90 degrees): the same masses at every
+  pitch, the cells and the skirt resolving as the footprint shrinks.
+- **Measured, round 10.** Storm-high against the reference (0 0 700 900):
+  pixels 70 over the median 4.04% (the reference 1.71%, round 9 under the new
+  sun 1.46%), 50 over 5.73% (3.33%, 3.70%), the brightest 1% 141 (111, 117):
+  more foam and brighter fresh cores than the reference, as the verdicts
+  asked. Eye level (0 340 540 900): 70 over 1.25% (0.38%, 0.09%), 50 over
+  2.67% (4.34%, 1.17%), the brightest 1% 111.7 (97.7, 88.3). Moved against
+  round 9 under the new sun, over 8/255: 20.7% from above, 8.45% at eye level
+  (the eye-level frame is to be judged again), 15.3% at plan-high. Mirror
+  check hash 0, lace 0.00053 (float16), the fourth tile included. Pinned
+  frames repeat over two loads (only the fps label differs). Regressions:
+  the waterpro ref-open pair 0.225% (round 9 0.242%); spray with foam against
+  spray alone 9.87% (round 9 6.18%: more foam under the spray's frame).
+- **Cost, round 10** (`foam/foamAB.mjs`, `perf-foamR10.json`, four rounds; the foam-off draws 2.69 ms at storm-high and 2.60 at storm-away, a loaded GPU (round 9's were 1.89 and 1.79), the bench draw delta 2.39 and 2.66 ms. So the round-10 read was also timed in one page against the round-9 state and the read bypassed, alternated four times through the paused bench (foam/r10/mkcost.py)): the READ
+  1.70 ms at storm-high and 1.92 ms at storm-away, against the round-9 state 1.52 and 1.70 in the same page (round 9 measured 1.07 and 1.31 on a quieter GPU): round 10 adds 0.18 ms from above and 0.23 at eye level, about 1.25 and 1.54 quiet-GPU equivalent, OVER the 1.3 ms budget at eye level.
+  Round 10 adds the fourth tile's fetch and three CDF reads where the hair's
+  were, three value noises for the warp, and the skirt's arithmetic; the
+  hair's fetch is skipped where the cells draw. The step adds nothing with no
+  source.
+- **The storm's lost dark areas (round 10's measure).** Not the sun: `?sun=60,40`
+  draws the storm from above to the pixel of the shipped sun. The surface's
+  EYE DISTANCE change (2026-09-25) moved the view from above from about 40 m
+  of shading distance to 145 to 180 m, and `nearHeight` (the trough
+  darkening, faded from 50 to 200 m) fell from 1 to 0.1 to 0.35 there: the
+  dark areas were the waves' troughs. Proof on served copies
+  (`foam/r10/alt/`, `bis-*.png`): the old surface and the current one with
+  the flat distance are 0 px apart; `nearHeight` alone on the flat distance
+  gives back most of it (large-scale p2 31.7 against 30.6 old and 37.6 now).
+  The fade's reason is the mesh's vertex spacing, set by the flat distance
+  from the mesh center, so the patch (`foam/r10/surface_nearheight_patch.py`,
+  for the surface owner) keys it there; storm-away 0 px, plan-high 0.046%.
+- **GG-348 (round 10's measure).** Through the world sampler on the GPU
+  (`__OCEAN__.extras.foam.travel`): every cascade travels toward windDirRad +
+  pi (the storm's wind sea 8.07 m/s toward -146.7 degrees for a windDirRad of
+  20.1; the swell 15.3 m/s toward -106.9 for 70.5). The foam already runs
+  with the waves; the spray, the buoy drift, the rain drift and the surface's
+  far dashes point the other way (`foam/r10/gg348_patch.py`).
+- **Round-10 proof** (`.agent/scratch/ocean-gauntlet/foam/`, gitignored):
+  the rig `r10/serve10.mjs`, `runPose10.mjs`, `sync10.mjs`; patch scripts
+  `r10/patch_*.py`; sweeps `r10/b-c*.json`, shots `r10/shots/`, sheets
+  `r10/s-c*.png`, zooms `r10/z-c*.png`; `finalCaptures10.sh` and its log
+  `final10.log`; final frames `ours/foamR10-*.png` against `ours/foamR10base-*`;
+  the judged pairs `judge-r10-high.png`, `judge-r10-away.png`; the tilt sweep
+  `tilt-r10.png`; determinism `r10pd`.
 - **Open.** The fresh rafts are still capsules, the swept blob's own
   outline with a hairy fringe and a quarter halo; a deposit shaped along
   the run (the deposit power, `depositPow`, or a breaker as a crest
@@ -4438,8 +4646,12 @@ eye level, over 8/255) and both are judged again.
   `tailDim` is built and off (it cost the eye-level near flecks). The
   crest segment and the curve (round 7) are built and off. G's fade (3 s)
   sets the masses' length along the wind and is a store value. The
-  eye-level frame has moved again in round 9 and awaits its judgment.
-  `coverageAt` (the spray's read) returns F alone, not G.
+  eye-level frame has moved again in round 10 and awaits its judgment.
+  `coverageAt` (the spray's read) returns F alone, not G. Round 10: the
+  fresh rafts are still compact capsules at their core, now combed at the
+  ends; the sea behind the foam is teal where the reference's is near black
+  (the surface's, see the lost dark areas); the wake's registration is a
+  patch not yet applied; the buoy's wash foam (GG-315) is not a source yet.
 
 ## Beach
 
@@ -4961,6 +5173,931 @@ same minutes. The no-beach views: 0 pixels against `ours/d10-open-horizon.png`,
 `ours/d10-ref-open.png` and `ours/d10-shallow-high.png`. The lagoon's map: 0
 of 262,144 texels differ.
 
+**Round 8 (beach, 2026-09-28).** Round 7 lost both split views at high
+confidence. The shore-foam judge read "opaque, clipped pure-white blobs with
+hard stamped edges", none of them on the leading edge. The draining judge read
+"opaque, overexposed white cloud-noise blobs", a sheet like "an opaque murky
+gray-brown smear", a blurred wet line and one flat matte brown of wet sand.
+The lead's brief: four rounds changed the foam's pattern and each read as
+drawn, so aim at three properties, measured. The foam is faint, gray-white and
+see-through. One thin, lumpy line of bubbles sits on the true leading edge.
+The foam breaks back into streaks and specks as the water drains. The scene
+changed first: the test sun (30 degrees up, 30 degrees left of -Z) is in
+every scene, so round 8 compares against round 7 shot again under it (`b8base`).
+
+THE MEASURE (`beach/foamContrast.py`): in each zone (the front line, the
+backwash, the bore), a foam pixel is 8 luma over the 30th percentile of luma
+in its 25-pixel window (the sheet or sand round it) with a saturation under
+0.3. The script gives the foam's share of the zone, the luma of its brightest
+tenth and its median, and its median contrast over the luma round it. Both
+references draw swash foam at 1.07 to 1.4 times the water under it. Round 7
+drew it at 1.3 to 2.1 times, its brightest tenth at 199 to 216 luma. The
+changes (`oceanBeach.ts` unless named):
+
+- FAINT AND SEE-THROUGH. The lace's opacity runs from OP_LO 0.12 to OP_HI 0.62
+  over the rank above the CAPPED threshold (over the raw amount, the densest
+  foam was near full opacity in every pixel, a flat glowing patch); no foam is
+  opaque. Each caller scales it. The sheet's foam scales by the sheet's depth
+  (OP_SHEET: 0.35 at 3 mm, 1 at 6 cm), so the foam thins with the sheet. The
+  cover cap is 0.62 (0.82). Fresh foam is already a net: the rank is folded
+  round its median by 0.55, rising to 0.9 with age (round 7 folded nothing
+  under 3 s). The beach mixes the wake image's channels with its own weights
+  (`BEACH_LACE_WEIGHTS` in `oceanBeachMath.ts`: raft 0.62, clumps 0, streaks
+  0.26, patches 0.12), and the worker builds the coverage table for that mix.
+  The wake's image stays the texture; its clump layer does not.
+- ON THE TRUE EDGE. The front's scallops are in the state's read (`wander`):
+  the state is read up to 0.35 m onshore of the point in 3.2 m arcs, so the
+  sheet's edge, the rim, the wet sand under the sheet and its foam are all set
+  back together. Round 7 set back only the sheet's edge and the rim, and the
+  dark wet sand at the grid's own edge lay in front of them with no foam. The
+  rim starts at the true edge, 3 to 14 cm wide (4 to 40 cm), lumpy (clusters
+  from 0.5), broken in the lowest 18% of a 1.1 m noise, at 0.8 of the
+  opacity, and trails 0.6 m of lace. The sheet's own alpha is full by 1 mm of
+  depth (4 mm), so its edge is crisp.
+- IT BREAKS BACK. Round 7's clump tear is replaced by a break-up. Old thin foam
+  (3 to 10 s, under 0.75 of amount, 0.9 of it) stays only where a fine read
+  of the raft (a quarter of its tile, drawn out three times down the fall line
+  where the sheet runs seaward) is in its top third. The threads break into
+  dashes and specks, and in the backwash into streaks pulled seaward. The
+  kept specks gather opacity up to 0.5 (without that they were 5% opaque). The
+  film keeps 0.75 of its foam (0.45), and thin foam shows from 0.05 of amount
+  (0.06 to 0.32 before, 0.05 to 0.25 now). Stranded foam reads as 12 s old
+  (specks), the older run-up lines as 14 s old at 0.6 opacity (faint scum lines).
+- THE SHEET. The immersed grains' factor is 0.55 (0.36): with the gray sky
+  over it, the sheet 1 to 30 cm deep was a neutral gray at 48 luma and
+  saturation 0.02. The body's low-sky share is 0.03 (0.06). A silver sheen
+  (0.1 of the low sky's luma) lies over the thinnest film (0.6 to 3 mm),
+  streaked down the fall line; as a share of the low sky's color, a first
+  build drew the whole thin sheet lavender. The sand's own gloss under a sheet
+  ends by 1 mm: round 7 drew both the sand's and the sheet's reflection over 1
+  to 4 mm of film, a gray haze over meters.
+- THE WET SAND. Shine at the water: 0.08 of the low sky's luma for 30 s after
+  the sheet leaves (0.06 of its color for 25 s, under 4 luma). Lighter as it
+  soaks in: the damp band's wetness falls to 0.75 from 8 to 50 s after the
+  sheet leaves (WET_SOAK_S). The drying blotches are crisp-edged at 0.6.
+- THE RILLS. Darker floors (0.16, from 0.12) with less sky (0.02, from 0.05):
+  round 7's read as pale streaks. They are narrower (0.06 of the noise), shorter
+  (3.5 times, from 5), to s = 8 m, in 45% of the face, with shallower
+  tributaries (0.45 m cells, 2.5 times, 0.4 of the depth), and fade under 4 to
+  9 mm of sheet.
+- THE SURF'S OWN WATER (a lower-weight item). From 15 to 60 cm of grid water,
+  up to 0.7 of the water's light is a teal body (SURF_BODY_RGB), darker than
+  the floor under it and uniform.
+
+| Foam contrast, per zone (share of the zone; brightest tenth; median; the luma round it; median contrast) | Front line | Backwash | Bore |
+|---|---|---|---|
+| Manly b010 | 0.04; 91; 82; 68; 13 (x1.19) | 0.11; 170; 82; 67; 14 (x1.20) | 0.55; 168; 123; 85; 34 (x1.39) |
+| Water Pro t0007 (one foam band) | 0.18; 178; 169; 158; 10 (x1.07) | - | - |
+| Round 7 under the test sun, view 1 | 0.26; 214; 191; 98; 94 (x1.98) | 0.19; 199; 68; 51; 16 (x1.30) | 0.56; 203; 119; 66; 51 (x1.69) |
+| Round 7 under the test sun, view 2 | 0.58; 216; 196; 88; 102 (x2.07) | 0.12; 212; 132; 80; 41 (x1.46) | 0.58; 206; 141; 74; 44 (x1.51) |
+| Round 8, view 1 | 0.38; 123; 113; 94; 18 (x1.19) | 0.18; 103; 76; 59; 14 (x1.22) | 0.48; 156; 88; 68; 20 (x1.30) |
+| Round 8, view 2 | 0.56; 123; 107; 87; 17 (x1.19) | 0.09; 111; 88; 76; 12 (x1.17) | 0.47; 152; 106; 74; 29 (x1.38) |
+
+| Quantity (round 8, the test sun) | Ours | The reference |
+|---|---|---|
+| View 2: luma of dry, damp, film, foam, water (against dry) | 116, 92 (0.79), 73 (0.63), 89 (0.77), 65 (0.56); round 7: 116, 90 (0.77), 78 (0.67), 111 (0.96), 72 (0.62) | Manly 126, 96 (0.76), 77 (0.61), 107 (0.85), 55 (0.44) |
+| View 2: the film's saturation, R/G, B/G | 0.14, 1.11, 0.83 (round 7: 0.08, 1.06, 0.92) | Manly 0.17, 1.10, 0.85 |
+| View 2: the water's saturation, R/G, B/G | 0.12, 0.81, 0.92 (round 7: 0.06, 0.93, 0.89) | Manly 0.48, 0.50, 0.94 |
+| View 2: zone widths: dry, damp, film, surf foam, water (by the state; unchanged) | 0.12, 0.14, 0.23, 0.14, 0.36 | Manly 0.09, 0.10, 0.24, 0.18, 0.37 |
+| View 1: luma of dry, damp, film, foam, water | 117, 95, 75, 83, 63; round 7: 117, 93, 74, 98, 72 | t0007 dry 143, wet 143, foam 165, water 140 |
+| View 1: zone widths: dry, damp, film, foam, water | 0.46, 0.04, 0.23, 0.04, 0.22 | t0007 dry 0.69, wet 0.00, foam 0.07, water 0.26 |
+| Cost at `beach-seq` | GPU draw +3.68 ms over the floor alone (6.32 against 2.64 ms; the sheet 0.75, the sand and debris 1.04), paused bench, all variants in the same minutes; round 7 against round 8 in the same minutes (benchR7R8.mjs): 6.76 against 6.70 ms, no change | - |
+| Cost at `beach-top` | GPU draw +4.28 ms over the floor alone (7.07 against 2.79 ms; the sheet 1.20, the sand and debris 1.45); round 7 against round 8 in the same minutes: 7.10 against 7.06 ms, no change (the floor alone drew 20 to 45% slower in these minutes than in round 7's) | - |
+
+The five judged scenes: 0 pixels over 8/255 against a baseline shot in the
+same minutes. The no-beach views: 0 pixels against the test sun's frames
+(`ours/d11-v1-open-horizon.png`, `ours/sun-waves-ref-open.png`,
+`ours/sun-caustics-shallow-high.png`). The lagoon's map: 0 of 262,144 texels
+differ. Open: where the sea's own crests stand over the grid, the sea's
+surface draws straight-sided darker polygons with a light outline, and its own
+whitecaps draw clipped white specks there (both the surface's, not the
+beach's: they stay with the beach's foam off); the bore has no rolled front
+line; the surf's teal is half as saturated as Manly's.
+
+**Round 9 (beach, 2026-09-28).** Round 8's view 1 (the shore foam, against
+Water Pro t0007) WON both orders (high, medium), the beach's first win: "a
+bright, dense core that tears into ragged, stringy lace with dark holes", and
+"a thin, bright, wavy foam line that hugs the sand edge". View 1 is locked;
+each round-9 change was checked on the view-1 frame beside round 8's, and
+one that joined its cores into an even band was taken back. Both view-1
+judges named one weak point: the swash sheet "almost bare of foam ... no lace
+draining back". View 2 (the draining, against Manly b010) lost (high): the
+sheet "a flat, dull, see-through brown tint of one thickness, a decal"; the
+rills "curved scratches drawn on top"; the lip "a soft, blurry white halo";
+the surf foam "cellular blobs"; the wet, damp and dry zones "three flat,
+scalloped bands". The changes (`oceanBeach.ts` unless named):
+
+- THE SEA'S OWN FOAM OVER THE PATCH (`oceanSeabed.ts`, `oceanSurface.ts`).
+  The seabed reader has an optional `seaFoam` output (the share of the sea's
+  own foam a water point keeps), from the shore hook's optional
+  `waterSeaFoam`; the surface multiplies its foam by it. The beach fades the
+  sea's whitecaps out over its patch (they drew clipped white specks and a
+  white crest polygon over the surf). Without a hook no node is built: the
+  five judged scenes are 0 pixels against round 8's frames.
+- THE SHEET AS A FILM. Its sky share grows as it thins (0.02 past 4 cm to
+  0.035 under 2 mm; round 8's silver sheen band behind the front, the
+  "halo", is gone), broken into fine drain streaks down the fall line where
+  it runs seaward (a noise 6 and 17 cm across, drawn out 8 times, carried with
+  the flow, in patches of 1.2 m). The film's own water (FILM_BODY_RGB, an
+  olive gray) takes up to 0.7 of its light from 1 mm to 1.5 cm of depth, in
+  the sheet's thin part and through the reader alike: the sheet darkens and
+  grays from its front (75 luma, saturation 0.18) to the surf (56, 0.03).
+- THE WET SAND. Sand the sheet left under 4 to 30 s ago keeps 0.6 of the
+  immersed grains' darkening (its pores still hold a film), both ends moved
+  0.6 to 1.4 times by a two-octave patch noise, so it dries in patches. The
+  gloss and shine are only on sand the sheet has left (under the thin film
+  they drew a gray fog over meters), the shine 0.06 of the low sky, in faint
+  drain marks. The wet line has a second, 1.1 m octave (patchier), and the
+  high-water mark's grains are lighter (0.24).
+- NO DRAWN RILLS: off behind RILLS_ON (the code stays for a rill of short
+  branched channels).
+- LACE ON THE SHEET. The backwash's foam amount rises by up to 1 of itself
+  where the sheet runs seaward (in 1.5 m patches), its break-up into specks is
+  cut by 0.7 there, and the film keeps all of its foam: a net drawn out
+  seaward, dense near the bore and thinning up the sheet, and the surf's foam
+  trailing back to sea in streaks.
+- THE BORE BY ITS STRENGTH. At 42 s (view 1) the grid's bore peaks at a foam
+  of 0.75 over 1.5 m; at 138 s (view 2) at 0.92 over 2.75 m. A strong bore
+  (the foam 0.8 m behind its front over 0.74 to 0.9) loses the breaker's
+  segments and takes a rolled front: along the foam's 0.45 contour on its
+  shoreward side, a band 0.35 m wide of dense lace (0.8), broken in a fifth of
+  its length, and a dark face 0.4 m wide in front (FACE_RGB). A weaker broken
+  wave keeps round 8's segments and cores, as view 1 does.
+- THE LIP sharper: its trailing lace 0.2 over 0.4 m (0.35 over 0.6 m), its
+  core at full opacity. The surf's teal body deeper (0.85 of the light).
+
+View 2's zones against Manly (the judged crops, 960 x 540; Manly by
+piecewise-linear bounds read off three column profiles, ours by the 138 s
+state; `beach/zoneHSL.py`). Each cell: luma (against the dry sand),
+saturation (against the dry sand's), hue shift from the dry sand's hue.
+
+| Zone | Manly b010 | Round 8 | Round 9 |
+|---|---|---|---|
+| Dry sand | 132; 0.35; hue 34 | 116; 0.18; hue 40 | 116; 0.18; hue 40 |
+| Damp sand (left 12 s ago and more) | - | 93 (0.80); 1.20; -1 | 92 (0.80); 1.20; -1 |
+| Wet sand (Manly's dark band; ours left under 12 s ago) | 88 (0.67); 1.17; -4 | 90 (0.77); 1.11; -2 | 73 (0.63); 1.14; -2 |
+| Sheet | 71 (0.54); 0.39; +5 | 73 (0.63); 0.78; -4 | 66 (0.56); 0.56; -2 |
+| Bore | 113 (0.86); 0.37; +175 | 91 (0.78); 0.25; +25 | 90 (0.77); 0.18; +81 |
+| Surf | 73 (0.55); 0.26; +46 | 67 (0.57); 0.26; +50 | 61 (0.53); 0.32; +115 |
+| Shallow water | 48 (0.37); 1.78; +143 | 64 (0.55); 0.72; +121 | 56 (0.48); 1.17; +134 |
+
+The sand's color is the cay's own, LAGOON_CAY.sandAlbedo [0.38, 0.31, 0.2]
+in `oceanSeabedMath.ts` (near the terrain registry's Material.Sand, [0.33,
+0.28, 0.19]), a pale gray tan: saturation 0.18 against Manly's gold 0.35. The
+relations are matched on it, not Manly's gold.
+
+| Foam contrast (share; p90; median; under it; contrast) | Front line | Backwash | Bore |
+|---|---|---|---|
+| Manly b010 | 0.04; 91; 82; 68; 13 (x1.19) | 0.11; 170; 82; 67; 14 (x1.20) | 0.55; 168; 123; 85; 34 (x1.39) |
+| Water Pro t0007 (one band) | 0.18; 178; 169; 158; 10 (x1.07) | - | - |
+| Round 9, view 1 | 0.24; 120; 83; 71; 13 (x1.19) | 0.27; 100; 81; 61; 18 (x1.30) | 0.51; 155; 95; 65; 29 (x1.44) |
+| Round 9, view 2 | 0.32; 118; 86; 70; 15 (x1.21) | 0.10; 80; 71; 56; 12 (x1.20) | 0.50; 152; 109; 69; 35 (x1.48) |
+
+| Quantity (round 9) | Ours | The reference |
+|---|---|---|
+| View 2: zone widths (by the state; unchanged) | 0.12, 0.14, 0.23, 0.14, 0.36 | Manly 0.09, 0.10, 0.24, 0.18, 0.37 |
+| View 1: zone widths | 0.46, 0.04, 0.23, 0.04, 0.22 | t0007 0.69, 0.00, 0.07, 0.26 |
+| Cost at `beach-seq` | GPU draw 8.21 ms against round 8's 7.59 ms in the same minutes (benchR7R8.mjs, four rounds, the order rotating; round-by-round +0.38 to +1.07 ms, median +0.62), the floor alone 2.72 ms: the drain streaks, the rolled front's three spline reads and the fresh-wet patch noise (the rills' reads are off) | - |
+| Cost at `beach-top` | GPU draw +0.16 to +0.62 ms against round 8 over the four clean pairs of two runs (8.95 against 8.33 and 8.50; 10.70 and 10.99 against 10.20 and 10.83); the other pairs ran under another GPU load that the wait did not see and are left out | - |
+
+The five judged scenes: 0 pixels over 8/255 against a baseline shot in the
+same minutes, and 0 against round 8's frames of them. The no-beach views: 0
+pixels against the test sun's frames. The lagoon's map: 0 of 262,144 texels
+differ. Open: the sea's surface over the grid still draws straight-sided
+darker polygons with a light outline where its crests stand over the sheet;
+the broken foam's specks on the sheet read as small light worms; Manly's bore
+is 0.86 of its dry sand and lies as lines along the shore, ours 0.77 and still
+partly cellular; the shallow water's saturation is 1.17 of the sand's against
+Manly's 1.78.
+
+**Round 10 (beach, 2026-09-29): a variant round on round 8's look.** Round
+9 lost both views: view 1 (medium, after round 8 had won it in both orders)
+and view 2 (high). Both judges named round 9's drain streaks and even backwash
+lace ("a tiled bump map", "brushed fur"), so round 10 starts again from round
+8 (r8fin). Step 1 drew round 8 with one lever at a time, each behind a tune
+uniform of `oceanBeach.ts` whose off value draws round 8 to the pixel: V0
+(`vSpeck`, the sea's whitecaps faded over the patch; `vGloss`, the sand's
+gloss only on exposed sand), V1 (`vFilm`, a glassy film: no lace or web on
+it, a sky shine that grows as it thins, the sand seen through it), V2
+(`vFront`, a broken front of changing width with bubbly trailing lace, and
+faint older swash lines at slight angles), V3 (`vDry`, fresh wet sand darker,
+drying in patches, a crisper swash-limit line, the wrack in clumps with
+gaps), V4 (`vFeed`, sparse foam streaming up the sheet and scum trails back),
+and V5 (V2 with V3). Every version lost view 2 at high confidence, as did a
+lead test of round 8 with its colors moved to Manly's. Every judge named the
+same gaps whatever the version: an opaque sheet, drawn lines, an even lip,
+cellular foam, flat wet sand, a white speckle over the water, and the sea's
+crest polygon. So step 2 ships every lever together, as the defaults:
+
+- ALL OF V0 TO V4, and THE CREST FIX (`vHide`). Cause of the polygon: seaward
+  of the still-water line the sheet is drawn up to 15 cm under its level
+  (SHEET_PUSH_M) so the sea wins where the two waters meet; where a sea crest
+  stands over the pushed-down sheet, the sea's surface is in front and shades
+  as the sea, darker, with the sea mesh's straight triangle edges. The seabed
+  reader has an optional `hide` output (the shore hook's optional
+  `waterHide`); the beach returns 1 where its grid water is under 40 cm
+  (CREST_HIDE_H) and its sheet drops the push there, and the surface discards
+  its fragment (`oceanSurface.ts`, one block; no node without it).
+- ROUND 8'S DRAWN RILLS OFF (`tune.rills` 0; 1 draws them). The judges read
+  them as "straight vertical scratch lines", "cracks in glaze".
+- THE SEE-THROUGH SHEET (`vSheet`): V1's sky shine dappled into fine light
+  cells carried with the flow (not streaks); the sand under the water keeps
+  0.7 of the dry sand's grain and is grayed toward a warm olive as the water
+  deepens.
+- THE SPECKLE (`vSpeckle`). Its source, by toggle frames: 60% the broken
+  foam's specks over the surf, the rest the floor's fine detail under the
+  surf (its lit wave ripples); not the sea's glints or whitecaps (V0's fade
+  does not touch it), not the shells, not the caustic web. The surf's stirred
+  water hides the floor's fine detail (clarity down to 0.15 from 5 to 25 cm of
+  grid water), the sand's specks, and 0.6 of the opacity of thin foam away
+  from the bore (the bore's cores and their fringes keep all of theirs).
+  Isolated bright dots over the surf: 4,449 against round 8's 7,499.
+- THE FOAM TRAILS SEAWARD (`vTrail`): on the bore's seaward side, in patches,
+  thin foam is drawn out down the fall line and wobbles sideways. V4's feed
+  also shows on the film (V1's cut spares its patches), in a quarter of the
+  face.
+- V2 PUSHED FURTHER: the lip 1 to 22 cm wide, most of its length thin, gaps in
+  42% of it, the trailing lace only where it is wide. V3 softer: the wet line's
+  ramp 0.8 of round 8's and the swash-limit line 5 cm (a first step drew "a
+  hard wavy edge like a vector outline").
+
+THE SEE-THROUGH MEASURE (`beach/seeThrough.py`): the RMS of luma minus a
+Gaussian blur of a 7 px kernel, per zone, as a share of the dry sand's (and
+with the zone's bright foam masked out).
+
+| Zone | Manly b010 | Round 8 | Round 10 |
+|---|---|---|---|
+| Dry sand (RMS) | 7.60 | 2.72 | 2.61 |
+| Sheet, share of dry (no foam) | 0.29 (0.31) | 1.44 (1.08) | 1.45 (1.09) |
+| Sheet toward the lip / toward the surf | 0.35 / 0.22 | 1.52 / 1.37 (thin / deep) | 1.85 / 1.05 |
+| Wet sand | 0.19 | 0.63 | 0.72 |
+
+Manly's sheet keeps about 0.3 of its dry sand's fine contrast; ours keeps
+about 1.1 of ours. The share does not match because our dry sand carries a
+third of Manly's fine contrast (2.6 against 7.6 RMS), while our sheet already
+carries more than Manly's (2.8 against 2.0, foam masked). The judges' "opaque"
+is not a lack of fine contrast in the sheet by this measure: it is the sheet's
+flat tone and color, which the lever set moves (the sheet's luma toward the
+lip 72 and toward the surf 67, round 8's 87 and 62; Manly's 70 and 72).
+
+| View 2 zone (luma, x dry; sat x dry; hue shift) | Manly | Round 8 | Round 10 |
+|---|---|---|---|
+| Dry sand | 132; 0.35; 34 deg | 116; 0.18; 40 deg | 116; 0.18; 40 deg |
+| Damp sand | - | 93 (0.80); 1.20; -1 | 93 (0.80); 1.20; -1 |
+| Wet sand | 88 (0.67); 1.17; -4 | 90 (0.77); 1.11; -2 | 74 (0.64); 1.10; -2 |
+| Sheet | 71 (0.54); 0.39; +5 | 73 (0.63); 0.78; -4 | 69 (0.60); 0.55; -3 |
+| Bore | 113 (0.86); 0.37; +175 | 91 (0.78); 0.25; +25 | 92 (0.79); 0.17; +49 |
+| Surf | 73 (0.55); 0.26; +46 | 67 (0.57); 0.26; +50 | 69 (0.59); 0.23; +91 |
+| Shallow water | 48 (0.37); 1.78; +143 | 64 (0.55); 0.72; +121 | 64 (0.55); 0.79; +126 |
+
+| Foam contrast (share; p90; median; under it; contrast) | Front line | Backwash | Bore |
+|---|---|---|---|
+| Round 10, view 1 | 0.23; 114; 85; 70; x1.21 | 0.16; 90; 78; 62; x1.22 | 0.48; 157; 92; 71; x1.30 |
+| Round 10, view 2 | 0.26; 110; 86; 70; x1.22 | 0.05; 92; 78; 64; x1.20 | 0.45; 153; 108; 76; x1.35 |
+
+View 1's foam cores (the bore zone's brightest tenth) stayed at 155 to 158
+luma through every step of the round (round 8: 156.2; round 10: 156.5). The
+zone widths are the state's, unchanged. Cost at `beach-seq`: GPU draw 7.22 ms against round 8's 5.46 ms in the same minutes (benchR7R8.mjs, four rounds, the order rotating; +1.54 to +1.97 ms a round, median +1.76), the floor alone 2.06 ms; about 1.0 ms of it is the surface's Discard (round 10 with and without it, same minutes: 6.76 against 5.74 ms, +0.93 to +1.22 a round: a discard in the sea's fragment shader loses its early depth test), the rest the new levers' reads. Cost
+at `beach-top`: GPU draw 8.03 ms against round 8's 6.09 ms (+1.30 to +2.45 ms a round, median +1.94), the floor alone 2.13 ms. Every lever's off value (v* 0, `rills` 1) draws
+r8fin at 0 pixels in both views. The five judged scenes: 0 pixels over 8/255
+against a baseline shot in the same minutes and against round 9's frames. The
+no-beach views: 0 pixels against the test sun's frames. The lagoon's map: 0 of
+262,144 texels differ.
+
+**Round 11 (beach, 2026-09-29): round 8's look ships again.** Round 10's step
+2 lost both views (view 2 high, view 1 medium). A fresh control critic picked
+round 8's own view-1 frame again (high: its third view-1 win), and round 8
+with only the hidden fixes (the speck fade, the gloss on exposed sand, the
+crest hide) lost view 1 (medium). So round 8's look is the default, and every
+later lever is a BUILD option of `createOceanBeach`:
+
+- `OceanBeachOptions.levers` (`&beachlevers=1` in the viewer,
+  `oceanExtras/beach.ts`) builds the levers of rounds 9 to 11, each behind its
+  tune (`vSpeck`, `vGloss`, `vFilm`, `vFront`, `vDry`, `vFeed`, `vSheet`,
+  `vSpeckle`, `vTrail`, `rills`, and round 11's `vSand`, `vBand`, `vOld`; all
+  0 by default, `rills` 1). Without it, every lever site builds round 8's own
+  nodes and the shore hook has no `waterSeaFoam`. (A first step-1 save only
+  set the tunes to 0: that drew round 8 to the pixel, but the levers' noise
+  and spline reads still cost 0.39 ms at `beach-seq` and 0.83 ms at
+  `beach-top` against round 8 in the same minutes.)
+- `OceanBeachOptions.crestHide` (`&beachhide=1`) builds the sea-crest hide:
+  the hook's `waterHide`, so the surface's Discard. Without it the reader
+  returns no `hide` and the surface builds no Discard node.
+
+The default draws round 8's frames (r8fin) at 0 pixels over 8/255 at all four
+beach poses, so round 8's three view-1 wins stand; built with the levers and
+every tune at 0 it draws them at 0 pixels too. Cost in the same minutes
+(`benchR7R8.mjs`, round 8's files served beside the saved default): GPU draw
+5.23 against 5.17 ms at `beach-seq` and 5.63 against 5.70 ms at `beach-top`,
+the same within the noise of a round.
+
+Round 11's new levers for the draining view (built with `levers`):
+- `vSand` (SAND_GRAIN_K, SAND_TINT): the dry sand's fine grain and specks and
+  its sunlit relief up by SAND_GRAIN_K, and its color tinted to Manly's gold
+  (faded out under the water over SAND_TINT_H), the wet and damp sand
+  following through Angstrom's law. The dry sand's fine contrast (7 px
+  high-pass RMS at 960 x 540) goes from 2.6 to 6.9 (Manly 7.6), its
+  saturation from 0.18 to 0.35 (Manly 0.35).
+- `vBand` (STRENGTH_RUN_M, BAND_*, LIP_*, FACE_*): a STRONG bore, a point in a
+  run of foam at least 2.3 m long across the shore (the bore band is 0.9 to
+  1.5 m wide at its fronts at 42 s, 2.4 to 3.1 m at 138 s; round 9's key, the
+  foam 0.8 m behind the point, also fired in view 1's upper core), loses the
+  breaker's segments, and its lace is denser, drawn out along the shore, with
+  a rolled front and a dark face before it. View 1's weak bore stays round
+  8's (104 pixels over 8/255 of its frame change).
+- `vOld` (OLD_LACE_*): round 10's older swash lines on the wet sand, with a
+  band of stranded bubbles along each, and round 8's front line kept.
+
+**Round 12 (beach, 2026-09-29): the match by measure.** Round 11 lost the
+draining view again (22 versions since round 3, all at high confidence). Remy's
+ruling (sheet q34): "keep going with judges, and match the real frame by
+measure". `beach/r12/measure.py` measures each zone of the judged crop (960 x
+540) from the sea to the dry sand, the same way on the Manly stills b009 to
+b012 and on our frame: its width, its CIE Lab mean and spread, its luma
+percentiles, its see-through share, its foam share and lace scale; the foam
+line's width, peak, presence and gaps; the wet sand's darkening and sheen. The
+tables are `.agent/scratch/ocean-gauntlet/beach/measure-manly.md` and
+`measure-match.md`. What the Manly frames show: the band between the dry sand
+and the wet line is mostly the promenade's cast shadow; the film is one flat
+gray-olive tone (b* 5 to 8 over a gold sand of b* 27 to 31), not brown; a dark
+blue-gray face lies before one continuous, cool-white foam line (in 98 to 100%
+of the columns, 0.04 to 0.08 of the crop's height), and behind it the surf is a
+lace net lying in lines along the shore. The Manly crop is about 10.5 cm a
+pixel (two surfboards with riders), ours 3.7 cm, so the zones match in share of
+the frame, not in meters.
+
+The match is a BUILD option, `OceanBeachOptions.match` (`&beachmatch=1`): it
+builds the levers too, sets `vSand` and `vBand` on, and adds `tune.vMatch` and
+the `MATCH_*` calibrations (uniforms `tune.m*`, so a rig can step each one at
+one pinned state). Without it every site builds round 8's nodes: the default
+draws r8fin at 0 pixels over 8/255 at all four beach poses. The changes: the
+sand's gold (round 11's vSand, times MATCH_SAND_RGB); the damp sand darker
+(MATCH_DAMP_K) and the wet sand darker and grayer (MATCH_WET_K, MATCH_WET_GRAY);
+the wet sand's gloss, shine and sheen cut (MATCH_GLOSS_CUT: Manly's sheen share
+is 0 to 0.015); the film one gray olive (its immersed darkening full by 2 mm,
+MATCH_IMMERSED_K, MATCH_FILM_GRAY, the gold gone under 1 mm, the sheet a film
+over the sand to 2 cm); THE FOAM LINE BY ITS REAL WIDTH (`boreMatch`): the
+strong bore's foam whose shoreward front lies within MATCH_LINE_W_M onshore,
+read at four steps (round 11's lip, the foam over its gradient, holds only a few
+centimeters from the contour, so its width could not reach a meter), and the
+face, the water whose strong bore lies within MATCH_FACE_W_M seaward (its
+strength read there), in the hook and in the sheet's thin part; seaward of the
+line the strong bore thins to a lace net (MATCH_SURF_AMOUNT), drawn by a second
+lace read at MATCH_TILE_K of its tile, folded to MATCH_FOLD, drawn out along the
+shore, mixed in by the strength (one read whose tile followed the strength drew
+contour bands: a scale that varies over space shears the pattern); the strong
+bore's foam a cool white (MATCH_FOAM_TINT, its luma kept); the surf's body a
+deeper teal. The strength keys (world space, the state's own) keep view 1's
+weaker bore at round 8's lace; its sand and film change with the match.
+
+Of 60 numbers, round 8 had 22 inside the Manly spread and round 12 has 45. The
+15 still out: the dry sand's width share (the pose), the film's widest columns
+and the line's presence (no strong bore in the right 16% of the frame at 138 s),
+the line's width in meters (the scale), the face's mean b* (its core is too dark
+and narrow), the foam's b* (-4.4 against -7.6 or bluer), the surf's width, b*,
+bright tenth and strand width (the surf behind the bore keeps round 8's lace: a
+reach that took the coarse lace there drew white discs and a straight seam), and
+the water (the patch's sea-edge fade into the lagoon; a teal body there would
+end at the patch edge as a seam). The bore's foam contrast (foamContrast.py):
+share 0.555, p90 175, x1.37, against Manly's 0.554, 168, x1.39.
+
+THE ONE FOAM FIELD. Foam round 10 landed the sea's foam source term
+(`oceanFoamSources`) during this round. The swash foam is not yet written into
+it: the beach's judged scenes do not mount the foam piece, so a source alone
+would draw nothing there, and with the foam piece mounted the beach's own foam
+would draw twice. The beach keeps its own foam; wiring it is open.
+
+Cost (`beach/r12/bench12.mjs`, four rounds, the order rotating, the viewer's paused GPU bench with the worker stopped; the GPU under other load in these minutes, so the live frame times are left out): at `beach-top` the default draws 7.45 ms against round 8's own file 7.40 ms (the same), the match 8.60 ms (+1.15 ms; bench total 11.95 against 10.74); at `beach-seq` 6.60 against 6.61 ms, the match 7.03 ms (+0.42 ms draw; bench total 11.22 against 10.12). The floor alone draws 2.70 to 2.84 ms. The match's cost is the four onshore reads of the line, the face's reads in the hook and the sheet, and the strong bore's second lace read.
+
+**Round 13 (beach, 2026-09-30): the shape faults.** Round 12's view 2 lost
+(high). Its judge named five shapes that no round-12 number measured: a hard
+dark outline along the sheet's lower edge, two flat color steps up the beach,
+scratch rills, a high-water line traced on the sheet's edge, and foam with
+round holes. `beach/r12/shape.py` measures each on the Manly stills and on ours
+(`.agent/scratch/ocean-gauntlet/beach/measure-shape.md`): the dark band before
+the foam line (Manly's darkest row 0.62 to 0.67 of the film's luma at its p10;
+round 12's 0.32, a stroke), the rise uphill and its largest step, a fall-line
+line energy, the rim on the sheet's top edge and the high-water line above it,
+the windows enclosed by the surf's foam and the lace's orientation, and the
+shoreline's straightness. The changes, all inside `&beachmatch=1` (round 8 stays
+the default at 0 pixels in all four beach poses): the face a soft blue-gray only
+over 0.8 to 2.5 cm of grid water (on the thin film it traced a weak foam
+contour as a thin line); round 8's drawn rills off and the silver sheen
+unstreaked; the rim at the sheet's edge half as strong and broken where the
+edge retreats; the damp sand lightening with the time since the sheet left, a
+wider wet line and the sheet fading in over its top 4 mm; and THE SURF'S NET
+(`surfNet`): the swash tile's fine warped cell net, threads of varying width
+and light round cells of about 0.18 m, drawn out along the shore, over the surf
+within 9 m of a strong bore, with the strong bore's lace read finer (2.2 times
+its tile) and capped (0.45). Of the shape numbers, the edge's p10 and darkest
+luma, the largest step uphill, the rills, the rim's share, the high-water line
+and the windows' size are now inside Manly's spread; the windows' count (36
+against 41 to 56 per 10,000 px), the lace's orientation, the whole rise's length
+and the shoreline's straightness are not. The shoreline's large S-curves (0.055
+of the frame against 0.006 to 0.033) are the 138 s state's run-up, not a look
+setting. Of the 60 round-12 numbers, 43 are inside the spread (45 in round 12).
+VIEW 1 WITH THE MATCH: the rim cut, the sheet's fading edge and the gloss cut
+take the thin bright line off view 1's front too (no world-space key tells the
+two fronts apart: both edges retreat at their judged times); view 1's won look
+is the default build, not the match.
+
+Cost (`beach/r12/bench12.mjs`, four rounds, the order rotating, the viewer's paused GPU bench with the worker stopped, 2026-09-30): at `beach-top` the default draws 5.71 ms against round 8's own file 5.75 ms (the same), the round-13 match 7.34 ms (+1.6 ms; bench total 9.03 against 7.43); at `beach-seq` 5.13 against 5.14 ms, the match 5.97 ms (+0.8 ms draw; bench total 8.09 against 7.03). The floor alone draws 1.95 to 2.03 ms. Against round 12's match (+1.15 and +0.42 ms, other minutes) the net's two tile reads and the reach's six extra reads cost about 0.4 ms more.
+
+**Round 14 (beach, 2026-09-30): what "a flat slab" is.** Round 13's view 2
+lost (high). Every judge since round 3 names the sheet as "one flat, opaque
+slab", but the lead measured more fine texture in ours than in Manly's. So
+`beach/r12/sheet.py` measured the candidates on the Manly stills and on round
+13 before any change (`.agent/scratch/ocean-gauntlet/beach/measure-sheet.md`):
+the film's mid-scale (8 to 40 px) streaks and their orientation, its glints,
+its uphill edge's width and jaggedness were ALL inside Manly's spread. What was
+missing: thin lines along the shore on the wet sand (old swash marks), the wet
+sand darker toward the water (ours had no gradient: 1.00 against 0.83 to 0.86),
+and the surf's foam streaked seaward (ours ran along the shore). The changes,
+inside `&beachmatch=1` only: the fresh wet sand darker over a longer time since
+the sheet left (MATCH_WET_K 0.45, MATCH_WET_S 20 to 70 s); round 11's older swash
+lines (`vOld`) on, as dark grain lines, their bubbles faint (with full white
+scum they drew stitched strokes); the surf net drawn out down the fall line,
+patchy at 1.6 m, and the strong bore's lace no longer drawn out along the shore
+in the surf; the sheet's edge fade over 3 mm. The gradient and the surf's
+orientation (0.60 against 0.55 to 0.59) are now at Manly's; the old swash marks
+rose only from 0.49 to 0.51 (Manly 0.58 to 0.75). The default draws round 8 at 0
+pixels at all four beach poses.
+
+Cost (`beach/r12/bench12.mjs` at `beach-top`, four rounds, the order rotating, the paused GPU bench with the worker stopped, 2026-09-30): the default draws 5.82 ms against round 8's own file 5.74 ms (the same within a round's noise), the round-14 match 7.45 ms (+1.7 ms; bench total 9.13 against 7.42); the floor alone 2.07 ms. Round 13's match drew 7.34 ms at this pose, so round 14's old swash lines and its net changes add about 0.1 ms. (`beach-seq` was not re-measured this round: the round judges view 2 only.)
+
+**Round 16 (beach, 2026-09-30): the swash moves like Manly's.** Round 15's motion
+strips found our run-ups reached only the lower half of the sheet band and the
+upper half held a millimeter film for tens of seconds: a still read as standing
+water, the judges' "flat slab". The match (`&beachmatch=1`, and only the match)
+now runs its own swash: `createBeachSim({ match: BEACH_MATCH_SWASH })` in
+`oceanBeachMath.ts`, asked for by the worker's `init` message (`match: true`).
+The sea's height at the grid's edge times 1.2 (a larger run-up, R2% growing
+with the height), the sand's conductivity 1e-3 m/s (a medium to coarse beach
+sand; the registry's 1e-4 is a fine sand), and the bore's foam gain 6 with a
+thin-sheet life of 14 s (its lace rides up with the run-up). The ledger stays
+exact and the default beach is bit for bit unchanged (a unit test). Measured on
+a strip 1 s apart at 130 to 135 s (`beach/r12/motion.py`,
+`.agent/scratch/ocean-gauntlet/beach/measure-swash.md`): the band's change
+rate 0.40 to 0.60 (Manly 0.44 to 0.77; round 15 0.28 to 0.33), the edge moving
+up the beach at 11 to 29 px/s with the run-up (Manly 5 to 42 both ways; round
+15 1 to 3 down). The judged still moves to 132 s, where the run-up's lace is at
+the band's top. Open: the drain-back is slower than Manly's (the edge's mean
+speed 13 against 21.6 px/s), smaller waves still stop low, the stranded foam
+is drawn at 0.4 in the match, and the cost was measured under load (the
+match's draw 1.60 times round 8's, its live CPU 26.8 ms).
+
+**Rounds 17 and 18 (beach, 2026-09-30): the lip, the speckle, the profile and a new frame.** Round
+17 (inside `&beachmatch=1`): no rim and no silver sheen band at the sheet's lip and a fade over its top 8 mm;
+the thin sheet's own lace at 0.3 and the stranded foam at 0.1 (the band's fine texture at Manly's); sand the
+sheet left under 45 s ago takes the sheet's olive (MATCH_OLIVE_S); a damp ramp from the skin's wetness up to
+2.8 m seaward (MATCH_RAMP_M). Round 18: the lead's decision, a new judged pose `beach-top2` (straight down,
+159 m, s 3.1, a 0, fov 8.35; world pos [-28.6858, 159, -121.3888], look [-28.7068, 139.0000, -121.3609]),
+whose row shares at 132 s match Manly's (the foam line 0.54 of the height from the bottom, the dry sand 0.06,
+the wet and damp zones 0.40; `.agent/scratch/ocean-gauntlet/beach/measure-frame.md`), and the match's damp
+band lighter (MATCH_DAMP_K and MATCH_DAMP_DRY_K 1.0). The profile (`beach/r12/profile.py`,
+`measure-profile.md`): the olive zone at Manly's L* and width, the damp band at its L* and b*; the median
+column does not reach the dry sand, because the wet line's large curves put it at different rows. The
+default is round 8 at 0 pixels at the old poses.
+
+## Rocks
+
+`oceanRocksMath.ts` (the model, no three import), `oceanRocks.ts` (the sea
+read, the clock and the look), mounted by `?extras=rocks&sea=surf`
+(`oceanExtras/rocks.ts`, which places three rocks). Rocks round 1,
+2026-09-29. The bar is real footage (Remy's ruling on the Water and Land
+sheet, q33): Joe Mabel's "Waves crashing on rocks off Beach 4, Kalaloch
+Beach, Washington 02" (CC BY-SA 4.0) and Freestocks' "Big Waves Hitting
+Shore and Sea Lions" (CC BY 3.0), both on Wikimedia Commons, stills in
+`.agent/scratch/ocean-gauntlet/ref/real/rocks/`. The judged views are
+`kalaloch` (a telephoto from the shore, the eye 9 m up and 85 m back, 4.4
+degrees of field, with `&sun=6,168`, a dusk sun ahead of the camera) and
+`daylight` (the eye 2 m up and 14 m from the rock, 50 degrees, the shared
+test sun behind the camera), both at 75.25 s, in
+`.agent/scratch/ocean-gauntlet/rocks/shootRocks.mjs`. A pinned capture of
+the rocks must wait for `__OCEAN__.extras.rocks.settled()` (the rig does);
+`shootOurs.mjs` does not wait.
+
+**The sea at the faces.** Each rock's waterline is cut into 16 face
+sectors (a meter of face each on the 6 m rock). A compute kernel reads the
+FFT sea through `createOceanSampler` (the mesh's own bilinear read and
+range fade, GG-273) 0.4 m outside each face, inverts the choppy
+displacement in four fixed-point steps, and also reads the displacement of
+the parcel that stood there one sample before, so the water's velocity is
+one parcel differenced over time (the buoy's Lagrangian difference). The
+sea does not see the rock, so this is the INCOMING water, which is what the
+relations below take.
+
+**A pinned time re-integrates.** On a new pinned time the piece steps the
+FFT to every sample of the 20 s before it (30 a second, 601 steps in
+separate compute calls), runs the kernel after each into a history buffer,
+puts the sea back, reads the history in one readback, and steps the model
+from rest at 1/60 s with its own seeded generator. A frame is a pure
+function of the time (two page loads of the judged Kalaloch frame differ on
+48 pixels by one grey level). Live, the kernel runs once a frame into a
+32-row ring and the model steps up to the newest row read back.
+
+**The water against a face** (`rockFaceImpact`), per sector per step:
+
+- RUN-UP = eta + K_r h max(eta, 0) + gamma u^2 / 2g. K_r is Seelig and
+  Ahrens's (1981) reflection coefficient, 0.8 xi^2 / (5.5 + xi^2) on the
+  face's Iribarren number xi = tan(slope) / sqrt(Hs / L0) (a rough,
+  impermeable face between their smooth slope and rubble mound); h the
+  share of the wave's heading into the face (0 in the lee); gamma the rough
+  face's share of the velocity head, 0.75 (EurOtop 2018, between a smooth
+  slope's 1.0 and rock armour's 0.55).
+- THE SURF. Rocks stand on a reef (`reefDepthM`, 2.5 m by default), and an
+  arriving wave breaks when its height passes a share of the depth: from
+  H / d = 0.45 (the saturated surf zone, Thornton and Guza 1983) to 0.75
+  (McCowan 1894), H read as 1.8 times the crest's elevation. The broken
+  wave is a bore whose water runs into the face at u = c H / h2 (Stoker
+  1957; 2.9 m/s for a 2 m bore on 4 m). Where the sea draws a whitecap at
+  the face, its front runs at 0.4 of the breaking band's phase speed (the
+  buoy piece's `BREAKER_SPEED_FRACTION`).
+- THE BURST. A fast, high crest against a steep face leaves it as a jet
+  (the flip-through impact; Peregrine 2003 reports jets several times the
+  wave's speed): launch speed 1.7 u sqrt(sin alpha), capped at 14 m/s,
+  gated on the inflow (1.6 to 4.5 m/s) and on the standing crest (0.25 to
+  1.0 m). A calm sea reaches neither gate and throws nothing (unit test).
+- WASH-OVER. Run-up over a face's rim flows onto the top by the
+  broad-crested weir law q = 1.705 h^1.5 (Henderson 1966). The top is a
+  basin: its water stands at the lowest rim plus its depth and drains over
+  each edge by that edge's own head, so a thin sheet leaves over the low
+  edges in a few streams and a deep one pours off every face. The sheet is
+  at most as deep as the head feeding it, and never over 0.5 m.
+
+**What is drawn.**
+
+- SPRAY: a pool of 30,000 particles on the CPU (the buoy burst's pattern:
+  gravity, drag toward the air at 0.45 of U10, a seeded generator). A jet
+  throws 3,600 a second per meter of face at full strength: clumps (90%, 3
+  to 10 cm, drag time 1.2 s) and mist (10%, 12 to 24 cm growing 0.22 m/s,
+  0.3 s, a slow settle; mist is the widest quad and was most of the
+  spray's overdraw at 18%). Clumps and falls are drawn as capsules smeared along their
+  on-screen velocity over 1/24 s (the clips are 30 fps video; at 1/60 the
+  plume read as puffs), their light spread over the smear; mist is a torn
+  soft puff. A clump near the top of its arc thins to a fifth. A pixel
+  floor of 1.5 px conserves each particle's light (the buoy burst's rule),
+  applied on the CPU: the same factor in the shader drew every particle
+  black on this renderer. The light is foam white plus Henyey-Greenstein
+  (g 0.7) forward scattering toward the sun.
+- THE CASCADE: streams leave each draining edge at the sheet's critical
+  speed (sqrt(2/3 g h)) and slide down the face as streaks; on the rock,
+  braided rivulets (two octaves, 3:1 down the face) where the flow runs.
+- THE ROCK: a superquadric (Barr 1981) cut by 11 seeded joint planes (the
+  flat faces and sharp edges of jointed basalt), with a 2 to 4 m lump
+  field, ridged creases and soft 0.42 m ledges, as a 10,242-vertex mesh.
+  Its faces are tabled from that mesh, so the physics and the drawn rock
+  are one shape. Albedo 0.075 in two tones, lit on the scale of the sea's
+  own foam (sun irradiance 3). Wet below the wet line (which falls 1 cm a
+  second) at half the diffuse (Lekner and Dorf 1988) with a Fresnel sheen
+  of the sky; the swash drawn up to the run-up line (which falls at 1.5 m/s
+  after it peaks) as lace at its leading edge; a streaming film for 2.5 s
+  after each wave (Nusselt film drainage).
+- THE WATER STANDS UP: a fine patch of the ocean's own material round each
+  rock (the buoy's method: 0.2 m cells in a 4 m margin, the exact field
+  within 2.5 m of the waterline, the coarse mesh's own triangle at its
+  edge, 12 cm toward the eye), lifted by the face's reflected rise, falling
+  off over 1.6 m.
+- FOAM: a 38.4 m grid (0.3 m cells) per rock, fed by drops landing in the
+  sea, by jets and by breaking at the face (a 2.5 m band, a bore's roller),
+  drifting at 3% of U10 (Wu 1975), e-folding 8 s (Callaghan et al. 2012).
+  It is drawn on the sea's own parcels (and on the mound) through the
+  wake's ranked lace image, cover at most 70% so it keeps holes, torn into
+  wind streaks as it ages, the threshold's edge widened by the rank's
+  change across the pixel (`fwidth`) in place of a mip chain (a mip of a
+  rank averages toward 0.5, which drew solid crescents).
+
+**The `surf` sea** (`oceanSeaStates.ts`): the `waterpro` layout with a
+12 m/s local sea and a 12.7 s swell keeping 4.5% of a 16 m/s, 600 km storm
+(Hs 2.42 m), headed straight onshore. In this pipeline a cascade's waves
+travel toward `windDirRad` + pi (measured, `rocks/travelDir.ts`), so the
+state writes pi / 2 and its waves travel toward -Z. No other state
+changes: the five judged scenes and three no-extras views drew 0 pixels
+different against the file without the state (`rocks/sameShots.mjs`,
+`rocks/sameDiff.py`).
+
+**Cost** (`rocks/perfRocks.mjs`, A `&sea=surf` against B
+`&sea=surf&extras=rocks`, same minutes): the median rAF interval, vsync off, 1600 x 900, 4 rounds A B / B A of 300 frames, 2026-09-29: at the Kalaloch pose pinned at the hit (8,100 particles alive) 2.0 -> 3.7 ms (+1.7), live 2.0 -> 3.6 ms (+1.6); at the daylight pose pinned 2.3 -> 3.3 ms (+1.0), live 2.4 -> 3.8 ms (+1.4). The piece's own CPU update is 0.07 to 0.08 ms; the rest of the rise in the frame's CPU time is GPU time surfacing through back-pressure (see Frame cost). Split at the Kalaloch pose before the cuts below (`rocks/perfParts.mjs`, each part hidden in turn): the spray 1.2 ms (most of it the mist's overdraw), the fine patch 1.0 ms, the rocks 0.3 ms, the foam under 0.1 ms; the mist's share and growth and the patch's area were then cut (first A/B: +3.5 and +2.2 ms pinned). The live path adds one `renderer.compute` call a frame (the face read, about 0.5 ms of CPU by the Frame cost rule) and one small readback. The first frame at a new pinned time waits for 601 FFT steps and one readback (about 1 to 2 s).
+
+**Round 2** (2026-09-29, after both round-1 views lost; Remy's rule that
+all water is one system). The judged frames moved to 45.25 s (the scan put
+a coherent hit at 44.25 to 45.5 s), and `daylight` is now 36 degrees of
+field (at 50 the rock was too small). What changed, and what supersedes the
+round-1 text above:
+
+- ONE SPLASH MODEL. `oceanSplashMath.ts` (pure) and `oceanSplash.ts` (the
+  draw) replace the rocks' private spray. A caller emits water with a
+  position, a velocity, a kind and an opacity; the pool breaks it up in
+  Villermaux's (2007) order: a SHEET (an aerated, opaque mass, 0.22 to
+  0.45 m, growing 0.3 m/s, life 0.3 to 0.65 s) sheds LIGAMENTS and DROPS
+  as it flies and ends in drops and a MIST puff; a FALL is a stream poured
+  off an edge. Children take the parent's opacity. `splashLight` splats
+  the live particles' optical depth into an 18-cell grid (at most 36 m) and
+  marches from each particle toward the sun and straight up
+  (Beer-Lambert, floors 0.15 sun and 0.45 sky), so the plume's top is
+  bright, its core and underside grey, its edges lit through.
+  `sunThroughAir` dims the sun by its airmass (Kasten and Young 1989). The
+  draw computes every per-particle value in the vertex stage and passes it
+  as a varying (round 1's lesson: attribute math in the fragment stage drew
+  black on this renderer), with streaks smeared over each kind's exposure
+  (1/30 to 1/12 s). The spray piece (`oceanSpray.ts`) stays its own: it is
+  born on the sea's whitecaps inside its GPU kernel and cannot take a jet
+  from a solid. The buoy burst and the skip stones' crown can move onto
+  this pool (the rocks report lists the calls).
+- THE SEA BREAKS OVER THE REEF. `oceanBathymetry.ts` is a sea-owned module:
+  up to 8 depth shelves per field (keyed on `field.buffers`), a TSL
+  `depthAt`, a `breakShare` (H / d from 0.45 to 0.75) and per-band shoal
+  gains (Green's law fitted to the linear-theory coefficient, dRef = d
+  Ks^4, gain max(1, (dRef / d)^0.25)), with CPU twins for the tests. The
+  rocks set a reef at 2.5 m inside 7 m, a slope to 10 m at 24 m. The
+  surface reads the gains and the foam field reads the break share only
+  through the lead's two patch scripts
+  (`.agent/scratch/ocean-gauntlet/rocks/patches/patchSurfaceShoal.mjs`,
+  `patchFoamOneWater.mjs`), not yet applied.
+- WHITE WATER IN THE ONE FOAM FIELD. The model bins its foam events (0.5 s,
+  1.5 m cells, radius 1.25 m, kept 25 s) into timed sources
+  (`rockFoamSources`); with the foam patch applied, the rocks hand them to
+  `oceanFoamOf(field).setSources` and the sea's own foam draws the collar,
+  the flanks and the cascade's foam, replayed in the foam warm-up for a
+  pinned time. `?rockFoam=field|own` picks the path (`auto` takes the
+  field when the foam piece is mounted and patched); the round-1 own grid is
+  kept behind `own`. `stats().foamPath` names the path a capture used. The
+  foam patch weights the reef's share by `reefGain` 0.4: at 1 the shelf in
+  front of the daylight camera drew as solid white blotches (22% of the
+  lower frame over 200 of 255, against 1.6% at 0.4; `rocks/reefProbe.mjs`).
+  To serve a pending patch to one browser, `rocks/serveRoutes.mjs` names
+  each copy by its content hash: Vite does not watch `.agent/`, and it kept
+  its first transform of a rebuilt copy with the same name.
+- THE ROCK. A star-shaped union of superquadric lobes (the main rock 4
+  lobes, 14 joint facets) in place of one superquadric, so it reads as a
+  fractured, jointed stack; a vertex cavity term (occlusion in cracks);
+  a dry, lichened top, a weed band, broken joint cracks, rivulets and a
+  film, white streaks under the lip and the sheets, and a wet sheen (Blinn
+  power 60 at half weight with bead noise) below the wet line.
+- THE POUR-OFF. Sheets and falls leave the draining edges (260 falls a
+  second at full flow, 2 to 5 cm) and each cascade deposits foam at its
+  foot (40 per cascade), so the water off the rock ends in foam.
+- COST (own foam path, tracked files; `rocks/perfRocks.mjs` A `&sea=surf`
+  against B `&sea=surf&extras=rocks`, 4 rounds of 400 frames, vsync off,
+  pinned at the 45.25 s hit, 2026-09-29): Kalaloch 2.1 -> 4.8 ms (+2.7),
+  live +3.4; daylight 2.5 -> 4.6 ms (+2.1), live +3.2. That is about 1 ms
+  over round 1. Split at the hit by hiding each part
+  (`rocks/perfParts.mjs`, Kalaloch then daylight): the splash 0.8 and 1.0
+  ms, the rocks' material 0.6 and 1.2 ms, the fine patch 0.3 and 0.5 ms,
+  the own foam 0.1 and 0.2 ms. The piece's CPU update is 0.4 to 0.6 ms:
+  `splashLight` marches once per occupied cell and runs on one frame in
+  three (it was 1.4 to 2.8 ms with a march per particle every frame).
+- TESTS. 23 in `__tests__/oceanRocksMath.test.ts`: the pool's breakup,
+  the light's order (top over core), `sunThroughAir`, the bathymetry
+  twins, the foam sources, a calm sea quiet, bit-exact replay.
+
+**Two sea findings from round 2** (measured with
+`rocks/seaProbe.mjs` and `seaProbe.py` on the plain `surf` sea):
+
+- THE TELEPHOTO. The stretch is not a fault. The mean horizontal gradient
+  over the mean vertical one is 0.27 on the plain `surf` sea at the
+  Kalaloch pose and 0.31 to 0.32 on the clip (k2_012, k2_014): a grazing
+  telephoto compresses the water along the view in the real frame too. The
+  gap is contrast: the vertical gradient is about 2.4 times the clip's
+  after the scale change. It comes from the reflected radiance. The dark
+  dashes are in that term (debug channel 7), at the same density in a
+  50-degree view (1.8% against 2.1%): the sea-self reflection of back
+  faces (GG-276). No far tune changes them. A trial that makes the normal
+  range fades follow the zoom
+  (`rocks/patches/patchSurfaceTelephoto.mjs`) changed the gradients by
+  under 0.1%, so the distance fades are not the cause; do not apply it.
+- THE DUSK SUN. `?sun=6,168` lifts the water's mean luma from 122 to 130,
+  where the Kalaloch clip's water is 75: the sky gradient (`skyGradient`)
+  and the body colors do not depend on the sun's elevation. So the Kalaloch
+  view is judged under the test sun.
+
+**Round 3** (2026-09-30, after both round-2 views lost at high confidence:
+a sprite cloud with no light, a rock like glossy plastic, white water as a
+flat decal). The four gaps were fixed in one build (single levers lose).
+What changed, and what supersedes the text above:
+
+- THE PLUME IS A VOLUME. `SplashVolume` (oceanSplashMath.ts, pure) splats
+  one rock's sheets, strands, drops and mist into a density grid (sigma,
+  1/m, cells of 0.2 m; the main rock 56 x 48 x 48, the small rocks 36 x 32
+  x 32; the grid follows the plume, its origin snapped to whole cells), each
+  particle's optical cross-section (extinction x size^2 x its drawn alpha,
+  `splashDrawnAlpha`) times a PARCEL GAIN per kind (sheet 1.5, strand 6,
+  drop 11, mist 0.4, fall 0: the pool holds 40,000 particles where a burst
+  is millions of drops; with the sheets alone the plume drew as a few white
+  balls, rk3b). It marches the light once per cell of a half-resolution
+  grid toward the sun and straight up (floors 0.15 sun, 0.3 sky).
+  `createOceanSplashVolumeDraw` (oceanSplash.ts) uploads both as 3D
+  textures and draws the occupied box as up to 96 slices across the world
+  axis nearest the view, far to near in one draw call, each slice fragment
+  a sample of the medium (opacity 1 - exp(-sigma d / cos)). Slices, not one
+  marched box, because each slice is depth-tested against the rock and the
+  sea: the plume is hidden behind the rock's face and cut at the water (the
+  renderer draws with 4x MSAA, and WebGPU does not allow a copy of a
+  multisampled depth buffer, so a marched box could not stop at the rock).
+  Detail: the sky's billow volume (`cloudPuffVolume`) at 2.2 m and 0.45 m,
+  stretched 1.8 along the vertical and rising at 1.2 m/s, erodes the rim
+  (the cover remap of Schneider 2015) and shades its own folds; each sample
+  also reads the medium 0.25 m toward the sun and 0.3 m up (the local
+  shadow of a 20 to 40 cm billow, below the light grid's 0.4 m). The light
+  is the foam white times the sky's share (tinted by the sky) at 0.55 and
+  the sun's share at 0.5 with a Henyey-Greenstein lobe, and the sea's bounce
+  on undersides. Only the drops (at 0.4 alpha, they are also in the volume)
+  and the drips stay particles, smeared over 1/120 s and 1/60 s (round 2's
+  1/24 s streaks read as rain).
+- THE JET STANDS BEHIND THE ROCK: 0.35 of the face's lean (was 0.6); as a
+  volume the burst thrown over the top hid the whole rock from the shore.
+- THE CHURN: a breaking sector throws aerated masses (30 a second per meter
+  of face at full breaking, 0.15 to 0.3 m (at 0.25 to 0.5 m each drew as a
+  cotton ball on the arriving crest), 0.6 to 2.2 m/s up, surging along
+  the face at up to 0.8 of the inflow) within 1.8 m of the waterline; they
+  land within a second and lay foam, and in the volume they are the thick
+  white collar at the base.
+- THE STONE. Fractured plates in the mesh (`rockPlates`: a Voronoi field of
+  0.55 m cells, each sunk 0 to 6 cm, a 3.5 cm groove on every border), and
+  a height field of pits (Worley, 6 cm and 2.2 cm cells, 1.5 cm and 0.5 cm
+  deep), a 1.2 cm crust and 2.5 cm knobs that bends the normal by its
+  screen-space derivatives (Mikkelsen 2010; one read a pixel, where round 2
+  took eight). Wet stone keeps its relief (round 2 blended the wet normal
+  75% to the smooth mesh normal: the "car roof"); water fills only the pits
+  and the crust (45%). The albedo spreads 0.05 to 0.16 with the pits' shade.
+- THE WATER ON THE ROCK IS GEOMETRY. A shell of the rock's own mesh pushed
+  out 2 cm, plus up to 5 cm where the cascade runs, drawn over the rock:
+  thin white streams down the faces from the lip (streaks moving down at
+  sqrt(2 g z), capped at 3.2 m/s), the swash's aerated leading edge, the
+  sheet's spill at the rim, and a clear film seen by its glints and a weak
+  sheen. The top of a washed rock stays dark (k2_014); white clumps on the
+  top read as a cow's hide (rk3h).
+- THE WHITE WATER IS THE SEA'S FOAM (foam round 10's registry). The rocks
+  add a timed-disc source (`oceanFoamDiscSource('rocks')`, 96 slots, the
+  newest discs first) through `oceanFoamSources(field).add`, and on a
+  pinned page call `invalidate()` after their discs change. The foam piece
+  must run: `extras=foam,rocks` (the mount fails with that message
+  otherwise); `?rockFoam=own` keeps the round-1 grid for an A/B only.
+- THE SKY'S DUSK (a patch script for the lead, not applied):
+  `rocks/patches/patchSkyDusk.mjs` makes `skyGradient` take the sun's
+  elevation: the clear sky dims to 0.42 and its low band warms under a low
+  sun, exactly unchanged for a sun at 25 degrees or higher. Until it lands,
+  the Kalaloch view is judged under the test sun.
+- TESTS: 24 (the volume: dense at its base, the mass kept by the splat,
+  the top lit over the core, pure; plus the 23 of round 2).
+- NO OTHER VIEW CHANGES: `rocks/sameShots.mjs` (the five judged scenes and
+  three no-extras views, base against the files on disk, same minutes):
+  every differing pixel is inside the perf toolkit's fps pill (x 1538 to
+  1555, y 873 to 879; the rig does not hide it), except one pixel of the
+  storm scene at (445, 434), in the rain and spray the rocks do not touch.
+  A judged frame shot alone and the same time in a strip differ on 0.4% of
+  pixels by more than 8/255 (the foam field's replay and the light's
+  cadence), not in the plume's shape.
+
+- A PINNED STATE FOLLOWS THE SEA CENTER. The surface's dense center
+  follows the camera and lands a frame after a pose change; a prime started
+  on that frame read the faces with the old center, so one pinned time drew
+  two plumes (the judged daylight frame shot after the Kalaloch one against
+  the strip). A pinned state whose center moved since its prime is primed
+  again.
+- COST (field path; `rocks/perfRocks.mjs` A `&sea=surf&extras=foam` against
+  B `&sea=surf&extras=foam,rocks`, 400 frames, vsync off, pinned at 45.25 s,
+  2026-09-30; 2 of 4 rounds, the run stopped for time; before the last
+  splat and churn change, which only shrinks kernels): Kalaloch 2.8 -> 5.4
+  to 5.6 ms (+2.6 to +2.8), live 2.9 -> 6.1 to 6.8 ms; daylight 3.0 -> 5.0
+  ms (+2.0), live 3.0 -> 7.0 ms. Split at the Kalaloch hit by hiding each
+  part (`rocks/perfParts.mjs`, PARTS=plume,drops,water,rocks,patch): the
+  plume volume 0.9 ms, the fine patch 0.8 (it reads the foam field now),
+  the rocks 0.5, the drops 0.3, the water shell 0.2. The first A/B, with a
+  slice every 0.7 cell and every read unbranched, had the Kalaloch frame at
+  +7.1 ms pinned: the telephoto's slices cover the whole screen. Now a
+  slice every 1.8 cells (0.36 m), and every read past the first is in a
+  branch on the density there (an empty fragment pays one read). The CPU
+  side is 0.3 to 0.5 ms a live frame (the splat, the light every second
+  write, the upload of 129 KB and 64 KB of 3D texture).
+
+**Round 4** (2026-09-30, after both round-3 views lost at high confidence:
+the burst not rooted at the impact, one flat light, round cauliflower
+lumps, a rock that is not seen to be struck). The four gaps both judges
+named were fixed in one build. What changed, and what supersedes the text
+above:
+
+- THE BURST IS ROOTED ON THE STRUCK FACE. A jet needs the arriving parcel
+  to meet the face head on (`ROCK_STRUCK_START` 0.4 to `ROCK_STRUCK_FULL`
+  0.77 of its heading into the face) AND a face that looks at the incoming
+  sea (`ROCK_FACING_START` 0.05 to `ROCK_FACING_FULL` 0.45 of the outward
+  normal against the sea's heading): a parcel's velocity swings with the
+  short waves, and without the second gate a near-left face threw sheets up
+  at 2.5 to 4 m/s in front of the rock from the shore (rk4c, measured with
+  `rocks/r4/dumpShots.mjs` and `plotDump.py`). The churn takes the same
+  share, with a floor of `ROCK_CHURN_LEE_SHARE` 0.25 (the bore wraps round),
+  and leaves lower (0.3 to 1.2 m/s up).
+- THE JET LEANS BACK OVER THE SEA: `ROCK_JET_BACK_RAD` 0.14 to 0.38 rad
+  seaward (the faster core leans less), spread 0.08, fanned only along the
+  face (`ROCK_JET_ALONG_RAD` 0.35): a curtain along the struck length, thin
+  across it (rounds 1 to 3 leaned it over the rock and fanned it 0.77 rad).
+- THE AIR IS STILL IN FRONT OF THE STRUCK FACE. The surf sea's wind blows
+  onshore, so the struck face is the windward face, and the air in front of
+  a bluff body stagnates below its top (Castro and Robins 1977): a point
+  upwind of the rock's center, within `ROCK_STAGNANT_REACH_M` 6 m and below
+  its top plus `ROCK_STAGNANT_OVER_M` 0.8 m, feels `ROCK_STAGNANT_SHARE`
+  0.12 of the air (`SplashEnv.airShare`, new and optional in the shared
+  pool). At 0.45 of U10 everywhere the drops were blown 2 to 4 m over the
+  rock toward the shore (rk4b).
+- THE PLUME IS TORN SHEETS. `SplashVolume` splats each parcel as an
+  ellipsoid along its flight: its long radius the round one plus its travel
+  in `SPLASH_VOLUME_STRETCH_S` (sheet 0.07 s, strand 0.12, drop 0.1, mist 0),
+  at most `SPLASH_VOLUME_MAX_ELONG` 4 times, its cross radius thinned by the
+  square root (never under 1.1 cells: under that a kernel between cell
+  centers held only its middle row), the mass kept; the grid's fit holds
+  every kernel's reach. The volume also keeps its mass-weighted flight axis
+  (`axisX/Y/Z`, and per light cell in the lit texture's blue and alpha), and
+  the draw stretches its detail along it (a 1.8 m tile 2.2 times, a 0.5 m
+  tile 3.2 times, weighed 0.58 and 0.42, sliding along the axis at 1.6 m/s);
+  erosion 0.65. The per-pixel jitter is now three quarters a smooth 0.6 m
+  field: at a full pixel hash the fine detail drew as grain (both judges'
+  "speckled grain", "sprite dots"). Sheets weigh 2.5 in the volume (was 1.5)
+  and the volume gain is 4.5 (was 3.5): an opaque root on the face.
+- THE LIGHT HAS DEPTH. The light grid's floors are 0.06 of the sun and 0.18
+  of the sky (were 0.15 and 0.3), the local shadow a 0.35 m step with a floor
+  of 0.12, the sky's local shade a floor of 0.3, the fold shade 0.8, and the
+  sun's share 0.7 against the sky's 0.45; the forward glow is strongest where
+  the medium is thin (a back-lit rim). Measured (`rocks/r4/lumaPlume.py`, the
+  plume's pixels over the water's median plus 12): the ratio of the 95th to
+  the 25th percentile is 1.34 on k2_012 and 1.30 on ours at the test sun
+  (round 3: 1.1).
+- THE DROPS DRAW UNDER THE PLUME (render order 12.5, before the volume's 13)
+  at 0.3 of their alpha: a drop inside the medium is covered by it, and only
+  the rim's drops show on their arcs.
+- THE ROCK. The 2.2 cm pits are cut (2 to 3 pixels at both views: speckle);
+  the 6 cm pits are 0.6 cm deep and the crust 0.7 cm; a 4 cm swell at 1.1 m
+  carries the form. A soaked band from the sea's level up 0.9 m draws at 0.62
+  of the wet stone's diffuse and glossier; the wet sheen's normal is 60% the
+  mesh's own (the rock's shape) in 0.5 to 1 m film patches. The shell's
+  pour-off is at full weight under the lip and 0.6 of it down the face (was
+  0.525 at best), in wider streams that join in a strong cascade.
+- THE FOAM SOURCES. `ROCK_FIELD_SHARE` 0.6 of the grid's rate, discs of
+  1.0 m on 1.2 m cells (were 1.25 and 1.5; at 0.8 and 1.0 with a share of
+  0.45 the collar was nearly gone, rk4e), and a landing drop lays 0.0008
+  (was 0.003): the round-3 daylight "decals" were the rocks' own discs (with
+  `?rockFoam=own` and the own foam hidden they go, rk4a-reefonly), saturated
+  by 100,000 drop landings. The foam field still draws a saturated disc as a
+  solid shape (the foam piece's look).
+- THE REEF FLAT is 3.5 m past the waterline, its edge at 15 m (were 7 and 24),
+  so the depth-limited breaking gathers at the rock.
+- COST (field path; `rocks/perfRocks.mjs` A `&sea=surf&extras=foam`
+  against B `&sea=surf&extras=foam,rocks`, 2 rounds of 400 frames, vsync
+  off, pinned at 45.25 s, 2026-09-30): Kalaloch 2.7 -> 5.4 ms (+2.7), live
+  +3.0; daylight 2.9 -> 4.7 ms (+1.8), live +2.9; the piece's CPU 0.3 to 0.8
+  ms. The first A/B had the Kalaloch frame at +3.5 ms pinned: the smooth
+  jitter's noise ran on every empty slice fragment; it is now behind a first
+  density read at the slice's own point (a margin of 0.004 against the
+  draw's 0.012; the judged frames moved by at most 1 grey level on 69
+  pixels, rk4f against rk4g).
+- THE JUDGED TIMES. The frames stay at 45.25 s (the late burst with the top
+  flooded). The window scan (`shootRocks.mjs scan 42 47`) puts the jet's
+  onset at 43.5 to 43.75 s and its peak at 44.25 to 44.5 s, so the strip
+  now starts at 43.25 s (0.25 s apart): the water rising at the base in
+  s00 and s01, the first jet in s02, the burst growing and the sea washing
+  over the rock in s03 to s05.
+- TESTS: 27 (the struck-face gate, the seaward lean, the drawn-out kernel
+  and its mass, plus the 24 of round 3; the tests' sea now travels toward
+  -X, as their wave train and struck face always assumed).
+
+**Round 4 findings.**
+
+- THE SKY'S DUSK PATCH (applied by the lead) changes one judged scene. The
+  five judged scenes and three no-extras views against the sky before the
+  patch (`rocks/sameSkyShots.mjs`, `patches/unpatchSkyDusk.mjs`, the fps pill
+  hidden): 0 pixels in seven; `under` differs on 97% of its pixels by up to
+  14 of 255 (mean 6). The underwater piece reads its blurred window with a
+  sun of (0, -1, 0) as a "no sun" marker (`sunForMean`), which the patch
+  reads as a night sun. `patches/patchSkyDuskUnder.mjs` (for the lead) gives
+  a sun under -0.5 the day sky: with it, all eight are 0 pixels.
+- THE DUSK WATER. Under `&sun=6,168` with the sky patch the Kalaloch water
+  (the lower 45% of the frame) has a mean luma of 114, against 125 under the
+  test sun and 75 on k2_012: the body does not dim (its `lit` term is
+  normalized by the sun's elevation). `patches/patchSurfaceDusk.mjs` (for
+  the lead) scales the body by the irradiance on the sea (0.29 at 6 degrees,
+  exactly 1 at 25 degrees or higher): 104 with it. The rest of the gap is
+  the reflected sky's warm band.
+- THE BANDING round the rock at the telephoto is the sea's reflected term
+  (round 2's finding, GG-276): it is the same with the fine patch hidden
+  (rk4b-nopatch).
+- `patchSkyDusk.mjs` (round 3) skips its first path when no `--out` is
+  given and writes the tracked default; the round-4 patch scripts are fixed.
+
+**Open.** The sea surface still does not know the rock: its crests pass
+through the footprint and its whitecaps are not cut in the lee (a
+footprint mask, the beach's `hide` pattern, would remove that). The
+cascade's water is not coupled back into the sea's height; the model reads
+16 sectors a rock, so a gully between two lobes has no flow of its own.
+Round 4: the plume's fibers are a noise stretched along ONE flight axis
+per rock (the per-cell axis is in the lit texture but the draw does not
+read it yet), so a burst whose parts fly different ways is streaked one
+way; its body still reads as a curtain of vertical lobes more than as a
+torn sheet. The foam field draws a saturated source disc as a solid shape,
+so the collar is either blotches or thin (the foam piece's look); the disc
+source holds 96 discs and the model about 340 at the hit. The sea's body at
+dusk and the underwater marker need the lead's patches
+(`patchSurfaceDusk.mjs`, `patchSkyDuskUnder.mjs`). The telephoto's banding
+is the sea's reflected term (GG-276).
+
 ## Frame cost
 
 Verified: 2026-09-25, at the end of the performance pass (ten iterations,
@@ -5182,6 +6319,14 @@ by the marginal cost between two step counts, never by one fenced window.
   band's mean column and spread; `glintcrop.py` the glints in the judged
   crop's mid field; `midStats10.py` the lead's `midStats.py` for any two
   frames; `p10_exp.py` and `s10_exp.py` the experiment tunes (never pushed).
+- `.agent/scratch/ocean-gauntlet/distance11/` (distance round 11): the same
+  rig. `final11.py` holds the five step-1 variants (never pushed);
+  `patch11b.py` is step 2's patch (the test sun). `runS.mjs` runs a batch
+  on the tracked files, the test sun (`work_on/`) or its off value
+  (`work_off/`). `mkRigs.mjs` makes copies of the lead's capture rigs and
+  the buoy strip rig (`rigs/shoot_sun*.mjs`) that can serve a working copy;
+  `reshoot.sh` shoots every won piece's judged views in one state;
+  `sunTable.sh`, `sweepTable.py` and `sunSheet.py` compare and show them.
 - `npx vitest run src/systems/world3d/ocean/__tests__/oceanSpray.test.ts` —
   the spray's fixed-step plan (restart on a camera cut, a turn or a
   footprint change; a catch-up that converges), its wind, the Beaufort
@@ -5428,7 +6573,8 @@ by the marginal cost between two step counts, never by one fenced window.
   persistent foam field; the hull has no inertia and the wave field no
   breaking loss; in a turn the deposit sweeps along the chord, not the
   curved track.
-- No sun glitter path at the judged pose (GG-283): the sun is 60 degrees
-  up. Cloud lighting has no silver lining (GG-284). Round 4's frame time
+- The judged pose has a glitter path since distance round 11's test sun
+  (GG-283, GG-329); it sits 30 to 90 px right of the reference's, and its
+  glints read as hard white chips (GG-330). Cloud lighting has no silver lining (GG-284). Round 4's frame time
   was measured under another process's GPU load (GG-285). The default
   sea's near field is a flat teal (GG-286).

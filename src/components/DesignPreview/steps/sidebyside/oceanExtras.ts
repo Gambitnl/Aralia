@@ -27,6 +27,23 @@
  * reports it on the page and on `__OCEAN__.error`, so a capture never shows a
  * sea that quietly lacks the piece under test.
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 28/09/2026, 13:55:37
+ * Dependents: components/DesignPreview/steps/sidebyside/SideBySideOcean.tsx, components/DesignPreview/steps/sidebyside/oceanExtras/beach.ts, components/DesignPreview/steps/sidebyside/oceanExtras/buoys.ts, components/DesignPreview/steps/sidebyside/oceanExtras/foam.ts, components/DesignPreview/steps/sidebyside/oceanExtras/rain.ts, components/DesignPreview/steps/sidebyside/oceanExtras/seabed.ts, components/DesignPreview/steps/sidebyside/oceanExtras/spray.ts, components/DesignPreview/steps/sidebyside/oceanExtras/underwater.ts, components/DesignPreview/steps/sidebyside/oceanExtras/wake.ts
+ * Imports: 2 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import type * as THREE from 'three/webgpu';
 import type { OceanField } from '@/systems/world3d/ocean/oceanField';
 import type { OceanSky } from '@/systems/world3d/ocean/oceanSky';
@@ -60,6 +77,15 @@ export interface OceanExtra {
    * `__OCEAN__.extras[<piece name>]`.
    */
   readonly probe?: Record<string, unknown>;
+  /**
+   * Optional. Something the camera can follow: its world position (the
+   * point to keep centered) and its heading in the XZ plane (radians, from
+   * +X toward +Z), as of the last `update`. The viewer shows a "Pin camera"
+   * button when a mounted piece has one (Remy, 2026-09-28: "pin the camera to
+   * the ship ... keeps the ship centered"). Nothing reads it while the button
+   * is off, so a piece that adds it changes no captured frame.
+   */
+  followTarget?(): { xM: number; yM: number; zM: number; headingRad: number } | null;
 }
 
 interface ExtraModule {

@@ -1345,6 +1345,10 @@ export interface FoamLaceWeights {
   readonly wispFine?: number;
   /** The hair, the min of both hair channels (round 9, FOAM_LACE_HAIR); absent, 0. */
   readonly hair?: number;
+  /** The bubble cells and the streaks (round 10, the fourth tile); absent, 0. */
+  readonly cellS?: number;
+  readonly cellL?: number;
+  readonly streak?: number;
 }
 
 /**
@@ -1636,6 +1640,84 @@ export function foamTileHairFine(s: number, t: number): number {
 }
 
 /**
+ * THE BUBBLE CELLS AND THE STREAKS (round 10). The round-9 verdicts under
+ * the new sun, from above, read the hair fill as "a hatch of fine parallel
+ * hair strokes, like stamped fur" and asked for "a cellular, marbled lace
+ * of bubbles and holes", like the few small patches the fold lays (the lay
+ * signal's crackle); and the old foam's hairs in the upper half as "short
+ * parallel hatch strokes, like pencil shading", where wind streaks are
+ * "long, thin, continuous lines that vary in width and fade out at each
+ * end". So a FOURTH TILE, three channels on one period (one fetch):
+ *
+ *   cellS:   the Worley network (`foamTileCell`, the warp of FOAM_LACE) 0.45 m
+ *            across and 1.5 times that along the wind: 0 on a wall, 1 in a
+ *            hole. Under the threshold a dense core is solid with small
+ *            round holes, a mid coverage a marbled net, a thin one broken
+ *            walls: the bubble raft's own structure.
+ *   cellL:   the same network four times larger (1.8 m by 2.7 m), so the
+ *            holes have two sizes and the lace is not one cell at one scale
+ *            (the round-7 and round-8 verdicts on the 0.9 m net alone).
+ *   streak:  long thin fibers along the wind (the fiber generator on a
+ *            5.4 m by 3.6 m lattice, 8 to 19 m long, 0.24 to 0.55 m wide,
+ *            within 0.1 rad of the wind, bent 0.15, floors 0 to 0.7), so
+ *            under the old table's threshold the COUNT of streaks follows
+ *            the coverage and each streak's width tapers where its distance
+ *            field meets the threshold: it fades at both ends.
+ *
+ * The tile's period is 86.4 m along the wind by 57.6 m across; 1024 texels
+ * give 8 texels a small cell and 4 texels across a streak. Read where the
+ * hair is read (the aligned fibers under 3 px wide on screen), through its
+ * own tables (FOAM_LACE_YOUNG_CELLS, FOAM_LACE_OLD_CELLS,
+ * FOAM_LACE_FRINGE_CELLS), behind the read's `cells` control (0: round 9).
+ */
+export const FOAM_CELLS_ALONG_M = 86.4;
+export const FOAM_CELLS_ACROSS_M = 57.6;
+export const FOAM_CELLS_S_COUNT = 128;
+export const FOAM_CELLS_L_COUNT = 32;
+export const FOAM_SALT_CELLS = [0x6a3d, 0x1f57] as const;
+export const FOAM_LACE_STREAK: FoamLaceShape = {
+  ...FOAM_LACE,
+  // 16 cells across the tile: 5.4 m along the wind by 3.6 m across. The
+  // generator works in cell units, so a fiber's length is along-wind meters
+  // over 5.4 and its width across-wind meters over 3.6.
+  fiberCellM: 5.4,
+  fiberCount: 16,
+  fiberSpreadRad: 0.1,
+  fiberLenLoCells: 1.5,
+  fiberLenHiCells: 3.5,
+  fiberHalfWCells: 0.055,
+  fiberBend: 0.15,
+  fiberDepth: 0.7,
+};
+export const FOAM_SALT_STREAK = [0x33c7, 0x7d19] as const;
+
+/** The small bubble cells at tile coordinate (s, t) of the fourth tile. */
+export function foamTileCellS(s: number, t: number): number {
+  return foamTileCell(s, t, FOAM_CELLS_S_COUNT, FOAM_SALT_CELLS[0]);
+}
+/** The large bubble cells at tile coordinate (s, t) of the fourth tile. */
+export function foamTileCellL(s: number, t: number): number {
+  return foamTileCell(s, t, FOAM_CELLS_L_COUNT, FOAM_SALT_CELLS[1]);
+}
+/** The streaks at tile coordinate (s, t) of the fourth tile. */
+export function foamTileStreak(s: number, t: number): number {
+  return foamTileFiber(s, t, FOAM_LACE_STREAK, FOAM_SALT_STREAK);
+}
+
+/**
+ * The cell tables (round 10). Young foam: mostly the small cells, a
+ * quarter the large, so a fresh raft is solid with small holes and its
+ * thinner parts a marbled net. Old foam: the large cells and the streaks,
+ * so a dying trail opens into big holes and ends in streaks along the
+ * wind. The fringe: the streaks and the large cells' walls, so an edge
+ * feathers into strands and holes. A little clump and strand in each
+ * breaks the lattice's regularity.
+ */
+export const FOAM_LACE_YOUNG_CELLS: FoamLaceWeights = { cell1: 0, fiber: 0, clump: 0.1, strand: 0.05, cellS: 0.6, cellL: 0.25 };
+export const FOAM_LACE_OLD_CELLS: FoamLaceWeights = { cell1: 0, fiber: 0, clump: 0.05, strand: 0.05, cellS: 0.15, cellL: 0.35, streak: 0.4 };
+export const FOAM_LACE_FRINGE_CELLS: FoamLaceWeights = { cell1: 0, fiber: 0, clump: 0.05, strand: 0, cellS: 0.1, cellL: 0.3, streak: 0.55 };
+
+/**
  * THE BUBBLES (round 8). The round-7 verdict from above: a patch's edge is
  * "a threshold cut" where the reference's "dissolves into isolated bubbles
  * and flecks". Under the threshold lace the last texels a fading patch
@@ -1714,9 +1796,9 @@ export function foamLaceTileCoords(a: number, b: number, shape: FoamLaceShape = 
  * @param b meters across the wind.
  */
 export function foamLaceRaw(
-  a: number, b: number, weights: FoamLaceWeights = FOAM_LACE_YOUNG, shape: FoamLaceShape = FOAM_LACE, curl = false, wisp = false, dot = false, hair = false,
+  a: number, b: number, weights: FoamLaceWeights = FOAM_LACE_YOUNG, shape: FoamLaceShape = FOAM_LACE, curl = false, wisp = false, dot = false, hair = false, cells = false,
 ): number {
-  return foamLaceMix(foamLaceLayers(a, b, shape, curl, wisp, dot, hair), weights);
+  return foamLaceMix(foamLaceLayers(a, b, shape, curl, wisp, dot, hair, cells), weights);
 }
 
 /** The four layers of the lace at a point, each on 0 to 1, before weighting; the wisps when asked (round 7). */
@@ -1730,6 +1812,10 @@ export interface FoamLaceLayers {
   readonly wispFine?: number;
   /** The hair (round 9): the min of the long hair and the fine hair channels. */
   readonly hair?: number;
+  /** The bubble cells and the streaks (round 10). */
+  readonly cellS?: number;
+  readonly cellL?: number;
+  readonly streak?: number;
 }
 
 /**
@@ -1738,8 +1824,12 @@ export interface FoamLaceLayers {
  * wisp with it (both are round 8's, on the same fetch); with `hair` the
  * min of the two hair channels (round 9, their own tile, one fetch).
  */
-export function foamLaceLayers(a: number, b: number, shape: FoamLaceShape = FOAM_LACE, curl = false, wisp = false, dot = false, hair = false): FoamLaceLayers {
+export function foamLaceLayers(a: number, b: number, shape: FoamLaceShape = FOAM_LACE, curl = false, wisp = false, dot = false, hair = false, cells = false): FoamLaceLayers {
   const tc = foamLaceTileCoords(a, b, shape);
+  // The fourth tile (round 10): its own period, one coordinate for its three channels.
+  const fr = (v: number) => v - Math.floor(v);
+  const c4s = fr(a / FOAM_CELLS_ALONG_M);
+  const c4t = fr(b / FOAM_CELLS_ACROSS_M);
   return {
     cell1: foamTileCell(tc.c1[0], tc.c1[1], shape.cell1Count, FOAM_SALT_CELL[0], shape),
     fiber: curl ? foamTileCurl(tc.fb[0], tc.fb[1]) : foamTileFiber(tc.fb[0], tc.fb[1], shape),
@@ -1748,6 +1838,7 @@ export function foamLaceLayers(a: number, b: number, shape: FoamLaceShape = FOAM
     ...(wisp ? { wisp: foamTileWisp(tc.fb[0], tc.fb[1]) } : {}),
     ...(dot ? { dot: foamTileDot(tc.fb[0], tc.fb[1]), wispFine: foamTileWispFine(tc.fb[0], tc.fb[1]) } : {}),
     ...(hair ? { hair: Math.min(foamTileHair(tc.fb[0], tc.fb[1]), foamTileHairFine(tc.fb[0], tc.fb[1])) } : {}),
+    ...(cells ? { cellS: foamTileCellS(c4s, c4t), cellL: foamTileCellL(c4s, c4t), streak: foamTileStreak(c4s, c4t) } : {}),
   };
 }
 
@@ -1755,7 +1846,8 @@ export function foamLaceLayers(a: number, b: number, shape: FoamLaceShape = FOAM
 export function foamLaceMix(l: FoamLaceLayers, w: FoamLaceWeights): number {
   return l.cell1 * w.cell1 + l.fiber * w.fiber + l.clump * w.clump + l.strand * w.strand
     + (l.wisp ?? 0) * (w.wisp ?? 0) + (l.dot ?? 0) * (w.dot ?? 0) + (l.wispFine ?? 0) * (w.wispFine ?? 0)
-    + (l.hair ?? 0) * (w.hair ?? 0);
+    + (l.hair ?? 0) * (w.hair ?? 0)
+    + (l.cellS ?? 0) * (w.cellS ?? 0) + (l.cellL ?? 0) * (w.cellL ?? 0) + (l.streak ?? 0) * (w.streak ?? 0);
 }
 
 /**
@@ -1763,15 +1855,16 @@ export function foamLaceMix(l: FoamLaceLayers, w: FoamLaceWeights): number {
  * table. A layer finer than the pixel is replaced by its mean (the pixel's
  * average of it), layer by layer, as the footprint grows.
  */
-export function foamLaceLayerMeans(samples = 16384, shape: FoamLaceShape = FOAM_LACE, curl = false, wisp = false, dot = false, hair = false): FoamLaceLayers {
+export function foamLaceLayerMeans(samples = 16384, shape: FoamLaceShape = FOAM_LACE, curl = false, wisp = false, dot = false, hair = false, cells = false): FoamLaceLayers {
   const side = Math.round(Math.sqrt(samples));
-  const acc = { cell1: 0, fiber: 0, clump: 0, strand: 0, wisp: 0, dot: 0, wispFine: 0, hair: 0 };
+  const acc = { cell1: 0, fiber: 0, clump: 0, strand: 0, wisp: 0, dot: 0, wispFine: 0, hair: 0, cellS: 0, cellL: 0, streak: 0 };
   for (let j = 0; j < side; j += 1) {
     for (let i = 0; i < side; i += 1) {
       const k = j * side + i;
-      const l = foamLaceLayers(((i + pcgHash01(k * 2 + 7)) / side) * 800, ((j + pcgHash01(k * 2 + 8)) / side) * 800, shape, curl, wisp, dot, hair);
+      const l = foamLaceLayers(((i + pcgHash01(k * 2 + 7)) / side) * 800, ((j + pcgHash01(k * 2 + 8)) / side) * 800, shape, curl, wisp, dot, hair, cells);
       acc.cell1 += l.cell1; acc.fiber += l.fiber; acc.clump += l.clump; acc.strand += l.strand;
       acc.wisp += l.wisp ?? 0; acc.dot += l.dot ?? 0; acc.wispFine += l.wispFine ?? 0; acc.hair += l.hair ?? 0;
+      acc.cellS += l.cellS ?? 0; acc.cellL += l.cellL ?? 0; acc.streak += l.streak ?? 0;
     }
   }
   const n = side * side;
@@ -1779,6 +1872,7 @@ export function foamLaceLayerMeans(samples = 16384, shape: FoamLaceShape = FOAM_
     cell1: acc.cell1 / n, fiber: acc.fiber / n, clump: acc.clump / n, strand: acc.strand / n,
     ...(wisp ? { wisp: acc.wisp / n } : {}), ...(dot ? { dot: acc.dot / n, wispFine: acc.wispFine / n } : {}),
     ...(hair ? { hair: acc.hair / n } : {}),
+    ...(cells ? { cellS: acc.cellS / n, cellL: acc.cellL / n, streak: acc.streak / n } : {}),
   };
 }
 
@@ -1826,7 +1920,7 @@ export const FOAM_LACE_RAW_MAX = 1.0;
  * the coverage.
  */
 export function foamLaceCdfTable(
-  samples = 65536, weights: FoamLaceWeights = FOAM_LACE_YOUNG, shape: FoamLaceShape = FOAM_LACE, curl = false, wisp = false, dot = false, hair = false,
+  samples = 65536, weights: FoamLaceWeights = FOAM_LACE_YOUNG, shape: FoamLaceShape = FOAM_LACE, curl = false, wisp = false, dot = false, hair = false, cells = false,
 ): Float32Array {
   const side = Math.round(Math.sqrt(samples));
   const vals = new Float64Array(side * side);
@@ -1837,7 +1931,7 @@ export function foamLaceCdfTable(
       const k = j * side + i;
       const a = ((i + pcgHash01(k * 2 + 7)) / side) * span;
       const b = ((j + pcgHash01(k * 2 + 8)) / side) * span;
-      vals[k] = foamLaceRaw(a, b, weights, shape, curl, wisp, dot, hair);
+      vals[k] = foamLaceRaw(a, b, weights, shape, curl, wisp, dot, hair, cells);
     }
   }
   vals.sort();

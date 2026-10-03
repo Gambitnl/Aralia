@@ -19,7 +19,9 @@ import React from 'react';
 
 export type PaneState = 'idle' | 'working' | 'ready' | 'unavailable';
 
-export type CompareSide = 'ships-today' | 'newly-built' | 'none';
+/** `bar` (2026-09-28): the reference a piece is judged against, such as the
+ *  live Three.js Water Pro demo beside the ocean viewer's sea. */
+export type CompareSide = 'ships-today' | 'newly-built' | 'none' | 'bar';
 
 const SIDE_TAG: Record<CompareSide, { label: string; className: string }> = {
   'ships-today': {
@@ -33,6 +35,10 @@ const SIDE_TAG: Record<CompareSide, { label: string; className: string }> = {
   none: {
     label: 'NO COUNTERPART',
     className: 'border-rose-500/50 bg-rose-950/40 text-rose-300',
+  },
+  bar: {
+    label: 'THE BAR',
+    className: 'border-emerald-500/60 bg-emerald-950/50 text-emerald-300',
   },
 };
 

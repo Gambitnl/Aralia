@@ -26,8 +26,6 @@ interface InWorldHUDProps {
     worldGen?: WorldGenDiagnostics | null;
     /** Current chunk count loaded (for DebugHUD). */
     chunkCount?: number;
-    /** FPS counter value (for DebugHUD). */
-    fps?: number;
     /** Player world position (for DebugHUD and minimap). */
     playerPos?: PlayerWorldPosition | null;
     /** Streamer stats (for DebugHUD). */

@@ -304,6 +304,21 @@ export interface SeabedShadeOutput {
    * surface builds exactly as before (2026-09-28).
    */
   readonly glint?: TslNode;
+  /**
+   * Optional float 0 to 1: the share of the sea's own foam (its whitecaps and
+   * the persistent foam field) this pixel keeps. The beach draws its own surf
+   * foam from its swash grid, and the sea's crests over the patch drew clipped
+   * white specks and a white crest polygon there (beach round 9). Absent: the
+   * sea's foam is unchanged, and the surface builds exactly as before.
+   */
+  readonly seaFoam?: TslNode;
+  /**
+   * Optional float 0 or 1: 1 asks the surface to draw nothing at this pixel.
+   * The beach sets it over its patch where its own swash grid holds the water:
+   * there the sea's crest, standing over the swash sheet, drew a darker patch
+   * with straight sides (beach round 10). Absent: the surface draws as before.
+   */
+  readonly hide?: TslNode;
 }
 
 /** The surface hook: `surface.setSeabed(reader)` calls `shade` from its fragment shader. */
@@ -372,6 +387,19 @@ export interface SeabedShoreHook {
    * (round 4 of the beach, 2026-09-28).
    */
   waterGlint?(xz: TslNode, column: TslNode): TslNode;
+  /**
+   * The share of the sea's own foam a water point keeps, 0 to 1, over a column
+   * of `column` meters. The reader returns it as `SeabedShadeOutput.seaFoam`.
+   * Optional: absent, the reader returns no `seaFoam` and the sea's foam is
+   * unchanged (round 9 of the beach, 2026-09-28).
+   */
+  waterSeaFoam?(xz: TslNode, column: TslNode): TslNode;
+  /**
+   * 1 where the surface should draw nothing at a water point (the beach's own
+   * water shows there), else 0. The reader returns it as
+   * `SeabedShadeOutput.hide`. Optional: absent, no `hide` (beach round 10).
+   */
+  waterHide?(xz: TslNode, column: TslNode): TslNode;
   /**
    * The water the reader's path to the floor crosses, m, at a water point over
    * a column of `column` m, 0 to `column`: the beach's own water depth where
@@ -887,11 +915,19 @@ export function createOceanSeabed(opts: OceanSeabedOptions): OceanSeabed {
         const wf = opts.shore.waterFoam(xz0, P.y.add(d0), min(p.longM, p.shortM.mul(4)), p.viewDir, p.own === true);
         through.assign(mix(through, wf.radiance, clamp(wf.cover, float(0), float(1))));
       }
-      // THE GLINTS THE BEACH KEEPS (the hook's optional `waterGlint`).
-      if (opts.shore?.waterGlint) {
-        return { trans, through, glint: opts.shore.waterGlint(xz0, P.y.add(d0)) };
-      }
-      return { trans, through };
+      // THE GLINTS THE BEACH KEEPS (the hook's optional `waterGlint`), and
+      // the share of the sea's own foam it keeps (its optional `waterSeaFoam`).
+      // Each is in the output only when the hook has it.
+      const glint = opts.shore?.waterGlint ? opts.shore.waterGlint(xz0, P.y.add(d0)) : undefined;
+      const seaFoam = opts.shore?.waterSeaFoam ? opts.shore.waterSeaFoam(xz0, P.y.add(d0)) : undefined;
+      const hide = opts.shore?.waterHide ? opts.shore.waterHide(xz0, P.y.add(d0)) : undefined;
+      return {
+        trans,
+        through,
+        ...(glint === undefined ? {} : { glint }),
+        ...(seaFoam === undefined ? {} : { seaFoam }),
+        ...(hide === undefined ? {} : { hide }),
+      };
     },
   };
 

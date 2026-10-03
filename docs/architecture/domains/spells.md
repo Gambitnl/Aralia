@@ -1,6 +1,6 @@
 # Spells
 
-Verified: 2026-08-09
+Verified: 2026-10-03
 
 ## Purpose
 
@@ -64,3 +64,16 @@ This pass verified that the following are materially present:
 - Which spell-facing docs should remain active reference surfaces versus preserved migration history?
 
 <!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/architecture/domains/spells.md","sha256WithoutMarker":"22c0799fbce8736b6fe5733ca0dee90c431a0502cbc243019525b3ca57ae27d7","markedAtUtc":"2026-08-09T20:14:15.941Z"} -->
+
+## Runtime authoring and delivery
+
+Individual definitions in `public/data/spells/level-N/id.json` are the authoring authority for runtime artifacts. Canonical prose and structured migration documents remain reference and audit inputs; this pipeline does not replace that migration work.
+
+The manifest and bundle in `public/data`, `src/data/racialSpellSubset.generated.json`, and `src/data/classes/spellLists.generated.ts` are derived outputs. Do not edit these independently.
+
+- Run `npm run spells:generate` after changing definitions or racial spell grants.
+- Run `npm run spells:check` for read-only schema, path, reference, and artifact consistency checks. Build preparation runs this check before generating other assets.
+- Generation rejects invalid sources before updating the manifest, bundle, or preview subset. It preserves authored extension fields and skips writes when JSON content already matches.
+- Nine known unresolved racial references remain reported debt; new missing references fail the pipeline. See [Spells gaps](../../projects/spells/GAPS.md).
+
+The static delivery choice and alternatives are recorded in [ADR 0005](../../adr/0005-spell-data-authoring-and-delivery.md). Existing browser URLs remain unchanged.

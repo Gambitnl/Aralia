@@ -120,6 +120,16 @@ export default defineConfig({
             ['json', { outputFile: vitestJsonOutputFile }],
         ],
         alias: {
+            // THE SPELL CORPUS HAS ONE HOME: public/data/spells.
+            // `src/data/spells` used to be a symbolic link to it, made by hand on
+            // 12 August, created by no script and repaired by none. 135 test files
+            // import single spell JSON through `@/data/spells/...`, so the link was
+            // load-bearing while being invisible to git, which tracked 483 duplicate
+            // blobs on both sides. This alias does the same job in the build config,
+            // where it is checked in, reviewable, and identical on every machine.
+            // It MUST stay above the plain '@' entry: Vite takes the first prefix
+            // that matches.
+            '@/data/spells': path.resolve(__dirname, 'public/data/spells'),
             '@': path.resolve(__dirname, 'src'),
         },
         exclude: SHARED_EXCLUDE,
@@ -172,8 +182,17 @@ export default defineConfig({
     },
     resolve: {
         alias: {
+            // THE SPELL CORPUS HAS ONE HOME: public/data/spells.
+            // `src/data/spells` used to be a symbolic link to it, made by hand on
+            // 12 August, created by no script and repaired by none. 135 test files
+            // import single spell JSON through `@/data/spells/...`, so the link was
+            // load-bearing while being invisible to git, which tracked 483 duplicate
+            // blobs on both sides. This alias does the same job in the build config,
+            // where it is checked in, reviewable, and identical on every machine.
+            // It MUST stay above the plain '@' entry: Vite takes the first prefix
+            // that matches.
+            '@/data/spells': path.resolve(__dirname, 'public/data/spells'),
             '@': path.resolve(__dirname, 'src'),
         },
     },
 });
-

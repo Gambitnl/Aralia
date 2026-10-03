@@ -33,6 +33,7 @@
 import React, { createElement, useEffect } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { PerfOverlayView } from './PerfOverlay';
+import { installPerfAutoProbe } from './rendererProbe';
 
 /** Named so the element is obvious to anyone reading the DOM. */
 const CONTAINER_ID = 'aralia-perf-hud-root';
@@ -42,6 +43,10 @@ let container: HTMLDivElement | null = null;
 let root: Root | null = null;
 
 function attach(): void {
+  // A page that shows the display also wants every renderer measured. This is
+  // a safety net: a page entry should install the probe BEFORE its scenes
+  // mount (see staple.ts), because a renderer built earlier is missed.
+  installPerfAutoProbe();
   mountCount += 1;
   if (root) return;
   container = document.createElement('div');
@@ -77,5 +82,19 @@ export const PerfOverlay: React.FC = () => {
   }, []);
   return null;
 };
+
+/**
+ * Put the display on the page without a React tree, for a page entry.
+ * Returns the release. `staple.ts` calls this.
+ */
+export function mountPerfOverlay(): () => void {
+  attach();
+  let released = false;
+  return () => {
+    if (released) return;
+    released = true;
+    detach();
+  };
+}
 
 export default PerfOverlay;

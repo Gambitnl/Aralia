@@ -9,7 +9,7 @@
  * only the texture upload. The physics is `oceanBeachMath.ts`, unchanged.
  *
  * THE PROTOCOL (all messages are plain data):
- *   in  { type: 'init', cascades, n, seed }
+ *   in  { type: 'init', cascades, n, seed, match? }   match: the match look's swash (round 16)
  *   out { type: 'ready', modes, keptShare, dt, grid, items, foamTile }
  *   in  { type: 'advance', id, t, budget }   bring the beach to time t,
  *        taking at most `budget` fixed steps now (Infinity for a pinned clock)
@@ -22,14 +22,15 @@
  */
 /// <reference lib="webworker" />
 import type { CascadeParams } from './oceanConfig';
-import { buildSwashFoamTile, createBeachSim, debrisPoses, packBeachState, type BeachSim } from './oceanBeachMath';
+import { BEACH_LACE_WEIGHTS, BEACH_MATCH_SWASH, buildSwashFoamTile, createBeachSim, debrisPoses, packBeachState, type BeachSim } from './oceanBeachMath';
 // Round 7: the wake's lace image and its coverage table (read-only imports;
-// the beach draws its foam with the wake's round-11 lace method).
-import { WAKE_LACE_WEIGHTS, wakeLaceCdfTable, wakeLaceImage } from './oceanWakeMath';
+// the beach draws its foam with the wake's round-11 lace method; round 8 mixes
+// the channels with its own weights, BEACH_LACE_WEIGHTS).
+import { wakeLaceCdfTable, wakeLaceImage } from './oceanWakeMath';
 
 let sim: BeachSim | null = null;
 
-interface InitMsg { type: 'init'; cascades: CascadeParams[]; n: number; seed: number }
+interface InitMsg { type: 'init'; cascades: CascadeParams[]; n: number; seed: number; match?: boolean }
 interface AdvanceMsg { type: 'advance'; id: number; t: number; budget: number }
 
 const ctx = self as unknown as DedicatedWorkerGlobalScope;
@@ -38,10 +39,11 @@ ctx.onmessage = (e: MessageEvent<InitMsg | AdvanceMsg>) => {
   const m = e.data;
   try {
     if (m.type === 'init') {
-      sim = createBeachSim({ cascades: m.cascades, n: m.n, seed: m.seed });
+      // Round 16: the match look's swash (BEACH_MATCH_SWASH) when the page asks for it.
+      sim = createBeachSim({ cascades: m.cascades, n: m.n, seed: m.seed, ...(m.match ? { match: BEACH_MATCH_SWASH } : {}) });
       const foamTile = buildSwashFoamTile(m.seed);
       const wakeLace = wakeLaceImage(512);
-      const wakeLaceCdf = new Float32Array(wakeLaceCdfTable(wakeLace, 512, undefined, undefined, WAKE_LACE_WEIGHTS));
+      const wakeLaceCdf = new Float32Array(wakeLaceCdfTable(wakeLace, 512, undefined, undefined, BEACH_LACE_WEIGHTS));
       ctx.postMessage({
         type: 'ready',
         modes: sim.waves.modes,

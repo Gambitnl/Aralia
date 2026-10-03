@@ -8,8 +8,8 @@
  */
 
 import { describe, expect, it, vi } from 'vitest';
-import fireBoltData from '../../../../data/spells/level-0/fire-bolt.json';
-import fireballData from '../../../../data/spells/level-3/fireball.json';
+import fireBoltData from '@/data/spells/level-0/fire-bolt.json';
+import fireballData from '@/data/spells/level-3/fireball.json';
 import type {
   BattleMapData,
   BattleMapTile,

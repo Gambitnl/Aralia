@@ -180,7 +180,7 @@
     "name": "Aura of Vitality",
     "aliases": [],
     "level": 3,
-    "school": "Evocation",
+    "school": "Abjuration",
     "path": "/data/spells/level-3/aura-of-vitality.json"
   },
   "awaken": {
@@ -579,7 +579,7 @@
     "name": "Contingency",
     "aliases": [],
     "level": 6,
-    "school": "Evocation",
+    "school": "Abjuration",
     "path": "/data/spells/level-6/contingency.json"
   },
   "continual-flame": {
@@ -698,7 +698,7 @@
     "name": "Dancing Lights",
     "aliases": [],
     "level": 0,
-    "school": "Evocation",
+    "school": "Illusion",
     "path": "/data/spells/level-0/dancing-lights.json"
   },
   "danse-macabre": {
@@ -936,7 +936,7 @@
     "name": "Earthquake",
     "aliases": [],
     "level": 8,
-    "school": "Evocation",
+    "school": "Transmutation",
     "path": "/data/spells/level-8/earthquake.json"
   },
   "eldritch-blast": {
@@ -1335,7 +1335,7 @@
     "name": "Glibness",
     "aliases": [],
     "level": 8,
-    "school": "Transmutation",
+    "school": "Enchantment",
     "path": "/data/spells/level-8/glibness.json"
   },
   "globe-of-invulnerability": {
@@ -1402,7 +1402,7 @@
     "path": "/data/spells/level-4/guardian-of-faith.json"
   },
   "guardian-of-nature": {
-    "name": "Guardian Of Nature",
+    "name": "Guardian of Nature",
     "aliases": [],
     "level": 4,
     "school": "Transmutation",
@@ -1475,7 +1475,7 @@
     "name": "Heal",
     "aliases": [],
     "level": 6,
-    "school": "Evocation",
+    "school": "Abjuration",
     "path": "/data/spells/level-6/heal.json"
   },
   "healing-word": {
@@ -1918,7 +1918,7 @@
     "name": "Mass Healing Word",
     "aliases": [],
     "level": 3,
-    "school": "Evocation",
+    "school": "Abjuration",
     "path": "/data/spells/level-3/mass-healing-word.json"
   },
   "mass-polymorph": {
@@ -2415,7 +2415,7 @@
     "name": "Reincarnate",
     "aliases": [],
     "level": 5,
-    "school": "Necromancy",
+    "school": "Transmutation",
     "path": "/data/spells/level-5/reincarnate.json"
   },
   "remove-curse": {
@@ -2520,7 +2520,7 @@
     "name": "Sending",
     "aliases": [],
     "level": 3,
-    "school": "Evocation",
+    "school": "Divination",
     "path": "/data/spells/level-3/sending.json"
   },
   "sequester": {
@@ -2531,7 +2531,7 @@
     "path": "/data/spells/level-7/sequester.json"
   },
   "shadow-of-moil": {
-    "name": "Shadow Of Moil",
+    "name": "Shadow of Moil",
     "aliases": [],
     "level": 4,
     "school": "Necromancy",
@@ -2730,7 +2730,7 @@
     "name": "Staggering Smite",
     "aliases": [],
     "level": 4,
-    "school": "Enchantment",
+    "school": "Evocation",
     "path": "/data/spells/level-4/staggering-smite.json"
   },
   "starry-wisp": {
@@ -2942,7 +2942,7 @@
     "name": "Telepathy",
     "aliases": [],
     "level": 8,
-    "school": "Evocation",
+    "school": "Divination",
     "path": "/data/spells/level-8/telepathy.json"
   },
   "teleport": {

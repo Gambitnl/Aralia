@@ -47,6 +47,14 @@ export interface StallRecord {
   baselineTriangles: number;
   /** Ranked, largest first. Empty when nothing measured explains the frame. */
   contributors: StallContributor[];
+  /**
+   * Causes with no millisecond figure, in plain words: "heap fell 38 MB (a
+   * garbage collection)", "+3 shader programs". A garbage collection is seen
+   * by its effect on the heap; the browser gives no time for it.
+   */
+  notes: string[];
+  /** `performance.now()` at the start of the slow interval, to match browser reports by time. */
+  startMs: number;
 }
 
 /** One frame's worth of evidence, handed in by the session. */
@@ -58,6 +66,16 @@ export interface FrameSample {
   triangles: number;
   /** Each span's LAST value, never its average. */
   spans: { name: string; ms: number }[];
+  /**
+   * Costs the renderer probe measured itself in THIS frame, zeros included:
+   * the page script before the first draw, each pass's draw submission, texture
+   * and buffer uploads, shader compiles. They add up to the CPU time, so on a
+   * probed surface "unattributed CPU" is close to nothing. Zeros matter: a
+   * cost absent from a frame must read as zero, not as its last value.
+   */
+  measured?: { name: string; ms: number }[];
+  /** Causes with no millisecond figure, carried into the record when it stalls. */
+  notes?: string[];
 }
 
 /**
@@ -112,6 +130,9 @@ const CONTRIBUTOR_FLOOR_SHARE = 0.05;
 /** What the tool could not see. Named so the list cannot imply it adds up. */
 const OUTSIDE = 'outside the measured frame';
 
+/** Marks a part the browser's Long Animation Frame report measured. */
+export const BROWSER_PREFIX = 'browser: ';
+
 /** How many stalls to keep. Enough to see a pattern, few enough to read. */
 const KEEP = 12;
 
@@ -121,6 +142,8 @@ export class StallLog {
   private readonly drawBase = new Baseline();
   private readonly triBase = new Baseline();
   private readonly spanBase = new Map<string, Baseline>();
+  /** Kept apart from the span baselines, so a span and a measured cost may share a name. */
+  private readonly measuredBase = new Map<string, Baseline>();
   private readonly kept: StallRecord[] = [];
 
   /**
@@ -139,12 +162,14 @@ export class StallLog {
       s.frameMs > baselineMs * STALL_RATIO &&
       s.frameMs > baselineMs + STALL_FLOOR_MS;
 
+    const measured = s.measured ?? [];
     if (!isStall) {
       this.frameBase.push(s.frameMs);
       if (s.cpuMs !== null) this.cpuBase.push(s.cpuMs);
       this.drawBase.push(s.drawCalls);
       this.triBase.push(s.triangles);
       for (const span of s.spans) this.baseFor(span.name).push(span.ms);
+      for (const m of measured) this.baseFor(m.name, this.measuredBase).push(m.ms);
       return null;
     }
 
@@ -158,6 +183,19 @@ export class StallLog {
       const deltaMs = span.ms - base;
       if (deltaMs < floorMs) continue;
       contributors.push({ name: span.name, deltaMs, valueMs: span.ms, baselineMs: base });
+      namedMs += deltaMs;
+    }
+    /* The probe's own measurements, judged the same way as spans.
+     *
+     * These are what replace "unattributed CPU" on a probed surface: the time
+     * before the first draw, each pass's submission, uploads and compiles. A
+     * cost with no baseline yet (a shader compile on a page that never
+     * compiled one) is judged against zero, which is its honest normal. */
+    for (const m of measured) {
+      const base = this.baseFor(m.name, this.measuredBase).get(1) ?? 0;
+      const deltaMs = m.ms - base;
+      if (deltaMs < floorMs) continue;
+      contributors.push({ name: m.name, deltaMs, valueMs: m.ms, baselineMs: base });
       namedMs += deltaMs;
     }
 
@@ -212,6 +250,8 @@ export class StallLog {
       triangles: s.triangles,
       baselineTriangles: this.triBase.get() ?? 0,
       contributors,
+      notes: [...(s.notes ?? [])],
+      startMs: nowMs - s.frameMs,
     };
 
     this.kept.unshift(record);
@@ -252,6 +292,43 @@ export class StallLog {
     rec.contributors.sort((a, b) => b.deltaMs - a.deltaMs);
   }
 
+  /**
+   * Add what the BROWSER saw in a slow interval: style and layout, and the
+   * scripts that ran outside this surface's own frame callback.
+   *
+   * These come from the Long Animation Frame report, which Chrome writes only
+   * for a frame longer than 50 ms, and a little after the frame ends. So they
+   * are attached late, like a GPU result, and matched by time rather than by
+   * frame number. Each named part is taken off "outside the measured frame",
+   * which is what that remainder was hiding.
+   *
+   * @returns true when the record took the parts.
+   */
+  attachBrowserParts(rec: StallRecord, parts: { name: string; ms: number }[]): boolean {
+    if (rec.contributors.some((c) => c.name.startsWith(BROWSER_PREFIX))) return false;
+    const floorMs = Math.max(CONTRIBUTOR_FLOOR_MS, (rec.frameMs - rec.baselineMs) * CONTRIBUTOR_FLOOR_SHARE);
+    let took = 0;
+    for (const p of parts) {
+      if (p.ms < floorMs) continue;
+      rec.contributors.push({ name: BROWSER_PREFIX + p.name, deltaMs: p.ms, valueMs: p.ms, baselineMs: 0 });
+      took += p.ms;
+    }
+    if (took === 0) return false;
+    const outside = rec.contributors.find((c) => c.name === OUTSIDE);
+    if (outside) {
+      outside.deltaMs -= took;
+      if (outside.deltaMs < floorMs) rec.contributors.splice(rec.contributors.indexOf(outside), 1);
+    }
+    rec.contributors.sort((a, b) => b.deltaMs - a.deltaMs);
+    return true;
+  }
+
+  /** Add a cause with no millisecond figure to the record for `frame`. */
+  addNote(frame: number, note: string): void {
+    const rec = this.kept.find((r) => r.frame === frame);
+    if (rec && !rec.notes.includes(note)) rec.notes.push(note);
+  }
+
   /** Newest first. */
   records(): StallRecord[] {
     return this.kept;
@@ -264,13 +341,14 @@ export class StallLog {
     this.drawBase.clear();
     this.triBase.clear();
     for (const b of this.spanBase.values()) b.clear();
+    for (const b of this.measuredBase.values()) b.clear();
   }
 
-  private baseFor(name: string): Baseline {
-    let b = this.spanBase.get(name);
+  private baseFor(name: string, map: Map<string, Baseline> = this.spanBase): Baseline {
+    let b = map.get(name);
     if (!b) {
       b = new Baseline();
-      this.spanBase.set(name, b);
+      map.set(name, b);
     }
     return b;
   }
@@ -281,7 +359,8 @@ export function describeStall(r: StallRecord): string {
   const over = r.frameMs - r.baselineMs;
   const head = `${r.frameMs.toFixed(1)} ms frame — ${over.toFixed(1)} ms over the usual ${r.baselineMs.toFixed(1)}`;
   if (r.contributors.length === 0) {
-    return `${head}\n  nothing measured explains it — no span covers the work that ran`;
+    const notes = (r.notes ?? []).map((n) => `\n  also: ${n}`).join('');
+    return `${head}\n  nothing measured explains it — no span covers the work that ran${notes}`;
   }
   const lines = r.contributors
     .slice(0, 4)
@@ -293,5 +372,6 @@ export function describeStall(r: StallRecord): string {
     r.drawCalls !== r.baselineDrawCalls
       ? `\n  draws ${r.drawCalls} against ${r.baselineDrawCalls} · tris ${r.triangles.toLocaleString()} against ${r.baselineTriangles.toLocaleString()}`
       : '';
-  return `${head}\n${lines.join('\n')}${draws}`;
+  const notes = (r.notes ?? []).map((n) => `\n  also: ${n}`).join('');
+  return `${head}\n${lines.join('\n')}${draws}${notes}`;
 }

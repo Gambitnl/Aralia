@@ -33,7 +33,9 @@ describe('Cure Wounds registry entry', () => {
       availability: 'available',
       scenarioComponent: CureWoundsScenario,
     });
-    expect(entry?.canonicalEvidence.catalogPaths).toContain('src/data/spells/level-1/cure-wounds.json');
+    // The public definition is now the single retained source; the duplicate
+    // src/data copy was removed without changing the spell or its resolver.
+    expect(entry?.canonicalEvidence.catalogPaths).toContain('public/data/spells/level-1/cure-wounds.json');
     expect(entry?.canonicalEvidence.resolverPaths).toContain('src/systems/spells/mechanics/healingTemporaryHitPointResolution.ts');
   });
 });

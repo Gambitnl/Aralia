@@ -1,19 +1,3 @@
-// @dependencies-start
-/**
- * ARCHITECTURAL ADVISORY:
- * This file appears to be an ISOLATED UTILITY or ORPHAN.
- *
- * Last Sync: 26/08/2026, 13:57:45
- * Dependents: None (Orphan)
- * Imports: 77 files
- *
- * MULTI-AGENT SAFETY:
- * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
- * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
- */
-// @dependencies-end
-
 /**
  * Copyright (c) 2024 Aralia RPG.
  * Licensed under the MIT License.
@@ -25,6 +9,22 @@
  * It manages all game state, phases (menu, character creation, gameplay), and orchestrates
  * the rendering of all other components.
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * This file appears to be an ISOLATED UTILITY or ORPHAN.
+ *
+ * Last Sync: 29/09/2026, 00:50:48
+ * Dependents: None (Orphan)
+ * Imports: 80 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
 
 /**
  * This is the master coordinator for the entire game UI.
@@ -132,7 +132,7 @@ import { GameProvider } from "./state/GameContext";
 import { getRulesEdition, nextRulesEdition } from "./config/rulesEdition";
 import { applyCampaignDiceStream, getAllowSaveScum } from "./config/saveScum";
 import ErrorBoundary from "./components/ui/ErrorBoundary";
-import { PerfOverlay } from "./devtools/perf";
+import { PerfOverlay, installPerfAutoProbe } from "./devtools/perf";
 import * as SaveLoadService from "./services/saveLoadService";
 import { LoadingSpinner } from "./components/ui/LoadingSpinner";
 import { ConversationPanel } from "./components/ConversationPanel";
@@ -155,6 +155,11 @@ import {
 // Lazy load large components to reduce initial bundle size
 // Grid retirement: the legacy 2D village view (TownCanvas) is retired — town
 // entry is the cell-native 3D town (Enter-3D on the world map). No lazy import.
+// THE RENDERER PROBE, development builds only (2026-09-29). Module scope, so it
+// is installed before any 3D screen can build a renderer: it then measures
+// every three.js canvas the game draws, not only the ones with a PerfProbe.
+if (import.meta.env.DEV) installPerfAutoProbe();
+
 const LoadGameTransition = lazy(() =>
   import("./components/SaveLoad").then((module) => ({
     default: module.LoadGameTransition,
@@ -2455,9 +2460,18 @@ const App: React.FC = () => {
         <div className="App min-h-screen bg-gray-900">
           {/* The same performance display the design preview uses, so a reading
             * taken in a sandbox and a reading taken in the running game are the
-            * same measurement. Development builds only, and it starts as a small
-            * fps pill; Alt+P cycles it to the full panel or off. */}
-          {import.meta.env.DEV && <PerfOverlay />}
+            * same measurement. It starts as a small fps pill; Alt+P cycles it to
+            * the full panel or off.
+            *
+            * ONLY WITH DEV MODE ON (Remy, 2026-09-30, questionnaire q1: "not in
+            * the main game, unless dev mode is enabled"). Until then it showed in
+            * every development build whatever the dev-mode setting said. Dev
+            * mode starts on in a dev build and off in production
+            * (initialState.ts), and SET_DEV_MODE_ENABLED turns it either way. In
+            * a production build the probe is installed only when this mounts, so
+            * a canvas built before dev mode came on is measured only if it
+            * carries a PerfProbe (World3DScene does). */}
+          {gameState.isDevModeEnabled && <PerfOverlay />}
 
           <Suspense fallback={null}>
             <NotificationSystem

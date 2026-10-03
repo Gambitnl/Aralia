@@ -44,7 +44,7 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # Currently deploys without verifying code quality or catching type errors.
+      # Build checks generated spell artifacts before preparing public assets.
       # No GEMINI_API_KEY is passed here on purpose — the client build must not embed a
       # key into the public bundle (see the header note and vite.config.ts).
       - name: Build

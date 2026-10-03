@@ -203,3 +203,169 @@ export class GpuFrameTimer {
     this.free.length = 0;
   }
 }
+
+/** One frame's GPU time, split by render pass. */
+export interface FramePassGpu {
+  frame: number;
+  /** The sum of every timed pass. The GPU work between passes is not in it. */
+  totalMs: number;
+  /** Milliseconds per pass index, in the order the passes ran. */
+  passes: Map<number, number>;
+}
+
+/**
+ * How many queries may wait for their result when every pass is timed.
+ *
+ * A frame with eight passes and a result lag of three frames holds about 24.
+ * A full pool skips the timing of a whole frame, never part of one, so a
+ * frame total is never the sum of only some of its passes.
+ */
+const PASS_POOL_SIZE = 96;
+
+/**
+ * GPU time for EACH render pass of a frame, measured on the GPU.
+ *
+ * The frame timer above answers "how long did the GPU work". This one answers
+ * "on WHAT": the reflection, the opaque scene, the water, the output. It uses
+ * the same extension under the same four rules, and adds one: a pass that runs
+ * inside another pass (a shadow map inside a scene render) must not overlap
+ * its parent's query, because only one query may be open. So a query covers a
+ * SEGMENT. `begin` ends the open segment and opens the next one; a parent
+ * resumes with a new segment after its child ends; the segments of one pass
+ * add up.
+ *
+ * What it does not measure: GPU work between two passes (a `readPixels`, a
+ * clear outside a render call). Those gaps are not inside any segment.
+ */
+export class PassGpuTimer {
+  private readonly free: WebGLQuery[] = [];
+  private readonly inFlight: { query: WebGLQuery; frame: number; pass: number }[] = [];
+  private open: { query: WebGLQuery; frame: number; pass: number } | null = null;
+  /** Segments issued per frame, and the results collected so far. */
+  private readonly frames = new Map<
+    number,
+    { issued: number; done: number; skipped: boolean; closed: boolean; passes: Map<number, number> }
+  >();
+  private created = 0;
+  private disposed = false;
+
+  private constructor(
+    private readonly gl: TimerGl,
+    private readonly ext: TimerExt,
+  ) {}
+
+  /** Build a timer for a three renderer, or explain why not. Same checks as `GpuFrameTimer`. */
+  static forRenderer(renderer: unknown): { timer: PassGpuTimer | null; reason: GpuTimerUnavailable | null } {
+    const r = renderer as { isWebGPURenderer?: boolean; getContext?: () => unknown } | null;
+    if (!r) return { timer: null, reason: 'no-context' };
+    if (r.isWebGPURenderer) return { timer: null, reason: 'webgpu' };
+    const ctx = r.getContext?.() as TimerGl | undefined;
+    if (!ctx) return { timer: null, reason: 'no-context' };
+    if (typeof ctx.createQuery !== 'function') return { timer: null, reason: 'no-webgl2' };
+    const ext = ctx.getExtension('EXT_disjoint_timer_query_webgl2') as TimerExt | null;
+    if (!ext) return { timer: null, reason: 'no-extension' };
+    return { timer: new PassGpuTimer(ctx, ext), reason: null };
+  }
+
+  private frameEntry(frame: number) {
+    let f = this.frames.get(frame);
+    if (!f) {
+      f = { issued: 0, done: 0, skipped: false, closed: false, passes: new Map() };
+      this.frames.set(frame, f);
+    }
+    return f;
+  }
+
+  /** End the open segment, if any. Call when a top-level pass ends. */
+  pause(): void {
+    if (this.disposed || !this.open) return;
+    this.gl.endQuery(this.ext.TIME_ELAPSED_EXT);
+    this.inFlight.push(this.open);
+    this.open = null;
+  }
+
+  /**
+   * Start timing `pass` of `frame`. Ends any open segment first, so a child
+   * pass never overlaps its parent's query.
+   */
+  begin(frame: number, pass: number): void {
+    if (this.disposed) return;
+    this.pause();
+    const f = this.frameEntry(frame);
+    if (f.skipped) return;
+    let q = this.free.pop() ?? null;
+    if (!q && this.created < PASS_POOL_SIZE) {
+      q = this.gl.createQuery();
+      if (q) this.created++;
+    }
+    if (!q) {
+      // The pool is full: time none of this frame, so no total is partial.
+      f.skipped = true;
+      return;
+    }
+    f.issued++;
+    this.open = { query: q, frame, pass };
+    this.gl.beginQuery(this.ext.TIME_ELAPSED_EXT, q);
+  }
+
+  /** Say that `frame` will get no more segments, so its total can be reported. */
+  closeFrame(frame: number): void {
+    this.frameEntry(frame).closed = true;
+  }
+
+  /** Drain finished queries. Returns each frame whose every segment has arrived. */
+  collect(): FramePassGpu[] {
+    if (this.disposed) return [];
+    if (this.gl.getParameter(this.ext.GPU_DISJOINT_EXT) === true) {
+      // Every in-flight result is meaningless; drop them and their frames.
+      for (const q of this.inFlight) {
+        this.free.push(q.query);
+        this.frameEntry(q.frame).skipped = true;
+      }
+      this.inFlight.length = 0;
+    }
+    while (this.inFlight.length > 0) {
+      const head = this.inFlight[0];
+      if (this.gl.getQueryParameter(head.query, this.gl.QUERY_RESULT_AVAILABLE) !== true) break;
+      const ns = this.gl.getQueryParameter(head.query, this.gl.QUERY_RESULT) as number;
+      this.inFlight.shift();
+      this.free.push(head.query);
+      const f = this.frameEntry(head.frame);
+      f.done++;
+      if (typeof ns === 'number' && Number.isFinite(ns) && ns >= 0) {
+        f.passes.set(head.pass, (f.passes.get(head.pass) ?? 0) + ns / 1e6);
+      }
+    }
+    const out: FramePassGpu[] = [];
+    for (const [frame, f] of [...this.frames]) {
+      if (!f.closed) continue;
+      if (f.skipped) {
+        // Forget a skipped frame once none of its queries is still in flight.
+        if (!this.inFlight.some((q) => q.frame === frame) && this.open?.frame !== frame) this.frames.delete(frame);
+        continue;
+      }
+      if (f.done < f.issued) continue;
+      if (f.issued === 0) {
+        // Nothing was timed in this frame (a compute-only frame): no reading, not zero.
+        this.frames.delete(frame);
+        continue;
+      }
+      let total = 0;
+      for (const ms of f.passes.values()) total += ms;
+      out.push({ frame, totalMs: total, passes: f.passes });
+      this.frames.delete(frame);
+    }
+    return out;
+  }
+
+  dispose(): void {
+    if (this.disposed) return;
+    this.pause();
+    this.disposed = true;
+    for (const q of this.inFlight) this.gl.deleteQuery(q.query);
+    for (const q of this.free) this.gl.deleteQuery(q);
+    this.inFlight.length = 0;
+    this.free.length = 0;
+    this.frames.clear();
+  }
+}

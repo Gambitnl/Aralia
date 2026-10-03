@@ -226,9 +226,6 @@ export function createAtlasReceiptGroundSession(
 /** Throttle interval in ms (~10Hz) — see transitionTiming.ts for perf budget. */
 const DISPATCH_INTERVAL_MS = POSITION_DISPATCH_INTERVAL_MS;
 
-/** FPS sampling window in ms. */
-const FPS_SAMPLE_MS = 1000;
-
 /**
  * Strip the living-town registry down to worker-safe building history only.
  * Sorted numeric keys make the serialized effect dependency stable when
@@ -759,26 +756,12 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({
     state.gameTime,
   ]);
 
-  // FPS tracking state.
-  const [fps, setFps] = useState(0);
-  const frameCount = useRef(0);
-  const lastFpsTime = useRef(performance.now());
-
-  useEffect(() => {
-    let animFrameId: number;
-    const tick = () => {
-      frameCount.current++;
-      const now = performance.now();
-      if (now - lastFpsTime.current >= FPS_SAMPLE_MS) {
-        setFps(Math.round((frameCount.current * 1000) / (now - lastFpsTime.current)));
-        frameCount.current = 0;
-        lastFpsTime.current = now;
-      }
-      animFrameId = requestAnimationFrame(tick);
-    };
-    animFrameId = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(animFrameId);
-  }, []);
+  // FPS is NOT counted here any more (2026-09-29). This spot ran a second
+  // requestAnimationFrame loop and re-rendered the whole wrapper once a
+  // second, in every build, only to feed the dev-mode Debug HUD. The HUD now
+  // reads the shared 'world3d' performance session that World3DScene's
+  // PerfProbe feeds (src/devtools/perf), so the game shows the same number as
+  // the Alt+P panel and pays for no second loop.
 
   // Streamer stats tracking (basic: count loaded chunks via scene re-renders).
   const [chunkCount, setChunkCount] = useState(0);
@@ -1105,7 +1088,6 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({
         worldData={null}
         worldGen={null}
         chunkCount={chunkCount}
-        fps={fps}
         playerPos={position}
         streamerStats={streamerStats}
         onOpenMap={() => setMode('atlas')}

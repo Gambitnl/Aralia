@@ -85,9 +85,10 @@ import { createOceanSeabed, type OceanSeabed, type SeabedShoreHook } from './oce
 import { FLOOR_LIGHT, LAGOON_CAY_SEABED, seabedDepthAt, seabedPointAt, type SeabedMap } from './oceanSeabedMath';
 import { oceanSkyRadiance } from './oceanSky';
 // Round 7: the wake's lace (read-only import), see LACE_TILE_SCALE.
-import { WAKE_LACE_CDF_KNOTS, WAKE_LACE_TILE_M, WAKE_LACE_WEIGHTS } from './oceanWakeMath';
+import { WAKE_LACE_CDF_KNOTS, WAKE_LACE_TILE_M } from './oceanWakeMath';
 import {
   BEACH_DT,
+  BEACH_LACE_WEIGHTS,
   BEACH_SAND,
   BEACH_SWASH,
   SKIN_M,
@@ -99,6 +100,7 @@ import {
   buildBeachSite,
   beachToWorld,
   type BeachSite,
+  type BeachFrame,
   type DebrisItem,
   type SwashLedger,
 } from './oceanBeachMath';
@@ -186,7 +188,8 @@ const WET_LINE_VAR = 0.06;
 const WET_LINE_W = 0.022;
 const WET_FRINGE_M = 0.45;
 const WET_BLOTCH_M = 0.8;
-const WET_BLOTCH = 0.85;
+// Round 8: 0.6 (0.85 in round 7; crisp-edged, at 0.85 they drew dark stains up close).
+const WET_BLOTCH = 0.6;
 const WET_PATCH_M = 0.35;
 const WET_DAMP_LO = 0.74;
 const WET_DRAINED = 0.97;
@@ -216,7 +219,10 @@ const FILM_DEEP_M: readonly [number, number] = [0.001, 0.01];
  * under the surf too, view 1's water fell from 120 to 98 luma (the
  * reference's is 140).
  */
-const WET_IMMERSED_K = 0.36;
+// Round 8: 0.55 (0.36 to round 7: with the gray sky share over it, the sheet
+// 1 to 30 cm deep was a neutral gray at 48 luma, saturation 0.02, the
+// judge's "opaque murky gray-brown smear").
+const WET_IMMERSED_K = 0.55;
 /**
  * ROUND 6: the fade runs from 0.1 to 0.8 m of water. From 5 to 30 cm it fell
  * right at a bore's front (20 to 30 cm deep, the film behind it 4 cm), and
@@ -243,8 +249,32 @@ const WET_IMMERSED_DEEP_M: readonly [number, number] = [0.1, 0.8];
  * so the two waters meet without an edge (a first build drew the sea's
  * crests over the film as a dark polygon with straight sides).
  */
-const FILM_SKY_SHARE = 0.06;
+const FILM_SKY_SHARE = 0.03;
 const SAT_SKY_SHARE = 0.03;
+/**
+ * ROUND 8: THE SHEEN AT ITS THINNEST. A judge asked for the sheet to be
+ * "see-through, with a bright sky sheen where it is thinnest, and a clear
+ * leading edge". The thinnest film is smooth (the flow there is slow and
+ * laminar) and reflects the low sky as a silver sheen (the sky's luma, not
+ * its color: as a share of the low sky itself over 1.2 to 20 mm a first
+ * build drew the whole thin sheet lavender): FILM_SHEEN of it, rising from
+ * the sheet's edge to FILM_SHEEN_M[0] m of depth and falling away from
+ * FILM_SHEEN_M[1] to FILM_SHEEN_M[2] m, a band a few tens of centimeters
+ * wide behind the leading edge. The rest of the sheet reflects
+ * FILM_SKY_SHARE (0.06 everywhere in round 7, which grayed the whole sheet).
+ * A calibration.
+ */
+const FILM_SHEEN = 0.1;
+const FILM_SHEEN_M: readonly [number, number, number] = [0.0006, 0.001, 0.003];
+/**
+ * The sheen is streaked along the fall line (the flow's own capillary ripples
+ * break it): a noise FILM_SHEEN_STREAK_M across, drawn out FILM_SHEEN_STRETCH
+ * times down the slope, keeps FILM_SHEEN_LO to 1 of it. Uniform, a first
+ * build read as a fog over the thin film.
+ */
+const FILM_SHEEN_STREAK_M = 0.25;
+const FILM_SHEEN_STRETCH = 6;
+const FILM_SHEEN_LO = 0.2;
 /**
  * ROUND 7: SHINY AT THE WATER, MATTE UP THE BEACH. Saturated sand the sheet
  * left less than SHINE_S ago keeps a thin surface film that reflects the low
@@ -253,8 +283,21 @@ const SAT_SKY_SHARE = 0.03;
  * from shiny-wet at the water to matte damp"). A calibration, as
  * SAT_SKY_SHARE.
  */
-const SHINE_S = 25;
-const SHINE_SKY = 0.06;
+// Round 8: 30 s and 0.08, silver (25 s and 0.06 of the low sky's color to
+// round 7, under 4 luma: a judge read the wet sand as "one flat matte brown";
+// at 0.16 the band at the water drew lighter than the damp sand above it).
+const SHINE_S = 30;
+const SHINE_SKY = 0.08;
+/**
+ * ROUND 8: LIGHTER AS IT SOAKS IN. Sand the sheet left WET_SOAK_S[0] s ago is
+ * as wet as its skin says; by WET_SOAK_S[1] s the surface water has soaked
+ * into the bed and the sand's wetness falls to WET_SOAK_K of that, so the
+ * damp band is darker and shiny at the water and lighter and matte up the
+ * beach. (To round 7 the damp band was one tone: its skin is 0.88 to 1
+ * everywhere under the last run-up.)
+ */
+const WET_SOAK_S: readonly [number, number] = [8, 50];
+const WET_SOAK_K = 0.75;
 const FILM_SKY_UP = 0.35;
 /**
  * The film's reflected sky, grayed this far toward its own luma: the Manly
@@ -287,7 +330,8 @@ const LACE_BUBBLE_M = SWASH_TILE_M / SWASH_BUBBLE_CELLS;
  *                   sizes in a warped fBm, ranked), the clumps, the streaks
  *                   and the patches, at the wake's tiles times
  *                   LACE_TILE_SCALE (the wake is read from tens of meters;
- *                   the beach from a few), mixed with WAKE_LACE_WEIGHTS and
+ *                   the beach from a few), mixed with BEACH_LACE_WEIGHTS
+ *                   (round 8: no clumps; round 7 used the wake's mix) and
  *                   made uniform by the coverage table, so an amount a
  *                   covers a;
  *   THE STRETCH     in the beach's frame: the raft drawn out
@@ -305,39 +349,74 @@ const LACE_BUBBLE_M = SWASH_TILE_M / SWASH_BUBBLE_CELLS;
  *                   capped at LACE_MAX_COVER so the densest foam keeps holes,
  *                   gated in from THIN_GATE[0] to THIN_GATE[1] of amount so
  *                   thin foam shows as sparse patches, not a faint sheet;
- *   OPACITY         from OP_THIN to 1 over OP_RANGE of rank over the
- *                   threshold (thin foam is a film of bubbles; only the
- *                   densest is opaque white);
+ *   OPACITY         see OP_LO (round 8: no foam is opaque);
  *   THE AGE         the foam's age (the swash field's foamAge, the foam
- *                   piece's age clock): old foam is torn into clumps (the
- *                   wake's clumpTear, [0.45, 0.55] of the clumps read, 0.9
- *                   strength, from 2 to 6 s of age, only where the amount is
- *                   under 0.7), opens into filaments round windows (the wake's
- *                   laceFold, rank folded to 1 - |2 r - 1|, from AGE_FOLD s),
- *                   thins to 0.75 opacity (ageOpacity, 2.5 to 6 s) and grays
- *                   (the foam piece: fresh foam bright, old foam threadbare).
+ *                   piece's age clock): the raft opens into threads round
+ *                   windows (NET_FOLD), old thin foam breaks into dashes and
+ *                   specks (BREAK_TILE; round 7 tore it into the wake's
+ *                   clumps), thins (AGE_OPACITY) and grays (AGE_GRAY: fresh
+ *                   foam bright, old foam threadbare).
  */
 const LACE_TILE_SCALE = 0.2;
 const LACE_HOLE_STRETCH = 1.4;
 const LACE_STREAK_STRETCH = 3;
 const LACE_WISP_STRETCH = 4;
 const LACE_SOFT = 0.16;
-const LACE_MAX_COVER = 0.82;
-const THIN_GATE: readonly [number, number] = [0.06, 0.32];
-const OP_THIN = 0.4;
-const OP_RANGE = 0.6;
+// Round 8: 0.62 (0.82 in round 7: the densest foam was a solid glowing
+// patch; Manly's bore is 55% foam pixels, threads round holes).
+const LACE_MAX_COVER = 0.62;
+// Round 8: from 0.05 to 0.25 of amount (0.06 to 0.32 in round 7), with the film's foam.
+const THIN_GATE: readonly [number, number] = [0.05, 0.25];
 /**
- * Fresh foam is opaque: the thin-foam opacity is OP_THIN_FRESH at an age of 0,
- * falling to the wake's OP_THIN by OP_FRESH_S (the foam piece's age clock:
- * fresh foam bright and tight, old foam threadbare).
+ * ROUND 8: FAINT, GRAY-WHITE AND SEE-THROUGH. Round 7's foam was "opaque,
+ * clipped pure-white blobs". Measured with foamContrast.py (the foam pixels
+ * against the 30th percentile of luma round them): Manly's swash foam is 1.2
+ * times the water under it at the front and in the backwash and 1.4 times in
+ * the bore, its brightest tenth at 168 to 178 luma; t0007's front band is
+ * 1.07 times. Round 7's was 1.5 to 2.1 times, its brightest tenth at 200 to
+ * 216. The lace's opacity now runs from OP_LO (thin foam: a film of bubbles
+ * over the water) to OP_HI (the densest) over OP_RANGE of rank over the
+ * threshold: no foam is opaque. Each caller scales it; the sheet's foam by
+ * the sheet's depth, from OP_SHEET[2] at OP_SHEET[0] m to 1 at OP_SHEET[1] m
+ * (a thinning sheet carries a thinner film of bubbles, see-through to the
+ * sand). Round 7 ran from 0.8 (fresh) or 0.4 to 1.
  */
-const OP_THIN_FRESH = 0.8;
-const OP_FRESH_S = 3;
-const CLUMP_TEAR: readonly [number, number, number] = [0.45, 0.55, 0.9];
-const CLUMP_TEAR_AGE: readonly [number, number] = [2, 6];
-const CLUMP_TEAR_AMT: readonly [number, number] = [0.3, 0.7];
-const AGE_FOLD: readonly [number, number, number] = [3, 9, 0.7];
-const AGE_OPACITY: readonly [number, number, number] = [2.5, 6, 0.75];
+const OP_LO = 0.12;
+const OP_HI = 0.62;
+const OP_RANGE = 0.6;
+const OP_SHEET: readonly [number, number, number] = [0.003, 0.06, 0.35];
+/**
+ * THE NET: the rank is folded round its median (the wake's laceFold,
+ * 1 - |2 r - 1|) by NET_FOLD[0] in fresh foam, rising to NET_FOLD[1] from
+ * AGE_FOLD[0] to AGE_FOLD[1] s of age. Foam is threads round holes, as
+ * Manly's is, not solid rafts (round 7 folded nothing under 3 s).
+ */
+const NET_FOLD: readonly [number, number] = [0.55, 0.9];
+const AGE_FOLD: readonly [number, number] = [2, 8];
+/**
+ * THE BREAK-UP (replaces round 7's clump tear, the wake's, which tore old
+ * foam into the clumps the judges read as pasted-on patches). Old, thin foam
+ * stays only where a fine read of the raft (BREAK_TILE of its tile; drawn out
+ * BREAK_STRETCH times down the fall line where the sheet runs seaward) is in
+ * its top share, from BREAK_KEEP[0] up. So the threads break into dashes and
+ * specks, and in the backwash into streaks pulled seaward. BREAK_MAX of the
+ * foam breaks, from BREAK_AGE[0] to BREAK_AGE[1] s of age, where the amount
+ * is under BREAK_AMT.
+ */
+const BREAK_TILE = 0.25;
+const BREAK_STRETCH = 3;
+const BREAK_KEEP: readonly [number, number] = [0.58, 0.7];
+const BREAK_AGE: readonly [number, number] = [3, 10];
+const BREAK_MAX = 0.9;
+const BREAK_AMT: readonly [number, number] = [0.35, 0.75];
+/**
+ * Broken foam gathers into its specks and scum lines (old bubbles coalesce
+ * where the flow sweeps them together): where the break-up keeps foam, the
+ * opacity rises toward BREAK_SPECK_OP, before the caller's share. Without it
+ * the backwash's specks were 5% opaque and did not show.
+ */
+const BREAK_SPECK_OP = 0.5;
+const AGE_OPACITY: readonly [number, number, number] = [2.5, 8, 0.7];
 const AGE_GRAY: readonly [number, number, number] = [2, 10, 0.82];
 /**
  * The lace's footprint fade: the finest popped cell of the raft read (the
@@ -456,6 +535,21 @@ const VEIL_TINT: readonly [number, number, number] = [0.58, 0.64, 0.52];
  */
 const VEIL_MAX = 0.04;
 /**
+ * ROUND 8: THE SURF'S OWN WATER. A surf 20 cm to a meter deep, stirred by the
+ * bores, holds sand and fines through its whole column, and from above it
+ * reads as a teal body, not as the floor seen through clear water: Manly's
+ * surf is 0.44 of its dry sand's luma, R/G 0.50 and B/G 0.94, saturation
+ * 0.48; ours was 0.64, R/G 0.94, B/G 0.87 and 0.08, the brown floor through
+ * the water. Where the grid's water deepens from SURF_BODY_H[0] to
+ * SURF_BODY_H[1] m, up to SURF_BODY_SHARE of the water's light is that body,
+ * SURF_BODY_RGB (linear, the sun's share as the lagoon's in-scatter). It is
+ * darker than the floor under it and uniform (the veil's clouds drew streaks
+ * and fog, see VEIL_MAX). A calibration to the reference.
+ */
+const SURF_BODY_H: readonly [number, number] = [0.15, 0.6];
+const SURF_BODY_SHARE = 0.7;
+const SURF_BODY_RGB: readonly [number, number, number] = [0.01, 0.042, 0.04];
+/**
  * THE SWASH FOAM IS CREAM, NOT BLUE-WHITE. Beach foam carries the fines and
  * the organic film the surf strips from the sand, and it lies thin over sand,
  * so it reads a warm off-white: the reference's foam band is (168, 166, 149)
@@ -465,7 +559,401 @@ const VEIL_MAX = 0.04;
 const SWASH_FOAM_TINT: readonly [number, number, number] = [1.0, 0.97, 0.9];
 /** Under this depth a film is gloss on the sand, not a sheet: the sheet fades in from here. */
 const SHEET_MIN_M = 0.0004;
+/**
+ * ROUND 10: THE VARIANT LEVERS. Round 9 lost both views after it changed
+ * several things at once (its drain streaks and even backwash lace read as
+ * "a tiled bump map" and "brushed fur"). Round 10 draws round 8's look with
+ * one lever at a time, each behind a tune uniform (`tune.v*`) whose 0 draws
+ * round 8 to the pixel, for the lead to judge one by one:
+ *   vSpeck  the sea's own whitecaps faded over the patch (round 9's
+ *           `waterSeaFoam`);
+ *   vGloss  the sand's gloss and sheen only where the sheet has left it
+ *           (round 9: under the thin film they drew a gray fog);
+ *   vFilm   V1, THE GLASSY FILM: no lace and no caustic web on the film (under FILM_PART_H[0] m;
+ *           the bore's foam from FILM_PART_H[1] m stays), round 8's streaked
+ *           silver band replaced by a sky shine from GLASS_THICK past
+ *           GLASS_H[1] m to GLASS_THIN under GLASS_H[0] m, and the floor's
+ *           clarity through the suspended sand GLASS_CLEAR times the loss;
+ *   vFront  V2, THE BROKEN FRONT: the front band from FRONT_W_M[0] to
+ *           FRONT_W_M[1] wide, a second octave of width, clusters from
+ *           FRONT_CLUSTER_LO, gaps in FRONT_GAP_SHARE of it, and FRONT_TRAIL_M
+ *           of trailing lace at FRONT_TRAIL_AMOUNT drawn as older, bubblier
+ *           foam; and OLD_LINES older swash lines on the wet sand (see OLD_L_M);
+ *   vDry    V3, THE DRYING EDGE (see DRY_FRESH_S, DRY_WRACK_GAP_M);
+ *   vFeed   V4, FOAM THAT FEEDS THE SWASH (see FEED_PATCH_M).
+ */
+/*
+ * ROUND 10, STEP 2: every version of step 1 lost view 2 alone, and every judge
+ * named the same gaps whatever the version (an opaque sheet, drawn lines, an
+ * even lip, cellular foam, flat wet sand, a white speckle, the crest
+ * polygon), so step 2 ships every lever together, the rills off, and four
+ * more levers: vSheet (see SHEET_DAPPLE_M), vSpeckle (SPECKLE_H), vTrail
+ * (TRAIL_*), and V2 pushed further (FRONT_*).
+ */
+const FILM_PART_H: readonly [number, number] = [0.05, 0.12];
+/**
+ * ROUND 11, V1 (vSand): THE SAND TOWARD MANLY'S. The see-through measure
+ * (`beach/seeThrough.py`) found the dry sand carries a third of Manly's fine
+ * contrast (2.6 against 7.6 RMS of luma minus a 7 px blur at 960 x 540) and
+ * half its saturation (0.18 against 0.35). The dry sand's mottle (all but its
+ * broad octave), its specks and gravel, and its sunlit relief (ripples, pits,
+ * prints) scale by SAND_GRAIN_K; its albedo is tinted by SAND_TINT (linear:
+ * Manly's dry sand's linear color over ours, [163, 127, 80] over [129, 115,
+ * 89] sRGB), faded out under the water over SAND_TINT_H. The wet and damp
+ * sand follow through Angstrom's law. (SAND_GRAIN_K 2.9 gave 5.4 of Manly's
+ * 7.6 RMS; 4.1.)
+ */
+const SAND_GRAIN_K = 4.1;
+const SAND_TINT: readonly [number, number, number] = [1.67, 1.24, 0.8];
+// (0.4 to 3 mm: from 2 mm to 3 cm the sheet drew gold-brown, its saturation 0.91 of the dry sand's against Manly's 0.39.)
+const SAND_TINT_H: readonly [number, number] = [0.0004, 0.003];
+/**
+ * ROUND 12: THE MATCH BY MEASURE (`opts.match`, `&beachmatch=1`). Remy's
+ * ruling (sheet q34, 2026-09-29): "keep going with judges, and match the real
+ * frame by measure". `beach/r12/measure.py` measures each zone of the judged
+ * crop (960 x 540) from the sea to the dry sand, on the Manly stills b009 to
+ * b012 and on our frame, the same way: its width, its CIE Lab mean and
+ * spread, its luma percentiles, its see-through share (high-pass energy
+ * against the dry sand's), its foam share and scale; the foam line's width,
+ * peak and gaps; the wet sand's darkening and sheen. The tables are in
+ * `beach/measure-manly.md` and `beach/measure-match.md`. Round 8 against
+ * Manly, the gaps the match closes (Manly's spread in brackets):
+ *   DRY SAND   luma 116 (131 to 134), b* 16 (27 to 31), grain 2.7 (4.8 to
+ *              7.5): round 11's vSand (on in the match);
+ *   DAMP SAND  luma 0.82 of the dry sand's (0.67 to 0.70; in Manly it is
+ *              mostly in the promenade's shadow): MATCH_DAMP_K;
+ *   WET SAND   0.75 of the dry sand's (0.60 to 0.65), sheen share 0.11 (0 to
+ *              0.015): MATCH_WET_K, MATCH_GLOSS_CUT;
+ *   FILM       one gray-olive tone (L* sd 1 to 7; round 8 6.5, a ramp from a
+ *              brown lip to a dark foot): MATCH_FILM_*;
+ *   FACE       a dark blue band before the foam line (L* 22 to 31, b* -3 to
+ *              -8; round 8 has none): round 11's face, MATCH_FACE_*;
+ *   FOAM LINE  one continuous bright band, 0.04 to 0.08 of the crop's height
+ *              (round 8: cellular cores in 0.63 of the columns), its peak luma
+ *              151 to 186 (138), b* -8 to -13 (a cool white; round 8 cream,
+ *              +3): round 11's band, MATCH_LINE_*, MATCH_FOAM_TINT;
+ *   SURF       a lace net over dark water, foam 0.19 to 0.45 of it in strands
+ *              about 6 px wide round holes 10 to 23 px (round 8: 3.3 and
+ *              14.5 px): MATCH_TILE_K;
+ *   WATER      a dark teal, L* 20 to 23, a* -14 to -16 (27.5, -7.8):
+ *              MATCH_SURF_BODY_*.
+ * Each MATCH_ value is a calibration to those frames, not the physics, and
+ * is a uniform (`mt`) so a rig can step it at one pinned state.
+ */
+/**
+ * ROUND 13 (the match): THE SHAPE FAULTS. Round 12 matched 45 of 60 numbers
+ * and lost view 2 again (high); its judge named five shapes no number of
+ * round 12 measured. `beach/r12/shape.py` measures each on the Manly stills
+ * and on ours (`beach/measure-shape.md`):
+ *   THE EDGE  the dark band before the foam line: Manly's darkest row is 0.62
+ *             to 0.67 of the film's luma (p10 of the columns), 44 to 52 luma;
+ *             round 12's 0.32 and 24, a black-navy stroke (MATCH_FACE_*);
+ *   RILLS     round 8's drawn rills are off in the match (Manly shows none);
+ *   THE RIM   the bright line on the sheet's top edge rises 6 to 8 luma over
+ *             the film in 0.20 to 0.25 of Manly's columns; round 12's 14 in
+ *             0.57 (MATCH_RIM_K, MATCH_RIM_GAP_M);
+ *   GRADIENT  the damp sand dries by its age (MATCH_DAMP_AGE_S, MATCH_DAMP_K
+ *             at the wet sand to MATCH_DAMP_DRY_K up the beach), the wet line
+ *             MATCH_LINE_W_K times wider, the film fades in over its top
+ *             millimeters (MATCH_FILM_DEEP_M, MATCH_EDGE_FULL_M);
+ *   HOLES     Manly's surf net has 41 to 56 small windows per 10,000 px (about
+ *             20 px each), round 12's 21: the strong bore's lace read finer
+ *             (MATCH_TILE_K) and drawn out further along the shore
+ *             (MATCH_HOLE_STRETCH, MATCH_STREAK_STRETCH), and the surf behind
+ *             the bore takes it too (MATCH_SURF_REACH_M).
+ */
+const MATCH_RIM_K = 0.5;
+const MATCH_RIM_GAP_M = 1.4;
+const MATCH_DAMP_DRY_K = 1.0;
+const MATCH_DAMP_AGE_S: readonly [number, number] = [30, 150];
+const MATCH_LINE_W_K = 2;
+const MATCH_EDGE_FULL_M = 0.008;
+const MATCH_HOLE_STRETCH = 1.5;
+const MATCH_STREAK_STRETCH = 3;
+const MATCH_SURF_REACH_M: readonly [number, number, number] = [3, 6, 9];
+/** The surf net's amount cap (see THE SURF'S NET in the hook). */
+const MATCH_NET_CAP = 0.45;
+const MATCH_NET_SCALE = 1.9;
+/** The scale of the noise that varies the threads' width and light, m. */
+const MATCH_NET_VAR_M = 0.35;
+/**
+ * ROUND 14 (the match): what the judges' "flat slab" is not, and what is
+ * missing (`beach/r12/sheet.py`, `beach/measure-sheet.md`). The film's
+ * mid-scale streaks, glints, edge width and jaggedness are already inside the
+ * Manly spread. Missing: (1) thin lines along the shore on the wet sand (old
+ * swash marks: Manly 0.58 to 0.75, ours 0.49), so round 11's older swash lines
+ * (vOld) are on in the match; (2) the wet sand darker toward the water (the 15
+ * rows next to the film at 0.83 to 0.86 of the sand 45 to 60 rows up; ours
+ * 1.00): MATCH_WET_K and MATCH_WET_S; (3) the surf net streaked seaward, not
+ * along the shore (its gradient energy across the shore 0.56 to 0.59; ours
+ * 0.67), and patchy at the meter scale: MATCH_NET_STRETCH along the fall
+ * line, MATCH_NET_PATCH_M.
+ */
+const MATCH_NET_STRETCH = 1.25;
+const MATCH_NET_PATCH_M = 1.6;
+const MATCH_STRAND_K = 0.1;
+/**
+ * ROUND 17 (the match): THE PROFILE FROM THE FOAM LINE TO THE DRY SAND
+ * (`beach/r12/profile.py`, `beach/measure-profile.md`). Manly b009 to b012:
+ * one dark olive zone (L* 28 to 35, b* 5 to 9) for 95 to 170 rows above the
+ * foam line, then a damp ramp of 28 to 65 rows (L* up 2.3 to 4.7 per 10
+ * rows, b* to 25 to 30), then the dry sand (L* 53 to 57). Round 16: a gray
+ * sheet of about 40 rows, then orange wet sand (b* 16 to 22) with no ramp, a
+ * rimmed lip, and white speckle. So: the sand the sheet left under
+ * MATCH_OLIVE_S[0] s ago is the sheet's olive, fading to orange by [1] s
+ * (MATCH_OLIVE_GRAY of the way); no rim, no silver sheen band and a wider
+ * fade at the lip; the thin sheet's own lace and the stranded foam cut
+ * (MATCH_SHEET_LACE_K, MATCH_STRAND_K); the swash a little lower
+ * (BEACH_MATCH_SWASH.waveGain) to leave the damp ramp and the dry sand in
+ * the frame.
+ */
+const MATCH_OLIVE_S: readonly [number, number] = [45, 110];
+const MATCH_OLIVE_GRAY = 0.85;
+/** The damp ramp's reads, m seaward of the point, and its strength (see THE DAMP RAMP). */
+// Round 18: reads to 2.8 m (Manly's ramp is 28 to 65 rows, 1.2 to 2.8 m at the new frame's 4.3 cm a
+// pixel), and full strength.
+const MATCH_RAMP_M: readonly [number, number, number, number] = [0.6, 1.3, 2.0, 2.8];
+const MATCH_RAMP_K = 1.0;
+const MATCH_SHEET_LACE_K = 0.3;
+/** The old swash lines in the match: MATCH_OLD_W_K times wider, their grains and scum MATCH_OLD_K times as strong. */
+const MATCH_OLD_W_K = 2.5;
+const MATCH_OLD_K = 4.0;
+/** Their scum and their band of stranded bubbles in the match: Manly's old swash marks are dark grain lines, not white strokes. */
+const MATCH_OLD_FOAM_K = 1.0;
+const MATCH_OLD_LACE_K = 0.35;
+/** The net's threads: the cell edge value over which a thread fades out (a thread about a tenth of a cell). */
+const MATCH_NET_LINE: readonly [number, number] = [0.08, 0.36];
+const MATCH_NET_OP = 1.0;
+// Round 18: 1.0 (0.56 in round 14): at the new frame (beach-top2) the damp band
+// above the olive zone drew at L* 29, darker than the olive; Manly's damp band is
+// L* 36 to 44 (b* 25 to 30), and at 1.0 ours is 43 (b* 28).
+const MATCH_DAMP_K = 1.0;
+const MATCH_WET_K = 0.45;
+/** The wet sand grayed this far toward its luma times MATCH_FILM_RGB (Manly's wet sand b* 17 to 20 against its damp sand's 20 to 28). */
+const MATCH_WET_GRAY = 0.45;
+/** The damp sand grayed this far the same way (its a* 10 against Manly's 6 to 9). */
+const MATCH_DAMP_GRAY = 0.12;
+/** The whole beach sand's albedo times this (round 11's gold drew the dry sand at 136 luma, b* 32; Manly's 131 to 134, b* 27 to 31). */
+const MATCH_SAND_RGB: readonly [number, number, number] = [0.96, 0.955, 1.0];
+/** Sand the sheet left under MATCH_WET_S[0] s ago is the wet sand; by MATCH_WET_S[1] s it is damp. */
+const MATCH_WET_S: readonly [number, number] = [20, 70];
+const MATCH_GLOSS_CUT = 0.85;
+/** The film's immersed darkening full over MATCH_FILM_DEEP_M (FILM_DEEP_M 1 to 10 mm drew a brown lip). */
+const MATCH_FILM_DEEP_M: readonly [number, number] = [0.0004, 0.005];
+const MATCH_LINE_W_M = 3.0;
+const MATCH_LINE_GAP_SHARE = 0.0;
+const MATCH_LINE_AMOUNT = 1.0;
+/** The run of foam across the shore that makes a bore strong enough for the line, m (STRENGTH_RUN_M 2.3). */
+const MATCH_STRENGTH_RUN_M = 2.3;
+/** The line's density at a half, three quarters and all of its width from the front (1 at a quarter). */
+const MATCH_LINE_PROFILE: readonly [number, number, number] = [0.95, 0.9, 0.8];
+/** Seaward of the foam line the strong bore's foam is this share of itself: Manly's surf is a lace net, 0.19 to 0.45 foam. */
+const MATCH_SURF_AMOUNT = 0.75;
+const MATCH_BAND_OP_HI = 0.9;
+const MATCH_FACE_W_M = 0.5;
+const MATCH_FACE_SHARE = 0.78;
+/** The face only over this much grid water, m (see the sheet's face). */
+const MATCH_FACE_H: readonly [number, number] = [0.008, 0.025];
+/** The swash foam's tint in the match: a cool white (Manly's foam line b* -8 to -13) in place of SWASH_FOAM_TINT's cream. */
+const MATCH_FOAM_TINT: readonly [number, number, number] = [0.64, 0.89, 1.45];
+/** The bore's and the surf's lace read at this many times its tile (strands and holes as wide as Manly's in the frame). */
+const MATCH_TILE_K = 2.2;
+/** The surf's lace (not the line) this many times as opaque (its brightest tenth 119 luma against Manly's 157 to 179). */
+const MATCH_SURF_OP = 2.0;
+/** The strong bore's surf lace read as the band this far (its reads drawn out along the shore; round 8's round holes read as cheese). */
+const MATCH_SURF_BAND = 0.0;
+/** The strong bore's lace folded at least this far round its median (NET_FOLD 0.55 to 0.9): threads round dark windows, as Manly's surf net (at 0.55 the 4x tile drew round holes in white blobs). */
+const MATCH_FOLD = 1.0;
+/** The surf's own body grows over this grid depth, m, in the match (SURF_BODY_H 0.15 to 0.6: our surf ended at 0.15 of the crop, Manly's is 0.22 to 0.38). */
+const MATCH_SURF_H: readonly [number, number] = [0.25, 0.75];
+const MATCH_SURF_BODY_SHARE = 0.95;
+/** The sheet is the sand seen through a film up to MATCH_THICK_M[0] of depth, the seabed reader's water from [1] (round 8: 5 mm and 5 cm; its film fell from 103 to 56 luma over 1 to 16 mm, Manly's is one tone). */
+const MATCH_THICK_M: readonly [number, number] = [0.02, 0.08];
+/** The film's immersed grains' factor (WET_IMMERSED_K 0.55 drew the film at 53 to 56 luma from 2 mm on; Manly's is 66 to 85). */
+const MATCH_IMMERSED_K = 0.85;
+/** The film's own gray olive: MATCH_FILM_GRAY of the way to its luma times MATCH_FILM_RGB. */
+const MATCH_FILM_GRAY = 0.65;
+const MATCH_FILM_RGB: readonly [number, number, number] = [1.07, 1.0, 0.72];
+/** The sand's gold fades out under this much film, m (SAND_TINT_H: 0.4 to 3 mm drew a gold-brown lip). */
+const MATCH_TINT_H: readonly [number, number] = [0.0002, 0.001];
+const MATCH_SURF_BODY_RGB: readonly [number, number, number] = [0.0, 0.038, 0.056];
+/** The face's own light in the match (FACE_RGB drew it at b* -1; Manly's face is b* -3 to -8). */
+const MATCH_FACE_RGB: readonly [number, number, number] = [0.016, 0.022, 0.032];
+/** The foam line's lace cover cap in the match (BAND_MAX_COVER 0.72 drew it 0.79 foam; Manly's 0.55 to 0.67). */
+const MATCH_BAND_COVER = 0.6;
+/**
+ * ROUND 11, V2 (vBand): ONE BORE BAND. Manly's surf edge is one bright,
+ * continuous band (0.86 of its dry sand's luma) with lines along the shore
+ * and a dark blue face before it; ours is separate cellular cores (0.79). The
+ * grid holds two bores: at 42 s (view 1, won by round 8's look) its foam band
+ * is 0.9 to 1.5 m wide at its fronts, at 138 s (view 2) 2.4 to 3.1 m. A
+ * STRONG bore (the point in a run of foam STRENGTH_RUN_M long) loses the
+ * breaker's segments;
+ * its lace covers up to BAND_MAX_COVER, is drawn out BAND_HOLE_STRETCH and
+ * BAND_STREAK_STRETCH times along the shore, and is BAND_OP_LO to BAND_OP_HI
+ * opaque; along its shoreward edge a rolled front LIP_W_M wide (LIP_AMOUNT,
+ * broken in LIP_GAP_SHARE of a noise of LIP_GAP_M), and before it a face
+ * FACE_W_M wide of FACE_RGB (up to FACE_SHARE of the water's light). The weak
+ * bore keeps round 8's look.
+ */
+/*
+ * The strength (round 11's measure; round 9's, the foam 0.8 m behind the point
+ * over 0.74 to 0.9, also fired in view 1's upper core at 42 s): whether the
+ * point lies in a run of foam over STRENGTH[0] to [1] at least STRENGTH_RUN_M
+ * long across the shore. At the grid's foam fronts the bore band is 0.9 to
+ * 1.5 m wide at 42 s (the quartiles, view 1's rows) and 2.4 to 3.1 m at 138 s.
+ */
+const STRENGTH_RUN_M = 2.3;
+const STRENGTH: readonly [number, number] = [0.4, 0.55];
+const BAND_MAX_COVER = 0.72;
+const BAND_HOLE_STRETCH = 3;
+const BAND_STREAK_STRETCH = 6;
+const BAND_OP_LO = 0.2;
+const BAND_OP_HI = 0.66;
+const LIP_W0 = 0.45;
+const LIP_W_M = 0.35;
+const LIP_AMOUNT = 0.85;
+const LIP_GAP_M = 1.8;
+const LIP_GAP_SHARE = 0.15;
+const FACE_W_M = 0.45;
+const FACE_SHARE = 0.5;
+const FACE_RGB: readonly [number, number, number] = [0.018, 0.028, 0.045];
+/**
+ * ROUND 11, V3 (vOld): round 10's older swash lines (OLD_S_M) without round
+ * 10's lip, and along each a band OLD_LACE_W_K times its width of stranded
+ * bubbles drawn with the lace (OLD_LACE_AMOUNT, as old foam), broken as the
+ * line is.
+ */
+const OLD_LACE_W_K = 3.5;
+const OLD_LACE_AMOUNT = 0.45;
+/**
+ * vSheet, THE SEE-THROUGH SHEET. Manly's sheet is an olive gray (0.54 of its
+ * dry sand's luma, 0.39 of its saturation, its hue 5 degrees from the sand's)
+ * dappled with fine light cells (the sky's sheen off its ripples, and faint
+ * bubbles), lighter toward the lip; the judges read ours as "an opaque,
+ * muddy dark-brown smear". The sheen (V1's glass share) is dappled: a
+ * two-octave noise of SHEET_DAPPLE_M and SHEET_DAPPLE2_M, carried with the
+ * flow in two phases, scales it from SHEET_DAPPLE_LO to SHEET_DAPPLE_HI; the
+ * sand under the water keeps SHEET_GRAIN_K of the dry sand's grain (its
+ * mottle; wet sand in the air is smoother, the pores' film fills it) and is
+ * grayed toward olive (SHEET_OLIVE of the way to its luma times
+ * SHEET_OLIVE_RGB) as the water deepens from FILM_DEEP_M[0] to [1] m.
+ */
+const SHEET_DAPPLE_M = 0.22;
+const SHEET_DAPPLE2_M = 0.09;
+const SHEET_DAPPLE_LO = 0.55;
+const SHEET_DAPPLE_HI = 1.6;
+const SHEET_GRAIN_K = 0.7;
+const SHEET_OLIVE = 0.45;
+const SHEET_OLIVE_RGB: readonly [number, number, number] = [1.03, 1.0, 0.8];
+/**
+ * vSpeckle, THE SURF'S SPECKLE. A judge: "an even fine white speckle over all
+ * the water reads as a screen overlay or rain". Its source (step 2's toggle
+ * frames): the sand's pale shell specks under the surf, refracted by its
+ * ripples into small light wedges (the rest), and the broken foam's specks
+ * (60% of them; the sea's whitecaps and the seabed's caustic web are not
+ * part of it). The surf's stirred water hides both: the specks fade out as
+ * the grid's water deepens from SPECKLE_H[0] to SPECKLE_H[1] m.
+ */
+const SPECKLE_H: readonly [number, number] = [0.05, 0.25];
+/** The floor's clarity under the surf falls to 1 - SPECKLE_CLARITY over SPECKLE_H (its wave ripples' lit crests, refracted by the surf's ripples, drew most of the speckle). */
+const SPECKLE_CLARITY = 0.85;
+/** Thin foam (amount under 0.25 to 0.5) over the surf's depth loses up to SPECKLE_THIN_OP of its opacity (its sparse patches drew half the speckle). */
+const SPECKLE_THIN_OP = 0.6;
+/**
+ * vTrail, THE FOAM TRAILS SEAWARD. "The foam lies in blobs of speckled noise",
+ * "nothing streaks down-slope". On the seaward side of the bore (where the
+ * foam grows toward the shore, TRAIL_SIDE of its gradient's direction) and in
+ * thin foam (TRAIL_AMT), the lace is read drawn out down the fall line, as the
+ * backwash draws it: the bore's foam trails back to sea in streaks, in
+ * patches (TRAIL_PATCH_M), wobbling sideways as V4's do (FEED_WOBBLE_M).
+ */
+const TRAIL_SIDE: readonly [number, number] = [0.45, 0.85];
+/** The trails lie in patches of a noise TRAIL_PATCH_M along the shore (about a third of it; everywhere, a first build drew a curtain). */
+const TRAIL_PATCH_M = 1.7;
+const TRAIL_AMT: readonly [number, number, number, number] = [0.04, 0.12, 0.4, 0.6];
+/** V4's streaks wobble sideways by up to FEED_WOBBLE of a noise FEED_WOBBLE_M across (straight, a first build read as drips). */
+const FEED_WOBBLE_M = 0.45;
+const FEED_WOBBLE = 0.18;
+// Step 2: 0.05 (0.07 in step 1: the thin film's wide strip read as "a gray slab ... a flat overlay").
+const GLASS_THIN = 0.05;
+const GLASS_THICK = 0.015;
+const GLASS_H: readonly [number, number] = [0.002, 0.04];
+const GLASS_CLEAR = 0.2;
+// Step 2: 1 to 22 cm (1.5 to 32 cm in step 1: "a bright, even-width stamped noise band").
+const FRONT_W_M: readonly [number, number] = [0.01, 0.22];
+const FRONT_CLUSTER_LO = 0.15;
+const FRONT_GAP_SHARE = 0.42;
+const FRONT_TRAIL_M = 0.6;
+const FRONT_TRAIL_AMOUNT = 0.3;
+const FRONT_TRAIL_AGE_S = 7;
+/**
+ * V2's OLDER SWASH LINES. Manly shows "older swash marks lie across the sheet
+ * at slight angles": the lobed fronts of earlier uprushes, left as thin lines
+ * of scum and fine dark grains on the wet sand. Each is an arc at s =
+ * OLD_S_M[k] plus lobes OLD_L_M[k] long and OLD_D_M[k] deep (cusps up the
+ * beach) plus a slight tilt OLD_TILT[k] along the shore, OLD_W_M wide, broken
+ * where a noise falls low, on wet sand only (above the sheet, below the wet
+ * line). Scum OLD_FOAM of the foam's white, grains OLD_DARK darker.
+ */
+const OLD_S_M: readonly number[] = [5.0, 6.1, 7.2, 8.3, 9.4];
+const OLD_L_M: readonly number[] = [4.3, 5.7, 3.6, 6.4, 4.9];
+const OLD_D_M: readonly number[] = [0.35, 0.5, 0.3, 0.45, 0.4];
+const OLD_TILT: readonly number[] = [0.05, -0.07, 0.08, -0.04, 0.06];
+const OLD_W_M = 0.03;
+const OLD_FOAM = 0.1;
+const OLD_DARK = 0.1;
+/**
+ * V3, THE DRYING EDGE. Sand the sheet left under DRY_FRESH_S[0] s ago keeps
+ * DRY_FRESH_K of the immersed grains' darkening (round 9's fresh wet sand),
+ * fading by DRY_FRESH_S[1] s, both ends moved 0.6 to 1.4 times by a two-octave
+ * patch noise of DRY_PATCH_M; the wet line takes a second octave of DRY_LINE2_M
+ * and DRY_LINE2_VAR (patchy drying toward the dry sand); its ramp narrows to
+ * DRY_LINE_W_K of itself and its drying blotches go to DRY_BLOTCH_K (a crisp
+ * edge); the high-water mark narrows to DRY_HWM_W_M (a crisp thin line). The
+ * wrack: the items on the wrack line (s DRY_WRACK_S[0] to [1]) are hidden in
+ * the gaps of a noise along the shore of DRY_WRACK_GAP_M (DRY_WRACK_GAP_SHARE
+ * of it) and moved up to DRY_WRACK_WAVE_M up the beach along a wavy line.
+ */
+const DRY_FRESH_S: readonly [number, number] = [4, 30];
+const DRY_FRESH_K = 0.6;
+const DRY_PATCH_M = 0.7;
+const DRY_LINE2_M = 1.1;
+const DRY_LINE2_VAR = 0.09;
+// Step 2: 0.8 (0.4 in step 1: "a hard wavy edge like a vector outline").
+const DRY_LINE_W_K = 0.8;
+const DRY_BLOTCH_K = 0.15;
+const DRY_HWM_W_M = 0.05;
+/**
+ * V4, FOAM THAT FEEDS THE SWASH. On the sheet, in patches of a noise
+ * FEED_PATCH_M across (about a quarter of the face), the lace's amount rises by
+ * up to FEED_GAIN of itself and is read drawn out down the fall line: the
+ * broken wave's foam streams up the slope as a thinning bore that joins the
+ * front. Where it runs back, in sparser patches of SCUM_PATCH_M (about a
+ * fifth), foam of SCUM_AMOUNT is drawn out seaward: a few scum trails.
+ */
+/**
+ * THE SEA'S CREST OVER THE SHEET (vHide). Where the beach's grid water is
+ * shallower than CREST_HIDE_H, the beach's own water is the water the eye
+ * sees: the reader returns `hide` and the surface draws nothing there (the sea
+ * crest standing over the pushed-down sheet drew a darker patch with straight
+ * sides), and the sheet keeps its true level (no SHEET_PUSH_M) there.
+ */
+const CREST_HIDE_H = 0.4;
+const FEED_PATCH_M = 2.4;
+/** V4 only on the sheet: its grid water from FEED_H[0] to FEED_H[1] m, and the lace's amount under FEED_BORE (not the dense bore). */
+const FEED_H: readonly [number, number, number, number] = [0.003, 0.006, 0.07, 0.12];
+const FEED_BORE: readonly [number, number] = [0.35, 0.5];
+const FEED_GAIN = 1.2;
+const SCUM_PATCH_M = 1.8;
+const SCUM_AMOUNT = 0.5;
 const SHEET_FULL_M = 0.004;
+/**
+ * ROUND 8: the sheet's own alpha is full by this depth (SHEET_FULL_M to round
+ * 7: the sheet faded in over 0.4 to 4 mm of depth, 10 to 30 cm of sand, and
+ * with no foam on it its edge did not show at all).
+ */
+const SHEET_EDGE_FULL_M = 0.001;
 /** The beach's effects fade out over this far inside the patch's alongshore ends and top, m. */
 const EDGE_FADE_M = 3;
 /**
@@ -595,12 +1083,12 @@ const RIM_EDGE_M = 0.0004;
  * into its lowest RIM_GAP_SHARE.
  */
 const RIM_AMOUNT = 0.9;
-const RIM_CLUSTER_LO = 0.75;
+const RIM_CLUSTER_LO = 0.5;
 /** The leading edge's roughness at the bubbles' scale: RIM_ROUGH_M in and out, a noise of RIM_ROUGH_CELL_M. */
 const RIM_ROUGH_M = 0.03;
 const RIM_ROUGH_CELL_M = 0.07;
 const RIM_GAP_M = 1.1;
-const RIM_GAP_SHARE = 0.1;
+const RIM_GAP_SHARE = 0.18;
 const RIM_BACK_SHARE = 0.85;
 /**
  * ROUND 5: THE FRONT IS A FOAM BAND, NOT A LINE. Both round-4 judges read the
@@ -629,11 +1117,23 @@ const RIM_BACK_SHARE = 0.85;
 const RIM_ARC_GAIN = 0.7;
 const RIM_LOBE_M = 1.0;
 const RIM_LOBE_GAIN = 0.5;
-const RIM_TRAIL_M = 0.9;
-const RIM_TRAIL_AMOUNT = 0.4;
-const RIM_W_MIN_M = 0.04;
-const RIM_W_MAX_M = 0.4;
-const RIM_W_SCALE_M = 1.6;
+/*
+ * ROUND 8: ONE THIN, LUMPY LINE ON THE TRUE EDGE. Round 7's band was 4 to 40
+ * cm wide and set back from the grid's edge, and a judge read "none of it
+ * sits on the leading edge". The band is now 3 to 14 cm wide (RIM_W_MIN_M to
+ * RIM_W_MAX_M over RIM_W_SCALE_M), starts where the sheet starts (the
+ * scallops are in the read, see `wander`), is lumpier (clusters from
+ * RIM_CLUSTER_LO, 0.75 in round 7), breaks in its lowest RIM_GAP_SHARE (0.1
+ * in round 7), and trails lace for RIM_TRAIL_M (0.9 m in round 7). (At 2 to
+ * 10 cm its densest row was one pixel of white from both views: a stroke.)
+ */
+const RIM_TRAIL_M = 0.6;
+const RIM_TRAIL_AMOUNT = 0.35;
+const RIM_W_MIN_M = 0.03;
+const RIM_W_MAX_M = 0.14;
+/** The rim's share of the lace's opacity (see OP_LO): its densest core, one pixel wide from above, read as a stroke at 1. */
+const RIM_OP = 0.8;
+const RIM_W_SCALE_M = 0.9;
 const RIM_CLUSTER_M = 0.22;
 const RIM_SCALLOP_M = 3.2;
 const RIM_SCALLOP_DEPTH_M = 0.35;
@@ -664,7 +1164,9 @@ const HWM_SCALLOP_DEPTH_M = 0.22;
  * foam amount where the film is 4 mm to 3 cm deep, and all of it at the
  * front (under 4 mm) and in the bore (over 8 cm).
  */
-const FILM_FOAM_KEEP = 0.45;
+// Round 8: 0.75 (0.45 in round 7; the film's foam is 0.1 to 0.3, so the
+// backwash drew none and could not break into streaks and specks).
+const FILM_FOAM_KEEP = 0.75;
 /**
  * ROUND 5: THE BACKWASH'S RILLS. A draining swash face carries rills and small
  * drain channels, 2 to 5 cm wide and a few millimeters deep, running down the
@@ -685,14 +1187,28 @@ const RILL_FIELD_M = 2.4;
  * (they hold water) and reflecting the low sky (RILL_SKY). Every judge from
  * round 3 on asked for rills that show.
  */
-const RILL_FIELD_SHARE = 0.35;
+/*
+ * ROUND 8: a judge still asked for "visible seaward rills"; round 7's read as
+ * pale streaks (the sky in their centers, 0.05, over a floor only 12%
+ * darker). They are narrower (RILL_W 0.06, 0.1 in round 7) and shorter
+ * (RILL_STRETCH 3.5, 5 in round 7; s to 8 m, 8.5 in round 7). Their floors
+ * are RILL_FLOOR_DARK darker, with RILL_SKY of the low sky. They cover
+ * RILL_FIELD_SHARE of the face (0.35 in round 7) and fade out under a sheet
+ * 4 to 9 mm deep (6 to 12 mm in round 7). Shallower tributaries (a second
+ * ridged noise of RILL_TRIB_M, stretched RILL_TRIB_STRETCH times, RILL_TRIB_K
+ * of the depth) cross and join them.
+ */
+const RILL_FIELD_SHARE = 0.45;
 const RILL_M = 1.1;
-const RILL_STRETCH = 5;
+const RILL_STRETCH = 3.5;
 const RILL_DEPTH_M = 0.006;
-const RILL_W = 0.1;
-const RILL_S: readonly [number, number, number, number] = [-1.5, 0, 6.5, 8.5];
-const RILL_FLOOR_DARK = 0.12;
-const RILL_SKY = 0.05;
+const RILL_W = 0.06;
+const RILL_S: readonly [number, number, number, number] = [-1.5, 0, 6, 8];
+const RILL_FLOOR_DARK = 0.16;
+const RILL_SKY = 0.02;
+const RILL_TRIB_M = 0.45;
+const RILL_TRIB_STRETCH = 2.5;
+const RILL_TRIB_K = 0.4;
 /**
  * THE BREAKER'S WHITE COMES IN SEGMENTS (round 4). A bore breaks harder where
  * its crest is steeper, and along a crest that changes over meters, which the
@@ -847,6 +1363,25 @@ export interface OceanBeachOptions {
   /** The sky's blurred cloud copy (`OceanSky.cloudReflTexture`), for the sheet's reflection. */
   readonly skyClouds?: THREE.Texture;
   readonly seed: number;
+  /**
+   * Build the crest hide (see CREST_HIDE_H): the shore hook's `waterHide`,
+   * so the surface discards the sea's crest over the sheet. Off by default
+   * (round 11): the Discard costs about 1 ms of the sea's draw.
+   */
+  readonly crestHide?: boolean;
+  /**
+   * Build the look's levers of rounds 9 to 11 (the `tune.v*` uniforms; see
+   * VARIANTS). Off by default (round 11): round 8's look, and round 8's node
+   * graph, so its cost too (at 0 the levers' reads still cost 0.4 to 0.8 ms).
+   */
+  readonly levers?: boolean;
+  /**
+   * ROUND 12: build the look matched BY MEASURE to the Manly frames (see
+   * MATCH_*; `&beachmatch=1` in the viewer). It builds the levers too and
+   * sets the ones the match uses (vSand, vBand) on. Off by default: round
+   * 8's look and round 8's node graph.
+   */
+  readonly match?: boolean;
 }
 
 export interface OceanBeachState {
@@ -874,6 +1409,7 @@ export interface OceanBeach {
 /** Build the beach: start its worker, and wait until it has its first state. */
 export async function createOceanBeach(opts: OceanBeachOptions): Promise<OceanBeach> {
   const { field } = opts;
+  const MT0 = opts.match === true;
   const site = buildBeachSite(LAGOON_CAY_SEABED);
   const { frame: fr, grid: g } = site;
   const nCell = g.ns * g.na;
@@ -897,7 +1433,8 @@ export async function createOceanBeach(opts: OceanBeachOptions): Promise<OceanBe
       else if (m.type === 'error') reject(new Error(m.message));
     };
     worker.onerror = (e) => reject(new Error(`[ocean] The beach worker failed to start: ${e.message}`));
-    worker.postMessage({ type: 'init', cascades: field.cascades, n: field.buffers.n, seed: opts.seed });
+    // Round 16: the match runs its own swash (BEACH_MATCH_SWASH in oceanBeachMath.ts).
+    worker.postMessage({ type: 'init', cascades: field.cascades, n: field.buffers.n, seed: opts.seed, ...(MT0 ? { match: true } : {}) });
   });
   if (Math.abs(ready.dt - BEACH_DT) > 1e-12) throw new Error('[ocean] The beach worker runs a different step than this module.');
   const items = ready.items;
@@ -977,6 +1514,9 @@ export async function createOceanBeach(opts: OceanBeachOptions): Promise<OceanBe
    * shipped values; a capture rig sets them in one page load. Nothing in the
    * game sets them. `show*` 0 hides that part's look (for the no-beach A/B).
    */
+  // ROUND 12: the match (see MATCH_*) builds the levers and turns on the two
+  // it uses (vSand, vBand); without it both are 0, as round 11 shipped them.
+  const MT = opts.match === true;
   const tune = {
     wet: uniform(1),
     gloss: uniform(1),
@@ -985,7 +1525,79 @@ export async function createOceanBeach(opts: OceanBeachOptions): Promise<OceanBe
     showSheet: uniform(1),
     veil: uniform(1),
     web: uniform(1),
+    // ROUND 10: THE VARIANT LEVERS (see VARIANTS). Each at 0 draws round 8's
+    // look to the pixel; at 1 its lever is at full strength. ROUND 11: round
+    // 8's look is the default again, every lever off (round 10's step 2, all
+    // of them on, lost both views; a fresh control judge picked round 8's
+    // view-1 frame, and round 8 with the hidden fixes lost view 1).
+    vSpeck: uniform(0),
+    vGloss: uniform(0),
+    vFilm: uniform(0),
+    vFront: uniform(0),
+    vDry: uniform(0),
+    vFeed: uniform(0),
+    vSheet: uniform(0),
+    vSpeckle: uniform(0),
+    vTrail: uniform(0),
+    // Round 8's drawn rills (see RILLS_ON): 1 on, as round 8 has them.
+    rills: uniform(MT ? 0 : 1),
+    // ROUND 11, STEP 2: the draining view's new levers (see SAND_GRAIN_K,
+    // STRENGTH, OLD_LACE_AMOUNT); 0 draws round 8.
+    vSand: uniform(MT ? 1 : 0),
+    vBand: uniform(MT ? 1 : 0),
+    // Round 14: on in the match (see MATCH_NET_STRETCH's note).
+    vOld: uniform(MT ? 1 : 0),
+    // ROUND 12: the match's own changes (see MATCH_*): 1 with `opts.match`,
+    // 0 draws round 8 with round 11's vSand and vBand.
+    vMatch: uniform(MT ? 1 : 0),
+    // The match's calibrations (see MATCH_*), uniforms so a rig can step
+    // each one at one pinned state; read only when `opts.match` builds them.
+    mDampK: uniform(MATCH_DAMP_K),
+    mWetK: uniform(MATCH_WET_K),
+    mGlossCut: uniform(MATCH_GLOSS_CUT),
+    mFilmDeep0: uniform(MATCH_FILM_DEEP_M[0]),
+    mFilmDeep1: uniform(MATCH_FILM_DEEP_M[1]),
+    mLineW: uniform(MATCH_LINE_W_M),
+    mLineGap: uniform(MATCH_LINE_GAP_SHARE),
+    mLineAmt: uniform(MATCH_LINE_AMOUNT),
+    mBandOpHi: uniform(MATCH_BAND_OP_HI),
+    mFaceW: uniform(MATCH_FACE_W_M),
+    mFaceShare: uniform(MATCH_FACE_SHARE),
+    mTileK: uniform(MATCH_TILE_K),
+    mSurfShare: uniform(MATCH_SURF_BODY_SHARE),
+    mImmK: uniform(MATCH_IMMERSED_K),
+    mRampK: uniform(MATCH_RAMP_K),
+    mOlive0: uniform(MATCH_OLIVE_S[0]),
+    mOlive1: uniform(MATCH_OLIVE_S[1]),
+    mOliveGray: uniform(MATCH_OLIVE_GRAY),
+    mOldK: uniform(MATCH_OLD_K),
+    mNetOp: uniform(MATCH_NET_OP),
+    mNetCap: uniform(MATCH_NET_CAP),
+    mRimK: uniform(MATCH_RIM_K),
+    mDampDryK: uniform(MATCH_DAMP_DRY_K),
+    mLineWK: uniform(MATCH_LINE_W_K),
+    mEdgeFull: uniform(MATCH_EDGE_FULL_M),
+    mReach: uniform(1),
+    mSurfBand: uniform(MATCH_SURF_BAND),
+    mFold: uniform(MATCH_FOLD),
+    mStrRun: uniform(MATCH_STRENGTH_RUN_M),
+    mBandCover: uniform(MATCH_BAND_COVER),
+    mWetGray: uniform(MATCH_WET_GRAY),
+    mSurfOp: uniform(MATCH_SURF_OP),
+    mSurfH0: uniform(MATCH_SURF_H[0]),
+    mSurfH1: uniform(MATCH_SURF_H[1]),
+    mSurfAmt: uniform(MATCH_SURF_AMOUNT),
+    mFilmGray: uniform(MATCH_FILM_GRAY),
+    mThick0: uniform(MATCH_THICK_M[0]),
+    mThick1: uniform(MATCH_THICK_M[1]),
+    // The crest-polygon fix (see CREST_HIDE_H): built only with
+    // `opts.crestHide`, and then on.
+    vHide: uniform(opts.crestHide ? 1 : 0),
   };
+
+  // ROUND 11: the levers are built only with `opts.levers` (see there);
+  // without it every lever site below builds round 8's own nodes.
+  const LV = opts.levers === true || MT;
 
   /* --- world to grid ------------------------------------------------- */
 
@@ -1031,25 +1643,59 @@ export async function createOceanBeach(opts: OceanBeachOptions): Promise<OceanBe
    * wander into the drawn lines. World space: the same at any view. The
    * lines still move with the swash: the state they read moves.
    */
-  const wander = (xz: TslNode, sa: TslNode): TslNode => sa.add(vec2(
+  const wanderBase = (xz: TslNode, sa: TslNode): TslNode => sa.add(vec2(
     noise2(xz, 1.3, 0, 3.7).mul(WANDER_S_M).add(noise2(xz, 0.41, 2, 5.9).mul(WANDER_S2_M)),
     noise2(xz, 1.11, 1, 8.1).mul(WANDER_A_M),
   ));
+  /**
+   * ROUND 8: THE FRONT'S SCALLOPS ARE IN THE READ. The water's state is read
+   * up to RIM_SCALLOP_DEPTH_M onshore of the point, in arcs RIM_SCALLOP_M long
+   * along the shore, so each line the water draws (the sheet's edge, the rim
+   * on it, the wet sand under it, its foam) is set back seaward into scallops
+   * that meet in cusps up the beach, all together. Round 7 set back only the
+   * sheet's edge and the rim, so the dark wet sand at the grid's own edge lay
+   * in front of them with no foam on it.
+   */
+  const wander = (xz: TslNode, sa: TslNode): TslNode => {
+    const fS = fract(sa.y.div(RIM_SCALLOP_M).add(noise2(xz, RIM_SCALLOP_M * 1.7, 1, 2.9).mul(0.35)));
+    const setBack = fS.mul(float(1).sub(fS)).mul(4).mul(RIM_SCALLOP_DEPTH_M).mul(noise2(xz, RIM_SCALLOP_M * 2.3, 3, 6.6).mul(0.4).add(0.6));
+    return wanderBase(xz, sa).add(vec2(setBack, 0));
+  };
   /** The breaker's segments (see SEG_AMP): the amount of dense foam, varied along the shore. */
-  const segmented = (sa: TslNode, amount: TslNode): TslNode => {
+  /** `strength` 0 to 1 (V2, see STRENGTH): a strong bore is one band, with no segments. */
+  const segmented = (sa: TslNode, amount: TslNode, strength: TslNode | null = null): TslNode => {
     // Round 6: across the shore too, and wandering (a function of the
     // along-shore position alone drew blocks with straight sides).
     const n = noise2(vec2(sa.y.add(sa.x.mul(0.45)), sa.x.mul(0.8).add(uTime.mul(SEG_M / SEG_T_S))), SEG_M, 2, 11.3);
     const seg = mix(float(1 - SEG_AMP), float(1.15), smoothstep(float(-0.25), float(0.35), n));
-    return clamp(amount.mul(mix(float(1), seg, smoothstep(float(0.3), float(0.7), amount))), float(0), float(1));
+    const segK = strength === null ? smoothstep(float(0.3), float(0.7), amount) : smoothstep(float(0.3), float(0.7), amount).mul(float(1).sub(strength));
+    return clamp(amount.mul(mix(float(1), seg, segK)), float(0), float(1));
   };
   /** The share of the film's foam the lace draws at depth `h` (see FILM_FOAM_KEEP). */
   const filmKeep = (h: TslNode): TslNode => float(1).sub(
     smoothstep(float(0.002), float(0.004), h).mul(float(1).sub(smoothstep(float(0.03), float(0.08), h))).mul(1 - FILM_FOAM_KEEP));
-  /** The skin's reads: the wander plus the high-water mark's scallops (see HWM_SCALLOP_M). */
+  /** The film's share at a grid depth `h`, 1 to 0 over FILM_PART_H (V1: no lace there). */
+  const filmPart = (h: TslNode): TslNode => float(1).sub(smoothstep(float(FILM_PART_H[0]), float(FILM_PART_H[1]), h));
+  /** V1's glassy sky shine at a grid depth `h` (see GLASS_THIN): more as the film thins, no streaks. */
+  const glassShare = (h: TslNode): TslNode => smoothstep(float(SHEET_MIN_M), float(0.001), h)
+    .mul(mix(float(GLASS_THIN), float(GLASS_THICK), smoothstep(float(GLASS_H[0]), float(GLASS_H[1]), h)));
+  /** vSheet's dapple, 0 to 1 (see SHEET_DAPPLE_M): light cells, carried with the flow `vel` in two phases. */
+  const dapple = (xz: TslNode, vel: TslNode): TslNode => {
+    const v = vel.mul(0.5);
+    const ph1 = fract(uTime.div(FLOW_PHASE_S * 2));
+    const ph2 = fract(uTime.div(FLOW_PHASE_S * 2).add(0.5));
+    const q1 = xz.sub(v.mul(ph1.mul(FLOW_PHASE_S * 2)));
+    const q2 = xz.sub(v.mul(ph2.mul(FLOW_PHASE_S * 2))).add(vec2(2.3, 4.1));
+    const wgt = abs(ph1.mul(2).sub(1));
+    const at = (q: TslNode): TslNode => noise2(q, SHEET_DAPPLE_M, 3, 51.7).mul(0.6).add(noise2(q, SHEET_DAPPLE2_M, 1, 37.1).mul(0.4));
+    return smoothstep(float(-0.3), float(0.6), mix(at(q1), at(q2), wgt));
+  };
+  /** The lace's opacity share on a sheet `h` deep (see OP_SHEET). */
+  const sheetOp = (h: TslNode): TslNode => mix(float(OP_SHEET[2]), float(1), smoothstep(float(OP_SHEET[0]), float(OP_SHEET[1]), h));
+  /** The skin's reads: the wander (not the front's scallops) plus the high-water mark's scallops (see HWM_SCALLOP_M). */
   const wanderSkin = (xz: TslNode, sa: TslNode): TslNode => {
     const fW = fract(sa.y.div(HWM_SCALLOP_M).add(noise2(xz, HWM_SCALLOP_M * 1.9, 2, 31.3).mul(0.4)));
-    return wander(xz, sa).add(vec2(fW.mul(float(1).sub(fW)).mul(4).mul(HWM_SCALLOP_DEPTH_M), 0));
+    return wanderBase(xz, sa).add(vec2(fW.mul(float(1).sub(fW)).mul(4).mul(HWM_SCALLOP_DEPTH_M), 0));
   };
   /** 1 inside the patch, fading to 0 over EDGE_FADE_M at its alongshore ends, TOP_FADE_M at its top, 2 m at its sea edge. */
   const patchFade = (sa: TslNode): TslNode => smoothstep(float(g.a0), float(g.a0 + EDGE_FADE_M), sa.y)
@@ -1065,15 +1711,27 @@ export async function createOceanBeach(opts: OceanBeachOptions): Promise<OceanBe
   /** Ångström's wet albedo. */
   const wetAlbedo = (alb: TslNode): TslNode => alb.mul((1 - WET_RE) * (1 - WET_RI)).div(float(1).sub(alb.mul(WET_RI)));
   /** How wet the surface looks, 0 to 1, from the skin and any sheet (see WET_LINE_SE). */
+  /** The wet line's threshold (see WET_LINE_SE), with V3's second octave (DRY_LINE2_M). */
+  const wetThr = (xz: TslNode): TslNode => {
+    const t0 = noise2(xz, WET_PATCH_M, 0, 12.7).mul(WET_LINE_VAR).add(WET_LINE_SE);
+    return LV ? t0.add(noise2(xz, DRY_LINE2_M, 2, 19.3).mul(tune.vDry.mul(DRY_LINE2_VAR))) : t0;
+  };
   const wetness = (xz: TslNode, a: TslNode, b: TslNode, seSea: TslNode = float(0)): TslNode => {
-    const thr = noise2(xz, WET_PATCH_M, 0, 12.7).mul(WET_LINE_VAR).add(WET_LINE_SE);
-    const line = smoothstep(thr.sub(WET_LINE_W), thr.add(WET_LINE_W), b.x);
-    const damp = line.mul(mix(float(WET_DAMP_LO), float(WET_DRAINED), smoothstep(thr, float(0.97), b.x)));
+    const thr = wetThr(xz);
+    // V3 (vDry): a crisper ramp (see DRY_LINE_W_K).
+    const lw = LV ? mix(float(WET_LINE_W), float(WET_LINE_W * DRY_LINE_W_K), tune.vDry) : float(WET_LINE_W);
+    // Round 13 (the match): the wet line MATCH_LINE_W_K times wider (a soft, drying edge).
+    const lwM = MT ? lw.mul(mix(float(1), tune.mLineWK, tune.vMatch)) : lw;
+    const line = smoothstep(thr.sub(lwM), thr.add(lwM), b.x);
+    const soak = mix(float(1), float(WET_SOAK_K), smoothstep(float(WET_SOAK_S[0] / 60), float(WET_SOAK_S[1] / 60), b.w));
+    const damp = line.mul(mix(float(WET_DAMP_LO), float(WET_DRAINED), smoothstep(thr, float(0.97), b.x))).mul(soak);
     // The drying blotches on the line's land side (see WET_FRINGE_M): the skin
     // WET_FRINGE_M seaward is over the threshold.
-    const blotch = smoothstep(thr, thr.add(0.25), seSea).mul(float(1).sub(line))
-      .mul(smoothstep(float(-0.2), float(0.3), noise2(xz, WET_BLOTCH_M, 1, 61.1).mul(0.7).add(noise2(xz, WET_BLOTCH_M * 0.37, 3, 67.3).mul(0.3))))
+    const blotch0 = smoothstep(thr, thr.add(0.25), seSea).mul(float(1).sub(line))
+      // Round 8: crisp-edged (from -0.2 to 0.3 of the noise to round 7, soft smudges).
+      .mul(smoothstep(float(0.02), float(0.1), noise2(xz, WET_BLOTCH_M, 1, 61.1).mul(0.7).add(noise2(xz, WET_BLOTCH_M * 0.37, 3, 67.3).mul(0.3))))
       .mul(WET_BLOTCH * WET_DAMP_LO);
+    const blotch = LV ? blotch0.mul(mix(float(1), float(DRY_BLOTCH_K), tune.vDry)) : blotch0;
     return max(
       max(max(damp, blotch), smoothstep(float(0), float(0.002), a.x)),
       // Stranded foam is bubbles standing in the water they came in with: the
@@ -1087,6 +1745,11 @@ export async function createOceanBeach(opts: OceanBeachOptions): Promise<OceanBe
   const ndlSun = clamp(uSun.y, float(0), float(1));
   const foamWhite = vec3(0.86 * SWASH_FOAM_TINT[0], 0.90 * SWASH_FOAM_TINT[1], 0.92 * SWASH_FOAM_TINT[2])
     .mul(float(0.7).add(ndlSun.mul(0.3).mul(sunVis)));
+  /** Round 12 (the match): the strong bore's foam a cool white (MATCH_FOAM_TINT over SWASH_FOAM_TINT). */
+  // Scaled to keep the foam's luma (a bare tint of MATCH_FOAM_TINT drew the surf's brightest tenth 15 luma dimmer).
+  const lumOf = (c: readonly number[]): number => 0.2126 * 0.86 * c[0] + 0.7152 * 0.9 * c[1] + 0.0722 * 0.92 * c[2];
+  const coolLumK = lumOf(SWASH_FOAM_TINT) / lumOf(MATCH_FOAM_TINT);
+  const coolTint = vec3(MATCH_FOAM_TINT[0] / SWASH_FOAM_TINT[0], MATCH_FOAM_TINT[1] / SWASH_FOAM_TINT[1], MATCH_FOAM_TINT[2] / SWASH_FOAM_TINT[2]).mul(coolLumK);
   /** The foam's radiance at an amount: a thin film of bubbles lets 40% of the water's darker light through. */
   const foamLight = (amount: TslNode): TslNode => foamWhite.mul(float(0.6).add(smoothstep(float(0.25), float(0.9), amount).mul(0.4)));
   /**
@@ -1113,8 +1776,19 @@ export async function createOceanBeach(opts: OceanBeachOptions): Promise<OceanBe
    */
   const filmShare = (h: TslNode): TslNode => smoothstep(float(SHEET_MIN_M), float(SHEET_FULL_M * 2), h)
     .mul(float(1).sub(smoothstep(float(WET_IMMERSED_DEEP_M[0]), float(WET_IMMERSED_DEEP_M[1]), h))).mul(FILM_SKY_SHARE);
+  /** The silver sheen's share at a grid depth `h` (see FILM_SHEEN): a band behind the leading edge. */
+  const sheenShare = (h: TslNode): TslNode => smoothstep(float(SHEET_MIN_M), float(FILM_SHEEN_M[0]), h)
+    .mul(float(1).sub(smoothstep(float(FILM_SHEEN_M[1]), float(FILM_SHEEN_M[2]), h))).mul(FILM_SHEEN);
   /** The fines' veil's light (VEIL_TINT of the foam's white, the same sun). */
   const veilLight = foamWhite.mul(vec3(VEIL_TINT[0], VEIL_TINT[1], VEIL_TINT[2]));
+  /** The surf's own body's light (see SURF_BODY_RGB), the sun's share as the lagoon's in-scatter. */
+  const surfLight = (MT
+    ? mix(vec3(SURF_BODY_RGB[0], SURF_BODY_RGB[1], SURF_BODY_RGB[2]), vec3(MATCH_SURF_BODY_RGB[0], MATCH_SURF_BODY_RGB[1], MATCH_SURF_BODY_RGB[2]), tune.vMatch)
+    : vec3(SURF_BODY_RGB[0], SURF_BODY_RGB[1], SURF_BODY_RGB[2])).mul(sunVis.mul(0.7).add(0.3));
+  /** V2's bore face's light (see FACE_RGB), the sun's share as the surf's. */
+  const faceLight = (MT
+    ? mix(vec3(FACE_RGB[0], FACE_RGB[1], FACE_RGB[2]), vec3(MATCH_FACE_RGB[0], MATCH_FACE_RGB[1], MATCH_FACE_RGB[2]), tune.vMatch)
+    : vec3(FACE_RGB[0], FACE_RGB[1], FACE_RGB[2])).mul(sunVis.mul(0.7).add(0.3));
 
   /**
    * THE LACE: foam amount -> coverage. Bubble rafts torn by holes (the
@@ -1136,10 +1810,8 @@ export async function createOceanBeach(opts: OceanBeachOptions): Promise<OceanBe
     return select(p.lessThan(float(1e-6)), xx, out);
   };
   const T0 = WAKE_LACE_TILE_M[0] * LACE_TILE_SCALE;
-  const T1 = WAKE_LACE_TILE_M[1] * LACE_TILE_SCALE;
   const T2 = WAKE_LACE_TILE_M[2] * LACE_TILE_SCALE;
   const T3 = WAKE_LACE_TILE_M[3] * LACE_TILE_SCALE;
-  const TEAR_T = 12 * LACE_TILE_SCALE;
   /** A read of the wake's lace image at tile `tile` (m) in beach coordinates `p`, mip level from the footprint. */
   // `alongS` draws the read out along s (the fall line), else along a (the
   // shore). One mip level sharper than the footprint (the wake reads with
@@ -1151,18 +1823,17 @@ export async function createOceanBeach(opts: OceanBeachOptions): Promise<OceanBe
     return texture(wakeLaceTex, uv).level(lod);
   };
   /** The equalized rank of the wake's mixed lace noise at beach point `p` (see LACE_TILE_SCALE). */
-  const laceRank = (p: TslNode, kS: TslNode, foot: TslNode): TslNode => {
-    const holes = wl(p, T0, LACE_HOLE_STRETCH, [0, 0], foot).x.toVar();
+  const laceRank = (p: TslNode, kS: TslNode, foot: TslNode, holeS = LACE_HOLE_STRETCH, streakS = LACE_STREAK_STRETCH): TslNode => {
+    const holes = wl(p, T0, holeS, [0, 0], foot).x.toVar();
     If(kS.greaterThan(0.01), () => {
       // The backwash draws its foam out down the fall line (the wake's wispStretch).
       holes.assign(mix(holes, wl(p, T0, LACE_WISP_STRETCH, [0.41, 0.77], foot, true).x, kS));
     });
-    const clumps = wl(p, T1, 1, [0.37, 0.61], foot).y;
-    const streaks = mix(wl(p, T2, LACE_STREAK_STRETCH, [0.13, 0.29], foot).z,
+    // (No clumps read: BEACH_LACE_WEIGHTS[1] is 0, see there.)
+    const streaks = mix(wl(p, T2, streakS, [0.13, 0.29], foot).z,
       wl(p, T2, LACE_STREAK_STRETCH, [0.67, 0.11], foot, true).z, kS);
     const patches = wl(p, T3, 1, [0.71, 0.05], foot).w;
-    const noise = holes.mul(WAKE_LACE_WEIGHTS[0]).add(clumps.mul(WAKE_LACE_WEIGHTS[1]))
-      .add(streaks.mul(WAKE_LACE_WEIGHTS[2])).add(patches.mul(WAKE_LACE_WEIGHTS[3]));
+    const noise = holes.mul(BEACH_LACE_WEIGHTS[0]).add(streaks.mul(BEACH_LACE_WEIGHTS[2])).add(patches.mul(BEACH_LACE_WEIGHTS[3]));
     const x = clamp(noise, float(0), float(1)).mul(WAKE_LACE_CDF_KNOTS).toVar();
     const k0 = min(int(floor(x)), int(WAKE_LACE_CDF_KNOTS - 1)).toVar();
     return mix(uLaceCdf.element(k0), uLaceCdf.element(k0.add(int(1))), x.sub(float(k0)));
@@ -1170,9 +1841,13 @@ export async function createOceanBeach(opts: OceanBeachOptions): Promise<OceanBe
   /**
    * THE LACE: foam `amount` of age `age` (s) -> (coverage, shade), carried
    * with the water `vel` in two flow-map phases. The wake's round-11 method
-   * (see LACE_TILE_SCALE).
+   * (see LACE_TILE_SCALE). `op` is the caller's share of the opacity (see OP_LO).
    */
-  const lace = (xz: TslNode, vel: TslNode, amount: TslNode, foot: TslNode, age: TslNode = float(0)): TslNode => {
+  const lace = (xz: TslNode, vel: TslNode, amount: TslNode, foot: TslNode, age: TslNode = float(0), op: TslNode = float(1), swashH: TslNode | null = null, trailK: TslNode | null = null, thinFade: TslNode | null = null, band: TslNode | null = null, tileK: TslNode | null = null, foldTo: TslNode | null = null): TslNode => {
+    // Round 12 (the match): `tileK` reads the lace at that many times its tile
+    // (see MATCH_TILE_K); null builds round 8's reads.
+    const sK = (pp: TslNode): TslNode => (tileK === null ? pp : pp.div(tileK));
+    const footK = tileK === null ? foot : foot.div(tileK);
     // THE FLOW MAP, gentle (round 2): two phases of FLOW_PHASE_S, at
     // LACE_FLOW of the sheet's speed and never faster than LACE_FLOW_MAX.
     const v0 = vel.mul(LACE_FLOW);
@@ -1189,30 +1864,93 @@ export async function createOceanBeach(opts: OceanBeachOptions): Promise<OceanBe
     // Where the sheet runs seaward (the backwash).
     const uS = vel.x.mul(fr.sX).add(vel.y.mul(fr.sZ));
     const kS = smoothstep(float(0.1), float(0.6), uS.negate()).toVar();
+    const wob = float(0).toVar();
+    if (swashH !== null) {
+      // V1 (vFilm): no lace on the film (FILM_PART_H), but in V4's patches
+      // (step 2: V1 and V4 ship together; the film's cut removed V4's feed).
+      // (0.2 to 0.5 of the patch noise, about a quarter of the face; at 0.1
+      // to 0.45 a first combined build drew whole fields of streaks.)
+      const feedP = smoothstep(float(0.2), float(0.5), noise2(xz, FEED_PATCH_M, 1, 81.3));
+      a0.assign(a0.mul(float(1).sub(tune.vFilm.mul(filmPart(swashH)).mul(float(1).sub(feedP.mul(tune.vFeed))))));
+      // V4 (vFeed, see FEED_PATCH_M): the swash's own lace only, on the sheet
+      // (FEED_H) and not in the dense bore (FEED_BORE).
+      const onSheet = smoothstep(float(FEED_H[0]), float(FEED_H[1]), swashH).mul(float(1).sub(smoothstep(float(FEED_H[2]), float(FEED_H[3]), swashH)))
+        .mul(float(1).sub(smoothstep(float(FEED_BORE[0]), float(FEED_BORE[1]), a0)));
+      // (Not keyed on the flow's direction: at both judged times the sheet
+      // runs back almost everywhere, and a first build keyed on the uprush
+      // changed 0.1% of the pixels.)
+      const feed = feedP.mul(onSheet).mul(tune.vFeed);
+      const scum = kS.mul(smoothstep(float(0.25), float(0.55), noise2(xz, SCUM_PATCH_M, 3, 91.7))).mul(onSheet).mul(tune.vFeed);
+      a0.assign(max(clamp(a0.mul(feed.mul(FEED_GAIN).add(1)), float(0), float(1)), scum.mul(SCUM_AMOUNT)));
+      kS.assign(max(kS, feed));
+      wob.assign(feed);
+    }
+    // vTrail (see TRAIL_SIDE): the bore's thin seaward foam drawn out down the fall line.
+    if (trailK !== null) {
+      kS.assign(max(kS, trailK.mul(tune.vTrail)));
+      wob.assign(max(wob, trailK.mul(tune.vTrail)));
+    }
+    // V4's streaks wobble sideways (see FEED_WOBBLE_M); only with the levers.
+    const aDir = vec2(fr.aX, fr.aZ);
+    const q1w = LV ? q1.add(aDir.mul(noise2(q1, FEED_WOBBLE_M, 2, 5.7).mul(FEED_WOBBLE).mul(wob))) : q1;
+    const q2w = LV ? q2.add(aDir.mul(noise2(q2, FEED_WOBBLE_M, 2, 5.7).mul(FEED_WOBBLE).mul(wob))) : q2;
     // The two phases' ranks, mixed and made uniform again.
-    const rank = mixUniform(mix(laceRank(toSA(q1), kS, foot), laceRank(toSA(q2), kS, foot), wgt), wgt).toVar();
-    // THE AGE opens the raft into filaments round windows (the wake's laceFold).
-    const wFold = smoothstep(float(AGE_FOLD[0]), float(AGE_FOLD[1]), age).mul(AGE_FOLD[2]);
+    const rank = mixUniform(mix(laceRank(sK(toSA(q1w)), kS, footK), laceRank(sK(toSA(q2w)), kS, footK), wgt), wgt).toVar();
+    // V2 (vBand, see STRENGTH): the strong bore's lace drawn out along the shore.
+    if (band !== null) {
+      If(band.greaterThan(0.01), () => {
+        // (Round 13, the match: drawn out further along the shore, MATCH_HOLE_STRETCH.)
+        const hS = MT ? MATCH_HOLE_STRETCH : BAND_HOLE_STRETCH;
+        const stS = MT ? MATCH_STREAK_STRETCH : BAND_STREAK_STRETCH;
+        const rankB = mixUniform(mix(laceRank(sK(toSA(q1w)), kS, footK, hS, stS),
+          laceRank(sK(toSA(q2w)), kS, footK, hS, stS), wgt), wgt);
+        rank.assign(mix(rank, rankB, band));
+      });
+    }
+
+    // THE NET (see NET_FOLD): the raft is threads round windows, more so as it ages.
+    const wFold0 = mix(float(NET_FOLD[0]), float(NET_FOLD[1]), smoothstep(float(AGE_FOLD[0]), float(AGE_FOLD[1]), age));
+    // Round 12 (the match): `foldTo` folds the rank at least that far (threads round windows, see MATCH_FOLD).
+    const wFold = foldTo === null ? wFold0 : max(wFold0, foldTo);
     const rankF = float(1).sub(abs(rank.mul(2).sub(1)));
-    const edge = float(1).sub(min(a0, float(LACE_MAX_COVER)));
+    // Round 12 (the match): the foam line's cover cap MATCH_BAND_COVER.
+    const bandCap = MT ? mix(float(BAND_MAX_COVER), tune.mBandCover, tune.vMatch) : float(BAND_MAX_COVER);
+    const edge = float(1).sub(min(a0, band === null ? float(LACE_MAX_COVER) : mix(float(LACE_MAX_COVER), bandCap, band)));
     const coverS = mix(smoothstep(edge.sub(LACE_SOFT), edge.add(LACE_SOFT), rank),
       smoothstep(edge.sub(LACE_SOFT), edge.add(LACE_SOFT), rankF), wFold);
     const rankO = mix(rank, rankF, wFold);
     const gate = smoothstep(float(THIN_GATE[0]), float(THIN_GATE[1]), a0);
-    // THE TEAR (the wake's clumpTear): old, thin foam breaks into clumps.
-    const tearField = wl(toSA(q1), TEAR_T, 1, [0.83, 0.47], foot).y;
-    const keep = smoothstep(float(CLUMP_TEAR[0]), float(CLUMP_TEAR[1]), tearField);
-    const tear = float(CLUMP_TEAR[2]).mul(smoothstep(float(CLUMP_TEAR_AGE[0]), float(CLUMP_TEAR_AGE[1]), age))
-      .mul(float(1).sub(smoothstep(float(CLUMP_TEAR_AMT[0]), float(CLUMP_TEAR_AMT[1]), a0)));
-    const cover0 = coverS.mul(gate).mul(float(1).sub(tear.mul(float(1).sub(keep))));
-    // Under three pixels a raft cell reads as its mean: the amount itself.
-    const kFar = smoothstep(float(LACE_MID_M / 3), float(LACE_MID_M), foot);
-    const cover = mix(cover0, a0.mul(gate), kFar);
-    // OPACITY (the wake's OP_THIN and OP_RANGE, and its ageOpacity).
-    const over = rankO.sub(float(1).sub(a0));
-    const opThin = mix(float(OP_THIN_FRESH), float(OP_THIN), smoothstep(float(0), float(OP_FRESH_S), age));
-    const opacity = smoothstep(float(0), float(OP_RANGE), over).mul(float(1).sub(opThin)).add(opThin)
-      .mul(mix(float(1), float(AGE_OPACITY[2]), smoothstep(float(AGE_OPACITY[0]), float(AGE_OPACITY[1]), age)));
+    // THE BREAK-UP (see BREAK_TILE): old, thin foam breaks into dashes and
+    // specks, and into streaks down the fall line where the sheet runs seaward.
+    const pB = sK(toSA(q1));
+    const fine = mix(wl(pB, T0 * BREAK_TILE, 1, [0.29, 0.53], footK).x,
+      wl(pB, T0 * BREAK_TILE, BREAK_STRETCH, [0.61, 0.17], footK, true).x, kS);
+    const keep = smoothstep(float(BREAK_KEEP[0]), float(BREAK_KEEP[1]), fine);
+    const brk = float(BREAK_MAX).mul(smoothstep(float(BREAK_AGE[0]), float(BREAK_AGE[1]), age))
+      .mul(float(1).sub(smoothstep(float(BREAK_AMT[0]), float(BREAK_AMT[1]), a0)));
+    const cover0 = coverS.mul(gate).mul(float(1).sub(brk.mul(float(1).sub(keep))));
+    // Under three pixels a raft cell reads as its mean: the amount itself,
+    // less the share the break-up takes.
+    const kFar = smoothstep(float(LACE_MID_M / 3), float(LACE_MID_M), footK);
+    const cover = mix(cover0, a0.mul(gate).mul(float(1).sub(brk.mul((BREAK_KEEP[0] + BREAK_KEEP[1]) / 2))), kFar);
+    // OPACITY (see OP_LO): a film of bubbles to the densest foam, never
+    // opaque; thinner with age (the wake's ageOpacity); the caller's share.
+    // Over the capped threshold (round 8: over the raw amount, the densest
+    // foam was near full opacity in every pixel, a flat glowing patch).
+    const over = rankO.sub(edge);
+    const opLo = band === null ? float(OP_LO) : mix(float(OP_LO), float(BAND_OP_LO), band);
+    // Round 12 (the match): the strong bore's band brighter (MATCH_BAND_OP_HI).
+    const opHi = band === null ? float(OP_HI) : mix(float(OP_HI), MT ? mix(float(BAND_OP_HI), tune.mBandOpHi, tune.vMatch) : float(BAND_OP_HI), band);
+    const opacity = max(mix(opLo, opHi, smoothstep(float(0), float(OP_RANGE), over)),
+      float(BREAK_SPECK_OP).mul(brk).mul(keep)
+        // vSpeckle: the specks fade in the surf's depth (see SPECKLE_H).
+        .mul(swashH === null ? float(1) : float(1).sub(smoothstep(float(SPECKLE_H[0] * 2), float(SPECKLE_H[1]), swashH).mul(tune.vSpeckle))))
+      // vSpeckle: thin foam in the surf's depth and away from the bore is
+      // fainter (SPECKLE_THIN_OP off at most; the bore's cores and their
+      // fringes keep all of it: `thinFade`, the caller's).
+      .mul(swashH === null || thinFade === null ? float(1) : float(1).sub(smoothstep(float(SPECKLE_H[0] * 2), float(SPECKLE_H[1]), swashH)
+        .mul(float(1).sub(smoothstep(float(0.25), float(0.5), a0))).mul(thinFade).mul(SPECKLE_THIN_OP).mul(tune.vSpeckle)))
+      .mul(mix(float(1), float(AGE_OPACITY[2]), smoothstep(float(AGE_OPACITY[0]), float(AGE_OPACITY[1]), age))).mul(op);
     // THE SHADE: dense foam brightest; old foam grayer (the foam piece's age clock).
     // (The rank's depth over the threshold varies it through dense foam too:
     // a first build saturated at 0.35 of rank and drew dense foam flat white.)
@@ -1271,20 +2009,47 @@ export async function createOceanBeach(opts: OceanBeachOptions): Promise<OceanBe
     const stA = spline(texA, uv);
     const stB = spline(texB, saUV(wanderSkin(xz, sa)));
     const seSea = spline(texB, saUV(wanderSkin(xz, sa.sub(vec2(WET_FRINGE_M, 0))))).x;
-    const k = wetness(xz, stA, stB, seSea).mul(inPatch).mul(tune.wet);
+    const k0 = wetness(xz, stA, stB, seSea).mul(inPatch).mul(tune.wet);
+    // Round 17 (the match): THE DAMP RAMP. Manly's sand darkens gradually over
+    // 28 to 65 rows (1 to 2.4 m at our frame's scale) above its wet zone; ours
+    // stepped from wet to dry in about 5 rows (the skin's wet line). The ramp
+    // is the wetness of the skin MATCH_RAMP_M[k] seaward, weighted down with
+    // the distance: sand next to wet sand holds some of its water (capillary
+    // wicking and the last swashes' spray). World space: the state and the
+    // beach frame only.
+    let k = k0;
+    if (MT) {
+      const thrR = wetThr(xz);
+      const wetAt = (dM: number): TslNode => smoothstep(thrR, thrR.add(0.1), texture(texB, saUV(sa.sub(vec2(dM, 0)))).level(float(0)).x);
+      const ramp = max(max(wetAt(MATCH_RAMP_M[0]).mul(0.85), wetAt(MATCH_RAMP_M[1]).mul(0.6)), max(wetAt(MATCH_RAMP_M[2]).mul(0.38), wetAt(MATCH_RAMP_M[3]).mul(0.18)));
+      k = max(k0, ramp.mul(tune.mRampK).mul(tune.vMatch).mul(inPatch).mul(tune.wet));
+    }
     // The grains immersed (see WET_IMMERSED_K): under a sheet, the more the
     // deeper it is to FILM_DEEP_M (the darkest sand is at the water).
-    const full = smoothstep(float(FILM_DEEP_M[0]), float(FILM_DEEP_M[1]), stA.x)
-      .mul(float(1).sub(smoothstep(float(WET_IMMERSED_DEEP_M[0]), float(WET_IMMERSED_DEEP_M[1]), stA.x)))
-      .mul(inPatch).mul(tune.wet);
+    // Round 12 (the match): full over MATCH_FILM_DEEP_M, so the film is one tone.
+    const underSheet = (MT
+      ? smoothstep(mix(float(FILM_DEEP_M[0]), tune.mFilmDeep0, tune.vMatch), mix(float(FILM_DEEP_M[1]), tune.mFilmDeep1, tune.vMatch), stA.x)
+      : smoothstep(float(FILM_DEEP_M[0]), float(FILM_DEEP_M[1]), stA.x))
+      .mul(float(1).sub(smoothstep(float(WET_IMMERSED_DEEP_M[0]), float(WET_IMMERSED_DEEP_M[1]), stA.x)));
+    // V3 (vDry): fresh wet sand keeps a film in its pores (see DRY_FRESH_S).
+    // (Built only with the levers: `fresh` is read only then.)
+    const pF = smoothstep(float(-0.5), float(0.5), noise2(xz, DRY_PATCH_M, 1, 33.7).mul(0.7)
+      .add(noise2(xz, DRY_PATCH_M * 0.3, 3, 71.1).mul(0.3))).mul(0.8).add(0.6);
+    const fresh = float(1).sub(smoothstep(pF.mul(DRY_FRESH_S[0]), pF.mul(DRY_FRESH_S[1]), stB.w.mul(60)))
+      .mul(smoothstep(float(0.6), float(0.8), stB.x)).mul(DRY_FRESH_K).mul(tune.vDry);
+    const full = (LV ? max(underSheet, fresh) : underSheet).mul(inPatch).mul(tune.wet);
     const fadeOf = (scale: number): TslNode => float(1).sub(smoothstep(float(scale / 3), float(scale / 1.5), footM));
-    // Dry sand is patchy, wet sand smooth (see MOTTLE_FINE_WET).
-    const dry = float(1).sub(k);
+    // Dry sand is patchy, wet sand smooth (see MOTTLE_FINE_WET); vSheet: the
+    // sand under the water keeps the dry sand's grain (SHEET_GRAIN_K).
+    const dry = LV ? max(float(1).sub(k), underSheet.mul(SHEET_GRAIN_K).mul(tune.vSheet).mul(inPatch)) : float(1).sub(k);
+    // V1 (vSand): the dry sand's fine grain up (see SAND_GRAIN_K).
+    const gK = mix(float(1), float(SAND_GRAIN_K), tune.vSand);
+    const gD = (c: number): TslNode => (LV ? gK.mul(c) : float(c));
     const mottle = noise2(xz, MOTTLE_BROAD_M, 1, 2.2).mul(mix(float(MOTTLE_BROAD_WET), float(MOTTLE_BROAD_DRY), dry)).mul(fadeOf(MOTTLE_BROAD_M))
-      .add(noise2(xz, MOTTLE_COARSE_M, 0, 4.4).mul(mix(float(MOTTLE_COARSE_WET), float(MOTTLE_COARSE_DRY), dry)).mul(fadeOf(MOTTLE_COARSE_M)))
-      .add(noise2(xz, MOTTLE_MID_M, 1, 5.3).mul(mix(float(MOTTLE_MID_WET), float(MOTTLE_MID_DRY), dry)).mul(fadeOf(MOTTLE_MID_M)))
-      .add(noise2(xz, MOTTLE_FINE_M, 2, 6.2).mul(mix(float(MOTTLE_FINE_WET), float(MOTTLE_FINE_DRY), dry)).mul(fadeOf(MOTTLE_FINE_M)))
-      .add(noise2(xz, MOTTLE_RELIEF_M, 3, 2.9).mul(dry.mul(MOTTLE_RELIEF_DRY)).mul(fadeOf(MOTTLE_RELIEF_M)));
+      .add(noise2(xz, MOTTLE_COARSE_M, 0, 4.4).mul(mix(float(MOTTLE_COARSE_WET), gD(MOTTLE_COARSE_DRY), dry)).mul(fadeOf(MOTTLE_COARSE_M)))
+      .add(noise2(xz, MOTTLE_MID_M, 1, 5.3).mul(mix(float(MOTTLE_MID_WET), gD(MOTTLE_MID_DRY), dry)).mul(fadeOf(MOTTLE_MID_M)))
+      .add(noise2(xz, MOTTLE_FINE_M, 2, 6.2).mul(mix(float(MOTTLE_FINE_WET), gD(MOTTLE_FINE_DRY), dry)).mul(fadeOf(MOTTLE_FINE_M)))
+      .add(noise2(xz, MOTTLE_RELIEF_M, 3, 2.9).mul(dry.mul(gD(MOTTLE_RELIEF_DRY))).mul(fadeOf(MOTTLE_RELIEF_M)));
     /**
      * Specks in cells of `cellM`: one cell in `share` holds a disc of 0.16 to
      * 0.4 of the cell at a jittered point, dark three times in four (0.5 to
@@ -1298,17 +2063,142 @@ export async function createOceanBeach(opts: OceanBeachOptions): Promise<OceanBe
       const rad = hB.mul(0.12).add(0.08);
       const disc = float(1).sub(smoothstep(rad.mul(0.7), rad, length(inCell)));
       const hC = fract(sin(dot(cell, vec2(93.989, 67.345))).mul(17453.13));
-      const shareHere = density.mul(share);
+      // V1 (vSand): more specks on the dry sand (see SAND_GRAIN_K).
+      const shareHere = LV ? density.mul(share).mul(mix(float(1), gK, dry.mul(tune.vSand))) : density.mul(share);
       const on = disc.mul(float(1).sub(smoothstep(shareHere.mul(0.8), shareHere, hC))).mul(fadeOf(cellM));
       const tone = mix(hC.div(share).mul(0.3).add(0.5).min(0.8), float(1.2).add(hB.mul(0.2)), smoothstep(float(0.74), float(0.76), hA));
-      return mix(float(1), tone, on.mul(inPatch));
+      // vSpeckle: the surf's stirred water hides them (see SPECKLE_H).
+      if (!LV) return mix(float(1), tone, on.mul(inPatch));
+      const hide = float(1).sub(smoothstep(float(SPECKLE_H[0]), float(SPECKLE_H[1]), stA.x).mul(tune.vSpeckle));
+      return mix(float(1), tone, on.mul(inPatch).mul(hide));
     };
     // The tone patches (see TONE_PATCH_M): two tones with crisp edges.
     const tone = smoothstep(float(-0.05), float(0.05), noise2(xz, TONE_PATCH_M, 0, 17.1)).sub(0.5).mul(TONE_PATCH_K).mul(dry);
-    const detailed = albedo.mul(float(1).add(mottle.add(tone).mul(inPatch)))
+    // V1 (vSand): the sand's color toward Manly's gold (see SAND_TINT).
+    // (Faded out under the water, from SAND_TINT_H[0] to [1] m of it: under
+    // the sheet and the surf a first build drew the water gold-brown, where
+    // Manly's sheet is an olive gray over its gold sand.)
+    const albT = LV ? albedo.mul(mix(vec3(1, 1, 1), vec3(SAND_TINT[0], SAND_TINT[1], SAND_TINT[2]),
+      tune.vSand.mul(inPatch).mul(float(1).sub(MT
+        // Round 12 (the match): the gold gone under MATCH_TINT_H of film.
+        ? smoothstep(mix(float(SAND_TINT_H[0]), float(MATCH_TINT_H[0]), tune.vMatch), mix(float(SAND_TINT_H[1]), float(MATCH_TINT_H[1]), tune.vMatch), stA.x)
+        : smoothstep(float(SAND_TINT_H[0]), float(SAND_TINT_H[1]), stA.x))))) : albedo;
+    // Round 12 (the match): the sand's albedo times MATCH_SAND_RGB.
+    const albM = MT ? albT.mul(mix(vec3(1, 1, 1), vec3(MATCH_SAND_RGB[0], MATCH_SAND_RGB[1], MATCH_SAND_RGB[2]), tune.vMatch.mul(inPatch))) : albT;
+    const detailed = albM.mul(float(1).add(mottle.add(tone).mul(inPatch)))
       .mul(specks(SPECK_M, SPECK_SHARE, 0, float(1)))
       .mul(specks(GRAVEL_M, GRAVEL_SHARE, 71.3, mix(float(GRAVEL_WET_K), float(1), dry)));
-    return mix(detailed, wetAlbedo(detailed.mul(mix(float(1), float(WET_IMMERSED_K), full))), k);
+    // vSheet: the sand under the water grayed toward olive (see SHEET_OLIVE).
+    // Round 12 (the match): the film's immersed grains at MATCH_IMMERSED_K.
+    const immK = MT ? mix(float(WET_IMMERSED_K), tune.mImmK, tune.vMatch) : float(WET_IMMERSED_K);
+    const wetA = wetAlbedo(detailed.mul(mix(float(1), immK, full)));
+    if (!LV) return mix(detailed, wetA, k);
+    const wetL = dot(wetA, vec3(0.2126, 0.7152, 0.0722));
+    const olive = vec3(SHEET_OLIVE_RGB[0], SHEET_OLIVE_RGB[1], SHEET_OLIVE_RGB[2]).mul(wetL);
+    const wetO = mix(wetA, olive, underSheet.mul(SHEET_OLIVE).mul(tune.vSheet).mul(inPatch));
+    if (!MT) return mix(detailed, wetO, k);
+    // Round 12 (the match): the film one gray olive (MATCH_FILM_RGB times its
+    // luma, MATCH_FILM_GRAY of the way): Manly's film is b* 5 to 8 over a
+    // gold sand of b* 27 to 31.
+    const filmG = vec3(MATCH_FILM_RGB[0], MATCH_FILM_RGB[1], MATCH_FILM_RGB[2]).mul(dot(wetO, vec3(0.2126, 0.7152, 0.0722)));
+    const wetM = mix(wetO, filmG, underSheet.mul(tune.mFilmGray).mul(tune.vMatch).mul(inPatch));
+    // Round 12 (the match): the damp and the wet sand darker (MATCH_DAMP_K,
+    // MATCH_WET_K): sand the sheet left under MATCH_WET_S ago is the wet sand.
+    const fresh12 = float(1).sub(smoothstep(float(MATCH_WET_S[0]), float(MATCH_WET_S[1]), stB.w.mul(60)))
+      .mul(smoothstep(float(0.6), float(0.8), stB.x));
+    const kSand = k.mul(float(1).sub(underSheet)).mul(inPatch).mul(tune.vMatch);
+    // Round 13: the damp sand lightens as it dries, MATCH_DAMP_K next to the
+    // wet sand to MATCH_DAMP_DRY_K by MATCH_DAMP_AGE_S[1] s after the sheet left.
+    const dampK = mix(tune.mDampK, tune.mDampDryK, smoothstep(float(MATCH_DAMP_AGE_S[0]), float(MATCH_DAMP_AGE_S[1]), stB.w.mul(60)));
+    const outM = mix(detailed, wetM, k).mul(mix(float(1), mix(dampK, tune.mWetK, fresh12), kSand));
+    const grayW = vec3(MATCH_FILM_RGB[0], MATCH_FILM_RGB[1], MATCH_FILM_RGB[2]).mul(dot(outM, vec3(0.2126, 0.7152, 0.0722)));
+    // Round 17: the sand the sheet left under MATCH_OLIVE_S ago is the sheet's
+    // own dark olive (Manly's zone from the foam line up is one olive tone, b* 5
+    // to 9, for 95 to 170 rows before its damp ramp), fading to the damp sand's
+    // orange as it dries.
+    const oliveK = float(1).sub(smoothstep(tune.mOlive0, tune.mOlive1, stB.w.mul(60))).mul(smoothstep(float(0.5), float(0.75), stB.x));
+    const grayK = max(mix(float(MATCH_DAMP_GRAY), tune.mWetGray, fresh12), oliveK.mul(tune.mOliveGray)).mul(kSand);
+    return mix(outM, grayW, grayK);
+  };
+  /**
+   * ROUND 12 (the match): THE FOAM LINE BY ITS REAL WIDTH, AND THE FACE. The
+   * round-11 lip's distance (the foam over its gradient) holds only a few
+   * centimeters from the contour, so it could not draw a band MATCH_LINE_W_M
+   * wide (at 1 and 1.5 m the frames differed by 21 pixels). The band is the
+   * strong bore's foam whose shoreward front lies within MATCH_LINE_W_M
+   * onshore, read at four steps, densest at the front; the face is the water
+   * whose strong bore lies within MATCH_FACE_W_M seaward (its strength read
+   * there: ahead of the bore the foam's run is 0). Broken where a noise falls
+   * into its lowest MATCH_LINE_GAP_SHARE. Returns (line, face), each 0 to 1
+   * and times `vMatch`. World space: the state and the beach frame only.
+   */
+  const strengthAt = (uv: TslNode, w0: TslNode): TslNode => {
+    // (The match's own run length, MATCH_STRENGTH_RUN_M.)
+    const R = tune.mStrRun;
+    const wAtN = (d: TslNode): TslNode => readA(uv.add(vec2(d.div(lenS), 0))).w;
+    const run = max(max(min(wAtN(R.negate()), w0), min(wAtN(R.mul(-0.5)), wAtN(R.mul(0.5)))), min(w0, wAtN(R)));
+    return smoothstep(float(STRENGTH[0]), float(STRENGTH[1]), run).mul(tune.vBand);
+  };
+  const boreMatch = (sa: TslNode, uvW: TslNode, w0: TslNode): TslNode => {
+    const onF = (wv: TslNode): TslNode => smoothstep(float(0.35), float(0.55), wv);
+    const wAtS = (dM: TslNode): TslNode => readA(uvW.add(vec2(dM.div(lenS), 0))).w;
+    const gap = smoothstep(tune.mLineGap.mul(1.6).sub(0.9), tune.mLineGap.mul(1.6).sub(0.75), noise2(vec2(sa.x.mul(0.3), sa.y), LIP_GAP_M, 3, 57.7));
+    const inF = onF(w0);
+    const W = tune.mLineW;
+    const o1 = float(1).sub(onF(wAtS(W.mul(0.25))));
+    const o2 = float(1).sub(onF(wAtS(W.mul(0.5))));
+    const o3 = float(1).sub(onF(wAtS(W.mul(0.75))));
+    const o4 = float(1).sub(onF(wAtS(W)));
+    const lineM = inF.mul(max(max(o1, o2.mul(MATCH_LINE_PROFILE[0])), max(o3.mul(MATCH_LINE_PROFILE[1]), o4.mul(MATCH_LINE_PROFILE[2]))))
+      .mul(gap).mul(strengthAt(uvW, w0)).mul(tune.vMatch);
+    const uvF = uvW.add(vec2(tune.mFaceW.mul(-0.7).div(lenS), 0));
+    const f1 = onF(wAtS(tune.mFaceW.mul(-0.5)));
+    const f2 = onF(wAtS(tune.mFaceW.negate()));
+    // Darkest next to the bore (Manly's face is darkest where the foam line
+    // starts); the bore's own edge (foam 0.45 to 0.6) keeps it.
+    const faceM = float(1).sub(smoothstep(float(0.45), float(0.6), w0)).mul(max(f1, f2.mul(0.5))).mul(gap).mul(strengthAt(uvF, readA(uvF).w))
+      .mul(tune.mFaceShare).mul(tune.vMatch);
+    return vec2(lineM, faceM);
+  };
+  /**
+   * ROUND 13 (the match): THE SURF'S NET. Manly's surf behind its foam line is
+   * a reticulated net of thin bright threads round small dark windows, 41 to
+   * 56 windows per 10,000 px of about 20 px (`beach/r12/shape.py`); the wake's
+   * lace drew blotchy rafts with round holes there. The net is the swash foam
+   * tile's fine warped cell net (B: 0 on a wall), read at MATCH_NET_SCALE of
+   * its tile (cells of about 0.37 m, Manly's window size at the judged frame's
+   * scale), drawn out MATCH_NET_STRETCH times along the shore, carried with
+   * the water in two flow phases, broken where a noise falls low, and read as
+   * its mean once a cell is under three pixels. Returns the cover, 0 to 1.
+   */
+  const surfNet = (sa: TslNode, vel: TslNode, foot: TslNode): TslNode => {
+    const T = SWASH_TILE_M * MATCH_NET_SCALE;
+    const cellM = T / 40;
+    const ph1 = fract(uTime.div(FLOW_PHASE_S));
+    const ph2 = fract(uTime.div(FLOW_PHASE_S).add(0.5));
+    const vS = vec2(vel.x.mul(fr.sX).add(vel.y.mul(fr.sZ)), vel.x.mul(fr.aX).add(vel.y.mul(fr.aZ))).mul(LACE_FLOW);
+    // The thread's width and light vary along it (a noise of MATCH_NET_VAR_M):
+    // one even width drew a crackle of cracked glaze (round 6's fault).
+    const wv = noise2(vec2(sa.x, sa.y), MATCH_NET_VAR_M, 3, 41.9).mul(0.5).add(0.5);
+    const hi = mix(float(MATCH_NET_LINE[0]), float(MATCH_NET_LINE[1]), wv);
+    const at = (p: TslNode, off: number): TslNode => {
+      // Round 14: drawn out down the fall line (the backwash tears it seaward).
+      const uv = vec2(p.x.div(T * MATCH_NET_STRETCH), p.y.div(T)).add(vec2(off, off * 1.7));
+      const t = texture(foamTileTex, uv).level(float(0));
+      // The fine net (B) and, fainter, the coarse net (R, 2.5 times its cells).
+      const fine = float(1).sub(smoothstep(float(0), hi, t.z));
+      const coarse = float(1).sub(smoothstep(float(0), hi.mul(0.7), t.x)).mul(0.6);
+      return max(fine, coarse);
+    };
+    const n1 = at(sa.sub(vS.mul(ph1.mul(FLOW_PHASE_S))), 0.13);
+    const n2 = at(sa.sub(vS.mul(ph2.mul(FLOW_PHASE_S))), 0.61);
+    const wgt = abs(ph1.mul(2).sub(1));
+    const brk = smoothstep(float(-0.45), float(0.15), noise2(vec2(sa.x, sa.y.div(2)), 0.9, 1, 97.3))
+      // Round 14: patchy at the meter scale (MATCH_NET_PATCH_M), not even.
+      .mul(smoothstep(float(-0.2), float(0.35), noise2(sa, MATCH_NET_PATCH_M, 2, 13.9)));
+    const light = wv.mul(0.35).add(0.65);
+    const kFar = smoothstep(float(cellM / 3), float(cellM), foot);
+    return mix(mix(n1, n2, wgt).mul(brk).mul(light), float(0.2), kFar);
   };
   const hook: SeabedShoreHook = {
     owns: (xz: TslNode) => insidePatch(toSA(xz), 0.01),
@@ -1349,11 +2239,18 @@ export async function createOceanBeach(opts: OceanBeachOptions): Promise<OceanBe
       If(inPatch.greaterThan(0), () => {
         const uv = saUV(sa);
         // The path down and back up through the sheet's own depth.
-        const k = float(SED_ATTEN_M2_KG * 2).mul(spline(texD, uv).x).mul(max(spline(texA, uv).x, float(0)));
+        const k0 = float(SED_ATTEN_M2_KG * 2).mul(spline(texD, uv).x).mul(max(spline(texA, uv).x, float(0)));
+        // V1 (vFilm): the sand seen through the film (see GLASS_CLEAR).
+        const k = LV ? k0.mul(mix(float(1), float(GLASS_CLEAR), tune.vFilm)) : k0;
         // Over the sea edge's first 5 m the grid's sand fades in, so the
         // clear lagoon and the sandy surf meet without a line.
         const seaFade = smoothstep(float(g.s0), float(g.s0 + 5), sa.x);
-        out.assign(mix(float(1), exp(k.negate()), inPatch.mul(seaFade)));
+        // vSpeckle (see SPECKLE_H): the surf's stirred water hides the floor's
+        // fine detail (its wave ripples, grain and web) as it deepens.
+        const clear = LV
+          ? exp(k.negate()).mul(float(1).sub(smoothstep(float(SPECKLE_H[0]), float(SPECKLE_H[1]), spline(texA, uv).x).mul(SPECKLE_CLARITY).mul(tune.vSpeckle)))
+          : exp(k.negate());
+        out.assign(mix(float(1), clear, inPatch.mul(seaFade)));
       });
       return out;
     },
@@ -1368,6 +2265,10 @@ export async function createOceanBeach(opts: OceanBeachOptions): Promise<OceanBe
       const bubShade = float(0.9).toVar();
       const milk = float(0).toVar();
       const veil = float(0).toVar();
+      const surf = float(0).toVar();
+      const face = float(0).toVar();
+      // Round 12 (the match): the strong bore's share of the cool white (see coolTint).
+      const coolK = float(0).toVar();
       const amount = float(0).toVar();
       const skyShare = float(0).toVar();
       If(inside.greaterThan(0), () => {
@@ -1376,8 +2277,110 @@ export async function createOceanBeach(opts: OceanBeachOptions): Promise<OceanBe
         const k = patchFade(sa).mul(inside).mul(tune.foam);
         // The film's low sky (see FILM_SKY_UP), where the grid's water is a film.
         skyShare.assign(filmShare(st.x).mul(patchFade(sa)).mul(inside).mul(own ? 1 : 1 - FILM_SKY_SEA_CUT));
-        amount.assign(segmented(sa, st.w).mul(filmKeep(st.x)));
-        const lc = lace(xz, worldVel(st), amount, foot, spline(texD, uvW).y);
+        // V1 (vFilm): no lace on the film (see FILM_PART_H).
+        // V1 (vFilm): no lace on the film (see FILM_PART_H), but in V4's
+        // patches (see FEED_PATCH_M); the lace applies the cut (`swashH`).
+        // Round 11: the levers' reads below only with `opts.levers`.
+        let strength: TslNode | null = null;
+        let trailK: TslNode | null = null;
+        let thinFade: TslNode | null = null;
+        // Round 12 (the match): the foam line's share (see MATCH_LINE_W_M).
+        const lineV = float(0).toVar();
+        if (!LV) amount.assign(segmented(sa, st.w).mul(filmKeep(st.x)));
+        if (LV) {
+        // V2 (vBand): the bore's strength (see STRENGTH): the foam behind its front.
+        const wAt = (dM: number): TslNode => readA(uvW.add(vec2(dM / lenS, 0))).w;
+        const R = STRENGTH_RUN_M;
+        const run = max(max(min(wAt(-R), st.w), min(wAt(-R / 2), wAt(R / 2))), min(st.w, wAt(R)));
+        const strengthV = smoothstep(float(STRENGTH[0]), float(STRENGTH[1]), run).mul(tune.vBand).toVar();
+        strength = strengthV;
+        amount.assign(segmented(sa, st.w, strengthV).mul(filmKeep(st.x)));
+        // vTrail (see TRAIL_SIDE): the seaward side of the bore, in thin foam.
+        const wS = spline(texA, uvW.add(vec2(1 / g.ns, 0))).w;
+        const wA = spline(texA, uvW.add(vec2(0, 1 / g.na))).w;
+        const gwS = wS.sub(st.w).div(g.ds);
+        const glw = max(length(vec2(gwS, wA.sub(st.w).div(g.da))), float(0.05));
+        trailK = smoothstep(float(TRAIL_SIDE[0]), float(TRAIL_SIDE[1]), gwS.div(glw))
+          .mul(smoothstep(float(0.15), float(0.45), noise2(vec2(sa.x.mul(0.25), sa.y), TRAIL_PATCH_M, 2, 73.3)))
+          .mul(smoothstep(float(TRAIL_AMT[0]), float(TRAIL_AMT[1]), st.w)).mul(float(1).sub(smoothstep(float(TRAIL_AMT[2]), float(TRAIL_AMT[3]), st.w)));
+        // vSpeckle: away from the bore (the foam 1 m to either side across the shore under 0.35 to 0.55).
+        const wFore = spline(texA, uvW.add(vec2(1 / lenS, 0))).w;
+        const wAft = spline(texA, uvW.sub(vec2(1 / lenS, 0))).w;
+        thinFade = float(1).sub(smoothstep(float(0.35), float(0.55), max(max(wFore, wAft), st.w)));
+        // V2 (vBand): THE ROLLED FRONT (see LIP_W_M) and the face before it.
+        If(strengthV.greaterThan(0.01), () => {
+          const shoreward = smoothstep(float(0.2), float(0.6), gwS.negate().div(glw));
+          const dF = st.w.sub(LIP_W0).div(glw);
+          // Round 12 (the match): the band MATCH_LINE_W_M wide, broken in
+          // MATCH_LINE_GAP_SHARE, at MATCH_LINE_AMOUNT; the face MATCH_FACE_W_M
+          // wide at MATCH_FACE_SHARE. Without the match, round 11's numbers.
+          const gapS = MT ? mix(float(LIP_GAP_SHARE), tune.mLineGap, tune.vMatch) : float(LIP_GAP_SHARE);
+          const lipW = MT ? mix(float(LIP_W_M), tune.mLineW, tune.vMatch) : float(LIP_W_M);
+          const lipA = MT ? mix(float(LIP_AMOUNT), tune.mLineAmt, tune.vMatch) : float(LIP_AMOUNT);
+          const faceW = MT ? mix(float(FACE_W_M), tune.mFaceW, tune.vMatch) : float(FACE_W_M);
+          const faceS = MT ? mix(float(FACE_SHARE), tune.mFaceShare, tune.vMatch) : float(FACE_SHARE);
+          const lipGap = smoothstep(gapS.mul(1.6).sub(0.9), gapS.mul(1.6).sub(0.75), noise2(vec2(sa.x.mul(0.3), sa.y), LIP_GAP_M, 3, 57.7));
+          const lip = smoothstep(float(-0.03), float(0.03), dF).mul(float(1).sub(smoothstep(lipW.mul(0.5), lipW, dF)))
+            .mul(shoreward).mul(lipGap).mul(strengthV);
+          amount.assign(max(amount, lip.mul(lipA).mul(filmKeep(st.x))));
+          face.assign(smoothstep(faceW.negate(), faceW.mul(-0.4), dF).mul(float(1).sub(smoothstep(float(-0.05), float(0.02), dF)))
+            .mul(shoreward).mul(lipGap).mul(strengthV).mul(faceS).mul(patchFade(sa)).mul(inside));
+        });
+        if (MT) {
+          // Round 12 (the match): the foam line and the face (see boreMatch).
+          // Seaward of the line the strong bore's foam thins to the surf's lace
+          // net (MATCH_SURF_AMOUNT of itself); the line is dense.
+          const bm = boreMatch(sa, uvW, st.w);
+          lineV.assign(bm.x);
+          coolK.assign(strengthV.mul(tune.vMatch));
+          amount.assign(mix(amount.mul(mix(float(1), tune.mSurfAmt, strengthV.mul(tune.vMatch))),
+            max(amount, bm.x.mul(tune.mLineAmt).mul(filmKeep(st.x))), bm.x));
+          face.assign(max(face.mul(float(1).sub(tune.vMatch)), bm.y.mul(patchFade(sa)).mul(inside)));
+        }
+        }
+        // Round 12 (the match): the bore's and the surf's lace at MATCH_TILE_K of its tile.
+        // (The match: the surf's lace MATCH_SURF_OP as opaque, the line as it is.)
+        // (Round 12: the surf's opacity, the tile and the fold are the strong
+        // bore's only, `mK`: view 1's weaker bore keeps round 8's lace.)
+        // (A first build also took the strength 2.5 and 5 m onshore, so the
+        // surf behind the bore took the coarse lace too: it drew scattered
+        // white discs and a straight seam where the reach ended. Not kept.)
+        // Round 13: the surf behind a strong bore takes its lace too (the
+        // strength read MATCH_SURF_REACH_M onshore, times `mReach`). With round
+        // 12's coarse tile this drew white discs and a seam; with the finer,
+        // longer net it is the surf band's lace (see measure-shape.md).
+        const reachAt = (dM: number): TslNode => strengthAt(uvW.add(vec2(dM / lenS, 0)), readA(uvW.add(vec2(dM / lenS, 0))).w);
+        const mK = MT && strength !== null
+          ? max(strength, max(max(reachAt(MATCH_SURF_REACH_M[0]), reachAt(MATCH_SURF_REACH_M[1])), reachAt(MATCH_SURF_REACH_M[2])).mul(tune.mReach)).mul(tune.vMatch)
+          : float(0);
+        const opW = MT ? sheetOp(st.x).mul(mix(float(1), mix(tune.mSurfOp, float(1), lineV), mK)) : sheetOp(st.x);
+        const bandArg = MT && strength !== null ? mix(strength, lineV, tune.vMatch) : strength;
+        const lc = (MT ? lace(xz, worldVel(st), amount, foot, spline(texD, uvW).y, opW, st.x, trailK, thinFade, bandArg)
+          : lace(xz, worldVel(st), amount, foot, spline(texD, uvW).y, opW, LV ? st.x : null, trailK, thinFade, strength)).toVar();
+        // Round 12 (the match): in the strong bore, a second read of the lace at
+        // MATCH_TILE_K of its tile, folded to MATCH_FOLD, mixed in by the
+        // strength. (One read whose tile scale followed the strength drew
+        // contour bands where the strength changed: a scale that varies over
+        // space shears the pattern.) Only where the bore is strong: no cost
+        // and no change in view 1's weaker bore.
+        if (MT) {
+          If(mK.greaterThan(0.01), () => {
+            // The strong bore's whole lace drawn as the band (MATCH_SURF_BAND of it:
+            // drawn out along the shore, Manly's surf lies in lines along it).
+            // Round 13: THE SURF'S NET. Its amount capped at MATCH_NET_CAP (the
+            // fold then draws thin threads round small windows, a net, not a
+            // raft with round holes); the line keeps its own amount.
+            const amtNet = mix(min(amount, tune.mNetCap), amount, lineV);
+            const lcM = lace(xz, worldVel(st), amtNet, foot, spline(texD, uvW).y, opW, st.x, trailK, thinFade,
+              max(bandArg ?? float(0), mK.mul(tune.mSurfBand)), tune.mTileK, tune.mFold);
+            lc.assign(mix(lc, lcM, mK));
+            // Round 13: THE SURF'S NET (see surfNet), over the lace away from
+            // the line, where the foam is present.
+            const netC = surfNet(sa, worldVel(st), foot).mul(smoothstep(float(0.04), float(0.15), amount))
+              .mul(float(1).sub(lineV)).mul(tune.mNetOp).mul(mK);
+            lc.assign(vec2(max(lc.x, netC), lc.y));
+          });
+        }
         cover.assign(lc.x.mul(k));
         bubShade.assign(lc.y);
         milk.assign(smoothstep(float(MILK_FOAM_LO), float(0.8), st.w).mul(MILK_MAX).mul(k).mul(plumes(xz, worldVel(st))));
@@ -1388,18 +2391,32 @@ export async function createOceanBeach(opts: OceanBeachOptions): Promise<OceanBe
         // plumes are (another phase of the same noise).
         const clouds = plumes(xz.add(vec2(13.7, -4.1)), worldVel(st));
         veil.assign(float(1).sub(exp(tau.negate())).mul(VEIL_MAX).mul(clouds).mul(patchFade(sa)).mul(seaFade).mul(inside).mul(tune.veil));
+        // The surf's own body (see SURF_BODY_SHARE).
+        // Round 12 (the match): MATCH_SURF_BODY_SHARE of MATCH_SURF_BODY_RGB.
+        surf.assign((MT ? smoothstep(mix(float(SURF_BODY_H[0]), tune.mSurfH0, tune.vMatch), mix(float(SURF_BODY_H[1]), tune.mSurfH1, tune.vMatch), st.x)
+          : smoothstep(float(SURF_BODY_H[0]), float(SURF_BODY_H[1]), st.x))
+          .mul(MT ? mix(float(SURF_BODY_SHARE), tune.mSurfShare, tune.vMatch) : float(SURF_BODY_SHARE)).mul(patchFade(sa)).mul(inside).mul(tune.veil));
       });
       // The veil, the milk over it and the foam over both: one coverage and
       // one radiance for the reader.
       // The film's sky under the veil and the milk.
       const skyRad = filmSkyLow(viewDir);
-      const underSky = float(1).sub(float(1).sub(skyShare).mul(float(1).sub(veil)));
-      const underSkyRad = skyRad.mul(skyShare).add(veilLight.mul(veil).mul(float(1).sub(skyShare))).div(max(underSky, float(1e-4)));
+      // The surf's body under the veil: one share and one light.
+      // V2's face over the surf's body, under the veil: one share and one light.
+      const body = LV ? float(1).sub(float(1).sub(veil).mul(float(1).sub(surf)).mul(float(1).sub(face)))
+        : float(1).sub(float(1).sub(veil).mul(float(1).sub(surf)));
+      const bodyRad = LV ? veilLight.mul(veil).add(surfLight.mul(surf).mul(float(1).sub(veil)))
+        .add(faceLight.mul(face).mul(float(1).sub(veil)).mul(float(1).sub(surf))).div(max(body, float(1e-4)))
+        : veilLight.mul(veil).add(surfLight.mul(surf).mul(float(1).sub(veil))).div(max(body, float(1e-4)));
+      const underSky = float(1).sub(float(1).sub(skyShare).mul(float(1).sub(body)));
+      const underSkyRad = skyRad.mul(skyShare).add(bodyRad.mul(body).mul(float(1).sub(skyShare))).div(max(underSky, float(1e-4)));
       const underFoam = float(1).sub(float(1).sub(milk).mul(float(1).sub(underSky)));
       const underRad = underSkyRad.mul(underSky).mul(float(1).sub(milk)).add(milkLight.mul(milk))
         .div(max(underFoam, float(1e-4)));
       const both = float(1).sub(float(1).sub(cover).mul(float(1).sub(underFoam)));
-      const radiance = underRad.mul(underFoam).mul(float(1).sub(cover)).add(foamLight(amount).mul(bubShade).mul(cover))
+      // Round 12 (the match): the strong bore's foam cool white (see coolTint).
+      const foamRad = MT ? foamLight(amount).mul(mix(vec3(1, 1, 1), coolTint, coolK)) : foamLight(amount);
+      const radiance = underRad.mul(underFoam).mul(float(1).sub(cover)).add(foamRad.mul(bubShade).mul(cover))
         .div(max(both, float(1e-4)));
       return { cover: both, radiance };
     },
@@ -1417,6 +2434,29 @@ export async function createOceanBeach(opts: OceanBeachOptions): Promise<OceanBe
       });
       return out;
     },
+    // THE SEA'S CREST OVER THE SHEET (see CREST_HIDE_H): vHide over the patch
+    // where the grid's water is shallow. Round 11: only with `opts.crestHide`
+    // (without it the reader returns no `hide`, and the surface builds no
+    // Discard node: a discard in the sea's shader cost about 1 ms).
+    ...(opts.crestHide ? {
+      waterHide: (xz: TslNode, _column: TslNode) => {
+        const sa = toSA(xz).toVar();
+        const inPatch = patchFade(sa).mul(insidePatch(sa, 0));
+        const hGrid = spline(texA, saUV(sa)).x;
+        return select(inPatch.greaterThan(0.5).and(hGrid.lessThan(CREST_HIDE_H)), tune.vHide, float(0));
+      },
+    } : {}),
+    // V0 (vSpeck): THE SEA'S OWN FOAM OVER THE PATCH (round 9). The beach
+    // draws the surf's foam from its swash grid; the sea's own whitecaps over
+    // the patch drew clipped white specks and a white crest polygon there.
+    // (Round 11: only with the levers; without it the reader returns no
+    // `seaFoam`, and the surface adds no node for it.)
+    ...(LV ? {
+      waterSeaFoam: (xz: TslNode, _column: TslNode) => {
+        const sa = toSA(xz).toVar();
+        return float(1).sub(patchFade(sa).mul(insidePatch(sa, 0)).mul(tune.vSpeck));
+      },
+    } : {}),
     // THE SEA'S GLINTS OVER THE BEACH FACE (see GLINT_KEEP_LO_M).
     waterGlint: (xz: TslNode, _column: TslNode) => {
       const sa = toSA(xz).toVar();
@@ -1552,7 +2592,9 @@ export async function createOceanBeach(opts: OceanBeachOptions): Promise<OceanBe
     If(hFilm.greaterThan(0.0008), () => {
       const st = spline(texA, uvW);
       const k = smoothstep(float(0.001), float(0.004), hFilm).mul(float(1).sub(smoothstep(float(0.02), float(0.06), hFilm)))
-        .mul(fade).mul(tune.web);
+        // V1 (vFilm): no web on the film either (its bright bubble-net lines
+        // read as light worms over the thin sheet; see FILM_PART_H).
+        .mul(fade).mul(tune.web).mul(LV ? float(1).sub(tune.vFilm) : float(1));
       base.assign(base.mul(float(1).add(filmWeb(xz, worldVel(st), foot).mul(k).mul(FILM_WEB_GAIN * SUN_SHARE))));
     });
     // THE FILM'S GLOSS: the saturated band keeps a mirror of water on the
@@ -1566,9 +2608,16 @@ export async function createOceanBeach(opts: OceanBeachOptions): Promise<OceanBe
     const sky = oceanSkyRadiance(refl, uSun, 0, uOvercast, 0, opts.skyClouds, float(1), float(GLOSS_SPREAD));
     // Only where no sheet covers the sand: the sheet draws its own share.
     const shine = exp(sb.w.mul(60).div(-SHINE_S)).mul(smoothstep(float(0.85), float(0.99), sb.x)).mul(fade).mul(tune.gloss);
+    // Round 8: the shine is silver (the low sky's luma; see FILM_SHEEN).
+    const lowLumS = dot(filmSkyLow(view), vec3(0.2126, 0.7152, 0.0722));
+    // V0 (vGloss): only on sand the sheet has left, not under its thin film.
+    const glossCut0 = float(1).sub(smoothstep(float(SHEET_MIN_M), float(SHEET_EDGE_FULL_M), hFilm));
+    const glossCut = LV ? mix(glossCut0, float(1).sub(smoothstep(float(0.0001), float(SHEET_MIN_M), hFilm)), tune.vGloss) : glossCut0;
     const film = sky.mul(fresnel(dot(n, view))).add(filmSkyLow(view).mul(SAT_SKY_SHARE)).mul(gloss)
-      .add(filmSkyLow(view).mul(shine.mul(SHINE_SKY)))
-      .mul(float(1).sub(smoothstep(float(SHEET_MIN_M), float(SHEET_FULL_M), hFilm)));
+      .add(vec3(lowLumS, lowLumS, lowLumS).mul(shine.mul(SHINE_SKY)))
+      // Round 8: gone where the sheet's alpha is full (SHEET_EDGE_FULL_M; to
+      // SHEET_FULL_M in round 7, and both reflected the sky over 1 to 4 mm).
+      .mul(glossCut);
     // THE DRY SAND'S RELIEF (see RIPPLE_M), lit by the sun: dry sand above the
     // swash zone only.
     const reliefK = float(1).sub(smoothstep(float(WET_LINE_SE - 0.06), float(WET_LINE_SE + 0.04), sb.x))
@@ -1576,15 +2625,20 @@ export async function createOceanBeach(opts: OceanBeachOptions): Promise<OceanBe
       .mul(smoothstep(float(RELIEF_S_ZERO_M), float(RELIEF_S_FULL_M), sa.x)).mul(fade).toVar();
     // THE RILLS (see RILL_M): on the lower swash face, wet, under a thin film.
     const rillK = smoothstep(float(RILL_S[0]), float(RILL_S[1]), sa.x).mul(float(1).sub(smoothstep(float(RILL_S[2]), float(RILL_S[3]), sa.x)))
-      .mul(smoothstep(float(WET_LINE_SE), float(0.9), sb.x)).mul(float(1).sub(smoothstep(float(0.006), float(0.012), hFilm)))
+      .mul(smoothstep(float(WET_LINE_SE), float(0.9), sb.x)).mul(float(1).sub(smoothstep(float(0.004), float(0.009), hFilm)))
       .mul(float(1).sub(smoothstep(float(0.08), float(0.14), foot))).mul(fade)
-      .mul(smoothstep(float(0.55 - 1.4 * RILL_FIELD_SHARE), float(0.75 - 1.4 * RILL_FIELD_SHARE), noise2(vec2(sa.x.div(2), sa.y), RILL_FIELD_M, 0, 41.3))).toVar();
+      .mul(smoothstep(float(0.55 - 1.4 * RILL_FIELD_SHARE), float(0.75 - 1.4 * RILL_FIELD_SHARE), noise2(vec2(sa.x.div(2), sa.y), RILL_FIELD_M, 0, 41.3)))
+      // Round 10: behind `tune.rills` (with the levers; see RILLS_ON).
+      .mul(LV ? tune.rills : float(1)).toVar();
     If(rillK.greaterThan(0.01), () => {
       // A ridged noise: a channel where it crosses 0. Its slope by central
       // differences, 1.5 cm apart.
+      const chan = (nn: TslNode): TslNode => float(1).sub(smoothstep(float(0), float(RILL_W), abs(nn)));
       const rillAt = (p: TslNode): TslNode => {
         const nn = noise2(vec2(p.x.div(RILL_STRETCH), p.y), RILL_M, 3, 31.7).add(noise2(vec2(p.x.div(RILL_STRETCH * 0.6), p.y), RILL_M * 0.45, 2, 8.3).mul(0.12));
-        return float(1).sub(smoothstep(float(0), float(RILL_W), abs(nn))).mul(RILL_DEPTH_M).negate();
+        // The tributaries (see RILL_TRIB_M), shallower, crossing and joining the channels.
+        const nT = noise2(vec2(p.x.div(RILL_TRIB_STRETCH), p.y), RILL_TRIB_M, 1, 23.9);
+        return max(chan(nn), chan(nT).mul(RILL_TRIB_K)).mul(RILL_DEPTH_M).negate();
       };
       const e = 0.015;
       const gS = rillAt(sa.add(vec2(e, 0))).sub(rillAt(sa.sub(vec2(e, 0)))).div(2 * e);
@@ -1601,7 +2655,8 @@ export async function createOceanBeach(opts: OceanBeachOptions): Promise<OceanBe
         .add(filmSkyLow(view).mul(inCh.mul(rillK).mul(RILL_SKY))));
     });
     If(reliefK.greaterThan(0.01), () => {
-      const slope = reliefSlope(sa, xz, foot);
+      // V1 (vSand): the sunlit relief deeper (see SAND_GRAIN_K).
+      const slope = LV ? reliefSlope(sa, xz, foot).mul(mix(float(1), float(SAND_GRAIN_K), tune.vSand)) : reliefSlope(sa, xz, foot);
       const gwx = slope.x.mul(fr.sX).add(slope.y.mul(fr.aX));
       const gwz = slope.x.mul(fr.sZ).add(slope.y.mul(fr.aZ));
       const nR = normalize(vec3(n.x.sub(gwx), n.y, n.z.sub(gwz)));
@@ -1612,7 +2667,7 @@ export async function createOceanBeach(opts: OceanBeachOptions): Promise<OceanBe
     // THE SHEEN (see SHEEN_ROUGH): GGX with Smith-Schlick shadowing, on sand
     // whose skin is full and which no sheet covers.
     const sheenK = max(sat, smoothstep(float(SHEEN_SE_LO), float(0.99), sb.x))
-      .mul(float(1).sub(smoothstep(float(SHEET_MIN_M), float(SHEET_FULL_M), hFilm)))
+      .mul(glossCut)
       .mul(SHEEN_SHARE).mul(fade).mul(tune.gloss);
     const hV = normalize(view.add(uSun));
     const ndh = clamp(dot(n, hV), float(0), float(1));
@@ -1633,39 +2688,74 @@ export async function createOceanBeach(opts: OceanBeachOptions): Promise<OceanBe
       // The depth's gradient, across and along the shore, per m.
       const grad = vec2(hS.sub(st.x).div(g.ds), hA.sub(st.x).div(g.da));
       const gl = max(length(grad), float(1e-4));
-      // The scallops (see RIM_SCALLOP_M): arcs set back from the front,
-      // meeting in cusps up the beach.
+      // ROUND 8: ON THE TRUE EDGE. The scallops are in the read (see
+      // `wander`), so the band starts where the sheet and the wet sand under
+      // it start. (Round 7 set the band back from the grid's edge here.)
+      const dIn = st.x.sub(RIM_EDGE_M).div(gl);
+      // The scallop's middle, for the width (see RIM_ARC_GAIN).
       const fS = fract(sa.y.div(RIM_SCALLOP_M).add(noise2(xz, RIM_SCALLOP_M * 1.7, 1, 2.9).mul(0.35)));
       const arc = fS.mul(float(1).sub(fS)).mul(4);
-      const setBack = arc.mul(RIM_SCALLOP_DEPTH_M).mul(noise2(xz, RIM_SCALLOP_M * 2.3, 3, 6.6).mul(0.4).add(0.6));
-      const dIn = st.x.sub(RIM_EDGE_M).div(gl).sub(setBack);
       // The lobes of the grid's tongues (see RIM_LOBE_M).
       const hL = spline(texA, uvW.sub(vec2(0, RIM_LOBE_M / g.da / g.na))).x;
       const hR = spline(texA, uvW.add(vec2(0, RIM_LOBE_M / g.da / g.na))).x;
       const side = hL.add(hR).mul(0.5);
       const lobe = clamp(st.x.sub(side).div(st.x.add(side).add(1e-4)), float(0), float(1));
       // The width (see RIM_W_MIN_M): its noise, the scallop's middle, the lobes.
-      const wR = mix(float(RIM_W_MIN_M), float(RIM_W_MAX_M), smoothstep(float(-0.55), float(0.55), noise2(xz, RIM_W_SCALE_M, 3, 4.1)))
+      // V2 (vFront): a wider swing of width, with a second octave (see FRONT_W_M).
+      const wN = LV ? smoothstep(float(-0.55), float(0.55), noise2(xz, RIM_W_SCALE_M, 3, 4.1).add(noise2(xz, 0.35, 1, 14.3).mul(tune.vFront.mul(0.6))))
+        : smoothstep(float(-0.55), float(0.55), noise2(xz, RIM_W_SCALE_M, 3, 4.1));
+      // Step 2: more of the length thin (the noise's upper 40% only reaches
+      // the wide end).
+      const wN2 = LV ? mix(wN, smoothstep(float(0.35), float(0.95), wN), tune.vFront) : wN;
+      const wR = (LV ? mix(mix(float(RIM_W_MIN_M), float(FRONT_W_M[0]), tune.vFront), mix(float(RIM_W_MAX_M), float(FRONT_W_M[1]), tune.vFront), wN2)
+        : mix(float(RIM_W_MIN_M), float(RIM_W_MAX_M), wN))
         .mul(arc.mul(RIM_ARC_GAIN).add(1 - RIM_ARC_GAIN / 2)).mul(lobe.mul(RIM_LOBE_GAIN).add(1));
       const tq = clamp(dIn.div(wR), float(0), float(1));
       const taper = float(1).sub(tq.mul(tq).mul(tq));
-      const clusters = smoothstep(float(-0.35), float(0.45), noise2(xz, RIM_CLUSTER_M, 0, 7.9)).mul(1 - RIM_CLUSTER_LO).add(RIM_CLUSTER_LO);
-      const gaps = smoothstep(float(-0.9 + 1.6 * RIM_GAP_SHARE), float(-0.7 + 1.6 * RIM_GAP_SHARE), noise2(xz, RIM_GAP_M, 2, 5.1)).mul(0.85).add(0.15);
-      const front = smoothstep(float(-0.01), float(0.012), dIn.add(noise2(xz, RIM_ROUGH_CELL_M, 1, 71.9).mul(RIM_ROUGH_M)));
+      const clusters = LV
+        ? smoothstep(float(-0.35), float(0.45), noise2(xz, RIM_CLUSTER_M, 0, 7.9)).mul(float(1).sub(mix(float(RIM_CLUSTER_LO), float(FRONT_CLUSTER_LO), tune.vFront)))
+          .add(mix(float(RIM_CLUSTER_LO), float(FRONT_CLUSTER_LO), tune.vFront))
+        : smoothstep(float(-0.35), float(0.45), noise2(xz, RIM_CLUSTER_M, 0, 7.9)).mul(1 - RIM_CLUSTER_LO).add(RIM_CLUSTER_LO);
+      const gaps = LV
+        ? smoothstep(mix(float(-0.9 + 1.6 * RIM_GAP_SHARE), float(-0.9 + 1.6 * FRONT_GAP_SHARE), tune.vFront),
+          mix(float(-0.7 + 1.6 * RIM_GAP_SHARE), float(-0.7 + 1.6 * FRONT_GAP_SHARE), tune.vFront), noise2(xz, RIM_GAP_M, 2, 5.1))
+          .mul(mix(float(0.85), float(1), tune.vFront)).add(mix(float(0.15), float(0), tune.vFront))
+        : smoothstep(float(-0.9 + 1.6 * RIM_GAP_SHARE), float(-0.7 + 1.6 * RIM_GAP_SHARE), noise2(xz, RIM_GAP_M, 2, 5.1)).mul(0.85).add(0.15);
+      const front = smoothstep(float(-0.005), float(0.006), dIn.add(noise2(xz, RIM_ROUGH_CELL_M, 1, 71.9).mul(RIM_ROUGH_M)));
       const band = front.mul(taper).mul(clusters).mul(gaps);
       // The lace trailing behind it (see RIM_TRAIL_M).
-      const trail = front.mul(smoothstep(wR.add(RIM_TRAIL_M), wR.mul(0.6), dIn)).mul(RIM_TRAIL_AMOUNT);
+      const trail = LV ? front.mul(smoothstep(wR.add(mix(float(RIM_TRAIL_M), float(FRONT_TRAIL_M), tune.vFront)), wR.mul(0.6), dIn))
+        .mul(mix(float(RIM_TRAIL_AMOUNT), float(FRONT_TRAIL_AMOUNT), tune.vFront))
+        // Step 2: the trailing lace only where the band is wide (in patches).
+        .mul(mix(float(1), wN2.mul(1.4), tune.vFront))
+        : front.mul(smoothstep(wR.add(RIM_TRAIL_M), wR.mul(0.6), dIn)).mul(RIM_TRAIL_AMOUNT);
       // The flow across the edge, outward (down the depth's gradient): over 0 the edge advances.
       const vOut = st.y.mul(grad.x).add(st.z.mul(grad.y)).negate().div(gl);
       const amt = max(band.mul(mix(float(RIM_BACK_SHARE), float(1), smoothstep(float(-0.15), float(0.25), vOut))).mul(RIM_AMOUNT), trail);
-      rimCover.assign(lace(xz, worldVel(st), min(amt, float(1)), foot, float(0.5)).x.mul(fade).mul(tune.foam));
+      // V2 (vFront): the trail drawn as older foam, broken into bubbles.
+      const ageR = LV ? mix(float(0.5), mix(float(0.5), float(FRONT_TRAIL_AGE_S), trail.div(max(band.add(trail), float(1e-4)))), tune.vFront) : float(0.5);
+      // Round 13 (the match): the rim MATCH_RIM_K as strong and broken in
+      // patches of MATCH_RIM_GAP_M (Manly's edge line rises 6 to 8 luma in a
+      // fifth of the columns; round 12's rose 14 in over half).
+      // Only where the edge retreats (the backwash leaves a faint broken line;
+      // an advancing front keeps its bubbly rim, view 1's won front).
+      const retreat = float(1).sub(smoothstep(float(-0.15), float(0.25), vOut));
+      const rimM = MT ? mix(float(1), tune.mRimK.mul(smoothstep(float(-0.05), float(0.35), noise2(xz, MATCH_RIM_GAP_M, 2, 83.9))), tune.vMatch.mul(retreat)) : float(1);
+      // Round 17 (the match): no rim at all (Manly's lip has no stroke).
+      rimCover.assign(lace(xz, worldVel(st), min(amt, float(1)), foot, ageR, float(RIM_OP)).x.mul(fade).mul(tune.foam).mul(rimM)
+        .mul(MT ? float(1).sub(tune.vMatch) : float(1)));
     });
     // STRANDED FOAM and THE SWASH MARK: bubbles the sheet left, popping; and
     // the line of fine dark grains and scum where each uprush stopped.
     // Only where the sheet left foam (most of the sand has none).
     const strandCover = float(0).toVar();
     If(sb.y.greaterThan(0.02), () => {
-      strandCover.assign(lace(xz, vec2(0, 0), sb.y.mul(0.9), foot, float(6)).x.mul(fade).mul(tune.foam));
+      // Round 8: as old foam (broken into specks, see BREAK_TILE), 0.8 of the opacity.
+      // Round 16 (the match): its stranded foam MATCH_STRAND_K as strong (the
+      // match's larger swash strands more foam, which drew an even salt of
+      // specks over the wet sand).
+      strandCover.assign(lace(xz, vec2(0, 0), sb.y.mul(0.9), foot, float(12), float(0.8)).x.mul(fade).mul(tune.foam)
+        .mul(MT ? mix(float(1), float(MATCH_STRAND_K), tune.vMatch) : float(1)));
     });
     // A thin line along the field's crest, broken where the grains thin out.
     const markBreak = smoothstep(float(-0.2), float(0.3), noise2(xz, 0.32, 3, 9.4));
@@ -1675,26 +2765,71 @@ export async function createOceanBeach(opts: OceanBeachOptions): Promise<OceanBe
     const hwm = float(0).toVar();
     const hwmFoam = float(0).toVar();
     If(sb.x.greaterThan(WET_LINE_SE - 0.15).and(sb.x.lessThan(WET_LINE_SE + 0.2)).and(hFilm.lessThan(SHEET_MIN_M)), () => {
-      const thrW = noise2(xz, WET_PATCH_M, 0, 12.7).mul(WET_LINE_VAR).add(WET_LINE_SE);
+      const thrW = wetThr(xz);
       const seS = spline(texB, uvW.add(vec2(1 / g.ns, 0))).x.sub(sb.x).div(g.ds);
       const seA = spline(texB, uvW.add(vec2(0, 1 / g.na))).x.sub(sb.x).div(g.da);
       const gSe = max(length(vec2(seS, seA)), float(0.05));
       // Metres inside the wet side of the line; the mark lies on it.
       const dW = sb.x.sub(thrW).div(gSe);
-      const on = float(1).sub(smoothstep(float(HWM_W_M * 0.4), float(HWM_W_M), abs(dW.add(HWM_W_M * 0.3))));
+      // V3 (vDry): a crisp thin line (see DRY_HWM_W_M).
+      const on = LV
+        ? float(1).sub(smoothstep(mix(float(HWM_W_M * 0.4), float(DRY_HWM_W_M * 0.4), tune.vDry), mix(float(HWM_W_M), float(DRY_HWM_W_M), tune.vDry),
+          abs(dW.add(mix(float(HWM_W_M * 0.3), float(DRY_HWM_W_M * 0.3), tune.vDry)))))
+        : float(1).sub(smoothstep(float(HWM_W_M * 0.4), float(HWM_W_M), abs(dW.add(HWM_W_M * 0.3))));
       const broken = smoothstep(float(-0.45), float(0.1), noise2(xz, 0.55, 1, 27.7));
       hwm.assign(on.mul(broken).mul(fade).mul(tune.mark));
-      hwmFoam.assign(lace(xz, vec2(0, 0), on.mul(broken).mul(HWM_FOAM_AMOUNT), foot, float(8)).x.mul(fade).mul(tune.mark));
+      hwmFoam.assign(lace(xz, vec2(0, 0), on.mul(broken).mul(HWM_FOAM_AMOUNT), foot, float(10), float(0.7)).x.mul(fade).mul(tune.mark));
     });
     // THE OLDER RUN-UP LINES (see MARK_FOAM_AMOUNT): stranded bubbles along the mark.
     const markFoam = float(0).toVar();
     If(sb.z.greaterThan(0.15), () => {
-      markFoam.assign(lace(xz, vec2(0, 0), smoothstep(float(0.2), float(0.6), sb.z).mul(markBreak).mul(MARK_FOAM_AMOUNT), foot, float(10)).x.mul(fade).mul(tune.mark));
+      markFoam.assign(lace(xz, vec2(0, 0), smoothstep(float(0.2), float(0.6), sb.z).mul(markBreak).mul(MARK_FOAM_AMOUNT), foot, float(14), float(0.6)).x.mul(fade).mul(tune.mark));
+    });
+    // V2 (vFront): THE OLDER SWASH LINES (see OLD_S_M), on wet sand only.
+    const oldLine = float(0).toVar();
+    // Round 11: also with vOld alone (V3), round 8's front kept.
+    const oldK = max(tune.vFront, tune.vOld);
+    const oldBand = float(0).toVar();
+    if (LV) If(oldK.greaterThan(0).and(hFilm.lessThan(SHEET_MIN_M)).and(sb.x.greaterThan(WET_LINE_SE + 0.03)), () => {
+      const wetK = smoothstep(float(WET_LINE_SE + 0.03), float(WET_LINE_SE + 0.12), sb.x).mul(float(1).sub(smoothstep(float(0.0001), float(SHEET_MIN_M), hFilm)));
+      for (let kk = 0; kk < OLD_S_M.length; kk += 1) {
+        const fL = fract(sa.y.div(OLD_L_M[kk]).add(kk * 0.37).add(noise2(xz, OLD_L_M[kk] * 1.3, kk % 4, 3.1 + kk).mul(0.25)));
+        const u = sa.x.sub(OLD_S_M[kk]).sub(fL.mul(float(1).sub(fL)).mul(4 * OLD_D_M[kk])).sub(sa.y.mul(OLD_TILT[kk]));
+        // Its width varies 0.4 to 1 of OLD_W_M along it.
+        // (Round 14, the match: MATCH_OLD_W_K times wider.)
+        const wL = noise2(xz, 0.6, kk % 4, 23.3 + kk).mul(0.3).add(0.7).mul(MT ? OLD_W_M * MATCH_OLD_W_K : OLD_W_M);
+        const ln = float(1).sub(smoothstep(wL.mul(0.2), wL, abs(u.add(noise2(xz, 0.09, (kk + 1) % 4, 7.7 + kk).mul(0.012)))));
+        const brk = smoothstep(float(0), float(0.35), noise2(xz, 0.9, (kk + 2) % 4, 19.1 + kk * 3.3));
+        oldLine.assign(max(oldLine, ln.mul(brk)));
+        // V3 (vOld): the band of stranded bubbles along it (see OLD_LACE_W_K).
+        const lnB = float(1).sub(smoothstep(wL.mul(OLD_LACE_W_K * 0.4), wL.mul(OLD_LACE_W_K), abs(u)));
+        oldBand.assign(max(oldBand, lnB.mul(brk)));
+      }
+      oldLine.assign(oldLine.mul(wetK).mul(fade).mul(oldK));
+      oldBand.assign(oldBand.mul(wetK).mul(fade).mul(tune.vOld));
+    });
+    const oldLace = float(0).toVar();
+    if (LV) If(oldBand.greaterThan(0.01), () => {
+      // (Round 14, the match: the stranded bubbles MATCH_OLD_LACE_K as strong: at full they drew white dashed strokes.)
+      oldLace.assign(lace(xz, vec2(0, 0), oldBand.mul(OLD_LACE_AMOUNT), foot, float(14), float(0.7)).x.mul(MT ? mix(float(1), float(MATCH_OLD_LACE_K), tune.vMatch) : float(1)));
     });
     const markGrain = noise2(xz, 0.025, 1, 1.7).mul(0.5).add(0.5);
     const darkened = base.mul(float(1).sub(markLine.mul(0.2).mul(markGrain.mul(0.6).add(0.4))))
       .mul(float(1).sub(hwm.mul(HWM_DARK).mul(markGrain.mul(0.6).add(0.4))));
-    const withFoam = mix(mix(darkened.add(film).add(sheen), foamWhite.mul(0.85), max(max(strandCover.mul(0.9), markFoam.mul(0.8)), hwmFoam.mul(0.8))), foamWhite, rimCover);
+    // V2's older lines: fine dark grains, and scum over them.
+    // (Round 14, the match: the old lines' grains and scum times `mOldK`.)
+    const oldK12 = MT ? mix(float(1), tune.mOldK, tune.vMatch) : float(1);
+    const darkenedO = darkened.mul(float(1).sub(oldLine.mul(OLD_DARK).mul(oldK12).mul(markGrain.mul(0.6).add(0.4))));
+    // Round 12 (the match): the wet sand's gloss, shine and sheen cut by
+    // MATCH_GLOSS_CUT (Manly's wet sand shows a sheen share of 0 to 0.015).
+    const glossK = MT ? float(1).sub(tune.mGlossCut.mul(tune.vMatch)) : float(1);
+    const withFoam = MT
+      ? mix(mix(mix(darkenedO.add(film.mul(glossK)).add(sheen.mul(glossK)), foamWhite.mul(0.85), max(max(max(strandCover.mul(0.9), markFoam.mul(0.8)), hwmFoam.mul(0.8)), oldLace.mul(0.8))),
+        foamWhite.mul(0.85), oldLine.mul(OLD_FOAM).mul(MT ? mix(float(1), float(MATCH_OLD_FOAM_K), tune.vMatch) : float(1)).mul(markGrain.mul(0.8).add(0.2))), foamWhite, rimCover)
+      : LV
+      ? mix(mix(mix(darkenedO.add(film).add(sheen), foamWhite.mul(0.85), max(max(max(strandCover.mul(0.9), markFoam.mul(0.8)), hwmFoam.mul(0.8)), oldLace.mul(0.8))),
+        foamWhite.mul(0.85), oldLine.mul(OLD_FOAM).mul(markGrain.mul(0.8).add(0.2))), foamWhite, rimCover)
+      : mix(mix(darkened.add(film).add(sheen), foamWhite.mul(0.85), max(max(strandCover.mul(0.9), markFoam.mul(0.8)), hwmFoam.mul(0.8))), foamWhite, rimCover);
     return vec4(withFoam, float(1));
   })();
   sandMat.toneMapped = true;
@@ -1722,7 +2857,11 @@ export async function createOceanBeach(opts: OceanBeachOptions): Promise<OceanBe
   sheetMat.positionNode = vec3(
     positionGeometry.x,
     positionGeometry.y.add(max(readA(vUV).x, float(0))).add(SHEET_LIFT_M)
-      .sub(smoothstep(float(0.05), float(-0.4), positionGeometry.y).mul(SHEET_PUSH_M))
+      .sub(opts.crestHide
+        // vHide: no push where the sea no longer draws (see CREST_HIDE_H).
+        ? smoothstep(float(0.05), float(-0.4), positionGeometry.y).mul(SHEET_PUSH_M)
+          .mul(mix(float(1), smoothstep(float(CREST_HIDE_H - 0.02), float(CREST_HIDE_H + 0.05), readA(vUV).x), tune.vHide))
+        : smoothstep(float(0.05), float(-0.4), positionGeometry.y).mul(SHEET_PUSH_M))
       // A dry vertex sinks 3 cm under the sand: a triangle dry at all three
       // corners is then hidden, and the depth test drops its fragments
       // before they shade (the sheet spans the whole patch; most is dry).
@@ -1806,39 +2945,71 @@ export async function createOceanBeach(opts: OceanBeachOptions): Promise<OceanBe
     // (the sky and sun in it), and the sand mesh and the debris show behind.
     // From 5 mm to 5 cm the sheet becomes the reader's water; the reader runs
     // only where it is needed.
-    const thick = smoothstep(float(0.005), float(0.05), h).toVar();
+    // Round 12 (the match): the sheet stays a film over the sand to
+    // MATCH_THICK_M (5 mm to 5 cm to round 11), so the film is one tone.
+    const thick = (MT ? smoothstep(mix(float(0.005), tune.mThick0, tune.vMatch), mix(float(0.05), tune.mThick1, tune.vMatch), h)
+      : smoothstep(float(0.005), float(0.05), h)).toVar();
     const deep = vec3(0).toVar();
     If(thick.greaterThan(0), () => {
       const bed = seabed.reader.shade({ world: w, normal: n, normalLong: n, viewDir: view, longM: foot, shortM: foot, own: true });
       deep.assign(mix(bed.through, sky, F).add(sunGlint));
     });
+    // V1 (vFilm): the glassy shine carries on into the film's deep part.
+    const lumV = dot(filmSkyLow(view), vec3(0.2126, 0.7152, 0.0722));
+    // vSheet: the sheen dappled (see SHEET_DAPPLE_M), carried with the flow.
+    const dappleK = LV ? mix(float(1), dapple(xz, vel).mul(SHEET_DAPPLE_HI - SHEET_DAPPLE_LO).add(SHEET_DAPPLE_LO), tune.vSheet).toVar() : float(1);
+    if (LV) deep.assign(deep.add(vec3(lumV, lumV, lumV).mul(glassShare(h).mul(dappleK).mul(tune.vFilm))));
     // THE FILM REFLECTS THE LOW SKY (see FILM_SKY_SHARE), where the film shows.
     const shareF = filmShare(h);
-    const thinPre = sky.mul(F).add(filmSkyLow(view).mul(shareF)).add(sunGlint);
+    // The silver sheen (see FILM_SHEEN): the low sky's luma.
+    const streak = smoothstep(float(-0.25), float(0.45), noise2(vec2(sa.x.div(FILM_SHEEN_STRETCH), sa.y), FILM_SHEEN_STREAK_M, 2, 44.1));
+    // V1 (vFilm): round 8's streaked band becomes the glassy shine (see GLASS_THIN).
+    const shareS0 = sheenShare(h).mul(streak.mul(1 - FILM_SHEEN_LO).add(FILM_SHEEN_LO));
+    const shareS1 = LV ? mix(shareS0, glassShare(h).mul(dappleK), tune.vFilm) : shareS0;
+    // Round 13 (the match): the silver sheen's fall-line streaks drew thin
+    // vertical lines over the film (the rill measure 0.28, Manly's 0.17 to
+    // 0.27): the sheen unstreaked in the match.
+    // (Round 17: no silver sheen band at the lip in the match: it drew a bright rim.)
+    const shareS = MT ? mix(shareS1, float(0), tune.vMatch) : shareS1;
+    const lowSky = filmSkyLow(view).toVar();
+    const lowLum = dot(lowSky, vec3(0.2126, 0.7152, 0.0722));
+    const thinPre = sky.mul(F).add(lowSky.mul(shareF)).add(vec3(lowLum, lowLum, lowLum).mul(shareS)).add(sunGlint);
     const pre0 = mix(thinPre, deep, thick);
-    const a0 = mix(min(F.add(shareF), float(1)), float(1), thick);
+    const a0 = mix(min(F.add(shareF).add(shareS), float(1)), float(1), thick);
     // Foam over it: the swash's lace, carried with its flow.
     // The reader's water already carries the foam and the milk (the hook);
     // the sheet's own lace draws them only on its thin part.
     const cover = float(0).toVar();
     const sheetShade = float(0.9).toVar();
     If(thick.lessThan(1), () => {
-      const lc = lace(xz, vel, segmented(sa, st.w).mul(filmKeep(h)), foot, spline(texD, saUV(wander(xz, sa))).y);
-      cover.assign(lc.x.mul(tune.foam).mul(float(1).sub(thick)));
+      const lc = lace(xz, vel, segmented(sa, st.w).mul(filmKeep(h)), foot, spline(texD, uvW).y, sheetOp(h), LV ? h : null);
+      // (Round 17, the match: the thin sheet's own lace MATCH_SHEET_LACE_K as strong: white speckle.)
+      cover.assign(lc.x.mul(tune.foam).mul(float(1).sub(thick)).mul(MT ? mix(float(1), float(MATCH_SHEET_LACE_K), tune.vMatch) : float(1)));
       sheetShade.assign(lc.y);
     });
-    const pre = pre0.mul(float(1).sub(cover)).add(foamLight(st.w).mul(sheetShade).mul(cover));
-    const alpha0 = a0.mul(float(1).sub(cover)).add(cover);
-    // ROUND 6: the sheet's edge follows the front's scallops (see RIM_ARC_GAIN).
-    const fS2 = fract(sa.y.div(RIM_SCALLOP_M).add(noise2(xz, RIM_SCALLOP_M * 1.7, 1, 2.9).mul(0.35)));
-    const setBack2 = fS2.mul(float(1).sub(fS2)).mul(4).mul(RIM_SCALLOP_DEPTH_M).mul(noise2(xz, RIM_SCALLOP_M * 2.3, 3, 6.6).mul(0.4).add(0.6));
+    const pre1 = pre0.mul(float(1).sub(cover)).add(foamLight(st.w).mul(sheetShade).mul(cover));
+    const alpha1 = a0.mul(float(1).sub(cover)).add(cover);
+    // Round 12 (the match): the face (see boreMatch) where the sheet is still
+    // its thin film; its deep part draws it through the reader (the hook).
+    // Round 13: only where the water is over MATCH_FACE_H deep (the backwash
+    // piling against the bore): on the thin film it traced a weak foam
+    // patch's contour as a thin blue line.
+    const faceT = MT ? boreMatch(sa, uvW, st.w).y.mul(float(1).sub(thick)).mul(fade)
+      .mul(smoothstep(float(MATCH_FACE_H[0]), float(MATCH_FACE_H[1]), h)) : float(0);
+    const pre = MT ? pre1.mul(float(1).sub(faceT)).add(faceLight.mul(faceT)) : pre1;
+    const alpha0 = MT ? alpha1.mul(float(1).sub(faceT)).add(faceT) : alpha1;
+    // The sheet's edge, crisp over its first 1.5 cm in. (Round 6 set it back
+    // into the scallops here; round 8 puts the scallops in the read, see
+    // `wander`, so the edge, the rim and the wet sand meet.)
     const hGrad = max(length(vec2(hSs.sub(st.x).div(g.ds), hAs.sub(st.x).div(g.da))), float(1e-4));
     // Only where the sheet is thin: the distance to the edge (depth over its
     // gradient) holds only near the edge, and at a bore's steep front the
     // set-back cut the sheet and drew lenses of bare sand.
-    const inFront = max(smoothstep(float(-0.005), float(0.015), h.sub(RIM_EDGE_M).div(hGrad).sub(setBack2)),
+    const inFront = max(smoothstep(float(-0.005), float(0.015), h.sub(RIM_EDGE_M).div(hGrad)),
       smoothstep(float(0.006), float(0.015), h));
-    const edge = smoothstep(float(SHEET_MIN_M), float(SHEET_FULL_M), h).mul(inFront).mul(fade).mul(tune.showSheet);
+    // Round 13 (the match): the sheet fades in over its top MATCH_EDGE_FULL_M (it thins to nothing uphill).
+    const edgeFull = MT ? mix(float(SHEET_EDGE_FULL_M), tune.mEdgeFull, tune.vMatch) : float(SHEET_EDGE_FULL_M);
+    const edge = smoothstep(float(SHEET_MIN_M), edgeFull, h).mul(inFront).mul(fade).mul(tune.showSheet);
     const alpha = clamp(alpha0.mul(edge), float(0), float(1));
     return vec4(pre.div(max(alpha0, float(1e-3))), alpha);
   })();
@@ -1857,7 +3028,7 @@ export async function createOceanBeach(opts: OceanBeachOptions): Promise<OceanBe
   group.add(sandMesh);
   group.add(sheetMesh);
 
-  const debrisMeshes = buildDebrisMeshes(items, uSun, sunVis);
+  const debrisMeshes = buildDebrisMeshes(items, uSun, sunVis, { frame: fr, vDry: () => (LV ? tune.vDry.value : 0) });
   for (const m of debrisMeshes.meshes) group.add(m);
 
   /* --- the stepping plan ---------------------------------------------- */
@@ -1924,6 +3095,12 @@ export async function createOceanBeach(opts: OceanBeachOptions): Promise<OceanBe
     items: items.map((it) => ({ kind: it.kind, massKg: it.massKg, lengthM: it.lengthM })),
     lastAsked: () => lastAsked,
     setTune: (name: string, value: number) => {
+      // Round 10: 'seabed.<name>' reaches the beach's own seabed's tunes (the
+      // floor under the surf; for toggle tests).
+      if (name.startsWith('seabed.')) {
+        (seabed.probe.setTune as (k: string, v: number) => void)(name.slice(7), value);
+        return;
+      }
       const u = (tune as Record<string, { value: number }>)[name];
       if (!u) throw new Error(`[ocean] No beach tuning uniform named "${name}".`);
       u.value = value;
@@ -2210,7 +3387,18 @@ interface DebrisMeshes {
  * contact shadows. Lit as the floor is lit (the sun's irradiance on the
  * facet, the sky on its upward share), darkened by Ångström's law where wet.
  */
-function buildDebrisMeshes(items: DebrisItem[], uSun: TslNode, sunVis: TslNode): DebrisMeshes {
+/**
+ * V3's WRACK (see DRY_WRACK_GAP_M): the wrack items are hidden in the gaps of
+ * a noise along the shore and moved up the beach along a wavy line, by the
+ * lever's value `vDry()` (0: the poses as the worker sent them). A sum of
+ * sines: the CPU has no noise texture.
+ */
+const DRY_WRACK_S: readonly [number, number] = [9.0, 11.0];
+const DRY_WRACK_GAP_M = 3.1;
+const DRY_WRACK_GAP_SHARE = 0.4;
+const DRY_WRACK_WAVE_M = 0.45;
+interface WrackTune { readonly frame: BeachFrame; readonly vDry: () => number }
+function buildDebrisMeshes(items: DebrisItem[], uSun: TslNode, sunVis: TslNode, wrack?: WrackTune): DebrisMeshes {
   const indexed = items.map((it, i) => ({ it, i }));
   const shellsA = indexed.filter((x) => x.it.kind === 'shell' && x.it.look < 0.55);
   const shellsB = indexed.filter((x) => x.it.kind === 'shell' && x.it.look >= 0.55);
@@ -2378,7 +3566,37 @@ function buildDebrisMeshes(items: DebrisItem[], uSun: TslNode, sunVis: TslNode):
   const perp = new THREE.Vector2();
   return {
     meshes: [shA.mesh, shB.mesh, ...sts.map((x) => x.mesh), weedMesh, shadows],
-    place(poses: Float32Array) {
+    place(posesIn: Float32Array) {
+      // V3 (vDry): the wrack in clumps along a wavy line (see DRY_WRACK_GAP_M).
+      const vD = wrack ? wrack.vDry() : 0;
+      let poses = posesIn;
+      if (wrack && vD > 0) {
+        poses = new Float32Array(posesIn);
+        const f = wrack.frame;
+        items.forEach((it, i) => {
+          const o = i * POSE_STRIDE;
+          const dx = poses[o] - f.originX;
+          const dz = poses[o + 2] - f.originZ;
+          const s = dx * f.sX + dz * f.sZ;
+          const a = dx * f.aX + dz * f.aZ;
+          if (s < DRY_WRACK_S[0] || s > DRY_WRACK_S[1]) return;
+          const n = Math.sin(a / DRY_WRACK_GAP_M * 2.1 + 0.7) * 0.6 + Math.sin(a / DRY_WRACK_GAP_M * 5.3 + 2.3) * 0.4;
+          const wave = (Math.sin(a / 2.3 + 1.1) * 0.5 + 0.5) * 0.7 + (Math.sin(a / 0.9 + 0.4) * 0.5 + 0.5) * 0.3;
+          const ds = wave * DRY_WRACK_WAVE_M * vD;
+          // Along s, with the bed's slope (the pose's normal) for the height.
+          poses[o] += ds * f.sX;
+          poses[o + 2] += ds * f.sZ;
+          poses[o + 1] += (poses[o + 6] * f.sX + poses[o + 7] * f.sZ) * ds;
+          if (vD >= 0.5 && n < -1 + 2 * DRY_WRACK_GAP_SHARE) poses[o + 1] -= 10;
+          if (it.kind === 'weed') {
+            for (let q = 0; q < WEED_NODES; q += 1) {
+              poses[o + 8 + q * 3] += ds * f.sX;
+              poses[o + 10 + q * 3] += ds * f.sZ;
+              if (vD >= 0.5 && n < -1 + 2 * DRY_WRACK_GAP_SHARE) poses[o + 9 + q * 3] -= 10;
+            }
+          }
+        });
+      }
       // A stick sits a fifth of its height in the sand.
       // ROUND 5: shells sit deeper, a third to a half of their height buried
       // (a judge read them as laid on top: "no shadow or burial").

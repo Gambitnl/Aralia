@@ -17,10 +17,20 @@
  * A pinned clock (`dtS` = 0) steps the foam as a pure function of (seed,
  * time, view): see `planFoamStep` in oceanFoamMath.ts.
  */
+import * as THREE from 'three/webgpu';
+import { Fn, bitAnd, float, instanceIndex, int, shiftRight, storage, uniform, vec2 } from 'three/tsl';
 import type { OceanSurface } from '@/systems/world3d/ocean/oceanSurface';
 import { createOceanFoam, type OceanFoamReader } from '@/systems/world3d/ocean/oceanFoam';
-import { foamCellOf, FOAM_LEVELS } from '@/systems/world3d/ocean/oceanFoamMath';
+import { createOceanSampler } from '@/systems/world3d/ocean/oceanSampler';
+import { foamCellOf, foamPropagationDir, FOAM_LEVELS } from '@/systems/world3d/ocean/oceanFoamMath';
 import type { OceanExtra, OceanExtraContext } from '../oceanExtras';
+
+/**
+ * THE TRAVEL PROBE's grid (round 10, GG-348): TRAVEL_N x TRAVEL_N height
+ * samples over one whole patch of a cascade, so a circular shift of the
+ * pattern is an exact comparison (the plane is periodic on its patch).
+ */
+const TRAVEL_N = 128;
 
 export const enabledByDefault = false;
 
@@ -286,6 +296,74 @@ export default async function mount(ctx: OceanExtraContext): Promise<OceanExtra>
       return { msPerStep, perSubmit, submits };
     },
     levels: FOAM_LEVELS,
+    /**
+     * THE TRAVEL PROBE (round 10, GG-348): which way do the sea's waves go
+     * in the WORLD? Step the sea at t0 and t0 + dt, read one cascade's
+     * height through the world sampler (`createOceanSampler`, the read every
+     * piece uses) on a TRAVEL_N^2 grid over its whole patch, and find the
+     * circular shift (dx, dz) that best maps the first field onto the second
+     * (the peak of their cross-correlation, sub-sample by a parabola on each
+     * axis). Returns the shift in meters and m/s, its heading, and the
+     * wind heading `windDirRad` and the foam's `foamPropagationDir` for
+     * comparison. Probe only: the next frame steps the sea to its own time.
+     */
+    travel: async (ci: number, t0 = 42, dt = 0.5) => {
+      const c = ctx.field.cascades[ci];
+      if (!c) throw new Error(`[ocean] No cascade ${ci}.`);
+      const cells = TRAVEL_N * TRAVEL_N;
+      const out = new THREE.StorageBufferAttribute(new Float32Array(cells), 1);
+      const outW = storage(out, 'float', cells);
+      const sampler = createOceanSampler(ctx.field.buffers, uniform(new THREE.Vector2(0, 0)));
+      const spacing = c.patchM / TRAVEL_N;
+      const kernel = Fn(() => {
+        const i = int(instanceIndex);
+        const x = bitAnd(i, int(TRAVEL_N - 1));
+        const z = shiftRight(i, int(Math.log2(TRAVEL_N)));
+        const world = vec2(float(x), float(z)).mul(float(spacing));
+        outW.element(i).assign(sampler.sampleCascade(sampler.disp, world, ci, c.patchM).y);
+      })().compute(cells);
+      const rd = ctx.renderer as unknown as { getArrayBufferAsync(a: unknown): Promise<ArrayBuffer> };
+      const grab = async (t: number) => {
+        ctx.field.step(ctx.renderer, t);
+        ctx.renderer.compute(kernel as never);
+        return new Float32Array(await rd.getArrayBufferAsync(out));
+      };
+      const a = await grab(t0);
+      const b = await grab(t0 + dt);
+      const N = TRAVEL_N;
+      const corr = (dx: number, dz: number) => {
+        let s = 0;
+        for (let z = 0; z < N; z += 1) {
+          const zb = (((z + dz) % N) + N) % N;
+          for (let x = 0; x < N; x += 1) s += a[z * N + x] * b[zb * N + ((((x + dx) % N) + N) % N)];
+        }
+        return s;
+      };
+      const R = 24;
+      let best = { dx: 0, dz: 0, v: -Infinity };
+      for (let dz = -R; dz <= R; dz += 1) {
+        for (let dx = -R; dx <= R; dx += 1) {
+          const v = corr(dx, dz);
+          if (v > best.v) best = { dx, dz, v };
+        }
+      }
+      const para = (m: number, z0: number, p: number) => (m - 2 * z0 + p === 0 ? 0 : (0.5 * (m - p)) / (m - 2 * z0 + p));
+      const fx = best.dx + para(corr(best.dx - 1, best.dz), best.v, corr(best.dx + 1, best.dz));
+      const fz = best.dz + para(corr(best.dx, best.dz - 1), best.v, corr(best.dx, best.dz + 1));
+      let e = 0;
+      for (let k = 0; k < cells; k += 1) e += a[k] * a[k];
+      const sx = fx * spacing;
+      const sz = fz * spacing;
+      const prop = foamPropagationDir(ctx.field.cascades);
+      return {
+        cascade: c.name, patchM: c.patchM, t0, dt,
+        shiftM: [sx, sz], speedMs: Math.hypot(sx, sz) / dt,
+        headingDeg: (Math.atan2(sz, sx) * 180) / Math.PI,
+        windDirDeg: (c.windDirRad * 180) / Math.PI,
+        foamPropagationDeg: (Math.atan2(prop[1], prop[0]) * 180) / Math.PI,
+        peakCorr: best.v / e,
+      };
+    },
   };
 
   return {

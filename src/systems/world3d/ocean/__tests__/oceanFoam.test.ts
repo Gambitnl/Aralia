@@ -117,6 +117,17 @@ import {
   pcgHash01,
   planFoamStep,
   type FoamLevel,
+  FOAM_CELLS_ALONG_M,
+  FOAM_CELLS_ACROSS_M,
+  FOAM_CELLS_S_COUNT,
+  FOAM_CELLS_L_COUNT,
+  FOAM_LACE_STREAK,
+  FOAM_LACE_YOUNG_CELLS,
+  FOAM_LACE_OLD_CELLS,
+  FOAM_LACE_FRINGE_CELLS,
+  foamTileCellS,
+  foamTileCellL,
+  foamTileStreak,
 } from '../oceanFoamMath';
 import { GRAVITY_MS2 } from '../oceanConfig';
 import { OCEAN_SEA_STATES } from '../oceanSeaStates';
@@ -1089,5 +1100,87 @@ describe('the age clock and the windrow tear (round 9)', () => {
     // across it is the next streak or the gap between.
     expect(corrAt(FOAM_TEAR_ALONG_M / 3, 0)).toBeGreaterThan(0.5);
     expect(corrAt(0, FOAM_TEAR_ACROSS_M)).toBeLessThan(0.3);
+  });
+});
+
+describe('the bubble cells and the streaks (round 10)', () => {
+  it('bakes two cell scales and the streaks in range, on the fourth tile\'s period', () => {
+    // The two cell lattices and the streak lattice divide the one period.
+    expect(FOAM_CELLS_S_COUNT % FOAM_CELLS_L_COUNT).toBe(0);
+    expect(FOAM_LACE_STREAK.fiberCellM).toBeCloseTo(FOAM_CELLS_ALONG_M / FOAM_LACE_STREAK.fiberCount, 9);
+    const side = 80;
+    let wallsS = 0; let wallsL = 0;
+    for (let j = 0; j < side; j += 1) {
+      for (let i = 0; i < side; i += 1) {
+        const s = (i + 0.5) / side / 8 + 0.3; const t = (j + 0.5) / side / 8 + 0.6;
+        for (const f of [foamTileCellS, foamTileCellL, foamTileStreak]) {
+          const v = f(s, t);
+          expect(v).toBeGreaterThanOrEqual(0);
+          expect(v).toBeLessThanOrEqual(1);
+        }
+        if (foamTileCellS(s, t) < 0.2) wallsS += 1;
+        if (foamTileCellL(s, t) < 0.2) wallsL += 1;
+      }
+    }
+    // Both nets have walls in this 11 m by 7 m corner, the small net many
+    // more of them than the large one (four times the cells a side).
+    expect(wallsL).toBeGreaterThan(0);
+    expect(wallsS).toBeGreaterThan(wallsL);
+  });
+
+  it('draws the streaks long along the wind, and their count follows the threshold', () => {
+    const shareUnder = (thr: number) => {
+      let n = 0; const side = 120;
+      for (let j = 0; j < side; j += 1) {
+        for (let i = 0; i < side; i += 1) if (foamTileStreak((i + 0.5) / side / 2, (j + 0.5) / side / 2) < thr) n += 1;
+      }
+      return n / (side * side);
+    };
+    const a = shareUnder(0.3); const b = shareUnder(0.6); const c = shareUnder(0.9);
+    expect(a).toBeGreaterThan(0);
+    expect(b).toBeGreaterThan(a * 1.5);
+    expect(c).toBeGreaterThan(b);
+    // Along the wind a streak holds: from a point on a streak, 2 m along the
+    // wind is more often on a streak than 0.5 m across it.
+    let along = 0; let across = 0; let on = 0;
+    for (let k = 0; k < 20000 && on < 400; k += 1) {
+      const aM = pcgHash01(3 * k + 1) * FOAM_CELLS_ALONG_M; const bM = pcgHash01(3 * k + 2) * FOAM_CELLS_ACROSS_M;
+      const at = (x: number, y: number) => foamTileStreak(x / FOAM_CELLS_ALONG_M, y / FOAM_CELLS_ACROSS_M);
+      if (at(aM, bM) > 0.3) continue;
+      on += 1;
+      if (at(aM + 2, bM) < 0.6) along += 1;
+      if (at(aM, bM + 0.5) < 0.6) across += 1;
+    }
+    expect(on).toBeGreaterThan(100);
+    expect(along).toBeGreaterThan(across);
+  });
+
+  it('carries the cell layers only when asked, and its tables are uniform through their CDF', () => {
+    const l = foamLaceLayers(12.3, 45.6, FOAM_LACE, false, false, false, false, true);
+    expect(l.cellS).toBeDefined();
+    expect(l.streak).toBeDefined();
+    expect(foamLaceLayers(12.3, 45.6, FOAM_LACE, true, true, true, true).cellS).toBeUndefined();
+    // A table without cell weights gives the same raw value with the cells on.
+    expect(foamLaceRaw(12.3, 45.6, FOAM_LACE_YOUNG_HAIR, FOAM_LACE, true, true, true, true, true))
+      .toBe(foamLaceRaw(12.3, 45.6, FOAM_LACE_YOUNG_HAIR, FOAM_LACE, true, true, true, true));
+    for (const w of [FOAM_LACE_YOUNG_CELLS, FOAM_LACE_OLD_CELLS, FOAM_LACE_FRINGE_CELLS]) {
+      expect(w.cell1 + w.fiber + w.clump + w.strand + (w.cellS ?? 0) + (w.cellL ?? 0) + (w.streak ?? 0)).toBeCloseTo(1, 12);
+      const table = foamLaceCdfTable(16384, w, FOAM_LACE, false, false, false, false, true);
+      expect(table[FOAM_LACE_CDF_KNOTS - 1]).toBeCloseTo(1, 6);
+      const hist = new Array(10).fill(0);
+      const s2 = 48;
+      for (let j = 0; j < s2; j += 1) {
+        for (let i = 0; i < s2; i += 1) {
+          const a = ((i + 0.5) / s2) * 400 + 1000;
+          const b = ((j + 0.5) / s2) * 400 + 1000;
+          const u = foamLaceUniform(foamLaceRaw(a, b, w, FOAM_LACE, false, false, false, false, true), table);
+          hist[Math.min(9, Math.floor(u * 10))] += 1;
+        }
+      }
+      for (const h of hist) expect(h / (s2 * s2)).toBeCloseTo(0.1, 1);
+    }
+    // Young foam leads with the small cells, old foam with the streaks and the large cells.
+    expect(FOAM_LACE_YOUNG_CELLS.cellS ?? 0).toBeGreaterThan(FOAM_LACE_OLD_CELLS.cellS ?? 0);
+    expect(FOAM_LACE_OLD_CELLS.streak ?? 0).toBeGreaterThan(FOAM_LACE_YOUNG_CELLS.streak ?? 0);
   });
 });
