@@ -59,6 +59,8 @@ const SHARED_EXCLUDE = [
     // and exercise subprocess/server behavior that jsdom cannot bundle. The
     // standalone `node --test "tools/agora/*.test.mjs"` suite covers them.
     '**/tools/agora/**/*.test.mjs',
+    // Recovery tests use node:test and disposable Git repositories, like Agora.
+    '**/scripts/git/**/*.test.mjs',
     '**/.claude/**',
     // Keep default app test runs focused on Aralia code.
     // Tooling workspaces under .agent_tools are validated separately.
@@ -174,3 +176,4 @@ export default defineConfig({
         },
     },
 });
+
