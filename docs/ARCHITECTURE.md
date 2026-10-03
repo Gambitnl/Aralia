@@ -27,7 +27,8 @@ This document provides a high-level map of the Aralia codebase, organized by pro
 | [Items / Trade / Inventory](./architecture/domains/items-trade-inventory.md) | Item management and economy | `InventoryList.tsx` |
 | [Planes / Travel](./architecture/domains/planes-travel.md) | Planar mechanics and travel systems | Planar systems |
 | [Data Pipelines](./architecture/domains/data-pipelines.md) | Scripts, generators, validators | `scripts/` |
-| [Nightly Git Save](./architecture/domains/nightly-git-save.md) | The 02:00 whole-tree commit and push to GitHub, and the Agora guard that holds back locked files | `scripts/git/commit-msg-agora-guard.cjs` |
+| [Nightly Git Save](./architecture/domains/nightly-git-save.md) | The 02:00 private recovery and public change review, with deliberate reviewed publication | `scripts/git/nightly-snapshot.mjs` |
+| [GitHub CI and Deployment](./architecture/domains/github-ci-cd.md) | Pull request checks, public Pages deployment, GitHub enforcement, and verified pipeline gaps | `.github/workflows/` |
 | [Monster Data Pipeline](./architecture/MONSTER_DATA_PIPELINE.md) | 5eTools ingestion and bestiary adapter | `5eToolsAdapter.ts` |
 
 ---
