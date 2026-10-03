@@ -4,10 +4,12 @@
 // or starting any real external model process.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { spawnSync } from 'node:child_process';
+import { spawnSync, execFile } from 'node:child_process';
+import { promisify } from 'node:util';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { createAgoraServer } from './server.mjs';
 import {
   validatePlan,
   buildPrompt,
@@ -59,28 +61,40 @@ test('WF-G281: an owned-file glob must match a real file before packet dispatch'
   assert.equal(validatePlan(packetPlan), true);
 });
 
-test('WF-G281: prompt CLI refuses an empty owned glob before handing out a packet', () => {
+test('WF-G281: prompt CLI refuses an empty owned glob before handing out a packet', async () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'agora-wfg281-'));
+  // A clean CI clone has no shared daemon. Keep the live-lock safety check
+  // intact and point both CLI cases at this test's private, empty lock store.
+  const app = createAgoraServer({ dir });
+  await new Promise(resolve => app.listen(0, resolve));
+  const baseUrl = `http://127.0.0.1:${app.server.address().port}`;
   const file = path.join(dir, 'plan.json');
-  const run = (packetPlan) => {
+  const run = async (packetPlan) => {
+    packetPlan.baseUrl = baseUrl;
     fs.writeFileSync(file, JSON.stringify(packetPlan));
-    return spawnSync(process.execPath, ['tools/agora/orchestrate.mjs', 'prompt', file, 'PK-a'], {
-      cwd: process.cwd(), encoding: 'utf8', timeout: 10_000,
-    });
+    try {
+      const result = await promisify(execFile)(process.execPath, ['tools/agora/orchestrate.mjs', 'prompt', file, 'PK-a'], {
+        cwd: process.cwd(), encoding: 'utf8', timeout: 10_000,
+      });
+      return { ...result, status: 0 };
+    } catch (error) {
+      return { stdout: error.stdout ?? '', stderr: error.stderr ?? '', status: error.code };
+    }
   };
   try {
     const packetPlan = validPlan();
     packetPlan.packets[0].files = ['src/systems/worldforge/town/props/**'];
-    const bad = run(packetPlan);
+    const bad = await run(packetPlan);
     assert.equal(bad.status, 1);
     assert.match(bad.stderr + bad.stdout, /PK-a.*town\/props\/\*\*.*matches no files/);
     assert.doesNotMatch(bad.stdout, /Owned files \(edit ONLY these\)/);
 
     packetPlan.packets[0].files = ['src/systems/worldforge/props/**'];
-    const good = run(packetPlan);
+    const good = await run(packetPlan);
     assert.equal(good.status, 0, good.stderr);
     assert.match(good.stdout, /Owned files \(edit ONLY these\): `src\/systems\/worldforge\/props\/\*\*`/);
   } finally {
+    await app.close();
     fs.rmSync(dir, { recursive: true, force: true });
   }
 });

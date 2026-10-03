@@ -170,7 +170,10 @@ function bearerToken(req) {
 // Factory: build the server + store WITHOUT starting the listener or hooking
 // signals (so tests can boot on an ephemeral port). Call returned .listen()/.close().
 // ---------------------------------------------------------------------------
-export function createAgoraServer({ dir = DEFAULT_DIR, storeFactory, activityFile, syncDelayMs, syncRunner, seatRosterPath, gapsRepoRoot = REPO_ROOT, campaignIntake = process.env.AGORA_CAMPAIGN_INTAKE } = {}) {
+export function createAgoraServer({ dir = DEFAULT_DIR, dashboardDir = DASHBOARD_DIR, storeFactory, activityFile, syncDelayMs, syncRunner, seatRosterPath, gapsRepoRoot = REPO_ROOT, campaignIntake = process.env.AGORA_CAMPAIGN_INTAKE } = {}) {
+  // Private browser fixtures can supply disposable artwork beside the real
+  // dashboard source. The running operator daemon keeps its existing asset root.
+  const staticRoot = path.resolve(dashboardDir);
   const campaignIntakeMode = resolveCampaignIntake(campaignIntake);
   // Lazy import keeps the factory synchronous for the common path while still
   // allowing tests to inject a store. Default uses the real store.mjs.
@@ -1742,7 +1745,7 @@ export function createAgoraServer({ dir = DEFAULT_DIR, storeFactory, activityFil
 
   // ============================== Static dashboard ==============================
   function serveStatic(res, relPath) {
-    // relPath is already resolved within DASHBOARD_DIR by the caller.
+    // relPath is already resolved within staticRoot by the caller.
     const ext = path.extname(relPath).toLowerCase();
     const type = CONTENT_TYPES[ext] || 'application/octet-stream';
     fs.readFile(relPath, (err, data) => {
@@ -1777,8 +1780,8 @@ export function createAgoraServer({ dir = DEFAULT_DIR, storeFactory, activityFil
       res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
       return res.end('not found');
     }
-    const target = path.normalize(path.join(DASHBOARD_DIR, rel));
-    if (!target.startsWith(DASHBOARD_DIR)) {
+    const target = path.resolve(staticRoot, rel);
+    if (target !== staticRoot && !target.startsWith(staticRoot + path.sep)) {
       res.writeHead(403, { 'Content-Type': 'text/plain; charset=utf-8' });
       return res.end('forbidden');
     }

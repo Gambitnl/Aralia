@@ -1,7 +1,8 @@
 /**
  * This browser test proves the agent inspector shows the pet itself, not only
- * its name or raw record. It uses a private Agora daemon and the real pet asset
- * route so a missing spritesheet or repeated atlas row fails visibly.
+ * its name or raw record. It uses a private Agora daemon, real asset route and
+ * generated atlas so clones need no operator-owned artwork. Missing asset routes
+ * or repeated atlas rows still fail visibly.
  *
  * Called by: Node's built-in test runner
  * Depends on: server.mjs and dashboard/index.html
@@ -12,6 +13,8 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import sharp from 'sharp';
 
 import { chromium } from 'playwright';
 import { createAgoraServer } from '../server.mjs';
@@ -45,7 +48,16 @@ test('agent inspector renders the assigned pet portrait and nine distinct still 
   timeout: 30000,
 }, async () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'agora-pet-inspector-'));
-  const app = createAgoraServer({ dir });
+  // Exercise the production HTML/CSS and HTTP route with disposable pixels.
+  // Each atlas cell has a distinct color; no downloaded pet art enters history.
+  const dashboardDir = path.join(dir, 'dashboard');
+  const sourceDir = fileURLToPath(new URL('.', import.meta.url));
+  fs.cpSync(sourceDir, dashboardDir, { recursive: true, filter: file => !path.relative(sourceDir, file).split(path.sep).includes('pets') });
+  const atlas = Buffer.from(Array.from({ length: 72 }, (_, i) => [i * 3, 255 - i * 3, (i * 29) % 256, 255]).flat());
+  const imagePath = path.join(dashboardDir, 'pets', 'gf-sd', 'spritesheet.png');
+  fs.mkdirSync(path.dirname(imagePath), { recursive: true });
+  await sharp(atlas, { raw: { width: 8, height: 9, channels: 4 } }).png().toFile(imagePath);
+  const app = createAgoraServer({ dir, dashboardDir });
   await within('private daemon listen', new Promise((resolve) => app.listen(0, resolve)));
   const baseUrl = `http://127.0.0.1:${app.server.address().port}`;
   let browser = null;
