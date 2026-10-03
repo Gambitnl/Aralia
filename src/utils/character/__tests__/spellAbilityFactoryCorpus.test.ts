@@ -35,7 +35,7 @@ const loadAllSpells = (): Spell[] => {
             return fs.readdirSync(dir)
                 .filter(file => file.endsWith('.json'))
                 .map(file => JSON.parse(
-                    fs.readFileSync(path.join(dir, file), 'utf-8').replace(/^﻿/, '')
+                    fs.readFileSync(path.join(dir, file), 'utf-8').replace(/^\uFEFF/, '')
                 ) as Spell);
         });
 };

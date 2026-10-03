@@ -174,6 +174,7 @@ describe('reactionScenarioControlModule', () => {
       ...createReactionSnapshot(),
       turnState: {
         currentTurn: 1,
+      phase: 'action', actionsThisTurn: [],
         turnOrder: ['player-fighter', 'orc-guard'],
         currentCharacterId: 'player-fighter',
       },

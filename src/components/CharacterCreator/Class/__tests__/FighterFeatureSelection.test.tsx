@@ -22,16 +22,19 @@ const mockFightingStyles: FightingStyle[] = [
   {
     id: 'archery',
     name: 'Archery',
+    levelAvailable: 1,
     description: 'You gain a +2 bonus to attack rolls you make with ranged weapons.',
   },
   {
     id: 'defense',
     name: 'Defense',
+    levelAvailable: 1,
     description: 'While you are wearing armor, you gain a +1 bonus to AC.',
   },
   {
     id: 'dueling',
     name: 'Dueling',
+    levelAvailable: 1,
     description: 'When you are wielding a melee weapon in one hand and no other weapons, you gain a +2 bonus to damage rolls.',
   },
 ];

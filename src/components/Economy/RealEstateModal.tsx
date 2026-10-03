@@ -13,6 +13,22 @@
  * Depends on: WindowFrame, BusinessManagement, BusinessAcquisition, GameContext
  */
 
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 04/10/2026, 00:42:29
+ * Dependents: components/Economy/index.ts, components/layout/GameModals.tsx
+ * Imports: 6 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 // ============================================================================
 // Imports
 // ============================================================================
@@ -40,6 +56,7 @@ import { useGameState } from '../../state/GameContext';
 import { WindowFrame } from '../ui/WindowFrame';
 import { WINDOW_KEYS } from '../../styles/uiIds';
 import { BusinessState, WorldBusiness } from '../../types/business';
+import { canPurchaseBusiness } from '../../systems/economy/BusinessAcquisition';
 import { formatGpAsCoins } from '../../utils/character';
 
 // ============================================================================
@@ -74,13 +91,14 @@ export const RealEstateModal: React.FC<RealEstateModalProps> = ({
         const busMap = state.businesses || {};
         const worldMap = state.worldBusinesses || {};
 
+        // Legacy stronghold businesses already belong to the player's holdings.
+        // Standalone deeds use the world-business ownership contract instead.
         for (const [id, bState] of Object.entries(busMap)) {
-            if (bState.ownerId === 'player' || bState.isPlayerOwned) {
-                list.push({
-                    id,
-                    state: bState,
-                    worldInfo: worldMap[id],
-                });
+            list.push({ id, state: bState, worldInfo: worldMap[id] });
+        }
+        for (const business of Object.values(worldMap)) {
+            if (business.ownerType === 'player' && !list.some(entry => entry.id === business.id)) {
+                list.push({ id: business.id, state: { ...business, strongholdId: business.strongholdId ?? '' }, worldInfo: business });
             }
         }
         return list;
@@ -92,30 +110,28 @@ export const RealEstateModal: React.FC<RealEstateModalProps> = ({
         const worldMap = state.worldBusinesses || {};
 
         for (const bus of Object.values(worldMap)) {
-            if (bus.isForSale && !bus.isPlayerOwned) {
+            if (bus.ownerType === 'npc' && canPurchaseBusiness(bus, state.gold, state.economy).npcWilling) {
                 list.push(bus);
             }
         }
         return list;
-    }, [state.worldBusinesses]);
+    }, [state.worldBusinesses, state.gold, state.economy]);
 
     if (!isOpen) return null;
 
     // Handle acquiring a commercial listing
     const handleBuyProperty = (property: WorldBusiness) => {
-        const cost = property.salePrice || property.valuation || 500;
-        if ((state.gold || 0) < cost) return;
+        const eligibility = canPurchaseBusiness(property, state.gold, state.economy);
+        const cost = eligibility.askingPrice;
+        if (property.ownerType !== 'npc' || !eligibility.npcWilling || !eligibility.canAfford) return;
 
         if (onPurchaseProperty) {
             onPurchaseProperty(property.id, cost);
         } else {
             dispatch({
-                type: 'ACQUIRE_BUSINESS',
-                payload: { businessId: property.id, purchasePrice: cost },
-            });
-            dispatch({
-                type: 'MODIFY_GOLD',
-                payload: { amount: -cost },
+                // The native transaction transfers the deed and deducts gold once.
+                type: 'PURCHASE_BUSINESS',
+                payload: { businessId: property.id, negotiatedPrice: cost },
             });
         }
     };
@@ -195,8 +211,8 @@ export const RealEstateModal: React.FC<RealEstateModalProps> = ({
                                         >
                                             <div className="flex items-start justify-between">
                                                 <div>
-                                                    <h4 className="text-sm font-bold text-amber-300">{bus.name || worldInfo?.name || id}</h4>
-                                                    <div className="text-xs text-slate-400 mt-0.5 capitalize">{bus.type || 'Commercial Property'}</div>
+                                                    <h4 className="text-sm font-bold text-amber-300">{worldInfo?.name || id}</h4>
+                                                    <div className="text-xs text-slate-400 mt-0.5 capitalize">{bus.businessType.replaceAll('_', ' ')}</div>
                                                 </div>
                                                 <span className="px-2 py-0.5 text-xs font-semibold bg-emerald-950/60 text-emerald-300 rounded border border-emerald-800/40">
                                                     Operating
@@ -206,15 +222,15 @@ export const RealEstateModal: React.FC<RealEstateModalProps> = ({
                                             <div className="grid grid-cols-3 gap-2 p-2 rounded bg-slate-950/60 text-xs text-center">
                                                 <div>
                                                     <div className="text-slate-400">Daily Net</div>
-                                                    <div className="font-bold text-emerald-400">+{bus.dailyRevenue || 12} GP</div>
+                                                    <div className="font-bold text-emerald-400">{bus.lastDailyReport.profit} GP</div>
                                                 </div>
                                                 <div>
-                                                    <div className="text-slate-400">Condition</div>
-                                                    <div className="font-bold text-slate-200">{bus.condition || 90}%</div>
+                                                    <div className="text-slate-400">Customer satisfaction</div>
+                                                    <div className="font-bold text-slate-200">{bus.metrics.customerSatisfaction}%</div>
                                                 </div>
                                                 <div>
                                                     <div className="text-slate-400">Manager</div>
-                                                    <div className="font-bold text-amber-300">{bus.managerId ? 'Assigned' : 'None'}</div>
+                                                    <div className="font-bold text-amber-300">{worldInfo?.managerId ? 'Assigned' : 'None'}</div>
                                                 </div>
                                             </div>
                                         </div>
@@ -236,7 +252,7 @@ export const RealEstateModal: React.FC<RealEstateModalProps> = ({
                             ) : (
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     {availableProperties.map(prop => {
-                                        const price = prop.salePrice || prop.valuation || 600;
+                                        const price = canPurchaseBusiness(prop, state.gold, state.economy).askingPrice;
                                         const canAfford = (state.gold || 0) >= price;
 
                                         return (
@@ -249,7 +265,7 @@ export const RealEstateModal: React.FC<RealEstateModalProps> = ({
                                                         <h4 className="text-sm font-bold text-slate-100">{prop.name}</h4>
                                                         <span className="font-bold text-amber-400 text-xs">{price} GP</span>
                                                     </div>
-                                                    <p className="text-xs text-slate-400 mt-1">{prop.description || 'Prime commercial real estate listing.'}</p>
+                                                    <p className="text-xs text-slate-400 mt-1 capitalize">{prop.businessType.replaceAll('_', ' ')} in {prop.locationId}</p>
                                                 </div>
 
                                                 <button

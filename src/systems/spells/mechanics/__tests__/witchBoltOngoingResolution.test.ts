@@ -1,3 +1,4 @@
+import { createMockSpellSlots } from '@/utils/core/factories';
 /**
  * This file proves Witch Bolt's ongoing resolver changes real combat state.
  *
@@ -71,7 +72,7 @@ function makeActors(): CombatCharacter[] {
     position: { x: 3, y: 5 },
     team: 'player',
     spellcastingAbility: 'intelligence',
-    spellSlots: { level_1: { current: 1, max: 1 } },
+    spellSlots: createMockSpellSlots({ level_1: { current: 1, max: 1 } }),
   });
   caster.stats.intelligence = 18;
 
@@ -114,7 +115,7 @@ function makeLinkedActors(): CombatCharacter[] {
   const target = findCharacter(actors, TARGET_ID);
   const laterTurnCaster = resetEconomy({
     ...caster,
-    spellSlots: { level_1: { current: 0, max: 1 } },
+    spellSlots: createMockSpellSlots({ level_1: { current: 0, max: 1 } }),
   });
   const previouslyDamagedTarget = { ...target, currentHP: 48 };
 

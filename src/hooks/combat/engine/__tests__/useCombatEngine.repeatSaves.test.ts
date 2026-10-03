@@ -12,6 +12,7 @@ import { useCombatEngine } from '../useCombatEngine';
 import type { BattleMapData, BattleMapTile, CombatCharacter, CombatLogEntry, Position } from '@/types/combat';
 import type { Class } from '@/types';
 import * as savingThrowUtils from '@/utils/character';
+import * as diceRollers from '@/systems/dice/rollers';
 
 vi.mock('@/utils/character/savingThrowUtils', async importOriginal => {
   const actual = await importOriginal<typeof import('@/utils/character')>();
@@ -269,7 +270,7 @@ describe('useCombatEngine repeat-save timings', () => {
   });
 
   it('resolves check-style repeat saves without routing them through saving throws', () => {
-    const randomSpy = vi.spyOn(Math, 'random').mockReturnValue(0.95);
+    const randomSpy = vi.spyOn(diceRollers, 'rollD20').mockReturnValue(19);
     const character = makeCharacter({
       stats: {
         strength: 18,

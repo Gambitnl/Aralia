@@ -54,7 +54,7 @@ export interface CharacterCreatorScreenProps {
   // Callback to return back to the main title screen
   onExitToMainMenu: () => void;
   // Global action dispatcher for state modifications during creation
-  dispatch: React.Dispatch<AppAction | Action>;
+  dispatch: React.Dispatch<AppAction>;
 }
 
 // ============================================================================

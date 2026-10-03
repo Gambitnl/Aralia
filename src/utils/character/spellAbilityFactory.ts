@@ -17,8 +17,8 @@
  * ARCHITECTURAL ADVISORY:
  * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 20/09/2026, 21:00:39
- * Dependents: components/DesignPreview/steps/scenarioControls/concentrationScenarioControls.ts, components/DesignPreview/steps/scenarioControls/counterspellNestedReactionsScenarioControls.ts, components/DesignPreview/steps/scenarioControls/reactiveDamageRetaliationScenarioControls.ts, components/DesignPreview/steps/scenarioControls/spellTargetRestrictionsScenarioControls.ts, components/DesignPreview/steps/scenarioControls/tauntForcedTargetingScenarioControls.ts, systems/puzzles/arcaneGlyphSystem.ts, systems/spells/mechanics/areaDamageSpellCastResolution.ts, systems/spells/mechanics/directDamageSpellCastResolution.ts, systems/spells/mechanics/dispelMagicResolution.ts, systems/spells/mechanics/healingTemporaryHitPointResolution.ts, systems/spells/mechanics/reactiveDamageRetaliationResolution.ts, systems/spells/mechanics/witchBoltOngoingResolution.ts, utils/character/index.ts, utils/combat/combatUtils.ts
+ * Last Sync: 04/10/2026, 00:42:29
+ * Dependents: components/DesignPreview/steps/scenarioControls/concentrationScenarioControls.ts, components/DesignPreview/steps/scenarioControls/counterspellNestedReactionsScenarioControls.ts, components/DesignPreview/steps/scenarioControls/reactiveDamageRetaliationScenarioControls.ts, components/DesignPreview/steps/scenarioControls/spellTargetRestrictionsScenarioControls.ts, components/DesignPreview/steps/scenarioControls/tauntForcedTargetingScenarioControls.ts, components/DesignPreview/steps/spells/shieldScenario.tsx, systems/puzzles/arcaneGlyphSystem.ts, systems/spells/mechanics/areaDamageSpellCastResolution.ts, systems/spells/mechanics/directDamageSpellCastResolution.ts, systems/spells/mechanics/dispelMagicResolution.ts, systems/spells/mechanics/healingTemporaryHitPointResolution.ts, systems/spells/mechanics/reactiveDamageRetaliationResolution.ts, systems/spells/mechanics/witchBoltOngoingResolution.ts, utils/character/index.ts, utils/combat/combatUtils.ts
  * Imports: 4 files
  *
  * MULTI-AGENT SAFETY:
@@ -183,6 +183,11 @@ const toCombatAreaOfEffect = (
  * @returns The shape and size in tiles, or undefined if no AoE detected.
  */
 const inferAoE = (spell: Spell): AreaOfEffect | undefined => {
+    // Canonical targeting owns cast geometry. Effect templates may include
+    // empty area scaffolds, which must not hide Fireball's authored radius.
+    if (spell.targeting?.type === 'area') {
+        return toCombatAreaOfEffect(spell.targeting.areaOfEffect);
+    }
     // Check JSON effects first if they exist
     if (Array.isArray(spell.effects)) {
         // Safe find with null check

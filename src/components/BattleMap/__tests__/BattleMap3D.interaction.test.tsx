@@ -32,7 +32,7 @@ const mockTerrainMesh = vi.fn((props: any) => (
 const mockVolumeArenaGround = vi.fn((_props: any) => (
   <div data-testid="mock-volume-arena-ground" />
 ));
-const mockGridOverlay = vi.fn(() => <div data-testid="mock-grid-overlay" />);
+const mockGridOverlay = vi.fn((_props: unknown) => <div data-testid="mock-grid-overlay" />);
 const mockCameraController = vi.fn((_props: any) => <div data-testid="mock-camera-controller" />);
 const mockTargetingDecals = vi.fn((_props: any) => <div data-testid="mock-targeting-decals" />);
 

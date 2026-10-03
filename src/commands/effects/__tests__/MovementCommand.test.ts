@@ -136,7 +136,7 @@ describe('MovementCommand - forced movement routing', () => {
 // remain untouched whether the command succeeds or rejects.
 // ----------------------------------------------------------------------------
 
-function createLinearMap(width: number) {
+function createLinearMap(width: number): import('@/types/combat').BattleMapData {
   const tiles = new Map();
 
   for (let x = 0; x < width; x += 1) {

@@ -188,7 +188,7 @@ describe('resolveItemVisual', () => {
     };
 
     const result = resolveItemVisual(item);
-    expect(result.src).toBeUndefined();
+    expect(result.src).toBe('assets/icons/tw-dnd/entity/weapon.svg');
     expect(result.fallbackContent).toBe('🪵');
     expect(result.primaryColor).toBe('#9ca3af');
   });
@@ -199,7 +199,7 @@ describe('resolveItemVisual', () => {
     };
 
     const result = resolveItemVisual(item);
-    expect(result.src).toBeUndefined();
+    expect(result.src).toBe('assets/icons/tw-dnd/entity/weapon.svg');
     expect(result.fallbackContent).toBe('📦');
   });
 });

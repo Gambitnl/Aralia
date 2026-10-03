@@ -1,3 +1,4 @@
+import { createMockSpellSlots } from '@/utils/core/factories';
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
@@ -124,7 +125,7 @@ function prepareUnlinkedActors(actors: SustainActionsActors): SustainActionsActo
     team: 'player',
     spellcastingAbility: 'intelligence',
     stats: { ...actors.caster.stats, intelligence: 18, baseInitiative: 20 },
-    spellSlots: { level_1: { current: 1, max: 1 } },
+    spellSlots: createMockSpellSlots({ level_1: { current: 1, max: 1 } }),
     abilities: [],
     statusEffects: [],
     conditions: [],
@@ -209,7 +210,7 @@ function prepareLinkedCharacters(characters: CombatCharacter[]): CombatCharacter
   const unlinked = prepareUnlinkedActors(found);
   const laterTurnCaster = resetEconomy({
     ...unlinked.caster,
-    spellSlots: { level_1: { current: 0, max: 1 } },
+    spellSlots: createMockSpellSlots({ level_1: { current: 0, max: 1 } }),
   });
   const damagedTarget = {
     ...unlinked.target,

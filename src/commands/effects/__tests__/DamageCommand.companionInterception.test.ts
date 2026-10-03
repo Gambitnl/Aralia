@@ -112,7 +112,7 @@ function character(characters: CombatCharacter[], id: string): CombatCharacter {
 describe('DamageCommand allied Interception window', () => {
   it('selects one ordered responder, applies reduced HP damage, and ignores duplicate delivery', async () => {
     const actors = fixture();
-    const requestReaction = vi.fn(async (_attackerId, _targetId, _trigger, options) => {
+    const requestReaction = vi.fn(async (_attackerId, _targetId, _trigger, options: Array<{ id: string }>) => {
       expect(options.map(option => option.id)).toEqual([
         'interception:protector-b',
         'interception:protector-a',

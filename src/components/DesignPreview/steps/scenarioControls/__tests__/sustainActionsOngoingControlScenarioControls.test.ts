@@ -1,3 +1,4 @@
+import { createMockSpellSlots } from '@/utils/core/factories';
 /**
  * This file proves the Sustain Actions & Ongoing Control adapter stays engine-backed.
  *
@@ -66,7 +67,7 @@ function createSnapshot(): PreviewCombatScenarioControlSnapshot {
       level: 5,
       position: { ...SUSTAIN_ACTIONS_CASTER_START },
       spellcastingAbility: 'intelligence',
-      spellSlots: { level_1: { current: 0, max: 1 } },
+      spellSlots: createMockSpellSlots({ level_1: { current: 0, max: 1 } }),
     }),
     createMockCombatCharacter({
       id: SUSTAIN_ACTIONS_TARGET_ID,

@@ -2,6 +2,23 @@
  * @file battleMapGenerator.ts
  * Service for procedurally generating battle maps.
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 04/10/2026, 00:42:29
+ * Dependents: hooks/useBattleMapGeneration.ts
+ * Imports: 2 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import { BattleMapData, BattleMapTile, BattleMapTerrain, BattleMapDecoration, BattleMapBiome, TargetableMapObject } from '../types/combat';
 import { PerlinNoise } from '../utils/random';
 import { SeededRandom } from '@/utils/random';
@@ -26,7 +43,9 @@ const GENERATED_OBSTACLE_SIZES: Record<GeneratedBattleMapDecoration, string> = {
   mangrove: 'Large',
   fallen_log: 'Medium',
   stump: 'Small',
-  bush: 'Small'
+  bush: 'Small',
+  low_barrier: 'Medium',
+  high_wall: 'Large'
 };
 
 const formatDecorationName = (decoration: GeneratedBattleMapDecoration): string =>

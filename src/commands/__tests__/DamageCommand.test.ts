@@ -47,9 +47,9 @@ describe('DamageCommand', () => {
       condition: { type: 'hit' }
     };
 
-    // Force the verb choice so the log assertion stays stable while the damage
-    // amount itself remains deterministic because `10d1` always rolls 10.
-    vi.spyOn(Math, 'random').mockReturnValue(0);
+    // Flavor verbs use the command's seeded RNG, rather than Math.random.
+    // Inject it here so this assertion checks the complete readable receipt.
+    context.damageRng = () => 0;
 
     const command = new DamageCommand(effect, context);
     const result = await command.execute(createMockCombatState({

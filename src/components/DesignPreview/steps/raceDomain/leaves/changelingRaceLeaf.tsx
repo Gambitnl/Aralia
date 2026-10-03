@@ -1,11 +1,16 @@
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file is an isolated Race-domain leaf.
+ * This file appears to be an ISOLATED UTILITY or ORPHAN.
+ *
+ * Last Sync: 04/10/2026, 00:42:28
+ * Dependents: None (Orphan)
+ * Imports: 6 files
  *
  * MULTI-AGENT SAFETY:
- * This leaf is intentionally self-contained so a Changeling implementation
- * does not require edits to a shared registry or to another Race leaf.
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
  */
 // @dependencies-end
 
@@ -275,7 +280,7 @@ const ChangelingRaceLeafContent: React.FC<RaceDomainLeafProps> = ({
 
       {/* These facts expose the real actor and its paid Action, not a fake transformed stat block. */}
       <p data-testid="changeling-actor">
-        Actor: {actor?.name ?? 'missing'}; HP {actor?.currentHP ?? 'unknown'}/{actor?.maxHP ?? 'unknown'}; Speed {actor?.stats.speed ?? 'unknown'} ft; Action {actor?.actionEconomy.action.used ? 'used' : 'ready'}; Equipment {actor?.equippedItems?.length ?? 0} item(s).
+        Actor: {actor?.name ?? 'missing'}; HP {actor?.currentHP ?? 'unknown'}/{actor?.maxHP ?? 'unknown'}; Speed {actor?.stats.speed ?? 'unknown'} ft; Action {actor?.actionEconomy.action.used ? 'used' : 'ready'}; Equipment {Object.values(actor?.equippedItems ?? {}).filter(Boolean).length} item(s).
       </p>
       <p data-testid="changeling-appearance">
         Appearance: {scenario.appearance.label}; Voice: {scenario.appearance.voice}; Size: {scenario.appearance.size}; Target: {targetAppearance?.label ?? 'missing'}.

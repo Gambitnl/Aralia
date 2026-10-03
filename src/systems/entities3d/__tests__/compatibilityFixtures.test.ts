@@ -77,6 +77,8 @@ describe('Entity Studio gameplay integration & compatibility fixtures', () => {
     
     // Ensure the output recipe has the correct kind and seed.
     expect(recipe.kind).toBe('humanoid');
+    if (recipe.kind !== 'humanoid') throw new Error('Expected a humanoid recipe');
+    if (recipe.kind !== 'humanoid') throw new Error('Expected a humanoid recipe');
     expect(recipe.raceId).toBe('human');
     expect(recipe.seed).toBe('combat:combatant-human-101');
 
@@ -90,6 +92,8 @@ describe('Entity Studio gameplay integration & compatibility fixtures', () => {
     const recipe = recipeFromCombatant(MOCK_COMBATANT_ORC_MONSTER as unknown as CombatCharacter);
     
     expect(recipe.kind).toBe('humanoid');
+    if (recipe.kind !== 'humanoid') throw new Error('Expected a humanoid recipe');
+    if (recipe.kind !== 'humanoid') throw new Error('Expected a humanoid recipe');
     expect(recipe.raceId).toBe('orc');
 
     const blueprint = generateEntityBlueprint(recipe);
@@ -111,6 +115,8 @@ describe('Entity Studio gameplay integration & compatibility fixtures', () => {
     const recipe = recipeFromCombatant(MOCK_COMBATANT_UNKNOWN_MONSTER as unknown as CombatCharacter);
     
     expect(recipe.kind).toBe('creature');
+    if (recipe.kind !== 'creature') throw new Error('Expected a creature recipe');
+    if (recipe.kind !== 'creature') throw new Error('Expected a creature recipe');
     expect(recipe.creatureType).toBe('Beast');
 
     const blueprint = generateEntityBlueprint(recipe);
@@ -128,6 +134,8 @@ describe('Entity Studio gameplay integration & compatibility fixtures', () => {
     const recipe = recipeFromCharacter(MOCK_CHARACTER_ELF_FIGHTER as unknown as PlayerCharacter);
     
     expect(recipe.kind).toBe('humanoid');
+    if (recipe.kind !== 'humanoid') throw new Error('Expected a humanoid recipe');
+    if (recipe.kind !== 'humanoid') throw new Error('Expected a humanoid recipe');
     expect(recipe.raceId).toBe('wood_elf');
     expect(recipe.gearOverride).toBeDefined();
 
@@ -151,6 +159,8 @@ describe('Entity Studio gameplay integration & compatibility fixtures', () => {
     const recipe = recipeFromCharacter(MOCK_CHARACTER_WIZARD as unknown as PlayerCharacter);
     
     expect(recipe.kind).toBe('humanoid');
+    if (recipe.kind !== 'humanoid') throw new Error('Expected a humanoid recipe');
+    if (recipe.kind !== 'humanoid') throw new Error('Expected a humanoid recipe');
     const gear = recipe.gearOverride || [];
     expect(gear).toContainEqual({ partId: 'staffMain', anchor: 'handR' });
     expect(gear).toContainEqual({ partId: 'capeCloak', anchor: 'back' });
@@ -172,6 +182,8 @@ describe('Entity Studio gameplay integration & compatibility fixtures', () => {
     const recipe = recipeFromOccupant(MOCK_OCCUPANT_HUMAN_ADULT as unknown as OccupantIdentity);
     
     expect(recipe.kind).toBe('humanoid');
+    if (recipe.kind !== 'humanoid') throw new Error('Expected a humanoid recipe');
+    if (recipe.kind !== 'humanoid') throw new Error('Expected a humanoid recipe');
     expect(recipe.raceId).toBe('human');
     expect(recipe.gearOverride).toEqual([]);
     expect(recipe.seed).toBe('occupant:301');
@@ -184,6 +196,8 @@ describe('Entity Studio gameplay integration & compatibility fixtures', () => {
     const recipe = recipeFromOccupant(MOCK_OCCUPANT_DWARF_CHILD as unknown as OccupantIdentity);
     
     expect(recipe.kind).toBe('humanoid');
+    if (recipe.kind !== 'humanoid') throw new Error('Expected a humanoid recipe');
+    if (recipe.kind !== 'humanoid') throw new Error('Expected a humanoid recipe');
     expect(recipe.ageBand).toBe('child');
     // Dwarf ancestry groups map to hill_dwarf or mountain_dwarf deterministically.
     expect(recipe.raceId).toMatch(/_dwarf$/);
@@ -196,6 +210,8 @@ describe('Entity Studio gameplay integration & compatibility fixtures', () => {
     const recipe = recipeFromOccupant(MOCK_OCCUPANT_LEGACY as unknown as OccupantIdentity);
     
     expect(recipe.kind).toBe('humanoid');
+    if (recipe.kind !== 'humanoid') throw new Error('Expected a humanoid recipe');
+    if (recipe.kind !== 'humanoid') throw new Error('Expected a humanoid recipe');
     expect(recipe.raceId).toBe('human');
   });
 });

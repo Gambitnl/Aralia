@@ -1,13 +1,16 @@
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
- * This leaf is a disjoint Race-domain integration point. It deliberately keeps
- * the Fairy-specific adapter here so this task does not change shared combat
- * utilities or create a registry merge point for another agent to resolve.
+ * This file appears to be an ISOLATED UTILITY or ORPHAN.
+ *
+ * Last Sync: 04/10/2026, 00:42:28
+ * Dependents: None (Orphan)
+ * Imports: 9 files
  *
  * MULTI-AGENT SAFETY:
- * If imports or exports change, refresh the dependency header with:
+ * If you modify exports/imports, re-run the sync tool to update this header:
  * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
  */
 // @dependencies-end
 
@@ -209,7 +212,7 @@ function createFairyFlightMap(): BattleMapData {
   return {
     dimensions,
     tiles,
-    theme: 'grass',
+    theme: 'forest',
     seed: 25025,
   };
 }

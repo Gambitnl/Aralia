@@ -107,7 +107,7 @@ function input(overrides: Partial<Parameters<typeof resolveAlliedProtectionReact
 
 describe('allied protection responder choice and ownership', () => {
   it('orders every eligible responder and spends only the explicitly selected one', async () => {
-    const requestReaction = vi.fn(async (_attackerId, _targetId, _trigger, options) => {
+    const requestReaction = vi.fn(async (_attackerId, _targetId, _trigger, options: Array<{ id: string }>) => {
       expect(options.map(option => option.id)).toEqual([
         'interception:protector-b',
         'interception:protector-a',

@@ -87,7 +87,7 @@ describe('WeaponAttackCommand Hide lifecycle', () => {
     const result = await command.execute(createMockCombatState({
       characters: [attacker, target],
       combatLog: [],
-      mapData: null,
+      mapData: undefined,
     }));
     const attackLog = result.combatLog.find(entry => entry.message.includes('attacks Observer Target'));
     const revealLog = result.combatLog.find(entry => entry.message.includes('reveals their position'));
@@ -129,7 +129,7 @@ describe('WeaponAttackCommand Hide lifecycle', () => {
     const result = await command.execute(createMockCombatState({
       characters: [detectedAttacker, target],
       combatLog: [],
-      mapData: null,
+      mapData: undefined,
     }));
     const attackLog = result.combatLog.find(entry => entry.message.includes('attacks Observer Target'));
 

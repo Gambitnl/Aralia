@@ -11,6 +11,7 @@ import * as combatUtils from '../../utils/combat';
 import shiningSmite from '@/data/spells/level-2/shining-smite.json';
 import blindingSmite from '@/data/spells/level-3/blinding-smite.json';
 import { shieldSpell, attacker, defender, swordItem, basicAttack } from './useAbilitySystem.fixtures';
+import { createMockCombatCharacter } from '../../utils/core/factories';
 
 /**
  * This file checks the combat ability hook from the player's point of view.
@@ -24,6 +25,15 @@ import { shieldSpell, attacker, defender, swordItem, basicAttack } from './useAb
  * Depends on: mocked command execution, combat distance helpers, and representative
  * spell/character fixtures in this file.
  */
+
+function choiceMap(): BattleMapData {
+  return { dimensions: { width: 10, height: 10 }, theme: 'dungeon', seed: 1,
+    tiles: new Map(Array.from({ length: 100 }, (_, i) => {
+      const x = i % 10, y = Math.floor(i / 10), id = `${x}-${y}`;
+      return [id, { id, coordinates: { x, y }, terrain: 'floor', elevation: 0,
+        movementCost: 5, blocksMovement: false, blocksLoS: false, decoration: null, effects: [] }];
+    })) };
+}
 
 // Mock dependencies
 vi.mock('../combat/useTargeting', async () => {
@@ -133,14 +143,13 @@ beforeEach(() => {
 });
 
 describe('useAbilitySystem - per-target choice input', () => {
-    const createChoiceCaster = (id: string, x: number): CombatCharacter => ({
+    const createChoiceCaster = (id: string, x: number): CombatCharacter => createMockCombatCharacter({
         id,
         name: id,
         team: 'player',
         position: { x, y: 0 },
-        actionEconomy: { action: { used: false }, bonusAction: { used: false }, reaction: { used: false }, movement: { used: 0, total: 30 } },
-        spellSlots: { 2: { used: 0, total: 2 } }
-    } as unknown as CombatCharacter);
+        spellSlots: { level_2: { current: 2, max: 2 }, level_3: { current: 2, max: 2 } }
+    });
 
     const createChoiceTarget = (id: string, x: number): CombatCharacter => ({
         id,
@@ -167,7 +176,7 @@ describe('useAbilitySystem - per-target choice input', () => {
             range: 5,
             validTargets: ['creatures'],
             lineOfSight: false,
-            maxTargets: 1,
+            maxTargets: { base: 1, scaling: { type: 'slot_level', thresholds: { '2': 1, '3': 2 } } },
             perTargetChoice: {
                 choiceType: 'ability',
                 scope: 'each_target',
@@ -189,7 +198,7 @@ describe('useAbilitySystem - per-target choice input', () => {
             description: enhanceAbilitySpell.description,
             type: 'spell',
             cost: { type: 'action', spellSlotLevel: 2 },
-            range: 1,
+            range: 2,
             targeting: 'single_ally',
             effects: [],
             spell: enhanceAbilitySpell
@@ -200,7 +209,7 @@ describe('useAbilitySystem - per-target choice input', () => {
 
         const { result } = renderHook(() => useAbilitySystem({
             characters: [caster, target],
-            mapData: null,
+            mapData: choiceMap(),
             onExecuteAction: vi.fn(() => true),
             onCharacterUpdate: vi.fn(),
             onLogEntry: vi.fn(),
@@ -227,8 +236,9 @@ describe('useAbilitySystem - per-target choice input', () => {
 
     it('collects target-indexed choices before multi-target per-target choice commands', async () => {
         const { SpellCommandFactory } = await import('../../commands');
-        const caster = createChoiceCaster('enhancer', 0);
-        const firstTarget = createChoiceTarget('ally-one', 1);
+        // Touch still applies to every upcast target: both allies are adjacent.
+        const caster = createChoiceCaster('enhancer', 1);
+        const firstTarget = createChoiceTarget('ally-one', 0);
         const secondTarget = createChoiceTarget('ally-two', 2);
         const onExecuteAction = vi.fn(() => true);
         const choices = ['Strength', 'Wisdom'];
@@ -241,7 +251,7 @@ describe('useAbilitySystem - per-target choice input', () => {
             description: enhanceAbilitySpell.description,
             type: 'spell',
             cost: { type: 'action', spellSlotLevel: 3 },
-            range: 1,
+            range: 2,
             targeting: 'single_ally',
             effects: [],
             spell: enhanceAbilitySpell
@@ -249,7 +259,7 @@ describe('useAbilitySystem - per-target choice input', () => {
 
         const { result } = renderHook(() => useAbilitySystem({
             characters: [caster, firstTarget, secondTarget],
-            mapData: null,
+            mapData: choiceMap(),
             onExecuteAction,
             onCharacterUpdate: vi.fn(),
             onLogEntry: vi.fn(),
@@ -281,6 +291,8 @@ describe('useAbilitySystem - per-target choice input', () => {
             [firstTarget.id]: 'Strength',
             [secondTarget.id]: 'Wisdom'
         });
+        expect(vi.mocked(SpellCommandFactory.createCommands).mock.calls.at(-1)?.[3]).toBe(3);
+        expect(enhanceAbilitySpell.level).toBe(2);
     });
 });
 

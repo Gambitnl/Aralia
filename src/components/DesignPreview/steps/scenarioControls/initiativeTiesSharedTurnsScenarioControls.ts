@@ -312,6 +312,7 @@ function applyControl(
               {
                 name: 'Incapacitated',
                 duration: { type: 'permanent' as const },
+                appliedTurn: application.snapshot.turnState?.currentTurn ?? 0,
                 source: 'Initiative Ties & Shared Turns member case',
               },
             ]

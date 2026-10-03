@@ -108,7 +108,7 @@ describe('groupTurnUtils', () => {
     const incapacitatedEcho = characters.map(character => character.id === 'echo'
       ? {
           ...character,
-          conditions: [{ name: 'Incapacitated', duration: { type: 'permanent' as const } }],
+          conditions: [{ name: 'Incapacitated', duration: { type: 'permanent' as const }, appliedTurn: 0 }],
         }
       : character);
     const echoTurn = advanceCombatGroupTurn(initializedState(incapacitatedEcho), incapacitatedEcho);

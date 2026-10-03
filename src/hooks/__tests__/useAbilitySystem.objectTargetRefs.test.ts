@@ -1,3 +1,4 @@
+import { createMockCombatCharacter } from '@/utils/core/factories';
 import { renderHook, act, waitFor as _waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { materializeAfterHitReactionSpell, useAbilitySystem } from '../useAbilitySystem';
@@ -243,6 +244,7 @@ describe('useAbilitySystem - selected object target refs', () => {
     it('surfaces registered map object positions as valid spell targets', () => {
         vi.clearAllMocks();
         const caster = {
+            ...createMockCombatCharacter(),
             id: 'object-highlight-caster',
             name: 'Object Highlight Caster',
             team: 'player',

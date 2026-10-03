@@ -78,6 +78,7 @@ async function executeControl(controlId: string): Promise<CombatState> {
     validTargets: [],
     validMoves: [],
     combatLog: [],
+    reactiveTriggers: [], activeLightSources: [],
   };
   const commands = AbilityCommandFactory.createCommands(
     execution.ability,
@@ -144,6 +145,7 @@ describe('criticalHitsScenarioControls', () => {
       validTargets: [],
       validMoves: [],
       combatLog: [],
+    reactiveTriggers: [], activeLightSources: [],
     };
     const commands = AbilityCommandFactory.createCommands(
       execution.ability,

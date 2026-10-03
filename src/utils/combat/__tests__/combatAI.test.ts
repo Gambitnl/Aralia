@@ -884,7 +884,8 @@ describe('combatAI', () => {
         name: 'Cleric Ally',
         team: 'player',
         position: { x: 0, y: 0 },
-        abilities: [cureWounds, fireBolt]
+        abilities: [cureWounds, fireBolt],
+        spellSlots: { level_1: { current: 2, max: 2 } },
       });
 
       // Critically wounded ally (4/20 HP = 20% HP)
@@ -947,7 +948,8 @@ describe('combatAI', () => {
         name: 'Cleric Ally',
         team: 'player',
         position: { x: 0, y: 0 },
-        abilities: [cureWounds, fireBolt]
+        abilities: [cureWounds, fireBolt],
+        spellSlots: { level_1: { current: 2, max: 2 } },
       });
 
       // Lightly bruised ally (18/20 HP = 90% HP)
@@ -1288,7 +1290,8 @@ describe('combatAI', () => {
         name: 'Cleric Ally',
         team: 'player',
         position: { x: 0, y: 0 },
-        abilities: [bless, fireBolt]
+        abilities: [bless, fireBolt],
+        spellSlots: { level_1: { current: 2, max: 2 } },
       });
 
       // Martial party carry (Barbarian)
@@ -1565,6 +1568,7 @@ describe('combatAI', () => {
         team: 'player',
         position: { x: 0, y: 0 },
         abilities: [noOpUtility, summonBeast],
+        spellSlots: { level_2: { current: 1, max: 1 } },
       });
       const goblin = createMockCombatCharacter({
         id: 'goblin',

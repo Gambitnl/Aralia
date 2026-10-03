@@ -25,6 +25,15 @@ import { shieldSpell, attacker, defender, swordItem, basicAttack } from './useAb
  * spell/character fixtures in this file.
  */
 
+function choiceMap(): BattleMapData {
+  return { dimensions: { width: 10, height: 10 }, theme: 'dungeon', seed: 1,
+    tiles: new Map(Array.from({ length: 100 }, (_, i) => {
+      const x = i % 10, y = Math.floor(i / 10), id = `${x}-${y}`;
+      return [id, { id, coordinates: { x, y }, terrain: 'floor', elevation: 0,
+        movementCost: 5, blocksMovement: false, blocksLoS: false, decoration: null, effects: [] }];
+    })) };
+}
+
 // Mock dependencies
 vi.mock('../combat/useTargeting', async () => {
     const React = await vi.importActual<typeof import('react')>('react');
@@ -283,7 +292,7 @@ describe('useAbilitySystem - multi-target teleport assignment guard', () => {
         const onNotification = vi.fn();
         const { result } = renderHook(() => useAbilitySystem({
             characters: [attacker, defender],
-            mapData: null,
+            mapData: choiceMap(),
             onExecuteAction,
             onCharacterUpdate: vi.fn(),
             onLogEntry,

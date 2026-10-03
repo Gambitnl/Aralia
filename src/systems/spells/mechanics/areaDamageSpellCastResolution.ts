@@ -1,19 +1,3 @@
-// @dependencies-start
-/**
- * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
- *
- * Last Sync: 13/08/2026, 15:35:55
- * Dependents: components/DesignPreview/steps/scenarioControls/areaEffectScenarioControls.ts
- * Imports: 14 files
- *
- * MULTI-AGENT SAFETY:
- * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
- * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
- */
-// @dependencies-end
-
 /**
  * Resolves one immediate save-based area damage spell as an atomic transaction.
  *
@@ -27,6 +11,22 @@
  * Depends on: spell data, AoE geometry, sight, saving throws, defenses, action
  * economy, temporary-hit-point/downing helpers, and occupied creature tiles.
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 04/10/2026, 00:42:29
+ * Dependents: components/DesignPreview/steps/scenarioControls/areaEffectScenarioControls.ts
+ * Imports: 15 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
 
 import type { PlayerCharacter } from '../../../types';
 import type {
@@ -119,9 +119,7 @@ export interface AreaDamageTargetResult {
   downed: boolean;
 }
 
-export interface AreaDamageSpellCastResolution {
-  status: 'resolved' | 'rejected';
-  reason: 'resolved' | AreaDamageSpellCastRejectionReason;
+export type AreaDamageSpellCastResolution = {
   characters: CombatCharacter[];
   casterBefore?: CombatCharacter;
   casterAfter?: CombatCharacter;
@@ -134,7 +132,7 @@ export interface AreaDamageSpellCastResolution {
   scaledFormula?: string;
   rolledDamage: number;
   processedEventIds: string[];
-}
+} & ({ status: 'resolved'; reason: 'resolved' } | { status: 'rejected'; reason: AreaDamageSpellCastRejectionReason });
 
 /**
  * Converts one canonical spell and slot choice into the paid cast action.
@@ -215,6 +213,7 @@ function placementRejection(
   }
   if (
     input.action.spell.targeting.lineOfSight === true
+    && input.mapData != null
     && !hasLineOfSight(casterTile, placementTile, input.mapData)
   ) return 'invalid_placement:line_of_sight_blocked';
   return null;

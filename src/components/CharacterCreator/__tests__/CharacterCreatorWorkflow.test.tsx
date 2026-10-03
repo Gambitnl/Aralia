@@ -56,7 +56,7 @@ const mockSpells = {
   getByLevel: vi.fn(() => []),
   getByIds: vi.fn(() => []),
   getBySchool: vi.fn(() => []),
-} as unknown as Record<string, unknown>;
+} as unknown as React.ContextType<typeof SpellContext>;
 
 const TestWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   <SpellContext.Provider value={mockSpells}>

@@ -1,201 +1,169 @@
-# Continuous Integration for Aralia
-# Runs on every PR to master - blocks merge if checks fail
-
+# Every required lane must pass before the same commit's Pages artifact is published.
 name: 🔒 CI
-
 on:
   pull_request:
     branches: [master]
-
-# Cancel previous runs when new commits are pushed
+  push:
+    branches: [master]
+  workflow_dispatch:
 concurrency:
-  group: ci-${{ github.head_ref }}
+  group: ci-${{ github.event_name }}-${{ github.ref }}
   cancel-in-progress: true
-
 permissions:
   contents: read
-
 jobs:
-  # Job 1: Check for forbidden files (fast, runs first)
-  poison-check:
-    name: 🚫 Poison File Check
+  policy:
+    name: Repository Policy
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@v6
         with:
-          fetch-depth: 0  # Need full history for diff
-
-      - name: Check for forbidden files
-        # Dependabot PRs intentionally update package-lock.json — that's the
-        # whole point of the bot. The poison gate exists to stop humans from
-        # sneaking lockfile changes into feature PRs, not to block automated
-        # dependency hygiene. Skip the check when the bot is the actor, or when
-        # a Codex branch is explicitly scoped to Dependabot alert remediation.
-        if: github.actor != 'dependabot[bot]' && !startsWith(github.head_ref, 'codex/dependabot-')
-        run: |
-          echo "🔍 Checking for forbidden files in PR..."
-          
-          # List of poison files that cause merge conflicts
-          POISON_FILES=(
-            "package-lock.json"
-            "pnpm-lock.yaml"
-            "tsconfig.tsbuildinfo"
-            "tsconfig.node.tsbuildinfo"
-          )
-          
-          FOUND=""
-          
-          for file in "${POISON_FILES[@]}"; do
-            if git diff --name-only origin/master...HEAD | grep -q "^$file$"; then
-              echo "❌ FOUND: $file"
-              FOUND="$FOUND $file"
-            fi
-          done
-          
-          if [ -n "$FOUND" ]; then
-            echo ""
-            echo "════════════════════════════════════════════════════════════"
-            echo "⛔ PR contains POISON FILES:$FOUND"
-            echo "════════════════════════════════════════════════════════════"
-            echo ""
-            echo "These files cause merge conflicts in batch runs."
-            echo ""
-            echo "To fix, run these commands:"
-            echo "  git checkout origin/master --$FOUND"
-            echo "  git add ."
-            echo "  git commit --amend --no-edit"
-            echo "  git push --force"
-            echo ""
-            echo "See .jules/_ROSTER.md for details."
-            exit 1
-          fi
-          
-          echo "✅ No poison files detected"
-
-  # Job 2: Build check (verifies TypeScript compiles)
+          fetch-depth: 0
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+      - run: node scripts/ci/repository-policy.mjs
+  typecheck:
+    name: Typecheck
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm install -g npm@11
+      - run: npm ci
+      - run: npm run typecheck
   build:
-    name: 🔨 Build
+    name: Build
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v6
-      
-      - name: Setup Node.js
-        uses: actions/setup-node@v6
+      - uses: actions/setup-node@v6
         with:
           node-version: '22'
-          cache: 'npm'
-      
-      # GitHub's node 22 image ships npm 10, but the lockfile is generated with
-      # npm 11; align to npm 11 so `npm ci` accepts the committed lockfile.
-      - name: Use npm 11 (align with lockfile generator)
-        run: npm install -g npm@11
-
-      - name: Install dependencies
-        run: npm ci
-      
-      - name: Type check
-        run: npx tsc --noEmit
-      
-      - name: Build
-        run: npm run build
-
-  # Job 3: Lint check (code style)
+          cache: npm
+      - run: npm install -g npm@11
+      - run: npm ci
+      # No API key enters this public build. spells:check precedes regeneration.
+      - run: npm run build
+      - uses: actions/upload-pages-artifact@v5
+        if: github.ref == 'refs/heads/master' && github.event_name != 'pull_request'
+        with:
+          path: ./dist
   lint:
-    name: 🎨 Lint
+    name: Lint
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v6
-      
-      - name: Setup Node.js
-        uses: actions/setup-node@v6
+      - uses: actions/setup-node@v6
         with:
           node-version: '22'
-          cache: 'npm'
-      
-      # GitHub's node 22 image ships npm 10, but the lockfile is generated with
-      # npm 11; align to npm 11 so `npm ci` accepts the committed lockfile.
-      - name: Use npm 11 (align with lockfile generator)
-        run: npm install -g npm@11
-
-      - name: Install dependencies
-        run: npm ci
-      
-      - name: Run ESLint
-        run: npm run lint
-
-      # Data validation: charset, class spell lists, spell/race/character
-      # schema. Ruled on the combat question sheet (q9, 2026-09-20).
-      - name: Validate data
-        run: npm run validate
-
-  # Job 4: Advisory quality scan. It surfaces grouped quality-debt counts for
-  # Symphony/Codex/Jules review and does not block merges on the existing
-  # backlog. The JSON artifact gives foreman tools a stable parse target.
+          cache: npm
+      - run: npm install -g npm@11
+      - run: npm ci
+      - run: npm run lint
+  validate:
+    name: Data Validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm install -g npm@11
+      - run: npm ci
+      - run: npm run spells:check
+      # Separate from lint so both failures remain visible in the same run.
+      - run: npm run validate
+  test:
+    name: Application Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm install -g npm@11
+      - run: npm ci
+      - run: npm run test:types
+      - run: npm run test:bounded
+        env:
+          VITEST_JSON_OUTPUT_FILE: ${{ runner.temp }}/vitest-results.json
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: application-test-results
+          path: ${{ runner.temp }}/vitest-results.json
+          if-no-files-found: warn
+  node-tests:
+    name: Tooling Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm install -g npm@11
+      - run: npm ci
+      - name: Install pinned scanner for recovery fixtures
+        shell: bash
+        run: |
+          cd "$RUNNER_TEMP"
+          curl --fail --silent --show-error --location https://github.com/gitleaks/gitleaks/releases/download/v8.30.1/gitleaks_8.30.1_linux_x64.tar.gz -o gitleaks.tar.gz
+          echo '551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb  gitleaks.tar.gz' | sha256sum --check
+          tar -xzf gitleaks.tar.gz gitleaks
+          printf '[extend]\nuseDefault = true\n' > gitleaks-default.toml
+          echo "TEST_GITLEAKS_PATH=$RUNNER_TEMP/gitleaks" >> "$GITHUB_ENV"
+          echo "TEST_GITLEAKS_CONFIG=$RUNNER_TEMP/gitleaks-default.toml" >> "$GITHUB_ENV"
+      - run: npm run test:node
   quality-scan:
     name: Quality Scan (advisory)
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+    continue-on-error: true
     steps:
       - uses: actions/checkout@v6
-      
-      - name: Setup Node.js
-        uses: actions/setup-node@v6
+      - uses: actions/setup-node@v6
         with:
           node-version: '22'
-          cache: 'npm'
-      
-      # GitHub's node 22 image ships npm 10, but the lockfile is generated with
-      # npm 11; align to npm 11 so `npm ci` accepts the committed lockfile.
-      - name: Use npm 11 (align with lockfile generator)
-        run: npm install -g npm@11
-
-      - name: Install dependencies
-        run: npm ci
-      
-      - name: Run advisory quality scan
-        run: npm run scan
-
-      - name: Write quality scan JSON artifact
-        run: npm --silent run scan -- --json > quality-scan.json
-
-      - name: Summarize advisory quality scan
-        run: |
-          node -e "const fs = require('fs'); const data = JSON.parse(fs.readFileSync('quality-scan.json', 'utf8')); console.log('### Quality scan advisory'); console.log(''); console.log('Total findings: ' + data.total); console.log(''); console.log('| Pattern | Count |'); console.log('|---|---:|'); for (const [pattern, group] of Object.entries(data.groups)) console.log('| ' + pattern + ' | ' + group.count + ' |'); console.log(''); console.log('Quality scan JSON artifact: quality-scan-json');" >> "$GITHUB_STEP_SUMMARY"
-
-      - name: Upload quality scan JSON
-        uses: actions/upload-artifact@v7
+          cache: npm
+      - run: npm install -g npm@11
+      - run: npm ci
+      - run: npm --silent run scan -- --json > quality-scan.json
+      - uses: actions/upload-artifact@v7
         with:
           name: quality-scan-json
           path: quality-scan.json
-
-  # Job 5: Tests (can be slow, runs in parallel)
-  test:
-    name: 🧪 Tests
+  required:
+    name: CI Required
+    if: always()
+    needs: [policy, typecheck, build, lint, validate, test, node-tests]
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@v6
-      
-      - name: Setup Node.js
-        uses: actions/setup-node@v6
-        with:
-          node-version: '22'
-          cache: 'npm'
-      
-      # GitHub's node 22 image ships npm 10, but the lockfile is generated with
-      # npm 11; align to npm 11 so `npm ci` accepts the committed lockfile.
-      - name: Use npm 11 (align with lockfile generator)
-        run: npm install -g npm@11
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Run type-level tests (tsd)
-        # Seconds-fast guard over the src/types public surface; catches
-        # declaration drift (e.g. ConditionName unions) before the slow lane.
-        run: npm run test:types
-
-      - name: Run complete bounded test lane
-        # Four workers preserve the full Vitest discovery surface without the
-        # rotating collection failures seen under automatic CPU concurrency.
-        # Optional test:shard:1..4 scripts provide the same non-overlapping
-        # inventory when CI later needs separate parallel jobs.
-        run: npm run test:bounded
+      - name: Require every mandatory lane to succeed
+        env:
+          RESULTS: ${{ toJSON(needs) }}
+        run: node scripts/ci/require-checks.mjs
+  deploy:
+    name: Publish Checked Build
+    needs: [required, build]
+    if: github.ref == 'refs/heads/master' && github.event_name != 'pull_request'
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    uses: ./.github/workflows/deploy.yml

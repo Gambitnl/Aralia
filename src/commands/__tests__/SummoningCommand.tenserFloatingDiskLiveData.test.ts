@@ -362,7 +362,7 @@ describe('Tenser Floating Disk runtime follow bridge', () => {
 
     const { result } = renderHook(() => useActionExecutor({
       characters: [caster, liveDisk],
-      turnState: mockTurnState,
+      turnState: { ...mockTurnState, currentCharacterId: caster.id, turnOrder: [caster.id] },
       mapData: makeLineMap(),
       onCharacterUpdate: mockOnCharacterUpdate,
       onCharacterRemove: mockOnCharacterRemove,
@@ -444,7 +444,7 @@ describe('Tenser Floating Disk runtime follow bridge', () => {
 
     const { result } = renderHook(() => useActionExecutor({
       characters: [caster, liveDisk],
-      turnState: mockTurnState,
+      turnState: { ...mockTurnState, currentCharacterId: caster.id, turnOrder: [caster.id] },
       mapData: makeLineMap(),
       onCharacterUpdate: mockOnCharacterUpdate,
       onCharacterRemove: mockOnCharacterRemove,
@@ -525,7 +525,7 @@ describe('Tenser Floating Disk runtime follow bridge', () => {
 
     const { result } = renderHook(() => useActionExecutor({
       characters: [caster, disk!],
-      turnState: mockTurnState,
+      turnState: { ...mockTurnState, currentCharacterId: caster.id, turnOrder: [caster.id] },
       mapData: elevatedMap,
       onCharacterUpdate: mockOnCharacterUpdate,
       onCharacterRemove: mockOnCharacterRemove,

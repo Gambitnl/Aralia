@@ -1,55 +1,45 @@
-# Auto-Fix CI Failures with Jules
-# 
-# When CI fails on a PR, this workflow automatically invokes Jules
-# to analyze the failure and push a fix to the same branch.
-
+# Preserve automatic repair intent through a checked API request and review PR.
 name: 🔧 Auto-Fix CI Failures
-
 on:
   workflow_run:
-    workflows: ["🔒 CI"]  # Triggers when CI workflow completes
+    workflows: ["🔒 CI"]
     types: [completed]
-
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: Failed application PR CI run ID
+        required: true
+        type: string
+      apply:
+        description: Create a Jules repair session (otherwise inspect only)
+        default: false
+        type: boolean
+concurrency:
+  group: ci-repair-${{ github.event.workflow_run.head_sha || inputs.run_id }}
+  cancel-in-progress: false
+permissions:
+  contents: read
+  actions: read
+  pull-requests: read
 jobs:
   fix-failure:
-    name: Invoke Jules to Fix
-    # Only run when CI fails (not on success)
-    if: ${{ github.event.workflow_run.conclusion == 'failure' }}
+    name: Request Reviewed Repair
+    if: github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'failure' && github.event.workflow_run.event == 'pull_request')
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      actions: read
-    
+    timeout-minutes: 15
     steps:
-      - name: Invoke Jules to fix failure
-        uses: google-labs-code/jules-invoke@v1
+      # workflow_run uses trusted master code; failed PR code never executes with
+      # the Jules credential. Forks, stale tips and repair loops are rejected.
+      - uses: actions/checkout@v6
         with:
-          prompt: |
-            The CI workflow "${{ github.event.workflow_run.name }}" has **failed**.
-
-            **Failed Run:** ${{ github.event.workflow_run.html_url }}
-            **Branch:** ${{ github.event.workflow_run.head_branch }}
-            **Commit:** ${{ github.event.workflow_run.head_sha }}
-
-            Please:
-            1. Analyze the failure from the workflow run logs
-            2. Identify the root cause (build error, lint error, test failure, or poison file)
-            3. Implement a fix
-            4. Ensure the fix passes CI
-
-            **CRITICAL RULES - DO NOT VIOLATE:**
-            - ❌ NEVER commit `package-lock.json`
-            - ❌ NEVER commit `pnpm-lock.yaml`
-            - ❌ NEVER commit `tsconfig.tsbuildinfo`
-            - ❌ NEVER commit `tsconfig.node.tsbuildinfo`
-            
-            If any of these files are in your changes, run:
-            ```bash
-            git checkout origin/master -- package-lock.json tsconfig.tsbuildinfo tsconfig.node.tsbuildinfo
-            ```
-
-            Sign your code changes with `// [FIXER]` comments.
-          
-          jules_api_key: ${{ secrets.JULES_API_KEY }}
-          starting_branch: ${{ github.event.workflow_run.head_branch }}
-          include_last_commit: true
+          ref: master
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+      - name: Prepare or submit attributable repair
+        run: node scripts/ci/request-repair.mjs
+        env:
+          GH_TOKEN: ${{ github.token }}
+          JULES_API_KEY: ${{ secrets.JULES_API_KEY }}
+          REPAIR_RUN_ID: ${{ github.event.workflow_run.id || inputs.run_id }}
+          APPLY_REPAIR: ${{ github.event_name == 'workflow_run' || inputs.apply }}

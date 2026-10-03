@@ -18,11 +18,11 @@
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 20/09/2026, 21:00:39
- * Dependents: hooks/combat/useActionExecutor.ts, utils/combat/combatUtils.ts, utils/combat/index.ts
- * Imports: 3 files
+ * Last Sync: 04/10/2026, 00:42:29
+ * Dependents: hooks/combat/useActionExecutor.ts, systems/combat/riderExtraStrikes.ts, utils/combat/combatUtils.ts, utils/combat/index.ts
+ * Imports: 2 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -36,7 +36,7 @@ import { calculateProficiencyBonus } from '../character/savingThrowUtils';
 
 export const PRIMAL_COMPANION_FEATURE_ID = 'primal_companion';
 export const PRIMAL_BEAST_STRIKE_ABILITY_ID = 'primal_beast_strike';
-export const BEAST_COMMAND_COST: 'bonus_action' = 'bonus_action';
+export const BEAST_COMMAND_COST = 'bonus_action' as const;
 
 export type PrimalBeastForm = NonNullable<CombatCharacter['primalBeastForm']>;
 

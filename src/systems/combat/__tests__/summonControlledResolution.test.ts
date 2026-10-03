@@ -40,7 +40,7 @@ function createMap(): BattleMapData {
       });
     }
   }
-  return { dimensions: { width: 24, height: 12 }, tiles, theme: 'dungeon' };
+  return { dimensions: { width: 24, height: 12 }, tiles, theme: 'dungeon', seed: 0 };
 }
 
 describe('summonControlledResolution', () => {
@@ -77,7 +77,7 @@ describe('summonControlledResolution', () => {
       id: 'blocker',
       name: 'Blocking Guard',
       position: { x: 6, y: 6 },
-      size: 'Large',
+      stats: { size: 'Large' },
     });
     const mapData = createMap();
 

@@ -33,6 +33,9 @@ import { setGroqKeyStorage, setGroqProxyUrl } from '../../services/ai/aiProvider
 // pane's visible frame instead of being pushed below the viewport.
 // ============================================================================
 
+// Model discovery has its own suite; it must not consume the proxy fetch queue.
+vi.mock('./OllamaModelPicker', () => ({ OllamaModelPicker: () => <div /> }));
+
 describe('OllamaDependencyModal', () => {
   afterEach(() => {
     vi.restoreAllMocks();

@@ -1,11 +1,11 @@
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 26/08/2026, 10:38:35
- * Dependents: components/DesignPreview/steps/PreviewEconCraft.tsx, utils/core/index.ts
- * Imports: 11 files
+ * Last Sync: 04/10/2026, 00:42:29
+ * Dependents: components/DesignPreview/steps/PreviewCombatScenarios.tsx, components/DesignPreview/steps/PreviewEconCraft.tsx, components/DesignPreview/steps/scenarioControls/areaEffectScenarioControls.ts, components/DesignPreview/steps/scenarioControls/counterspellNestedReactionsScenarioControls.ts, components/DesignPreview/steps/scenarioControls/dispelMagicCleanupScenarioControls.ts, components/DesignPreview/steps/scenarioControls/forcedMovementScenarioControls.ts, components/DesignPreview/steps/scenarioControls/spellSlotsUpcastingScenarioControls.ts, components/DesignPreview/steps/scenarioControls/sustainActionsOngoingControlScenarioControls.ts, components/DesignPreview/steps/scenarioControls/teleportationOccupiedSpacesScenarioControls.ts, utils/core/index.ts
+ * Imports: 13 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -25,6 +25,8 @@ import {
 
 import { getGameEpoch, getGameDay } from '@/utils/core/timeUtils';
 import { createEmptyWorldFactStore } from '../../systems/facts/worldFactStore';
+import { DEFAULT_RULES_EDITION } from '../../config/rulesEdition';
+import { DEFAULT_ALLOW_SAVE_SCUM, INITIAL_DICE_SAVE_COUNTER } from '../../config/saveScum';
 import {
   GameState,
   GamePhase,
@@ -443,6 +445,9 @@ export function createMockGameState(overrides: Partial<GameState> = {}): GameSta
     const resolvedGameTime = overrides.gameTime ?? getGameEpoch();
     const base = {
       phase: GamePhase.PLAYING,
+      rulesEdition: DEFAULT_RULES_EDITION,
+      allowSaveScum: DEFAULT_ALLOW_SAVE_SCUM,
+      diceSaveCounter: INITIAL_DICE_SAVE_COUNTER,
       party: [],
       tempParty: null,
       inventory: [],
@@ -864,7 +869,27 @@ export function createMockGameState(overrides: Partial<GameState> = {}): GameSta
  * Sets safe default collections (statusEffects: [], conditions: [], creatureTypes: ['Humanoid'],
  * team: 'player', level: 1, spellSlots: {}) and preserves nested defaults when partial overrides are provided.
  */
-export function createMockCombatCharacter(overrides: Partial<CombatCharacter> = {}): CombatCharacter {
+/** Fixtures may override selected nested fields; the returned actor remains complete. */
+export type MockCombatCharacterOverrides = Omit<Partial<CombatCharacter>, 'stats' | 'spellSlots' | 'modifiers'> & {
+  stats?: Partial<CombatCharacter['stats']>;
+  spellSlots?: Partial<SpellSlots>;
+  modifiers?: Partial<NonNullable<CombatCharacter['modifiers']>>;
+  /** Legacy save-override fixtures carry per-cast consent outside the sheet. */
+  voluntaryFailure?: boolean;
+};
+
+/** Unavailable levels have zero slots, matching the runtime nine-level contract. */
+export function createMockSpellSlots(overrides: Partial<SpellSlots> = {}): SpellSlots {
+  return {
+    level_1: { current: 0, max: 0 }, level_2: { current: 0, max: 0 },
+    level_3: { current: 0, max: 0 }, level_4: { current: 0, max: 0 },
+    level_5: { current: 0, max: 0 }, level_6: { current: 0, max: 0 },
+    level_7: { current: 0, max: 0 }, level_8: { current: 0, max: 0 },
+    level_9: { current: 0, max: 0 }, ...overrides,
+  };
+}
+
+export function createMockCombatCharacter(overrides: MockCombatCharacterOverrides = {}): CombatCharacter {
   try {
     // Default class definition for the mock combatant (Wizard archetype)
     const mockClass: Class = {
@@ -911,7 +936,7 @@ export function createMockCombatCharacter(overrides: Partial<CombatCharacter> = 
       },
       abilities: [],
       statusEffects: [],
-      spellSlots: {} as unknown as SpellSlots,
+      spellSlots: createMockSpellSlots(),
       actionEconomy: {
         action: { used: false, remaining: 1 },
         bonusAction: { used: false, remaining: 1 },
@@ -948,7 +973,7 @@ export function createMockCombatCharacter(overrides: Partial<CombatCharacter> = 
           ...(overrides.actionEconomy.movement ? { movement: { ...defaults.actionEconomy.movement, ...overrides.actionEconomy.movement } } : {}),
         }
       : defaults.actionEconomy;
-    const spellSlots = overrides.spellSlots ? { ...defaults.spellSlots, ...overrides.spellSlots } : defaults.spellSlots;
+    const spellSlots = createMockSpellSlots(overrides.spellSlots);
     const classObj = overrides.class
       ? {
           ...defaults.class,
@@ -964,6 +989,7 @@ export function createMockCombatCharacter(overrides: Partial<CombatCharacter> = 
       stats,
       actionEconomy,
       spellSlots,
+      modifiers: overrides.modifiers ? { advantage: [], disadvantage: [], bonuses: [], ...overrides.modifiers } : defaults.modifiers,
       class: classObj,
       statusEffects: overrides.statusEffects ?? defaults.statusEffects,
       conditions: overrides.conditions ?? defaults.conditions,
@@ -986,7 +1012,7 @@ export function createMockCombatCharacter(overrides: Partial<CombatCharacter> = 
       stats: { strength: 10, dexterity: 10, constitution: 10, intelligence: 10, wisdom: 10, charisma: 10, baseInitiative: 0, speed: 0, cr: "0" },
       abilities: [],
       statusEffects: [],
-      spellSlots: {} as unknown as SpellSlots,
+      spellSlots: createMockSpellSlots(),
       actionEconomy: {
         action: { used: true, remaining: 0 },
         bonusAction: { used: true, remaining: 0 },

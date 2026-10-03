@@ -1,19 +1,3 @@
-// @dependencies-start
-/**
- * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
- *
- * Last Sync: 08/09/2026, 10:55:14
- * Dependents: components/DesignPreview/steps/PreviewBlueprint.tsx, devtools/buildingIdentityLab/BuildingIdentityLab.tsx
- * Imports: 8 files
- *
- * MULTI-AGENT SAFETY:
- * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
- * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
- */
-// @dependencies-end
-
 /**
  * @file PreviewBuilding3D.tsx
  * @description Orbitable 3D realization of the EXACT BlueprintPlan the 2D
@@ -34,6 +18,22 @@
  * These are render-only choices: they do not alter the blueprint, generated
  * geometry, named random draws, or any other deterministic building data.
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 04/10/2026, 00:42:29
+ * Dependents: components/DesignPreview/steps/PreviewBlueprint.tsx, devtools/buildingIdentityLab/BuildingIdentityLab.tsx
+ * Imports: 10 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
 
 /**
  * ARCHITECTURAL COMMENTARY:
@@ -835,10 +835,10 @@ const PreviewBuilding3D: React.FC<PreviewBuilding3DProps> = ({
           {model.roof && roofSections.map((geometry, i) => (
             <mesh key={i} {...partEvents(`roof:${i}`)} geometry={geometry} castShadow receiveShadow>
               <meshStandardMaterial
-                color={houseSurfaceColor('roof', roofTextureKey ?? '', model.roof.color)}
+                color={houseSurfaceColor('roof', roofTextureKey ?? '', model.roof!.color)}
                 roughness={0.94}
                 map={roofTexture ?? null}
-                emissive={houseSurfaceColor('roof', roofTextureKey ?? '', model.roof.color)}
+                emissive={houseSurfaceColor('roof', roofTextureKey ?? '', model.roof!.color)}
                 emissiveMap={roofTexture ?? null}
                 emissiveIntensity={selectedPart === `roof:${i}` ? 0.8 : atmosphere.roofEmissiveIntensity}
                 side={THREE.DoubleSide}

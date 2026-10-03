@@ -146,7 +146,7 @@ test('STEP 3 quotes the Guidance commands instead of forbidding them (WF-G175)',
     id: 'PK-IB-GAPS',
     guidance: 'Run node --test scripts/idea-board/validate.test.mjs and report the real result.',
   });
-  assert.match(step, /Run ONLY the commands the Guidance names/);
+  assert.match(step, /Run ONLY the test\/build\/typecheck\/dev-server commands the Guidance names/);
   assert.match(step, /node --test scripts\/idea-board\/validate\.test\.mjs/);
   assert.doesNotMatch(step, /Do NOT run/);
 });

@@ -1,10 +1,11 @@
 import logMessage from '../simple_log';
+import { describe, beforeEach, afterEach, test, expect, vi } from 'vitest';
 
 describe('logMessage', () => {
   let consoleSpy;
 
   beforeEach(() => {
-    consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
+    consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
   });
 
   afterEach(() => {

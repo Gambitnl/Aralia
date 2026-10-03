@@ -12,6 +12,22 @@
  * Depends on: WindowFrame, LoanSystem, GameContext, formatGpAsCoins
  */
 
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 04/10/2026, 00:42:28
+ * Dependents: components/Economy/index.ts, components/layout/GameModals.tsx
+ * Imports: 6 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 // ============================================================================
 // Imports
 // ============================================================================
@@ -88,7 +104,7 @@ export const BankModal: React.FC<BankModalProps> = ({
 
     // Existing outstanding loans owed by the player
     const existingLoans = useMemo(
-        () => (state.playerInvestments || []).filter(inv => inv.type === 'loan'),
+        () => (state.playerInvestments || []).filter(inv => inv.type === 'loan_taken' && inv.status === 'active'),
         [state.playerInvestments],
     );
 
@@ -123,9 +139,9 @@ export const BankModal: React.FC<BankModalProps> = ({
 
     // Handle paying off an existing debt
     const handleRepayDebt = (investment: PlayerInvestment) => {
-        const principal = investment.amount;
-        const interest = Math.round(principal * (investment.interestRate || 0.1));
-        const totalDue = principal + interest;
+        // The simulation accrues interest and partial payments in currentValue.
+        // Rebuilding debt from the original principal would charge it again.
+        const totalDue = investment.currentValue;
 
         if (state.gold < totalDue) return;
 
@@ -233,7 +249,7 @@ export const BankModal: React.FC<BankModalProps> = ({
                                                 <div className="flex items-start justify-between">
                                                     <div>
                                                         <h4 className="text-sm font-bold text-slate-100">{offer.lenderName}</h4>
-                                                        <div className="text-xs text-slate-400 mt-0.5">{offer.factionName}</div>
+                                                        <div className="text-xs text-slate-400 mt-0.5">{(offer.factionId ? state.factions[offer.factionId]?.name : undefined)}</div>
                                                     </div>
                                                     <span className="px-2 py-0.5 text-xs font-semibold bg-amber-950/60 text-amber-300 rounded border border-amber-800/40">
                                                         {Math.round(offer.interestRate * 100)}% Interest
@@ -247,7 +263,7 @@ export const BankModal: React.FC<BankModalProps> = ({
                                                     </div>
                                                     <div>
                                                         <span className="text-slate-400">Terms:</span>
-                                                        <div className="font-bold text-slate-200">{offer.minDurationDays}–{offer.maxDurationDays} Days</div>
+                                                        <div className="font-bold text-slate-200">{offer.minDuration}–{offer.maxDuration} Days</div>
                                                     </div>
                                                 </div>
 
@@ -256,7 +272,7 @@ export const BankModal: React.FC<BankModalProps> = ({
                                                     onClick={() => {
                                                         setSelectedLoanOffer(offer);
                                                         setLoanAmount(Math.min(offer.maxAmount, 100));
-                                                        setLoanDuration(offer.minDurationDays || 30);
+                                                        setLoanDuration(offer.minDuration || 30);
                                                     }}
                                                     className="w-full py-2 px-3 rounded-lg text-xs font-semibold bg-amber-600 hover:bg-amber-500 text-slate-950 transition-colors cursor-pointer"
                                                 >
@@ -294,11 +310,11 @@ export const BankModal: React.FC<BankModalProps> = ({
                                             <label className="text-slate-300 font-medium">Repayment Duration (Days):</label>
                                             <input
                                                 type="number"
-                                                min={selectedLoanOffer.minDurationDays}
-                                                max={selectedLoanOffer.maxDurationDays}
+                                                min={selectedLoanOffer.minDuration}
+                                                max={selectedLoanOffer.maxDuration}
                                                 step={5}
                                                 value={loanDuration}
-                                                onChange={e => setLoanDuration(Math.max(selectedLoanOffer.minDurationDays, Math.min(selectedLoanOffer.maxDurationDays, parseInt(e.target.value) || 30)))}
+                                                onChange={e => setLoanDuration(Math.max(selectedLoanOffer.minDuration, Math.min(selectedLoanOffer.maxDuration, parseInt(e.target.value) || 30)))}
                                                 className="w-full p-2 rounded bg-slate-950 border border-slate-700 text-slate-100 font-bold"
                                             />
                                         </div>
@@ -343,8 +359,8 @@ export const BankModal: React.FC<BankModalProps> = ({
                                 </div>
                             ) : (
                                 existingLoans.map(loan => {
-                                    const interestRate = loan.interestRate || 0.1;
-                                    const totalDue = Math.round(loan.amount * (1 + interestRate));
+                                    const interestRate = loan.interestRate ?? 0.1;
+                                    const totalDue = loan.currentValue;
                                     const canAfford = (state.gold || 0) >= totalDue;
 
                                     return (
@@ -353,9 +369,9 @@ export const BankModal: React.FC<BankModalProps> = ({
                                             className="p-4 rounded-xl bg-slate-900/60 border border-slate-800 flex items-center justify-between"
                                         >
                                             <div>
-                                                <h4 className="text-sm font-bold text-slate-100">{loan.lenderName || 'Merchant Line of Credit'}</h4>
+                                                <h4 className="text-sm font-bold text-slate-100">{(loan.factionId ? state.factions[loan.factionId]?.name : undefined) || 'Merchant Line of Credit'}</h4>
                                                 <div className="text-xs text-slate-400 mt-0.5">
-                                                    Borrowed: {loan.amount} GP • Due: {totalDue} GP ({Math.round(interestRate * 100)}% interest)
+                                                    Borrowed: {loan.principalGold} GP • Due: {totalDue} GP ({Math.round(interestRate * 100)}% interest)
                                                 </div>
                                             </div>
 

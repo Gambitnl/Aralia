@@ -1933,7 +1933,7 @@ describe('useAbilitySystem - Reactions', () => {
             ...basicAttack,
             id: 'short-strike',
             name: 'Short Strike',
-            range: 1
+            range: 0
         };
         const localExecuteAction = vi.fn(() => true);
         const localLogEntry = vi.fn();
@@ -1949,8 +1949,8 @@ describe('useAbilitySystem - Reactions', () => {
 
         const { result } = renderHook(() => useAbilitySystem({
             characters: [attacker, defender],
-            // This two-tile map is enough for targeting validation. The mocked
-            // distance helper reports a larger distance, which lets the test
+            // This two-tile map is enough for targeting validation. The native
+            // adjacent-cell distance exceeds the zero-range attack, so this lets the test
             // focus on out-of-range feedback without depending on map geometry.
             mapData: validationMap,
             onExecuteAction: localExecuteAction,

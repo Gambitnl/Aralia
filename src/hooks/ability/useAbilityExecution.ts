@@ -1,19 +1,3 @@
-// @dependencies-start
-/**
- * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
- *
- * Last Sync: 26/08/2026, 13:55:58
- * Dependents: hooks/useAbilitySystem.ts
- * Imports: 23 files
- *
- * MULTI-AGENT SAFETY:
- * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
- * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
- */
-// @dependencies-end
-
 /**
  * @file src/hooks/ability/useAbilityExecution.ts
  * Dispatches combat abilities and spells through the command system, validating targets and consuming costs.
@@ -29,6 +13,22 @@
  * Called by: useAbilitySystem.ts
  * Depends on: Command system, targeting validators, reaction system, action economy
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 04/10/2026, 00:42:29
+ * Dependents: hooks/ability/targetSelection.ts, hooks/useAbilitySystem.ts
+ * Imports: 23 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
 
 import { useCallback, useRef } from 'react';
 import type {
@@ -760,6 +760,9 @@ export const useAbilityExecution = ({
                 : finalChar
             )),
           };
+          // Reaction requests read this live roster before React flushes state.
+          // Carry damage forward so replay cannot restore an older HP snapshot.
+          charactersRef.current = resourceResolvedState.characters;
           const postDamageReactions = await resolvePostDamageReactionQueue({
             characters: resourceResolvedState.characters,
             combatLog: resourceResolvedState.combatLog,
@@ -772,6 +775,7 @@ export const useAbilityExecution = ({
             characters: postDamageReactions.characters,
             combatLog: [...resourceResolvedState.combatLog, ...postDamageReactions.logEntries],
           };
+          charactersRef.current = finalState.characters;
 
           // Propagate State Changes
           finalState.characters.forEach(finalChar => {
@@ -1085,6 +1089,9 @@ export const useAbilityExecution = ({
 
     // --- Path A: Spell System (Command Pattern) ---
     if (ability.spell) {
+      // Upcast target limits and command scaling use the selected slot while
+      // preserving the canonical spell's base level for future casts.
+      const selectedCastLevel = Math.max(ability.spell.level, ability.cost.spellSlotLevel ?? ability.spell.level);
       if (!ability.spell.id || ability.spell.level === undefined || !ability.spell.effects) {
         console.error("Invalid spell data: Missing required fields (id, level, or effects)", ability.spell);
         cancelTargeting();
@@ -1138,7 +1145,7 @@ export const useAbilityExecution = ({
         characters: currentCharacters,
         mapData: mapDataRef.current,
         selectedTargets: completeSelectedTargets,
-        castLevel: ability.spell.level,
+        castLevel: selectedCastLevel,
       });
       if (targetSelectionRejection) {
         onNotification?.(targetSelectionRejection.message, 'warning');
@@ -1332,7 +1339,7 @@ export const useAbilityExecution = ({
         spellForExecution,
         casterAfterCost,
         targets,
-        spellForExecution.level,
+        selectedCastLevel,
         playerInput,
         casterAfterCost,
         zoneRegistration,
@@ -1465,6 +1472,8 @@ export const useAbilityExecution = ({
           ? applyResourceSnapshotToCaster(finalChar, casterAfterCost)
           : finalChar
       );
+      // The weapon/ability path has the same live-roster boundary as spells.
+      charactersRef.current = commandFinalCharacters;
       const postDamageReactions = await resolvePostDamageReactionQueue({
         characters: commandFinalCharacters,
         combatLog: result.finalState.combatLog,
@@ -1475,6 +1484,7 @@ export const useAbilityExecution = ({
         saveRng: randomSources?.saveRng,
       });
       const finalCharacters = postDamageReactions.characters;
+      charactersRef.current = finalCharacters;
       const finalCombatLog = [
         ...result.finalState.combatLog,
         ...postDamageReactions.logEntries,

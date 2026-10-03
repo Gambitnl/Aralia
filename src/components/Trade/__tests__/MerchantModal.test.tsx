@@ -195,9 +195,11 @@ describe('MerchantModal', () => {
     expect(img!.getAttribute('src')).toMatch(/assets\/icons\/items\/dagger\.svg$/);
   });
 
-  it('renders emoji glyph for items without an icon asset', () => {
+  it('renders the curated type icon for items with a legacy emoji', () => {
     render(<MerchantModal {...defaultProps} merchantInventory={[{ ...mockItem, icon: '🗡️' }]} />);
-    expect(screen.getByText('🗡️')).toBeInTheDocument();
+    const image = screen.getByTestId('window-merchant-window').querySelector('img');
+    expect(image).not.toBeNull();
+    expect(image!.getAttribute('src')).toMatch(/assets\/icons\/tw-dnd\/entity\/weapon\.svg$/);
   });
 
   it('hides the market-conditions line when there is no surplus or scarcity', () => {

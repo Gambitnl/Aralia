@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 13/08/2026, 06:17:58
+ * Last Sync: 04/10/2026, 00:42:28
  * Dependents: components/DesignPreview/steps/PreviewCombatScenarios.tsx, components/DesignPreview/steps/scenarioControls/PreviewCombatScenarioControlRegistry.ts
- * Imports: 8 files
+ * Imports: 7 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -14,6 +14,7 @@
  */
 // @dependencies-end
 
+import { createMockSpellSlots } from '@/utils/core/factories';
 /**
  * This file owns the live controls for Spell Slots & Upcasting.
  *
@@ -82,10 +83,10 @@ const FIXED_SAVE_D20 = 5;
 // ============================================================================
 
 function createAuthoredSlots(): SpellSlots {
-  return {
+  return createMockSpellSlots({
     level_3: { current: 1, max: 1 },
     level_4: { current: 1, max: 1 },
-  };
+  });
 }
 
 function readSlot(caster: CombatCharacter, level: number): string {
@@ -194,7 +195,7 @@ function rejectionExplanation(reason: DamageSpellCastRejectionReason): string {
     action_unavailable: 'the live Action is already spent',
     slot_unavailable: 'the exact requested slot is empty or absent',
   };
-  return explanations[reason];
+  return explanations[reason as keyof typeof explanations];
 }
 
 function resolveSpellCast(

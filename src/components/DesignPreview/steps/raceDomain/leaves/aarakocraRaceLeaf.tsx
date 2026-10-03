@@ -165,7 +165,7 @@ function createAerialFixtureMap(): BattleMapData {
   return prepareFlyingAerialMovementMapData({
     dimensions,
     tiles,
-    theme: 'grass',
+    theme: 'forest',
     seed: 3001,
   });
 }

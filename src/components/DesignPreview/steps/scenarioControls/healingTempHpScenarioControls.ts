@@ -1,19 +1,3 @@
-// @dependencies-start
-/**
- * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
- *
- * Last Sync: 13/08/2026, 04:47:47
- * Dependents: components/DesignPreview/steps/PreviewCombatScenarios.tsx, components/DesignPreview/steps/scenarioControls/PreviewCombatScenarioControlRegistry.ts
- * Imports: 7 files
- *
- * MULTI-AGENT SAFETY:
- * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
- * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
- */
-// @dependencies-end
-
 /**
  * This file owns the deterministic Healing & Temporary HP scenario actions.
  *
@@ -25,6 +9,22 @@
  * Called by: the Tactical Sandbox scenario-control registry.
  * Depends on: the canonical combat HP transition helpers.
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 04/10/2026, 00:42:28
+ * Dependents: components/DesignPreview/steps/PreviewCombatScenarios.tsx, components/DesignPreview/steps/scenarioControls/PreviewCombatScenarioControlRegistry.ts
+ * Imports: 5 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
 
 import type { CombatCharacter } from '../../../../types/combat';
 import type { Spell } from '../../../../types';
@@ -84,7 +84,6 @@ const TEMPORARY_HP_TRAINING_ACTION: HitPointActionDefinition = {
     rangeUnit: 'feet',
     validTargets: ['creatures'],
     lineOfSight: true,
-    maxTargets: 1,
   },
   cost: {
     type: 'action',

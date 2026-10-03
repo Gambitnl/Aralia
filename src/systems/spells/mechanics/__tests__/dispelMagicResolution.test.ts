@@ -1,3 +1,4 @@
+import { createMockSpellSlots } from '@/utils/core/factories';
 /**
  * This file proves the production Dispel Magic resolver pays real resources,
  * resolves 2024 level checks, and cleans only owner-linked ongoing spell state.
@@ -44,7 +45,7 @@ function createFixture(targetSpell: Spell) {
     id: DISPELLER_ID,
     level: 7,
     spellcastingAbility: 'intelligence',
-    spellSlots: { level_3: { current: 1, max: 1 } },
+    spellSlots: createMockSpellSlots({ level_3: { current: 1, max: 1 } }),
     stats: {
       strength: 10,
       dexterity: 10,

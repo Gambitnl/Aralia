@@ -154,7 +154,8 @@ describe('applyHistory', () => {
     // style outcomes preserved by history requires explicit review. This value
     // changed when age-led weathering became part of the resolved style; event
     // targets and the canonical event digest below remain independently pinned.
-    expect(result.liveHistory?.historySignature).toBe('11anz1x');
+    // Re-pinned after the accepted larger footprint and construction dress.
+    expect(result.liveHistory?.historySignature).toBe('yxucgy');
     expect(buildingEventLogDigest(log)).toBe(buildingEventLogDigest([
       { day: 120, kind: 'fire-damage', payload: { severity: 2, incidentId: 'burg-3:day-120:fire' } },
       { day: 150, kind: 'abandonment', payload: { boardedFraction: 0.5 } },

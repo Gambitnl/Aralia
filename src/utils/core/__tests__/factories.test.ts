@@ -1,3 +1,4 @@
+import { createMockSpellSlots } from '@/utils/core/factories';
 import { describe, it, expect, vi } from 'vitest';
 import {
   createMockSpell,
@@ -229,7 +230,7 @@ describe('Mimic Factories', () => {
       expect(character.creatureTypes).toEqual(['Humanoid']);
       expect(character.statusEffects).toEqual([]);
       expect(character.conditions).toEqual([]);
-      expect(character.spellSlots).toEqual({});
+      expect(character.spellSlots).toEqual(createMockSpellSlots());
       expect(character.currentHP).toBe(10);
       expect(character.maxHP).toBe(10);
       expect(character.position).toEqual({ x: 0, y: 0 });
@@ -245,14 +246,14 @@ describe('Mimic Factories', () => {
         team: 'enemy',
         level: 3,
         creatureTypes: ['Humanoid', 'Goblinoid'],
-        spellSlots: { 1: { max: 4, current: 2 } },
+        spellSlots: createMockSpellSlots({ level_1: { max: 4, current: 2 } }),
       });
 
       expect(character.name).toBe('Goblin Scout');
       expect(character.team).toBe('enemy');
       expect(character.level).toBe(3);
       expect(character.creatureTypes).toEqual(['Humanoid', 'Goblinoid']);
-      expect(character.spellSlots).toEqual({ 1: { max: 4, current: 2 } });
+      expect(character.spellSlots).toEqual(createMockSpellSlots({ level_1: { max: 4, current: 2 } }));
       // Unspecified collections still retain default empty arrays
       expect(character.statusEffects).toEqual([]);
       expect(character.conditions).toEqual([]);
@@ -306,7 +307,7 @@ describe('Mimic Factories', () => {
       expect(character.creatureTypes).toEqual(['Humanoid']);
       expect(character.statusEffects).toEqual([]);
       expect(character.conditions).toEqual([]);
-      expect(character.spellSlots).toEqual({});
+      expect(character.spellSlots).toEqual(createMockSpellSlots());
     });
   });
 

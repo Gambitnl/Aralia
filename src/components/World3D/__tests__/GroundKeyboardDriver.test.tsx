@@ -34,10 +34,10 @@ vi.mock('@react-three/fiber', () => ({
 }));
 
 describe('GroundKeyboardDriver', () => {
-  let onGroundPick: ReturnType<typeof vi.fn>;
+  let onGroundPick: ReturnType<typeof vi.fn<(xM: number, zM: number) => void>>;
 
   beforeEach(() => {
-    onGroundPick = vi.fn();
+    onGroundPick = vi.fn<(xM: number, zM: number) => void>();
     frameCallback = null;
     mockCamera.position.set(0, 10, 10);
     mockControls.target.set(0, 0, 0);

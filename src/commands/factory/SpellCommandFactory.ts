@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 26/08/2026, 03:10:31
+ * Last Sync: 04/10/2026, 00:42:28
  * Dependents: commands/index.ts
- * Imports: 37 files
+ * Imports: 38 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -715,7 +715,7 @@ class BonesOfTheEarthBridgeCommand implements SpellCommand {
           if (selection.blockedPillar) {
             // Blocked by ceiling or obstacle: takes 6d6 bludgeoning damage and is Restrained
             const damage = DiceRoller.roll('6d6');
-            const newHp = Math.max(0, (liveTarget.currentHp ?? liveTarget.stats.hp ?? 0) - damage);
+            const newHp = Math.max(0, liveTarget.currentHP - damage);
 
             const restrainedStatus: StatusEffect = {
               id: `status_bones_earth_restrained_${generateId()}`,
@@ -740,7 +740,7 @@ class BonesOfTheEarthBridgeCommand implements SpellCommand {
                 c.id === liveTarget.id
                   ? {
                       ...c,
-                      currentHp: newHp,
+                      currentHP: newHp,
                       statusEffects: [...(c.statusEffects || []), restrainedStatus],
                       conditions: [
                         ...(c.conditions || []),
@@ -748,7 +748,8 @@ class BonesOfTheEarthBridgeCommand implements SpellCommand {
                           name: 'Restrained' as const,
                           source: this.spell.name,
                           sourceCasterId: caster.id,
-                          duration: 10
+                          duration: { type: 'rounds', value: 10 },
+                          appliedTurn: currentState.turnState.currentTurn
                         }
                       ]
                     }
@@ -2360,9 +2361,9 @@ export class SpellCommandFactory {
 
     const diceMatch = bonusPerLevel.match(/\+(\d+)d(\d+)/)
 
-    if (diceMatch && isDamageEffect(effect)) {
+    if (diceMatch && (isDamageEffect(effect) || (isAttackRollModifierEffect(effect) && effect.damage))) {
       const [, count, size] = diceMatch
-      const originalDice = effect.damage.dice || '0d0'
+      const originalDice = effect.damage?.dice || '0d0'
       const newDice = addDice(originalDice, `${count}d${size}`, levelsAbove)
 
       return this.applyScaledDamageDice(effect, newDice)
@@ -2457,9 +2458,9 @@ export class SpellCommandFactory {
 
     const diceMatch = bonusPerLevel.match(/\+(\d+)d(\d+)/)
 
-    if (diceMatch && isDamageEffect(effect)) {
+    if (diceMatch && (isDamageEffect(effect) || (isAttackRollModifierEffect(effect) && effect.damage))) {
       const [, count, size] = diceMatch
-      const originalDice = effect.damage.dice || '0d0'
+      const originalDice = effect.damage?.dice || '0d0'
       const newDice = addDice(originalDice, `${count}d${size}`, tier)
       return this.applyScaledDamageDice(effect, newDice)
     }

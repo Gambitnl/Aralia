@@ -641,12 +641,14 @@ describe('worldforge pipeline integration', () => {
       // 2026-07-22: 270 → 716 after the town-scale lift (townScale.ts): the
       // roughly-doubled span means the adapter's minimum-physical-size filter
       // discards far fewer of the authored plan's plots as slivers.
-      plotCount: 716,
+      // Larger negotiated floorplans now filter undersized parcels while
+      // preserving the same first plot and deterministic delta identities.
+      plotCount: 262,
       firstPlotId: 0,
       firstPlotRole: 'inn',
       firstPlotStoreys: 3,
       firstPlotCorners: 4,
-      townFeatureCount: 1395,
+      townFeatureCount: 3272,
     });
   }, 60_000);
 
@@ -747,7 +749,7 @@ describe('worldforge pipeline integration', () => {
       // so the smaller footprint re-packs → 1 room.
       // 2026-07-22: 1 → 2 after the town-scale lift — the same wedge footprint
       // now spans real house dimensions, so the interior BSP fits two rooms.
-      addedBlueprintRoomCount: 2,
+      addedBlueprintRoomCount: 4,
       hasAddedExteriorDoor: true,
       removedPlotPresent: false,
     });

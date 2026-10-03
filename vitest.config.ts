@@ -4,6 +4,7 @@ import react from '@vitejs/plugin-react';
 import path from 'path';
 import fs from 'fs';
 import os from 'os';
+import { nodeTestFiles } from './scripts/ci/node-test-inventory.mjs';
 
 /**
  * ARCHITECTURAL CONTEXT:
@@ -51,6 +52,9 @@ const vitestJsonOutputFile =
 // globs and the slow lane names nothing.
 // ============================================================================
 const SHARED_EXCLUDE = [
+    // The Node lane and this exclusion share one discovered inventory. Tooling
+    // tests remain covered, but their subprocess/server fixtures never use jsdom.
+    ...nodeTestFiles(),
     '**/node_modules/**',
     '**/dist/**',
     '**/verification/**',
@@ -94,6 +98,11 @@ const SHARED_EXCLUDE = [
 // its `__tests__` glob here rather than raising the global default.
 // ============================================================================
 const SLOW_SUITE_GLOBS = [
+    // These mounted scenarios and terrain jobs also exceeded five seconds in
+    // the complete CI baseline. Keep their real generation work in this lane.
+    'src/components/DesignPreview/steps/__tests__/landTerrainJob.test.ts',
+    'src/components/DesignPreview/steps/__tests__/PreviewCombatScenarios*.test.tsx',
+    'src/systems/worldforge/interior/__tests__/footprint.test.ts',
     'src/systems/worldforge/bridge/__tests__/**/*.{test,spec}.?(c|m)[jt]s?(x)',
     'src/systems/worldforge/local/__tests__/**/*.{test,spec}.?(c|m)[jt]s?(x)',
     'src/components/BattleMap/__tests__/**/*.{test,spec}.?(c|m)[jt]s?(x)',

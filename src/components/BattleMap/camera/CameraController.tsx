@@ -1,19 +1,3 @@
-// @dependencies-start
-/**
- * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
- *
- * Last Sync: 13/08/2026, 04:04:14
- * Dependents: components/BattleMap/camera/index.ts
- * Imports: 2 files
- *
- * MULTI-AGENT SAFETY:
- * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
- * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
- */
-// @dependencies-end
-
 /**
  * @file CameraController.tsx
  * BG3-style camera controller for the 3D combat map.
@@ -34,6 +18,23 @@
  *
  * @see docs/superpowers/specs/2026-05-21-3d-combat-map-design.md — "Camera System" section
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 04/10/2026, 00:42:28
+ * Dependents: components/BattleMap/camera/index.ts
+ * Imports: 4 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import React, { useRef, useEffect, useCallback, useState } from 'react';
 import { useThree, useFrame } from '@react-three/fiber';
 import { MapControls } from '@react-three/drei';
@@ -590,7 +591,9 @@ const CameraController: React.FC<CameraControllerProps> = ({
       screenSpacePanning={false}
       // Tile/actor selection keeps left click. Camera input uses the documented
       // non-conflicting middle-pan and right-orbit gestures.
-      mouseButtons={BATTLE_MAP_CAMERA_MOUSE_BUTTONS}
+      // Three's controls accept -1 to disable a button; its declaration only
+      // lists MOUSE actions. Keep left-click reserved for game interaction.
+      mouseButtons={BATTLE_MAP_CAMERA_MOUSE_BUTTONS as unknown as { LEFT: THREE.MOUSE; MIDDLE: THREE.MOUSE; RIGHT: THREE.MOUSE }}
     />
   );
 };

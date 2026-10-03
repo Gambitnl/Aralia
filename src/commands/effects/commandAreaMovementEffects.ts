@@ -86,7 +86,7 @@ export function applyCommandAreaMovementEffects(
     // Keep the frequency sets mutated by the canonical trigger helpers in live
     // combat state. Later commands in the same turn must see that a once-only
     // entry or exit has already happened.
-    let nextState = { ...state, spellZones: zones }
+    let nextState: CombatState = { ...state, spellZones: zones }
     let currentCharacter = character
 
     for (const result of triggerResults) {

@@ -488,7 +488,7 @@ function prepareResistanceProofCharacters(
       return {
         ...character,
         tempHP: 3,
-        temporaryHitPointSource: 'CS06 Buffer',
+        temporaryHitPointSource: { spellId: 'cs06-buffer', spellName: 'CS06 Buffer', casterId: character.id },
       };
     }
     if (proofCase === 'normal_10') {

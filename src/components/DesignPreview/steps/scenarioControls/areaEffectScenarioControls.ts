@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 13/08/2026, 15:36:02
+ * Last Sync: 04/10/2026, 00:42:28
  * Dependents: components/DesignPreview/steps/scenarioControls/PreviewCombatScenarioControlRegistry.ts
- * Imports: 10 files
+ * Imports: 9 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -14,6 +14,7 @@
  */
 // @dependencies-end
 
+import { createMockSpellSlots } from '@/utils/core/factories';
 /**
  * This file owns the deterministic Area of Effect Tactical Sandbox fixture.
  *
@@ -259,9 +260,9 @@ function targetLabel(
   target: CombatCharacter,
   membership: 'inside' | 'boundary' | 'outside',
 ): string {
-  const defense = target.immunities.includes('Fire')
+  const defense = target.immunities?.includes('Fire')
     ? 'immune'
-    : target.resistances.includes('Fire')
+    : target.resistances?.includes('Fire')
       ? 'resistant'
       : target.tempHP
         ? `${target.tempHP} temp HP`
@@ -288,10 +289,10 @@ function prepareCharacters(
     if (!byId.has(id)) byId.set(id, cloneTarget(incomingCenter, id, team));
   }
 
-  const casterSlots: SpellSlots = {
+  const casterSlots: SpellSlots = createMockSpellSlots({
     level_1: { current: 1, max: 1 },
     level_3: { current: 1, max: 1 },
-  };
+  });
   const preparedCaster = resetEconomy({
     ...incomingCaster,
     name: `${spec.spell.name} Caster · Action ready · L${spec.spell.level} 1/1 · event open`,

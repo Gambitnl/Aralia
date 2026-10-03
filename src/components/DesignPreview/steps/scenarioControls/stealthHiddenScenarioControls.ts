@@ -10,6 +10,22 @@
  * Depends on: production stealth, action-economy, map, and combat types.
  */
 
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 04/10/2026, 00:42:28
+ * Dependents: components/DesignPreview/steps/PreviewCombatScenarios.tsx, components/DesignPreview/steps/scenarioControls/PreviewCombatScenarioControlRegistry.ts
+ * Imports: 5 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import type {
   Ability,
   BattleMapData,
@@ -97,6 +113,7 @@ function setPerceptionProficiency(
   return {
     ...character,
     modifiers: {
+      advantage: [], disadvantage: [], bonuses: [],
       ...character.modifiers,
       skillProficiencies: proficient ? [...withoutPerception, 'perception'] : withoutPerception,
     },
@@ -139,6 +156,7 @@ export function prepareStealthHiddenCharacters(
         position: { ...STEALTH_HIDDEN_TARGET_START },
         stats: { ...target.stats, dexterity: 16, speed: 30 },
         modifiers: {
+          advantage: [], disadvantage: [], bonuses: [],
           ...target.modifiers,
           skillProficiencies: Array.from(new Set([...existingSkills, 'stealth'])),
         },
@@ -159,7 +177,7 @@ function setTileCover(
   const tiles = new Map<string, BattleMapTile>(mapData.tiles);
   tiles.set(tileId, {
     ...tile,
-    terrain: providesCover ? 'forest' : 'grass',
+    terrain: 'grass',
     providesCover,
     blocksLoS: false,
     blocksMovement: false,

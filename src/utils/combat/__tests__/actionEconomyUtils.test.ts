@@ -1,3 +1,4 @@
+import { createMockSpellSlots } from '@/utils/core/factories';
 import { describe, it, expect } from 'vitest';
 import { calculateMovementModeTotal, canAffordActionCost, consumeActionCost, createDefaultActionEconomy, resetEconomy } from '../actionEconomyUtils';
 import { createMockCombatCharacter } from '../../core/factories';
@@ -15,9 +16,9 @@ describe('Dev Player unlimited spell slots', () => {
         const character = {
             ...createMockCombatCharacter(),
             devPlaytest: { unlimitedSpellSlots: true },
-            spellSlots: {
+            spellSlots: createMockSpellSlots({
                 level_1: { current: 0, max: 1 },
-            },
+            }),
         } as ReturnType<typeof createMockCombatCharacter>;
         const cost = { type: 'action' as const, spellSlotLevel: 1 };
 
@@ -30,11 +31,11 @@ describe('Dev Player unlimited spell slots', () => {
     it('keeps ordinary casters blocked or decremented by their slot pool', () => {
         const emptySlots = {
             ...createMockCombatCharacter(),
-            spellSlots: { level_1: { current: 0, max: 1 } },
+            spellSlots: createMockSpellSlots({ level_1: { current: 0, max: 1 } }),
         };
         const availableSlot = {
             ...createMockCombatCharacter(),
-            spellSlots: { level_1: { current: 1, max: 1 } },
+            spellSlots: createMockSpellSlots({ level_1: { current: 1, max: 1 } }),
         };
         const cost = { type: 'action' as const, spellSlotLevel: 1 };
 
@@ -172,10 +173,10 @@ describe('actionEconomyUtils', () => {
             resetOn: 'long_rest',
           },
         },
-        spellSlots: {
+        spellSlots: createMockSpellSlots({
           level_1: { current: 1, max: 1 },
           level_3: { current: 2, max: 2 },
-        },
+        }),
         spellbook: {
           cantrips: [],
           knownSpells: [],
@@ -235,9 +236,9 @@ describe('actionEconomyUtils', () => {
 
     it('blocks racial spells cast above the racial max when upcast is disabled', () => {
       const character = createMockCombatCharacter({
-        spellSlots: {
+        spellSlots: createMockSpellSlots({
           level_5: { current: 1, max: 1 },
-        },
+        }),
         spellbook: {
           cantrips: [],
           knownSpells: [],
@@ -258,7 +259,7 @@ describe('actionEconomyUtils', () => {
 
       const racialCost = { type: 'action' as const, spellSlotLevel: 6, castSource: { type: 'racial' as const, spellId: 'nondetection', allowSlotFallback: true } };
       expect(canAffordActionCost(character, racialCost)).toBe(false);
-      expect(consumeActionCost(character, racialCost).spellSlots?.level_6).toBeUndefined();
+      expect(consumeActionCost(character, racialCost).spellSlots?.level_6).toEqual({ current: 0, max: 0 });
     });
 
     it('marks an action as spent so a second action cannot be afforded', () => {
@@ -287,7 +288,7 @@ describe('actionEconomyUtils', () => {
 
     it('does not spend a spell slot for a cantrip cost', () => {
       const character = createMockCombatCharacter({
-        spellSlots: {
+        spellSlots: createMockSpellSlots({
           level_1: { current: 2, max: 2 },
           level_2: { current: 0, max: 0 },
           level_3: { current: 0, max: 0 },
@@ -297,7 +298,7 @@ describe('actionEconomyUtils', () => {
           level_7: { current: 0, max: 0 },
           level_8: { current: 0, max: 0 },
           level_9: { current: 0, max: 0 }
-        }
+        })
       });
 
       const afterCantrip = consumeActionCost(character, { type: 'action', spellSlotLevel: 0 });
@@ -308,7 +309,7 @@ describe('actionEconomyUtils', () => {
 
     it('spends the matching spell slot for a level 1 spell cost', () => {
       const character = createMockCombatCharacter({
-        spellSlots: {
+        spellSlots: createMockSpellSlots({
           level_1: { current: 2, max: 2 },
           level_2: { current: 0, max: 0 },
           level_3: { current: 0, max: 0 },
@@ -318,7 +319,7 @@ describe('actionEconomyUtils', () => {
           level_7: { current: 0, max: 0 },
           level_8: { current: 0, max: 0 },
           level_9: { current: 0, max: 0 }
-        }
+        })
       });
 
       const afterSpell = consumeActionCost(character, { type: 'action', spellSlotLevel: 1 });

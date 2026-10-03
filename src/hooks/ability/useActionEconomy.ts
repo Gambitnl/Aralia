@@ -58,7 +58,8 @@ export const getCastingTriggerActionCost = (spell: Spell) => {
 
   return {
     type: actionType,
-    spellSlotLevel: Math.max(spell.level ?? 0, 1)
+    // A cantrip may declare an Action trigger, but still spends no spell slot.
+    spellSlotLevel: Math.max(spell.level ?? 0, 0)
   } as const;
 };
 

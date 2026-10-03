@@ -104,6 +104,7 @@ describe('Phase Screen Containers', () => {
         ...initialGameState,
         phase: GamePhase.PLAYING,
         gameEntry: {
+          ...initialGameState.gameEntry!,
           status: 'generating' as const,
           reason: 'Generating opening situation',
         },
@@ -127,7 +128,7 @@ describe('Phase Screen Containers', () => {
           isUIInteractive={true}
           autoSaveEnabled={true}
           activeAtlasGroundDrilldown={null}
-          safeWorldViewMode="2d"
+          safeWorldViewMode="atlas"
           onAction={vi.fn()}
           onNavigateToGlossary={vi.fn()}
           onEnterPlayingGroundFromAtlas={vi.fn()}

@@ -1,3 +1,4 @@
+import { createAbilityFromSpell } from '@/utils/character/spellAbilityFactory';
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
@@ -20,7 +21,7 @@ import type { CombatCharacter, CombatState, TurnState, Ability } from '@/types/c
 import type { GameState } from '@/types';
 import type { Spell } from '@/types/spells';
 import { AbilityCommandFactory } from '@/commands/factory/AbilityCommandFactory';
-import { createMockCombatCharacter, createMockCombatState } from '@/utils/core';
+import { createMockPlayerCharacter, createMockCombatCharacter, createMockCombatState } from '@/utils/core';
 import type { SpellSlots } from '@/types/character';
 import type { SpellScenarioComponentProps } from './types';
 
@@ -144,7 +145,7 @@ function createShieldFixture(): ShieldFixture {
     armorClass: BASE_AC,
     currentHP: BASELINE_HP,
     maxHP: BASELINE_HP,
-    abilities: [{ id: 'shield-ability', type: 'spell', spell: SHIELD }],
+    abilities: [{ ...createAbilityFromSpell(SHIELD, createMockPlayerCharacter({ id: DEFENDER_ID })), id: 'shield-ability' }],
     actionEconomy: {
       action: { used: false, remaining: 1 },
       bonusAction: { used: false, remaining: 1 },

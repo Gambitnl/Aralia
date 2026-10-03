@@ -10,6 +10,22 @@
  * Depends on: Pure JavaScript regular expressions and string primitives.
  */
 
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 04/10/2026, 00:42:29
+ * Dependents: utils/core/index.ts
+ * Imports: None
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 // ============================================================================
 // Whitespace and Prompt Normalization
 // ============================================================================
@@ -44,6 +60,7 @@ export function cleanPrompt(prompt: string): string {
     .replace(/\r\n/g, '\n')
     .replace(/\r/g, '\n')
     // Remove control characters except standard tab and newline
+    // eslint-disable-next-line no-control-regex -- These are the bytes this sanitizer intentionally removes.
     .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '')
     // Collapse 3 or more consecutive newlines into at most two
     .replace(/\n{3,}/g, '\n\n')

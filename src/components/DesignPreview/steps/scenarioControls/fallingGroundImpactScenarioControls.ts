@@ -63,7 +63,9 @@ export const FALLING_GROUND_IMPACT_DAMAGE_LANDING = { x: 8, y: 5 } as const;
 export const FALLING_GROUND_IMPACT_OCCUPIED_LANDING = { x: 10, y: 5 } as const;
 export const FALLING_GROUND_IMPACT_BLOCKED_LANDING = { x: 11, y: 7 } as const;
 export const FALLING_GROUND_IMPACT_OFF_BOARD_LANDING = { x: 16, y: 5 } as const;
-export const FALLING_GROUND_IMPACT_CASTER_START = { x: 2, y: 5 } as const;
+// The owner stands on the ledge beside the faller. From the valley floor the
+// platform's crest correctly blocks sight under the elevation-aware LOS rule.
+export const FALLING_GROUND_IMPACT_CASTER_START = { x: 3, y: 5 } as const;
 
 export const FALLING_GROUND_IMPACT_MAX_HP = 40;
 export const FALLING_GROUND_IMPACT_SOURCE_FEET = 30;

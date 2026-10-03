@@ -53,6 +53,7 @@ function createSnapshot(
     reactiveTriggers: [],
     turnState: {
       currentTurn: 1,
+      phase: 'action', actionsThisTurn: [],
       turnOrder: [tester.id, target.id],
       currentCharacterId: tester.id,
     },

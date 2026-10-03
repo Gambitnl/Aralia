@@ -132,7 +132,7 @@ export function useGameHotkeys({
           if (gameState.characterSheetModal?.isOpen) {
             dispatch({ type: 'CLOSE_CHARACTER_SHEET' });
           } else if (gameState.party.length > 0) {
-            dispatch({ type: 'OPEN_CHARACTER_SHEET', payload: { character: gameState.party[0] } });
+            dispatch({ type: 'OPEN_CHARACTER_SHEET', payload: gameState.party[0] });
           }
           break;
         }
@@ -143,7 +143,7 @@ export function useGameHotkeys({
           if (gameState.characterSheetModal?.isOpen) {
             dispatch({ type: 'CLOSE_CHARACTER_SHEET' });
           } else if (gameState.party.length > 0) {
-            dispatch({ type: 'OPEN_CHARACTER_SHEET', payload: { character: gameState.party[0] } });
+            dispatch({ type: 'OPEN_CHARACTER_SHEET', payload: gameState.party[0] });
           }
           break;
         }

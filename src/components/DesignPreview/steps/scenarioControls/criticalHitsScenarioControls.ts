@@ -105,13 +105,14 @@ export function prepareCriticalHitsCharacters(characters: CombatCharacter[]): Co
           // The dungeon board is dark by default. Authored darkvision keeps
           // CS21 focused on raw d20/AC truth instead of adding an unrelated
           // unseen-target disadvantage roll.
-          senses: { ...character.stats.senses, darkvision: 120 },
+          senses: { blindsight: 0, tremorsense: 0, truesight: 0, ...character.stats.senses, darkvision: 120 },
         },
         // Generated quick characters can carry background-specific advantage or
         // disadvantage. CS21 isolates the raw d20 rules, so its reset removes
         // those unrelated roll shapers without touching normal combat actors.
         modifiers: {
           ...character.modifiers,
+          bonuses: character.modifiers?.bonuses ?? [],
           advantage: [],
           disadvantage: [],
         },

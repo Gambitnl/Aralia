@@ -1,3 +1,4 @@
+import { createMockSpellSlots } from '@/utils/core/factories';
 /**
  * This file tests the complete end-to-end gameplay loop integrating exploration,
  * encounter initiation, combat turn arbitration, quest completion, and rest cycles.
@@ -32,7 +33,8 @@ import {
   HitPointDicePool,
   Item
 } from '../../../types';
-import { CombatCharacter, Class } from '../../../types/combat';
+import { CombatCharacter } from '../../../types/combat';
+import type { Class } from '../../../types/character';
 import { AppAction } from '../../../state/actionTypes';
 import {
   createMockGameState,
@@ -99,7 +101,7 @@ function buildStartingParty(): [PlayerCharacter, PlayerCharacter] {
     maxHp: 18,
     xp: 500,
     hitPointDice: [{ die: 6, current: 3, max: 3 }],
-    spellSlots: {
+    spellSlots: createMockSpellSlots({
       level_1: { current: 4, max: 4 },
       level_2: { current: 2, max: 2 },
       level_3: { current: 0, max: 0 },
@@ -109,7 +111,7 @@ function buildStartingParty(): [PlayerCharacter, PlayerCharacter] {
       level_7: { current: 0, max: 0 },
       level_8: { current: 0, max: 0 },
       level_9: { current: 0, max: 0 }
-    },
+    }),
     limitedUses: {
       arcane_recovery: { name: 'Arcane Recovery', current: 1, max: 1, resetOn: 'short_rest' }
     }
@@ -154,7 +156,7 @@ describe('Gameplay Flow - Full Integration Lifecycle', () => {
       status: QuestStatus.Active,
       questType: 'Side',
       giverId: 'npc_mayor',
-      location: 'Sunken Crypt',
+      regionHint: 'Sunken Crypt',
       dateStarted: state.gameTime.getTime(),
       objectives: [
         { id: 'obj_reach_crypt', description: 'Reach the Sunken Crypt', isCompleted: false },
@@ -280,11 +282,11 @@ describe('Gameplay Flow - Full Integration Lifecycle', () => {
       },
       {
         ...state.party[1],
-        spellSlots: {
+        spellSlots: createMockSpellSlots({
           ...state.party[1].spellSlots!,
           level_1: { current: 2, max: 4 }, // Spent two level 1 slots
           level_2: { current: 1, max: 2 }  // Spent one level 2 slot
-        }
+        })
       }
     ];
     state = { ...state, party: postCombatParty };

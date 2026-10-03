@@ -1270,7 +1270,7 @@ describe('Cantrip Attack Bridges Consolidated Suite', () => {
         targets: [caster],
         gameState: {} as never,
         effectDuration: magicStone.duration as never,
-        conditionalEndings: (effect as { conditionalEndings?: unknown }).conditionalEndings || (magicStone as { conditionalEndings?: unknown }).conditionalEndings
+        conditionalEndings: (effect as { conditionalEndings?: import('@/types/spells').ConditionalEnding[] }).conditionalEndings || (magicStone as { conditionalEndings?: import('@/types/spells').ConditionalEnding[] }).conditionalEndings
       })
     }
 

@@ -4,6 +4,13 @@ import { GamePhase } from "../../../types";
 import { createBattleEndActions } from "../battleEndActions";
 
 describe("createBattleEndActions", () => {
+  it("preserves retreat health without awarding loot or resolving the source scene", () => {
+    const party = [{ id: "hero", currentHP: 4, position: { x: 1, y: 1 } }];
+    const enemies = [{ id: "watchman", currentHP: 8, position: { x: 2, y: 1 } }];
+    expect(createBattleEndActions("flee", { gold: 12, items: [], xp: 50 }, party, enemies)).toEqual([
+      { type: "END_BATTLE", payload: { finalPartyState: party, finalEnemyState: enemies } },
+    ]);
+  });
   it("settles victory through END_BATTLE", () => {
     const rewards = { gold: 12, items: [], xp: 50 };
     expect(createBattleEndActions("victory", rewards)).toEqual([

@@ -10,6 +10,22 @@
  * Depends on: SummoningCommand, concentration cleanup, action economy, and map geometry.
  */
 
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 04/10/2026, 00:42:28
+ * Dependents: components/DesignPreview/steps/PreviewCombatScenarios.tsx, components/DesignPreview/steps/scenarioControls/PreviewCombatScenarioControlRegistry.ts
+ * Imports: 9 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 // ============================================================================
 // Production Rules And Shared Types
 // ============================================================================
@@ -73,11 +89,11 @@ type LifecycleCase = 'ready' | 'summon_legal' | 'summon_edge' | 'summon_out_of_r
 type CommandCase = 'advance_to_summon' | 'legal' | 'out_of_range' | 'replay';
 
 const summonBeast = summonBeastData as unknown as Spell;
-const summonEffect = summonBeast.effects.find(effect => effect.type === 'SUMMONING') as SummoningEffect | undefined;
-
-if (!summonEffect) {
-  throw new Error('Summon Beast no longer contains the summoning effect required by CS14.');
-}
+const summonEffect: SummoningEffect = (() => {
+  const effect = summonBeast.effects.find((candidate): candidate is SummoningEffect => candidate.type === 'SUMMONING');
+  if (!effect) throw new Error('Summon Beast no longer contains the summoning effect required by CS14.');
+  return effect;
+})();
 
 // ============================================================================
 // Deterministic Production State
@@ -375,10 +391,10 @@ function resolveSummonEvent(
   }
 
   const spellCost = { type: 'action' as const, spellSlotLevel: 2 };
-  if (!canAffordActionCost(owner, spellCost, summonBeast.id)) {
+  if (!canAffordActionCost(owner, spellCost)) {
     return { logMessage: 'SUMMON REJECTED ATOMIC NO-OP: owner lacks the Action or level-2 slot.' };
   }
-  const paidOwner = consumeActionCost(owner, spellCost, summonBeast.id);
+  const paidOwner = consumeActionCost(owner, spellCost);
   let state = createCombatState(
     application,
     replaceCharacter(application.snapshot.characters, paidOwner),

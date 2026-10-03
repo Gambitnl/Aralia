@@ -1,3 +1,4 @@
+import { createMockSpellSlots } from '@/utils/core/factories';
 /**
  * This file proves one complete save-based area spell transaction.
  *
@@ -84,10 +85,10 @@ function createActors(spell: Spell = FIREBALL): CombatCharacter[] {
     position: { x: 3, y: 5 },
     facing: 'east',
     spellcastingAbility: 'intelligence',
-    spellSlots: {
+    spellSlots: createMockSpellSlots({
       level_1: { current: 1, max: 1 },
       level_3: { current: 1, max: 1 },
-    },
+    }),
   });
   caster.stats.intelligence = 18;
   caster.abilities = [createAreaDamageSpellCastAction(spell, caster, spell.level).ability];

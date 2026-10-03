@@ -95,9 +95,9 @@ export type ClassesScenarioAdapter = Omit<PreviewCombatScenarioAdapter, 'domain'
   scenario: ClassesScenarioIdentity;
 };
 
-export interface ClassesScenarioAdapterRegistry extends PreviewCombatScenarioAdapterRegistry {
+export interface ClassesScenarioAdapterRegistry extends Omit<PreviewCombatScenarioAdapterRegistry, 'adapters' | 'get'> {
   readonly adapters: readonly ClassesScenarioAdapter[];
-  get: (domainId: ClassesDomainId, scenarioId: ClassesScenarioId) => ClassesScenarioAdapter | undefined;
+  get: (domainId: string, scenarioId: string) => ClassesScenarioAdapter | undefined;
 }
 
 export const CLASSES_DOMAIN_ID: ClassesDomainId = 'classes';

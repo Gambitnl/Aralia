@@ -33,6 +33,7 @@ async function inspectChildApps(port: number) {
   let payload: any = null;
   const urlPath = `/api/dev/active-servers/${port}/child-apps`;
   const handled = await handleDevServerRoutes({
+    server: {},
     req: { method: 'GET' },
     res: {},
     json: (data: any) => { payload = data; },

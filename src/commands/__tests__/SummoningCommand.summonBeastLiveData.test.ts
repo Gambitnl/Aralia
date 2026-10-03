@@ -55,9 +55,9 @@ describe('SummoningCommand live Summon Beast metadata bridge', () => {
     );
 
     expect(summonedActor).toBeDefined();
-    expect(summonedActor?.name).toBe('Bestial Spirit (Air)');
+    expect(summonedActor?.name).toBe('Bestial Spirit 1');
     expect(summonedActor?.summonMetadata?.formName).toBe('Air');
-    expect((summonedActor?.summonMetadata as any)?.visionLightSound?.notes).toContain('Flyby');
+    expect(summonedActor?.summonMetadata?.formTraits).toContainEqual(expect.objectContaining({ name: 'Flyby', appliesToForms: ['Air'] }));
     expect(summonedActor?.stats.extraMovementSpeeds).toEqual(expect.objectContaining({
       fly: 60
     }));

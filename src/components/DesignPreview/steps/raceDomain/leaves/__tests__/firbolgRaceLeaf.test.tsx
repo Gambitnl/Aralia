@@ -100,6 +100,8 @@ describe('Firbolg Race domain leaf', () => {
   it('rejects exhaustion atomically without spending the Bonus Action or changing status', () => {
     const baseline = createFirbolgHiddenStepScenario(FIRBOLG_DATA);
     const actor = baseline.actor!;
+    const hiddenStepResource = actor.limitedUses?.[FIRBOLG_HIDDEN_STEP_RESOURCE_ID];
+    if (!hiddenStepResource) throw new Error('Native Hidden Step resource is missing');
     const exhausted = {
       ...baseline,
       actor: {
@@ -107,7 +109,7 @@ describe('Firbolg Race domain leaf', () => {
         limitedUses: {
           ...actor.limitedUses,
           [FIRBOLG_HIDDEN_STEP_RESOURCE_ID]: {
-            ...actor.limitedUses?.[FIRBOLG_HIDDEN_STEP_RESOURCE_ID],
+            ...hiddenStepResource,
             current: 0,
           },
         },

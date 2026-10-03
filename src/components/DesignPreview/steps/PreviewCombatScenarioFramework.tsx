@@ -1,10 +1,10 @@
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 21/08/2026, 02:30:02
- * Dependents: components/DesignPreview/steps/PreviewCombatScenarios.tsx, components/DesignPreview/steps/classes/classesScenarioAdapter.tsx, components/DesignPreview/steps/raceDomain/raceFrameworkAdapter.tsx
+ * Last Sync: 04/10/2026, 00:42:28
+ * Dependents: components/DesignPreview/steps/PreviewCombatScenarios.tsx, components/DesignPreview/steps/classes/classesScenarioAdapter.tsx, components/DesignPreview/steps/raceDomain/raceFrameworkAdapter.tsx, components/DesignPreview/steps/spells/spellsFrameworkAdapter.tsx
  * Imports: 3 files
  *
  * MULTI-AGENT SAFETY:
@@ -236,9 +236,10 @@ export interface PreviewCombatScenarioAdapterRegistry {
   get: (domainId: string, scenarioId: string) => PreviewCombatScenarioAdapter | undefined;
 }
 
-export const definePreviewCombatScenarioAdapter = (
-  adapter: PreviewCombatScenarioAdapter,
-): PreviewCombatScenarioAdapter => adapter;
+// Preserve each domain's literal identity while validating the shared contract.
+export const definePreviewCombatScenarioAdapter = <T extends PreviewCombatScenarioAdapter,>(
+  adapter: T,
+): T => adapter;
 
 export const createPreviewCombatScenarioAdapterRegistry = (
   adapters: readonly PreviewCombatScenarioAdapter[],

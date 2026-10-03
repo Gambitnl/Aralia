@@ -152,6 +152,7 @@ describe('Gameplay Flow - Combat Initiative & Turn Order', () => {
       isSummon: true,
       summonMetadata: {
         casterId: 'wizard',
+        spellId: 'test-shared-summon',
         initiativePolicy: 'shared'
       }
     });
@@ -360,10 +361,10 @@ describe('Gameplay Flow - Status Durations & Death Saves', () => {
     const activeHero = createCombatant({ currentHP: 20 });
     const unconsciousHero = createCombatant({
       currentHP: 0,
-      statusEffects: [{ id: 'se-1', name: 'Unconscious', duration: 10, source: 'injury' }]
+      statusEffects: [{ id: 'se-1', name: 'Unconscious', type: 'debuff', duration: 10, source: 'injury' }]
     });
     const paralyzedHero = createCombatant({
-      conditions: [{ id: 'c-1', name: 'Paralyzed', duration: 2 }]
+      conditions: [{ name: 'Paralyzed', duration: { type: 'rounds', value: 2 }, appliedTurn: 0 }]
     });
 
     expect(isIncapacitated(activeHero)).toBe(false);

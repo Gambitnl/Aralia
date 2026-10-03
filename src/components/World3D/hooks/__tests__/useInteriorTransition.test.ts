@@ -47,7 +47,7 @@ describe('useInteriorTransition', () => {
       id: 'dungeon-crypt-1',
       sitePath: 'wf:42/cell:500/dungeon:crypt',
       cellId: 500,
-      entranceKind: 'dungeon',
+      entranceKind: 'ruin-door',
       xM: 50,
       zM: 50,
       discoveryRadiusM: 20,

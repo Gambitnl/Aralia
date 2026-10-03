@@ -73,7 +73,7 @@ function createFrameworkProps(
   return {
     domain: { domainId: 'host', domainLabel: 'Host' },
     scenario: { scenarioId: 'fixture', scenarioLabel: 'Fixture' },
-    mapData: { dimensions: { width: 1, height: 1 }, tiles: [] } as PreviewCombatScenarioFrameworkProps['mapData'],
+    mapData: { dimensions: { width: 1, height: 1 }, tiles: new Map(), theme: 'dungeon', seed: 0 },
     characters: [{ id: 'actor-1' }] as PreviewCombatScenarioFrameworkProps['characters'],
     combatState,
     renderMode: '2d',

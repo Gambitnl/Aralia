@@ -160,12 +160,12 @@ describe('Produce Flame bridge', () => {
       combatLog: []
     }))
     const hitTarget = hitState.characters.find(character => character.id === creatureTarget.id)
-    const hitLog = hitState.combatLog.find(entry => entry.data?.grantedAction === 'Hurl Flame')
+    const hitLog = hitState.combatLog.find(entry => entry.data?.grantedActionName === 'Hurl Flame' && entry.data?.isHit === true)
 
     expect(hitTarget?.currentHP).toBeLessThan(creatureTarget.currentHP)
     expect(hitLog?.data).toMatchObject({
       spellId: 'produce-flame',
-      grantedAction: 'Hurl Flame',
+      grantedActionName: 'Hurl Flame',
       grantedActionRangeLimit: 60,
       grantedActionDamageType: 'fire',
       isHit: true
@@ -178,12 +178,12 @@ describe('Produce Flame bridge', () => {
       combatLog: []
     }))
     const missTarget = missState.characters.find(character => character.id === creatureTarget.id)
-    const missLog = missState.combatLog.find(entry => entry.data?.grantedAction === 'Hurl Flame')
+    const missLog = missState.combatLog.find(entry => entry.data?.grantedActionName === 'Hurl Flame' && entry.data?.isHit === false)
 
     expect(missTarget?.currentHP).toBe(creatureTarget.currentHP)
     expect(missLog?.data).toMatchObject({
       spellId: 'produce-flame',
-      grantedAction: 'Hurl Flame',
+      grantedActionName: 'Hurl Flame',
       grantedActionDamageType: 'fire',
       isHit: false
     })

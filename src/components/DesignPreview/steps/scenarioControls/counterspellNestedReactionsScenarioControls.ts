@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 13/08/2026, 06:40:10
+ * Last Sync: 04/10/2026, 00:42:28
  * Dependents: components/DesignPreview/steps/PreviewCombatScenarios.tsx, components/DesignPreview/steps/scenarioControls/PreviewCombatScenarioControlRegistry.ts
- * Imports: 13 files
+ * Imports: 12 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -14,6 +14,7 @@
  */
 // @dependencies-end
 
+import { createMockSpellSlots } from '@/utils/core/factories';
 /**
  * This file owns the deterministic controls for Counterspell & Nested Reactions.
  *
@@ -172,15 +173,15 @@ function requireActors(
 }
 
 function createOriginalCasterSlots(): SpellSlots {
-  return {
+  return createMockSpellSlots({
     level_4: { current: 1, max: 1 },
-  };
+  });
 }
 
 function createCounterspellSlots(): SpellSlots {
-  return {
+  return createMockSpellSlots({
     level_3: { current: 1, max: 1 },
-  };
+  });
 }
 
 function readSlot(character: CombatCharacter, level: number): string {
@@ -319,13 +320,13 @@ function restoreInterruptedSpellSlot(
 
   return {
     ...caster,
-    spellSlots: {
+    spellSlots: createMockSpellSlots({
       ...caster.spellSlots,
       [slotKey]: {
         ...slot,
         current: slot.current + 1,
       },
-    },
+    }),
   };
 }
 
@@ -570,10 +571,10 @@ function resolveUnavailableCounterspell(
         used: true,
       },
     },
-    spellSlots: {
+    spellSlots: createMockSpellSlots({
       ...prepared.counterspeller.spellSlots,
       level_3: { current: 0, max: 1 },
-    },
+    }),
   });
   const unavailableActors = {
     ...prepared,

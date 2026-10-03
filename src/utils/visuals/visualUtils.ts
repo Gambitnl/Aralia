@@ -267,7 +267,7 @@ const TW_DND_TYPE_FALLBACK_MAP: Record<string, string> = {
     TW_DND_TYPE_FALLBACK_MAP[itemTypeKey] ||
     (item.isContainer ? 'assets/icons/tw-dnd/entity/pack.svg' : undefined) ||
     (item.slot === 'Ring1' || item.slot === 'Ring2' ? 'assets/icons/tw-dnd/entity/ring.svg' : undefined) ||
-    (item.slot === 'Amulet' ? 'assets/icons/tw-dnd/entity/magic-item.svg' : undefined) ||
+    (item.slot === 'Neck' ? 'assets/icons/tw-dnd/entity/magic-item.svg' : undefined) ||
     (item.slot === 'OffHand' ? 'assets/icons/tw-dnd/entity/armor.svg' : undefined) ||
     'assets/icons/tw-dnd/entity/item.svg';
 

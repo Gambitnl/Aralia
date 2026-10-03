@@ -23,7 +23,7 @@ import { rootSeedPath } from '../../../systems/worldforge/seedPath';
 import { RoutePlan } from '../../../systems/travel/routePlanning';
 import { GameState } from '../../../types';
 import { AppAction } from '../../../state/actionTypes';
-import { createMockGameState, createMockPlayerCharacter } from '../../../utils/core';
+import { createMockGameState, createMockPlayerCharacter, createMockFaction } from '../../../utils/core';
 import { canonicalDungeonId } from '../../../systems/worldforge/dungeon/world/deriveIdentity';
 
 // ============================================================================
@@ -153,9 +153,9 @@ describe('Gameplay Flow - World State & Exploration Transitions', () => {
       payload: {
         position: {
           xM: 142.5,
-          yM: 0,
-          zM: 88.0,
-          rotationDeg: 180
+          tileX: 0,
+          tileY: 0,
+          zM: 88.0
         }
       }
     };
@@ -164,9 +164,9 @@ describe('Gameplay Flow - World State & Exploration Transitions', () => {
 
     expect(nextState.playerGroundPos).toEqual({
       xM: 142.5,
-      yM: 0,
-      zM: 88.0,
-      rotationDeg: 180
+      tileX: 0,
+      tileY: 0,
+      zM: 88.0
     });
   });
 
@@ -224,8 +224,9 @@ describe('Gameplay Flow - World State & Exploration Transitions', () => {
         entity: {
           id: 'grove_moonlit',
           name: 'Moonlit Grove',
-          description: 'A secluded sanctuary bathed in eternal moonlight.',
-          type: 'sanctuary'
+          baseDescription: 'A secluded sanctuary bathed in eternal moonlight.',
+          biomeId: 'forest',
+          exits: {}, itemIds: [], npcIds: []
         }
       }
     };
@@ -239,13 +240,12 @@ describe('Gameplay Flow - World State & Exploration Transitions', () => {
       type: 'REGISTER_DYNAMIC_ENTITY',
       payload: {
         entityType: 'faction',
-        entity: {
+        entity: createMockFaction({
           id: 'wardens_of_the_green',
           name: 'Wardens of the Green',
           description: 'A secretive enclave of rangers.',
-          type: 'DRUIDIC_CIRCLE',
-          power: 45
-        }
+          type: 'SECRET_SOCIETY'
+        })
       }
     };
 

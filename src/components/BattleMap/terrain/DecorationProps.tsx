@@ -17,6 +17,23 @@
  *
  * @see docs/superpowers/specs/2026-05-21-3d-combat-map-design.md — "Decorations as 3D Props" section
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 04/10/2026, 00:42:28
+ * Dependents: components/BattleMap/terrain/index.ts
+ * Imports: 2 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import React, { useEffect, useMemo } from 'react';
 import * as THREE from 'three';
 import { BattleMapData, BattleMapDecoration, BattleMapTile } from '../../../types/combat';
@@ -549,6 +566,13 @@ function mergeGeometries(geometries: THREE.BufferGeometry[]): THREE.BufferGeomet
 // Prop type → geometry factory map
 // ---------------------------------------------------------------------------
 
+/** Authored cover remains visible at the same cell scale as other obstacles. */
+function createBarrierGeometry(height: number): PropGeometrySet[] {
+  const geometry = new THREE.BoxGeometry(0.95, height, 0.3);
+  geometry.translate(0, height / 2, 0);
+  return [{ geometry, material: new THREE.MeshStandardMaterial({ color: 0x73716b, roughness: 0.95 }) }];
+}
+
 const PROP_FACTORIES: Record<NonNullable<BattleMapDecoration>, () => PropGeometrySet[]> = {
   tree: createTreeGeometry,
   boulder: createBoulderGeometry,
@@ -559,6 +583,8 @@ const PROP_FACTORIES: Record<NonNullable<BattleMapDecoration>, () => PropGeometr
   fallen_log: createFallenLogGeometry,
   stump: createStumpGeometry,
   bush: createBushGeometry,
+  low_barrier: () => createBarrierGeometry(0.65),
+  high_wall: () => createBarrierGeometry(2.5),
 };
 
 // ---------------------------------------------------------------------------

@@ -1,3 +1,4 @@
+import { createMockSpellSlots } from '@/utils/core/factories';
 import { describe, it, expect } from 'vitest';
 import { ActionValidator, ActionValidationRequest } from '../ActionValidator';
 import { createMockCombatCharacter } from '../../../utils/core/factories';
@@ -13,28 +14,26 @@ function createTestBattleMap(width = 10, height = 10, blockers: { x: number; y: 
       const key = `${x}-${y}`;
       tiles.set(key, {
         coordinates: { x, y },
-        type: 'floor',
-        walkable: !blockerSet.has(key),
+        id: key,
+        terrain: 'floor',
+        elevation: 0,
+        movementCost: 5,
+        blocksMovement: blockerSet.has(key),
+        decoration: null,
+        effects: [],
         blocksLoS: blockerSet.has(key),
-        coverType: 'none',
         airspace: {
-          airAltitudeFeet: 0,
-          groundAltitudeFeet: 0,
-          ceilingAltitudeFeet: 30,
+          ceilingFeet: 30,
         },
       });
     }
   }
 
   return {
-    id: 'test-map',
-    name: 'Test Arena',
-    width,
-    height,
+    dimensions: { width, height },
+    theme: 'dungeon',
+    seed: 0,
     tiles,
-    decorations: [],
-    zones: [],
-    interactiveObjects: [],
   };
 }
 
@@ -57,7 +56,7 @@ describe('ActionValidator', () => {
     it('rejects actions when character is stunned', () => {
       const actor = createMockCombatCharacter({
         currentHP: 15,
-        conditions: ['stunned'],
+        conditions: [{ name: 'stunned', duration: { type: 'permanent' }, appliedTurn: 0 }],
       });
       const result = ActionValidator.validateConditionPrerequisites(actor);
       expect(result.isValid).toBe(false);
@@ -68,7 +67,7 @@ describe('ActionValidator', () => {
     it('rejects actions when character is paralyzed via statusEffects', () => {
       const actor = createMockCombatCharacter({
         currentHP: 15,
-        statusEffects: [{ id: 'paralyzed-1', name: 'Paralyzed', duration: 1 }],
+        statusEffects: [{ id: 'paralyzed-1', name: 'Paralyzed', type: 'debuff', duration: 1 }],
       });
       const result = ActionValidator.validateConditionPrerequisites(actor);
       expect(result.isValid).toBe(false);
@@ -78,7 +77,7 @@ describe('ActionValidator', () => {
     it('rejects verbal spellcasting when character is silenced', () => {
       const actor = createMockCombatCharacter({
         currentHP: 15,
-        conditions: ['silenced'],
+        conditions: [{ name: 'silenced', duration: { type: 'permanent' }, appliedTurn: 0 }],
       });
       const result = ActionValidator.validateConditionPrerequisites(actor, {
         components: { verbal: true, somatic: false, material: false },
@@ -91,7 +90,7 @@ describe('ActionValidator', () => {
     it('permits non-verbal spellcasting when character is silenced', () => {
       const actor = createMockCombatCharacter({
         currentHP: 15,
-        conditions: ['silenced'],
+        conditions: [{ name: 'silenced', duration: { type: 'permanent' }, appliedTurn: 0 }],
       });
       const result = ActionValidator.validateConditionPrerequisites(actor, {
         components: { verbal: false, somatic: true, material: false },
@@ -102,7 +101,7 @@ describe('ActionValidator', () => {
     it('rejects actions requiring sight when character is blinded', () => {
       const actor = createMockCombatCharacter({
         currentHP: 15,
-        conditions: ['blinded'],
+        conditions: [{ name: 'blinded', duration: { type: 'permanent' }, appliedTurn: 0 }],
       });
       const result = ActionValidator.validateConditionPrerequisites(actor, {
         requiresSight: true,
@@ -114,7 +113,7 @@ describe('ActionValidator', () => {
     it('rejects movement when character is grappled or restrained', () => {
       const actor = createMockCombatCharacter({
         currentHP: 15,
-        conditions: ['restrained'],
+        conditions: [{ name: 'restrained', duration: { type: 'permanent' }, appliedTurn: 0 }],
       });
       const result = ActionValidator.validateConditionPrerequisites(actor, {
         actionCost: { type: 'movement-only', movementCost: 15 },
@@ -167,10 +166,10 @@ describe('ActionValidator', () => {
 
     it('validates spell slots and allows Dev Playtest override', () => {
       const actor = createMockCombatCharacter({
-        spellSlots: {
+        spellSlots: createMockSpellSlots({
           level_1: { current: 1, max: 2 },
           level_2: { current: 0, max: 1 },
-        },
+        }),
       });
 
       // Level 1 slot is available
@@ -344,7 +343,7 @@ describe('ActionValidator', () => {
     it('validates a complete legal action request', () => {
       const actor = createMockCombatCharacter({
         position: { x: 1, y: 1 },
-        spellSlots: { level_1: { current: 2, max: 4 } },
+        spellSlots: createMockSpellSlots({ level_1: { current: 2, max: 4 } }),
       });
       const enemy = createMockCombatCharacter({
         id: 'orc-1',
@@ -373,7 +372,7 @@ describe('ActionValidator', () => {
     it('rejects action request early when prerequisite condition fails', () => {
       const actor = createMockCombatCharacter({
         position: { x: 1, y: 1 },
-        conditions: ['unconscious'],
+        conditions: [{ name: 'unconscious', duration: { type: 'permanent' }, appliedTurn: 0 }],
       });
       const enemy = createMockCombatCharacter({
         id: 'orc-1',

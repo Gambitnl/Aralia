@@ -34,7 +34,8 @@ describe('SummoningCommand live Unseen Servant command bridge', () => {
 
     // Use the live spell packet so this proof fails if future data loses the
     // structured summon or duration fields.
-    const summonEffect = (unseenServant.effects[0] as unknown) as SummoningEffect;
+    const summonEffect = unseenServant.effects.find(effect => effect.type === 'SUMMONING') as unknown as SummoningEffect;
+    expect(summonEffect).toBeDefined();
     const context = {
       spellId: unseenServant.id,
       spellName: unseenServant.name,

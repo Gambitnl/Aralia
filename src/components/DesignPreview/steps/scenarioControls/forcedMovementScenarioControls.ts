@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 13/08/2026, 16:00:58
+ * Last Sync: 04/10/2026, 00:42:28
  * Dependents: components/DesignPreview/steps/scenarioControls/PreviewCombatScenarioControlRegistry.ts
- * Imports: 6 files
+ * Imports: 7 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -14,6 +14,7 @@
  */
 // @dependencies-end
 
+import { createMockSpellSlots } from '@/utils/core/factories';
 /**
  * This file owns the deterministic controls for CS09 Forced Movement.
  *
@@ -276,10 +277,10 @@ function prepareCharacters(
         team: 'player' as const,
         position: { ...starts.caster },
         initiative: 20,
-        spellSlots: {
+        spellSlots: createMockSpellSlots({
           ...readyCaster.spellSlots,
           level_1: { current: 1, max: 1 },
-        },
+        }),
         abilities: [
           ...readyCaster.abilities.filter(ability => ability.id !== FORCED_MOVEMENT_ABILITY_ID),
           forceAbility,

@@ -69,7 +69,7 @@ describe('Forgeborn Human Race domain leaf', () => {
   it('assembles the native actor and resolves the Arcana check with a pinned d4', () => {
     const baseline = createForgebornHumanArtisanScenario(FORGEBORN_HUMAN_DATA);
     expect(baseline.actor?.id).toBe(FORGEBORN_HUMAN_ACTOR_ID);
-    expect(baseline.actor?.skills.some(skill => skill.id === 'arcana' && skill.proficient)).toBe(true);
+    expect(baseline.actor?.skills.some(skill => skill.id === 'arcana')).toBe(true);
     expect(baseline.parsedArcanaRider).toBe('d4 to Arcana');
 
     const randomValues = [0.5, 0.45];

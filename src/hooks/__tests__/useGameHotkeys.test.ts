@@ -15,12 +15,12 @@ import { GamePhase } from '../../types';
 import type { AppAction } from '../../state/actionTypes';
 
 describe('useGameHotkeys', () => {
-  let dispatch: ReturnType<typeof vi.fn>;
-  let onAction: ReturnType<typeof vi.fn>;
+  let dispatch: ReturnType<typeof vi.fn<(action: AppAction) => void>>;
+  let onAction: ReturnType<typeof vi.fn<NonNullable<Parameters<typeof useGameHotkeys>[0]['onAction']>>>;
 
   beforeEach(() => {
     dispatch = vi.fn<(action: AppAction) => void>();
-    onAction = vi.fn();
+    onAction = vi.fn<NonNullable<Parameters<typeof useGameHotkeys>[0]['onAction']>>();
   });
 
   afterEach(() => {
@@ -73,7 +73,7 @@ describe('useGameHotkeys', () => {
 
     expect(dispatch).toHaveBeenCalledWith({
       type: 'OPEN_CHARACTER_SHEET',
-      payload: { character: mockCharacter },
+      payload: mockCharacter,
     });
   });
 

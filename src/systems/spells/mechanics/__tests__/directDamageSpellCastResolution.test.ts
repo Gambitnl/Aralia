@@ -1,3 +1,4 @@
+import { createMockSpellSlots } from '@/utils/core/factories';
 /**
  * This file proves the live damage-spell transaction is atomic.
  *
@@ -39,7 +40,7 @@ function createTile(x: number, y: number): BattleMapTile {
   return {
     id: `${x}-${y}`,
     coordinates: { x, y },
-    terrain: 'stone',
+    terrain: 'rock',
     elevation: 0,
     movementCost: 1,
     blocksLoS: false,
@@ -77,10 +78,10 @@ function createActors(): CombatCharacter[] {
     level: 7,
     position: { x: 4, y: 5 },
     spellcastingAbility: 'intelligence',
-    spellSlots: {
+    spellSlots: createMockSpellSlots({
       level_3: { current: 1, max: 1 },
       level_4: { current: 1, max: 1 },
-    },
+    }),
   });
   caster.stats.intelligence = 18;
   const fireball = createDamageSpellCastAction(FIREBALL, caster, 3);

@@ -302,7 +302,7 @@ describe('Lock System', () => {
     });
 
     it('resolves attemptLockpick from the supplied face and rolls nothing', () => {
-      const char = createDummyCharacter({ classes: [{ ...rogueClass, level: 1 }] } as Partial<PlayerCharacter>);
+      const char = createDummyCharacter({ classes: [rogueClass], classLevels: { [rogueClass.id]: 1 } } as Partial<PlayerCharacter>);
       const result = attemptLockpick(char, lock, [thievesTools], 18);
       expect(diceRollers.rollDice).not.toHaveBeenCalled();
       expect(result.margin).toBe(18 + 2 + (char.proficiencyBonus ?? 0) - lock.dc);
@@ -316,7 +316,7 @@ describe('Lock System', () => {
     });
 
     it('resolves disarmTrap from the supplied face and rolls nothing', () => {
-      const char = createDummyCharacter({ classes: [{ ...rogueClass, level: 1 }] } as Partial<PlayerCharacter>);
+      const char = createDummyCharacter({ classes: [rogueClass], classLevels: { [rogueClass.id]: 1 } } as Partial<PlayerCharacter>);
       const result = disarmTrap(char, trap, [thievesTools], 16);
       expect(diceRollers.rollDice).not.toHaveBeenCalled();
       expect(result.margin).toBe(16 + 2 + (char.proficiencyBonus ?? 0) - trap.disarmDC);

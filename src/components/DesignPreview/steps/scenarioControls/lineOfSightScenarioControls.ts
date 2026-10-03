@@ -358,7 +358,8 @@ function prepareCharacters(
         conditions.push({
           name: 'Invisible',
           source: 'CS07 visibility case',
-          duration: 999,
+          duration: { type: 'permanent' },
+          appliedTurn: 0,
         });
       }
 

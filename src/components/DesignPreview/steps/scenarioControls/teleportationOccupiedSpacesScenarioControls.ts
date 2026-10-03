@@ -3,8 +3,8 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 12/08/2026, 01:37:42
- * Dependents: components/DesignPreview/steps/scenarioControls/PreviewCombatScenarioControlRegistry.ts
+ * Last Sync: 04/10/2026, 00:42:28
+ * Dependents: components/DesignPreview/steps/PreviewCombatScenarios.tsx, components/DesignPreview/steps/scenarioControls/PreviewCombatScenarioControlRegistry.ts
  * Imports: 7 files
  *
  * MULTI-AGENT SAFETY:
@@ -14,6 +14,7 @@
  */
 // @dependencies-end
 
+import { createMockSpellSlots } from '@/utils/core/factories';
 /**
  * This file owns the deterministic Teleportation & Occupied Spaces board.
  *
@@ -132,7 +133,7 @@ function prepareActors(
     position: { ...casterPosition },
     team: 'player',
     stats: { ...found.caster.stats, size: 'Large', baseInitiative: 20 },
-    spellSlots: { level_2: { current: 1, max: 1 } },
+    spellSlots: createMockSpellSlots({ level_2: { current: 1, max: 1 } }),
     abilities: [],
     statusEffects: [],
     conditions: [],
@@ -191,7 +192,7 @@ function updateTile(
 export function prepareTeleportationOccupiedSpacesMapData(
   mapData: BattleMapData,
 ): BattleMapData {
-  let prepared = { ...mapData, tiles: new Map(mapData.tiles), theme: 'dungeon' as const };
+  let prepared: BattleMapData = { ...mapData, tiles: new Map(mapData.tiles), theme: 'dungeon' as const };
 
   // A four-cell mud strip makes the ordinary 40-foot walking price visible.
   // Misty Step crosses it without charging any movement.

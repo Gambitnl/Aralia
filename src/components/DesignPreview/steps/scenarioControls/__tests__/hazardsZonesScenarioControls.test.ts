@@ -214,7 +214,7 @@ describe('hazardsZonesScenarioControls', () => {
           ? tracker.processStartTurn(target, 1)
           : tracker.processEndTurn(target, 1);
 
-    expect(results).toHaveLength(1);
+    expect(results).toHaveLength(phase === 'enter' || phase === 'leave' ? 2 : 1);
     expect(results[0]).toMatchObject({ triggered: true, triggerType });
     expect(results[0].effects[0]).toMatchObject({
       type: 'damage',
@@ -224,7 +224,7 @@ describe('hazardsZonesScenarioControls', () => {
       saveType: 'Dexterity',
       saveEffect: 'half',
     });
-    expect(results[0].effects.some(effect => effect.statusName === 'Ignited')).toBe(
+    expect(results.flatMap(result => result.effects).some(effect => effect.statusName === 'Ignited')).toBe(
       phase === 'enter' || phase === 'leave',
     );
   });
@@ -236,7 +236,9 @@ describe('hazardsZonesScenarioControls', () => {
     const tracker = new AreaEffectTracker([zone]);
 
     const results = tracker.handleMovement(target, { x: 6, y: 5 }, { x: 5, y: 5 }, 1);
-    expect(results[0].effects).toEqual([
+    // The tracker keeps a receipt per source effect so their frequency claims
+    // stay independent. Both authored payloads still cross this boundary.
+    expect(results.flatMap(result => result.effects)).toEqual([
       expect.objectContaining({ type: 'damage', damageType: 'fire' }),
       expect.objectContaining({ type: 'status_condition', statusName: 'Ignited' }),
     ]);

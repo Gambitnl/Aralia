@@ -27,7 +27,6 @@ const mockLineages: ElvenLineage[] = [
     id: 'drow',
     name: 'Drow',
     description: 'Dwellers of the Underdark with innate magical darkness.',
-    traits: ['Superior Darkvision'],
     benefits: [
       { level: 1, description: 'Darkvision 120ft and dancing lights cantrip', cantripId: 'dancing_lights' },
       { level: 3, description: 'Faerie Fire spell' },
@@ -38,7 +37,6 @@ const mockLineages: ElvenLineage[] = [
     id: 'high_elf',
     name: 'High Elf',
     description: 'Scholarly aristocrats with a focus on arcane study.',
-    traits: ['Arcane Heritage'],
     benefits: [
       { level: 1, description: 'One wizard cantrip of your choice', cantripId: 'prestidigitation' },
       { level: 3, description: 'Detect Magic spell' },
@@ -49,7 +47,6 @@ const mockLineages: ElvenLineage[] = [
     id: 'wood_elf',
     name: 'Wood Elf',
     description: 'Keen-eyed guardians of the deep forests.',
-    traits: ['Fleet of Foot'],
     benefits: [
       { level: 1, description: 'Druidcraft cantrip and 35ft movement speed', cantripId: 'druidcraft' },
       { level: 3, description: 'Longstrider spell' },

@@ -1,19 +1,3 @@
-// @dependencies-start
-/**
- * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
- *
- * Last Sync: 26/08/2026, 16:48:51
- * Dependents: systems/actions/index.ts
- * Imports: 4 files
- *
- * MULTI-AGENT SAFETY:
- * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
- * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
- */
-// @dependencies-end
-
 /**
  * This file validates whether a character can perform an action before executing it.
  *
@@ -28,6 +12,22 @@
  * Depends on: combat character types, line-of-sight spatial math, and action economy utilities.
  */
 
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 04/10/2026, 00:42:29
+ * Dependents: hooks/combat/useCombatValidation.ts, systems/actions/index.ts
+ * Imports: 4 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import {
   CombatCharacter,
   CombatState,
@@ -39,7 +39,7 @@ import {
   ActiveCondition,
   TargetableMapObject
 } from '../../types/combat';
-import { Spell, SpellComponents } from '../../types/spells';
+import { Spell, Components as SpellComponents } from '../../types/spells';
 import { hasLineOfSight } from '../../utils/spatial/lineOfSight';
 import { getBattleMapTileAltitudeFeet, getCombatDistanceFeet } from '../../utils/spatial/elevationGeometry';
 
@@ -155,7 +155,8 @@ function getActiveConditionNames(character: CombatCharacter): Set<string> {
 
   // Check new active conditions array
   if (Array.isArray(character.conditions)) {
-    for (const cond of character.conditions) {
+    // Older saves may still contain string conditions; canonical actors use objects.
+    for (const cond of character.conditions as Array<ActiveCondition | string>) {
       if (typeof cond === 'string') {
         names.add(cond.toLowerCase());
       } else if (cond && typeof cond === 'object' && 'name' in cond && typeof (cond as ActiveCondition).name === 'string') {
@@ -428,7 +429,7 @@ export class ActionValidator {
     // 3. Spell Slot Check (with Dev Playtest bypass support)
     const hasUnlimitedSlots = Boolean((actor as unknown as { devPlaytest?: { unlimitedSpellSlots?: boolean } })?.devPlaytest?.unlimitedSpellSlots);
     if (!hasUnlimitedSlots && cost.spellSlotLevel && cost.spellSlotLevel > 0) {
-      const slotKey = `level_${cost.spellSlotLevel}` as const;
+      const slotKey = `level_${cost.spellSlotLevel}` as keyof NonNullable<CombatCharacter['spellSlots']>;
       const slotData = actor.spellSlots?.[slotKey];
       if (!slotData || slotData.current <= 0) {
         return {
@@ -553,7 +554,7 @@ export class ActionValidator {
         };
       }
 
-      const isHostile = target.isEnemy ?? (targetChar.team ? targetChar.team !== actor.team : targetChar.isEnemy !== actor.isEnemy);
+      const isHostile = target.isEnemy ?? (targetChar.team !== actor.team);
 
       if (allowedKinds.includes('enemy') && isHostile) {
         return { isValid: true };

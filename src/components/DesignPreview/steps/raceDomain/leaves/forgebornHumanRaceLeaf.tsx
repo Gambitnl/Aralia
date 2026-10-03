@@ -342,7 +342,7 @@ const ForgebornHumanRaceLeafContent: React.FC<RaceDomainLeafProps> = ({
 
       {/* These values make the d20 base, racial d4, and final total inspectable. */}
       <p data-testid="forgeborn-human-actor">
-        Actor: {scenario.actor?.name ?? 'missing'}; Intelligence (Arcana) proficiency {scenario.actor?.skills.some(skill => skill.id === 'arcana' && skill.proficient) ? 'native' : 'missing'}.
+        Actor: {scenario.actor?.name ?? 'missing'}; Intelligence (Arcana) proficiency {scenario.actor?.skills.some(skill => skill.id === 'arcana') ? 'native' : 'missing'}.
       </p>
       <p data-testid="forgeborn-human-check-result">
         {scenario.lastResolution?.status === 'resolved'

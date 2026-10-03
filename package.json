@@ -100,7 +100,8 @@
     "docs:dev": "vitepress dev docs-site --port 3020",
     "docs:build": "npm run docs:api && vitepress build docs-site",
     "docs:preview": "vitepress preview docs-site --port 3021",
-    "docs:api": "typedoc"
+    "docs:api": "typedoc",
+    "test:node": "node scripts/ci/run-node-tests.mjs"
   },
   "dependencies": {
     "@3d-dice/dice-box": "^1.1.4",

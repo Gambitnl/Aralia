@@ -1,3 +1,4 @@
+import { createMockSpellSlots } from '@/utils/core/factories';
 /**
  * This file proves the Teleportation & Occupied Spaces controls stay engine-backed.
  *
@@ -77,7 +78,7 @@ function createSnapshot(): PreviewCombatScenarioControlSnapshot {
       id: TELEPORTATION_CASTER_ID,
       name: 'Misty Vanguard',
       position: TELEPORTATION_CASTER_START,
-      spellSlots: { level_2: { current: 1, max: 1 } },
+      spellSlots: createMockSpellSlots({ level_2: { current: 1, max: 1 } }),
     }),
     createMockCombatCharacter({
       id: TELEPORTATION_WARDEN_ID,

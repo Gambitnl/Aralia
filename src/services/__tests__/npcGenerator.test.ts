@@ -388,8 +388,8 @@ describe('NPC Generator', () => {
       worldSeed: 4242,
     };
 
-    const bodyOf = (npc: { visual: { description: string } }) =>
-      npc.visual.description.match(/\(([^)]*lbs)\)/)?.[1];
+    const bodyOf = (npc: { visual?: { description?: string } }) =>
+      npc.visual?.description?.match(/\(([^)]*lbs)\)/)?.[1];
 
     it('gives the same npc the same height and weight across runs', () => {
       const a = bodyOf(generateNPC(bodyConfig));

@@ -165,7 +165,7 @@ function prepareActors(
   actors: MultiattackActors,
   request: ScenarioSequenceRequest,
 ): MultiattackActors {
-  const preparedAttacker = {
+  const preparedAttacker: CombatCharacter = {
     ...actors.attacker,
     name: 'Venom Drake (Multiattack · +6)',
     level: 5,

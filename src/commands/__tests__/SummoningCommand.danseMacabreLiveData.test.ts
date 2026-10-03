@@ -36,6 +36,11 @@ describe('UtilityCommand live Danse Macabre controlled-undead bridge', () => {
       castAtLevel: 5,
       caster,
       targets: [],
+      playerInput: {
+        undeadForms: ['Skeleton', 'Zombie'],
+        corpseIds: ['skeleton-corpse', 'zombie-corpse'],
+        positions: [{ x: 5, y: 4 }, { x: 5, y: 5 }],
+      },
       gameState: {}
     } as unknown as CommandContext
 

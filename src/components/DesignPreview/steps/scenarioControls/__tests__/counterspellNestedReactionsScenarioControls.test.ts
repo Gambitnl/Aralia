@@ -1,3 +1,4 @@
+import { createMockSpellSlots } from '@/utils/core/factories';
 /**
  * This file proves the Counterspell & Nested Reactions controls use canonical
  * combat state instead of a teaching-only stack ledger.
@@ -41,9 +42,9 @@ function createSnapshot(): PreviewCombatScenarioControlSnapshot {
     position: { ...COUNTERSPELL_NESTED_ORIGINAL_START },
     level: 7,
     spellcastingAbility: 'intelligence',
-    spellSlots: {
+    spellSlots: createMockSpellSlots({
       level_4: { current: 1, max: 1 },
-    },
+    }),
   });
   const counterspeller = createMockCombatCharacter({
     id: COUNTERSPELL_NESTED_COUNTERSPELLER_ID,
@@ -52,9 +53,9 @@ function createSnapshot(): PreviewCombatScenarioControlSnapshot {
     currentHP: COUNTERSPELL_NESTED_TARGET_HP,
     maxHP: COUNTERSPELL_NESTED_TARGET_HP,
     spellcastingAbility: 'intelligence',
-    spellSlots: {
+    spellSlots: createMockSpellSlots({
       level_3: { current: 1, max: 1 },
-    },
+    }),
   });
   const nestedResponder = createMockCombatCharacter({
     id: COUNTERSPELL_NESTED_RESPONDER_ID,
@@ -62,9 +63,9 @@ function createSnapshot(): PreviewCombatScenarioControlSnapshot {
     position: { ...COUNTERSPELL_NESTED_RESPONDER_START },
     level: 7,
     spellcastingAbility: 'intelligence',
-    spellSlots: {
+    spellSlots: createMockSpellSlots({
       level_3: { current: 1, max: 1 },
-    },
+    }),
   });
 
   return {

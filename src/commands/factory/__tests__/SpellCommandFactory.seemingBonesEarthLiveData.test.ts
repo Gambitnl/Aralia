@@ -48,6 +48,8 @@ const makeCharacter = (id: string, overrides: Partial<CombatCharacter> = {}): Co
     id,
     name: id,
     level: 11,
+    currentHP: 60,
+    maxHP: 60,
     team: 'player',
     stats: {
       strength: 10,
@@ -58,8 +60,6 @@ const makeCharacter = (id: string, overrides: Partial<CombatCharacter> = {}): Co
       charisma: 18,
       baseInitiative: 0,
       speed: 30,
-      hp: 60,
-      maxHp: 60,
       cr: '1',
       creatureTypes: ['Humanoid'],
       size: 'Medium'
@@ -96,7 +96,7 @@ describe('Seeming live data execution bridge', () => {
     expect(commands[0].metadata.effectType).toBe('seeming_disguise')
 
     const initialState = makeState([caster, ally])
-    const finalState = commands[0].execute(initialState)
+    const finalState = await commands[0].execute(initialState)
 
     const updatedAlly = finalState.characters.find(c => c.id === 'ally')
     expect(updatedAlly?.statusEffects?.some(s => s.name === 'Disguised (Seeming)')).toBe(true)
@@ -121,7 +121,7 @@ describe('Seeming live data execution bridge', () => {
     )
 
     const initialState = makeState([caster, enemy])
-    const finalState = commands[0].execute(initialState)
+    const finalState = await commands[0].execute(initialState)
 
     const updatedEnemy = finalState.characters.find(c => c.id === 'enemy')
     expect(updatedEnemy?.statusEffects?.some(s => s.name === 'Disguised (Seeming)')).toBe(false)
@@ -146,7 +146,7 @@ describe('Seeming live data execution bridge', () => {
     )
 
     const initialState = makeState([caster, enemy])
-    const finalState = commands[0].execute(initialState)
+    const finalState = await commands[0].execute(initialState)
 
     const updatedEnemy = finalState.characters.find(c => c.id === 'enemy')
     const disguise = updatedEnemy?.statusEffects?.find(s => s.name === 'Disguised (Seeming)')
@@ -180,7 +180,7 @@ describe('Bones of the Earth live data execution bridge', () => {
     expect(commands[0].metadata.effectType).toBe('bones_of_the_earth_pillar')
 
     const initialState = makeState([caster, ally])
-    const finalState = commands[0].execute(initialState)
+    const finalState = await commands[0].execute(initialState)
 
     const liftLog = finalState.combatLog.find(log => log.message.includes('voluntarily fails the Dexterity save') && log.message.includes('lifted'))
     expect(liftLog).toBeDefined()
@@ -201,7 +201,7 @@ describe('Bones of the Earth live data execution bridge', () => {
     )
 
     const initialState = makeState([caster, enemy])
-    const finalState = commands[0].execute(initialState)
+    const finalState = await commands[0].execute(initialState)
 
     const avoidLog = finalState.combatLog.find(log => log.message.includes('succeeds the Dexterity save') && log.message.includes('avoids'))
     expect(avoidLog).toBeDefined()
@@ -211,7 +211,7 @@ describe('Bones of the Earth live data execution bridge', () => {
     vi.spyOn(Math, 'random').mockReturnValue(0.05)
 
     const caster = makeCharacter('caster', { team: 'player' })
-    const enemy = makeCharacter('enemy', { team: 'enemy', currentHp: 50 })
+    const enemy = makeCharacter('enemy', { team: 'enemy', currentHP: 50 })
 
     const commands = await SpellCommandFactory.createCommands(
       bonesOfTheEarth as unknown as Spell,
@@ -223,10 +223,10 @@ describe('Bones of the Earth live data execution bridge', () => {
     )
 
     const initialState = makeState([caster, enemy])
-    const finalState = commands[0].execute(initialState)
+    const finalState = await commands[0].execute(initialState)
 
     const updatedEnemy = finalState.characters.find(c => c.id === 'enemy')
-    expect(updatedEnemy?.currentHp).toBeLessThan(50)
+    expect(updatedEnemy?.currentHP).toBeLessThan(50)
     expect(updatedEnemy?.statusEffects?.some(s => s.name === 'Restrained')).toBe(true)
 
     const crushLog = finalState.combatLog.find(log => log.message.includes('crushed against an obstacle') && log.message.includes('Restrained'))
@@ -242,7 +242,8 @@ describe('Concentration zone and emanation teardown', () => {
         spellName: 'Flaming Sphere',
         spellLevel: 2,
         startedTurn: 1,
-        effectIds: []
+        effectIds: [],
+        canDropAsFreeAction: true
       }
     })
 

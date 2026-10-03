@@ -1,3 +1,4 @@
+import { createMockSpellSlots } from '@/utils/core/factories';
 /**
  * This file proves the Healing & Temporary HP controls use canonical HP rules.
  *
@@ -59,7 +60,7 @@ function createSnapshot(): PreviewCombatScenarioControlSnapshot {
         name: 'Field Cleric',
         team: 'player',
         position: { ...HEALING_TEMP_HP_HEALER_START },
-        spellSlots: { level_1: { current: 3, max: 3 } },
+        spellSlots: createMockSpellSlots({ level_1: { current: 3, max: 3 } }),
       }),
       createMockCombatCharacter({
         id: HEALING_TEMP_HP_ALLY_ID,

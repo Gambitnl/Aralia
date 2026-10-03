@@ -1,3 +1,20 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 04/10/2026, 00:42:29
+ * Dependents: components/Economy/index.ts, components/layout/GameModals.tsx
+ * Imports: 6 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
+import { parseCost } from '../../utils/economy/economyUtils';
 /**
  * This file renders the Merchant Shop and Trading interface (ShopModal).
  *
@@ -85,7 +102,7 @@ export const ShopModal: React.FC<ShopModalProps> = ({
     const playerSellableItems = useMemo(() => {
         return (state.inventory || []).filter(item => {
             if (!item || !item.id) return false;
-            return item.type !== 'quest';
+            return !item.questHooks;
         });
     }, [state.inventory]);
 
@@ -93,7 +110,7 @@ export const ShopModal: React.FC<ShopModalProps> = ({
 
     // Helper to calculate numeric gold cost from an item's value or cost string
     const getItemGoldCost = (item: Item): number => {
-        if (item.value) return item.value;
+        if (item.value) return typeof item.value === 'number' ? item.value : parseCost(item.value);
         if (typeof item.cost === 'string') {
             const num = parseFloat(item.cost.split(' ')[0] || '1');
             return Math.max(1, Math.round(num));

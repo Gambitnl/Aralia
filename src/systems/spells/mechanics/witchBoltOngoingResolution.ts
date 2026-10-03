@@ -69,7 +69,7 @@ const REPEAT_DAMAGE_EFFECT = WITCH_BOLT.effects.find((effect): effect is DamageE
   isDamageEffect(effect) && effect.trigger?.type === 'on_caster_action'
 ));
 
-export const WITCH_BOLT_RANGE_FEET = WITCH_BOLT.targeting.range
+export const WITCH_BOLT_RANGE_FEET = ('range' in WITCH_BOLT.targeting ? WITCH_BOLT.targeting.range : undefined)
   ?? WITCH_BOLT.range.distance
   ?? 0;
 export const WITCH_BOLT_DURATION_ROUNDS = WITCH_BOLT.duration.unit === 'minute'

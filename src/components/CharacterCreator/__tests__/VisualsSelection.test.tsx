@@ -24,6 +24,7 @@ const mockVisuals: CharacterVisualConfig = {
   gender: 'Male',
   skinColor: 1,
   hairStyle: 'Hair1',
+  hairColor: '#3b2518',
   clothing: 'Shirt',
 };
 

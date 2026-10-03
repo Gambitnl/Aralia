@@ -1,3 +1,4 @@
+import { createMockSpellSlots } from '@/utils/core/factories';
 /**
  * This file proves exact-destination teleportation uses canonical combat truth.
  *
@@ -103,7 +104,7 @@ function createCaster(position = START): CombatCharacter {
     id: CASTER_ID,
     name: 'Large Misty Vanguard',
     position: { ...position },
-    spellSlots: { level_2: { current: 1, max: 1 } },
+    spellSlots: createMockSpellSlots({ level_2: { current: 1, max: 1 } }),
   });
   return {
     ...caster,

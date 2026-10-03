@@ -534,7 +534,7 @@ describe('Resistance complete transaction controls', () => {
 
     expect(target.currentHP).toBe(60);
     expect(target.tempHP).toBe(3);
-    expect(target.temporaryHitPointSource).toBe('CS06 Buffer');
+    expect(target.temporaryHitPointSource).toEqual({ spellId: 'cs06-buffer', spellName: 'CS06 Buffer', casterId: target.id });
     expect(owner.currentHP).toBe(40);
     expect(owner.actionEconomy.action).toEqual({ used: false, remaining: 1 });
     expect(owner.deathSaves).toBeUndefined();

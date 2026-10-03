@@ -32,7 +32,7 @@ import { applyMovementCostModifiers, calculateJumpDistance, type MovementConfig 
 
 export const FAST_HANDS_FEATURE_ID = 'fast_hands';
 export const SECOND_STORY_WORK_FEATURE_ID = 'second_story_work';
-export const CUNNING_ACTION_COST: 'bonus_action' = 'bonus_action';
+export const CUNNING_ACTION_COST = 'bonus_action' as const;
 
 // ============================================================================
 // Fast Hands

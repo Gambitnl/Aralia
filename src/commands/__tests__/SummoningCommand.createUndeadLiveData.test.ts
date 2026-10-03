@@ -63,8 +63,7 @@ describe('UtilityCommand live Create Undead controlled-undead bridge', () => {
       control: expect.objectContaining({
         entityType: 'controlled_undead',
         source: 'create-undead',
-        reassertIntervalHours: 24,
-        controlledActorIds: expect.arrayContaining([createdGhouls[0].id])
+        restrictions: expect.arrayContaining(['control_duration_24_hours', 'recast_before_expiry_to_reassert_control'])
       })
     }));
 

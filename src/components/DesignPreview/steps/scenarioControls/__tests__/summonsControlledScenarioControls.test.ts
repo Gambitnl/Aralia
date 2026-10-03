@@ -54,7 +54,7 @@ function createMap(): BattleMapData {
       });
     }
   }
-  return { dimensions: { width: 16, height: 12 }, tiles, theme: 'dungeon' };
+  return { dimensions: { width: 16, height: 12 }, tiles, theme: 'dungeon', seed: 0 };
 }
 
 function createSnapshot(): PreviewCombatScenarioControlSnapshot {

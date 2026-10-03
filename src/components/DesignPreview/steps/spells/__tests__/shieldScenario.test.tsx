@@ -126,11 +126,11 @@ describe('Shield preview boundaries', () => {
 
   it('keeps Magic Missile as a precise unproven boundary', () => {
     const shield = shieldData as Spell;
-    const magicMissileRow = shield.effects.find(effect =>
+    const magicMissileRow = shield.effects.find((effect): effect is import('@/types/spells').DefensiveEffect =>
       effect.type === 'DEFENSIVE' &&
       effect.defenseType === 'immunity' &&
       effect.reactionTrigger?.event === 'when_targeted' &&
-      effect.reactionTrigger.includesSpells?.includes('magic-missile'),
+      effect.reactionTrigger.includesSpells?.includes('magic-missile') === true,
     );
 
     // The data and DefensiveCommand force-immunity seam exist, but this leaf

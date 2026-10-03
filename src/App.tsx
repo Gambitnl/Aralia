@@ -2184,7 +2184,7 @@ const App: React.FC = () => {
         onAbandonRun={handleAbandonRun}
         onOpenWorldGeneration={handleOpenWorldGenerationFromMainMenu}
         isWorldGenerationLocked={!canRegenerateWorldMap}
-        worldGenerationLockedReason={worldGenerationLockedReason}
+        worldGenerationLockedReason={worldGenerationLockedReason ?? undefined}
         // The main-menu Dev Menu button now reuses the same shared modal as gameplay,
         // but it preserves the current Dev Mode flag instead of force-enabling it.
         onOpenDevMenu={handleOpenDevMenuFromMainMenu}
@@ -2307,7 +2307,7 @@ const App: React.FC = () => {
           addMessage(
             result === "victory"
               ? "Victory! The enemies are defeated."
-              : "Defeat! The party has fallen.",
+              : result === "flee" ? "The party retreats from battle." : "Defeat! The party has fallen.",
             "system",
           );
           // Source-authored enemy results settle before combat teardown so

@@ -5,6 +5,22 @@
  * Generated from public/data/glossary/entries/equipment and magic_items.
  */
 
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * This file appears to be an ISOLATED UTILITY or ORPHAN.
+ *
+ * Last Sync: 04/10/2026, 00:42:29
+ * Dependents: None (Orphan)
+ * Imports: None
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import { Item, ItemRarity } from '../../types/index.js';
 
 export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
@@ -550,7 +566,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
   "bag_of_holding": {
     "id": "bag_of_holding",
     "name": "Bag of Holding",
-    "description": "This bag has an interior space considerably larger than its outside dimensions—roughly 2 feet square and 4 feet deep on the inside. The bag can hold u...",
+    "description": "This bag has an interior space considerably larger than its outside dimensions-roughly 2 feet square and 4 feet deep on the inside. The bag can hold u...",
     "type": "accessory",
     "icon": "/assets/icons/items/bag_of_holding.svg",
     "weight": 5,
@@ -1561,7 +1577,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
   },
   "carpet_of_flying_3_ft_5_ft": {
     "id": "carpet_of_flying_3_ft_5_ft",
-    "name": "Carpet of Flying, 3 ft. × 5 ft.",
+    "name": "Carpet of Flying, 3 ft. x 5 ft.",
     "description": "You can make this carpet hover and fly by taking a magic|Magic action and using the carpet's command word. It moves according to your directions if yo...",
     "type": "accessory",
     "icon": "/assets/icons/items/carpet_of_flying_3_ft_5_ft.svg",
@@ -1569,7 +1585,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
   },
   "carpet_of_flying_4_ft_6_ft": {
     "id": "carpet_of_flying_4_ft_6_ft",
-    "name": "Carpet of Flying, 4 ft. × 6 ft.",
+    "name": "Carpet of Flying, 4 ft. x 6 ft.",
     "description": "You can make this carpet hover and fly by taking a magic|Magic action and using the carpet's command word. It moves according to your directions if yo...",
     "type": "accessory",
     "icon": "/assets/icons/items/carpet_of_flying_4_ft_6_ft.svg",
@@ -1577,7 +1593,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
   },
   "carpet_of_flying_5_ft_7_ft": {
     "id": "carpet_of_flying_5_ft_7_ft",
-    "name": "Carpet of Flying, 5 ft. × 7 ft.",
+    "name": "Carpet of Flying, 5 ft. x 7 ft.",
     "description": "You can make this carpet hover and fly by taking a magic|Magic action and using the carpet's command word. It moves according to your directions if yo...",
     "type": "accessory",
     "icon": "/assets/icons/items/carpet_of_flying_5_ft_7_ft.svg",
@@ -1585,7 +1601,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
   },
   "carpet_of_flying_6_ft_9_ft": {
     "id": "carpet_of_flying_6_ft_9_ft",
-    "name": "Carpet of Flying, 6 ft. × 9 ft.",
+    "name": "Carpet of Flying, 6 ft. x 9 ft.",
     "description": "You can make this carpet hover and fly by taking a magic|Magic action and using the carpet's command word. It moves according to your directions if yo...",
     "type": "accessory",
     "icon": "/assets/icons/items/carpet_of_flying_6_ft_9_ft.svg",
@@ -3531,7 +3547,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
   "glass_bottle": {
     "id": "glass_bottle",
     "name": "Glass Bottle",
-    "description": "A Glass Bottle holds up to 1½ pints....",
+    "description": "A Glass Bottle holds up to 11/2 pints....",
     "type": "accessory",
     "icon": "/assets/icons/items/glass_bottle.svg",
     "weight": 2,
@@ -6721,7 +6737,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
   "prosthetic_limb": {
     "id": "prosthetic_limb",
     "name": "Prosthetic Limb",
-    "description": "This magic item replaces a lost limb—a hand, an arm, a foot, a leg, or a similar body part. While the prosthetic is attached, it functions identically...",
+    "description": "This magic item replaces a lost limb-a hand, an arm, a foot, a leg, or a similar body part. While the prosthetic is attached, it functions identically...",
     "type": "accessory",
     "icon": "/assets/icons/items/prosthetic_limb.svg",
     "rarity": ItemRarity.Common

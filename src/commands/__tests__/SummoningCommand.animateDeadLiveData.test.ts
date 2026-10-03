@@ -76,7 +76,7 @@ describe('SummoningCommand live Animate Dead controlled-undead bridge', () => {
     ) as CombatCharacter | undefined;
 
     expect(undead).toBeDefined();
-    expect(undead?.name).toBe('Animated Skeleton');
+    expect(undead?.name).toBe('Skeleton 1');
     expect(undead?.summonMetadata).toEqual(expect.objectContaining({
       entityType: 'undead',
       formName: 'Skeleton',
@@ -90,8 +90,7 @@ describe('SummoningCommand live Animate Dead controlled-undead bridge', () => {
       control: expect.objectContaining({
         entityType: 'controlled_undead',
         source: 'animate-dead',
-        reassertIntervalHours: 24,
-        controlledActorIds: expect.arrayContaining([undead?.id])
+        restrictions: expect.arrayContaining(['control_duration_24_hours', 'recast_before_expiry_to_reassert_control'])
       })
     }));
 
@@ -102,7 +101,9 @@ describe('SummoningCommand live Animate Dead controlled-undead bridge', () => {
 
     expect(commandAbility).toBeDefined();
     expect(commandAbility?.cost.type).toBe('bonus');
-    expect(commandAbility?.range).toBe(60);
+    // The actor's local command button uses tile range; the 60-foot owner
+    // communication rule is retained in its control metadata above.
+    expect(commandAbility?.range).toBe(1);
 
     const firstCommands = AbilityCommandFactory.createCommands(
       commandAbility!,

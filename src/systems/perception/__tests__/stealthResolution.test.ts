@@ -40,7 +40,7 @@ function createTile(x: number, y: number, providesCover = false): BattleMapTile 
   return {
     id: `${x}-${y}`,
     coordinates: { x, y },
-    terrain: providesCover ? 'forest' : 'floor',
+    terrain: providesCover ? 'grass' : 'floor',
     elevation: 0,
     movementCost: 5,
     blocksLoS: false,

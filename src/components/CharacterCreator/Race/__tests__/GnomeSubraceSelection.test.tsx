@@ -26,23 +26,23 @@ const mockSubraces: GnomeSubrace[] = [
     name: 'Forest Gnome',
     description: 'Cunning illusionists in harmony with woodland life.',
     traits: ['Natural Illusionist', 'Speak with Small Beasts'],
-    grantedCantrip: { id: 'minor_illusion' },
-    grantedSpell: { id: 'speak_with_animals' },
+    grantedCantrip: { id: 'minor_illusion', spellcastingAbilitySource: 'subrace_choice' },
+    grantedSpell: { id: 'speak_with_animals', spellcastingAbilitySource: 'subrace_choice', usesDescription: 'Once per long rest', level: 1 },
   },
   {
     id: 'rock_gnome',
     name: 'Rock Gnome',
     description: 'Master tinkerers and tenacious inventors.',
     traits: ['Artificer Lore', 'Tinker'],
-    grantedCantrip: { id: 'mending' },
-    grantedSpell: { id: 'prestidigitation' },
+    grantedCantrip: { id: 'mending', spellcastingAbilitySource: 'subrace_choice' },
+    grantedSpell: { id: 'prestidigitation', spellcastingAbilitySource: 'subrace_choice', usesDescription: 'Once per long rest', level: 1 },
   },
   {
     id: 'deep_gnome',
     name: 'Deep Gnome',
     description: 'Resilient survivors of the lightless Underdark.',
     traits: ['Svirfneblin Camouflage'],
-    grantedSpell: { id: 'disguise_self' },
+    grantedSpell: { id: 'disguise_self', spellcastingAbilitySource: 'subrace_choice', usesDescription: 'Once per long rest', level: 1 },
   },
 ];
 

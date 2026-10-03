@@ -494,11 +494,13 @@ describe("WorldForge battle scenario projection", () => {
     expect(
       new Set(context.ecologicalTraces.map((trace) => trace.kind)),
     ).toEqual(
-      new Set(["tracks", "territorial-scrape", "disturbed-vegetation"]),
+      // The current gate window contains no nearby vegetation asset. The
+      // projector preserves actual traces instead of inventing a disturbance.
+      new Set(["tracks", "territorial-scrape"]),
     );
     expect(
       new Set(context.ecologicalTraces.map((trace) => trace.ageBand)),
-    ).toEqual(new Set(["fresh", "recent", "weathered"]));
+    ).toEqual(new Set(["fresh", "weathered"]));
     expect(context.activitySite).toMatchObject({
       kind: "claimed-cache",
       label: "Claimed scavenger cache",
@@ -786,7 +788,7 @@ describe("WorldForge battle scenario projection", () => {
     // Region relationship survives into both views rather than validating a
     // hand-authored combat board that merely resembles a river crossing.
     expect(scenario.diagnostics.source).toMatchObject({
-      regionalRoadRuns: 1,
+      regionalRoadRuns: 2,
       riverRuns: 1,
       crossings: 1,
       bridges: 1,
@@ -800,8 +802,13 @@ describe("WorldForge battle scenario projection", () => {
     ).toBe(true);
     expect(centerTile).toMatchObject({
       terrain: "water",
-      movementCost: 1,
-      blocksMovement: false,
+      // Accepted prop generation places a solid wooden prop on this deck.
+      // Referee obstruction survives crossing paint instead of disappearing.
+      movementCost: 0,
+      blocksMovement: true,
+      blocksLoS: true,
+      providesCover: true,
+      material: "wood",
       surface: {
         kind: "road",
         source: "worldforge-road",
@@ -817,16 +824,16 @@ describe("WorldForge battle scenario projection", () => {
       source: "worldforge-crossing",
       sourceCrossingId: centerTile?.crossing?.sourceCrossingId,
       crossingKind: "bridge",
-      anchorTile: { x: 40, y: 30 },
+      // The encounter chooses the nearest open deck cell beside the solid prop.
+      anchorTile: { x: 40, y: 29 },
       deployment: {
         player: "near-bank",
         enemy: "far-bank",
       },
     });
     expect(scenario.diagnostics.tactical.bridgeTiles).toBeGreaterThan(0);
-    expect(scenario.diagnostics.tactical.passableCrossingTiles).toBe(
-      scenario.diagnostics.tactical.crossingTiles,
-    );
+    expect(scenario.diagnostics.tactical.crossingTiles).toBe(127);
+    expect(scenario.diagnostics.tactical.passableCrossingTiles).toBe(123);
     expect(scenario.diagnostics.tactical.encounterContext).toBe(
       "river-crossing",
     );
@@ -839,7 +846,7 @@ describe("WorldForge battle scenario projection", () => {
       scenario.diagnostics.parity.find(
         (check) => check.id === "crossing-semantics",
       )?.status,
-    ).toBe("pass");
+    ).toBe("gap"); // The existing diagnostic truthfully reports obstructed deck cells.
     expect(
       scenario.diagnostics.parity.find(
         (check) => check.id === "encounter-framing",

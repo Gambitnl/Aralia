@@ -1,19 +1,3 @@
-// @dependencies-start
-/**
- * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
- *
- * Last Sync: 13/08/2026, 06:17:27
- * Dependents: components/DesignPreview/steps/scenarioControls/spellSlotsUpcastingScenarioControls.ts
- * Imports: 12 files
- *
- * MULTI-AGENT SAFETY:
- * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
- * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
- */
-// @dependencies-end
-
 /**
  * Resolves one save-based damage spell against the live combat roster.
  *
@@ -28,6 +12,22 @@
  * Depends on: spellAbilityFactory, TargetResolver, ScalingEngine, action economy,
  * saving throws, resistance handling, dice rolling, and downed-state helpers.
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 04/10/2026, 00:42:29
+ * Dependents: components/DesignPreview/steps/scenarioControls/spellSlotsUpcastingScenarioControls.ts, components/DesignPreview/steps/spells/thunderwaveScenario.tsx
+ * Imports: 12 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
 
 import type { PlayerCharacter } from '../../../types';
 import type {
@@ -97,9 +97,7 @@ export type DamageSpellCastRejectionReason =
   | 'slot_unavailable'
   | `invalid_target:${string}`;
 
-export interface DamageSpellCastResolution {
-  status: 'resolved' | 'rejected';
-  reason: 'resolved' | DamageSpellCastRejectionReason;
+export type DamageSpellCastResolution = {
   characters: CombatCharacter[];
   casterBefore?: CombatCharacter;
   casterAfter?: CombatCharacter;
@@ -113,7 +111,7 @@ export interface DamageSpellCastResolution {
   finalDamage: number;
   saveTotal?: number;
   saveDC?: number;
-}
+} & ({ status: 'resolved'; reason: 'resolved' } | { status: 'rejected'; reason: DamageSpellCastRejectionReason });
 
 /**
  * Converts canonical spell data into a cast request at one exact slot level.
@@ -259,7 +257,7 @@ export function resolveDamageSpellCast(
   }
 
   const effect = findSaveDamageEffect(spell);
-  if (!effect) {
+  if (!effect || !effect.condition.saveType) {
     return reject('unsupported_damage_spell');
   }
 

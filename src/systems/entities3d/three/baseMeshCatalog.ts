@@ -10,6 +10,22 @@
  * No three.js import here: the lab toolbar (eager bundle) reads this list.
  */
 
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 04/10/2026, 00:42:29
+ * Dependents: components/DesignPreview/steps/PartLabScene.tsx, components/DesignPreview/steps/PreviewPartLab.tsx
+ * Imports: None
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 export type BaseMeshKind = 'body' | 'head' | 'hand';
 
 export interface BaseMeshDef {
@@ -17,7 +33,7 @@ export interface BaseMeshDef {
   label: string;
   kind: BaseMeshKind;
   /** Pack the model came from, for the credit line. */
-  pack: 'lowpoly-2026' | 'stylized-basemesh';
+  pack: 'lowpoly-2026' | 'stylized-basemesh' | 'hand-animtest';
   /** Triangles after the split (from manifest.json). */
   tris: number;
   note: string;

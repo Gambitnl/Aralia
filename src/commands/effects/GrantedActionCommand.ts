@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 10/08/2026, 13:58:09
+ * Last Sync: 04/10/2026, 00:42:28
  * Dependents: commands/factory/AbilityCommandFactory.ts
- * Imports: 12 files
+ * Imports: 13 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -617,6 +617,8 @@ export class GrantedActionCommand extends BaseEffectCommand {
 
   private createLogData(actionLabel: string): Record<string, unknown> {
     return {
+      // A later granted action still belongs to the spell that created it.
+      spellId: this.context.spellId,
       grantedActionName: actionLabel,
       grantedActionCost: this.options.actionCost,
       grantedActionFrequency: this.options.frequency,

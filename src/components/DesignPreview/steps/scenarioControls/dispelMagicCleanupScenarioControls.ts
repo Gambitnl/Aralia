@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 11/08/2026, 23:59:51
+ * Last Sync: 04/10/2026, 00:42:28
  * Dependents: components/DesignPreview/steps/PreviewCombatScenarios.tsx, components/DesignPreview/steps/scenarioControls/PreviewCombatScenarioControlRegistry.ts
- * Imports: 11 files
+ * Imports: 7 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -14,6 +14,7 @@
  */
 // @dependencies-end
 
+import { createMockSpellSlots } from '@/utils/core/factories';
 /**
  * This file owns the deterministic controls for Dispel Magic & Effect Cleanup.
  *
@@ -105,9 +106,9 @@ function findStatusConditionName(spell: Spell): string | null {
 }
 
 function createSpellSlots(): SpellSlots {
-  return {
+  return createMockSpellSlots({
     level_3: { current: 1, max: 1 },
-  };
+  });
 }
 
 function readSlot(character: CombatCharacter, level: number): string {

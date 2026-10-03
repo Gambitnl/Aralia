@@ -1,3 +1,4 @@
+import { createMockSpellSlots } from '@/utils/core/factories';
 /**
  * This file proves the CS26 adapter consumes cumulative mounted state.
  *
@@ -39,7 +40,7 @@ function createTile(x: number, y: number): BattleMapTile {
   return {
     id: `${x}-${y}`,
     coordinates: { x, y },
-    terrain: 'stone',
+    terrain: 'rock',
     elevation: 0,
     movementCost: 1,
     blocksLoS: false,
@@ -173,6 +174,7 @@ describe('spellSlotsUpcastingScenarioControls', () => {
       spellId: 'bless',
       casterId: paidCaster.id,
       sourceName: 'Preserved Effect',
+      type: 'buff', startTime: 1,
       duration: { type: 'rounds', value: 3 },
       mechanics: {},
     }];

@@ -436,7 +436,7 @@ describe('useCombatEngine scheduled spell effects', () => {
     });
   });
 
-  it('refreshes scheduled status conditions by name instead of stacking duplicates', () => {
+  it('refreshes scheduled status conditions from the same source without stacking duplicates', () => {
     const caster = createCharacter({ id: 'caster', name: 'Caster', team: 'player', position: { x: 0, y: 0 } });
     const target = createCharacter({
       statusEffects: [{
@@ -444,13 +444,13 @@ describe('useCombatEngine scheduled spell effects', () => {
         name: 'Frightened',
         type: 'debuff',
         duration: 1,
-        source: 'old-fear'
+        source: 'delayed-fear', sourceCasterId: caster.id
       }],
       conditions: [{
         name: 'Frightened',
         duration: { type: 'rounds', value: 1 },
         appliedTurn: 1,
-        source: 'old-fear'
+        source: 'delayed-fear', sourceCasterId: caster.id
       }]
     });
     const scheduledEffect: ScheduledSpellEffect = {
@@ -667,13 +667,13 @@ describe('useCombatEngine environmental tile status effects', () => {
         name: 'Slowed',
         type: 'debuff',
         duration: 3,
-        source: 'old-mud'
+        source: 'Slowed'
       }],
       conditions: [{
         name: 'Slowed',
         duration: { type: 'rounds', value: 3 },
         appliedTurn: 4,
-        source: 'old-mud'
+        source: 'Slowed'
       }]
     });
     const mapData = {

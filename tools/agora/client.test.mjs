@@ -28,6 +28,11 @@ before(async () => {
   serverDir = fs.mkdtempSync(path.join(os.tmpdir(), 'agora-client-srv-'));
   clientDir = fs.mkdtempSync(path.join(os.tmpdir(), 'agora-client-id-'));
   app = createAgoraServer({ dir: serverDir });
+  // Synchronous Git fixtures pause this in-process server's event loop. Keep
+  // pooled client sockets alive across those pauses so later commands cannot
+  // race the server's idle-close timer. Production socket policy is unchanged.
+  app.server.keepAliveTimeout = 120_000;
+  app.server.headersTimeout = 125_000;
   await new Promise((resolve) => app.listen(0, resolve));
   const port = app.server.address().port;
   baseUrl = `http://127.0.0.1:${port}`;

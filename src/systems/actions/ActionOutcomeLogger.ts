@@ -1,19 +1,3 @@
-// @dependencies-start
-/**
- * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
- *
- * Last Sync: 26/08/2026, 16:49:27
- * Dependents: systems/actions/index.ts
- * Imports: 3 files
- *
- * MULTI-AGENT SAFETY:
- * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
- * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
- */
-// @dependencies-end
-
 /**
  * This file turns raw action results into rich narrative stories and game log events.
  *
@@ -27,11 +11,27 @@
  * Depends on: combat types, journal event definitions, and core ID generation.
  */
 
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 04/10/2026, 00:42:29
+ * Dependents: systems/actions/index.ts
+ * Imports: 4 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import {
   CombatLogEntryInput,
-  CombatLogType,
-  DamageType
+  CombatLogType
 } from '../../types/combat';
+import type { DamageType } from '../../types/spells';
 import {
   JournalEvent,
   JournalEventType

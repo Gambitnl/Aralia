@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 26/08/2026, 13:54:35
- * Dependents: components/BattleMap/BattleMap.tsx
- * Imports: 3 files
+ * Last Sync: 04/10/2026, 00:42:28
+ * Dependents: components/BattleMap/BattleMap.tsx, components/BattleMap/layers/BattleMapRulers.tsx
+ * Imports: 5 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -22,7 +22,7 @@ import type { BattleMapTile as BattleMapTileData, CombatCharacter } from "../../
 import { Z_INDEX } from "../../styles/zIndex";
 import {
   describeBattleMapTerrain,
-  type ElevationDescription,
+  type BattleMapElevationPresentation as ElevationDescription,
 } from "./elevationPresentation";
 
 /**

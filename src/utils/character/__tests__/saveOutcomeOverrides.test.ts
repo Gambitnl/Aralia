@@ -13,15 +13,17 @@
  */
 import { describe, expect, it } from 'vitest';
 import { resolveSaveOutcomeOverride } from '../savingThrowUtils';
-import type { CombatCharacter } from '@/types/combat';
+import { createMockCombatCharacter, type MockCombatCharacterOverrides } from '@/utils/core/factories';
+import type { SaveOutcomeOverride } from '@/types/spells';
 
-const createMockCharacter = (overrides: Partial<CombatCharacter> = {}): CombatCharacter => ({
+const createMockCharacter = (overrides: MockCombatCharacterOverrides = {}) => createMockCombatCharacter({
   id: 'char_test',
   name: 'Test Character',
   team: 'enemy',
+  level: 5,
+  currentHP: 50,
+  maxHP: 50,
   stats: {
-    hp: 50,
-    maxHp: 50,
     strength: 14,
     dexterity: 12,
     constitution: 14,
@@ -30,9 +32,8 @@ const createMockCharacter = (overrides: Partial<CombatCharacter> = {}): CombatCh
     charisma: 10,
     size: 'Medium',
     speed: 30,
-    armorClass: 14,
-    level: 5,
-    cr: 5,
+    baseInitiative: 0,
+    cr: '5',
     creatureTypes: ['Humanoid']
   },
   position: { x: 0, y: 0 },
@@ -48,7 +49,7 @@ describe('resolveSaveOutcomeOverride', () => {
       creatureTypes: ['Humanoid']
     });
 
-    const overrides = [{ outcome: 'auto_failure', condition: 'is_plant_creature' }];
+    const overrides: SaveOutcomeOverride[] = [{ effect: 'no_additional_effect', outcome: 'auto_failure', condition: 'is_plant_creature' }];
 
     const plantResult = resolveSaveOutcomeOverride(overrides, plantTarget, 15);
     expect(plantResult).toBeDefined();
@@ -67,7 +68,7 @@ describe('resolveSaveOutcomeOverride', () => {
       creatureTypes: ['Humanoid']
     });
 
-    const overrides = [{ outcome: 'auto_success', condition: 'not_humanoid' }];
+    const overrides: SaveOutcomeOverride[] = [{ effect: 'no_additional_effect', outcome: 'auto_success', condition: 'not_humanoid' }];
 
     const beastResult = resolveSaveOutcomeOverride(overrides, beastTarget, 14);
     expect(beastResult).toBeDefined();
@@ -98,8 +99,8 @@ describe('resolveSaveOutcomeOverride', () => {
       }
     });
 
-    const overrides = [
-      { outcome: 'auto_success', condition: 'target_size_huge_or_larger' }
+    const overrides: SaveOutcomeOverride[] = [
+      { effect: 'no_additional_effect', outcome: 'auto_success', condition: 'target_size_huge_or_larger' }
     ];
 
     const hugeResult = resolveSaveOutcomeOverride(overrides, hugeTarget, 16);
@@ -122,8 +123,8 @@ describe('resolveSaveOutcomeOverride', () => {
       team: 'player'
     });
 
-    const overrides = [
-      { outcome: 'auto_success', condition: 'fighting_caster_or_allies' }
+    const overrides: SaveOutcomeOverride[] = [
+      { effect: 'no_additional_effect', outcome: 'auto_success', condition: 'fighting_caster_or_allies' }
     ];
 
     // Enemy is fighting player team -> auto-success
@@ -148,8 +149,8 @@ describe('resolveSaveOutcomeOverride', () => {
       voluntaryFailure: false
     });
 
-    const overrides = [
-      { outcome: 'voluntary_failure_allowed', condition: 'target_size_large_or_smaller' }
+    const overrides: SaveOutcomeOverride[] = [
+      { effect: 'no_additional_effect', outcome: 'voluntary_failure_allowed', condition: 'target_size_large_or_smaller' }
     ];
 
     const consentingResult = resolveSaveOutcomeOverride(overrides, consentingTarget, 15);
@@ -163,13 +164,13 @@ describe('resolveSaveOutcomeOverride', () => {
 
   it('resolves condition immunities for charmed and frightened', () => {
     const charmedImmune = createMockCharacter({
-      conditionImmunities: ['charmed']
+      conditionImmunities: ['Charmed']
     });
     const normal = createMockCharacter({
       conditionImmunities: []
     });
 
-    const charmedOverrides = [{ outcome: 'auto_success', condition: 'immune_to_charmed' }];
+    const charmedOverrides: SaveOutcomeOverride[] = [{ effect: 'no_additional_effect', outcome: 'auto_success', condition: 'immune_to_charmed' }];
 
     expect(resolveSaveOutcomeOverride(charmedOverrides, charmedImmune, 15)?.success).toBe(true);
     expect(resolveSaveOutcomeOverride(charmedOverrides, normal, 15)).toBeUndefined();
